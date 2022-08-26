@@ -386,6 +386,14 @@ class MockFiroWallet extends _i1.Mock implements _i7.FiroWallet {
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
+  _i8.Future<dynamic> GetCoinsToJoinSplit(int? required) =>
+      (super.noSuchMethod(Invocation.method(#GetCoinsToJoinSplit, [required]),
+          returnValue: Future<dynamic>.value()) as _i8.Future<dynamic>);
+  @override
+  _i8.Future<int> EstimateJoinSplitFee(int? spendAmount) => (super.noSuchMethod(
+      Invocation.method(#EstimateJoinSplitFee, [spendAmount]),
+      returnValue: Future<int>.value(0)) as _i8.Future<int>);
+  @override
   _i8.Future<int> estimateFeeFor(int? satoshiAmount, int? feeRate) =>
       (super.noSuchMethod(
           Invocation.method(#estimateFeeFor, [satoshiAmount, feeRate]),
