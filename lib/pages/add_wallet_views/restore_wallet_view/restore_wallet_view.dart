@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:math';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
@@ -26,6 +26,7 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/custom_text_selection_controls.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -70,25 +71,61 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   final ScrollController controller = ScrollController();
 
   final List<TextEditingController> _controllers = [];
-  // late final TextEditingController _heightController;
   final List<FormInputStatus> _inputStatuses = [];
 
-  // late final FocusNode _heightFocusNode;
-
   late final BarcodeScannerInterface scanner;
+
+  late final TextSelectionControls textSelectionControls;
+
+  Future<void> onControlsPaste(TextSelectionDelegate delegate) async {
+    final data = await widget.clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text == null) {
+      return;
+    }
+
+    final text = data!.text!.trim();
+    if (text.isEmpty || _controllers.isEmpty) {
+      delegate.pasteText(SelectionChangedCause.toolbar);
+      return;
+    }
+
+    final words = text.split(" ");
+    if (words.isEmpty) {
+      delegate.pasteText(SelectionChangedCause.toolbar);
+      return;
+    }
+
+    if (words.length == 1) {
+      _controllers.first.text = words.first;
+      if (_isValidMnemonicWord(words.first.toLowerCase())) {
+        setState(() {
+          _inputStatuses.first = FormInputStatus.valid;
+        });
+      } else {
+        setState(() {
+          _inputStatuses.first = FormInputStatus.invalid;
+        });
+      }
+      return;
+    }
+
+    _clearAndPopulateMnemonic(words);
+  }
 
   @override
   void initState() {
     _seedWordCount = widget.seedWordsLength;
 
-    // _heightFocusNode = FocusNode();
+    textSelectionControls = Platform.isIOS
+        ? CustomCupertinoTextSelectionControls(onPaste: onControlsPaste)
+        : CustomMaterialTextSelectionControls(onPaste: onControlsPaste);
 
     scanner = widget.barcodeScanner;
     for (int i = 0; i < _seedWordCount; i++) {
       _controllers.add(TextEditingController());
       _inputStatuses.add(FormInputStatus.empty);
     }
-    // _heightController = TextEditingController();
+
     super.initState();
   }
 
@@ -97,8 +134,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     for (var element in _controllers) {
       element.dispose();
     }
-    // _heightController.dispose();
-    // _heightFocusNode.dispose();
+
     super.dispose();
   }
 
@@ -404,6 +440,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         _inputStatuses[i] = FormInputStatus.empty;
       });
     }
+
+    controller.animateTo(controller.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300), curve: Curves.decelerate);
   }
 
   @override
@@ -442,17 +481,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 ),
                 onPressed: () async {
                   try {
-                    // ref
-                    //     .read(shouldShowLockscreenOnResumeStateProvider.state)
-                    //     .state = false;
                     final qrResult = await scanner.scan();
-
-                    // Future<void>.delayed(
-                    //   const Duration(seconds: 2),
-                    //   () => ref
-                    //       .read(shouldShowLockscreenOnResumeStateProvider.state)
-                    //       .state = true,
-                    // );
 
                     final results =
                         AddressUtils.decodeQRSeedData(qrResult.rawContent);
@@ -474,9 +503,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                       }
                     }
                   } on PlatformException catch (e) {
-                    // ref
-                    //     .read(shouldShowLockscreenOnResumeStateProvider.state)
-                    //     .state = true;
                     // likely failed to get camera permissions
                     Logging.instance.log("Restore wallet qr scan failed: $e",
                         level: LogLevel.Warning);
@@ -512,9 +538,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                     final content = data.text!.trim();
                     final list = content.split(" ");
                     _clearAndPopulateMnemonic(list);
-                    controller.animateTo(controller.position.maxScrollExtent,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.decelerate);
                   }
                 },
               ),
@@ -572,6 +595,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                         _inputStatuses[i - 1], "$i"),
                                     autovalidateMode:
                                         AutovalidateMode.onUserInteraction,
+                                    selectionControls:
+                                        i == 1 ? textSelectionControls : null,
                                     onChanged: (value) {
                                       if (value.isEmpty) {
                                         setState(() {
