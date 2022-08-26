@@ -18,7 +18,7 @@ jobs:
       - name: Create temp files
         id: secret-file1
         run: |
-          $secretFile = Join-Path -Path $env:RUNNER_TEMP -ChildPath "lib/secret-file.txt";
+          $secretFile = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "lib/secret-file.txt";
           $encodedBytes = [System.Convert]::FromBase64String($env:CHANGE_NOW);
           Set-Content $secretFile -Value $encodedBytes -AsByteStream;
           $secretFileHash = Get-FileHash $secretFile;
