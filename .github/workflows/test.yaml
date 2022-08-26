@@ -15,7 +15,27 @@ jobs:
         run: git submodule update --init --recursive
       - name: Get dependencies
         run: flutter pub get
+      - name: Create temp files
+        id: secret-file1
+        run: |
+          $secretFile = Join-Path -Path $env:RUNNER_TEMP -ChildPath "lib/secret-file.txt";
+          $encodedBytes = [System.Convert]::FromBase64String($env:CHANGE_NOW);
+          Set-Content $secretFile -Value $encodedBytes -AsByteStream;
+          $secretFileHash = Get-FileHash $secretFile;
+          Write-Output "::set-output name=SECRET_FILE::$secretFile";
+          Write-Output "::set-output name=SECRET_FILE_HASH::$($secretFileHash.Hash)";
+          Write-Output "Secret file $secretFile has hash $($secretFileHash.Hash)";
+        shell: pwsh
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
       - name: Analyze
         run: flutter analyze
       - name: Test
         run: flutter test
+      - name: Delete temp files
+        run: |
+          Remove-Item -Path $env:CHANGE_NOW;
+        shell: pwsh
+        if: always()
+        env:
+          CHANGE_NOW: ${{ steps.secret-file1.outputs.SECRET_FILE }}
