@@ -18,16 +18,34 @@ jobs:
       - name: Create temp files
         id: secret-file1
         run: |
-          $secretFile = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "lib/external_api_keys.dart";
+          $secretFileExchange = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "lib/external_api_keys.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:CHANGE_NOW);
-          Set-Content $secretFile -Value $encodedBytes -AsByteStream;
-          $secretFileHash = Get-FileHash $secretFile;
-          Write-Output "::set-output name=SECRET_FILE::$secretFile";
-          Write-Output "::set-output name=SECRET_FILE_HASH::$($secretFileHash.Hash)";
-          Write-Output "Secret file $secretFile has hash $($secretFileHash.Hash)";
+          Set-Content $secretFileExchange -Value $encodedBytes -AsByteStream;
+          $secretFileExchangeHash = Get-FileHash $secretFileExchange;
+          Write-Output "::set-output name=SECRET_FILE_EXCHANGE::$secretFileExchange";
+          Write-Output "::set-output name=SECRET_FILE_EXCHANGE_HASH::$($secretFileExchangeHash.Hash)";
+          Write-Output "Secret file $secretFileExchange has hash $($secretFileExchangeHash.Hash)";
+          
+          $secretFileBitcoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart";
+          $encodedBytes = [System.Convert]::FromBase64String($env:BITCOIN_TEST);
+          Set-Content $secretFileBitcoin -Value $encodedBytes -AsByteStream;
+          $secretFileBitcoinHash = Get-FileHash $secretFileBitcoin;
+          Write-Output "::set-output name=SECRET_FILE_BITCOIN::$secretFileBitcoin";
+          Write-Output "::set-output name=SECRET_FILE_BITCOIN_HASH::$($secretFileBitcoinHash.Hash)";
+          Write-Output "Secret file $secretFileBitcoin has hash $($secretFileBitcoinHash.Hash)";
+          
+          $secretFileDogecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart";
+          $encodedBytes = [System.Convert]::FromBase64String($env:DOGECOIN_TEST);
+          Set-Content $secretFileDogecoin -Value $encodedBytes -AsByteStream;
+          $secretFileDogecoinHash = Get-FileHash $secretFileDogecoin;
+          Write-Output "::set-output name=SECRET_FILE_DOGECOIN::$secretFileDogecoin";
+          Write-Output "::set-output name=SECRET_FILE_DOGECOIN_HASH::$($secretFileDogecoinHash.Hash)";
+          Write-Output "Secret file $secretFileDogecoin has hash $($secretFileDogecoinHash.Hash)";
         shell: pwsh
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+          BITCOIN_TEST: ${{ secrets.BITCOIN_TEST }}
+          DOGECOIN_TEST: ${{ secrets.DOGECOIN_TEST }}
       - name: Analyze
         run: flutter analyze
       - name: Test
@@ -35,7 +53,11 @@ jobs:
       - name: Delete temp files
         run: |
           Remove-Item -Path $env:CHANGE_NOW;
+          Remove-Item -Path $env:BITCOIN_TEST;
+          Remove-Item -Path $env:DOGECOIN_TEST;
         shell: pwsh
         if: always()
         env:
-          CHANGE_NOW: ${{ steps.secret-file1.outputs.SECRET_FILE }}
+          CHANGE_NOW: ${{ steps.secret-file1.outputs.SECRET_FILE_EXCHANGE }}
+          BITCOIN_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_BITCOIN }}
+          DOGECOIN_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_DOGECOIN }}
