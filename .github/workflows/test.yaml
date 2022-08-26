@@ -41,11 +41,20 @@ jobs:
           Write-Output "::set-output name=SECRET_FILE_DOGECOIN::$secretFileDogecoin";
           Write-Output "::set-output name=SECRET_FILE_DOGECOIN_HASH::$($secretFileDogecoinHash.Hash)";
           Write-Output "Secret file $secretFileDogecoin has hash $($secretFileDogecoinHash.Hash)";
+          
+          $secretFileFiro = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/firo/firo_wallet_test_parameters.dart";
+          $encodedBytes = [System.Convert]::FromBase64String($env:FIRO_TEST);
+          Set-Content $secretFileFiro -Value $encodedBytes -AsByteStream;
+          $secretFileFiroHash = Get-FileHash $secretFileFiro;
+          Write-Output "::set-output name=SECRET_FILE_FIRO::$secretFileFiro";
+          Write-Output "::set-output name=SECRET_FILE_FIRO_HASH::$($secretFileFiroHash.Hash)";
+          Write-Output "Secret file $secretFileFiro has hash $($secretFileFiroHash.Hash)";
         shell: pwsh
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
           BITCOIN_TEST: ${{ secrets.BITCOIN_TEST }}
           DOGECOIN_TEST: ${{ secrets.DOGECOIN_TEST }}
+          FIRO_TEST: ${{ secrets.FIRO_TEST }}
 #      - name: Analyze
 #        run: flutter analyze
       - name: Test
@@ -55,9 +64,11 @@ jobs:
           Remove-Item -Path $env:CHANGE_NOW;
           Remove-Item -Path $env:BITCOIN_TEST;
           Remove-Item -Path $env:DOGECOIN_TEST;
+          Remove-Item -Path $env:FIRO_TEST;
         shell: pwsh
         if: always()
         env:
           CHANGE_NOW: ${{ steps.secret-file1.outputs.SECRET_FILE_EXCHANGE }}
           BITCOIN_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_BITCOIN }}
           DOGECOIN_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_DOGECOIN }}
+          FIRO_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_FIRO }}
