@@ -46,8 +46,8 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
           BITCOIN_TEST: ${{ secrets.BITCOIN_TEST }}
           DOGECOIN_TEST: ${{ secrets.DOGECOIN_TEST }}
-      - name: Analyze
-        run: flutter analyze
+#      - name: Analyze
+#        run: flutter analyze
       - name: Test
         run: flutter test
       - name: Delete temp files
