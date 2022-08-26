@@ -1,0 +1,4 @@
+enum CreateWalletType {
+  NEW,
+  RESTORE,
+}

@@ -1,0 +1,97 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
+# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
+# invoked from the command line by running `flutter analyze`.
+
+# The following line activates a set of recommended lints for Flutter apps,
+# packages, and plugins designed to encourage good coding practices.
+include: package:flutter_lints/flutter.yaml
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "test/.test_coverage.dart"
+    - "integrated_test/**"
+    - "integration_test/**.dart"
+    - "crypto_plugins/**"
+    - "bin/cache/**"
+    - "lib/generated_plugin_registrant.dart"
+
+  # For more information see:
+  # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+
+  errors:
+    # Without ignore here, we cause import of all_lint_rules to warn, because some rules conflict.
+    # We explicitly enabled even conflicting rules and are fixing the conflicts in this file.
+    # Put it to warning temporarily, if you need troubleshoot lint rule settings.
+    included_file_warning: ignore
+
+    # Treat missing required parameters as an error, not as a hint or a warning.
+    missing_required_param: error
+
+    # Treat missing returns as an error, not as a hint or a warning.
+    missing_return: error
+
+    # Allow self-reference to deprecated members. This is done because otherwise we have
+    # to annotate every member in every test, assert, etc., when we deprecate something.
+    deprecated_member_use_from_same_package: ignore
+
+    # DON'T assign new values to parameters of methods or functions.
+    #
+    # https://dart-lang.github.io/linter/lints/parameter_assignments.html
+    #
+    # Treat assigning new values to a parameter as a warning. We would almost like to set this
+    # to an error. However, this warning rule or even more so if set to an error, can sometimes
+    # be a bit problematic you include other code directly that does it a lot.
+    # It does however, make code safer when this cannot be done without involving
+    # an extra local variable for clarity and safety. Enabling this error, even as just a warning,
+    # does get in the way a bit if all you want to do is a null to default value release runtime
+    # safety/fallback assignment. For that use case you have to add a local rule override. With
+    # null-safety, the need for this kind of null check and re-assignment to default if null,
+    # is rarely needed. Considering the comment in:
+    # https://dart-lang.github.io/linter/lints/parameter_assignments.html:
+    # "Assigning new values to parameters is generally a bad practice unless an operator
+    # such as ??= is used. Otherwise, arbitrarily reassigning parameters is usually a mistake."
+    # One might even think the rule would allow using the ??= operator, but it does not. For now,
+    # we keep this lint as warning and overriding locally with:
+    #
+    # When we need it for the ??= operator, or some copy/paste in of some code that does things
+    # that needs it too, and that we don't want to deal with fixing at the moment.
+    parameter_assignments: warning
+
+    # Allow having TODOs in the code.
+    todo: ignore
+
+linter:
+  # The lint rules applied to this project can be customized in the
+  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
+  # included above or to enable additional rules. A list of all available lints
+  # and their documentation is published at
+  # https://dart-lang.github.io/linter/lints/index.html.
+  #
+  # Instead of disabling a lint rule for the entire project in the
+  # section below, it can also be suppressed for a single line of code
+  # or a specific dart file by using the `// ignore: name_of_lint` and
+  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
+  # producing the lint.
+  rules:
+    always_use_package_imports: true
+    avoid_relative_lib_imports: true
+    no_leading_underscores_for_local_identifiers: false
+    no_leading_underscores_for_library_prefixes: false
+    avoid_print: true
+    unawaited_futures: false
+    avoid_double_and_int_checks: false
+    constant_identifier_names: false
+  # avoid_print: false  # Uncomment to disable the `avoid_print` rule
+  # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+
+# Additional information about this file can be found at
+# https://dart.dev/guides/language/analysis-options

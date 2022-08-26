@@ -1,0 +1,1 @@
+enum WalletBalanceToggleState { full, available }

@@ -1,0 +1,10 @@
+gradle-wrapper.jar
+/.gradle
+/captures/
+/gradlew
+/gradlew.bat
+/local.properties
+/key.properties
+app/upload-keystore-campfire.jks
+app/upload-keystore-stackwallet.jks
+GeneratedPluginRegistrant.java
