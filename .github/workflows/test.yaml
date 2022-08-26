@@ -11,6 +11,8 @@ jobs:
           channel: 'stable'
       - name: Install Flutter
         uses: subosito/flutter-action@v2
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
       - name: Get dependencies
         run: flutter pub get
       - name: Analyze
