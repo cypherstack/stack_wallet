@@ -13,8 +13,8 @@ put features here
 
 After that download the project and init the submodules
 ```
-git clone https://github.com/cypherstack/Campfire.git
-cd Campfire
+git clone https://github.com/cypherstack/stack_wallet.git
+cd stack_wallet
 git submodule update --init --recursive
 ```
 
