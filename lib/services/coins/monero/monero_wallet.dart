@@ -5,6 +5,7 @@ import 'package:cw_core/monero_amount_format.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/node.dart';
 import 'package:cw_core/pending_transaction.dart';
+import 'package:cw_core/sync_status.dart';
 import 'package:cw_core/transaction_direction.dart';
 import 'package:cw_core/wallet_base.dart';
 import 'package:cw_core/wallet_credentials.dart';
@@ -12,7 +13,6 @@ import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_monero/api/exceptions/creation_transaction_exception.dart';
-import 'package:cw_monero/api/wallet.dart';
 import 'package:cw_monero/monero_wallet.dart';
 import 'package:cw_monero/pending_monero_transaction.dart';
 import 'package:dart_numerics/dart_numerics.dart';
@@ -24,6 +24,7 @@ import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
+import 'package:mutex/mutex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stackwallet/hive/db.dart';
@@ -121,10 +122,10 @@ class MoneroWallet extends CoinServiceAPI {
         node: Node(uri: "$host:${node.port}", type: WalletType.monero));
 
     // TODO: is this sync call needed? Do we need to notify ui here?
-    walletBase?.startSync();
+    await walletBase?.startSync();
 
     if (shouldRefresh) {
-      refresh();
+      await refresh();
     }
   }
 
@@ -142,13 +143,27 @@ class MoneroWallet extends CoinServiceAPI {
   Future<List<String>> get mnemonic => _getMnemonicList();
 
   Future<int> get currentNodeHeight async {
-    int currentHeight = await getNodeHeight();
+    int _height = -1;
+    try {
+      _height = (walletBase!.syncStatus as SyncingSyncStatus).height;
+    } catch (e, s) {}
+
+    int blocksRemaining = -1;
+
+    try {
+      blocksRemaining =
+          (walletBase!.syncStatus as SyncingSyncStatus).blocksLeft;
+    } catch (e, s) {}
+    int currentHeight = _height + blocksRemaining;
+    if (_height == -1 || blocksRemaining == -1) {
+      currentHeight = int64MaxValue;
+    }
     final cachedHeight = DB.instance
             .get<dynamic>(boxName: walletId, key: "storedNodeHeight") as int? ??
         0;
 
-    if (currentHeight > cachedHeight) {
-      DB.instance.put<dynamic>(
+    if (currentHeight > cachedHeight && currentHeight != int64MaxValue) {
+      await DB.instance.put<dynamic>(
           boxName: walletId, key: "storedNodeHeight", value: currentHeight);
       return currentHeight;
     } else {
@@ -156,16 +171,19 @@ class MoneroWallet extends CoinServiceAPI {
     }
   }
 
-  int get currentSyncingHeight {
+  Future<int> get currentSyncingHeight async {
     //TODO return the tip of the monero blockchain
-    final syncingHeight = getSyncingHeight();
+    int syncingHeight = -1;
+    try {
+      syncingHeight = (walletBase!.syncStatus as SyncingSyncStatus).height;
+    } catch (e, s) {}
     final cachedHeight =
         DB.instance.get<dynamic>(boxName: walletId, key: "storedSyncingHeight")
                 as int? ??
             0;
 
     if (syncingHeight > cachedHeight) {
-      DB.instance.put<dynamic>(
+      await DB.instance.put<dynamic>(
           boxName: walletId, key: "storedSyncingHeight", value: syncingHeight);
       return syncingHeight;
     } else {
@@ -270,63 +288,72 @@ class MoneroWallet extends CoinServiceAPI {
 
   Timer? syncPercentTimer;
 
-  void stopSyncPercentTimer() {
+  Mutex syncHeightMutex = Mutex();
+  Future<void> stopSyncPercentTimer() async {
     syncPercentTimer?.cancel();
     syncPercentTimer = null;
   }
 
-  void startSyncPercentTimer() {
+  Future<void> startSyncPercentTimer() async {
+    if (syncPercentTimer != null) {
+      return;
+    }
     syncPercentTimer?.cancel();
     GlobalEventBus.instance
         .fire(RefreshPercentChangedEvent(highestPercentCached, walletId));
-    syncPercentTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
-      // int restoreheight = walletBase!.walletInfo.restoreHeight ?? 0;
-      int _height = currentSyncingHeight;
-      int _currentHeight = await currentNodeHeight;
-
-      final int blocksRemaining = _currentHeight - _height;
-
-      GlobalEventBus.instance
-          .fire(BlocksRemainingEvent(blocksRemaining, walletId));
-
-      if (blocksRemaining <= 1 && _currentHeight > 0 && _height > 0) {
-        stopSyncPercentTimer();
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.synced,
-            walletId,
-            coin,
-          ),
-        );
+    syncPercentTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
+      if (syncHeightMutex.isLocked) {
         return;
       }
+      await syncHeightMutex.protect(() async {
+        // int restoreheight = walletBase!.walletInfo.restoreHeight ?? 0;
+        int _height = await currentSyncingHeight;
+        int _currentHeight = await currentNodeHeight;
 
-      // for some reason this can be 0 which screws up the percent calculation
-      // int64MaxValue is NOT the best value to use here
-      if (_currentHeight < 1) {
-        _currentHeight = int64MaxValue;
-      }
+        final int blocksRemaining = _currentHeight - _height;
 
-      if (_height < 1) {
-        _height = 1;
-      }
+        GlobalEventBus.instance
+            .fire(BlocksRemainingEvent(blocksRemaining, walletId));
 
-      double restorePercent = (_height / _currentHeight).clamp(0.0, 1.0);
-      double highestPercent = highestPercentCached;
-
-      Logging.instance.log(
-          "currentSyncingHeight: $_height, nodeHeight: $_currentHeight, restorePercent: $restorePercent, highestPercentCached: $highestPercentCached",
-          level: LogLevel.Info);
-
-      if (restorePercent > 0 && restorePercent <= 1) {
-        if (restorePercent > highestPercent) {
-          highestPercent = restorePercent;
-          highestPercentCached = restorePercent;
+        if (blocksRemaining <= 1 && _currentHeight > 0 && _height > 0) {
+          await stopSyncPercentTimer();
+          GlobalEventBus.instance.fire(
+            WalletSyncStatusChangedEvent(
+              WalletSyncStatus.synced,
+              walletId,
+              coin,
+            ),
+          );
+          return;
         }
-      }
 
-      GlobalEventBus.instance
-          .fire(RefreshPercentChangedEvent(highestPercent, walletId));
+        // for some reason this can be 0 which screws up the percent calculation
+        // int64MaxValue is NOT the best value to use here
+        if (_currentHeight < 1) {
+          _currentHeight = int64MaxValue;
+        }
+
+        if (_height < 1) {
+          _height = 1;
+        }
+
+        double restorePercent = (_height / _currentHeight).clamp(0.0, 1.0);
+        double highestPercent = highestPercentCached;
+
+        Logging.instance.log(
+            "currentSyncingHeight: $_height, nodeHeight: $_currentHeight, restorePercent: $restorePercent, highestPercentCached: $highestPercentCached",
+            level: LogLevel.Info);
+
+        if (restorePercent > 0 && restorePercent <= 1) {
+          if (restorePercent > highestPercent) {
+            highestPercent = restorePercent;
+            highestPercentCached = restorePercent;
+          }
+        }
+
+        GlobalEventBus.instance
+            .fire(RefreshPercentChangedEvent(highestPercent, walletId));
+      });
     });
   }
 
@@ -356,7 +383,7 @@ class MoneroWallet extends CoinServiceAPI {
     }
 
     try {
-      startSyncPercentTimer();
+      await startSyncPercentTimer();
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.syncing,
@@ -365,14 +392,11 @@ class MoneroWallet extends CoinServiceAPI {
         ),
       );
 
-      final int _currentSyncingHeight = currentSyncingHeight;
+      final int _currentSyncingHeight = await currentSyncingHeight;
       final int storedHeight = storedChainHeight;
-      int _currentNodeHeight = await walletBase?.getNodeHeight() ?? 0;
-      if (_currentNodeHeight < 1) {
-        _currentNodeHeight = int64MaxValue;
-      }
+      int _currentNodeHeight = await currentNodeHeight;
 
-      _fetchTransactionData();
+      await _fetchTransactionData();
 
       bool stillSyncing = false;
       Logging.instance.log(
@@ -382,9 +406,9 @@ class MoneroWallet extends CoinServiceAPI {
         stillSyncing = true;
       }
 
-      if (_currentSyncingHeight != storedHeight) {
+      if (_currentSyncingHeight > storedHeight) {
         // 0 is returned from monero as I assume an error?????
-        if (_currentSyncingHeight != 0) {
+        if (_currentSyncingHeight > 0) {
           // 0 failed to fetch current height???
           await updateStoredChainHeight(newHeight: _currentSyncingHeight);
         }
@@ -404,7 +428,7 @@ class MoneroWallet extends CoinServiceAPI {
             level: LogLevel.Error);
       }
       //
-      final newTxData = _fetchTransactionData();
+      final newTxData = await _fetchTransactionData();
       // final feeObj = _getFees();
       //
       _transactionData = Future(() => newTxData);
@@ -415,7 +439,7 @@ class MoneroWallet extends CoinServiceAPI {
       // await getAllTxsToWatch(await newTxData);
 
       if (isActive || shouldAutoSync) {
-        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
+        timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
           debugPrint("run timer");
           //TODO: check for new data and refresh if needed. if monero even needs this
           // chain height check currently broken
@@ -450,7 +474,7 @@ class MoneroWallet extends CoinServiceAPI {
         refreshMutex = false;
         return;
       }
-      stopSyncPercentTimer();
+      await stopSyncPercentTimer();
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.synced,
@@ -461,7 +485,7 @@ class MoneroWallet extends CoinServiceAPI {
       refreshMutex = false;
     } catch (error, strace) {
       refreshMutex = false;
-      stopSyncPercentTimer();
+      await stopSyncPercentTimer();
       GlobalEventBus.instance.fire(
         NodeConnectionStatusChangedEvent(
           NodeConnectionStatus.disconnected,
@@ -500,7 +524,7 @@ class MoneroWallet extends CoinServiceAPI {
 
   @override
   Future<void> exit() async {
-    stopSyncPercentTimer();
+    await stopSyncPercentTimer();
     _hasCalledExit = true;
     isActive = false;
     await walletBase?.save(prioritySave: true);
@@ -552,6 +576,7 @@ class MoneroWallet extends CoinServiceAPI {
   }
 
   Future<String> _generateAddressForChain(int chain, int index) async {
+    //
     String address = walletBase!.getTransactionAddress(chain, index);
 
     return address;
@@ -688,7 +713,6 @@ class MoneroWallet extends CoinServiceAPI {
     await walletBase?.connectToNode(
         node: Node(uri: "$host:${node.port}", type: WalletType.monero));
     await walletBase?.startSync();
-    walletBase?.getNodeHeight();
     await DB.instance
         .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
 
@@ -806,7 +830,6 @@ class MoneroWallet extends CoinServiceAPI {
     String? password;
     try {
       password = await keysStorage?.getWalletPassword(walletName: _walletId);
-      debugPrint("password $password");
     } catch (e, s) {
       debugPrint("Exception was thrown $e $s");
       throw Exception("Password not found $e, $s");
@@ -999,7 +1022,6 @@ class MoneroWallet extends CoinServiceAPI {
       await walletBase?.connectToNode(
           node: Node(uri: "$host:${node.port}", type: WalletType.monero));
       await walletBase?.rescan(height: credentials.height);
-      await walletBase?.getNodeHeight();
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from recoverFromMnemonic(): $e\n$s",
@@ -1113,13 +1135,12 @@ class MoneroWallet extends CoinServiceAPI {
         moneroAutosaveTimer = null;
         timer?.cancel();
         timer = null;
-        stopSyncPercentTimer();
+        await stopSyncPercentTimer();
         if (isActive) {
           String? password;
           try {
             password =
                 await keysStorage?.getWalletPassword(walletName: _walletId);
-            debugPrint("password $password");
           } catch (e, s) {
             debugPrint("Exception was thrown $e $s");
             throw Exception("Password not found $e, $s");
@@ -1131,9 +1152,9 @@ class MoneroWallet extends CoinServiceAPI {
             final host = Uri.parse(node.host).host;
             await walletBase?.connectToNode(
                 node: Node(uri: "$host:${node.port}", type: WalletType.monero));
-            walletBase?.startSync();
+            await walletBase?.startSync();
           }
-          refresh();
+          await refresh();
         }
         this.isActive = isActive;
       };
