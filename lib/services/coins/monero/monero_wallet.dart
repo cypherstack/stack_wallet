@@ -309,13 +309,17 @@ class MoneroWallet extends CoinServiceAPI {
         // int restoreheight = walletBase!.walletInfo.restoreHeight ?? 0;
         int _height = await currentSyncingHeight;
         int _currentHeight = await currentNodeHeight;
+        double progress = 0;
+        try {
+          progress = (walletBase!.syncStatus as SyncingSyncStatus).progress();
+        } catch (e, s) {}
 
         final int blocksRemaining = _currentHeight - _height;
 
         GlobalEventBus.instance
             .fire(BlocksRemainingEvent(blocksRemaining, walletId));
 
-        if (blocksRemaining <= 1 && _currentHeight > 0 && _height > 0) {
+        if (progress == 1 && _currentHeight > 0 && _height > 0) {
           await stopSyncPercentTimer();
           GlobalEventBus.instance.fire(
             WalletSyncStatusChangedEvent(
@@ -337,7 +341,7 @@ class MoneroWallet extends CoinServiceAPI {
           _height = 1;
         }
 
-        double restorePercent = (_height / _currentHeight).clamp(0.0, 1.0);
+        double restorePercent = progress;
         double highestPercent = highestPercentCached;
 
         Logging.instance.log(
@@ -345,10 +349,10 @@ class MoneroWallet extends CoinServiceAPI {
             level: LogLevel.Info);
 
         if (restorePercent > 0 && restorePercent <= 1) {
-          if (restorePercent > highestPercent) {
-            highestPercent = restorePercent;
-            highestPercentCached = restorePercent;
-          }
+          // if (restorePercent > highestPercent) {
+          highestPercent = restorePercent;
+          highestPercentCached = restorePercent;
+          // }
         }
 
         GlobalEventBus.instance
@@ -396,13 +400,17 @@ class MoneroWallet extends CoinServiceAPI {
       final int storedHeight = storedChainHeight;
       int _currentNodeHeight = await currentNodeHeight;
 
+      double progress = 0;
+      try {
+        progress = (walletBase!.syncStatus as SyncingSyncStatus).progress();
+      } catch (e, s) {}
       await _fetchTransactionData();
 
       bool stillSyncing = false;
       Logging.instance.log(
           "storedHeight: $storedHeight, _currentSyncingHeight: $_currentSyncingHeight, _currentNodeHeight: $_currentNodeHeight",
           level: LogLevel.Info);
-      if (storedHeight + 10 < _currentNodeHeight) {
+      if (progress < 1.0) {
         stillSyncing = true;
       }
 
