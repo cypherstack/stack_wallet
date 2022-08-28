@@ -13,6 +13,7 @@ import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_monero/api/exceptions/creation_transaction_exception.dart';
+import 'package:cw_monero/api/wallet.dart';
 import 'package:cw_monero/monero_wallet.dart';
 import 'package:cw_monero/pending_monero_transaction.dart';
 import 'package:dart_numerics/dart_numerics.dart';
@@ -143,17 +144,27 @@ class MoneroWallet extends CoinServiceAPI {
   Future<List<String>> get mnemonic => _getMnemonicList();
 
   Future<int> get currentNodeHeight async {
+    try {
+      if (walletBase!.syncStatus! is SyncedSyncStatus &&
+          walletBase!.syncStatus!.progress() == 1.0) {
+        return await walletBase!.getNodeHeight();
+      }
+    } catch (e, s) {}
     int _height = -1;
     try {
       _height = (walletBase!.syncStatus as SyncingSyncStatus).height;
-    } catch (e, s) {}
+    } catch (e, s) {
+      Logging.instance.log("$e $s", level: LogLevel.Warning);
+    }
 
     int blocksRemaining = -1;
 
     try {
       blocksRemaining =
           (walletBase!.syncStatus as SyncingSyncStatus).blocksLeft;
-    } catch (e, s) {}
+    } catch (e, s) {
+      Logging.instance.log("$e $s", level: LogLevel.Warning);
+    }
     int currentHeight = _height + blocksRemaining;
     if (_height == -1 || blocksRemaining == -1) {
       currentHeight = int64MaxValue;
@@ -173,10 +184,20 @@ class MoneroWallet extends CoinServiceAPI {
 
   Future<int> get currentSyncingHeight async {
     //TODO return the tip of the monero blockchain
+    try {
+      if (walletBase!.syncStatus! is SyncedSyncStatus &&
+          walletBase!.syncStatus!.progress() == 1.0) {
+        Logging.instance
+            .log("currentSyncingHeight lol", level: LogLevel.Warning);
+        return getSyncingHeight();
+      }
+    } catch (e, s) {}
     int syncingHeight = -1;
     try {
       syncingHeight = (walletBase!.syncStatus as SyncingSyncStatus).height;
-    } catch (e, s) {}
+    } catch (e, s) {
+      Logging.instance.log("$e $s", level: LogLevel.Warning);
+    }
     final cachedHeight =
         DB.instance.get<dynamic>(boxName: walletId, key: "storedSyncingHeight")
                 as int? ??
@@ -189,14 +210,6 @@ class MoneroWallet extends CoinServiceAPI {
     } else {
       return cachedHeight;
     }
-
-    // try {
-    //   final result = await _electrumXClient.getBlockHeadTip();
-    //   return result["height"];
-    // } catch (e, s) {
-    //   Logging.instance.log("Exception caught in chainHeight: $e\n$s");
-    //   return -1;
-    // }
   }
 
   Future<void> updateStoredChainHeight({required int newHeight}) async {
@@ -311,8 +324,10 @@ class MoneroWallet extends CoinServiceAPI {
         int _currentHeight = await currentNodeHeight;
         double progress = 0;
         try {
-          progress = (walletBase!.syncStatus as SyncingSyncStatus).progress();
-        } catch (e, s) {}
+          progress = walletBase!.syncStatus!.progress();
+        } catch (e, s) {
+          Logging.instance.log("$e $s", level: LogLevel.Warning);
+        }
 
         final int blocksRemaining = _currentHeight - _height;
 
@@ -402,14 +417,17 @@ class MoneroWallet extends CoinServiceAPI {
 
       double progress = 0;
       try {
-        progress = (walletBase!.syncStatus as SyncingSyncStatus).progress();
-      } catch (e, s) {}
+        progress = (walletBase!.syncStatus!).progress();
+      } catch (e, s) {
+        Logging.instance.log("$e $s", level: LogLevel.Warning);
+      }
       await _fetchTransactionData();
 
       bool stillSyncing = false;
       Logging.instance.log(
-          "storedHeight: $storedHeight, _currentSyncingHeight: $_currentSyncingHeight, _currentNodeHeight: $_currentNodeHeight",
+          "storedHeight: $storedHeight, _currentSyncingHeight: $_currentSyncingHeight, _currentNodeHeight: $_currentNodeHeight, progress: $progress, issynced: ${await walletBase!.isConnected()}",
           level: LogLevel.Info);
+
       if (progress < 1.0) {
         stillSyncing = true;
       }
@@ -435,16 +453,8 @@ class MoneroWallet extends CoinServiceAPI {
             "Failed to call _generateAddressForChain(0, $curIndex): $e\n$s",
             level: LogLevel.Error);
       }
-      //
       final newTxData = await _fetchTransactionData();
-      // final feeObj = _getFees();
-      //
       _transactionData = Future(() => newTxData);
-      //
-      // this._feeObject = Future(() => feeObj);
-      // this._utxoData = Future(() => newUtxoData);
-      //
-      // await getAllTxsToWatch(await newTxData);
 
       if (isActive || shouldAutoSync) {
         timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
