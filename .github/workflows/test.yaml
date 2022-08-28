@@ -62,7 +62,12 @@ jobs:
 #      - name: Analyze
 #        run: flutter analyze
       - name: Test
-        run: flutter test
+        run: flutter test --coverage
+      - name: Upload to code coverage
+        uses: codecov/codecov-action@v1.2.2
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: coverage/lcov.info
       - name: Delete temp files
         run: |
           Remove-Item -Path $env:CHANGE_NOW;
