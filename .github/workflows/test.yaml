@@ -65,6 +65,7 @@ jobs:
         run: flutter test --coverage
       - name: Upload to code coverage
         uses: codecov/codecov-action@v1.2.2
+        if: success() || failure()
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: coverage/lcov.info
