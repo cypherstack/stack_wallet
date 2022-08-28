@@ -13,6 +13,10 @@ jobs:
         uses: subosito/flutter-action@v2
       - name: Checkout submodules
         run: git submodule update --init --recursive
+      - name: Build Lelantus
+        run: |
+         cd crypto_plugins/flutter_liblelantus/scripts/linux/
+         ./build_all.sh
       - name: Get dependencies
         run: flutter pub get
       - name: Create temp files
