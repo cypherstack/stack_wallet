@@ -48,7 +48,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     ref.refresh(addressBookFilterProvider);
 
     if (widget.coin == null) {
-      final coins = Coin.values.where((e) => !(e == Coin.epicCash)).toList();
+      List<Coin> coins =
+          Coin.values.where((e) => !(e == Coin.epicCash)).toList();
+      coins.remove(Coin.firoTestNet);
 
       bool showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
 

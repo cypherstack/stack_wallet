@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/coin_select_item.dart';
@@ -15,15 +13,10 @@ class AddWalletView extends StatelessWidget {
 
   static const routeName = "/addWallet";
 
-  final _coins = Coin.values;
-
   @override
   Widget build(BuildContext context) {
-    List<Coin> coins = _coins;
-    if (Platform.isIOS) {
-      coins = _coins;
-    }
-    debugPrint("BUILD: $runtimeType");
+    List<Coin> coins = [...Coin.values];
+    coins.remove(Coin.firoTestNet);
     return Scaffold(
       appBar: AppBar(
         leading: AppBarBackButton(

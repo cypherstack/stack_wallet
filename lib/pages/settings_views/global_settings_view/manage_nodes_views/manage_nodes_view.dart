@@ -23,11 +23,12 @@ class ManageNodesView extends ConsumerStatefulWidget {
 }
 
 class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
-  List<Coin> _coins = Coin.values;
+  List<Coin> _coins = [...Coin.values];
 
   @override
   void initState() {
     _coins = _coins.toList();
+    _coins.remove(Coin.firoTestNet);
     super.initState();
   }
 

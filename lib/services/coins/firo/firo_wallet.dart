@@ -726,7 +726,7 @@ Future<String> _getMintScriptWrapper(
 }
 
 Future<void> _setTestnetWrapper(bool isTestnet) async {
-  setTestnet(isTestnet);
+  // setTestnet(isTestnet);
 }
 
 /// Handles a single instance of a firo wallet
