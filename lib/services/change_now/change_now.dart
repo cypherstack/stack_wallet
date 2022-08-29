@@ -18,12 +18,15 @@ abstract class ChangeNow {
   static const String authority = "api.changenow.io";
   static const String apiVersion = "/v1";
 
+  /// set this to override using standard http client. Useful for testing
+  static http.Client? client;
+
   static Uri _buildUri(String path, Map<String, dynamic>? params) {
     return Uri.https(authority, apiVersion + path, params);
   }
 
   static Future<dynamic> _makeGetRequest(Uri uri) async {
-    final client = http.Client();
+    final client = ChangeNow.client ?? http.Client();
     try {
       final response = await client.get(
         uri,
@@ -44,7 +47,7 @@ abstract class ChangeNow {
     Uri uri,
     Map<String, String> body,
   ) async {
-    final client = http.Client();
+    final client = ChangeNow.client ?? http.Client();
     try {
       final response = await client.post(
         uri,
@@ -205,8 +208,9 @@ abstract class ChangeNow {
   static Future<ChangeNowResponse<Decimal>> getMinimalExchangeAmount({
     required String fromTicker,
     required String toTicker,
+    String? apiKey,
   }) async {
-    Map<String, dynamic>? params = {"api_key": kChangeNowApiKey};
+    Map<String, dynamic>? params = {"api_key": apiKey ?? kChangeNowApiKey};
 
     final uri = _buildUri("/min-amount/${fromTicker}_$toTicker", params);
 
@@ -244,8 +248,9 @@ abstract class ChangeNow {
     required String fromTicker,
     required String toTicker,
     required Decimal fromAmount,
+    String? apiKey,
   }) async {
-    Map<String, dynamic> params = {"api_key": kChangeNowApiKey};
+    Map<String, dynamic> params = {"api_key": apiKey ?? kChangeNowApiKey};
 
     final uri = _buildUri(
       "/exchange-amount/${fromAmount.toString()}/${fromTicker}_$toTicker",
@@ -292,9 +297,10 @@ abstract class ChangeNow {
     // to freeze estimated amount that you got in this method. Current estimated
     // amount would be valid until time in field "validUntil"
     bool useRateId = true,
+    String? apiKey,
   }) async {
     Map<String, dynamic> params = {
-      "api_key": kChangeNowApiKey,
+      "api_key": apiKey ?? kChangeNowApiKey,
       "useRateId": useRateId.toString(),
     };
 
@@ -337,8 +343,11 @@ abstract class ChangeNow {
   /// time and the market info gets updates, so make sure to refresh the list
   /// occasionally. One time per minute is sufficient.
   static Future<ChangeNowResponse<List<FixedRateMarket>>>
-      getAvailableFixedRateMarkets() async {
-    final uri = _buildUri("/market-info/fixed-rate/$kChangeNowApiKey", null);
+      getAvailableFixedRateMarkets({
+    String? apiKey,
+  }) async {
+    final uri = _buildUri(
+        "/market-info/fixed-rate/${apiKey ?? kChangeNowApiKey}", null);
 
     try {
       // json array is expected here
@@ -406,6 +415,7 @@ abstract class ChangeNow {
     String contactEmail = "",
     String refundAddress = "",
     String refundExtraId = "",
+    String? apiKey,
   }) async {
     final Map<String, String> map = {
       "from": fromTicker,
@@ -420,14 +430,14 @@ abstract class ChangeNow {
       "refundExtraId": refundExtraId,
     };
 
-    final uri = _buildUri("/transactions/$kChangeNowApiKey", null);
+    final uri = _buildUri("/transactions/${apiKey ?? kChangeNowApiKey}", null);
 
     try {
       // simple json object is expected here
       final json = await _makePostRequest(uri, map);
 
       // pass in date to prevent using default 1970 date
-      json["date"] = DateTime.now();
+      json["date"] = DateTime.now().toString();
 
       try {
         final value = ExchangeTransaction.fromJson(
@@ -468,6 +478,7 @@ abstract class ChangeNow {
     String contactEmail = "",
     String refundAddress = "",
     String refundExtraId = "",
+    String? apiKey,
   }) async {
     final Map<String, String> map = {
       "from": fromTicker,
@@ -483,14 +494,15 @@ abstract class ChangeNow {
       "rateId": rateId,
     };
 
-    final uri = _buildUri("/transactions/fixed-rate/$kChangeNowApiKey", null);
+    final uri = _buildUri(
+        "/transactions/fixed-rate/${apiKey ?? kChangeNowApiKey}", null);
 
     try {
       // simple json object is expected here
       final json = await _makePostRequest(uri, map);
 
       // pass in date to prevent using default 1970 date
-      json["date"] = DateTime.now();
+      json["date"] = DateTime.now().toString();
 
       try {
         final value = ExchangeTransaction.fromJson(
@@ -520,8 +532,10 @@ abstract class ChangeNow {
   static Future<ChangeNowResponse<ExchangeTransactionStatus>>
       getTransactionStatus({
     required String id,
+    String? apiKey,
   }) async {
-    final uri = _buildUri("/transactions/$id/$kChangeNowApiKey", null);
+    final uri =
+        _buildUri("/transactions/$id/${apiKey ?? kChangeNowApiKey}", null);
 
     try {
       // simple json object is expected here
