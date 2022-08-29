@@ -3819,7 +3819,7 @@ class FiroWallet extends CoinServiceAPI {
 
           var sendIndex = 1;
           if (tx["vout"][0]["value"] != null &&
-              tx["vout"][0]["value"] as int > 0) {
+              Decimal.parse(tx["vout"][0]["value"].toString()) > Decimal.zero) {
             sendIndex = 0;
           }
           tx["amount"] = tx["vout"][sendIndex]["value"];
