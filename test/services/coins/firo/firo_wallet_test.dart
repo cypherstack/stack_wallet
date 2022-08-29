@@ -128,24 +128,24 @@ void main() {
       expect(result, 1);
     });
 
-    // test("isolateCreateJoinSplitTransaction success", () async {
-    //   final result = await isolateCreateJoinSplitTransaction(
-    //     9000,
-    //     "aNmsUtzPzQ3SKWNjEH48GacMQJXWN5Rotm",
-    //     true,
-    //     TEST_MNEMONIC,
-    //     2,
-    //     Decimal.ten,
-    //     SampleLelantus.lelantusEntries,
-    //     459185,
-    //     Coin.firo,
-    //     firoNetwork,
-    //     [GetAnonymitySetSampleData.data],
-    //     "en_US",
-    //   );
-    //
-    //   expect(result, isA<Map<String, dynamic>>());
-    // });
+    test("isolateCreateJoinSplitTransaction success", () async {
+      final result = await isolateCreateJoinSplitTransaction(
+        9000,
+        "aNmsUtzPzQ3SKWNjEH48GacMQJXWN5Rotm",
+        true,
+        TEST_MNEMONIC,
+        2,
+        Decimal.ten,
+        SampleLelantus.lelantusEntries,
+        459185,
+        Coin.firo,
+        firoNetwork,
+        [GetAnonymitySetSampleData.data],
+        "en_US",
+      );
+
+      expect(result, isA<Map<String, dynamic>>());
+    });
 
     test("isolateEstimateJoinSplitFee", () async {
       final result = await isolateEstimateJoinSplitFee(
