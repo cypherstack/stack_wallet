@@ -208,9 +208,9 @@ abstract class ChangeNow {
   static Future<ChangeNowResponse<Decimal>> getMinimalExchangeAmount({
     required String fromTicker,
     required String toTicker,
-    String apiKey = kChangeNowApiKey,
+    String? apiKey,
   }) async {
-    Map<String, dynamic>? params = {"api_key": apiKey};
+    Map<String, dynamic>? params = {"api_key": apiKey ?? kChangeNowApiKey};
 
     final uri = _buildUri("/min-amount/${fromTicker}_$toTicker", params);
 
@@ -248,8 +248,9 @@ abstract class ChangeNow {
     required String fromTicker,
     required String toTicker,
     required Decimal fromAmount,
+    String? apiKey,
   }) async {
-    Map<String, dynamic> params = {"api_key": kChangeNowApiKey};
+    Map<String, dynamic> params = {"api_key": apiKey ?? kChangeNowApiKey};
 
     final uri = _buildUri(
       "/exchange-amount/${fromAmount.toString()}/${fromTicker}_$toTicker",
@@ -296,10 +297,10 @@ abstract class ChangeNow {
     // to freeze estimated amount that you got in this method. Current estimated
     // amount would be valid until time in field "validUntil"
     bool useRateId = true,
-    String apiKey = kChangeNowApiKey,
+    String? apiKey,
   }) async {
     Map<String, dynamic> params = {
-      "api_key": apiKey,
+      "api_key": apiKey ?? kChangeNowApiKey,
       "useRateId": useRateId.toString(),
     };
 
@@ -343,9 +344,10 @@ abstract class ChangeNow {
   /// occasionally. One time per minute is sufficient.
   static Future<ChangeNowResponse<List<FixedRateMarket>>>
       getAvailableFixedRateMarkets({
-    String apiKey = kChangeNowApiKey,
+    String? apiKey,
   }) async {
-    final uri = _buildUri("/market-info/fixed-rate/$apiKey", null);
+    final uri = _buildUri(
+        "/market-info/fixed-rate/${apiKey ?? kChangeNowApiKey}", null);
 
     try {
       // json array is expected here
@@ -413,7 +415,7 @@ abstract class ChangeNow {
     String contactEmail = "",
     String refundAddress = "",
     String refundExtraId = "",
-    String apiKey = kChangeNowApiKey,
+    String? apiKey,
   }) async {
     final Map<String, String> map = {
       "from": fromTicker,
@@ -428,7 +430,7 @@ abstract class ChangeNow {
       "refundExtraId": refundExtraId,
     };
 
-    final uri = _buildUri("/transactions/$apiKey", null);
+    final uri = _buildUri("/transactions/${apiKey ?? kChangeNowApiKey}", null);
 
     try {
       // simple json object is expected here
@@ -476,7 +478,7 @@ abstract class ChangeNow {
     String contactEmail = "",
     String refundAddress = "",
     String refundExtraId = "",
-    String apiKey = kChangeNowApiKey,
+    String? apiKey,
   }) async {
     final Map<String, String> map = {
       "from": fromTicker,
@@ -492,7 +494,8 @@ abstract class ChangeNow {
       "rateId": rateId,
     };
 
-    final uri = _buildUri("/transactions/fixed-rate/$apiKey", null);
+    final uri = _buildUri(
+        "/transactions/fixed-rate/${apiKey ?? kChangeNowApiKey}", null);
 
     try {
       // simple json object is expected here
@@ -529,9 +532,10 @@ abstract class ChangeNow {
   static Future<ChangeNowResponse<ExchangeTransactionStatus>>
       getTransactionStatus({
     required String id,
-    String apiKey = kChangeNowApiKey,
+    String? apiKey,
   }) async {
-    final uri = _buildUri("/transactions/$id/$apiKey", null);
+    final uri =
+        _buildUri("/transactions/$id/${apiKey ?? kChangeNowApiKey}", null);
 
     try {
       // simple json object is expected here
