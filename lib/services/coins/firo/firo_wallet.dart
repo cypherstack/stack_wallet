@@ -726,7 +726,7 @@ Future<String> _getMintScriptWrapper(
 }
 
 Future<void> _setTestnetWrapper(bool isTestnet) async {
-  setTestnet(isTestnet);
+  // setTestnet(isTestnet);
 }
 
 /// Handles a single instance of a firo wallet
@@ -2893,6 +2893,7 @@ class FiroWallet extends CoinServiceAPI {
     }
     if (Platform.environment["FLUTTER_TEST"] == "true" || integrationTestFlag) {
       perBatch = 10;
+      numberOfThreads = 4;
     }
 
     final receiveDerivationsString =

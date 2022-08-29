@@ -14,6 +14,8 @@ class CoinSelectSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
+    var coins_ = [...Coin.values];
+    coins_.remove(Coin.firoTestNet);
     return Container(
       decoration: const BoxDecoration(
         color: CFColors.white,
@@ -68,10 +70,10 @@ class CoinSelectSheet extends StatelessWidget {
                     return ListView.builder(
                       shrinkWrap: true,
                       itemCount: showTestNet
-                          ? Coin.values.length
-                          : Coin.values.length - kTestNetCoinCount,
+                          ? coins_.length
+                          : coins_.length - kTestNetCoinCount,
                       itemBuilder: (builderContext, index) {
-                        final coin = Coin.values[index];
+                        final coin = coins_[index];
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: RawMaterialButton(

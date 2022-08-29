@@ -53,6 +53,15 @@ android {
         ndk {
             abiFilters "x86_64","armeabi-v7a", "arm64-v8a"
         }
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared", '-DBUILD_TESTING=OFF', "-DANDROID_TOOLCHAIN=clang -v"
+                cppFlags "-frtti -fexceptions -v -DANDROID -std=c++17"
+//                cppFlags "-std=c++11"
+                version "3.10.2"
+            }
+        }
     }
 
     signingConfigs {

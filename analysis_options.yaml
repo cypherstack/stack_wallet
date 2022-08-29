@@ -87,7 +87,7 @@ linter:
     no_leading_underscores_for_local_identifiers: false
     no_leading_underscores_for_library_prefixes: false
     avoid_print: true
-    unawaited_futures: false
+    unawaited_futures: true
     avoid_double_and_int_checks: false
     constant_identifier_names: false
   # avoid_print: false  # Uncomment to disable the `avoid_print` rule

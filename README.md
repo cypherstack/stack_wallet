@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/cypherstack/stack_wallet/branch/main/graph/badge.svg?token=PM1N56UTEW)](https://codecov.io/gh/cypherstack/stack_wallet)
+
 # Stack Wallet
 put details here
 
@@ -8,13 +10,14 @@ put features here
 
 ## Build and run
 ### Prerequisites
+- Flutter 3.0.5
 - Flutter SDK Requirement (>=2.12.0, up until <3.0.0)
 - Android/iOS dev setup (Android Studio, xCode and subsequent dependencies)
 
 After that download the project and init the submodules
 ```
-git clone https://github.com/cypherstack/Campfire.git
-cd Campfire
+git clone https://github.com/cypherstack/stack_wallet.git
+cd stack_wallet
 git submodule update --init --recursive
 ```
 
