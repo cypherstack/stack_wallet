@@ -2893,6 +2893,7 @@ class FiroWallet extends CoinServiceAPI {
     }
     if (Platform.environment["FLUTTER_TEST"] == "true" || integrationTestFlag) {
       perBatch = 10;
+      numberOfThreads = 4;
     }
 
     final receiveDerivationsString =
