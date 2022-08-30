@@ -1,5 +1,6 @@
+#should deny
 name: Test
-on: [push, pull_request]
+on: [pull_request]
 jobs:
   test:
     runs-on: ubuntu-20.04
@@ -13,6 +14,10 @@ jobs:
         uses: subosito/flutter-action@v2
       - name: Checkout submodules
         run: git submodule update --init --recursive
+      - name: Build Lelantus
+        run: |
+         cd crypto_plugins/flutter_liblelantus/scripts/linux/
+         ./build_all.sh
       - name: Get dependencies
         run: flutter pub get
       - name: Create temp files
@@ -58,7 +63,13 @@ jobs:
 #      - name: Analyze
 #        run: flutter analyze
       - name: Test
-        run: flutter test
+        run: flutter test --coverage
+      - name: Upload to code coverage
+        uses: codecov/codecov-action@v1.2.2
+        if: success() || failure()
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: coverage/lcov.info
       - name: Delete temp files
         run: |
           Remove-Item -Path $env:CHANGE_NOW;

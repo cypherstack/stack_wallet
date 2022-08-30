@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/cypherstack/stack_wallet/branch/main/graph/badge.svg?token=PM1N56UTEW)](https://codecov.io/gh/cypherstack/stack_wallet)
+
 # Stack Wallet
 put details here
 
@@ -8,6 +10,7 @@ put features here
 
 ## Build and run
 ### Prerequisites
+- Flutter 3.0.5
 - Flutter SDK Requirement (>=2.12.0, up until <3.0.0)
 - Android/iOS dev setup (Android Studio, xCode and subsequent dependencies)
 
