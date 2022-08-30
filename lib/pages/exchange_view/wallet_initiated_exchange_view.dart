@@ -31,6 +31,7 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
@@ -1185,6 +1186,24 @@ class _WalletInitiatedExchangeViewState
 
                                   if (ft.toLowerCase() ==
                                       coin.ticker.toLowerCase()) {
+                                    bool shouldPop = false;
+                                    bool wasPopped = false;
+                                    unawaited(showDialog<void>(
+                                      context: context,
+                                      builder: (_) => WillPopScope(
+                                        onWillPop: () async {
+                                          if (shouldPop) {
+                                            wasPopped = true;
+                                          }
+                                          return shouldPop;
+                                        },
+                                        child: const CustomLoadingOverlay(
+                                          message: "Checking available balance",
+                                          eventBus: null,
+                                        ),
+                                      ),
+                                    ));
+
                                     final availableBalance =
                                         await manager.availableBalance;
 
@@ -1194,6 +1213,12 @@ class _WalletInitiatedExchangeViewState
                                         Format.decimalAmountToSatoshis(
                                             sendAmount),
                                         feeObject.medium);
+
+                                    shouldPop = true;
+                                    if (!wasPopped && mounted) {
+                                      Navigator.of(context).pop();
+                                    }
+
                                     if (availableBalance <
                                         sendAmount +
                                             Format.satoshisToAmount(fee)) {
