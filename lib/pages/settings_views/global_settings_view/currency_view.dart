@@ -31,7 +31,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
   final _searchFocusNode = FocusNode();
 
   void onTap(int index) {
-    if (index == 0 || current.isEmpty) {
+    if (currenciesWithoutSelected[index] == current || current.isEmpty) {
       // ignore if already selected currency
       return;
     }
@@ -212,7 +212,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                 "currencySelect_${currenciesWithoutSelected[index]}"),
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color: index == 0
+                              color: currenciesWithoutSelected[index] == current
                                   ? CFColors.selected
                                   : CFColors.white,
                               child: RawMaterialButton(
@@ -238,7 +238,9 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
                                           value: true,
-                                          groupValue: index == 0,
+                                          groupValue: currenciesWithoutSelected[
+                                                  index] ==
+                                              current,
                                           onChanged: (_) {
                                             onTap(index);
                                           },
@@ -253,7 +255,9 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                         children: [
                                           Text(
                                             currenciesWithoutSelected[index],
-                                            key: (index == 0)
+                                            key: (currenciesWithoutSelected[
+                                                        index] ==
+                                                    current)
                                                 ? const Key(
                                                     "selectedCurrencySettingsCurrencyText")
                                                 : null,
@@ -269,7 +273,9 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                                     currenciesWithoutSelected[
                                                         index]] ??
                                                 "",
-                                            key: (index == 0)
+                                            key: (currenciesWithoutSelected[
+                                                        index] ==
+                                                    current)
                                                 ? const Key(
                                                     "selectedCurrencySettingsCurrencyTextDescription")
                                                 : null,
