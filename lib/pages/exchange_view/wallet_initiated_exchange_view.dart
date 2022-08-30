@@ -230,41 +230,6 @@ class _WalletInitiatedExchangeViewState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    if (ref
-            .watch(changeNowEstimatedInitialLoadStatusStateProvider.state)
-            .state ==
-        false) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: Text(
-              "Loading ChangeNOW data",
-              style: STextStyles.pageTitleH2,
-            ),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Center(
-            child: Text(
-              "This shouldn't take long",
-              style: STextStyles.smallMed14,
-            ),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          const SizedBox(
-            height: 100,
-            width: 100,
-            child: LoadingIndicator(),
-          ),
-        ],
-      );
-    }
-
     final isEstimated = ref.watch(prefsChangeNotifierProvider
             .select((pref) => pref.exchangeRateType)) ==
         ExchangeRateType.estimated;
