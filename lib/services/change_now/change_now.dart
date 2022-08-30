@@ -128,11 +128,8 @@ abstract class ChangeNow {
               .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
         } catch (_) {
           return ChangeNowResponse(
-            exception: ChangeNowException(
-              "Failed to serialize $json",
-              ChangeNowExceptionType.serializeResponseError,
-            ),
-          );
+              exception: ChangeNowException("Failed to serialize $json",
+                  ChangeNowExceptionType.serializeResponseError));
         }
       }
 
@@ -183,11 +180,8 @@ abstract class ChangeNow {
         Logging.instance.log("getPairedCurrencies exception: $e\n$s",
             level: LogLevel.Error);
         return ChangeNowResponse(
-          exception: ChangeNowException(
-            "Error: $jsonArray",
-            ChangeNowExceptionType.serializeResponseError,
-          ),
-        );
+            exception: ChangeNowException("Error: $jsonArray",
+                ChangeNowExceptionType.serializeResponseError));
       }
       return ChangeNowResponse(value: currencies);
     } catch (e, s) {
@@ -389,11 +383,8 @@ abstract class ChangeNow {
               FixedRateMarket.fromJson(Map<String, dynamic>.from(json as Map)));
         } catch (_) {
           return ChangeNowResponse(
-            exception: ChangeNowException(
-              "Failed to serialize $json",
-              ChangeNowExceptionType.serializeResponseError,
-            ),
-          );
+              exception: ChangeNowException("Failed to serialize $json",
+                  ChangeNowExceptionType.serializeResponseError));
         }
       }
       return ChangeNowResponse(value: markets);
@@ -613,11 +604,8 @@ abstract class ChangeNow {
               fromTicker: stringPair[0], toTicker: stringPair[1]));
         } catch (_) {
           return ChangeNowResponse(
-            exception: ChangeNowException(
-              "Failed to serialize $json",
-              ChangeNowExceptionType.serializeResponseError,
-            ),
-          );
+              exception: ChangeNowException("Failed to serialize $json",
+                  ChangeNowExceptionType.serializeResponseError));
         }
       }
       return ChangeNowResponse(value: pairs);
