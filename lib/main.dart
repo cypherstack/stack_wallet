@@ -176,7 +176,14 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   late final Completer<void> loadingCompleter;
 
+  bool didLoad = false;
+
   Future<void> load() async {
+    if (didLoad) {
+      return;
+    }
+    didLoad = true;
+
     await DB.instance.init();
 
     _notificationsService = ref.read(notificationsProvider);

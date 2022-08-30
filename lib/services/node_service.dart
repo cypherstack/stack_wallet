@@ -167,7 +167,7 @@ class NodeService extends ChangeNotifier {
       final json = jsonDecode(response.body) as Map;
       final result = jsonDecode(json['result'] as String);
       final map = jsonDecode(result as String);
-      Logging.instance.log("Rylee: $map", level: LogLevel.Info);
+      Logging.instance.log(map, level: LogLevel.Info);
 
       for (final coin in Coin.values) {
         final nodeList = List<Map<String, dynamic>>.from(
