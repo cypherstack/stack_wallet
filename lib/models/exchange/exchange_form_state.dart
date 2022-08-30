@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/models/exchange/change_now/currency.dart';
 import 'package:stackwallet/services/change_now/change_now.dart';
+import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
   Decimal? _fromAmount;
@@ -57,111 +58,121 @@ class ExchangeFormState extends ChangeNotifier {
       _toAmount == null ? "-" : _toAmount!.toStringAsFixed(8);
 
   Future<void> updateTo(Currency to, bool shouldNotifyListeners) async {
-    _to = to;
-    if (_from == null) {
+    try {
+      _to = to;
+      if (_from == null) {
+        rate = null;
+        notifyListeners();
+        return;
+      }
+
+      await _updateMinFromAmount(shouldNotifyListeners: shouldNotifyListeners);
+      // await _updateMinToAmount(shouldNotifyListeners: shouldNotifyListeners);
+
       rate = null;
-      notifyListeners();
-      return;
-    }
 
-    await _updateMinFromAmount(shouldNotifyListeners: shouldNotifyListeners);
-    // await _updateMinToAmount(shouldNotifyListeners: shouldNotifyListeners);
-
-    rate = null;
-
-    if (_fromAmount != null) {
-      Decimal? amt;
-      if (_minFromAmount != null) {
-        if (_minFromAmount! > _fromAmount!) {
-          amt = await getStandardEstimatedToAmount(
+      if (_fromAmount != null) {
+        Decimal? amt;
+        if (_minFromAmount != null) {
+          if (_minFromAmount! > _fromAmount!) {
+            amt = await getStandardEstimatedToAmount(
+                fromAmount: _minFromAmount!, from: _from!, to: _to!);
+            if (amt != null) {
+              rate = (amt / _minFromAmount!)
+                  .toDecimal(scaleOnInfinitePrecision: 12);
+            }
+            debugPrint("A");
+          } else {
+            amt = await getStandardEstimatedToAmount(
+                fromAmount: _fromAmount!, from: _from!, to: _to!);
+            if (amt != null) {
+              rate =
+                  (amt / _fromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
+            }
+            debugPrint("B");
+          }
+        }
+        if (rate != null) {
+          _toAmount = (_fromAmount! * rate!);
+        }
+        debugPrint("C");
+      } else {
+        if (_minFromAmount != null) {
+          Decimal? amt = await getStandardEstimatedToAmount(
               fromAmount: _minFromAmount!, from: _from!, to: _to!);
           if (amt != null) {
             rate =
                 (amt / _minFromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
           }
-          debugPrint("A");
-        } else {
-          amt = await getStandardEstimatedToAmount(
-              fromAmount: _fromAmount!, from: _from!, to: _to!);
-          if (amt != null) {
-            rate = (amt / _fromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
-          }
-          debugPrint("B");
+          debugPrint("D");
         }
       }
-      if (rate != null) {
-        _toAmount = (_fromAmount! * rate!);
-      }
-      debugPrint("C");
-    } else {
-      if (_minFromAmount != null) {
-        Decimal? amt = await getStandardEstimatedToAmount(
-            fromAmount: _minFromAmount!, from: _from!, to: _to!);
-        if (amt != null) {
-          rate =
-              (amt / _minFromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
-        }
-        debugPrint("D");
-      }
-    }
 
-    debugPrint(
-        "_updated TO: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$_fromAmount _toAmount=$_toAmount rate:$rate");
+      debugPrint(
+          "_updated TO: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$_fromAmount _toAmount=$_toAmount rate:$rate");
 
-    if (shouldNotifyListeners) {
-      notifyListeners();
+      if (shouldNotifyListeners) {
+        notifyListeners();
+      }
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
     }
   }
 
   Future<void> updateFrom(Currency from, bool shouldNotifyListeners) async {
-    _from = from;
+    try {
+      _from = from;
 
-    if (_to == null) {
+      if (_to == null) {
+        rate = null;
+        notifyListeners();
+        return;
+      }
+
+      await _updateMinFromAmount(shouldNotifyListeners: shouldNotifyListeners);
+
       rate = null;
-      notifyListeners();
-      return;
-    }
 
-    await _updateMinFromAmount(shouldNotifyListeners: shouldNotifyListeners);
-
-    rate = null;
-
-    if (_fromAmount != null) {
-      Decimal? amt;
-      if (_minFromAmount != null) {
-        if (_minFromAmount! > _fromAmount!) {
-          amt = await getStandardEstimatedToAmount(
+      if (_fromAmount != null) {
+        Decimal? amt;
+        if (_minFromAmount != null) {
+          if (_minFromAmount! > _fromAmount!) {
+            amt = await getStandardEstimatedToAmount(
+                fromAmount: _minFromAmount!, from: _from!, to: _to!);
+            if (amt != null) {
+              rate = (amt / _minFromAmount!)
+                  .toDecimal(scaleOnInfinitePrecision: 12);
+            }
+          } else {
+            amt = await getStandardEstimatedToAmount(
+                fromAmount: _fromAmount!, from: _from!, to: _to!);
+            if (amt != null) {
+              rate =
+                  (amt / _fromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
+            }
+          }
+        }
+        if (rate != null) {
+          _toAmount = (_fromAmount! * rate!);
+        }
+      } else {
+        if (_minFromAmount != null) {
+          Decimal? amt = await getStandardEstimatedToAmount(
               fromAmount: _minFromAmount!, from: _from!, to: _to!);
           if (amt != null) {
             rate =
                 (amt / _minFromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
           }
-        } else {
-          amt = await getStandardEstimatedToAmount(
-              fromAmount: _fromAmount!, from: _from!, to: _to!);
-          if (amt != null) {
-            rate = (amt / _fromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
-          }
         }
       }
-      if (rate != null) {
-        _toAmount = (_fromAmount! * rate!);
-      }
-    } else {
-      if (_minFromAmount != null) {
-        Decimal? amt = await getStandardEstimatedToAmount(
-            fromAmount: _minFromAmount!, from: _from!, to: _to!);
-        if (amt != null) {
-          rate =
-              (amt / _minFromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
-        }
-      }
-    }
 
-    debugPrint(
-        "_updated FROM: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$_fromAmount _toAmount=$_toAmount rate:$rate");
-    if (shouldNotifyListeners) {
-      notifyListeners();
+      debugPrint(
+          "_updated FROM: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$_fromAmount _toAmount=$_toAmount rate:$rate");
+      if (shouldNotifyListeners) {
+        notifyListeners();
+      }
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
     }
   }
 
