@@ -1651,14 +1651,8 @@ class EpicCashWallet extends CoinServiceAPI {
                     subscribeRequest['signature'] as String, slate as String);
               }
 
-              Logging.instance.log("RESPONSE_FOR_PROCESS_IS  $response",
-                  level: LogLevel.Info);
-            Logging.instance.log("PROCESS_SLATE_RESPONSE $response",
-                  level: LogLevel.Info);
-
               if (response.contains("Error Wallet store error: DB Not Found Error")) {
                 //Already processed - to be deleted
-                //TODO - DELETE ALREADY PROCESSED SLATE
                 Logging.instance.log("DELETING_PROCESSED_SLATE",
                     level: LogLevel.Info);
                 final slateDelete = await deleteSlate(currentAddress, subscribeRequest['signature'] as String, slate as String);
