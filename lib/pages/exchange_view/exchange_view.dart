@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +18,7 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
+import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
 import 'package:stackwallet/providers/exchange/exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
@@ -24,7 +27,6 @@ import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -407,14 +409,14 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                             .read(fixedRateExchangeFormProvider)
                                             .updateMarket(market, true);
                                       } catch (e) {
-                                        showDialog<dynamic>(
+                                        unawaited(showDialog<dynamic>(
                                           context: context,
                                           builder: (_) => const StackDialog(
                                             title: "Fixed rate market error",
                                             message:
                                                 "Could not find the specified fixed rate trade pair",
                                           ),
-                                        );
+                                        ));
                                         return;
                                       }
                                     },
@@ -716,14 +718,14 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                             .read(fixedRateExchangeFormProvider)
                                             .updateMarket(market, true);
                                       } catch (e) {
-                                        showDialog<dynamic>(
+                                        unawaited(showDialog<dynamic>(
                                           context: context,
                                           builder: (_) => const StackDialog(
                                             title: "Fixed rate market error",
                                             message:
                                                 "Could not find the specified fixed rate trade pair",
                                           ),
-                                        );
+                                        ));
                                         return;
                                       }
                                     },
@@ -924,12 +926,12 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                   }
                                 }
                               }
-                              showFloatingFlushBar(
+                              unawaited(showFloatingFlushBar(
                                 type: FlushBarType.warning,
                                 message:
                                     "Estimated rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last estimated rate pair.",
                                 context: context,
-                              );
+                              ));
                               break;
                             case ExchangeRateType.fixed:
                               final fromTicker = ref
@@ -970,12 +972,12 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                     );
                                 return;
                               }
-                              showFloatingFlushBar(
+                              unawaited(showFloatingFlushBar(
                                 type: FlushBarType.warning,
                                 message:
                                     "Fixed rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last fixed rate pair.",
                                 context: context,
-                              );
+                              ));
                               break;
                           }
                         },
@@ -1047,7 +1049,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                   }
 
                                   if (!isAvailable) {
-                                    showDialog<dynamic>(
+                                    unawaited(showDialog<dynamic>(
                                       context: context,
                                       barrierDismissible: true,
                                       builder: (_) => StackDialog(
@@ -1056,7 +1058,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                         message:
                                             "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
                                       ),
-                                    );
+                                    ));
                                     return;
                                   }
 
@@ -1068,15 +1070,16 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                       .read(prefsChangeNotifierProvider)
                                       .exchangeRateType;
 
-                                  final response = await ChangeNow
+                                  final response = await ref
+                                      .read(changeNowProvider)
                                       .getEstimatedExchangeAmount(
-                                    fromTicker: fromTicker,
-                                    toTicker: toTicker,
-                                    fromAmount: sendAmount,
-                                  );
+                                        fromTicker: fromTicker,
+                                        toTicker: toTicker,
+                                        fromAmount: sendAmount,
+                                      );
 
                                   if (response.value == null) {
-                                    showDialog<dynamic>(
+                                    unawaited(showDialog<dynamic>(
                                       context: context,
                                       barrierDismissible: true,
                                       builder: (_) => StackDialog(
@@ -1084,7 +1087,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                             "Failed to update trade estimate",
                                         message: response.exception?.toString(),
                                       ),
-                                    );
+                                    ));
                                     return;
                                   }
 
@@ -1108,10 +1111,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                             exchangeSendFromWalletIdStateProvider
                                                 .state)
                                         .state = null;
-                                    Navigator.of(context).pushNamed(
+                                    unawaited(Navigator.of(context).pushNamed(
                                       Step1View.routeName,
                                       arguments: model,
-                                    );
+                                    ));
                                   }
                                 } else {
                                   final fromTicker = ref
@@ -1133,18 +1136,19 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                       .read(prefsChangeNotifierProvider)
                                       .exchangeRateType;
 
-                                  final response = await ChangeNow
+                                  final response = await ref
+                                      .read(changeNowProvider)
                                       .getEstimatedFixedRateExchangeAmount(
-                                    fromTicker: fromTicker,
-                                    toTicker: toTicker,
-                                    fromAmount: sendAmount,
-                                    useRateId: true,
-                                  );
+                                        fromTicker: fromTicker,
+                                        toTicker: toTicker,
+                                        fromAmount: sendAmount,
+                                        useRateId: true,
+                                      );
 
                                   bool? shouldCancel;
 
                                   if (response.value == null) {
-                                    showDialog<dynamic>(
+                                    unawaited(showDialog<dynamic>(
                                       context: context,
                                       barrierDismissible: true,
                                       builder: (_) => StackDialog(
@@ -1152,7 +1156,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                             "Failed to update trade estimate",
                                         message: response.exception?.toString(),
                                       ),
-                                    );
+                                    ));
                                     return;
                                   } else if (response.value!.warningMessage !=
                                           null &&
@@ -1234,10 +1238,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                             exchangeSendFromWalletIdStateProvider
                                                 .state)
                                         .state = null;
-                                    Navigator.of(context).pushNamed(
+                                    unawaited(Navigator.of(context).pushNamed(
                                       Step1View.routeName,
                                       arguments: model,
-                                    );
+                                    ));
                                   }
                                 }
                               }
@@ -1341,18 +1345,18 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                 final tx = txData.getAllTransactions()[txid];
 
                                 if (mounted) {
-                                  Navigator.of(context).pushNamed(
+                                  unawaited(Navigator.of(context).pushNamed(
                                     TradeDetailsView.routeName,
                                     arguments: Tuple4(tradeId, tx,
                                         walletIds.first, manager.walletName),
-                                  );
+                                  ));
                                 }
                               } else {
-                                Navigator.of(context).pushNamed(
+                                unawaited(Navigator.of(context).pushNamed(
                                   TradeDetailsView.routeName,
                                   arguments: Tuple4(
                                       tradeId, null, walletIds?.first, null),
-                                );
+                                ));
                               }
                             },
                           ),
@@ -1454,7 +1458,7 @@ class RateInfo extends ConsumerWidget {
                         }
                       }
 
-                      showModalBottomSheet<dynamic>(
+                      unawaited(showModalBottomSheet<dynamic>(
                         backgroundColor: Colors.transparent,
                         context: context,
                         shape: const RoundedRectangleBorder(
@@ -1467,7 +1471,7 @@ class RateInfo extends ConsumerWidget {
                         if (value is ExchangeRateType && value != type) {
                           onChanged(value);
                         }
-                      });
+                      }));
                     }
                   : null,
               style: Theme.of(context).textButtonTheme.style?.copyWith(

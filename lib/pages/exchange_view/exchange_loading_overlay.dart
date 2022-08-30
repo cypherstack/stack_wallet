@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
+import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
 import 'package:stackwallet/providers/exchange/exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -38,7 +38,8 @@ class _ExchangeLoadingOverlayViewState
     ref.read(changeNowFixedInitialLoadStatusStateProvider.state).state =
         ChangeNowLoadStatus.loading;
 
-    final response3 = await ChangeNow.getAvailableFixedRateMarkets();
+    final response3 =
+        await ref.read(changeNowProvider).getAvailableFixedRateMarkets();
     if (response3.value != null) {
       ref.read(fixedRateMarketPairsStateProvider.state).state =
           response3.value!;
@@ -47,7 +48,7 @@ class _ExchangeLoadingOverlayViewState
         final matchingMarkets =
             response3.value!.where((e) => e.to == "doge" && e.from == "btc");
         if (matchingMarkets.isNotEmpty) {
-          ref
+          await ref
               .read(fixedRateExchangeFormProvider)
               .updateMarket(matchingMarkets.first, true);
         }
@@ -78,8 +79,9 @@ class _ExchangeLoadingOverlayViewState
     ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
         ChangeNowLoadStatus.loading;
 
-    final response = await ChangeNow.getAvailableCurrencies();
-    final response2 = await ChangeNow.getAvailableFloatingRatePairs();
+    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
+    final response2 =
+        await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
     if (response.value != null) {
       ref.read(availableChangeNowCurrenciesStateProvider.state).state =
           response.value!;
@@ -90,13 +92,13 @@ class _ExchangeLoadingOverlayViewState
         if (response.value!.length > 1) {
           if (ref.read(estimatedRateExchangeFormProvider).from == null) {
             if (response.value!.where((e) => e.ticker == "btc").isNotEmpty) {
-              ref.read(estimatedRateExchangeFormProvider).updateFrom(
+              await ref.read(estimatedRateExchangeFormProvider).updateFrom(
                   response.value!.firstWhere((e) => e.ticker == "btc"), false);
             }
           }
           if (ref.read(estimatedRateExchangeFormProvider).to == null) {
             if (response.value!.where((e) => e.ticker == "doge").isNotEmpty) {
-              ref.read(estimatedRateExchangeFormProvider).updateTo(
+              await ref.read(estimatedRateExchangeFormProvider).updateTo(
                   response.value!.firstWhere((e) => e.ticker == "doge"), false);
             }
           }

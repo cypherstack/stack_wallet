@@ -17,6 +17,7 @@ class NotificationsService extends ChangeNotifier {
   late NodeService nodeService;
   late TradesService tradesService;
   late Prefs prefs;
+  late ChangeNow changeNow;
 
   NotificationsService._();
   static final NotificationsService _instance = NotificationsService._();
@@ -26,10 +27,12 @@ class NotificationsService extends ChangeNotifier {
     required NodeService nodeService,
     required TradesService tradesService,
     required Prefs prefs,
+    required ChangeNow changeNow,
   }) async {
     this.nodeService = nodeService;
     this.tradesService = tradesService;
     this.prefs = prefs;
+    this.changeNow = changeNow;
   }
 
   // watched transactions
@@ -177,7 +180,7 @@ class NotificationsService extends ChangeNotifier {
     for (final notification in _watchedChangeNowTradeNotifications) {
       final id = notification.changeNowId!;
 
-      final result = await ChangeNow.getTransactionStatus(id: id);
+      final result = await changeNow.getTransactionStatus(id: id);
 
       ChangeNowTransactionStatus? status = result.value?.status;
 

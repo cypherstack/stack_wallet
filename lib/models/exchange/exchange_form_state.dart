@@ -270,7 +270,7 @@ class ExchangeFormState extends ChangeNotifier {
     required Currency from,
     required Currency to,
   }) async {
-    final response = await ChangeNow.getEstimatedExchangeAmount(
+    final response = await ChangeNow.instance.getEstimatedExchangeAmount(
         fromTicker: from.ticker, toTicker: to.ticker, fromAmount: fromAmount);
 
     if (response.value != null) {
@@ -286,8 +286,8 @@ class ExchangeFormState extends ChangeNotifier {
     required Currency from,
     required Currency to,
   }) async {
-    final response = await ChangeNow.getMinimalExchangeAmount(
-        fromTicker: from.ticker, toTicker: to.ticker);
+    final response = await ChangeNow.instance
+        .getMinimalExchangeAmount(fromTicker: from.ticker, toTicker: to.ticker);
 
     if (response.value != null) {
       return response.value!;
