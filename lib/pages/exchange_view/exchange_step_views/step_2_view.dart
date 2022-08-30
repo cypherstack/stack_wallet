@@ -335,7 +335,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                         ),
                         RoundedWhiteContainer(
                           child: Text(
-                            "This is the wallet where your BTC will be sent to.",
+                            "This is the wallet where your ${model.receiveTicker} will be sent to.",
                             style: STextStyles.label,
                           ),
                         ),
