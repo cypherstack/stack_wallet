@@ -3376,7 +3376,7 @@ class BitcoinWallet extends CoinServiceAPI {
     );
 
     // clear cache
-    _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
+    await _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
 
     // back up data
     await _rescanBackup();
