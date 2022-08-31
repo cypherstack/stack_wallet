@@ -390,8 +390,8 @@ class MoneroWallet extends CoinServiceAPI {
   @override
   Future<void> refresh() async {
     if (refreshMutex) {
-      Logging.instance
-          .log("$walletId refreshMutex denied", level: LogLevel.Info);
+      Logging.instance.log("$walletId $walletName refreshMutex denied",
+          level: LogLevel.Info);
       return;
     } else {
       refreshMutex = true;
@@ -465,7 +465,8 @@ class MoneroWallet extends CoinServiceAPI {
           // if (await refreshIfThereIsNewData()) {
           await refresh();
           GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
-              "New data found in $walletName in background!", walletId));
+              "New data found in $walletId $walletName in background!",
+              walletId));
           // }
           // }
         });
@@ -475,7 +476,8 @@ class MoneroWallet extends CoinServiceAPI {
           if (isActive) {
             await walletBase?.save();
             GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
-                "New data found in $walletName in background!", walletId));
+                "New data found in $walletId $walletName in background!",
+                walletId));
           }
         });
       }

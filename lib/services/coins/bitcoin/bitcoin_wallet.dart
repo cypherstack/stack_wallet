@@ -1063,8 +1063,8 @@ class BitcoinWallet extends CoinServiceAPI {
   @override
   Future<void> refresh() async {
     if (refreshMutex) {
-      Logging.instance
-          .log("$walletName refreshMutex denied", level: LogLevel.Info);
+      Logging.instance.log("$walletId $walletName refreshMutex denied",
+          level: LogLevel.Info);
       return;
     } else {
       refreshMutex = true;
@@ -1139,14 +1139,15 @@ class BitcoinWallet extends CoinServiceAPI {
       if (shouldAutoSync) {
         timer ??= Timer.periodic(const Duration(seconds: 150), (timer) async {
           Logging.instance.log(
-              "Periodic refresh check for $walletName in object instance: $hashCode",
+              "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
               level: LogLevel.Info);
           // chain height check currently broken
           // if ((await chainHeight) != (await storedChainHeight)) {
           if (await refreshIfThereIsNewData()) {
             await refresh();
             GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
-                "New data found in $walletName in background!", walletId));
+                "New data found in $walletId $walletName in background!",
+                walletId));
           }
           // }
         });
