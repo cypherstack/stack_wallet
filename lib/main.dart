@@ -206,7 +206,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     await _wallets.load(_prefs);
     loadingCompleter.complete();
     // TODO: this currently hangs for a long time
-    await _nodeService.updateCommunityNodes();
+    // await _nodeService.updateCommunityNodes();
 
     if (_prefs.isAutoBackupEnabled) {
       switch (_prefs.backupFrequencyType) {
