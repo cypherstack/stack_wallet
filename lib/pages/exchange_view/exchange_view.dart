@@ -20,7 +20,7 @@ import 'package:stackwallet/providers/exchange/available_currencies_state_provid
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
 import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/providers/exchange/exchange_form_provider.dart';
+import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
@@ -32,6 +32,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
@@ -57,6 +58,23 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
 
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: CFColors.stackAccent.withOpacity(0.8),
+            child: const CustomLoadingOverlay(
+              message: "Updating exchange rate",
+              eventBus: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
     if (ref.watch(prefsChangeNotifierProvider
             .select((pref) => pref.exchangeRateType)) ==
         ExchangeRateType.estimated) {
@@ -75,6 +93,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
           await ref.read(fixedRateExchangeFormProvider).swap(markets.first);
         }
       }
+    }
+    if (mounted) {
+      Navigator.of(context).pop();
     }
     _swapLock = false;
   }
@@ -199,6 +220,17 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
   void initState() {
     _sendController = TextEditingController();
     _receiveController = TextEditingController();
+
+    final isEstimated =
+        ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+            ExchangeRateType.estimated;
+    _sendController.text = isEstimated
+        ? ref.read(estimatedRateExchangeFormProvider).fromAmountString
+        : ref.read(fixedRateExchangeFormProvider).fromAmountString;
+    _receiveController.text = isEstimated
+        ? ref.read(estimatedRateExchangeFormProvider).toAmountString
+        : ref.read(fixedRateExchangeFormProvider).toAmountString;
+
     super.initState();
   }
 

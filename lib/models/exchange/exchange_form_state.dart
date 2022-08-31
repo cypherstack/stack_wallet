@@ -4,7 +4,7 @@ import 'package:stackwallet/models/exchange/change_now/currency.dart';
 import 'package:stackwallet/services/change_now/change_now.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
-class ExchangeFormState extends ChangeNotifier {
+class EstimatedRateExchangeFormState extends ChangeNotifier {
   Decimal? _fromAmount;
   Decimal? _toAmount;
 
@@ -24,6 +24,18 @@ class ExchangeFormState extends ChangeNotifier {
     _to = to;
   }
 
+  void clearAmounts(bool shouldNotifyListeners) {
+    _fromAmount = null;
+    _toAmount = null;
+    _minFromAmount = null;
+    _minToAmount = null;
+    rate = null;
+
+    if (shouldNotifyListeners) {
+      notifyListeners();
+    }
+  }
+
   Future<void> swap() async {
     final Decimal? newToAmount = _fromAmount;
     final Decimal? newFromAmount = _toAmount;
@@ -31,9 +43,9 @@ class ExchangeFormState extends ChangeNotifier {
     final Decimal? newMinFromAmount = _minToAmount;
     final Decimal? newMinToAmount = _minFromAmount;
 
-    final Decimal? newRate = rate == null
-        ? rate
-        : (Decimal.one / rate!).toDecimal(scaleOnInfinitePrecision: 12);
+    // final Decimal? newRate = rate == null
+    //     ? rate
+    //     : (Decimal.one / rate!).toDecimal(scaleOnInfinitePrecision: 12);
 
     final Currency? newTo = from;
     final Currency? newFrom = to;
@@ -44,18 +56,54 @@ class ExchangeFormState extends ChangeNotifier {
     _minToAmount = newMinToAmount;
     _minFromAmount = newMinFromAmount;
 
-    rate = newRate;
+    // rate = newRate;
 
     _to = newTo;
     _from = newFrom;
+
+    await _updateMinFromAmount(shouldNotifyListeners: false);
+
+    rate = null;
+
+    if (_fromAmount != null) {
+      Decimal? amt;
+      if (_minFromAmount != null) {
+        if (_minFromAmount! > _fromAmount!) {
+          amt = await getStandardEstimatedToAmount(
+              fromAmount: _minFromAmount!, from: _from!, to: _to!);
+          if (amt != null) {
+            rate =
+                (amt / _minFromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
+          }
+        } else {
+          amt = await getStandardEstimatedToAmount(
+              fromAmount: _fromAmount!, from: _from!, to: _to!);
+          if (amt != null) {
+            rate = (amt / _fromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
+          }
+        }
+      }
+      if (rate != null) {
+        _toAmount = (_fromAmount! * rate!);
+      }
+    } else {
+      if (_minFromAmount != null) {
+        Decimal? amt = await getStandardEstimatedToAmount(
+            fromAmount: _minFromAmount!, from: _from!, to: _to!);
+        if (amt != null) {
+          rate =
+              (amt / _minFromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
+        }
+      }
+    }
 
     notifyListeners();
   }
 
   String get fromAmountString =>
-      _fromAmount == null ? "-" : _fromAmount!.toStringAsFixed(8);
+      _fromAmount == null ? "" : _fromAmount!.toStringAsFixed(8);
   String get toAmountString =>
-      _toAmount == null ? "-" : _toAmount!.toStringAsFixed(8);
+      _toAmount == null ? "" : _toAmount!.toStringAsFixed(8);
 
   Future<void> updateTo(Currency to, bool shouldNotifyListeners) async {
     try {
