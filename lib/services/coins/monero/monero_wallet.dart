@@ -868,7 +868,7 @@ class MoneroWallet extends CoinServiceAPI {
     // Use new index to derive a new receiving address
     final newReceivingAddress = await _generateAddressForChain(0, curIndex);
     Logging.instance.log("xmr address in init existing: $newReceivingAddress",
-        level: LogLevel.Fatal);
+        level: LogLevel.Info);
     _currentReceivingAddress = Future(() => newReceivingAddress);
   }
 
