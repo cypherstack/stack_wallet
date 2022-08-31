@@ -206,8 +206,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     ref.read(priceAnd24hChangeNotifierProvider).start(true);
     await _wallets.load(_prefs);
     loadingCompleter.complete();
-    // TODO: this currently hangs for a long time
-    // await _nodeService.updateCommunityNodes();
+    // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
+    //  unawaited(_nodeService.updateCommunityNodes());
 
     if (_prefs.isAutoBackupEnabled) {
       switch (_prefs.backupFrequencyType) {
