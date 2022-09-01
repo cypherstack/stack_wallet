@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,13 +18,12 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
-import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/providers/exchange/exchange_form_provider.dart';
+import 'package:stackwallet/providers/exchange/change_now_provider.dart';
+import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -30,6 +31,7 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
@@ -72,6 +74,23 @@ class _WalletInitiatedExchangeViewState
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
 
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: CFColors.stackAccent.withOpacity(0.8),
+            child: const CustomLoadingOverlay(
+              message: "Updating exchange rate",
+              eventBus: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
     if (ref.watch(prefsChangeNotifierProvider
             .select((pref) => pref.exchangeRateType)) ==
         ExchangeRateType.estimated) {
@@ -90,6 +109,9 @@ class _WalletInitiatedExchangeViewState
           await ref.read(fixedRateExchangeFormProvider).swap(markets.first);
         }
       }
+    }
+    if (mounted) {
+      Navigator.of(context).pop();
     }
     _swapLock = false;
   }
@@ -216,6 +238,11 @@ class _WalletInitiatedExchangeViewState
     coin = widget.coin;
     _sendController = TextEditingController();
     _receiveController = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      ref.read(estimatedRateExchangeFormProvider).clearAmounts(true);
+      // ref.read(fixedRateExchangeFormProvider);
+    });
     super.initState();
   }
 
@@ -229,41 +256,6 @@ class _WalletInitiatedExchangeViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-
-    if (ref
-            .watch(changeNowEstimatedInitialLoadStatusStateProvider.state)
-            .state ==
-        false) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: Text(
-              "Loading ChangeNOW data",
-              style: STextStyles.pageTitleH2,
-            ),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Center(
-            child: Text(
-              "This shouldn't take long",
-              style: STextStyles.smallMed14,
-            ),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          const SizedBox(
-            height: 100,
-            width: 100,
-            child: LoadingIndicator(),
-          ),
-        ],
-      );
-    }
 
     final isEstimated = ref.watch(prefsChangeNotifierProvider
             .select((pref) => pref.exchangeRateType)) ==
@@ -512,14 +504,14 @@ class _WalletInitiatedExchangeViewState
                                                   fixedRateExchangeFormProvider)
                                               .updateMarket(market, true);
                                         } catch (e) {
-                                          showDialog<dynamic>(
+                                          unawaited(showDialog<dynamic>(
                                             context: context,
                                             builder: (_) => const StackDialog(
                                               title: "Fixed rate market error",
                                               message:
                                                   "Could not find the specified fixed rate trade pair",
                                             ),
-                                          );
+                                          ));
                                           return;
                                         }
                                       },
@@ -867,14 +859,14 @@ class _WalletInitiatedExchangeViewState
                                                   fixedRateExchangeFormProvider)
                                               .updateMarket(market, true);
                                         } catch (e) {
-                                          showDialog<dynamic>(
+                                          unawaited(showDialog<dynamic>(
                                             context: context,
                                             builder: (_) => const StackDialog(
                                               title: "Fixed rate market error",
                                               message:
                                                   "Could not find the specified fixed rate trade pair",
                                             ),
-                                          );
+                                          ));
                                           return;
                                         }
                                       },
@@ -1099,12 +1091,12 @@ class _WalletInitiatedExchangeViewState
                                     }
                                   }
                                 }
-                                showFloatingFlushBar(
+                                unawaited(showFloatingFlushBar(
                                   type: FlushBarType.warning,
                                   message:
                                       "Estimated rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last estimated rate pair.",
                                   context: context,
-                                );
+                                ));
                                 break;
                               case ExchangeRateType.fixed:
                                 final fromTicker = ref
@@ -1146,12 +1138,12 @@ class _WalletInitiatedExchangeViewState
                                       );
                                   return;
                                 }
-                                showFloatingFlushBar(
+                                unawaited(showFloatingFlushBar(
                                   type: FlushBarType.warning,
                                   message:
                                       "Fixed rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last fixed rate pair.",
                                   context: context,
-                                );
+                                ));
                                 break;
                             }
                           },
@@ -1219,6 +1211,24 @@ class _WalletInitiatedExchangeViewState
 
                                   if (ft.toLowerCase() ==
                                       coin.ticker.toLowerCase()) {
+                                    bool shouldPop = false;
+                                    bool wasPopped = false;
+                                    unawaited(showDialog<void>(
+                                      context: context,
+                                      builder: (_) => WillPopScope(
+                                        onWillPop: () async {
+                                          if (shouldPop) {
+                                            wasPopped = true;
+                                          }
+                                          return shouldPop;
+                                        },
+                                        child: const CustomLoadingOverlay(
+                                          message: "Checking available balance",
+                                          eventBus: null,
+                                        ),
+                                      ),
+                                    ));
+
                                     final availableBalance =
                                         await manager.availableBalance;
 
@@ -1228,17 +1238,23 @@ class _WalletInitiatedExchangeViewState
                                         Format.decimalAmountToSatoshis(
                                             sendAmount),
                                         feeObject.medium);
+
+                                    shouldPop = true;
+                                    if (!wasPopped && mounted) {
+                                      Navigator.of(context).pop();
+                                    }
+
                                     if (availableBalance <
                                         sendAmount +
                                             Format.satoshisToAmount(fee)) {
-                                      showDialog<void>(
+                                      unawaited(showDialog<void>(
                                         context: context,
                                         builder: (_) => StackOkDialog(
                                           title: "Insufficient balance",
                                           message:
                                               "Current ${coin.prettyName} wallet does not have enough ${coin.ticker} for this trade",
                                         ),
-                                      );
+                                      ));
                                       return;
                                     }
                                   }
@@ -1272,7 +1288,7 @@ class _WalletInitiatedExchangeViewState
                                     }
 
                                     if (!isAvailable) {
-                                      showDialog<dynamic>(
+                                      unawaited(showDialog<dynamic>(
                                         context: context,
                                         barrierDismissible: true,
                                         builder: (_) => StackDialog(
@@ -1281,7 +1297,7 @@ class _WalletInitiatedExchangeViewState
                                           message:
                                               "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
                                         ),
-                                      );
+                                      ));
                                       return;
                                     }
 
@@ -1289,15 +1305,16 @@ class _WalletInitiatedExchangeViewState
                                         .read(prefsChangeNotifierProvider)
                                         .exchangeRateType;
 
-                                    final response = await ChangeNow
+                                    final response = await ref
+                                        .read(changeNowProvider)
                                         .getEstimatedExchangeAmount(
-                                      fromTicker: fromTicker,
-                                      toTicker: toTicker,
-                                      fromAmount: sendAmount,
-                                    );
+                                          fromTicker: fromTicker,
+                                          toTicker: toTicker,
+                                          fromAmount: sendAmount,
+                                        );
 
                                     if (response.value == null) {
-                                      showDialog<dynamic>(
+                                      unawaited(showDialog<dynamic>(
                                         context: context,
                                         barrierDismissible: true,
                                         builder: (_) => StackDialog(
@@ -1306,7 +1323,7 @@ class _WalletInitiatedExchangeViewState
                                           message:
                                               response.exception?.toString(),
                                         ),
-                                      );
+                                      ));
                                       return;
                                     }
 
@@ -1330,10 +1347,10 @@ class _WalletInitiatedExchangeViewState
                                               exchangeSendFromWalletIdStateProvider
                                                   .state)
                                           .state = Tuple2(walletId, coin);
-                                      Navigator.of(context).pushNamed(
+                                      unawaited(Navigator.of(context).pushNamed(
                                         Step2View.routeName,
                                         arguments: model,
-                                      );
+                                      ));
                                     }
                                   } else {
                                     final fromTicker = ref
@@ -1355,18 +1372,19 @@ class _WalletInitiatedExchangeViewState
                                         .read(prefsChangeNotifierProvider)
                                         .exchangeRateType;
 
-                                    final response = await ChangeNow
+                                    final response = await ref
+                                        .read(changeNowProvider)
                                         .getEstimatedFixedRateExchangeAmount(
-                                      fromTicker: fromTicker,
-                                      toTicker: toTicker,
-                                      fromAmount: sendAmount,
-                                      useRateId: true,
-                                    );
+                                          fromTicker: fromTicker,
+                                          toTicker: toTicker,
+                                          fromAmount: sendAmount,
+                                          useRateId: true,
+                                        );
 
                                     bool? shouldCancel;
 
                                     if (response.value == null) {
-                                      showDialog<dynamic>(
+                                      unawaited(showDialog<dynamic>(
                                         context: context,
                                         barrierDismissible: true,
                                         builder: (_) => StackDialog(
@@ -1375,7 +1393,7 @@ class _WalletInitiatedExchangeViewState
                                           message:
                                               response.exception?.toString(),
                                         ),
-                                      );
+                                      ));
                                       return;
                                     } else if (response.value!.warningMessage !=
                                             null &&
@@ -1457,10 +1475,10 @@ class _WalletInitiatedExchangeViewState
                                               exchangeSendFromWalletIdStateProvider
                                                   .state)
                                           .state = Tuple2(walletId, coin);
-                                      Navigator.of(context).pushNamed(
+                                      unawaited(Navigator.of(context).pushNamed(
                                         Step2View.routeName,
                                         arguments: model,
-                                      );
+                                      ));
                                     }
                                   }
                                 }
