@@ -70,16 +70,18 @@ void main() async {
   }
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Hive.initFlutter(appDirectory.path);
-  final isar = await Isar.open(
-    [LogSchema],
-    directory: appDirectory.path,
-    inspector: false,
-  );
-  await Logging.instance.init(isar);
-  await DebugService.instance.init(isar);
+  if(!(Logging.isArmLinux || Logging.isTestEnv)) {
+    final isar = await Isar.open(
+      [LogSchema],
+      directory: appDirectory.path,
+      inspector: false,
+    );
+    await Logging.instance.init(isar);
+    await DebugService.instance.init(isar);
 
-  // clear out all info logs on startup. No need to await and block
-  DebugService.instance.purgeInfoLogs();
+    // clear out all info logs on startup. No need to await and block
+    DebugService.instance.purgeInfoLogs();
+  }
 
   // Registering Transaction Model Adapters
   Hive.registerAdapter(TransactionDataAdapter());
