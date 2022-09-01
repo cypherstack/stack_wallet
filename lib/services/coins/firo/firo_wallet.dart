@@ -1470,8 +1470,8 @@ class FiroWallet extends CoinServiceAPI {
   @override
   Future<void> refresh() async {
     if (refreshMutex) {
-      Logging.instance
-          .log("$walletName refreshMutex denied", level: LogLevel.Info);
+      Logging.instance.log("$walletId $walletName refreshMutex denied",
+          level: LogLevel.Info);
       return;
     } else {
       refreshMutex = true;
@@ -1559,7 +1559,8 @@ class FiroWallet extends CoinServiceAPI {
           if (shouldNotify) {
             await refresh();
             GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
-                "New data found in $walletName in background!", walletId));
+                "New data found in $walletId $walletName in background!",
+                walletId));
           }
         });
       }
