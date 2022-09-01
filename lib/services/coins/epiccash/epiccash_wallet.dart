@@ -807,9 +807,7 @@ class EpicCashWallet extends CoinServiceAPI {
         throw BadEpicHttpAddressException(message: sendTx);
       }
 
-      if (!(receiverAddress.startsWith("http://") || receiverAddress.startsWith("https://"))) {
-        await putSendToAddresses(sendTx);
-      }
+      await putSendToAddresses(sendTx);
 
 
       Logging.instance.log("CONFIRM_RESULT_IS $sendTx", level: LogLevel.Info);
@@ -833,6 +831,8 @@ class EpicCashWallet extends CoinServiceAPI {
         final txCreateResult = decodeData[0];
         // //TODO: second problem
         final transaction = json.decode(txCreateResult as String);
+
+        Logger.print("TX_IS $transaction");
         final tx = transaction[0];
         final txLogEntry = json.decode(tx as String);
         final txLogEntryFirst = txLogEntry[0];
