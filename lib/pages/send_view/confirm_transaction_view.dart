@@ -56,7 +56,7 @@ class _ConfirmTransactionViewState
 
     final note = transactionInfo["note"] as String? ?? "";
     final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     try {
       final txid = await manager.confirmSend(txData: transactionInfo);
@@ -79,7 +79,7 @@ class _ConfirmTransactionViewState
           showFloatingFlushBar(
             type: FlushBarType.warning,
             message:
-                "Connection failed. Please check the address and try again.",
+            "Connection failed. Please check the address and try again.",
             context: context,
           ),
         );
@@ -100,10 +100,10 @@ class _ConfirmTransactionViewState
             message: e.toString(),
             rightButton: TextButton(
               style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.buttonGray,
-                    ),
-                  ),
+                backgroundColor: MaterialStateProperty.all<Color>(
+                  CFColors.buttonGray,
+                ),
+              ),
               child: Text(
                 "Ok",
                 style: STextStyles.button.copyWith(
@@ -212,9 +212,9 @@ class _ConfirmTransactionViewState
                                         .select((value) => value.locale),
                                   ),
                                 )} ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
+                                  managerProvider
+                                      .select((value) => value.coin),
+                                ).ticker}",
                                 style: STextStyles.itemSubtitle12,
                                 textAlign: TextAlign.right,
                               ),
@@ -240,9 +240,9 @@ class _ConfirmTransactionViewState
                                         .select((value) => value.locale),
                                   ),
                                 )} ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
+                                  managerProvider
+                                      .select((value) => value.coin),
+                                ).ticker}",
                                 style: STextStyles.itemSubtitle12,
                                 textAlign: TextAlign.right,
                               ),
@@ -292,9 +292,9 @@ class _ConfirmTransactionViewState
                                         .select((value) => value.locale),
                                   ),
                                 )} ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
+                                  managerProvider
+                                      .select((value) => value.coin),
+                                ).ticker}",
                                 style: STextStyles.itemSubtitle12,
                                 textAlign: TextAlign.right,
                               ),
@@ -306,18 +306,18 @@ class _ConfirmTransactionViewState
                         ),
                         TextButton(
                           style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
+                          Theme.of(context).textButtonTheme.style?.copyWith(
+                            backgroundColor:
+                            MaterialStateProperty.all<Color>(
+                              CFColors.stackAccent,
+                            ),
+                          ),
                           onPressed: () async {
                             final unlocked = await Navigator.push(
                               context,
                               RouteGenerator.getRoute(
                                 shouldUseMaterialRoute:
-                                    RouteGenerator.useMaterialPageRoute,
+                                RouteGenerator.useMaterialPageRoute,
                                 builder: (_) => const LockscreenView(
                                   showBackButton: true,
                                   popOnSuccess: true,
@@ -325,9 +325,9 @@ class _ConfirmTransactionViewState
                                   routeOnSuccess: "",
                                   biometricsCancelButtonString: "CANCEL",
                                   biometricsLocalizedReason:
-                                      "Authenticate to send transaction",
+                                  "Authenticate to send transaction",
                                   biometricsAuthenticationTitle:
-                                      "Confirm Transaction",
+                                  "Confirm Transaction",
                                 ),
                                 settings: const RouteSettings(
                                     name: "/confirmsendlockscreen"),
