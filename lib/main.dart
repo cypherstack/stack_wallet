@@ -70,7 +70,7 @@ void main() async {
   }
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Hive.initFlutter(appDirectory.path);
-  if(!(Logging.isArmLinux || Logging.isTestEnv)) {
+  if (!(Logging.isArmLinux || Logging.isTestEnv)) {
     final isar = await Isar.open(
       [LogSchema],
       directory: appDirectory.path,
