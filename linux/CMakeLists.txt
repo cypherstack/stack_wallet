@@ -60,7 +60,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret/_build)
 
 add_library(jsoncpp SHARED IMPORTED)
-set_target_properties(jsoncpp PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/lib/libjsoncpp.so")
+set_target_properties(jsoncpp PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so")
 add_library(secret-1 SHARED IMPORTED)
 set_target_properties(secret-1 PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret/_build/libsecret/libsecret-1.so")
 
@@ -143,11 +143,11 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libepiccash
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_liblelantus/scripts/linux/build/libmobileliblelantus.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/lib/libjsoncpp.so.1.9.5" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so.1.7.4" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/lib/libjsoncpp.so.25" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so.1" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/lib/libjsoncpp.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret/_build/libsecret/libsecret-1.so.0.0.0" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
