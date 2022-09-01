@@ -39,6 +39,17 @@ const int MINIMUM_CONFIRMATIONS = 10;
 const String GENESIS_HASH_MAINNET = "";
 const String GENESIS_HASH_TESTNET = "";
 
+class BadEpicHttpAddressException implements Exception {
+  final String? message;
+
+  BadEpicHttpAddressException({this.message});
+
+  @override
+  String toString() {
+    return "BadEpicHttpAddressException: $message";
+  }
+}
+
 // isolate
 
 Map<ReceivePort, Isolate> isolates = {};
@@ -754,6 +765,10 @@ class EpicCashWallet extends CoinServiceAPI {
         }, name: walletName);
 
         message = await receivePort.first;
+
+        // TODO: throw BadEpicHttpAddressException in the case where a send fails due to bad http address
+        // throw BadEpicHttpAddressException();
+
         if (message is String) {
           Logging.instance
               .log("this is a string $message", level: LogLevel.Error);
@@ -2235,6 +2250,12 @@ class EpicCashWallet extends CoinServiceAPI {
 
   @override
   bool validateAddress(String address) {
+    if (address.startsWith("http://") || address.startsWith("https://")) {
+      if (Uri.tryParse(address) != null) {
+        return true;
+      }
+    }
+
     String validate = validateSendAddress(address);
     if (int.parse(validate) == 1) {
       return true;
