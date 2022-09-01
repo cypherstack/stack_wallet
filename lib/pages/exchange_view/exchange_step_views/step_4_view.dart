@@ -13,10 +13,10 @@ import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
+import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -69,8 +69,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   }
 
   Future<void> _updateStatus() async {
-    final statusResponse =
-        await ChangeNow.getTransactionStatus(id: model.trade!.id);
+    final statusResponse = await ref
+        .read(changeNowProvider)
+        .getTransactionStatus(id: model.trade!.id);
     String status = "Waiting";
     if (statusResponse.value != null) {
       _status = statusResponse.value!.status;
@@ -214,11 +215,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       final data = ClipboardData(
                                           text: model.sendAmount.toString());
                                       await clipboard.setData(data);
-                                      showFloatingFlushBar(
+                                      unawaited(showFloatingFlushBar(
                                         type: FlushBarType.info,
                                         message: "Copied to clipboard",
                                         context: context,
-                                      );
+                                      ));
                                     },
                                     child: Row(
                                       children: [
@@ -271,11 +272,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       final data = ClipboardData(
                                           text: model.trade!.payinAddress);
                                       await clipboard.setData(data);
-                                      showFloatingFlushBar(
+                                      unawaited(showFloatingFlushBar(
                                         type: FlushBarType.info,
                                         message: "Copied to clipboard",
                                         context: context,
-                                      );
+                                      ));
                                     },
                                     child: Row(
                                       children: [
@@ -331,11 +332,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       final data =
                                           ClipboardData(text: model.trade!.id);
                                       await clipboard.setData(data);
-                                      showFloatingFlushBar(
+                                      unawaited(showFloatingFlushBar(
                                         type: FlushBarType.info,
                                         message: "Copied to clipboard",
                                         context: context,
-                                      );
+                                      ));
                                     },
                                     child: SvgPicture.asset(
                                       Assets.svg.copy,
@@ -487,7 +488,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                         try {
                                           bool wasCancelled = false;
 
-                                          showDialog<dynamic>(
+                                          unawaited(showDialog<dynamic>(
                                             context: context,
                                             useSafeArea: false,
                                             barrierDismissible: false,
@@ -500,7 +501,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                 },
                                               );
                                             },
-                                          );
+                                          ));
 
                                           final txData =
                                               await manager.prepareSend(
@@ -524,7 +525,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             txData["address"] = address;
 
                                             if (mounted) {
-                                              Navigator.of(context).push(
+                                              unawaited(
+                                                  Navigator.of(context).push(
                                                 RouteGenerator.getRoute(
                                                   shouldUseMaterialRoute:
                                                       RouteGenerator
@@ -543,7 +545,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                             .routeName,
                                                   ),
                                                 ),
-                                              );
+                                              ));
                                             }
                                           }
                                         } catch (e) {
@@ -551,7 +553,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                           // pop building dialog
                                           Navigator.of(context).pop();
 
-                                          showDialog<dynamic>(
+                                          unawaited(showDialog<dynamic>(
                                             context: context,
                                             useSafeArea: false,
                                             barrierDismissible: true,
@@ -584,7 +586,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                 ),
                                               );
                                             },
-                                          );
+                                          ));
                                           // }
                                         }
                                       }

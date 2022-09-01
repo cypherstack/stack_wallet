@@ -13,20 +13,24 @@ import 'package:stackwallet/models/exchange/change_now/exchange_transaction_stat
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
-abstract class ChangeNow {
+class ChangeNow {
   static const String scheme = "https";
   static const String authority = "api.changenow.io";
   static const String apiVersion = "/v1";
 
-  /// set this to override using standard http client. Useful for testing
-  static http.Client? client;
+  ChangeNow._();
+  static final ChangeNow _instance = ChangeNow._();
+  static ChangeNow get instance => _instance;
 
-  static Uri _buildUri(String path, Map<String, dynamic>? params) {
+  /// set this to override using standard http client. Useful for testing
+  http.Client? client;
+
+  Uri _buildUri(String path, Map<String, dynamic>? params) {
     return Uri.https(authority, apiVersion + path, params);
   }
 
-  static Future<dynamic> _makeGetRequest(Uri uri) async {
-    final client = ChangeNow.client ?? http.Client();
+  Future<dynamic> _makeGetRequest(Uri uri) async {
+    final client = this.client ?? http.Client();
     try {
       final response = await client.get(
         uri,
@@ -43,11 +47,11 @@ abstract class ChangeNow {
     }
   }
 
-  static Future<dynamic> _makePostRequest(
+  Future<dynamic> _makePostRequest(
     Uri uri,
     Map<String, String> body,
   ) async {
-    final client = ChangeNow.client ?? http.Client();
+    final client = this.client ?? http.Client();
     try {
       final response = await client.post(
         uri,
@@ -69,7 +73,7 @@ abstract class ChangeNow {
   ///
   /// Set [active] to true to return only active currencies.
   /// Set [fixedRate] to true to return only currencies available on a fixed-rate flow.
-  static Future<ChangeNowResponse<List<Currency>>> getAvailableCurrencies({
+  Future<ChangeNowResponse<List<Currency>>> getAvailableCurrencies({
     bool? fixedRate,
     bool? active,
   }) async {
@@ -117,7 +121,7 @@ abstract class ChangeNow {
     }
   }
 
-  static ChangeNowResponse<List<Currency>> _parseAvailableCurrenciesJson(
+  ChangeNowResponse<List<Currency>> _parseAvailableCurrenciesJson(
       List<dynamic> jsonArray) {
     try {
       List<Currency> currencies = [];
@@ -128,11 +132,8 @@ abstract class ChangeNow {
               .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
         } catch (_) {
           return ChangeNowResponse(
-            exception: ChangeNowException(
-              "Failed to serialize $json",
-              ChangeNowExceptionType.serializeResponseError,
-            ),
-          );
+              exception: ChangeNowException("Failed to serialize $json",
+                  ChangeNowExceptionType.serializeResponseError));
         }
       }
 
@@ -147,7 +148,7 @@ abstract class ChangeNow {
   ///
   /// Required [ticker] to fetch paired currencies for.
   /// Set [fixedRate] to true to return only currencies available on a fixed-rate flow.
-  static Future<ChangeNowResponse<List<Currency>>> getPairedCurrencies({
+  Future<ChangeNowResponse<List<Currency>>> getPairedCurrencies({
     required String ticker,
     bool? fixedRate,
   }) async {
@@ -183,11 +184,8 @@ abstract class ChangeNow {
         Logging.instance.log("getPairedCurrencies exception: $e\n$s",
             level: LogLevel.Error);
         return ChangeNowResponse(
-          exception: ChangeNowException(
-            "Error: $jsonArray",
-            ChangeNowExceptionType.serializeResponseError,
-          ),
-        );
+            exception: ChangeNowException("Error: $jsonArray",
+                ChangeNowExceptionType.serializeResponseError));
       }
       return ChangeNowResponse(value: currencies);
     } catch (e, s) {
@@ -205,7 +203,7 @@ abstract class ChangeNow {
   /// The API endpoint returns minimal payment amount required to make
   /// an exchange of [fromTicker] to [toTicker].
   /// If you try to exchange less, the transaction will most likely fail.
-  static Future<ChangeNowResponse<Decimal>> getMinimalExchangeAmount({
+  Future<ChangeNowResponse<Decimal>> getMinimalExchangeAmount({
     required String fromTicker,
     required String toTicker,
     String? apiKey,
@@ -243,7 +241,7 @@ abstract class ChangeNow {
 
   /// Get estimated amount of [toTicker] cryptocurrency to receive
   /// for [fromAmount] of [fromTicker]
-  static Future<ChangeNowResponse<EstimatedExchangeAmount>>
+  Future<ChangeNowResponse<EstimatedExchangeAmount>>
       getEstimatedExchangeAmount({
     required String fromTicker,
     required String toTicker,
@@ -287,7 +285,7 @@ abstract class ChangeNow {
 
   /// This API endpoint returns fixed-rate estimated exchange amount of
   /// [toTicker] cryptocurrency to receive for [fromAmount] of [fromTicker]
-  static Future<ChangeNowResponse<EstimatedExchangeAmount>>
+  Future<ChangeNowResponse<EstimatedExchangeAmount>>
       getEstimatedFixedRateExchangeAmount({
     required String fromTicker,
     required String toTicker,
@@ -342,7 +340,7 @@ abstract class ChangeNow {
   /// fixed-rate flow. Some currencies get enabled or disabled from time to
   /// time and the market info gets updates, so make sure to refresh the list
   /// occasionally. One time per minute is sufficient.
-  static Future<ChangeNowResponse<List<FixedRateMarket>>>
+  Future<ChangeNowResponse<List<FixedRateMarket>>>
       getAvailableFixedRateMarkets({
     String? apiKey,
   }) async {
@@ -379,7 +377,7 @@ abstract class ChangeNow {
     }
   }
 
-  static ChangeNowResponse<List<FixedRateMarket>> _parseFixedRateMarketsJson(
+  ChangeNowResponse<List<FixedRateMarket>> _parseFixedRateMarketsJson(
       List<dynamic> jsonArray) {
     try {
       List<FixedRateMarket> markets = [];
@@ -389,11 +387,8 @@ abstract class ChangeNow {
               FixedRateMarket.fromJson(Map<String, dynamic>.from(json as Map)));
         } catch (_) {
           return ChangeNowResponse(
-            exception: ChangeNowException(
-              "Failed to serialize $json",
-              ChangeNowExceptionType.serializeResponseError,
-            ),
-          );
+              exception: ChangeNowException("Failed to serialize $json",
+                  ChangeNowExceptionType.serializeResponseError));
         }
       }
       return ChangeNowResponse(value: markets);
@@ -404,7 +399,7 @@ abstract class ChangeNow {
 
   /// The API endpoint creates a transaction, generates an address for
   /// sending funds and returns transaction attributes.
-  static Future<ChangeNowResponse<ExchangeTransaction>>
+  Future<ChangeNowResponse<ExchangeTransaction>>
       createStandardExchangeTransaction({
     required String fromTicker,
     required String toTicker,
@@ -466,7 +461,7 @@ abstract class ChangeNow {
 
   /// The API endpoint creates a transaction, generates an address for
   /// sending funds and returns transaction attributes.
-  static Future<ChangeNowResponse<ExchangeTransaction>>
+  Future<ChangeNowResponse<ExchangeTransaction>>
       createFixedRateExchangeTransaction({
     required String fromTicker,
     required String toTicker,
@@ -529,8 +524,7 @@ abstract class ChangeNow {
     }
   }
 
-  static Future<ChangeNowResponse<ExchangeTransactionStatus>>
-      getTransactionStatus({
+  Future<ChangeNowResponse<ExchangeTransactionStatus>> getTransactionStatus({
     required String id,
     String? apiKey,
   }) async {
@@ -565,7 +559,7 @@ abstract class ChangeNow {
     }
   }
 
-  static Future<ChangeNowResponse<List<AvailableFloatingRatePair>>>
+  Future<ChangeNowResponse<List<AvailableFloatingRatePair>>>
       getAvailableFloatingRatePairs({
     bool includePartners = false,
   }) async {
@@ -602,7 +596,7 @@ abstract class ChangeNow {
     }
   }
 
-  static ChangeNowResponse<List<AvailableFloatingRatePair>>
+  ChangeNowResponse<List<AvailableFloatingRatePair>>
       _parseAvailableFloatingRatePairsJson(List<dynamic> jsonArray) {
     try {
       List<AvailableFloatingRatePair> pairs = [];
@@ -613,11 +607,8 @@ abstract class ChangeNow {
               fromTicker: stringPair[0], toTicker: stringPair[1]));
         } catch (_) {
           return ChangeNowResponse(
-            exception: ChangeNowException(
-              "Failed to serialize $json",
-              ChangeNowExceptionType.serializeResponseError,
-            ),
-          );
+              exception: ChangeNowException("Failed to serialize $json",
+                  ChangeNowExceptionType.serializeResponseError));
         }
       }
       return ChangeNowResponse(value: pairs);

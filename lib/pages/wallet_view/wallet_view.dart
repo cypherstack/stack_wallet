@@ -17,7 +17,7 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_navigation_bar.
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
-import 'package:stackwallet/providers/exchange/exchange_form_provider.dart';
+import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';

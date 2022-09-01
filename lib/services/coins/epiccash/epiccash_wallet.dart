@@ -1789,9 +1789,11 @@ class EpicCashWallet extends CoinServiceAPI {
   /// Refreshes display data for the wallet
   @override
   Future<void> refresh() async {
-    Logging.instance.log("Calling refresh", level: LogLevel.Info);
+    Logging.instance
+        .log("$walletId $walletName Calling refresh", level: LogLevel.Info);
     if (refreshMutex) {
-      Logging.instance.log("refreshMutex denied", level: LogLevel.Info);
+      Logging.instance.log("$walletId $walletName refreshMutex denied",
+          level: LogLevel.Info);
       return;
     } else {
       refreshMutex = true;
@@ -1882,14 +1884,15 @@ class EpicCashWallet extends CoinServiceAPI {
       if (shouldAutoSync) {
         timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
           Logging.instance.log(
-              "Periodic refresh check for $walletId in object instance: $hashCode",
+              "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
               level: LogLevel.Info);
           // chain height check currently broken
           // if ((await chainHeight) != (await storedChainHeight)) {
           if (await refreshIfThereIsNewData()) {
             await refresh();
             GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
-                "New data found in $walletName in background!", walletId));
+                "New data found in $walletId $walletName in background!",
+                walletId));
           }
           // }
         });

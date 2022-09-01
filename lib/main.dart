@@ -31,8 +31,9 @@ import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
+import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/providers/exchange/exchange_form_provider.dart';
+import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
@@ -41,7 +42,6 @@ import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
 import 'package:stackwallet/services/debug_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -70,16 +70,18 @@ void main() async {
   }
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Hive.initFlutter(appDirectory.path);
-  final isar = await Isar.open(
-    [LogSchema],
-    directory: appDirectory.path,
-    inspector: false,
-  );
-  await Logging.instance.init(isar);
-  await DebugService.instance.init(isar);
+  if (!(Logging.isArmLinux || Logging.isTestEnv)) {
+    final isar = await Isar.open(
+      [LogSchema],
+      directory: appDirectory.path,
+      inspector: false,
+    );
+    await Logging.instance.init(isar);
+    await DebugService.instance.init(isar);
 
-  // clear out all info logs on startup. No need to await and block
-  DebugService.instance.purgeInfoLogs();
+    // clear out all info logs on startup. No need to await and block
+    unawaited(DebugService.instance.purgeInfoLogs());
+  }
 
   // Registering Transaction Model Adapters
   Hive.registerAdapter(TransactionDataAdapter());
@@ -193,20 +195,21 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     NotificationApi.prefs = _prefs;
     NotificationApi.notificationsService = _notificationsService;
 
-    ref.read(baseCurrenciesProvider).update();
+    unawaited(ref.read(baseCurrenciesProvider).update());
 
     await _nodeService.updateDefaults();
     await _notificationsService.init(
       nodeService: _nodeService,
       tradesService: _tradesService,
       prefs: _prefs,
+      changeNow: ref.read(changeNowProvider),
     );
     await _prefs.init();
     ref.read(priceAnd24hChangeNotifierProvider).start(true);
     await _wallets.load(_prefs);
     loadingCompleter.complete();
-    // TODO: this currently hangs for a long time
-    await _nodeService.updateCommunityNodes();
+    // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
+    //  unawaited(_nodeService.updateCommunityNodes());
 
     if (_prefs.isAutoBackupEnabled) {
       switch (_prefs.backupFrequencyType) {
@@ -216,7 +219,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               .startPeriodicBackupTimer(duration: const Duration(minutes: 10));
           break;
         case BackupFrequencyType.everyAppStart:
-          ref.read(autoSWBServiceProvider).doBackup();
+          unawaited(ref.read(autoSWBServiceProvider).doBackup());
           break;
         case BackupFrequencyType.afterClosingAWallet:
           // ignore this case here
@@ -236,8 +239,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             .isNotEmpty) {
       return;
     }
-    final response = await ChangeNow.getAvailableCurrencies();
-    final response2 = await ChangeNow.getAvailableFloatingRatePairs();
+    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
+    final response2 =
+        await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
     if (response.value != null) {
       ref.read(availableChangeNowCurrenciesStateProvider.state).state =
           response.value!;
@@ -248,13 +252,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         if (response.value!.length > 1) {
           if (ref.read(estimatedRateExchangeFormProvider).from == null) {
             if (response.value!.where((e) => e.ticker == "btc").isNotEmpty) {
-              ref.read(estimatedRateExchangeFormProvider).updateFrom(
+              await ref.read(estimatedRateExchangeFormProvider).updateFrom(
                   response.value!.firstWhere((e) => e.ticker == "btc"), false);
             }
           }
           if (ref.read(estimatedRateExchangeFormProvider).to == null) {
             if (response.value!.where((e) => e.ticker == "doge").isNotEmpty) {
-              ref.read(estimatedRateExchangeFormProvider).updateTo(
+              await ref.read(estimatedRateExchangeFormProvider).updateTo(
                   response.value!.firstWhere((e) => e.ticker == "doge"), false);
             }
           }
@@ -288,7 +292,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       return;
     }
 
-    final response3 = await ChangeNow.getAvailableFixedRateMarkets();
+    final response3 =
+        await ref.read(changeNowProvider).getAvailableFixedRateMarkets();
     if (response3.value != null) {
       ref.read(fixedRateMarketPairsStateProvider.state).state =
           response3.value!;
@@ -297,7 +302,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         final matchingMarkets =
             response3.value!.where((e) => e.to == "doge" && e.from == "btc");
         if (matchingMarkets.isNotEmpty) {
-          ref
+          await ref
               .read(fixedRateExchangeFormProvider)
               .updateMarket(matchingMarkets.first, true);
         }
@@ -443,7 +448,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         }
       });
     } else {
-      Navigator.push(
+      unawaited(Navigator.push(
         navigatorKey.currentContext!,
         RouteGenerator.getRoute(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
@@ -458,7 +463,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ),
           settings: const RouteSettings(name: "/swbrestorelockscreen"),
         ),
-      );
+      ));
     }
   }
 
