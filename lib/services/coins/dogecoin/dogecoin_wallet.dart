@@ -741,7 +741,8 @@ class DogecoinWallet extends CoinServiceAPI {
   @override
   Future<void> refresh() async {
     if (refreshMutex) {
-      Logging.instance.log("refreshMutex denied", level: LogLevel.Info);
+      Logging.instance.log("$walletId $walletName refreshMutex denied",
+          level: LogLevel.Info);
       return;
     } else {
       refreshMutex = true;
@@ -820,7 +821,8 @@ class DogecoinWallet extends CoinServiceAPI {
           if (await refreshIfThereIsNewData()) {
             await refresh();
             GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
-                "New data found in $walletName in background!", walletId));
+                "New data found in $walletId $walletName in background!",
+                walletId));
           }
           // }
         });
@@ -1761,7 +1763,8 @@ class DogecoinWallet extends CoinServiceAPI {
           await _getCurrentAddressForChain(1, derivePathType);
       final int txCount = await getTxCount(address: currentExternalAddr);
       Logging.instance.log(
-          'Number of txs for current change address $currentExternalAddr: $txCount', level: LogLevel.Info);
+          'Number of txs for current change address $currentExternalAddr: $txCount',
+          level: LogLevel.Info);
 
       if (txCount >= 1) {
         // First increment the change index
@@ -1786,7 +1789,8 @@ class DogecoinWallet extends CoinServiceAPI {
       }
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkChangeAddressForTransactions($derivePathType): $e\n$s", level: LogLevel.Error);
+          "Exception rethrown from _checkChangeAddressForTransactions($derivePathType): $e\n$s",
+          level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1798,7 +1802,8 @@ class DogecoinWallet extends CoinServiceAPI {
       }
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkCurrentReceivingAddressesForTransactions(): $e\n$s", level: LogLevel.Info);
+          "Exception rethrown from _checkCurrentReceivingAddressesForTransactions(): $e\n$s",
+          level: LogLevel.Info);
       rethrow;
     }
   }
@@ -1821,7 +1826,8 @@ class DogecoinWallet extends CoinServiceAPI {
       }
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkCurrentChangeAddressesForTransactions(): $e\n$s", level: LogLevel.Error);
+          "Exception rethrown from _checkCurrentChangeAddressesForTransactions(): $e\n$s",
+          level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1969,7 +1975,8 @@ class DogecoinWallet extends CoinServiceAPI {
     Logging.instance.log("addAddresses: $allAddresses", level: LogLevel.Info);
     Logging.instance.log("allTxHashes: $allTxHashes", level: LogLevel.Info);
 
-    Logging.instance.log("allTransactions length: ${allTransactions.length}", level: LogLevel.Info);
+    Logging.instance.log("allTransactions length: ${allTransactions.length}",
+        level: LogLevel.Info);
 
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
@@ -2015,11 +2022,13 @@ class DogecoinWallet extends CoinServiceAPI {
         }
       }
 
-      Logging.instance.log("recipientsArray: $recipientsArray", level: LogLevel.Info);
+      Logging.instance
+          .log("recipientsArray: $recipientsArray", level: LogLevel.Info);
 
       final foundInSenders =
           allAddresses.any((element) => sendersArray.contains(element));
-      Logging.instance.log("foundInSenders: $foundInSenders", level: LogLevel.Info);
+      Logging.instance
+          .log("foundInSenders: $foundInSenders", level: LogLevel.Info);
 
       // If txType = Sent, then calculate inputAmtSentFromWallet
       if (foundInSenders) {
@@ -2228,7 +2237,8 @@ class DogecoinWallet extends CoinServiceAPI {
   dynamic coinSelection(int satoshiAmountToSend, int selectedTxFeeRate,
       String _recipientAddress, bool isSendAll,
       {int additionalOutputs = 0, List<UtxoObject>? utxos}) async {
-    Logging.instance.log("Starting coinSelection ----------", level: LogLevel.Info);
+    Logging.instance
+        .log("Starting coinSelection ----------", level: LogLevel.Info);
     final List<UtxoObject> availableOutputs = utxos ?? outputsList;
     final List<UtxoObject> spendableOutputs = [];
     int spendableSatoshiValue = 0;
@@ -2246,10 +2256,14 @@ class DogecoinWallet extends CoinServiceAPI {
     spendableOutputs.sort(
         (a, b) => b.status.confirmations.compareTo(a.status.confirmations));
 
-    Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}", level: LogLevel.Info);
-    Logging.instance.log("spendableOutputs: $spendableOutputs", level: LogLevel.Info);
-    Logging.instance.log("spendableSatoshiValue: $spendableSatoshiValue", level: LogLevel.Info);
-    Logging.instance.log("satoshiAmountToSend: $satoshiAmountToSend", level: LogLevel.Info);
+    Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
+        level: LogLevel.Info);
+    Logging.instance
+        .log("spendableOutputs: $spendableOutputs", level: LogLevel.Info);
+    Logging.instance.log("spendableSatoshiValue: $spendableSatoshiValue",
+        level: LogLevel.Info);
+    Logging.instance
+        .log("satoshiAmountToSend: $satoshiAmountToSend", level: LogLevel.Info);
     // If the amount the user is trying to send is smaller than the amount that they have spendable,
     // then return 1, which indicates that they have an insufficient balance.
     if (spendableSatoshiValue < satoshiAmountToSend) {
@@ -2284,10 +2298,14 @@ class DogecoinWallet extends CoinServiceAPI {
       inputsBeingConsumed += 1;
     }
 
-    Logging.instance.log("satoshisBeingUsed: $satoshisBeingUsed", level: LogLevel.Info);
-    Logging.instance.log("inputsBeingConsumed: $inputsBeingConsumed", level: LogLevel.Info);
-    Logging.instance.log('utxoObjectsToUse: $utxoObjectsToUse', level: LogLevel.Info);
-    Logging.instance.log('satoshiAmountToSend $satoshiAmountToSend', level: LogLevel.Info);
+    Logging.instance
+        .log("satoshisBeingUsed: $satoshisBeingUsed", level: LogLevel.Info);
+    Logging.instance
+        .log("inputsBeingConsumed: $inputsBeingConsumed", level: LogLevel.Info);
+    Logging.instance
+        .log('utxoObjectsToUse: $utxoObjectsToUse', level: LogLevel.Info);
+    Logging.instance
+        .log('satoshiAmountToSend $satoshiAmountToSend', level: LogLevel.Info);
 
     // numberOfOutputs' length must always be equal to that of recipientsArray and recipientsAmtArray
     List<String> recipientsArray = [_recipientAddress];
@@ -2297,7 +2315,8 @@ class DogecoinWallet extends CoinServiceAPI {
     final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
 
     if (isSendAll) {
-      Logging.instance.log("Attempting to send all $coin", level: LogLevel.Info);
+      Logging.instance
+          .log("Attempting to send all $coin", level: LogLevel.Info);
 
       final int vSizeForOneOutput = (await buildTransaction(
         utxosToUse: utxoObjectsToUse,
@@ -2362,8 +2381,10 @@ class DogecoinWallet extends CoinServiceAPI {
       feeRatePerKB: selectedTxFeeRate,
     );
 
-    Logging.instance.log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
-    Logging.instance.log("feeForOneOutput: $feeForOneOutput", level: LogLevel.Info);
+    Logging.instance
+        .log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
+    Logging.instance
+        .log("feeForOneOutput: $feeForOneOutput", level: LogLevel.Info);
     if (feeForOneOutput < (vSizeForOneOutput + 1) * 1000) {
       feeForOneOutput = (vSizeForOneOutput + 1) * 1000;
     }
@@ -2371,8 +2392,10 @@ class DogecoinWallet extends CoinServiceAPI {
       feeForTwoOutputs = ((vSizeForTwoOutPuts + 1) * 1000);
     }
 
-    Logging.instance.log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
-    Logging.instance.log("feeForOneOutput: $feeForOneOutput", level: LogLevel.Info);
+    Logging.instance
+        .log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
+    Logging.instance
+        .log("feeForOneOutput: $feeForOneOutput", level: LogLevel.Info);
 
     if (satoshisBeingUsed - satoshiAmountToSend > feeForOneOutput) {
       if (satoshisBeingUsed - satoshiAmountToSend >
@@ -2400,12 +2423,17 @@ class DogecoinWallet extends CoinServiceAPI {
           // At this point, we have the outputs we're going to use, the amounts to send along with which addresses
           // we intend to send these amounts to. We have enough to send instructions to build the transaction.
           Logging.instance.log('2 outputs in tx', level: LogLevel.Info);
-          Logging.instance.log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
-          Logging.instance.log('Recipient output size: $satoshiAmountToSend', level: LogLevel.Info);
-          Logging.instance.log('Change Output Size: $changeOutputSize', level: LogLevel.Info);
           Logging.instance
-              .log('Difference (fee being paid): $feeBeingPaid sats', level: LogLevel.Info);
-          Logging.instance.log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
+              .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+          Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+              level: LogLevel.Info);
+          Logging.instance.log('Change Output Size: $changeOutputSize',
+              level: LogLevel.Info);
+          Logging.instance.log(
+              'Difference (fee being paid): $feeBeingPaid sats',
+              level: LogLevel.Info);
+          Logging.instance
+              .log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
             utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
@@ -2421,14 +2449,19 @@ class DogecoinWallet extends CoinServiceAPI {
                 satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
             recipientsAmtArray.removeLast();
             recipientsAmtArray.add(changeOutputSize);
-            Logging.instance.log('Adjusted Input size: $satoshisBeingUsed', level: LogLevel.Info);
-            Logging.instance
-                .log('Adjusted Recipient output size: $satoshiAmountToSend', level: LogLevel.Info);
-            Logging.instance
-                .log('Adjusted Change Output Size: $changeOutputSize', level: LogLevel.Info);
+            Logging.instance.log('Adjusted Input size: $satoshisBeingUsed',
+                level: LogLevel.Info);
             Logging.instance.log(
-                'Adjusted Difference (fee being paid): $feeBeingPaid sats', level: LogLevel.Info);
-            Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
+                'Adjusted Recipient output size: $satoshiAmountToSend',
+                level: LogLevel.Info);
+            Logging.instance.log(
+                'Adjusted Change Output Size: $changeOutputSize',
+                level: LogLevel.Info);
+            Logging.instance.log(
+                'Adjusted Difference (fee being paid): $feeBeingPaid sats',
+                level: LogLevel.Info);
+            Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs',
+                level: LogLevel.Info);
             txn = await buildTransaction(
               utxosToUse: utxoObjectsToUse,
               utxoSigningData: utxoSigningData,
@@ -2449,11 +2482,15 @@ class DogecoinWallet extends CoinServiceAPI {
           // Something went wrong here. It either overshot or undershot the estimated fee amount or the changeOutputSize
           // is smaller than or equal to [DUST_LIMIT]. Revert to single output transaction.
           Logging.instance.log('1 output in tx', level: LogLevel.Info);
-          Logging.instance.log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
-          Logging.instance.log('Recipient output size: $satoshiAmountToSend', level: LogLevel.Info);
+          Logging.instance
+              .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+          Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+              level: LogLevel.Info);
           Logging.instance.log(
-              'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats', level: LogLevel.Info);
-          Logging.instance.log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
+              'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
+              level: LogLevel.Info);
+          Logging.instance
+              .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
             utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
@@ -2474,11 +2511,15 @@ class DogecoinWallet extends CoinServiceAPI {
         // which makes it uneconomical to add to the transaction. Here, we pass data directly to instruct
         // the wallet to begin crafting the transaction that the user requested.
         Logging.instance.log('1 output in tx', level: LogLevel.Info);
-        Logging.instance.log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
-        Logging.instance.log('Recipient output size: $satoshiAmountToSend', level: LogLevel.Info);
+        Logging.instance
+            .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+        Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+            level: LogLevel.Info);
         Logging.instance.log(
-            'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats', level: LogLevel.Info);
-        Logging.instance.log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
+            'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
+            level: LogLevel.Info);
+        Logging.instance
+            .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
         dynamic txn = await buildTransaction(
           utxosToUse: utxoObjectsToUse,
           utxoSigningData: utxoSigningData,
@@ -2499,11 +2540,15 @@ class DogecoinWallet extends CoinServiceAPI {
       // what we need to pay for fees. Here, we pass data directly to instruct the wallet to begin
       // crafting the transaction that the user requested.
       Logging.instance.log('1 output in tx', level: LogLevel.Info);
-      Logging.instance.log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
-      Logging.instance.log('Recipient output size: $satoshiAmountToSend', level: LogLevel.Info);
+      Logging.instance
+          .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+      Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+          level: LogLevel.Info);
       Logging.instance.log(
-          'Fee being paid: ${satoshisBeingUsed - satoshiAmountToSend} sats', level: LogLevel.Info);
-      Logging.instance.log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
+          'Fee being paid: ${satoshisBeingUsed - satoshiAmountToSend} sats',
+          level: LogLevel.Info);
+      Logging.instance
+          .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
       dynamic txn = await buildTransaction(
         utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
@@ -2523,7 +2568,8 @@ class DogecoinWallet extends CoinServiceAPI {
       // pay for the transaction fee. Ideally, at this stage, we should check if the user has any
       // additional outputs they're able to spend and then recalculate fees.
       Logging.instance.log(
-          'Cannot pay tx fee - checking for more outputs and trying again', level: LogLevel.Warning);
+          'Cannot pay tx fee - checking for more outputs and trying again',
+          level: LogLevel.Warning);
       // try adding more outputs
       if (spendableOutputs.length > inputsBeingConsumed) {
         return coinSelection(satoshiAmountToSend, selectedTxFeeRate,
@@ -2630,7 +2676,8 @@ class DogecoinWallet extends CoinServiceAPI {
 
       return results;
     } catch (e, s) {
-      Logging.instance.log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
+      Logging.instance
+          .log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
       rethrow;
     }
   }
@@ -2642,7 +2689,8 @@ class DogecoinWallet extends CoinServiceAPI {
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
-    Logging.instance.log("Starting buildTransaction ----------", level: LogLevel.Info);
+    Logging.instance
+        .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
     final txb = TransactionBuilder(network: _network);
     txb.setVersion(1);
@@ -2671,8 +2719,8 @@ class DogecoinWallet extends CoinServiceAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance
-          .log("Caught exception while signing transaction: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log("Caught exception while signing transaction: $e\n$s",
+          level: LogLevel.Error);
       rethrow;
     }
 
@@ -2733,7 +2781,8 @@ class DogecoinWallet extends CoinServiceAPI {
       await _rescanRestore();
 
       longMutex = false;
-      Logging.instance.log("Exception rethrown from fullRescan(): $e\n$s", level: LogLevel.Error);
+      Logging.instance.log("Exception rethrown from fullRescan(): $e\n$s",
+          level: LogLevel.Error);
       rethrow;
     }
   }
@@ -2884,7 +2933,8 @@ class DogecoinWallet extends CoinServiceAPI {
       return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
           as bool;
     } catch (e, s) {
-      Logging.instance.log("isFavorite fetch failed: $e\n$s", level: LogLevel.Error);
+      Logging.instance
+          .log("isFavorite fetch failed: $e\n$s", level: LogLevel.Error);
       rethrow;
     }
   }

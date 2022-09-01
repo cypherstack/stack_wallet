@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1175,7 +1177,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   try {
                                     bool wasCancelled = false;
 
-                                    showDialog<dynamic>(
+                                    unawaited(showDialog<dynamic>(
                                       context: context,
                                       useSafeArea: false,
                                       barrierDismissible: false,
@@ -1188,7 +1190,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                           },
                                         );
                                       },
-                                    );
+                                    ));
 
                                     final txData = await manager.prepareSend(
                                       address: _address!,
@@ -1205,7 +1207,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                       txData["note"] = noteController.text;
                                       txData["address"] = _address;
 
-                                      Navigator.of(context).push(
+                                      unawaited(Navigator.of(context).push(
                                         RouteGenerator.getRoute(
                                           shouldUseMaterialRoute: RouteGenerator
                                               .useMaterialPageRoute,
@@ -1219,14 +1221,14 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 .routeName,
                                           ),
                                         ),
-                                      );
+                                      ));
                                     }
                                   } catch (e) {
                                     if (mounted) {
                                       // pop building dialog
                                       Navigator.of(context).pop();
 
-                                      showDialog<dynamic>(
+                                      unawaited(showDialog<dynamic>(
                                         context: context,
                                         useSafeArea: false,
                                         barrierDismissible: true,
@@ -1258,7 +1260,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             ),
                                           );
                                         },
-                                      );
+                                      ));
                                     }
                                   }
                                 }

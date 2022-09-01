@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -40,25 +45,25 @@ class _ConfirmTransactionViewState
   late final String routeOnSuccessName;
 
   Future<void> _attemptSend(BuildContext context) async {
-    showDialog<dynamic>(
+    unawaited(showDialog<dynamic>(
       context: context,
       useSafeArea: false,
       barrierDismissible: false,
       builder: (context) {
         return const SendingTransactionDialog();
       },
-    );
+    ));
 
     final note = transactionInfo["note"] as String? ?? "";
     final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     try {
       final txid = await manager.confirmSend(txData: transactionInfo);
-      manager.refresh();
+      unawaited(manager.refresh());
 
       // save note
-      ref
+      await ref
           .read(notesServiceChangeNotifierProvider(walletId))
           .editOrAddNote(txid: txid, note: note);
 
@@ -66,12 +71,26 @@ class _ConfirmTransactionViewState
       if (mounted) {
         Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
       }
+    } on BadEpicHttpAddressException catch (_) {
+      if (mounted) {
+        // pop building dialog
+        Navigator.of(context).pop();
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message:
+            "Connection failed. Please check the address and try again.",
+            context: context,
+          ),
+        );
+        return;
+      }
     } catch (e, s) {
       debugPrint("$e\n$s");
       // pop sending dialog
       Navigator.of(context).pop();
 
-      showDialog<void>(
+      await showDialog<void>(
         context: context,
         useSafeArea: false,
         barrierDismissible: true,
@@ -81,10 +100,10 @@ class _ConfirmTransactionViewState
             message: e.toString(),
             rightButton: TextButton(
               style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.buttonGray,
-                    ),
-                  ),
+                backgroundColor: MaterialStateProperty.all<Color>(
+                  CFColors.buttonGray,
+                ),
+              ),
               child: Text(
                 "Ok",
                 style: STextStyles.button.copyWith(
@@ -193,9 +212,9 @@ class _ConfirmTransactionViewState
                                         .select((value) => value.locale),
                                   ),
                                 )} ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
+                                  managerProvider
+                                      .select((value) => value.coin),
+                                ).ticker}",
                                 style: STextStyles.itemSubtitle12,
                                 textAlign: TextAlign.right,
                               ),
@@ -221,9 +240,9 @@ class _ConfirmTransactionViewState
                                         .select((value) => value.locale),
                                   ),
                                 )} ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
+                                  managerProvider
+                                      .select((value) => value.coin),
+                                ).ticker}",
                                 style: STextStyles.itemSubtitle12,
                                 textAlign: TextAlign.right,
                               ),
@@ -273,9 +292,9 @@ class _ConfirmTransactionViewState
                                         .select((value) => value.locale),
                                   ),
                                 )} ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
+                                  managerProvider
+                                      .select((value) => value.coin),
+                                ).ticker}",
                                 style: STextStyles.itemSubtitle12,
                                 textAlign: TextAlign.right,
                               ),
@@ -287,18 +306,18 @@ class _ConfirmTransactionViewState
                         ),
                         TextButton(
                           style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
+                          Theme.of(context).textButtonTheme.style?.copyWith(
+                            backgroundColor:
+                            MaterialStateProperty.all<Color>(
+                              CFColors.stackAccent,
+                            ),
+                          ),
                           onPressed: () async {
                             final unlocked = await Navigator.push(
                               context,
                               RouteGenerator.getRoute(
                                 shouldUseMaterialRoute:
-                                    RouteGenerator.useMaterialPageRoute,
+                                RouteGenerator.useMaterialPageRoute,
                                 builder: (_) => const LockscreenView(
                                   showBackButton: true,
                                   popOnSuccess: true,
@@ -306,9 +325,9 @@ class _ConfirmTransactionViewState
                                   routeOnSuccess: "",
                                   biometricsCancelButtonString: "CANCEL",
                                   biometricsLocalizedReason:
-                                      "Authenticate to send transaction",
+                                  "Authenticate to send transaction",
                                   biometricsAuthenticationTitle:
-                                      "Confirm Transaction",
+                                  "Confirm Transaction",
                                 ),
                                 settings: const RouteSettings(
                                     name: "/confirmsendlockscreen"),
@@ -316,7 +335,7 @@ class _ConfirmTransactionViewState
                             );
 
                             if (unlocked is bool && unlocked && mounted) {
-                              _attemptSend(context);
+                              unawaited(_attemptSend(context));
                             }
                           },
                           child: Text(

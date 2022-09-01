@@ -20,15 +20,15 @@ void main() {
   group("getAvailableCurrencies", () {
     test("getAvailableCurrencies succeeds without options", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
-        Uri.parse("https://api.changenow.io/v1/currencies"),
+        Uri.parse("https://api.ChangeNow.io/v1/currencies"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response(jsonEncode(availableCurrenciesJSON), 200));
 
-      final result = await ChangeNow.getAvailableCurrencies();
+      final result = await ChangeNow.instance.getAvailableCurrencies();
 
       expect(result.exception, null);
       expect(result.value == null, false);
@@ -37,15 +37,16 @@ void main() {
 
     test("getAvailableCurrencies succeeds with active option", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
-        Uri.parse("https://api.changenow.io/v1/currencies?active=true"),
+        Uri.parse("https://api.ChangeNow.io/v1/currencies?active=true"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response(jsonEncode(availableCurrenciesJSONActive), 200));
 
-      final result = await ChangeNow.getAvailableCurrencies(active: true);
+      final result =
+          await ChangeNow.instance.getAvailableCurrencies(active: true);
 
       expect(result.exception, null);
       expect(result.value == null, false);
@@ -54,15 +55,16 @@ void main() {
 
     test("getAvailableCurrencies succeeds with fixedRate option", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
-        Uri.parse("https://api.changenow.io/v1/currencies?fixedRate=true"),
+        Uri.parse("https://api.ChangeNow.io/v1/currencies?fixedRate=true"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response(jsonEncode(availableCurrenciesJSONFixedRate), 200));
 
-      final result = await ChangeNow.getAvailableCurrencies(fixedRate: true);
+      final result =
+          await ChangeNow.instance.getAvailableCurrencies(fixedRate: true);
 
       expect(result.exception, null);
       expect(result.value == null, false);
@@ -72,17 +74,17 @@ void main() {
     test("getAvailableCurrencies succeeds with fixedRate and active options",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/currencies?fixedRate=true&active=true"),
+            "https://api.ChangeNow.io/v1/currencies?fixedRate=true&active=true"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response(jsonEncode(availableCurrenciesJSONActiveFixedRate), 200));
 
-      final result =
-          await ChangeNow.getAvailableCurrencies(active: true, fixedRate: true);
+      final result = await ChangeNow.instance
+          .getAvailableCurrencies(active: true, fixedRate: true);
 
       expect(result.exception, null);
       expect(result.value == null, false);
@@ -93,15 +95,15 @@ void main() {
         "getAvailableCurrencies fails with ChangeNowExceptionType.serializeResponseError",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
-        Uri.parse("https://api.changenow.io/v1/currencies"),
+        Uri.parse("https://api.ChangeNow.io/v1/currencies"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response('{"some unexpected": "but valid json data"}', 200));
 
-      final result = await ChangeNow.getAvailableCurrencies();
+      final result = await ChangeNow.instance.getAvailableCurrencies();
 
       expect(result.exception!.type,
           ChangeNowExceptionType.serializeResponseError);
@@ -110,14 +112,14 @@ void main() {
 
     test("getAvailableCurrencies fails for any other reason", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
-        Uri.parse("https://api.changenow.io/v1/currencies"),
+        Uri.parse("https://api.ChangeNow.io/v1/currencies"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response("", 400));
 
-      final result = await ChangeNow.getAvailableCurrencies();
+      final result = await ChangeNow.instance.getAvailableCurrencies();
 
       expect(result.exception!.type, ChangeNowExceptionType.generic);
       expect(result.value == null, true);
@@ -127,15 +129,16 @@ void main() {
   group("getPairedCurrencies", () {
     test("getPairedCurrencies succeeds without fixedRate option", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
-        Uri.parse("https://api.changenow.io/v1/currencies-to/XMR"),
+        Uri.parse("https://api.ChangeNow.io/v1/currencies-to/XMR"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response(jsonEncode(getPairedCurrenciesJSON), 200));
 
-      final result = await ChangeNow.getPairedCurrencies(ticker: "XMR");
+      final result =
+          await ChangeNow.instance.getPairedCurrencies(ticker: "XMR");
 
       expect(result.exception, null);
       expect(result.value == null, false);
@@ -144,17 +147,17 @@ void main() {
 
     test("getPairedCurrencies succeeds with fixedRate option", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/currencies-to/XMR?fixedRate=true"),
+            "https://api.ChangeNow.io/v1/currencies-to/XMR?fixedRate=true"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response(jsonEncode(getPairedCurrenciesJSONFixedRate), 200));
 
-      final result =
-          await ChangeNow.getPairedCurrencies(ticker: "XMR", fixedRate: true);
+      final result = await ChangeNow.instance
+          .getPairedCurrencies(ticker: "XMR", fixedRate: true);
 
       expect(result.exception, null);
       expect(result.value == null, false);
@@ -165,15 +168,16 @@ void main() {
         "getPairedCurrencies fails with ChangeNowExceptionType.serializeResponseError A",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
-        Uri.parse("https://api.changenow.io/v1/currencies-to/XMR"),
+        Uri.parse("https://api.ChangeNow.io/v1/currencies-to/XMR"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response('[{"some unexpected": "but valid json data"}]', 200));
 
-      final result = await ChangeNow.getPairedCurrencies(ticker: "XMR");
+      final result =
+          await ChangeNow.instance.getPairedCurrencies(ticker: "XMR");
 
       expect(result.exception!.type,
           ChangeNowExceptionType.serializeResponseError);
@@ -182,15 +186,15 @@ void main() {
 
     test("getPairedCurrencies fails for any other reason", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
-        Uri.parse("https://api.changenow.io/v1/currencies"),
+        Uri.parse("https://api.ChangeNow.io/v1/currencies"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response("", 400));
 
-      final result =
-          await ChangeNow.getPairedCurrencies(ticker: "XMR", fixedRate: true);
+      final result = await ChangeNow.instance
+          .getPairedCurrencies(ticker: "XMR", fixedRate: true);
 
       expect(result.exception!.type, ChangeNowExceptionType.generic);
       expect(result.value == null, true);
@@ -200,16 +204,16 @@ void main() {
   group("getMinimalExchangeAmount", () {
     test("getMinimalExchangeAmount succeeds", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer(
           (realInvocation) async => Response('{"minAmount": 42}', 200));
 
-      final result = await ChangeNow.getMinimalExchangeAmount(
+      final result = await ChangeNow.instance.getMinimalExchangeAmount(
         fromTicker: "xmr",
         toTicker: "btc",
         apiKey: "testAPIKEY",
@@ -224,15 +228,15 @@ void main() {
         "getMinimalExchangeAmount fails with ChangeNowExceptionType.serializeResponseError",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
 
-      final result = await ChangeNow.getMinimalExchangeAmount(
+      final result = await ChangeNow.instance.getMinimalExchangeAmount(
         fromTicker: "xmr",
         toTicker: "btc",
         apiKey: "testAPIKEY",
@@ -245,15 +249,15 @@ void main() {
 
     test("getMinimalExchangeAmount fails for any other reason", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('', 400));
 
-      final result = await ChangeNow.getMinimalExchangeAmount(
+      final result = await ChangeNow.instance.getMinimalExchangeAmount(
         fromTicker: "xmr",
         toTicker: "btc",
         apiKey: "testAPIKEY",
@@ -267,17 +271,17 @@ void main() {
   group("getEstimatedExchangeAmount", () {
     test("getEstimatedExchangeAmount succeeds", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response(
           '{"estimatedAmount": 58.4142873, "transactionSpeedForecast": "10-60", "warningMessage": null}',
           200));
 
-      final result = await ChangeNow.getEstimatedExchangeAmount(
+      final result = await ChangeNow.instance.getEstimatedExchangeAmount(
         fromTicker: "xmr",
         toTicker: "btc",
         fromAmount: Decimal.fromInt(42),
@@ -293,15 +297,15 @@ void main() {
         "getEstimatedExchangeAmount fails with ChangeNowExceptionType.serializeResponseError",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
 
-      final result = await ChangeNow.getEstimatedExchangeAmount(
+      final result = await ChangeNow.instance.getEstimatedExchangeAmount(
         fromTicker: "xmr",
         toTicker: "btc",
         fromAmount: Decimal.fromInt(42),
@@ -315,15 +319,15 @@ void main() {
 
     test("getEstimatedExchangeAmount fails for any other reason", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('', 400));
 
-      final result = await ChangeNow.getEstimatedExchangeAmount(
+      final result = await ChangeNow.instance.getEstimatedExchangeAmount(
         fromTicker: "xmr",
         toTicker: "btc",
         fromAmount: Decimal.fromInt(42),
@@ -338,16 +342,17 @@ void main() {
   group("getEstimatedFixedRateExchangeAmount", () {
     test("getEstimatedFixedRateExchangeAmount succeeds", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
+            "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response(jsonEncode(estFixedRateExchangeAmountJSON), 200));
 
-      final result = await ChangeNow.getEstimatedFixedRateExchangeAmount(
+      final result =
+          await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
         fromTicker: "xmr",
         toTicker: "btc",
         fromAmount: Decimal.fromInt(10),
@@ -364,15 +369,16 @@ void main() {
         "getEstimatedFixedRateExchangeAmount fails with ChangeNowExceptionType.serializeResponseError",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
+            "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
 
-      final result = await ChangeNow.getEstimatedFixedRateExchangeAmount(
+      final result =
+          await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
         fromTicker: "xmr",
         toTicker: "btc",
         fromAmount: Decimal.fromInt(10),
@@ -387,15 +393,16 @@ void main() {
     test("getEstimatedFixedRateExchangeAmount fails for any other reason",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
+            "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('', 400));
 
-      final result = await ChangeNow.getEstimatedFixedRateExchangeAmount(
+      final result =
+          await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
         fromTicker: "xmr",
         toTicker: "btc",
         fromAmount: Decimal.fromInt(10),
@@ -410,16 +417,16 @@ void main() {
   group("getAvailableFixedRateMarkets", () {
     test("getAvailableFixedRateMarkets succeeds", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/market-info/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/market-info/fixed-rate/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response(jsonEncode(fixedRateMarketsJSON), 200));
 
-      final result = await ChangeNow.getAvailableFixedRateMarkets(
+      final result = await ChangeNow.instance.getAvailableFixedRateMarkets(
         apiKey: "testAPIKEY",
       );
 
@@ -432,15 +439,15 @@ void main() {
         "getAvailableFixedRateMarkets fails with ChangeNowExceptionType.serializeResponseError",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/market-info/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/market-info/fixed-rate/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
 
-      final result = await ChangeNow.getAvailableFixedRateMarkets(
+      final result = await ChangeNow.instance.getAvailableFixedRateMarkets(
         apiKey: "testAPIKEY",
       );
 
@@ -451,15 +458,15 @@ void main() {
 
     test("getAvailableFixedRateMarkets fails for any other reason", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/market-info/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/market-info/fixed-rate/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('', 400));
 
-      final result = await ChangeNow.getAvailableFixedRateMarkets(
+      final result = await ChangeNow.instance.getAvailableFixedRateMarkets(
         apiKey: "testAPIKEY",
       );
 
@@ -471,10 +478,10 @@ void main() {
   group("createStandardExchangeTransaction", () {
     test("createStandardExchangeTransaction succeeds", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.post(
-        Uri.parse("https://api.changenow.io/v1/transactions/testAPIKEY"),
+        Uri.parse("https://api.ChangeNow.io/v1/transactions/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
         body:
             '{"from":"xmr","to":"btc","address":"bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5","amount":"0.3","flow":"standard","extraId":"","userId":"","contactEmail":"","refundAddress":"888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H","refundExtraId":""}',
@@ -482,7 +489,7 @@ void main() {
       )).thenAnswer((realInvocation) async =>
           Response(jsonEncode(createStandardTransactionResponse), 200));
 
-      final result = await ChangeNow.createStandardExchangeTransaction(
+      final result = await ChangeNow.instance.createStandardExchangeTransaction(
         fromTicker: "xmr",
         toTicker: "btc",
         receivingAddress: "bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5",
@@ -501,17 +508,17 @@ void main() {
         "createStandardExchangeTransaction fails with ChangeNowExceptionType.serializeResponseError",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.post(
-        Uri.parse("https://api.changenow.io/v1/transactions/testAPIKEY"),
+        Uri.parse("https://api.ChangeNow.io/v1/transactions/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
         body:
             '{"from":"xmr","to":"btc","address":"bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5","amount":"0.3","flow":"standard","extraId":"","userId":"","contactEmail":"","refundAddress":"888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H","refundExtraId":""}',
         encoding: null,
       )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
 
-      final result = await ChangeNow.createStandardExchangeTransaction(
+      final result = await ChangeNow.instance.createStandardExchangeTransaction(
         fromTicker: "xmr",
         toTicker: "btc",
         receivingAddress: "bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5",
@@ -529,17 +536,17 @@ void main() {
     test("createStandardExchangeTransaction fails for any other reason",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.post(
-        Uri.parse("https://api.changenow.io/v1/transactions/testAPIKEY"),
+        Uri.parse("https://api.ChangeNow.io/v1/transactions/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
         body:
             '{"from":"xmr","to":"btc","address":"bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5","amount":"0.3","flow":"standard","extraId":"","userId":"","contactEmail":"","refundAddress":"888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H","refundExtraId":""}',
         encoding: null,
       )).thenAnswer((realInvocation) async => Response('', 400));
 
-      final result = await ChangeNow.createStandardExchangeTransaction(
+      final result = await ChangeNow.instance.createStandardExchangeTransaction(
         fromTicker: "xmr",
         toTicker: "btc",
         receivingAddress: "bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5",
@@ -557,11 +564,11 @@ void main() {
   group("createFixedRateExchangeTransaction", () {
     test("createFixedRateExchangeTransaction succeeds", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.post(
         Uri.parse(
-            "https://api.changenow.io/v1/transactions/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
         body:
             '{"from":"btc","to":"eth","address":"0x57f31ad4b64095347F87eDB1675566DAfF5EC886","amount":"0.3","flow":"fixed-rate","extraId":"","userId":"","contactEmail":"","refundAddress":"","refundExtraId":"","rateId":""}',
@@ -570,7 +577,8 @@ void main() {
           '{"payinAddress": "33eFX2jfeWbXMSmRe9ewUUTrmSVSxZi5cj", "payoutAddress": "0x57f31ad4b64095347F87eDB1675566DAfF5EC886","payoutExtraId": "", "fromCurrency": "btc", "toCurrency": "eth", "refundAddress": "","refundExtraId": "","validUntil": "2019-09-09T14:01:04.921Z","id": "a5c73e2603f40d","amount": 62.9737711}',
           200));
 
-      final result = await ChangeNow.createFixedRateExchangeTransaction(
+      final result =
+          await ChangeNow.instance.createFixedRateExchangeTransaction(
         fromTicker: "btc",
         toTicker: "eth",
         receivingAddress: "0x57f31ad4b64095347F87eDB1675566DAfF5EC886",
@@ -589,11 +597,11 @@ void main() {
         "createFixedRateExchangeTransaction fails with ChangeNowExceptionType.serializeResponseError",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.post(
         Uri.parse(
-            "https://api.changenow.io/v1/transactions/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
         body:
             '{"from":"btc","to":"eth","address":"0x57f31ad4b64095347F87eDB1675566DAfF5EC886","amount":"0.3","flow":"fixed-rate","extraId":"","userId":"","contactEmail":"","refundAddress":"","refundExtraId":"","rateId":""}',
@@ -601,7 +609,8 @@ void main() {
       )).thenAnswer((realInvocation) async =>
           Response('{"id": "a5c73e2603f40d","amount": 62.9737711}', 200));
 
-      final result = await ChangeNow.createFixedRateExchangeTransaction(
+      final result =
+          await ChangeNow.instance.createFixedRateExchangeTransaction(
         fromTicker: "btc",
         toTicker: "eth",
         receivingAddress: "0x57f31ad4b64095347F87eDB1675566DAfF5EC886",
@@ -619,18 +628,19 @@ void main() {
     test("createFixedRateExchangeTransaction fails for any other reason",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.post(
         Uri.parse(
-            "https://api.changenow.io/v1/transactions/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
         body:
             '{"from": "btc","to": "eth","address": "0x57f31ad4b64095347F87eDB1675566DAfF5EC886", "amount": "1.12345","extraId": "", "userId": "","contactEmail": "","refundAddress": "", "refundExtraId": "", "rateId": "" }',
         encoding: null,
       )).thenAnswer((realInvocation) async => Response('', 400));
 
-      final result = await ChangeNow.createFixedRateExchangeTransaction(
+      final result =
+          await ChangeNow.instance.createFixedRateExchangeTransaction(
         fromTicker: "xmr",
         toTicker: "btc",
         receivingAddress: "bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5",
@@ -649,17 +659,17 @@ void main() {
   group("getTransactionStatus", () {
     test("getTransactionStatus succeeds", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response(
           '{"status": "waiting", "payinAddress": "32Ge2ci26rj1sRGw2NjiQa9L7Xvxtgzhrj", "payoutAddress": "0x57f31ad4b64095347F87eDB1675566DAfF5EC886", "fromCurrency": "btc", "toCurrency": "eth", "id": "50727663e5d9a4", "updatedAt": "2019-08-22T14:47:49.943Z", "expectedSendAmount": 1, "expectedReceiveAmount": 52.31667, "createdAt": "2019-08-22T14:47:49.943Z", "isPartner": false}',
           200));
 
-      final result = await ChangeNow.getTransactionStatus(
+      final result = await ChangeNow.instance.getTransactionStatus(
         id: "47F87eDB1675566DAfF5EC886",
         apiKey: "testAPIKEY",
       );
@@ -673,15 +683,15 @@ void main() {
         "getTransactionStatus fails with ChangeNowExceptionType.serializeResponseError",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
 
-      final result = await ChangeNow.getTransactionStatus(
+      final result = await ChangeNow.instance.getTransactionStatus(
         id: "47F87eDB1675566DAfF5EC886",
         apiKey: "testAPIKEY",
       );
@@ -693,15 +703,15 @@ void main() {
 
     test("getTransactionStatus fails for any other reason", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('', 400));
 
-      final result = await ChangeNow.getTransactionStatus(
+      final result = await ChangeNow.instance.getTransactionStatus(
         id: "47F87eDB1675566DAfF5EC886",
         apiKey: "testAPIKEY",
       );
@@ -714,16 +724,16 @@ void main() {
   group("getAvailableFloatingRatePairs", () {
     test("getAvailableFloatingRatePairs succeeds", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/market-info/available-pairs?includePartners=false"),
+            "https://api.ChangeNow.io/v1/market-info/available-pairs?includePartners=false"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async =>
           Response('["btc_xmr","btc_firo","btc_doge","eth_ltc"]', 200));
 
-      final result = await ChangeNow.getAvailableFloatingRatePairs();
+      final result = await ChangeNow.instance.getAvailableFloatingRatePairs();
 
       expect(result.exception, null);
       expect(result.value == null, false);
@@ -734,15 +744,15 @@ void main() {
         "getAvailableFloatingRatePairs fails with ChangeNowExceptionType.serializeResponseError",
         () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/market-info/available-pairs?includePartners=false"),
+            "https://api.ChangeNow.io/v1/market-info/available-pairs?includePartners=false"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
 
-      final result = await ChangeNow.getAvailableFloatingRatePairs();
+      final result = await ChangeNow.instance.getAvailableFloatingRatePairs();
 
       expect(result.exception!.type,
           ChangeNowExceptionType.serializeResponseError);
@@ -751,15 +761,15 @@ void main() {
 
     test("getAvailableFloatingRatePairs fails for any other reason", () async {
       final client = MockClient();
-      ChangeNow.client = client;
+      ChangeNow.instance.client = client;
 
       when(client.get(
         Uri.parse(
-            "https://api.changenow.io/v1/market-info/available-pairs?includePartners=false"),
+            "https://api.ChangeNow.io/v1/market-info/available-pairs?includePartners=false"),
         headers: {'Content-Type': 'application/json'},
       )).thenAnswer((realInvocation) async => Response('', 400));
 
-      final result = await ChangeNow.getAvailableFloatingRatePairs();
+      final result = await ChangeNow.instance.getAvailableFloatingRatePairs();
 
       expect(result.exception!.type, ChangeNowExceptionType.generic);
       expect(result.value == null, true);

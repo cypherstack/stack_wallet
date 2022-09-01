@@ -21,6 +21,7 @@ import 'package:stackwallet/pages/address_book_views/subviews/contact_details_vi
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
+import 'package:stackwallet/pages/exchange_view/exchange_loading_overlay.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_3_view.dart';
@@ -721,9 +722,14 @@ class RouteGenerator {
         if (args is Tuple2<String, Coin>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => WalletInitiatedExchangeView(
-              walletId: args.item1,
-              coin: args.item2,
+            builder: (_) => Stack(
+              children: [
+                WalletInitiatedExchangeView(
+                  walletId: args.item1,
+                  coin: args.item2,
+                ),
+                const ExchangeLoadingOverlayView(),
+              ],
             ),
             settings: RouteSettings(
               name: settings.name,

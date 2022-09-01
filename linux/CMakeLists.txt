@@ -50,6 +50,20 @@ endfunction()
 set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/flutter")
 add_subdirectory(${FLUTTER_MANAGED_DIR})
 
+# build libjsoncpp and libsecret for flutter_secure_storage
+set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/pkg-config")
+set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/pc")
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/include)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret/_build)
+
+add_library(jsoncpp SHARED IMPORTED)
+set_target_properties(jsoncpp PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so")
+add_library(secret-1 SHARED IMPORTED)
+set_target_properties(secret-1 PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret/_build/libsecret/libsecret-1.so")
+
 # System-level dependencies.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
@@ -71,8 +85,12 @@ add_executable(${BINARY_NAME}
 apply_standard_settings(${BINARY_NAME})
 
 # Add dependency libraries. Add any application-specific dependencies here.
+target_link_libraries(${BINARY_NAME} PRIVATE -static-libgcc -static-libstdc++)
 target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
+target_link_libraries(${BINARY_NAME} PRIVATE jsoncpp)
+target_link_libraries(${BINARY_NAME} PRIVATE secret-1)
+
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
@@ -123,6 +141,20 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libepiccash
   COMPONENT Runtime)
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_liblelantus/scripts/linux/build/libmobileliblelantus.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so.1.7.4" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so.1" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret/_build/libsecret/libsecret-1.so.0.0.0" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret/_build/libsecret/libsecret-1.so.0" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/libsecret/_build/libsecret/libsecret-1.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
