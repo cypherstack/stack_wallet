@@ -754,7 +754,6 @@ class EpicCashWallet extends CoinServiceAPI {
 
       String receiverAddress = txData['addresss'] as String;
       await m.protect(() async {
-
         if (receiverAddress.startsWith("http://") || receiverAddress.startsWith("https://")) {
           const int selectionStrategyIsAll = 0;
           ReceivePort receivePort = await getIsolate({
