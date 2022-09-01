@@ -40,6 +40,17 @@ const int MINIMUM_CONFIRMATIONS = 10;
 const String GENESIS_HASH_MAINNET = "";
 const String GENESIS_HASH_TESTNET = "";
 
+class BadEpicHttpAddressException implements Exception {
+  final String? message;
+
+  BadEpicHttpAddressException({this.message});
+
+  @override
+  String toString() {
+    return "BadEpicHttpAddressException: $message";
+  }
+}
+
 // isolate
 
 Map<ReceivePort, Isolate> isolates = {};
@@ -185,6 +196,29 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
         sendPort.send(result);
         return;
       }
+    } else if (function == "txHttpSend") {
+      final wallet = arguments['wallet'] as String?;
+      final selectionStrategyIsAll = arguments['selectionStrategyIsAll'] as int?;
+      final minimumConfirmations = arguments['minimumConfirmations'] as int?;
+      final message = arguments['message'] as String?;
+      final amount = arguments['amount'] as int?;
+      final address = arguments['address'] as String?;
+
+      Map<String, dynamic> result = {};
+
+      if (!(wallet == null ||
+          selectionStrategyIsAll == null ||
+          minimumConfirmations == null ||
+          message == null ||
+          amount == null ||
+          address == null)) {
+        var res = await txHttpSend(wallet, selectionStrategyIsAll,
+            minimumConfirmations, message, amount, address);
+        result['result'] = res;
+        sendPort.send(result);
+        return;
+      }
+
     }
     Logging.instance.log(
         "Error Arguments for $function not formatted correctly",
@@ -717,32 +751,67 @@ class EpicCashWallet extends CoinServiceAPI {
 
       // TODO determine whether it is worth sending change to a change address.
       dynamic message;
-      await m.protect(() async {
-        ReceivePort receivePort = await getIsolate({
-          "function": "createTransaction",
-          "wallet": wallet!,
-          "amount": txData['recipientAmt'],
-          "address": txData['addresss'],
-          "secretKeyIndex": 0,
-          "epicboxConfig": epicboxConfig!,
-          "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-        }, name: walletName);
 
-        message = await receivePort.first;
-        if (message is String) {
-          Logging.instance
-              .log("this is a string $message", level: LogLevel.Error);
+      String receiverAddress = txData['addresss'] as String;
+      await m.protect(() async {
+
+        if (receiverAddress.startsWith("http://") || receiverAddress.startsWith("https://")) {
+          const int selectionStrategyIsAll = 0;
+          ReceivePort receivePort = await getIsolate({
+            "function": "txHttpSend",
+            "wallet": wallet!,
+            "selectionStrategyIsAll": selectionStrategyIsAll,
+            "minimumConfirmations": MINIMUM_CONFIRMATIONS,
+            "message": "",
+            "amount": txData['recipientAmt'],
+            "address": txData['addresss']
+          }, name: walletName);
+
+          message = await receivePort.first;
+          if (message is String) {
+            Logging.instance
+                .log("this is a string $message", level: LogLevel.Error);
+            stop(receivePort);
+            throw Exception("txHttpSend isolate failed");
+          }
           stop(receivePort);
-          throw Exception("createTransaction isolate failed");
+          Logging.instance.log('Closing txHttpSend!\n  $message',
+              level: LogLevel.Info);
+
+        } else {
+          ReceivePort receivePort = await getIsolate({
+            "function": "createTransaction",
+            "wallet": wallet!,
+            "amount": txData['recipientAmt'],
+            "address": txData['addresss'],
+            "secretKeyIndex": 0,
+            "epicboxConfig": epicboxConfig!,
+            "minimumConfirmations": MINIMUM_CONFIRMATIONS,
+          }, name: walletName);
+
+          message = await receivePort.first;
+          if (message is String) {
+            Logging.instance
+                .log("this is a string $message", level: LogLevel.Error);
+            stop(receivePort);
+            throw Exception("createTransaction isolate failed");
+          }
+          stop(receivePort);
+          Logging.instance.log('Closing createTransaction!\n  $message',
+              level: LogLevel.Info);
         }
-        stop(receivePort);
-        Logging.instance.log('Closing createTransaction!\n  $message',
-            level: LogLevel.Info);
       });
 
       // return message;
       final String sendTx = message['result'] as String;
-      await putSendToAddresses(sendTx);
+      if (sendTx.contains("Error")) {
+        throw BadEpicHttpAddressException(message: sendTx);
+      }
+
+      if (!(receiverAddress.startsWith("http://") || receiverAddress.startsWith("https://"))) {
+        await putSendToAddresses(sendTx);
+      }
+
 
       Logging.instance.log("CONFIRM_RESULT_IS $sendTx", level: LogLevel.Info);
 
@@ -752,11 +821,16 @@ class EpicCashWallet extends CoinServiceAPI {
         String errorMessage = decodeData[1] as String;
         throw Exception("Transaction failed with error code $errorMessage");
       } else {
-        final postSlateRequest = decodeData[1];
-        final postToServer = await postSlate(
-            txData['addresss'] as String, postSlateRequest as String);
-        Logging.instance
-            .log("POST_SLATE_IS $postToServer", level: LogLevel.Info);
+
+        //If it's HTTP send no need to post to epicbox
+        if (!(receiverAddress.startsWith("http://") || receiverAddress.startsWith("https://"))) {
+          final postSlateRequest = decodeData[1];
+          final postToServer = await postSlate(
+              txData['addresss'] as String, postSlateRequest as String);
+          Logging.instance
+              .log("POST_SLATE_IS $postToServer", level: LogLevel.Info);
+        }
+
         final txCreateResult = decodeData[0];
         // //TODO: second problem
         final transaction = json.decode(txCreateResult as String);
@@ -2195,6 +2269,12 @@ class EpicCashWallet extends CoinServiceAPI {
 
   @override
   bool validateAddress(String address) {
+    if (address.startsWith("http://") || address.startsWith("https://")) {
+      if (Uri.tryParse(address) != null) {
+        return true;
+      }
+    }
+
     String validate = validateSendAddress(address);
     if (int.parse(validate) == 1) {
       return true;
