@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/change_now/change_now_response.dart';
@@ -6,8 +8,8 @@ import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
+import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
@@ -219,35 +221,39 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                       response;
                                   if (model.rateType ==
                                       ExchangeRateType.estimated) {
-                                    response = await ChangeNow
+                                    response = await ref
+                                        .read(changeNowProvider)
                                         .createStandardExchangeTransaction(
-                                      fromTicker: model.sendTicker,
-                                      toTicker: model.receiveTicker,
-                                      receivingAddress: model.recipientAddress!,
-                                      amount: model.sendAmount,
-                                      refundAddress: model.refundAddress!,
-                                    );
+                                          fromTicker: model.sendTicker,
+                                          toTicker: model.receiveTicker,
+                                          receivingAddress:
+                                              model.recipientAddress!,
+                                          amount: model.sendAmount,
+                                          refundAddress: model.refundAddress!,
+                                        );
                                   } else {
-                                    response = await ChangeNow
+                                    response = await ref
+                                        .read(changeNowProvider)
                                         .createFixedRateExchangeTransaction(
-                                      fromTicker: model.sendTicker,
-                                      toTicker: model.receiveTicker,
-                                      receivingAddress: model.recipientAddress!,
-                                      amount: model.sendAmount,
-                                      refundAddress: model.refundAddress!,
-                                      rateId: model.rateId!,
-                                    );
+                                          fromTicker: model.sendTicker,
+                                          toTicker: model.receiveTicker,
+                                          receivingAddress:
+                                              model.recipientAddress!,
+                                          amount: model.sendAmount,
+                                          refundAddress: model.refundAddress!,
+                                          rateId: model.rateId!,
+                                        );
                                   }
 
                                   if (response.value == null) {
-                                    showDialog<void>(
+                                    unawaited(showDialog<void>(
                                       context: context,
                                       barrierDismissible: true,
                                       builder: (_) => StackDialog(
                                         title: "Failed to create trade",
                                         message: response.exception?.toString(),
                                       ),
-                                    );
+                                    ));
                                     return;
                                   }
 
@@ -257,8 +263,9 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                         shouldNotifyListeners: true,
                                       );
 
-                                  final statusResponse =
-                                      await ChangeNow.getTransactionStatus(
+                                  final statusResponse = await ref
+                                      .read(changeNowProvider)
+                                      .getTransactionStatus(
                                           id: response.value!.id);
 
                                   debugPrint("WTF: $statusResponse");
@@ -278,7 +285,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     status += " for deposit";
                                   }
 
-                                  NotificationApi.showNotification(
+                                  unawaited(NotificationApi.showNotification(
                                     changeNowId: model.trade!.id,
                                     title: status,
                                     body: "Trade ID ${model.trade!.id}",
@@ -287,13 +294,13 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     date: model.trade!.date,
                                     shouldWatchForUpdates: true,
                                     coinName: "coinName",
-                                  );
+                                  ));
 
                                   if (mounted) {
-                                    Navigator.of(context).pushNamed(
+                                    unawaited(Navigator.of(context).pushNamed(
                                       Step4View.routeName,
                                       arguments: model,
-                                    );
+                                    ));
                                   }
                                 },
                                 style: Theme.of(context)

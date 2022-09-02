@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:core' as core;
+import 'dart:core';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,8 @@ import 'package:stackwallet/utilities/enums/log_level_enum.dart';
 export 'enums/log_level_enum.dart';
 
 class Logging {
+  static const isArmLinux =
+  bool.fromEnvironment("IS_ARM");
   static final isTestEnv = Platform.environment["FLUTTER_TEST"] == "true";
   Logging._();
   static final Logging _instance = Logging._();
@@ -25,7 +28,7 @@ class Logging {
   }
 
   Future<void> initInIsolate() async {
-    if (isTestEnv) {
+    if (isTestEnv || isArmLinux) {
       // do this for now until we mock Isar properly for testing
       isar = null;
       return;
@@ -42,7 +45,7 @@ class Logging {
     core.bool printToConsole = true,
     core.bool printFullLength = false,
   }) {
-    if (isTestEnv) {
+    if (isTestEnv || isArmLinux) {
       Logger.print(object, normalLength: !printFullLength);
       return;
     }
