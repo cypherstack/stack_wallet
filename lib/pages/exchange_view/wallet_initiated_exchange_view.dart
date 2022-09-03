@@ -716,6 +716,10 @@ class _WalletInitiatedExchangeViewState
                         TextFormField(
                           focusNode: _receiveFocusNode,
                           controller: _receiveController,
+                          readOnly: ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .exchangeRateType ==
+                              ExchangeRateType.estimated,
                           onTap: () {
                             if (_receiveController.text == "-") {
                               _receiveController.text = "";
@@ -728,10 +732,10 @@ class _WalletInitiatedExchangeViewState
                                       .read(prefsChangeNotifierProvider)
                                       .exchangeRateType ==
                                   ExchangeRateType.estimated) {
-                                await ref
-                                    .read(estimatedRateExchangeFormProvider)
-                                    .setToAmountAndCalculateFromAmount(
-                                        newToAmount, true);
+                                // await ref
+                                //     .read(estimatedRateExchangeFormProvider)
+                                //     .setToAmountAndCalculateFromAmount(
+                                //         newToAmount, true);
                               } else {
                                 await ref
                                     .read(fixedRateExchangeFormProvider)
@@ -743,10 +747,10 @@ class _WalletInitiatedExchangeViewState
                                       .read(prefsChangeNotifierProvider)
                                       .exchangeRateType ==
                                   ExchangeRateType.estimated) {
-                                await ref
-                                    .read(estimatedRateExchangeFormProvider)
-                                    .setToAmountAndCalculateFromAmount(
-                                        Decimal.zero, true);
+                                // await ref
+                                //     .read(estimatedRateExchangeFormProvider)
+                                //     .setToAmountAndCalculateFromAmount(
+                                //         Decimal.zero, true);
                               } else {
                                 await ref
                                     .read(fixedRateExchangeFormProvider)
