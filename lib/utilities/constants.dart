@@ -45,6 +45,7 @@ abstract class Constants {
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
+      case Coin.bitcoincash:
         values.addAll([24, 21, 18, 15, 12]);
         break;
 
@@ -75,6 +76,8 @@ abstract class Constants {
 
       case Coin.monero:
         return 120;
+      case Coin.bitcoincash:
+        return 600;
     }
   }
 

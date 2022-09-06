@@ -110,6 +110,7 @@ class _SVG {
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
   String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
   String get dogecoinTestnet => "assets/svg/coin_icons/Dogecoin.svg";
+  String get bitcoincash => "assets/svg/coin_icons/Bitcoin.svg";
 
   String iconFor({required Coin coin}) {
     switch (coin) {
@@ -123,6 +124,8 @@ class _SVG {
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.bitcoincash:
+        return bitcoincash;
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
       case Coin.firoTestNet:
@@ -144,6 +147,7 @@ class _PNG {
   String get dogecoin => "assets/images/doge.png";
   String get bitcoin => "assets/images/bitcoin.png";
   String get epicCash => "assets/images/epic-cash.png";
+  String get bitcoincash => "assets/images/bitcoin.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {
@@ -156,6 +160,8 @@ class _PNG {
       case Coin.epicCash:
         return epicCash;
       case Coin.firo:
+      case Coin.bitcoincash:
+        return bitcoincash;
       case Coin.firoTestNet:
         return firo;
       case Coin.monero:

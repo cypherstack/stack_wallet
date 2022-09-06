@@ -13,6 +13,7 @@ abstract class DefaultNodes {
         firo,
         monero,
         epicCash,
+        bitcoincash,
         bitcoinTestnet,
         dogecoinTestnet,
         firoTestnet,
@@ -80,6 +81,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get bitcoincash => NodeModel(
+        host: "https://electrum1.cipig.net:20055",
+        port: 20055,
+        name: defaultName,
+        id: _nodeId(Coin.bitcoincash),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.bitcoincash.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "electrumx-testnet.cypherstack.com",
         port: 51002,
@@ -132,6 +145,9 @@ abstract class DefaultNodes {
 
       case Coin.monero:
         return monero;
+
+      case Coin.bitcoincash:
+        return bitcoincash;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;

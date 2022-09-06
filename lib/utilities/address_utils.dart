@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -49,6 +50,8 @@ class AddressUtils {
       case Coin.monero:
         return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
             RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
+      case Coin.bitcoincash:
+        return Address.validateAddress(address, bitcoincash);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
       case Coin.firoTestNet:

@@ -5,6 +5,8 @@ import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
+import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
+    as bch;
 
 enum Coin {
   bitcoin,
@@ -12,6 +14,7 @@ enum Coin {
   epicCash,
   firo,
   monero,
+  bitcoincash,
 
   ///
   ///
@@ -38,6 +41,8 @@ extension CoinExt on Coin {
         return "Firo";
       case Coin.monero:
         return "Monero";
+      case Coin.bitcoincash:
+        return "Bitcoincash";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
       case Coin.firoTestNet:
@@ -59,6 +64,8 @@ extension CoinExt on Coin {
         return "FIRO";
       case Coin.monero:
         return "XMR";
+      case Coin.bitcoincash:
+        return "BCH";
       case Coin.bitcoinTestNet:
         return "tBTC";
       case Coin.firoTestNet:
@@ -81,6 +88,8 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.monero:
         return "monero";
+      case Coin.bitcoincash:
+        return "bitcoincash";
       case Coin.bitcoinTestNet:
         return "bitcoin";
       case Coin.firoTestNet:
@@ -95,6 +104,7 @@ extension CoinExt on Coin {
       case Coin.bitcoin:
       case Coin.dogecoin:
       case Coin.firo:
+      case Coin.bitcoincash:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -125,6 +135,9 @@ extension CoinExt on Coin {
 
       case Coin.monero:
         return xmr.MINIMUM_CONFIRMATIONS;
+
+      case Coin.bitcoincash:
+        return bch.MINIMUM_CONFIRMATIONS;
     }
   }
 }
@@ -146,6 +159,9 @@ Coin coinFromPrettyName(String name) {
     case "Monero":
     case "monero":
       return Coin.monero;
+    case "Bitcoincash":
+    case "bitcoincash":
+      return Coin.bitcoincash;
     case "Bitcoin Testnet":
     case "tBitcoin":
     case "bitcoinTestNet":
@@ -176,6 +192,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.firo;
     case "xmr":
       return Coin.monero;
+    case "bch":
+      return Coin.bitcoincash;
     case "tbtc":
       return Coin.bitcoinTestNet;
     case "tfiro":
