@@ -1761,7 +1761,12 @@ class FiroWallet extends CoinServiceAPI {
       balances.add(
           (lelantusBalance + utxosValue + _unconfirmedLelantusBalance) * price);
 
-      balances.add(utxosValue);
+      int availableSats =
+          utxos.satoshiBalance - utxos.satoshiBalanceUnconfirmed;
+      if (availableSats < 0) {
+        availableSats = 0;
+      }
+      balances.add(Format.satoshisToAmount(availableSats));
 
       Logging.instance.log("balances $balances", level: LogLevel.Info);
       await DB.instance.put<dynamic>(
@@ -2782,6 +2787,7 @@ class FiroWallet extends CoinServiceAPI {
       Decimal currentPrice = await firoPrice;
       final List<Map<String, dynamic>> outputArray = [];
       int satoshiBalance = 0;
+      int satoshiBalancePending = 0;
 
       for (int i = 0; i < utxoData.length; i++) {
         for (int j = 0; j < utxoData[i].length; j++) {
@@ -2795,16 +2801,22 @@ class FiroWallet extends CoinServiceAPI {
           );
 
           final Map<String, dynamic> tx = {};
+          final int confirmations = txn["confirmations"] as int? ?? 0;
+          final bool confirmed = confirmations >= MINIMUM_CONFIRMATIONS;
+          if (!confirmed) {
+            satoshiBalancePending += value;
+          }
 
           tx["txid"] = txn["txid"];
           tx["vout"] = utxoData[i][j]["tx_pos"];
           tx["value"] = value;
 
           tx["status"] = <String, dynamic>{};
+          tx["status"]["confirmed"] = confirmed;
+          tx["status"]["confirmations"] = confirmations;
           tx["status"]["confirmed"] =
               txn["confirmations"] == null ? false : txn["confirmations"] > 0;
-          tx["status"]["confirmations"] =
-              txn["confirmations"] == null ? 0 : txn["confirmations"]!;
+
           tx["status"]["block_height"] = txn["height"];
           tx["status"]["block_hash"] = txn["blockhash"];
           tx["status"]["block_time"] = txn["blocktime"];
@@ -2832,6 +2844,7 @@ class FiroWallet extends CoinServiceAPI {
             .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces)
             .toString(),
         "outputArray": outputArray,
+        "unconfirmed": satoshiBalancePending,
       };
 
       final dataModel = UtxoData.fromJson(result);

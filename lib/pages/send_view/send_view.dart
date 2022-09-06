@@ -13,7 +13,9 @@ import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selectio
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
+import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -36,6 +38,8 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import 'sub_widgets/firo_balance_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
   const SendView({
@@ -81,6 +85,9 @@ class _SendViewState extends ConsumerState<SendView> {
   Decimal? _amountToSend;
   Decimal? _cachedAmountToSend;
   String? _address;
+
+  String? _privateBalanceString;
+  String? _publicBalanceString;
 
   bool _addressToggleFlag = false;
 
@@ -194,6 +201,26 @@ class _SendViewState extends ConsumerState<SendView> {
         Format.satoshisToAmount(fee).toStringAsFixed(Constants.decimalPlaces);
 
     return cachedFees[amount]!;
+  }
+
+  Future<String?> _firoBalanceFuture(
+      ChangeNotifierProvider<Manager> provider, String locale) async {
+    final wallet = ref.read(provider).wallet as FiroWallet?;
+
+    if (wallet != null) {
+      Decimal? balance;
+      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
+          "Private") {
+        balance = await wallet.availablePrivateBalance();
+      } else {
+        balance = await wallet.availablePublicBalance();
+      }
+
+      return Format.localizedStringAsFixed(
+          value: balance, locale: locale, decimalPlaces: 8);
+    }
+
+    return null;
   }
 
   @override
@@ -334,21 +361,59 @@ class _SendViewState extends ConsumerState<SendView> {
                               children: [
                                 SvgPicture.asset(
                                   Assets.svg.iconFor(coin: coin),
-                                  width: 18,
-                                  height: 18,
+                                  width: 22,
+                                  height: 22,
                                 ),
                                 const SizedBox(
                                   width: 6,
                                 ),
-                                Text(
-                                  ref.watch(provider
-                                      .select((value) => value.walletName)),
-                                  style: STextStyles.titleBold12,
-                                ),
+                                if (coin != Coin.firo &&
+                                    coin != Coin.firoTestNet)
+                                  Text(
+                                    ref.watch(provider
+                                        .select((value) => value.walletName)),
+                                    style: STextStyles.titleBold12,
+                                  ),
+                                if (coin == Coin.firo ||
+                                    coin == Coin.firoTestNet)
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        ref.watch(provider.select(
+                                            (value) => value.walletName)),
+                                        style: STextStyles.titleBold12
+                                            .copyWith(fontSize: 14),
+                                      ),
+                                      // const SizedBox(
+                                      //   height: 2,
+                                      // ),
+                                      Text(
+                                        "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
+                                        style: STextStyles.label
+                                            .copyWith(fontSize: 10),
+                                      ),
+                                    ],
+                                  ),
                                 const Spacer(),
                                 FutureBuilder(
-                                  future: ref.watch(provider.select(
-                                      (value) => value.availableBalance)),
+                                  future: (coin != Coin.firo &&
+                                          coin != Coin.firoTestNet)
+                                      ? ref.watch(provider.select(
+                                          (value) => value.availableBalance))
+                                      : ref
+                                                  .watch(
+                                                      publicPrivateBalanceStateProvider
+                                                          .state)
+                                                  .state ==
+                                              "Private"
+                                          ? (ref.watch(provider).wallet
+                                                  as FiroWallet)
+                                              .availablePrivateBalance()
+                                          : (ref.watch(provider).wallet
+                                                  as FiroWallet)
+                                              .availablePublicBalance(),
                                   builder:
                                       (_, AsyncSnapshot<Decimal> snapshot) {
                                     if (snapshot.connectionState ==
@@ -422,6 +487,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 .copyWith(
                                               fontSize: 10,
                                             ),
+                                          ),
+                                          const SizedBox(
+                                            height: 2,
                                           ),
                                           AnimatedText(
                                             stringsToLoopThrough: const [
@@ -730,6 +798,141 @@ class _SendViewState extends ConsumerState<SendView> {
                             }
                           },
                         ),
+                        if (coin == Coin.firo)
+                          const SizedBox(
+                            height: 12,
+                          ),
+                        if (coin == Coin.firo)
+                          Text(
+                            "Send from",
+                            style: STextStyles.smallMed12,
+                            textAlign: TextAlign.left,
+                          ),
+                        if (coin == Coin.firo)
+                          const SizedBox(
+                            height: 8,
+                          ),
+                        if (coin == Coin.firo)
+                          Stack(
+                            children: [
+                              const TextField(
+                                readOnly: true,
+                                textInputAction: TextInputAction.none,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                child: RawMaterialButton(
+                                  splashColor: CFColors.splashLight,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    showModalBottomSheet<dynamic>(
+                                      backgroundColor: Colors.transparent,
+                                      context: context,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(20),
+                                        ),
+                                      ),
+                                      builder: (_) => FiroBalanceSelectionSheet(
+                                        walletId: walletId,
+                                      ),
+                                    );
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
+                                            style: STextStyles.itemSubtitle12,
+                                          ),
+                                          const SizedBox(
+                                            width: 10,
+                                          ),
+                                          FutureBuilder(
+                                            future: _firoBalanceFuture(
+                                                provider, locale),
+                                            builder: (context,
+                                                AsyncSnapshot<String?>
+                                                    snapshot) {
+                                              if (snapshot.connectionState ==
+                                                      ConnectionState.done &&
+                                                  snapshot.hasData) {
+                                                if (ref
+                                                        .read(
+                                                            publicPrivateBalanceStateProvider
+                                                                .state)
+                                                        .state ==
+                                                    "Private") {
+                                                  _privateBalanceString =
+                                                      snapshot.data!;
+                                                } else {
+                                                  _publicBalanceString =
+                                                      snapshot.data!;
+                                                }
+                                              }
+                                              if (ref
+                                                          .read(
+                                                              publicPrivateBalanceStateProvider
+                                                                  .state)
+                                                          .state ==
+                                                      "Private" &&
+                                                  _privateBalanceString !=
+                                                      null) {
+                                                return Text(
+                                                  "$_privateBalanceString ${coin.ticker}",
+                                                  style:
+                                                      STextStyles.itemSubtitle,
+                                                );
+                                              } else if (ref
+                                                          .read(
+                                                              publicPrivateBalanceStateProvider
+                                                                  .state)
+                                                          .state ==
+                                                      "Public" &&
+                                                  _publicBalanceString !=
+                                                      null) {
+                                                return Text(
+                                                  "$_publicBalanceString ${coin.ticker}",
+                                                  style:
+                                                      STextStyles.itemSubtitle,
+                                                );
+                                              } else {
+                                                return AnimatedText(
+                                                  stringsToLoopThrough: const [
+                                                    "Loading balance",
+                                                    "Loading balance.",
+                                                    "Loading balance..",
+                                                    "Loading balance...",
+                                                  ],
+                                                  style:
+                                                      STextStyles.itemSubtitle,
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      SvgPicture.asset(
+                                        Assets.svg.chevronDown,
+                                        width: 8,
+                                        height: 4,
+                                        color: CFColors.gray3,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
                         const SizedBox(
                           height: 12,
                         ),
@@ -744,10 +947,34 @@ class _SendViewState extends ConsumerState<SendView> {
                             BlueTextButton(
                               text: "Send all ${coin.ticker}",
                               onTap: () async {
-                                cryptoAmountController.text = (await ref
-                                        .read(provider)
-                                        .availableBalance)
-                                    .toStringAsFixed(Constants.decimalPlaces);
+                                if (coin == Coin.firo ||
+                                    coin == Coin.firoTestNet) {
+                                  final firoWallet =
+                                      ref.read(provider).wallet as FiroWallet;
+                                  if (ref
+                                          .read(
+                                              publicPrivateBalanceStateProvider
+                                                  .state)
+                                          .state ==
+                                      "Private") {
+                                    cryptoAmountController.text =
+                                        (await firoWallet
+                                                .availablePrivateBalance())
+                                            .toStringAsFixed(
+                                                Constants.decimalPlaces);
+                                  } else {
+                                    cryptoAmountController.text =
+                                        (await firoWallet
+                                                .availablePublicBalance())
+                                            .toStringAsFixed(
+                                                Constants.decimalPlaces);
+                                  }
+                                } else {
+                                  cryptoAmountController.text = (await ref
+                                          .read(provider)
+                                          .availableBalance)
+                                      .toStringAsFixed(Constants.decimalPlaces);
+                                }
                               },
                             ),
                           ],

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 
@@ -17,6 +19,9 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
+
+    final coin = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(walletId).coin));
 
     return Container(
       decoration: const BoxDecoration(
@@ -105,25 +110,44 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                       const SizedBox(
                         width: 12,
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Available balance",
-                            style: STextStyles.titleBold12,
-                          ),
-                          const SizedBox(
-                            height: 2,
-                          ),
-                          // TODO need text from design
-                          Text(
-                            "Current spendable (unlocked) balance",
-                            style: STextStyles.itemSubtitle12.copyWith(
-                              color: CFColors.neutral60,
+                      if (coin != Coin.firo && coin != Coin.firoTestNet)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Available balance",
+                              style: STextStyles.titleBold12,
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(
+                              height: 2,
+                            ),
+                            Text(
+                              "Current spendable (unlocked) balance",
+                              style: STextStyles.itemSubtitle12.copyWith(
+                                color: CFColors.neutral60,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (coin == Coin.firo || coin == Coin.firoTestNet)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Private balance",
+                              style: STextStyles.titleBold12,
+                            ),
+                            const SizedBox(
+                              height: 2,
+                            ),
+                            Text(
+                              "Current private spendable (unlocked) balance",
+                              style: STextStyles.itemSubtitle12.copyWith(
+                                color: CFColors.neutral60,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -172,25 +196,44 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                       const SizedBox(
                         width: 12,
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Full balance",
-                            style: STextStyles.titleBold12,
-                          ),
-                          const SizedBox(
-                            height: 2,
-                          ),
-                          // TODO need text from design
-                          Text(
-                            "Total wallet balance",
-                            style: STextStyles.itemSubtitle12.copyWith(
-                              color: CFColors.neutral60,
+                      if (coin != Coin.firo && coin != Coin.firoTestNet)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Full balance",
+                              style: STextStyles.titleBold12,
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(
+                              height: 2,
+                            ),
+                            Text(
+                              "Total wallet balance",
+                              style: STextStyles.itemSubtitle12.copyWith(
+                                color: CFColors.neutral60,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (coin == Coin.firo || coin == Coin.firoTestNet)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Public balance",
+                              style: STextStyles.titleBold12,
+                            ),
+                            const SizedBox(
+                              height: 2,
+                            ),
+                            Text(
+                              "Current public spendable (unlocked) balance",
+                              style: STextStyles.itemSubtitle12.copyWith(
+                                color: CFColors.neutral60,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),

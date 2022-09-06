@@ -37,10 +37,30 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
     if (coin == Coin.epicCash && _transaction.slateId == null) {
       return "Restored Funds";
     }
+
+    if (_transaction.subType == "mint") {
+      // if (type == "Received") {
+      if (_transaction.confirmedStatus) {
+        return "Anonymized";
+      } else {
+        return "Anonymizing";
+      }
+      // } else if (type == "Sent") {
+      //   if (_transaction.confirmedStatus) {
+      //     return "Sent MINT";
+      //   } else {
+      //     return "Sending MINT";
+      //   }
+      // } else {
+      //   return type;
+      // }
+    }
+
     if (type == "Received") {
-      if (_transaction.isMinting) {
-        return "Minting";
-      } else if (_transaction.confirmedStatus) {
+      // if (_transaction.isMinting) {
+      //   return "Minting";
+      // } else
+      if (_transaction.confirmedStatus) {
         return "Received";
       } else {
         return "Receiving";
