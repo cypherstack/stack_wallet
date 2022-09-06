@@ -2191,6 +2191,7 @@ class FiroWallet extends CoinServiceAPI {
 
   Future<bool> _submitLelantusToNetwork(
       Map<String, dynamic> transactionInfo) async {
+    final latestSetId = await getLatestSetId();
     final txid = await submitHexToNetwork(transactionInfo['txHex'] as String);
     // success if txid matches the generated txid
     Logging.instance.log(
@@ -2232,7 +2233,7 @@ class FiroWallet extends CoinServiceAPI {
             transactionInfo['jmintValue'] as int? ?? 0,
             transactionInfo['publicCoin'] as String,
             transactionInfo['txid'] as String,
-            1,
+            latestSetId,
             false);
         if (jmint.value > 0) {
           coins.add({jmint.txId: jmint});
@@ -2276,7 +2277,7 @@ class FiroWallet extends CoinServiceAPI {
             mintMap['value'] as int,
             mintMap['publicCoin'] as String,
             transactionInfo['txid'] as String,
-            1,
+            latestSetId,
             false,
           );
           if (mint.value > 0) {
