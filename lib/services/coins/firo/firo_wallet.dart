@@ -1776,108 +1776,109 @@ class FiroWallet extends CoinServiceAPI {
     }
   }
 
-  // Future<void> autoMint() async {
-  //   try {
-  //     var mintResult = await _mintSelection();
-  //     if (mintResult.isEmpty) {
-  //       Logging.instance.log("nothing to mint", level: LogLevel.Info);
-  //       return;
-  //     }
-  //     await _submitLelantusToNetwork(mintResult);
-  //   } catch (e, s) {
-  //     Logging.instance.log("Exception caught in _autoMint(): $e\n$s",
-  //         level: LogLevel.Error);
-  //   }
-  // }
-  //
-  // /// Returns the mint transaction hex to mint all of the available funds.
-  // Future<Map<String, dynamic>> _mintSelection() async {
-  //   final List<UtxoObject> availableOutputs = _outputsList;
-  //   final List<UtxoObject?> spendableOutputs = [];
-  //
-  //   // Build list of spendable outputs and totaling their satoshi amount
-  //   for (var i = 0; i < availableOutputs.length; i++) {
-  //     if (availableOutputs[i].blocked == false &&
-  //         availableOutputs[i].status.confirmed == true &&
-  //         !(availableOutputs[i].isCoinbase &&
-  //             availableOutputs[i].status.confirmations <= 101)) {
-  //       spendableOutputs.add(availableOutputs[i]);
-  //     }
-  //   }
-  //
-  //   final List<Map<dynamic, LelantusCoin>> lelantusCoins = getLelantusCoinMap();
-  //   if (lelantusCoins != null && lelantusCoins.isNotEmpty) {
-  //     lelantusCoins.removeWhere((element) =>
-  //         element.values.any((elementCoin) => elementCoin.value == 0));
-  //   }
-  //   final data = await _txnData;
-  //   if (lelantusCoins != null) {
-  //     final dataMap = data.getAllTransactions();
-  //     dataMap.forEach((key, value) {
-  //       if (value.inputs.isNotEmpty) {
-  //         for (var element in value.inputs) {
-  //           if (lelantusCoins
-  //                   .any((element) => element.keys.contains(value.txid)) &&
-  //               spendableOutputs.firstWhere(
-  //                       (output) => output?.txid == element.txid,
-  //                       orElse: () => null) !=
-  //                   null) {
-  //             spendableOutputs
-  //                 .removeWhere((output) => output!.txid == element.txid);
-  //           }
-  //         }
-  //       }
-  //     });
-  //   }
-  //
-  //   // If there is no Utxos to mint then stop the function.
-  //   if (spendableOutputs.isEmpty) {
-  //     Logging.instance.log("_mintSelection(): No spendable outputs found",
-  //         level: LogLevel.Info);
-  //     return {};
-  //   }
-  //
-  //   int satoshisBeingUsed = 0;
-  //   List<UtxoObject> utxoObjectsToUse = [];
-  //
-  //   for (var i = 0; i < spendableOutputs.length; i++) {
-  //     final spendable = spendableOutputs[i];
-  //     if (spendable != null) {
-  //       utxoObjectsToUse.add(spendable);
-  //       satoshisBeingUsed += spendable.value;
-  //     }
-  //   }
-  //
-  //   var mintsWithoutFee = await createMintsFromAmount(satoshisBeingUsed);
-  //
-  //   var tmpTx = await buildMintTransaction(
-  //       utxoObjectsToUse, satoshisBeingUsed, mintsWithoutFee);
-  //
-  //   int vsize = (tmpTx['transaction'] as Transaction).virtualSize();
-  //   final Decimal dvsize = Decimal.fromInt(vsize);
-  //
-  //   final feesObject = await fees;
-  //
-  //   final Decimal fastFee = Format.satoshisToAmount(feesObject.fast);
-  //   int firoFee =
-  //       (dvsize * fastFee * Decimal.fromInt(100000)).toDouble().ceil();
-  //   // int firoFee = (vsize * feesObject.fast * (1 / 1000.0) * 100000000).ceil();
-  //
-  //   if (firoFee < vsize) {
-  //     firoFee = vsize + 1;
-  //   }
-  //   firoFee = firoFee + 10;
-  //   int satoshiAmountToSend = satoshisBeingUsed - firoFee;
-  //
-  //   var mintsWithFee = await createMintsFromAmount(satoshiAmountToSend);
-  //
-  //   Map<String, dynamic> transaction = await buildMintTransaction(
-  //       utxoObjectsToUse, satoshiAmountToSend, mintsWithFee);
-  //   transaction['transaction'] = "";
-  //   Logging.instance.log(transaction.toString(), level: LogLevel.Info);
-  //   Logging.instance.log(transaction['txHex'], level: LogLevel.Info);
-  //   return transaction;
-  // }
+  Future<void> anonymizeAllPublicFunds() async {
+    try {
+      var mintResult = await _mintSelection();
+      if (mintResult.isEmpty) {
+        Logging.instance.log("nothing to mint", level: LogLevel.Info);
+        return;
+      }
+      await _submitLelantusToNetwork(mintResult);
+      unawaited(refresh());
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception caught in anonymizeAllPublicFunds(): $e\n$s",
+          level: LogLevel.Warning);
+      rethrow;
+    }
+  }
+
+  /// Returns the mint transaction hex to mint all of the available funds.
+  Future<Map<String, dynamic>> _mintSelection() async {
+    final List<UtxoObject> availableOutputs = _outputsList;
+    final List<UtxoObject?> spendableOutputs = [];
+
+    // Build list of spendable outputs and totaling their satoshi amount
+    for (var i = 0; i < availableOutputs.length; i++) {
+      if (availableOutputs[i].blocked == false &&
+          availableOutputs[i].status.confirmed == true &&
+          !(availableOutputs[i].isCoinbase &&
+              availableOutputs[i].status.confirmations <= 101)) {
+        spendableOutputs.add(availableOutputs[i]);
+      }
+    }
+
+    final List<Map<dynamic, LelantusCoin>> lelantusCoins = getLelantusCoinMap();
+    if (lelantusCoins.isNotEmpty) {
+      lelantusCoins.removeWhere((element) =>
+          element.values.any((elementCoin) => elementCoin.value == 0));
+    }
+    final data = await _txnData;
+    final dataMap = data.getAllTransactions();
+    dataMap.forEach((key, value) {
+      if (value.inputs.isNotEmpty) {
+        for (var element in value.inputs) {
+          if (lelantusCoins
+                  .any((element) => element.keys.contains(value.txid)) &&
+              spendableOutputs.firstWhere(
+                      (output) => output?.txid == element.txid,
+                      orElse: () => null) !=
+                  null) {
+            spendableOutputs
+                .removeWhere((output) => output!.txid == element.txid);
+          }
+        }
+      }
+    });
+
+    // If there is no Utxos to mint then stop the function.
+    if (spendableOutputs.isEmpty) {
+      Logging.instance.log("_mintSelection(): No spendable outputs found",
+          level: LogLevel.Info);
+      return {};
+    }
+
+    int satoshisBeingUsed = 0;
+    List<UtxoObject> utxoObjectsToUse = [];
+
+    for (var i = 0; i < spendableOutputs.length; i++) {
+      final spendable = spendableOutputs[i];
+      if (spendable != null) {
+        utxoObjectsToUse.add(spendable);
+        satoshisBeingUsed += spendable.value;
+      }
+    }
+
+    var mintsWithoutFee = await createMintsFromAmount(satoshisBeingUsed);
+
+    var tmpTx = await buildMintTransaction(
+        utxoObjectsToUse, satoshisBeingUsed, mintsWithoutFee);
+
+    int vsize = (tmpTx['transaction'] as Transaction).virtualSize();
+    final Decimal dvsize = Decimal.fromInt(vsize);
+
+    final feesObject = await fees;
+
+    final Decimal fastFee = Format.satoshisToAmount(feesObject.fast);
+    int firoFee =
+        (dvsize * fastFee * Decimal.fromInt(100000)).toDouble().ceil();
+    // int firoFee = (vsize * feesObject.fast * (1 / 1000.0) * 100000000).ceil();
+
+    if (firoFee < vsize) {
+      firoFee = vsize + 1;
+    }
+    firoFee = firoFee + 10;
+    int satoshiAmountToSend = satoshisBeingUsed - firoFee;
+
+    var mintsWithFee = await createMintsFromAmount(satoshiAmountToSend);
+
+    Map<String, dynamic> transaction = await buildMintTransaction(
+        utxoObjectsToUse, satoshiAmountToSend, mintsWithFee);
+    transaction['transaction'] = "";
+    Logging.instance.log(transaction.toString(), level: LogLevel.Info);
+    Logging.instance.log(transaction['txHex'], level: LogLevel.Info);
+    return transaction;
+  }
 
   Future<List<Map<String, dynamic>>> createMintsFromAmount(int total) async {
     var tmpTotal = total;
@@ -2118,7 +2119,7 @@ class FiroWallet extends CoinServiceAPI {
     listTxData.forEach((key, value) {
       // ignore change addresses
       bool hasAtLeastOneReceive = false;
-      int howManyReceiveInputs = 0;
+      // int howManyReceiveInputs = 0;
       for (var element in value.inputs) {
         if (listLelantusTxData.containsKey(element.txid) &&
                 listLelantusTxData[element.txid]!.txType == "Received"
@@ -2126,7 +2127,7 @@ class FiroWallet extends CoinServiceAPI {
             // listLelantusTxData[element.txid].subType != "mint"
             ) {
           hasAtLeastOneReceive = true;
-          howManyReceiveInputs++;
+          // howManyReceiveInputs++;
         }
       }
 
@@ -2137,23 +2138,25 @@ class FiroWallet extends CoinServiceAPI {
       } else if (value.txType == "Sent" &&
           hasAtLeastOneReceive &&
           value.subType == "mint") {
+        listLelantusTxData[value.txid] = value;
+
         // use mint sends to update receives with user readable values.
 
-        int sharedFee = value.fees ~/ howManyReceiveInputs;
-
-        for (var element in value.inputs) {
-          if (listLelantusTxData.containsKey(element.txid) &&
-              listLelantusTxData[element.txid]!.txType == "Received") {
-            listLelantusTxData[element.txid] =
-                listLelantusTxData[element.txid]!.copyWith(
-              fees: sharedFee,
-              subType: "mint",
-              height: value.height,
-              confirmedStatus: value.confirmedStatus,
-              otherData: value.txid,
-            );
-          }
-        }
+        // int sharedFee = value.fees ~/ howManyReceiveInputs;
+        //
+        // for (var element in value.inputs) {
+        //   if (listLelantusTxData.containsKey(element.txid) &&
+        //       listLelantusTxData[element.txid]!.txType == "Received") {
+        //     listLelantusTxData[element.txid] =
+        //         listLelantusTxData[element.txid]!.copyWith(
+        //       fees: sharedFee,
+        //       subType: "mint",
+        //       height: value.height,
+        //       confirmedStatus: value.confirmedStatus,
+        //       otherData: value.txid,
+        //     );
+        //   }
+        // }
       }
     });
 
