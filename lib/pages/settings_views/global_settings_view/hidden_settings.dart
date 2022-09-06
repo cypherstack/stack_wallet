@@ -1,15 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lottie/lottie.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class HiddenSettings extends StatelessWidget {
   const HiddenSettings({Key? key}) : super(key: key);
@@ -55,11 +54,11 @@ class HiddenSettings extends StatelessWidget {
                                 .read(notificationsProvider)
                                 .delete(notifs[0], true);
 
-                            showFloatingFlushBar(
+                            unawaited(showFloatingFlushBar(
                               type: FlushBarType.success,
                               message: "Notification history deleted",
                               context: context,
-                            );
+                            ));
                           },
                           child: RoundedWhiteContainer(
                             child: Text(
@@ -109,11 +108,11 @@ class HiddenSettings extends StatelessWidget {
                                 .read(debugServiceProvider)
                                 .deleteAllMessages();
 
-                            showFloatingFlushBar(
+                            unawaited(showFloatingFlushBar(
                               type: FlushBarType.success,
                               message: "Debug Logs deleted",
                               context: context,
-                            );
+                            ));
                           },
                           child: RoundedWhiteContainer(
                             child: Text(
@@ -125,34 +124,34 @@ class HiddenSettings extends StatelessWidget {
                           ),
                         );
                       }),
-                      const SizedBox(
-                        height: 12,
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          showDialog<void>(
-                            context: context,
-                            builder: (_) {
-                              return StackDialogBase(
-                                child: SizedBox(
-                                  width: 200,
-                                  child: Lottie.asset(
-                                    Assets.lottie.test2,
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        child: RoundedWhiteContainer(
-                          child: Text(
-                            "Lottie test",
-                            style: STextStyles.button.copyWith(
-                              color: CFColors.stackAccent,
-                            ),
-                          ),
-                        ),
-                      ),
+                      // const SizedBox(
+                      //   height: 12,
+                      // ),
+                      // GestureDetector(
+                      //   onTap: () async {
+                      //     showDialog<void>(
+                      //       context: context,
+                      //       builder: (_) {
+                      //         return StackDialogBase(
+                      //           child: SizedBox(
+                      //             width: 200,
+                      //             child: Lottie.asset(
+                      //               Assets.lottie.test2,
+                      //             ),
+                      //           ),
+                      //         );
+                      //       },
+                      //     );
+                      //   },
+                      //   child: RoundedWhiteContainer(
+                      //     child: Text(
+                      //       "Lottie test",
+                      //       style: STextStyles.button.copyWith(
+                      //         color: CFColors.stackAccent,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
