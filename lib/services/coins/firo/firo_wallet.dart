@@ -1761,6 +1761,8 @@ class FiroWallet extends CoinServiceAPI {
       balances.add(
           (lelantusBalance + utxosValue + _unconfirmedLelantusBalance) * price);
 
+      balances.add(utxosValue);
+
       Logging.instance.log("balances $balances", level: LogLevel.Info);
       await DB.instance.put<dynamic>(
           boxName: walletId,
@@ -3883,5 +3885,13 @@ class FiroWallet extends CoinServiceAPI {
           level: LogLevel.Error);
       return false;
     }
+  }
+
+  Future<Decimal> availablePrivateBalance() async {
+    return (await balances)[0];
+  }
+
+  Future<Decimal> availablePublicBalance() async {
+    return (await balances)[4];
   }
 }
