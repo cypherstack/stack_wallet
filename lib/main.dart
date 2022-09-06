@@ -51,6 +51,7 @@ import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -119,17 +120,15 @@ void main() async {
 
   Hive.registerAdapter(UnspentCoinsInfoAdapter());
 
+  await Hive.openBox<dynamic>(DB.boxNameDBInfo);
+  int dbVersion = DB.instance.get<dynamic>(
+          boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
+      0;
+  if (dbVersion < Constants.currentHiveDbVersion) {
+    await DbVersionMigrator().migrate(dbVersion);
+  }
+
   monero.onStartup();
-
-  // final wallets = await Hive.openBox('wallets');
-  // await wallets.put('currentWalletName', "");
-
-  // NOT USED YET
-  // int dbVersion = await wallets.get("db_version");
-  // if (dbVersion == null || dbVersion < Constants.currentDbVersion) {
-  //   if (dbVersion == null) dbVersion = 0;
-  //   await DbVersionMigrator().migrate(dbVersion);
-  // }
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
