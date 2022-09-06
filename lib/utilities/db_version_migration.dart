@@ -107,18 +107,36 @@ class DbVersionMigrator {
           }
         }
 
-        // finally update version
+        // update version
         await DB.instance.put<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 1);
 
-        return;
-      // not needed yet
-      // return migrate(1);
+        // try to continue migrating
+        return await migrate(1);
 
       // case 1:
-      //   return migrate(2);
+      //   await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+      //   final walletsService = WalletsService();
+      //   final walletInfoList = await walletsService.walletNames;
+      //   for (final walletInfo in walletInfoList.values) {
+      //     if (walletInfo.coin == Coin.firo) {
+      //       await Hive.openBox<dynamic>(walletInfo.walletId);
+      //       await DB.instance.delete<dynamic>(
+      //           key: "latest_tx_model", boxName: walletInfo.walletId);
+      //       await DB.instance.delete<dynamic>(
+      //           key: "latest_lelantus_tx_model", boxName: walletInfo.walletId);
+      //     }
+      //   }
+      //
+      //   // update version
+      //   await DB.instance.put<dynamic>(
+      //       boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 2);
+      //
+      //   // try to continue migrating
+      //   return await migrate(2);
 
       default:
+        // finally return
         return;
     }
   }
