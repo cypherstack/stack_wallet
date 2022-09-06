@@ -681,7 +681,7 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ReceiveView(
-              receivingAddress: args.item1,
+              walletId: args.item1,
               coin: args.item2,
             ),
             settings: RouteSettings(

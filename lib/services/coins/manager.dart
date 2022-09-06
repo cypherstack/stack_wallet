@@ -266,4 +266,12 @@ class Manager with ChangeNotifier {
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
     return _currentWallet.estimateFeeFor(satoshiAmount, feeRate);
   }
+
+  Future<bool> generateNewAddress() async {
+    final success = await _currentWallet.generateNewAddress();
+    if (success) {
+      notifyListeners();
+    }
+    return success;
+  }
 }

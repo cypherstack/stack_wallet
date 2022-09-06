@@ -255,6 +255,7 @@ flutter:
     - assets/svg/sliders-solid.svg
     - assets/svg/message-question.svg
     - assets/svg/envelope.svg
+    - assets/svg/share-2.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Dogecoin.svg

@@ -27,6 +27,7 @@ class DB {
   static const String boxNamePrefs = "prefs";
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
+  static const String boxNameDBInfo = "dbInfo";
 
   String boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
   String boxNameSetCache({required Coin coin}) =>
@@ -50,6 +51,7 @@ class DB {
   late final Box<xmr.WalletInfo> _walletInfoSource;
   late final Box<dynamic> _boxPrefs;
   late final Box<TradeWalletLookup> _boxTradeLookup;
+  late final Box<dynamic> _boxDBInfo;
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
 
@@ -80,13 +82,40 @@ class DB {
   // open hive boxes
   Future<void> init() async {
     if (!_initialized) {
+      if (Hive.isBoxOpen(boxNameDBInfo)) {
+        _boxDBInfo = Hive.box<dynamic>(boxNameDBInfo);
+      } else {
+        _boxDBInfo = await Hive.openBox<dynamic>(boxNameDBInfo);
+      }
       await Hive.openBox<String>(boxNameWalletsToDeleteOnStart);
-      _boxPrefs = await Hive.openBox<dynamic>(boxNamePrefs);
+
+      if (Hive.isBoxOpen(boxNamePrefs)) {
+        _boxPrefs = Hive.box<dynamic>(boxNamePrefs);
+      } else {
+        _boxPrefs = await Hive.openBox<dynamic>(boxNamePrefs);
+      }
+
       _boxAddressBook = await Hive.openBox<dynamic>(boxNameAddressBook);
       _boxDebugInfo = await Hive.openBox<String>(boxNameDebugInfo);
-      _boxNodeModels = await Hive.openBox<NodeModel>(boxNameNodeModels);
-      _boxPrimaryNodes = await Hive.openBox<NodeModel>(boxNamePrimaryNodes);
-      _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
+
+      if (Hive.isBoxOpen(boxNameNodeModels)) {
+        _boxNodeModels = Hive.box<NodeModel>(boxNameNodeModels);
+      } else {
+        _boxNodeModels = await Hive.openBox<NodeModel>(boxNameNodeModels);
+      }
+
+      if (Hive.isBoxOpen(boxNamePrimaryNodes)) {
+        _boxPrimaryNodes = Hive.box<NodeModel>(boxNamePrimaryNodes);
+      } else {
+        _boxPrimaryNodes = await Hive.openBox<NodeModel>(boxNamePrimaryNodes);
+      }
+
+      if (Hive.isBoxOpen(boxNameAllWalletsData)) {
+        _boxAllWalletsData = Hive.box<dynamic>(boxNameAllWalletsData);
+      } else {
+        _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
+      }
+
       _boxNotifications =
           await Hive.openBox<NotificationModel>(boxNameNotifications);
       _boxWatchedTransactions =
@@ -116,8 +145,13 @@ class DB {
         name, WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map))));
 
     for (final entry in mapped.entries) {
-      _walletBoxes[entry.value.walletId] =
-          await Hive.openBox<dynamic>(entry.value.walletId);
+      if (Hive.isBoxOpen(entry.value.walletId)) {
+        _walletBoxes[entry.value.walletId] =
+            Hive.box<dynamic>(entry.value.walletId);
+      } else {
+        _walletBoxes[entry.value.walletId] =
+            await Hive.openBox<dynamic>(entry.value.walletId);
+      }
     }
   }
 
