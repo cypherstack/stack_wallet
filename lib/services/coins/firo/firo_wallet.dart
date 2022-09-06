@@ -3857,4 +3857,28 @@ class FiroWallet extends CoinServiceAPI {
       rethrow;
     }
   }
+
+  @override
+  Future<bool> generateNewAddress() async {
+    try {
+      await incrementAddressIndexForChain(
+          0); // First increment the receiving index
+      final newReceivingIndex =
+          DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndex')
+              as int; // Check the new receiving index
+      final newReceivingAddress = await _generateAddressForChain(0,
+          newReceivingIndex); // Use new index to derive a new receiving address
+      await addToAddressesArrayForChain(newReceivingAddress,
+          0); // Add that new receiving address to the array of receiving addresses
+      _currentReceivingAddress = Future(() =>
+          newReceivingAddress); // Set the new receiving address that the service
+
+      return true;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from generateNewAddress(): $e\n$s",
+          level: LogLevel.Error);
+      return false;
+    }
+  }
 }

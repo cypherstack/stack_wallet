@@ -532,19 +532,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     onExchangePressed: () =>
                                         _onExchangePressed(context),
                                     onReceivePressed: () async {
-                                      final address = await ref
-                                          .read(managerProvider)
-                                          .currentReceivingAddress;
                                       final coin =
                                           ref.read(managerProvider).coin;
                                       if (mounted) {
-                                        Navigator.of(context).pushNamed(
+                                        unawaited(
+                                            Navigator.of(context).pushNamed(
                                           ReceiveView.routeName,
                                           arguments: Tuple2(
-                                            address,
+                                            walletId,
                                             coin,
                                           ),
-                                        );
+                                        ));
                                       }
                                     },
                                     onSendPressed: () {

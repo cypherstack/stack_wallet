@@ -1,36 +1,114 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class ReceiveView extends StatelessWidget {
+class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
     Key? key,
     required this.coin,
-    required this.receivingAddress,
+    required this.walletId,
     this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const String routeName = "/receiveView";
 
   final Coin coin;
-  final String receivingAddress;
+  final String walletId;
   final ClipboardInterface clipboard;
+
+  @override
+  ConsumerState<ReceiveView> createState() => _ReceiveViewState();
+}
+
+class _ReceiveViewState extends ConsumerState<ReceiveView> {
+  late final Coin coin;
+  late final String walletId;
+  late final ClipboardInterface clipboard;
+
+  Future<void> generateNewAddress() async {
+    bool shouldPop = false;
+    unawaited(
+      showDialog(
+        context: context,
+        builder: (_) {
+          return WillPopScope(
+            onWillPop: () async => shouldPop,
+            child: const CustomLoadingOverlay(
+              message: "Generating address",
+              eventBus: null,
+            ),
+          );
+        },
+      ),
+    );
+
+    await ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(walletId)
+        .generateNewAddress();
+
+    shouldPop = true;
+
+    if (mounted) {
+      Navigator.of(context)
+          .popUntil(ModalRoute.withName(ReceiveView.routeName));
+    }
+  }
+
+  String receivingAddress = "";
+
+  @override
+  void initState() {
+    walletId = widget.walletId;
+    coin = widget.coin;
+    clipboard = widget.clipboard;
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      final address = await ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .currentReceivingAddress;
+      setState(() {
+        receivingAddress = address;
+      });
+    });
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+
+    ref.listen(
+        ref
+            .read(walletsChangeNotifierProvider)
+            .getManagerProvider(walletId)
+            .select((value) => value.currentReceivingAddress),
+        (previous, next) {
+      if (next is Future<String>) {
+        next.then((value) => setState(() => receivingAddress = value));
+      }
+    });
+
     return Scaffold(
       backgroundColor: CFColors.almostWhite,
       appBar: AppBar(
@@ -52,15 +130,19 @@ class ReceiveView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: CFColors.white,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+                GestureDetector(
+                  onTap: () {
+                    clipboard.setData(
+                      ClipboardData(text: receivingAddress),
+                    );
+                    showFloatingFlushBar(
+                      type: FlushBarType.info,
+                      message: "Copied to clipboard",
+                      iconAsset: Assets.svg.copy,
+                      context: context,
+                    );
+                  },
+                  child: RoundedWhiteContainer(
                     child: Column(
                       children: [
                         Row(
@@ -70,35 +152,22 @@ class ReceiveView extends StatelessWidget {
                               style: STextStyles.itemSubtitle,
                             ),
                             const Spacer(),
-                            GestureDetector(
-                              onTap: () {
-                                clipboard.setData(
-                                  ClipboardData(text: receivingAddress),
-                                );
-                                showFloatingFlushBar(
-                                  type: FlushBarType.info,
-                                  message: "Copied to clipboard",
-                                  iconAsset: Assets.svg.copy,
-                                  context: context,
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(
-                                    Assets.svg.copy,
-                                    width: 10,
-                                    height: 10,
-                                    color: CFColors.link2,
-                                  ),
-                                  const SizedBox(
-                                    width: 4,
-                                  ),
-                                  Text(
-                                    "Copy",
-                                    style: STextStyles.link2,
-                                  ),
-                                ],
-                              ),
+                            Row(
+                              children: [
+                                SvgPicture.asset(
+                                  Assets.svg.copy,
+                                  width: 10,
+                                  height: 10,
+                                  color: CFColors.link2,
+                                ),
+                                const SizedBox(
+                                  width: 4,
+                                ),
+                                Text(
+                                  "Copy",
+                                  style: STextStyles.link2,
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -119,47 +188,62 @@ class ReceiveView extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 30,
-                ),
-                Center(
-                  child: QrImage(
-                    data: "${coin.uriScheme}:$receivingAddress",
-                    size: MediaQuery.of(context).size.width / 2,
-                    foregroundColor: CFColors.stackAccent,
+                if (coin != Coin.epicCash)
+                  const SizedBox(
+                    height: 12,
                   ),
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                // Spacer(
-                //   flex: 7,
-                // ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      RouteGenerator.getRoute(
-                        shouldUseMaterialRoute:
-                            RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => GenerateUriQrCodeView(
-                          coin: coin,
-                          receivingAddress: receivingAddress,
-                        ),
-                        settings: const RouteSettings(
-                          name: GenerateUriQrCodeView.routeName,
-                        ),
+                if (coin != Coin.epicCash)
+                  TextButton(
+                    onPressed: generateNewAddress,
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        CFColors.buttonGray,
                       ),
-                    );
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.buttonGray,
+                    ),
+                    child: Text(
+                      "Generate new address",
+                      style: STextStyles.button.copyWith(
+                        color: CFColors.stackAccent,
+                      ),
                     ),
                   ),
-                  child: Text(
-                    "Generate QR Code",
-                    style: STextStyles.button.copyWith(
-                      color: CFColors.stackAccent,
+                const SizedBox(
+                  height: 30,
+                ),
+                RoundedWhiteContainer(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          QrImage(
+                            data: "${coin.uriScheme}:$receivingAddress",
+                            size: MediaQuery.of(context).size.width / 2,
+                            foregroundColor: CFColors.stackAccent,
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          BlueTextButton(
+                            text: "Create new QR code",
+                            onTap: () async {
+                              unawaited(Navigator.of(context).push(
+                                RouteGenerator.getRoute(
+                                  shouldUseMaterialRoute:
+                                      RouteGenerator.useMaterialPageRoute,
+                                  builder: (_) => GenerateUriQrCodeView(
+                                    coin: coin,
+                                    receivingAddress: receivingAddress,
+                                  ),
+                                  settings: const RouteSettings(
+                                    name: GenerateUriQrCodeView.routeName,
+                                  ),
+                                ),
+                              ));
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
