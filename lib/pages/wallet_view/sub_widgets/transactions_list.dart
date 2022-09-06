@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
@@ -110,7 +112,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                   .read(walletsChangeNotifierProvider)
                   .getManagerProvider(widget.walletId);
               if (!ref.read(managerProvider).isRefreshing) {
-                ref.read(managerProvider).refresh();
+                unawaited(ref.read(managerProvider).refresh());
               }
             },
             child: ListView.builder(

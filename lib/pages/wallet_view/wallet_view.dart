@@ -155,7 +155,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     const timeout = Duration(milliseconds: 1500);
     if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
       _cachedTime = now;
-      showDialog<dynamic>(
+      unawaited(showDialog<dynamic>(
         context: context,
         barrierDismissible: false,
         builder: (_) => WillPopScope(
@@ -173,7 +173,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         onTimeout: () => Navigator.of(context).popUntil(
           ModalRoute.withName(WalletView.routeName),
         ),
-      );
+      ));
     }
     return false;
   }
@@ -222,14 +222,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
     final coin = ref.read(managerProvider).coin;
 
     if (coin == Coin.epicCash) {
-      showDialog<void>(
+      await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
           title: "ChangeNOW not available for Epic Cash",
         ),
       );
     } else if (coin.name.endsWith("TestNet")) {
-      showDialog<void>(
+      await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
           title: "ChangeNOW not available for test net coins",
@@ -247,10 +247,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
               element.ticker.toLowerCase() == coin.ticker.toLowerCase());
 
       if (currencies.isNotEmpty) {
-        ref
+        unawaited(ref
             .read(estimatedRateExchangeFormProvider)
-            .updateFrom(currencies.first, false);
-        ref.read(estimatedRateExchangeFormProvider).updateTo(
+            .updateFrom(currencies.first, false));
+        unawaited(ref.read(estimatedRateExchangeFormProvider).updateTo(
             ref
                 .read(availableChangeNowCurrenciesStateProvider.state)
                 .state
@@ -258,16 +258,16 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   (element) =>
                       element.ticker.toLowerCase() != coin.ticker.toLowerCase(),
                 ),
-            false);
+            false));
       }
 
-      Navigator.of(context).pushNamed(
+      unawaited(Navigator.of(context).pushNamed(
         WalletInitiatedExchangeView.routeName,
         arguments: Tuple2(
           walletId,
           coin,
         ),
-      );
+      ));
     }
   }
 

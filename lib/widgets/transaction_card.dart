@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
@@ -95,23 +97,23 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
           ),
           onPressed: () async {
             if (coin == Coin.epicCash && _transaction.slateId == null) {
-              showFloatingFlushBar(
+              unawaited(showFloatingFlushBar(
                 context: context,
                 message:
                     "Restored Epic funds from your Seed have no Data.\nUse Stack Backup to keep your transaction history.",
                 type: FlushBarType.warning,
                 duration: const Duration(seconds: 5),
-              );
+              ));
               return;
             }
-            Navigator.of(context).pushNamed(
+            unawaited(Navigator.of(context).pushNamed(
               TransactionDetailsView.routeName,
               arguments: Tuple3(
                 _transaction,
                 coin,
                 walletId,
               ),
-            );
+            ));
           },
           child: Padding(
             padding: const EdgeInsets.all(8),

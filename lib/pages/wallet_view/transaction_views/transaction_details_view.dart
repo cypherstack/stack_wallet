@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -480,14 +482,14 @@ class _TransactionDetailsViewState
                                 mode: LaunchMode.externalApplication,
                               );
                             } catch (_) {
-                              showDialog<void>(
+                              unawaited(showDialog<void>(
                                 context: context,
                                 builder: (_) => StackOkDialog(
                                   title: "Could not open in block explorer",
                                   message:
                                       "Failed to open \"${uri.toString()}\"",
                                 ),
-                              );
+                              ));
                             } finally {
                               // Future<void>.delayed(
                               //   const Duration(seconds: 1),
@@ -637,20 +639,20 @@ class _TransactionDetailsViewState
                   if (manager.wallet is EpicCashWallet) {
                     final String? id = _transaction.slateId;
                     if (id == null) {
-                      showFloatingFlushBar(
+                      unawaited(showFloatingFlushBar(
                         type: FlushBarType.warning,
                         message: "Could not find Epic transaction ID",
                         context: context,
-                      );
+                      ));
                       return;
                     }
 
-                    showDialog<dynamic>(
+                    unawaited(showDialog<dynamic>(
                       barrierDismissible: false,
                       context: context,
                       builder: (_) =>
                           const CancellingTransactionProgressDialog(),
-                    );
+                    ));
 
                     final result = await (manager.wallet as EpicCashWallet)
                         .cancelPendingTransactionAndPost(id);
@@ -681,11 +683,11 @@ class _TransactionDetailsViewState
                       }
                     }
                   } else {
-                    showFloatingFlushBar(
+                    unawaited(showFloatingFlushBar(
                       type: FlushBarType.warning,
                       message: "ERROR: Wallet type is not Epic Cash",
                       context: context,
-                    );
+                    ));
                     return;
                   }
                 },
