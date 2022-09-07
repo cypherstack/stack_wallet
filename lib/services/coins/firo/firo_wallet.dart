@@ -4483,6 +4483,70 @@ class FiroWallet extends CoinServiceAPI {
     return fee;
   }
 
+  Future<int> estimateFeeForPublic(int satoshiAmount, int feeRate) async {
+    final available =
+        Format.decimalAmountToSatoshis(await availablePublicBalance());
+
+    if (available == satoshiAmount) {
+      return satoshiAmount - sweepAllEstimate(feeRate);
+    } else if (satoshiAmount <= 0 || satoshiAmount > available) {
+      return roughFeeEstimate(1, 2, feeRate);
+    }
+
+    int runningBalance = 0;
+    int inputCount = 0;
+    for (final output in _outputsList) {
+      runningBalance += output.value;
+      inputCount++;
+      if (runningBalance > satoshiAmount) {
+        break;
+      }
+    }
+
+    final oneOutPutFee = roughFeeEstimate(inputCount, 1, feeRate);
+    final twoOutPutFee = roughFeeEstimate(inputCount, 2, feeRate);
+
+    if (runningBalance - satoshiAmount > oneOutPutFee) {
+      if (runningBalance - satoshiAmount > oneOutPutFee + DUST_LIMIT) {
+        final change = runningBalance - satoshiAmount - twoOutPutFee;
+        if (change > DUST_LIMIT &&
+            runningBalance - satoshiAmount - change == twoOutPutFee) {
+          return runningBalance - satoshiAmount - change;
+        } else {
+          return runningBalance - satoshiAmount;
+        }
+      } else {
+        return runningBalance - satoshiAmount;
+      }
+    } else if (runningBalance - satoshiAmount == oneOutPutFee) {
+      return oneOutPutFee;
+    } else {
+      return twoOutPutFee;
+    }
+  }
+
+  // TODO: correct formula for firo?
+  int roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return ((181 * inputCount) + (34 * outputCount) + 10) *
+        (feeRatePerKB / 1000).ceil();
+  }
+
+  int sweepAllEstimate(int feeRate) {
+    int available = 0;
+    int inputCount = 0;
+    for (final output in _outputsList) {
+      if (output.status.confirmed) {
+        available += output.value;
+        inputCount++;
+      }
+    }
+
+    // transaction will only have 1 output minus the fee
+    final estimatedFee = roughFeeEstimate(inputCount, 1, feeRate);
+
+    return available - estimatedFee;
+  }
+
   Future<List<models.Transaction>> getJMintTransactions(
     CachedElectrumX cachedClient,
     List<String> transactions,

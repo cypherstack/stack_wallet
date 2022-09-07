@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
+import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -58,35 +60,63 @@ class _TransactionFeeSelectionSheetState
     required int amount,
     required FeeRateType feeRateType,
     required int feeRate,
+    required Coin coin,
   }) async {
     switch (feeRateType) {
       case FeeRateType.fast:
         if (ref.read(feeSheetSessionCacheProvider).fast[amount] == null) {
-          ref.read(feeSheetSessionCacheProvider).fast[amount] =
-              Format.satoshisToAmount(await ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManager(walletId)
-                  .estimateFeeFor(amount, feeRate));
+          final manager =
+              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+
+          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+              ref.read(publicPrivateBalanceStateProvider.state).state !=
+                  "Private") {
+            ref.read(feeSheetSessionCacheProvider).fast[amount] =
+                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
+                    .estimateFeeForPublic(amount, feeRate));
+          } else {
+            ref.read(feeSheetSessionCacheProvider).fast[amount] =
+                Format.satoshisToAmount(
+                    await manager.estimateFeeFor(amount, feeRate));
+          }
         }
         return ref.read(feeSheetSessionCacheProvider).fast[amount]!;
 
       case FeeRateType.average:
         if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
-          ref.read(feeSheetSessionCacheProvider).average[amount] =
-              Format.satoshisToAmount(await ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManager(walletId)
-                  .estimateFeeFor(amount, feeRate));
+          final manager =
+              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+
+          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+              ref.read(publicPrivateBalanceStateProvider.state).state !=
+                  "Private") {
+            ref.read(feeSheetSessionCacheProvider).average[amount] =
+                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
+                    .estimateFeeForPublic(amount, feeRate));
+          } else {
+            ref.read(feeSheetSessionCacheProvider).average[amount] =
+                Format.satoshisToAmount(
+                    await manager.estimateFeeFor(amount, feeRate));
+          }
         }
         return ref.read(feeSheetSessionCacheProvider).average[amount]!;
 
       case FeeRateType.slow:
         if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
-          ref.read(feeSheetSessionCacheProvider).slow[amount] =
-              Format.satoshisToAmount(await ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManager(walletId)
-                  .estimateFeeFor(amount, feeRate));
+          final manager =
+              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+
+          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+              ref.read(publicPrivateBalanceStateProvider.state).state !=
+                  "Private") {
+            ref.read(feeSheetSessionCacheProvider).slow[amount] =
+                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
+                    .estimateFeeForPublic(amount, feeRate));
+          } else {
+            ref.read(feeSheetSessionCacheProvider).slow[amount] =
+                Format.satoshisToAmount(
+                    await manager.estimateFeeFor(amount, feeRate));
+          }
         }
         return ref.read(feeSheetSessionCacheProvider).slow[amount]!;
     }
@@ -249,6 +279,7 @@ class _TransactionFeeSelectionSheetState
                                       if (feeObject != null)
                                         FutureBuilder(
                                           future: feeFor(
+                                              coin: manager.coin,
                                               feeRateType: FeeRateType.fast,
                                               feeRate: feeObject!.fast,
                                               amount: Format
@@ -372,6 +403,7 @@ class _TransactionFeeSelectionSheetState
                                       if (feeObject != null)
                                         FutureBuilder(
                                           future: feeFor(
+                                              coin: manager.coin,
                                               feeRateType: FeeRateType.fast,
                                               feeRate: feeObject!.fast,
                                               amount: Format
@@ -496,6 +528,7 @@ class _TransactionFeeSelectionSheetState
                                       if (feeObject != null)
                                         FutureBuilder(
                                           future: feeFor(
+                                              coin: manager.coin,
                                               feeRateType: FeeRateType.slow,
                                               feeRate: feeObject!.slow,
                                               amount: Format
