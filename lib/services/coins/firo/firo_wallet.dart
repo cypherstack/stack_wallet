@@ -2769,34 +2769,12 @@ class FiroWallet extends CoinServiceAPI {
         }
       }
 
-      if (value.txType == "Received" &&
-          !listLelantusTxData.containsKey(value.txid)) {
-        // Every receive should be listed whether minted or not.
+      if (value.txType == "Received" && value.subType != "mint") {
+        // Every receive other than a mint should be shown. Mints will be collected and shown from the send side
         listLelantusTxData[value.txid] = value;
-      } else if (value.txType == "Sent"
-          // &&
-          // hasAtLeastOneReceive &&
-          // value.subType == "mint"
-          ) {
+      } else if (value.txType == "Sent") {
+        // all sends should be shown, mints will be displayed correctly in the ui
         listLelantusTxData[value.txid] = value;
-
-        // use mint sends to update receives with user readable values.
-
-        // int sharedFee = value.fees ~/ howManyReceiveInputs;
-        //
-        // for (var element in value.inputs) {
-        //   if (listLelantusTxData.containsKey(element.txid) &&
-        //       listLelantusTxData[element.txid]!.txType == "Received") {
-        //     listLelantusTxData[element.txid] =
-        //         listLelantusTxData[element.txid]!.copyWith(
-        //       fees: sharedFee,
-        //       subType: "mint",
-        //       height: value.height,
-        //       confirmedStatus: value.confirmedStatus,
-        //       otherData: value.txid,
-        //     );
-        //   }
-        // }
       }
     });
 
@@ -3305,11 +3283,12 @@ class FiroWallet extends CoinServiceAPI {
         }
       }
 
+      final int confirms = txObject["confirmations"] as int? ?? 0;
+
       // create final tx map
       midSortedTx["txid"] = txObject["txid"];
-      midSortedTx["confirmed_status"] = (txObject["confirmations"] is int) &&
-          (txObject["confirmations"] as int > 0);
-      midSortedTx["confirmations"] = txObject["confirmations"] ?? 0;
+      midSortedTx["confirmed_status"] = confirms >= MINIMUM_CONFIRMATIONS;
+      midSortedTx["confirmations"] = confirms;
       midSortedTx["timestamp"] = txObject["blocktime"] ??
           (DateTime.now().millisecondsSinceEpoch ~/ 1000);
       if (foundInSenders) {
