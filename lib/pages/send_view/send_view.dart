@@ -1333,9 +1333,28 @@ class _SendViewState extends ConsumerState<SendView> {
 
                                   final amount = Format.decimalAmountToSatoshis(
                                       _amountToSend!);
-                                  final availableBalance =
-                                      Format.decimalAmountToSatoshis(
-                                          await manager.availableBalance);
+                                  int availableBalance;
+                                  if ((coin == Coin.firo ||
+                                      coin == Coin.firoTestNet)
+                                      ) {
+                                    if (ref
+                                        .read(
+                                        publicPrivateBalanceStateProvider
+                                            .state)
+                                        .state ==
+                                        "Private") {
+                                      availableBalance = Format.decimalAmountToSatoshis(
+                                          await (manager.wallet as FiroWallet).availablePrivateBalance());
+                                    } else {
+                                      availableBalance = Format.decimalAmountToSatoshis(
+                                          await (manager.wallet as FiroWallet).availablePublicBalance());
+                                    }
+
+                                  } else {
+                                    availableBalance =
+                                        Format.decimalAmountToSatoshis(
+                                            await manager.availableBalance);
+                                  }
 
                                   // confirm send all
                                   if (amount == availableBalance) {
@@ -1419,14 +1438,36 @@ class _SendViewState extends ConsumerState<SendView> {
                                       },
                                     ));
 
-                                    final txData = await manager.prepareSend(
-                                      address: _address!,
-                                      satoshiAmount: amount,
-                                      args: {
-                                        "feeRate":
-                                            ref.read(feeRateTypeStateProvider)
-                                      },
-                                    );
+                                    Map<String, dynamic> txData;
+
+                                    if ((coin == Coin.firo ||
+                                            coin == Coin.firoTestNet) &&
+                                        ref
+                                                .read(
+                                                    publicPrivateBalanceStateProvider
+                                                        .state)
+                                                .state !=
+                                            "Private") {
+                                      txData =
+                                          await (manager.wallet as FiroWallet)
+                                              .prepareSendPublic(
+                                        address: _address!,
+                                        satoshiAmount: amount,
+                                        args: {
+                                          "feeRate":
+                                              ref.read(feeRateTypeStateProvider)
+                                        },
+                                      );
+                                    } else {
+                                      txData = await manager.prepareSend(
+                                        address: _address!,
+                                        satoshiAmount: amount,
+                                        args: {
+                                          "feeRate":
+                                              ref.read(feeRateTypeStateProvider)
+                                        },
+                                      );
+                                    }
 
                                     if (!wasCancelled && mounted) {
                                       // pop building dialog

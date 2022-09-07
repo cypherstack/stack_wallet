@@ -10,7 +10,7 @@ class TxIcon extends StatelessWidget {
   static const Size size = Size(32, 32);
 
   String _getAssetName(bool isCancelled, bool isReceived, bool isPending) {
-    if (transaction.subType == "mint") {
+    if (!isReceived && transaction.subType == "mint") {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
       }
