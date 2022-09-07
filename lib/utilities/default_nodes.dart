@@ -82,7 +82,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get bitcoincash => NodeModel(
-        host: "https://electrum1.cipig.net:20055",
+        host: "electrum1.cipig.net",
         port: 20055,
         name: defaultName,
         id: _nodeId(Coin.bitcoincash),
