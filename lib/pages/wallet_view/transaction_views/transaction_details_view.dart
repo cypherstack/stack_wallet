@@ -143,6 +143,66 @@ class _TransactionDetailsViewState
 
   String _note = "";
 
+  Future<bool> showExplorerWarning(String explorer) async {
+    final bool? shouldContinue = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => StackDialog(
+        title: "Attention",
+        message:
+            "You are about to view this transaction in a block explorer. The explorer may log your IP address and link it to the transaction. Only proceed if you trust $explorer.",
+        icon: Row(
+          children: [
+            Consumer(builder: (_, ref, __) {
+              return Checkbox(
+                value: ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.hideBlockExplorerWarning)),
+                onChanged: (value) {
+                  if (value is bool) {
+                    ref
+                        .read(prefsChangeNotifierProvider)
+                        .hideBlockExplorerWarning = value;
+                    setState(() {});
+                  }
+                },
+              );
+            }),
+            Text(
+              "Never show again",
+              style: STextStyles.smallMed14,
+            )
+          ],
+        ),
+        leftButton: TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
+          child: Text(
+            "Cancel",
+            style: STextStyles.button.copyWith(
+              color: CFColors.stackAccent,
+            ),
+          ),
+        ),
+        rightButton: TextButton(
+          style: Theme.of(context).textButtonTheme.style?.copyWith(
+                backgroundColor: MaterialStateProperty.all<Color>(
+                  CFColors.stackAccent,
+                ),
+              ),
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
+          child: Text(
+            "Continue",
+            style: STextStyles.button,
+          ),
+        ),
+      ),
+    );
+    return shouldContinue ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -492,6 +552,19 @@ class _TransactionDetailsViewState
                               coin: coin,
                               txid: _transaction.txid,
                             );
+
+                            if (ref
+                                    .read(prefsChangeNotifierProvider)
+                                    .hideBlockExplorerWarning ==
+                                false) {
+                              final shouldContinue =
+                                  await showExplorerWarning(uri.host);
+
+                              if (!shouldContinue) {
+                                return;
+                              }
+                            }
+
                             // ref
                             //     .read(
                             //         shouldShowLockscreenOnResumeStateProvider
