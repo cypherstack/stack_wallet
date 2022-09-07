@@ -11,7 +11,7 @@ put features here
 ## Build and run
 ### Prerequisites
 - Flutter 3.0.5
-- Flutter SDK Requirement (>=2.12.0, up until <3.0.0)
+- Dart SDK Requirement (>=2.17.0, up until <3.0.0)
 - Android/iOS dev setup (Android Studio, xCode and subsequent dependencies)
 
 After that download the project and init the submodules
@@ -23,29 +23,28 @@ git submodule update --init --recursive
 
 Building plugins for Android
 ```
-cd crypto_plugins/flutter_liblelantus/scripts/android/
-// note if you are on a mac go one directory further to android_on_mac
+cd scripts/android/
 ./build_all.sh
 // when finished go back to the root directory
-cd ../../../..
+cd ../..
 ```
 
 Building plugins for IOS
 
 ```
-cd crypto_plugins/flutter_liblelantus/scripts/ios/
+cd scripts/ios/
 ./build_all.sh
 // when finished go back to the root directory
-cd ../../../..
+cd ../..
 ```
 
 Building plugins for testing on Linux
 
 ```
-cd crypto_plugins/flutter_liblelantus/scripts/linux/
+cd scripts/linux/
 ./build_all.sh
 // when finished go back to the root directory
-cd ../../../..
+cd ../..
 ```
 
 Finally, plug in your android device or use the emulator available via Android Studio and then run the following commands:
