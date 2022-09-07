@@ -41,6 +41,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
+import 'package:bitbox/bitbox.dart' as Bitbox;
 
 const int MINIMUM_CONFIRMATIONS = 3;
 const int DUST_LIMIT = 1000000;
@@ -735,6 +736,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
   /// Refreshes display data for the wallet
   @override
   Future<void> refresh() async {
+    final bchaddr = Bitbox.Address.toCashAddress(await currentReceivingAddress);
+    print("bchaddr: $bchaddr ${await currentReceivingAddress}");
+
     if (refreshMutex) {
       Logging.instance.log("$walletId $walletName refreshMutex denied",
           level: LogLevel.Info);
@@ -1050,7 +1054,14 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
   @override
   bool validateAddress(String address) {
-    return Address.validateAddress(address, _network);
+    try {
+      // 0 for bitcoincash: address scheme, 1 for legacy address
+      final format = Bitbox.Address.detectFormat(address);
+      print("format $format");
+      return true;
+    } catch (e, s) {
+      return false;
+    }
   }
 
   @override
@@ -1947,6 +1958,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
+      Logging.instance.log("bch: $txHash", level: LogLevel.Info);
       final tx = await cachedElectrumXClient.getTransaction(
         txHash: txHash["tx_hash"] as String,
         verbose: true,
@@ -2318,8 +2330,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
         vSize: vSizeForOneOutput,
         feeRatePerKB: selectedTxFeeRate,
       );
-      if (feeForOneOutput < (vSizeForOneOutput + 1) * 1000) {
-        feeForOneOutput = (vSizeForOneOutput + 1) * 1000;
+      if (feeForOneOutput < (vSizeForOneOutput + 1)) {
+        feeForOneOutput = (vSizeForOneOutput + 1);
       }
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
@@ -2375,11 +2387,11 @@ class BitcoinCashWallet extends CoinServiceAPI {
         .log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
     Logging.instance
         .log("feeForOneOutput: $feeForOneOutput", level: LogLevel.Info);
-    if (feeForOneOutput < (vSizeForOneOutput + 1) * 1000) {
-      feeForOneOutput = (vSizeForOneOutput + 1) * 1000;
+    if (feeForOneOutput < (vSizeForOneOutput + 1)) {
+      feeForOneOutput = (vSizeForOneOutput + 1);
     }
-    if (feeForTwoOutputs < ((vSizeForTwoOutPuts + 1) * 1000)) {
-      feeForTwoOutputs = ((vSizeForTwoOutPuts + 1) * 1000);
+    if (feeForTwoOutputs < ((vSizeForTwoOutPuts + 1))) {
+      feeForTwoOutputs = ((vSizeForTwoOutPuts + 1));
     }
 
     Logging.instance
@@ -2679,45 +2691,76 @@ class BitcoinCashWallet extends CoinServiceAPI {
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
-    Logging.instance
-        .log("Starting buildTransaction ----------", level: LogLevel.Info);
+    final builder = Bitbox.Bitbox.transactionBuilder();
 
-    final txb = TransactionBuilder(network: _network);
-    txb.setVersion(1);
+    // retrieve address' utxos from the rest api
+    List<Bitbox.Utxo> _utxos =
+        []; // await Bitbox.Address.utxo(address) as List<Bitbox.Utxo>;
+    utxosToUse.forEach((element) {
+      _utxos.add(Bitbox.Utxo(
+          element.txid,
+          element.vout,
+          Bitbox.BitcoinCash.fromSatoshi(element.value),
+          element.value,
+          0,
+          MINIMUM_CONFIRMATIONS + 1));
+    });
+    Logger.print("bch utxos: ${_utxos}");
 
-    // Add transaction inputs
-    for (var i = 0; i < utxosToUse.length; i++) {
-      final txid = utxosToUse[i].txid;
-      txb.addInput(txid, utxosToUse[i].vout, null,
-          utxoSigningData[txid]["output"] as Uint8List);
+    // placeholder for input signatures
+    final signatures = <Map>[];
+
+    // placeholder for total input balance
+    int totalBalance = 0;
+
+    // iterate through the list of address _utxos and use them as inputs for the
+    // withdrawal transaction
+    _utxos.forEach((Bitbox.Utxo utxo) {
+      // add the utxo as an input for the transaction
+      builder.addInput(utxo.txid, utxo.vout);
+      final ec = utxoSigningData[utxo.txid]["keyPair"] as ECPair;
+
+      final bitboxEC = Bitbox.ECPair.fromWIF(ec.toWIF());
+
+      // add a signature to the list to be used later
+      signatures.add({
+        "vin": signatures.length,
+        "key_pair": bitboxEC,
+        "original_amount": utxo.satoshis
+      });
+
+      totalBalance += utxo.satoshis;
+    });
+
+    // calculate the fee based on number of inputs and one expected output
+    final fee =
+        Bitbox.BitcoinCash.getByteCount(signatures.length, recipients.length);
+
+    // calculate how much balance will be left over to spend after the fee
+    final sendAmount = totalBalance - fee;
+
+    // add the output based on the address provided in the testing data
+    for (int i = 0; i < recipients.length; i++) {
+      String recipient = recipients[i];
+      int satoshiAmount = satoshiAmounts[i];
+      builder.addOutput(recipient, satoshiAmount);
     }
 
-    // Add transaction output
-    for (var i = 0; i < recipients.length; i++) {
-      txb.addOutput(recipients[i], satoshiAmounts[i]);
-    }
+    // sign all inputs
+    signatures.forEach((signature) {
+      builder.sign(
+          signature["vin"] as int,
+          signature["key_pair"] as Bitbox.ECPair,
+          signature["original_amount"] as int);
+    });
 
-    try {
-      // Sign the transaction accordingly
-      for (var i = 0; i < utxosToUse.length; i++) {
-        final txid = utxosToUse[i].txid;
-        txb.sign(
-          vin: i,
-          keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
-          witnessValue: utxosToUse[i].value,
-          redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
-        );
-      }
-    } catch (e, s) {
-      Logging.instance.log("Caught exception while signing transaction: $e\n$s",
-          level: LogLevel.Error);
-      rethrow;
-    }
+    // build the transaction
+    final tx = builder.build();
+    final txHex = tx.toHex();
+    final vSize = tx.virtualSize();
+    Logger.print("bch raw hex: $txHex");
 
-    final builtTx = txb.build();
-    final vSize = builtTx.virtualSize();
-
-    return {"hex": builtTx.toHex(), "vSize": vSize};
+    return {"hex": txHex, "vSize": vSize};
   }
 
   @override

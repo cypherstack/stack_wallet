@@ -69,6 +69,10 @@ dependencies:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
       ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
+  bitbox:
+    git:
+      url: https://github.com/Quppy/bitbox-flutter.git
+      ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
   bip32: ^2.0.0
   bech32: ^0.2.1
   bs58check: ^1.0.2
