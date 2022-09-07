@@ -69,7 +69,13 @@ class _TransactionDetailsViewState
     coin = widget.coin;
     amount = Format.satoshisToAmount(_transaction.amount);
     fee = Format.satoshisToAmount(_transaction.fees);
-    amountPrefix = _transaction.txType.toLowerCase() == "sent" ? "- " : "+ ";
+
+    if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+        _transaction.subType == "mint") {
+      amountPrefix = "";
+    } else {
+      amountPrefix = _transaction.txType.toLowerCase() == "sent" ? "- " : "+ ";
+    }
 
     // if (coin == Coin.firo || coin == Coin.firoTestNet) {
     //   showFeePending = true;
@@ -85,6 +91,16 @@ class _TransactionDetailsViewState
   }
 
   String whatIsIt(String type) {
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      if (_transaction.subType == "mint") {
+        if (_transaction.confirmedStatus) {
+          return "Minted";
+        } else {
+          return "Minting";
+        }
+      }
+    }
+
     if (type == "Received") {
       // if (_transaction.isMinting) {
       //   return "Minting";
@@ -224,12 +240,16 @@ class _TransactionDetailsViewState
                   ),
                 ),
                 if (!(coin == Coin.monero &&
-                    _transaction.txType.toLowerCase() == "sent"))
+                        _transaction.txType.toLowerCase() == "sent") &&
+                    !((coin == Coin.firo || coin == Coin.firoTestNet) &&
+                        _transaction.subType == "mint"))
                   const SizedBox(
                     height: 12,
                   ),
                 if (!(coin == Coin.monero &&
-                    _transaction.txType.toLowerCase() == "sent"))
+                        _transaction.txType.toLowerCase() == "sent") &&
+                    !((coin == Coin.firo || coin == Coin.firoTestNet) &&
+                        _transaction.subType == "mint"))
                   RoundedWhiteContainer(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
