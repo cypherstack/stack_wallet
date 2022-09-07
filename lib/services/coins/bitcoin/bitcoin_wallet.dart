@@ -43,7 +43,7 @@ import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
 const int MINIMUM_CONFIRMATIONS = 2;
-const int DUST_LIMIT = 546;
+const int DUST_LIMIT = 294;
 
 const String GENESIS_HASH_MAINNET =
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
@@ -2715,11 +2715,11 @@ class BitcoinWallet extends CoinServiceAPI {
 
     final txModel = TransactionData.fromMap(transactionsMap);
 
-    DB.instance.put<dynamic>(
+    await DB.instance.put<dynamic>(
         boxName: walletId,
         key: 'storedTxnDataHeight',
         value: latestTxnBlockHeight);
-    DB.instance.put<dynamic>(
+    await DB.instance.put<dynamic>(
         boxName: walletId, key: 'latest_tx_model', value: txModel);
 
     return txModel;
@@ -2897,7 +2897,7 @@ class BitcoinWallet extends CoinServiceAPI {
         int changeOutputSize =
             satoshisBeingUsed - satoshiAmountToSend - feeForTwoOutputs;
         // We check to see if the user can pay for the new transaction with 2 outputs instead of one. If they can and
-        // the second output's size > 546 satoshis, we perform the mechanics required to properly generate and use a new
+        // the second output's size > DUST_LIMIT satoshis, we perform the mechanics required to properly generate and use a new
         // change address.
         if (changeOutputSize > DUST_LIMIT &&
             satoshisBeingUsed - satoshiAmountToSend - changeOutputSize ==
@@ -2972,7 +2972,7 @@ class BitcoinWallet extends CoinServiceAPI {
           return transactionObject;
         } else {
           // Something went wrong here. It either overshot or undershot the estimated fee amount or the changeOutputSize
-          // is smaller than or equal to 546. Revert to single output transaction.
+          // is smaller than or equal to DUST_LIMIT. Revert to single output transaction.
           Logging.instance.log('1 output in tx', level: LogLevel.Info);
           Logging.instance
               .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
@@ -2999,7 +2999,7 @@ class BitcoinWallet extends CoinServiceAPI {
           return transactionObject;
         }
       } else {
-        // No additional outputs needed since adding one would mean that it'd be smaller than 546 sats
+        // No additional outputs needed since adding one would mean that it'd be smaller than DUST_LIMIT sats
         // which makes it uneconomical to add to the transaction. Here, we pass data directly to instruct
         // the wallet to begin crafting the transaction that the user requested.
         Logging.instance.log('1 output in tx', level: LogLevel.Info);

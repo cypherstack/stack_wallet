@@ -243,6 +243,64 @@ class _WalletInitiatedExchangeViewState
       ref.read(estimatedRateExchangeFormProvider).clearAmounts(true);
       // ref.read(fixedRateExchangeFormProvider);
     });
+    _sendFocusNode.addListener(() async {
+      if (!_sendFocusNode.hasFocus) {
+        final newFromAmount = Decimal.tryParse(_sendController.text);
+        if (newFromAmount != null) {
+          if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+              ExchangeRateType.estimated) {
+            await ref
+                .read(estimatedRateExchangeFormProvider)
+                .setFromAmountAndCalculateToAmount(newFromAmount, true);
+          } else {
+            await ref
+                .read(fixedRateExchangeFormProvider)
+                .setFromAmountAndCalculateToAmount(newFromAmount, true);
+          }
+        } else {
+          if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+              ExchangeRateType.estimated) {
+            await ref
+                .read(estimatedRateExchangeFormProvider)
+                .setFromAmountAndCalculateToAmount(Decimal.zero, true);
+          } else {
+            await ref
+                .read(fixedRateExchangeFormProvider)
+                .setFromAmountAndCalculateToAmount(Decimal.zero, true);
+          }
+          _receiveController.text = "";
+        }
+      }
+    });
+    _receiveFocusNode.addListener(() async {
+      if (!_receiveFocusNode.hasFocus) {
+        final newToAmount = Decimal.tryParse(_receiveController.text);
+        if (newToAmount != null) {
+          if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+              ExchangeRateType.estimated) {
+            // await ref
+            //     .read(estimatedRateExchangeFormProvider)
+            //     .setToAmountAndCalculateFromAmount(newToAmount, true);
+          } else {
+            await ref
+                .read(fixedRateExchangeFormProvider)
+                .setToAmountAndCalculateFromAmount(newToAmount, true);
+          }
+        } else {
+          if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+              ExchangeRateType.estimated) {
+            // await ref
+            //     .read(estimatedRateExchangeFormProvider)
+            //     .setToAmountAndCalculateFromAmount(Decimal.zero, true);
+          } else {
+            await ref
+                .read(fixedRateExchangeFormProvider)
+                .setToAmountAndCalculateFromAmount(Decimal.zero, true);
+          }
+          _sendController.text = "";
+        }
+      }
+    });
     super.initState();
   }
 
@@ -379,12 +437,12 @@ class _WalletInitiatedExchangeViewState
                                 await ref
                                     .read(estimatedRateExchangeFormProvider)
                                     .setFromAmountAndCalculateToAmount(
-                                        newFromAmount, true);
+                                        newFromAmount, false);
                               } else {
                                 await ref
                                     .read(fixedRateExchangeFormProvider)
                                     .setFromAmountAndCalculateToAmount(
-                                        newFromAmount, true);
+                                        newFromAmount, false);
                               }
                             } else {
                               if (ref
@@ -394,12 +452,12 @@ class _WalletInitiatedExchangeViewState
                                 await ref
                                     .read(estimatedRateExchangeFormProvider)
                                     .setFromAmountAndCalculateToAmount(
-                                        Decimal.zero, true);
+                                        Decimal.zero, false);
                               } else {
                                 await ref
                                     .read(fixedRateExchangeFormProvider)
                                     .setFromAmountAndCalculateToAmount(
-                                        Decimal.zero, true);
+                                        Decimal.zero, false);
                               }
                               _receiveController.text = "";
                             }
@@ -735,12 +793,12 @@ class _WalletInitiatedExchangeViewState
                                 // await ref
                                 //     .read(estimatedRateExchangeFormProvider)
                                 //     .setToAmountAndCalculateFromAmount(
-                                //         newToAmount, true);
+                                //         newToAmount, false);
                               } else {
                                 await ref
                                     .read(fixedRateExchangeFormProvider)
                                     .setToAmountAndCalculateFromAmount(
-                                        newToAmount, true);
+                                        newToAmount, false);
                               }
                             } else {
                               if (ref
@@ -750,12 +808,12 @@ class _WalletInitiatedExchangeViewState
                                 // await ref
                                 //     .read(estimatedRateExchangeFormProvider)
                                 //     .setToAmountAndCalculateFromAmount(
-                                //         Decimal.zero, true);
+                                //         Decimal.zero, false);
                               } else {
                                 await ref
                                     .read(fixedRateExchangeFormProvider)
                                     .setToAmountAndCalculateFromAmount(
-                                        Decimal.zero, true);
+                                        Decimal.zero, false);
                               }
                               _sendController.text = "";
                             }

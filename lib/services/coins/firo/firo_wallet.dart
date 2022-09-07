@@ -37,12 +37,14 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
+const DUST_LIMIT = 1000;
 const MINIMUM_CONFIRMATIONS = 1;
 const MINT_LIMIT = 100100000000;
 const int LELANTUS_VALUE_SPEND_LIMIT_PER_TRANSACTION = 5001 * 100000000;
@@ -186,7 +188,7 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
         level: LogLevel.Error);
     sendPort.send("Error");
   } finally {
-    Logging.instance.isar?.close();
+    await Logging.instance.isar?.close();
   }
 }
 
@@ -375,7 +377,7 @@ Future<Map<String, dynamic>> isolateRestore(
   // Edit the receive transactions with the mint fees.
   Map<String, models.Transaction> editedTransactions =
       <String, models.Transaction>{};
-  lelantusCoins.forEach((item) {
+  for (var item in lelantusCoins) {
     item.forEach((key, value) {
       String txid = value.txId;
       var tx = data.findTransaction(txid);
@@ -420,7 +422,7 @@ Future<Map<String, dynamic>> isolateRestore(
         );
       }
     });
-  });
+  }
   // Logging.instance.log(editedTransactions, addToDebugMessagesDB: false);
 
   Map<String, models.Transaction> transactionMap = data.getAllTransactions();
@@ -973,11 +975,117 @@ class FiroWallet extends CoinServiceAPI {
   @override
   bool get isConnected => _isConnected;
 
+  Future<Map<String, dynamic>> prepareSendPublic({
+    required String address,
+    required int satoshiAmount,
+    Map<String, dynamic>? args,
+  }) async {
+    try {
+      final feeRateType = args?["feeRate"];
+      final feeRateAmount = args?["feeRateAmount"];
+      if (feeRateType is FeeRateType || feeRateAmount is int) {
+        late final int rate;
+        if (feeRateType is FeeRateType) {
+          int fee = 0;
+          final feeObject = await fees;
+          switch (feeRateType) {
+            case FeeRateType.fast:
+              fee = feeObject.fast;
+              break;
+            case FeeRateType.average:
+              fee = feeObject.medium;
+              break;
+            case FeeRateType.slow:
+              fee = feeObject.slow;
+              break;
+          }
+          rate = fee;
+        } else {
+          rate = feeRateAmount as int;
+        }
+
+        // check for send all
+        bool isSendAll = false;
+        final balance =
+            Format.decimalAmountToSatoshis(await availablePublicBalance());
+        if (satoshiAmount == balance) {
+          isSendAll = true;
+        }
+
+        final txData =
+            await coinSelection(satoshiAmount, rate, address, isSendAll);
+
+        Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
+        try {
+          if (txData is int) {
+            switch (txData) {
+              case 1:
+                throw Exception("Insufficient balance!");
+              case 2:
+                throw Exception(
+                    "Insufficient funds to pay for transaction fee!");
+              default:
+                throw Exception("Transaction failed with error code $txData");
+            }
+          } else {
+            final hex = txData["hex"];
+
+            if (hex is String) {
+              final fee = txData["fee"] as int;
+              final vSize = txData["vSize"] as int;
+
+              Logging.instance
+                  .log("prepared txHex: $hex", level: LogLevel.Info);
+              Logging.instance.log("prepared fee: $fee", level: LogLevel.Info);
+              Logging.instance
+                  .log("prepared vSize: $vSize", level: LogLevel.Info);
+
+              // fee should never be less than vSize sanity check
+              if (fee < vSize) {
+                throw Exception(
+                    "Error in fee calculation: Transaction fee cannot be less than vSize");
+              }
+
+              return txData as Map<String, dynamic>;
+            } else {
+              throw Exception("prepared hex is not a String!!!");
+            }
+          }
+        } catch (e, s) {
+          Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
+              level: LogLevel.Error);
+          rethrow;
+        }
+      } else {
+        throw ArgumentError("Invalid fee rate argument provided!");
+      }
+    } catch (e, s) {
+      Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  Future<String> confirmSendPublic({dynamic txData}) async {
+    try {
+      Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
+      final txHash = await _electrumXClient.broadcastTransaction(
+          rawTx: txData["hex"] as String);
+      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+      return txHash;
+    } catch (e, s) {
+      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
   @override
-  Future<Map<String, dynamic>> prepareSend(
-      {required String address,
-      required int satoshiAmount,
-      Map<String, dynamic>? args}) async {
+  Future<Map<String, dynamic>> prepareSend({
+    required String address,
+    required int satoshiAmount,
+    Map<String, dynamic>? args,
+  }) async {
     try {
       dynamic txHexOrError =
           await _createJoinSplitTransaction(satoshiAmount, address, false);
@@ -1129,6 +1237,531 @@ class FiroWallet extends CoinServiceAPI {
     isolates.clear();
   }
 
+  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
+    return vSize * (feeRatePerKB / 1000).ceil();
+  }
+
+  /// The coinselection algorithm decides whether or not the user is eligible to make the transaction
+  /// with [satoshiAmountToSend] and [selectedTxFeeRate]. If so, it will call buildTrasaction() and return
+  /// a map containing the tx hex along with other important information. If not, then it will return
+  /// an integer (1 or 2)
+  dynamic coinSelection(
+    int satoshiAmountToSend,
+    int selectedTxFeeRate,
+    String _recipientAddress,
+    bool isSendAll, {
+    int additionalOutputs = 0,
+    List<UtxoObject>? utxos,
+  }) async {
+    Logging.instance
+        .log("Starting coinSelection ----------", level: LogLevel.Info);
+    final List<UtxoObject> availableOutputs = utxos ?? _outputsList;
+    final List<UtxoObject> spendableOutputs = [];
+    int spendableSatoshiValue = 0;
+
+    // Build list of spendable outputs and totaling their satoshi amount
+    for (var i = 0; i < availableOutputs.length; i++) {
+      if (availableOutputs[i].blocked == false &&
+          availableOutputs[i].status.confirmed == true) {
+        spendableOutputs.add(availableOutputs[i]);
+        spendableSatoshiValue += availableOutputs[i].value;
+      }
+    }
+
+    // sort spendable by age (oldest first)
+    spendableOutputs.sort(
+        (a, b) => b.status.confirmations.compareTo(a.status.confirmations));
+
+    Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
+        level: LogLevel.Info);
+    Logging.instance
+        .log("spendableOutputs: $spendableOutputs", level: LogLevel.Info);
+    Logging.instance.log("spendableSatoshiValue: $spendableSatoshiValue",
+        level: LogLevel.Info);
+    Logging.instance
+        .log("satoshiAmountToSend: $satoshiAmountToSend", level: LogLevel.Info);
+    // If the amount the user is trying to send is smaller than the amount that they have spendable,
+    // then return 1, which indicates that they have an insufficient balance.
+    if (spendableSatoshiValue < satoshiAmountToSend) {
+      return 1;
+      // If the amount the user wants to send is exactly equal to the amount they can spend, then return
+      // 2, which indicates that they are not leaving enough over to pay the transaction fee
+    } else if (spendableSatoshiValue == satoshiAmountToSend && !isSendAll) {
+      return 2;
+    }
+    // If neither of these statements pass, we assume that the user has a spendable balance greater
+    // than the amount they're attempting to send. Note that this value still does not account for
+    // the added transaction fee, which may require an extra input and will need to be checked for
+    // later on.
+
+    // Possible situation right here
+    int satoshisBeingUsed = 0;
+    int inputsBeingConsumed = 0;
+    List<UtxoObject> utxoObjectsToUse = [];
+
+    for (var i = 0;
+        satoshisBeingUsed < satoshiAmountToSend && i < spendableOutputs.length;
+        i++) {
+      utxoObjectsToUse.add(spendableOutputs[i]);
+      satoshisBeingUsed += spendableOutputs[i].value;
+      inputsBeingConsumed += 1;
+    }
+    for (int i = 0;
+        i < additionalOutputs && inputsBeingConsumed < spendableOutputs.length;
+        i++) {
+      utxoObjectsToUse.add(spendableOutputs[inputsBeingConsumed]);
+      satoshisBeingUsed += spendableOutputs[inputsBeingConsumed].value;
+      inputsBeingConsumed += 1;
+    }
+
+    Logging.instance
+        .log("satoshisBeingUsed: $satoshisBeingUsed", level: LogLevel.Info);
+    Logging.instance
+        .log("inputsBeingConsumed: $inputsBeingConsumed", level: LogLevel.Info);
+    Logging.instance
+        .log('utxoObjectsToUse: $utxoObjectsToUse', level: LogLevel.Info);
+
+    // numberOfOutputs' length must always be equal to that of recipientsArray and recipientsAmtArray
+    List<String> recipientsArray = [_recipientAddress];
+    List<int> recipientsAmtArray = [satoshiAmountToSend];
+
+    // gather required signing data
+    final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
+
+    if (isSendAll) {
+      Logging.instance
+          .log("Attempting to send all $coin", level: LogLevel.Info);
+
+      final int vSizeForOneOutput = (await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        recipients: [_recipientAddress],
+        satoshiAmounts: [satoshisBeingUsed - 1],
+      ))["vSize"] as int;
+      int feeForOneOutput = estimateTxFee(
+        vSize: vSizeForOneOutput,
+        feeRatePerKB: selectedTxFeeRate,
+      );
+
+      if (feeForOneOutput < vSizeForOneOutput + 1) {
+        feeForOneOutput = vSizeForOneOutput + 1;
+      }
+
+      final int amount = satoshiAmountToSend - feeForOneOutput;
+      dynamic txn = await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        recipients: recipientsArray,
+        satoshiAmounts: [amount],
+      );
+      Map<String, dynamic> transactionObject = {
+        "hex": txn["hex"],
+        "recipient": recipientsArray[0],
+        "recipientAmt": amount,
+        "fee": feeForOneOutput,
+        "vSize": txn["vSize"],
+      };
+      return transactionObject;
+    }
+
+    final int vSizeForOneOutput = (await buildTransaction(
+      utxosToUse: utxoObjectsToUse,
+      utxoSigningData: utxoSigningData,
+      recipients: [_recipientAddress],
+      satoshiAmounts: [satoshisBeingUsed - 1],
+    ))["vSize"] as int;
+    final int vSizeForTwoOutPuts = (await buildTransaction(
+      utxosToUse: utxoObjectsToUse,
+      utxoSigningData: utxoSigningData,
+      recipients: [
+        _recipientAddress,
+        await _getCurrentAddressForChain(1),
+      ],
+      satoshiAmounts: [
+        satoshiAmountToSend,
+        satoshisBeingUsed - satoshiAmountToSend - 1,
+      ], // dust limit is the minimum amount a change output should be
+    ))["vSize"] as int;
+    debugPrint("vSizeForOneOutput $vSizeForOneOutput");
+    debugPrint("vSizeForTwoOutPuts $vSizeForTwoOutPuts");
+
+    // Assume 1 output, only for recipient and no change
+    var feeForOneOutput = estimateTxFee(
+      vSize: vSizeForOneOutput,
+      feeRatePerKB: selectedTxFeeRate,
+    );
+    // Assume 2 outputs, one for recipient and one for change
+    var feeForTwoOutputs = estimateTxFee(
+      vSize: vSizeForTwoOutPuts,
+      feeRatePerKB: selectedTxFeeRate,
+    );
+
+    Logging.instance
+        .log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
+    Logging.instance
+        .log("feeForOneOutput: $feeForOneOutput", level: LogLevel.Info);
+    if (feeForOneOutput < (vSizeForOneOutput + 1)) {
+      feeForOneOutput = (vSizeForOneOutput + 1);
+    }
+    if (feeForTwoOutputs < ((vSizeForTwoOutPuts + 1))) {
+      feeForTwoOutputs = ((vSizeForTwoOutPuts + 1));
+    }
+
+    Logging.instance
+        .log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
+    Logging.instance
+        .log("feeForOneOutput: $feeForOneOutput", level: LogLevel.Info);
+
+    if (satoshisBeingUsed - satoshiAmountToSend > feeForOneOutput) {
+      if (satoshisBeingUsed - satoshiAmountToSend >
+          feeForOneOutput + DUST_LIMIT) {
+        // Here, we know that theoretically, we may be able to include another output(change) but we first need to
+        // factor in the value of this output in satoshis.
+        int changeOutputSize =
+            satoshisBeingUsed - satoshiAmountToSend - feeForTwoOutputs;
+        // We check to see if the user can pay for the new transaction with 2 outputs instead of one. If they can and
+        // the second output's size > DUST_LIMIT satoshis, we perform the mechanics required to properly generate and use a new
+        // change address.
+        if (changeOutputSize > DUST_LIMIT &&
+            satoshisBeingUsed - satoshiAmountToSend - changeOutputSize ==
+                feeForTwoOutputs) {
+          // generate new change address if current change address has been used
+          await checkChangeAddressForTransactions();
+          final String newChangeAddress = await _getCurrentAddressForChain(1);
+
+          int feeBeingPaid =
+              satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
+
+          recipientsArray.add(newChangeAddress);
+          recipientsAmtArray.add(changeOutputSize);
+          // At this point, we have the outputs we're going to use, the amounts to send along with which addresses
+          // we intend to send these amounts to. We have enough to send instructions to build the transaction.
+          Logging.instance.log('2 outputs in tx', level: LogLevel.Info);
+          Logging.instance
+              .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+          Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+              level: LogLevel.Info);
+          Logging.instance.log('Change Output Size: $changeOutputSize',
+              level: LogLevel.Info);
+          Logging.instance.log(
+              'Difference (fee being paid): $feeBeingPaid sats',
+              level: LogLevel.Info);
+          Logging.instance
+              .log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
+          dynamic txn = await buildTransaction(
+            utxosToUse: utxoObjectsToUse,
+            utxoSigningData: utxoSigningData,
+            recipients: recipientsArray,
+            satoshiAmounts: recipientsAmtArray,
+          );
+
+          // make sure minimum fee is accurate if that is being used
+          if (txn["vSize"] - feeBeingPaid == 1) {
+            int changeOutputSize =
+                satoshisBeingUsed - satoshiAmountToSend - (txn["vSize"] as int);
+            feeBeingPaid =
+                satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
+            recipientsAmtArray.removeLast();
+            recipientsAmtArray.add(changeOutputSize);
+            Logging.instance.log('Adjusted Input size: $satoshisBeingUsed',
+                level: LogLevel.Info);
+            Logging.instance.log(
+                'Adjusted Recipient output size: $satoshiAmountToSend',
+                level: LogLevel.Info);
+            Logging.instance.log(
+                'Adjusted Change Output Size: $changeOutputSize',
+                level: LogLevel.Info);
+            Logging.instance.log(
+                'Adjusted Difference (fee being paid): $feeBeingPaid sats',
+                level: LogLevel.Info);
+            Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs',
+                level: LogLevel.Info);
+            txn = await buildTransaction(
+              utxosToUse: utxoObjectsToUse,
+              utxoSigningData: utxoSigningData,
+              recipients: recipientsArray,
+              satoshiAmounts: recipientsAmtArray,
+            );
+          }
+
+          Map<String, dynamic> transactionObject = {
+            "hex": txn["hex"],
+            "recipient": recipientsArray[0],
+            "recipientAmt": recipientsAmtArray[0],
+            "fee": feeBeingPaid,
+            "vSize": txn["vSize"],
+          };
+          return transactionObject;
+        } else {
+          // Something went wrong here. It either overshot or undershot the estimated fee amount or the changeOutputSize
+          // is smaller than or equal to [DUST_LIMIT]. Revert to single output transaction.
+          Logging.instance.log('1 output in tx', level: LogLevel.Info);
+          Logging.instance
+              .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+          Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+              level: LogLevel.Info);
+          Logging.instance.log(
+              'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
+              level: LogLevel.Info);
+          Logging.instance
+              .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
+          dynamic txn = await buildTransaction(
+            utxosToUse: utxoObjectsToUse,
+            utxoSigningData: utxoSigningData,
+            recipients: recipientsArray,
+            satoshiAmounts: recipientsAmtArray,
+          );
+          Map<String, dynamic> transactionObject = {
+            "hex": txn["hex"],
+            "recipient": recipientsArray[0],
+            "recipientAmt": recipientsAmtArray[0],
+            "fee": satoshisBeingUsed - satoshiAmountToSend,
+            "vSize": txn["vSize"],
+          };
+          return transactionObject;
+        }
+      } else {
+        // No additional outputs needed since adding one would mean that it'd be smaller than 546 sats
+        // which makes it uneconomical to add to the transaction. Here, we pass data directly to instruct
+        // the wallet to begin crafting the transaction that the user requested.
+        Logging.instance.log('1 output in tx', level: LogLevel.Info);
+        Logging.instance
+            .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+        Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+            level: LogLevel.Info);
+        Logging.instance.log(
+            'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
+            level: LogLevel.Info);
+        Logging.instance
+            .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
+        dynamic txn = await buildTransaction(
+          utxosToUse: utxoObjectsToUse,
+          utxoSigningData: utxoSigningData,
+          recipients: recipientsArray,
+          satoshiAmounts: recipientsAmtArray,
+        );
+        Map<String, dynamic> transactionObject = {
+          "hex": txn["hex"],
+          "recipient": recipientsArray[0],
+          "recipientAmt": recipientsAmtArray[0],
+          "fee": satoshisBeingUsed - satoshiAmountToSend,
+          "vSize": txn["vSize"],
+        };
+        return transactionObject;
+      }
+    } else if (satoshisBeingUsed - satoshiAmountToSend == feeForOneOutput) {
+      // In this scenario, no additional change output is needed since inputs - outputs equal exactly
+      // what we need to pay for fees. Here, we pass data directly to instruct the wallet to begin
+      // crafting the transaction that the user requested.
+      Logging.instance.log('1 output in tx', level: LogLevel.Info);
+      Logging.instance
+          .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+      Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+          level: LogLevel.Info);
+      Logging.instance.log(
+          'Fee being paid: ${satoshisBeingUsed - satoshiAmountToSend} sats',
+          level: LogLevel.Info);
+      Logging.instance
+          .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
+      dynamic txn = await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        recipients: recipientsArray,
+        satoshiAmounts: recipientsAmtArray,
+      );
+      Map<String, dynamic> transactionObject = {
+        "hex": txn["hex"],
+        "recipient": recipientsArray[0],
+        "recipientAmt": recipientsAmtArray[0],
+        "fee": feeForOneOutput,
+        "vSize": txn["vSize"],
+      };
+      return transactionObject;
+    } else {
+      // Remember that returning 2 indicates that the user does not have a sufficient balance to
+      // pay for the transaction fee. Ideally, at this stage, we should check if the user has any
+      // additional outputs they're able to spend and then recalculate fees.
+      Logging.instance.log(
+          'Cannot pay tx fee - checking for more outputs and trying again',
+          level: LogLevel.Warning);
+      // try adding more outputs
+      if (spendableOutputs.length > inputsBeingConsumed) {
+        return coinSelection(satoshiAmountToSend, selectedTxFeeRate,
+            _recipientAddress, isSendAll,
+            additionalOutputs: additionalOutputs + 1, utxos: utxos);
+      }
+      return 2;
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchBuildTxData(
+    List<UtxoObject> utxosToUse,
+  ) async {
+    // return data
+    Map<String, dynamic> results = {};
+    Map<String, List<String>> addressTxid = {};
+
+    // addresses to check
+    List<String> addresses = [];
+
+    try {
+      // Populating the addresses to check
+      for (var i = 0; i < utxosToUse.length; i++) {
+        final txid = utxosToUse[i].txid;
+        final tx = await _cachedElectrumXClient.getTransaction(
+          txHash: txid,
+          coin: coin,
+        );
+
+        for (final output in tx["vout"] as List) {
+          final n = output["n"];
+          if (n != null && n == utxosToUse[i].vout) {
+            final address = output["scriptPubKey"]["addresses"][0] as String;
+
+            if (!addressTxid.containsKey(address)) {
+              addressTxid[address] = <String>[];
+            }
+            (addressTxid[address] as List).add(txid);
+
+            addresses.add(address);
+          }
+        }
+      }
+
+      // p2pkh / bip44
+      final addressesLength = addresses.length;
+      if (addressesLength > 0) {
+        final receiveDerivationsString =
+            await _secureStore.read(key: "${walletId}_receiveDerivations");
+        final receiveDerivations = Map<String, dynamic>.from(
+            jsonDecode(receiveDerivationsString ?? "{}") as Map);
+
+        final changeDerivationsString =
+            await _secureStore.read(key: "${walletId}_changeDerivations");
+        final changeDerivations = Map<String, dynamic>.from(
+            jsonDecode(changeDerivationsString ?? "{}") as Map);
+
+        for (int i = 0; i < addressesLength; i++) {
+          // receives
+
+          dynamic receiveDerivation;
+
+          for (int j = 0; j < receiveDerivations.length; j++) {
+            if (receiveDerivations["$j"]["address"] == addresses[i]) {
+              receiveDerivation = receiveDerivations["$j"];
+            }
+          }
+
+          // receiveDerivation = receiveDerivations[addresses[i]];
+          // if a match exists it will not be null
+          if (receiveDerivation != null) {
+            final data = P2PKH(
+              data: PaymentData(
+                  pubkey: Format.stringToUint8List(
+                      receiveDerivation["publicKey"] as String)),
+              network: _network,
+            ).data;
+
+            for (String tx in addressTxid[addresses[i]]!) {
+              results[tx] = {
+                "output": data.output,
+                "keyPair": ECPair.fromWIF(
+                  receiveDerivation["wif"] as String,
+                  network: _network,
+                ),
+              };
+            }
+          } else {
+            // if its not a receive, check change
+
+            dynamic changeDerivation;
+
+            for (int j = 0; j < changeDerivations.length; j++) {
+              if (changeDerivations["$j"]["address"] == addresses[i]) {
+                changeDerivation = changeDerivations["$j"];
+              }
+            }
+
+            // final changeDerivation = changeDerivations[addresses[i]];
+            // if a match exists it will not be null
+            if (changeDerivation != null) {
+              final data = P2PKH(
+                data: PaymentData(
+                    pubkey: Format.stringToUint8List(
+                        changeDerivation["publicKey"] as String)),
+                network: _network,
+              ).data;
+
+              for (String tx in addressTxid[addresses[i]]!) {
+                results[tx] = {
+                  "output": data.output,
+                  "keyPair": ECPair.fromWIF(
+                    changeDerivation["wif"] as String,
+                    network: _network,
+                  ),
+                };
+              }
+            }
+          }
+        }
+      }
+
+      return results;
+    } catch (e, s) {
+      Logging.instance
+          .log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  /// Builds and signs a transaction
+  Future<Map<String, dynamic>> buildTransaction({
+    required List<UtxoObject> utxosToUse,
+    required Map<String, dynamic> utxoSigningData,
+    required List<String> recipients,
+    required List<int> satoshiAmounts,
+  }) async {
+    Logging.instance
+        .log("Starting buildTransaction ----------", level: LogLevel.Info);
+
+    final txb = TransactionBuilder(network: _network);
+    txb.setVersion(1);
+
+    // Add transaction inputs
+    for (var i = 0; i < utxosToUse.length; i++) {
+      final txid = utxosToUse[i].txid;
+      txb.addInput(txid, utxosToUse[i].vout, null,
+          utxoSigningData[txid]["output"] as Uint8List);
+    }
+
+    // Add transaction output
+    for (var i = 0; i < recipients.length; i++) {
+      txb.addOutput(recipients[i], satoshiAmounts[i]);
+    }
+
+    try {
+      // Sign the transaction accordingly
+      for (var i = 0; i < utxosToUse.length; i++) {
+        final txid = utxosToUse[i].txid;
+        txb.sign(
+          vin: i,
+          keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
+          witnessValue: utxosToUse[i].value,
+          redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log("Caught exception while signing transaction: $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+
+    final builtTx = txb.build();
+    final vSize = builtTx.virtualSize();
+
+    return {"hex": builtTx.toHex(), "vSize": vSize};
+  }
+
   @override
   Future<void> updateNode(bool shouldRefresh) async {
     final failovers = NodeService()
@@ -1156,7 +1789,7 @@ class FiroWallet extends CoinServiceAPI {
     );
 
     if (shouldRefresh) {
-      refresh();
+      unawaited(refresh());
     }
   }
 
@@ -1333,32 +1966,36 @@ class FiroWallet extends CoinServiceAPI {
     for (final tx in unconfirmedTxnsToNotifyPending) {
       switch (tx.txType) {
         case "Received":
-          NotificationApi.showNotification(
-            title: "Incoming transaction",
-            body: walletName,
-            walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
-            date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-            shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
-            coinName: coin.name,
-            txid: tx.txid,
-            confirmations: tx.confirmations,
-            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+          unawaited(
+            NotificationApi.showNotification(
+              title: "Incoming transaction",
+              body: walletName,
+              walletId: walletId,
+              iconAssetName: Assets.svg.iconFor(coin: coin),
+              date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+              shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+              coinName: coin.name,
+              txid: tx.txid,
+              confirmations: tx.confirmations,
+              requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            ),
           );
           await txTracker.addNotifiedPending(tx.txid);
           break;
         case "Sent":
-          NotificationApi.showNotification(
-            title: "Outgoing transaction",
-            body: walletName,
-            walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
-            date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-            shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
-            coinName: coin.name,
-            txid: tx.txid,
-            confirmations: tx.confirmations,
-            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+          unawaited(
+            NotificationApi.showNotification(
+              title: "Outgoing transaction",
+              body: walletName,
+              walletId: walletId,
+              iconAssetName: Assets.svg.iconFor(coin: coin),
+              date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+              shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+              coinName: coin.name,
+              txid: tx.txid,
+              confirmations: tx.confirmations,
+              requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            ),
           );
           await txTracker.addNotifiedPending(tx.txid);
           break;
@@ -1369,25 +2006,29 @@ class FiroWallet extends CoinServiceAPI {
 
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
       if (tx.txType == "Received") {
-        NotificationApi.showNotification(
-          title: "Incoming transaction confirmed",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-          shouldWatchForUpdates: false,
-          coinName: coin.name,
+        unawaited(
+          NotificationApi.showNotification(
+            title: "Incoming transaction confirmed",
+            body: walletName,
+            walletId: walletId,
+            iconAssetName: Assets.svg.iconFor(coin: coin),
+            date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+            shouldWatchForUpdates: false,
+            coinName: coin.name,
+          ),
         );
         await txTracker.addNotifiedConfirmed(tx.txid);
       } else if (tx.txType == "Sent" && tx.subType == "join") {
-        NotificationApi.showNotification(
-          title: "Outgoing transaction confirmed",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-          shouldWatchForUpdates: false,
-          coinName: coin.name,
+        unawaited(
+          NotificationApi.showNotification(
+            title: "Outgoing transaction confirmed",
+            body: walletName,
+            walletId: walletId,
+            iconAssetName: Assets.svg.iconFor(coin: coin),
+            date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+            shouldWatchForUpdates: false,
+            coinName: coin.name,
+          ),
         );
         await txTracker.addNotifiedConfirmed(tx.txid);
       }
@@ -1520,14 +2161,14 @@ class FiroWallet extends CoinServiceAPI {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
 
       final lelantusCoins = getLelantusCoinMap();
-      Logging.instance.log("_lelantus_coins at refresh: ${lelantusCoins}",
+      Logging.instance.log("_lelantus_coins at refresh: $lelantusCoins",
           level: LogLevel.Warning, printFullLength: true);
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
 
       await _refreshLelantusData();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
 
-      await autoMint();
+      // await autoMint();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 
       var balance = await _getFullBalance();
@@ -1590,7 +2231,7 @@ class FiroWallet extends CoinServiceAPI {
     final balance = await availableBalance;
     int spendAmount =
         (balance * Decimal.fromInt(Constants.satsPerCoin)).toBigInt().toInt();
-    int fee = await EstimateJoinSplitFee(spendAmount);
+    int fee = await estimateJoinSplitFee(spendAmount);
     return fee;
   }
 
@@ -1643,7 +2284,7 @@ class FiroWallet extends CoinServiceAPI {
 
   Future<List<LelantusCoin>> _getUnspentCoins() async {
     final List<Map<dynamic, LelantusCoin>> lelantusCoins = getLelantusCoinMap();
-    if (lelantusCoins != null && lelantusCoins.isNotEmpty) {
+    if (lelantusCoins.isNotEmpty) {
       lelantusCoins.removeWhere((element) =>
           element.values.any((elementCoin) => elementCoin.value == 0));
     }
@@ -1652,9 +2293,6 @@ class FiroWallet extends CoinServiceAPI {
     final data = await _txnData;
     final lelantusData = await lelantusTransactionData;
     List<LelantusCoin> coins = [];
-    if (lelantusCoins == null) {
-      return coins;
-    }
 
     List<LelantusCoin> lelantusCoinsList =
         lelantusCoins.fold(<LelantusCoin>[], (previousValue, element) {
@@ -1699,7 +2337,7 @@ class FiroWallet extends CoinServiceAPI {
     try {
       final List<Map<dynamic, LelantusCoin>> lelantusCoins =
           getLelantusCoinMap();
-      if (lelantusCoins != null && lelantusCoins.isNotEmpty) {
+      if (lelantusCoins.isNotEmpty) {
         lelantusCoins.removeWhere((element) =>
             element.values.any((elementCoin) => elementCoin.value == 0));
       }
@@ -1711,32 +2349,32 @@ class FiroWallet extends CoinServiceAPI {
           DB.instance.get<dynamic>(boxName: walletId, key: 'jindex') as List?;
       int intLelantusBalance = 0;
       int unconfirmedLelantusBalance = 0;
-      if (lelantusCoins != null) {
-        lelantusCoins.forEach((element) {
-          element.forEach((key, value) {
-            final tx = data.findTransaction(value.txId);
-            models.Transaction? ltx;
-            ltx = lData.findTransaction(value.txId);
-            // Logging.instance.log("$value $tx $ltx");
-            if (!jindexes!.contains(value.index) && tx == null) {
-              // This coin is not confirmed and may be replaced
-            } else if (jindexes.contains(value.index) &&
-                tx == null &&
-                !value.isUsed &&
-                ltx != null &&
-                !ltx.confirmedStatus) {
-              unconfirmedLelantusBalance += value.value;
-            } else if (jindexes.contains(value.index) && !value.isUsed) {
-              intLelantusBalance += value.value;
-            } else if (!value.isUsed &&
-                (tx == null ? true : tx.confirmedStatus != false)) {
-              intLelantusBalance += value.value;
-            } else if (tx != null && tx.confirmedStatus == false) {
-              unconfirmedLelantusBalance += value.value;
-            }
-          });
+
+      for (var element in lelantusCoins) {
+        element.forEach((key, value) {
+          final tx = data.findTransaction(value.txId);
+          models.Transaction? ltx;
+          ltx = lData.findTransaction(value.txId);
+          // Logging.instance.log("$value $tx $ltx");
+          if (!jindexes!.contains(value.index) && tx == null) {
+            // This coin is not confirmed and may be replaced
+          } else if (jindexes.contains(value.index) &&
+              tx == null &&
+              !value.isUsed &&
+              ltx != null &&
+              !ltx.confirmedStatus) {
+            unconfirmedLelantusBalance += value.value;
+          } else if (jindexes.contains(value.index) && !value.isUsed) {
+            intLelantusBalance += value.value;
+          } else if (!value.isUsed &&
+              (tx == null ? true : tx.confirmedStatus != false)) {
+            intLelantusBalance += value.value;
+          } else if (tx != null && tx.confirmedStatus == false) {
+            unconfirmedLelantusBalance += value.value;
+          }
         });
       }
+
       final int utxosIntValue = utxos.satoshiBalance;
       final Decimal utxosValue = Format.satoshisToAmount(utxosIntValue);
 
@@ -1756,6 +2394,13 @@ class FiroWallet extends CoinServiceAPI {
       balances.add(
           (lelantusBalance + utxosValue + _unconfirmedLelantusBalance) * price);
 
+      int availableSats =
+          utxos.satoshiBalance - utxos.satoshiBalanceUnconfirmed;
+      if (availableSats < 0) {
+        availableSats = 0;
+      }
+      balances.add(Format.satoshisToAmount(availableSats));
+
       Logging.instance.log("balances $balances", level: LogLevel.Info);
       await DB.instance.put<dynamic>(
           boxName: walletId,
@@ -1769,7 +2414,7 @@ class FiroWallet extends CoinServiceAPI {
     }
   }
 
-  Future<void> autoMint() async {
+  Future<void> anonymizeAllPublicFunds() async {
     try {
       var mintResult = await _mintSelection();
       if (mintResult.isEmpty) {
@@ -1777,9 +2422,12 @@ class FiroWallet extends CoinServiceAPI {
         return;
       }
       await _submitLelantusToNetwork(mintResult);
+      unawaited(refresh());
     } catch (e, s) {
-      Logging.instance.log("Exception caught in _autoMint(): $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+          "Exception caught in anonymizeAllPublicFunds(): $e\n$s",
+          level: LogLevel.Warning);
+      rethrow;
     }
   }
 
@@ -1799,29 +2447,27 @@ class FiroWallet extends CoinServiceAPI {
     }
 
     final List<Map<dynamic, LelantusCoin>> lelantusCoins = getLelantusCoinMap();
-    if (lelantusCoins != null && lelantusCoins.isNotEmpty) {
+    if (lelantusCoins.isNotEmpty) {
       lelantusCoins.removeWhere((element) =>
           element.values.any((elementCoin) => elementCoin.value == 0));
     }
     final data = await _txnData;
-    if (lelantusCoins != null) {
-      final dataMap = data.getAllTransactions();
-      dataMap.forEach((key, value) {
-        if (value.inputs.isNotEmpty) {
-          for (var element in value.inputs) {
-            if (lelantusCoins
-                    .any((element) => element.keys.contains(value.txid)) &&
-                spendableOutputs.firstWhere(
-                        (output) => output?.txid == element.txid,
-                        orElse: () => null) !=
-                    null) {
-              spendableOutputs
-                  .removeWhere((output) => output!.txid == element.txid);
-            }
+    final dataMap = data.getAllTransactions();
+    dataMap.forEach((key, value) {
+      if (value.inputs.isNotEmpty) {
+        for (var element in value.inputs) {
+          if (lelantusCoins
+                  .any((element) => element.keys.contains(value.txid)) &&
+              spendableOutputs.firstWhere(
+                      (output) => output?.txid == element.txid,
+                      orElse: () => null) !=
+                  null) {
+            spendableOutputs
+                .removeWhere((output) => output!.txid == element.txid);
           }
         }
-      });
-    }
+      }
+    });
 
     // If there is no Utxos to mint then stop the function.
     if (spendableOutputs.isEmpty) {
@@ -1876,18 +2522,18 @@ class FiroWallet extends CoinServiceAPI {
     var tmpTotal = total;
     var index = 0;
     var mints = <Map<String, dynamic>>[];
-    final next_free_mint_index =
+    final nextFreeMintIndex =
         DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex') as int;
     while (tmpTotal > 0) {
       final mintValue = min(tmpTotal, MINT_LIMIT);
       final mint = await _getMintHex(
         mintValue,
-        next_free_mint_index + index,
+        nextFreeMintIndex + index,
       );
       mints.add({
         "value": mintValue,
         "script": mint,
-        "index": next_free_mint_index + index,
+        "index": nextFreeMintIndex + index,
         "publicCoin": "",
       });
       tmpTotal = tmpTotal - MINT_LIMIT;
@@ -2072,17 +2718,14 @@ class FiroWallet extends CoinServiceAPI {
         joinsplits.add(tx.txid);
       }
     }
-    if (lelantusCoins != null) {
-      for (final coin
-          in lelantusCoins.fold(<LelantusCoin>[], (previousValue, element) {
-        (previousValue as List<LelantusCoin>).add(element.values.first);
-        return previousValue;
-      })) {
-        if (jindexes != null) {
-          if (jindexes.contains(coin.index) &&
-              !joinsplits.contains(coin.txId)) {
-            joinsplits.add(coin.txId);
-          }
+    for (final coin
+        in lelantusCoins.fold(<LelantusCoin>[], (previousValue, element) {
+      (previousValue as List<LelantusCoin>).add(element.values.first);
+      return previousValue;
+    })) {
+      if (jindexes != null) {
+        if (jindexes.contains(coin.index) && !joinsplits.contains(coin.txId)) {
+          joinsplits.add(coin.txId);
         }
       }
     }
@@ -2096,13 +2739,13 @@ class FiroWallet extends CoinServiceAPI {
 
     // update all of joinsplits that are now confirmed.
     for (final tx in updatedJSplit) {
-      final currenttx = listLelantusTxData[tx.txid];
-      if (currenttx == null) {
+      final currentTx = listLelantusTxData[tx.txid];
+      if (currentTx == null) {
         // this send was accidentally not included in the list
         listLelantusTxData[tx.txid] = tx;
         continue;
       }
-      if (currenttx.confirmedStatus != tx.confirmedStatus) {
+      if (currentTx.confirmedStatus != tx.confirmedStatus) {
         listLelantusTxData[tx.txid] = tx;
       }
     }
@@ -2113,16 +2756,16 @@ class FiroWallet extends CoinServiceAPI {
     final listTxData = txData.getAllTransactions();
     listTxData.forEach((key, value) {
       // ignore change addresses
-      bool hasAtLeastOneRecieve = false;
-      int howManyRecieveInputs = 0;
+      bool hasAtLeastOneReceive = false;
+      // int howManyReceiveInputs = 0;
       for (var element in value.inputs) {
         if (listLelantusTxData.containsKey(element.txid) &&
                 listLelantusTxData[element.txid]!.txType == "Received"
             // &&
             // listLelantusTxData[element.txid].subType != "mint"
             ) {
-          hasAtLeastOneRecieve = true;
-          howManyRecieveInputs++;
+          hasAtLeastOneReceive = true;
+          // howManyReceiveInputs++;
         }
       }
 
@@ -2130,26 +2773,30 @@ class FiroWallet extends CoinServiceAPI {
           !listLelantusTxData.containsKey(value.txid)) {
         // Every receive should be listed whether minted or not.
         listLelantusTxData[value.txid] = value;
-      } else if (value.txType == "Sent" &&
-          hasAtLeastOneRecieve &&
-          value.subType == "mint") {
+      } else if (value.txType == "Sent"
+          // &&
+          // hasAtLeastOneReceive &&
+          // value.subType == "mint"
+          ) {
+        listLelantusTxData[value.txid] = value;
+
         // use mint sends to update receives with user readable values.
 
-        int sharedFee = value.fees ~/ howManyRecieveInputs;
-
-        for (var element in value.inputs) {
-          if (listLelantusTxData.containsKey(element.txid) &&
-              listLelantusTxData[element.txid]!.txType == "Received") {
-            listLelantusTxData[element.txid] =
-                listLelantusTxData[element.txid]!.copyWith(
-              fees: sharedFee,
-              subType: "mint",
-              height: value.height,
-              confirmedStatus: value.confirmedStatus,
-              otherData: value.txid,
-            );
-          }
-        }
+        // int sharedFee = value.fees ~/ howManyReceiveInputs;
+        //
+        // for (var element in value.inputs) {
+        //   if (listLelantusTxData.containsKey(element.txid) &&
+        //       listLelantusTxData[element.txid]!.txType == "Received") {
+        //     listLelantusTxData[element.txid] =
+        //         listLelantusTxData[element.txid]!.copyWith(
+        //       fees: sharedFee,
+        //       subType: "mint",
+        //       height: value.height,
+        //       confirmedStatus: value.confirmedStatus,
+        //       otherData: value.txid,
+        //     );
+        //   }
+        // }
       }
     });
 
@@ -2203,7 +2850,7 @@ class FiroWallet extends CoinServiceAPI {
       final List<Map<dynamic, LelantusCoin>> lelantusCoins =
           getLelantusCoinMap();
       List<Map<dynamic, LelantusCoin>> coins;
-      if (lelantusCoins == null || lelantusCoins.isEmpty) {
+      if (lelantusCoins.isEmpty) {
         coins = [];
       } else {
         coins = [...lelantusCoins];
@@ -2213,16 +2860,16 @@ class FiroWallet extends CoinServiceAPI {
         // This is a joinsplit
 
         // Update all of the coins that have been spent.
-        for (final lcoinmap in coins) {
-          final lcoin = lcoinmap.values.first;
+        for (final lCoinMap in coins) {
+          final lCoin = lCoinMap.values.first;
           if ((transactionInfo['spendCoinIndexes'] as List<int>)
-              .contains(lcoin.index)) {
-            lcoinmap[lcoinmap.keys.first] = LelantusCoin(
-                lcoin.index,
-                lcoin.value,
-                lcoin.publicCoin,
-                lcoin.txId,
-                lcoin.anonymitySetId,
+              .contains(lCoin.index)) {
+            lCoinMap[lCoinMap.keys.first] = LelantusCoin(
+                lCoin.index,
+                lCoin.value,
+                lCoin.publicCoin,
+                lCoin.txId,
+                lCoin.anonymitySetId,
                 true);
           }
         }
@@ -2390,12 +3037,45 @@ class FiroWallet extends CoinServiceAPI {
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
-          "SocketException caught in _checkReceivingAddressForTransactions(): $se\n$s",
+          "SocketException caught in checkReceivingAddressForTransactions(): $se\n$s",
           level: LogLevel.Error);
       return;
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkReceivingAddressForTransactions(): $e\n$s",
+          "Exception rethrown from checkReceivingAddressForTransactions(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  Future<void> checkChangeAddressForTransactions() async {
+    try {
+      final String currentExternalAddr = await _getCurrentAddressForChain(1);
+      final int numtxs =
+          await _getReceivedTxCount(address: currentExternalAddr);
+      Logging.instance.log(
+          'Number of txs for current change address: $currentExternalAddr: $numtxs',
+          level: LogLevel.Info);
+
+      if (numtxs >= 1) {
+        await incrementAddressIndexForChain(
+            0); // First increment the change index
+        final newReceivingIndex =
+            DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndex')
+                as int; // Check the new change index
+        final newReceivingAddress = await _generateAddressForChain(0,
+            newReceivingIndex); // Use new index to derive a new change address
+        await addToAddressesArrayForChain(newReceivingAddress,
+            0); // Add that new receiving address to the array of change addresses
+      }
+    } on SocketException catch (se, s) {
+      Logging.instance.log(
+          "SocketException caught in checkChangeAddressForTransactions(): $se\n$s",
+          level: LogLevel.Error);
+      return;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from checkChangeAddressForTransactions(): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -2775,6 +3455,7 @@ class FiroWallet extends CoinServiceAPI {
       Decimal currentPrice = await firoPrice;
       final List<Map<String, dynamic>> outputArray = [];
       int satoshiBalance = 0;
+      int satoshiBalancePending = 0;
 
       for (int i = 0; i < utxoData.length; i++) {
         for (int j = 0; j < utxoData[i].length; j++) {
@@ -2788,16 +3469,22 @@ class FiroWallet extends CoinServiceAPI {
           );
 
           final Map<String, dynamic> tx = {};
+          final int confirmations = txn["confirmations"] as int? ?? 0;
+          final bool confirmed = confirmations >= MINIMUM_CONFIRMATIONS;
+          if (!confirmed) {
+            satoshiBalancePending += value;
+          }
 
           tx["txid"] = txn["txid"];
           tx["vout"] = utxoData[i][j]["tx_pos"];
           tx["value"] = value;
 
           tx["status"] = <String, dynamic>{};
+          tx["status"]["confirmed"] = confirmed;
+          tx["status"]["confirmations"] = confirmations;
           tx["status"]["confirmed"] =
               txn["confirmations"] == null ? false : txn["confirmations"] > 0;
-          tx["status"]["confirmations"] =
-              txn["confirmations"] == null ? 0 : txn["confirmations"]!;
+
           tx["status"]["block_height"] = txn["height"];
           tx["status"]["block_hash"] = txn["blockhash"];
           tx["status"]["block_time"] = txn["blocktime"];
@@ -2825,6 +3512,7 @@ class FiroWallet extends CoinServiceAPI {
             .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces)
             .toString(),
         "outputArray": outputArray,
+        "unconfirmed": satoshiBalancePending,
       };
 
       final dataModel = UtxoData.fromJson(result);
@@ -2835,7 +3523,7 @@ class FiroWallet extends CoinServiceAPI {
       await DB.instance.put<dynamic>(
           boxName: walletId, key: 'latest_utxo_model', value: dataModel);
       return dataModel;
-    } catch (e, s) {
+    } catch (e) {
       // Logging.instance.log("Output fetch unsuccessful: $e\n$s");
       final latestTxModel =
           DB.instance.get<dynamic>(boxName: walletId, key: 'latest_utxo_model')
@@ -3096,7 +3784,7 @@ class FiroWallet extends CoinServiceAPI {
     );
 
     // clear cache
-    _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
+    await _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
 
     // back up data
     await _rescanBackup();
@@ -3687,7 +4375,7 @@ class FiroWallet extends CoinServiceAPI {
         this.isActive = isActive;
       };
 
-  Future<dynamic> GetCoinsToJoinSplit(
+  Future<dynamic> getCoinsToJoinSplit(
     int required,
   ) async {
     List<DartLelantusEntry> coins = await _getLelantusEntry();
@@ -3696,7 +4384,7 @@ class FiroWallet extends CoinServiceAPI {
     }
 
     int availableBalance = coins.fold(
-        0, (previousValue, element) => (previousValue as int) + element.amount);
+        0, (previousValue, element) => previousValue + element.amount);
 
     if (required > availableBalance) {
       return false;
@@ -3707,21 +4395,21 @@ class FiroWallet extends CoinServiceAPI {
         (a.amount != b.amount ? a.amount > b.amount : a.height < b.height)
             ? -1
             : 1);
-    int spend_val = 0;
+    int spendVal = 0;
 
     List<DartLelantusEntry> coinsToSpend = [];
 
-    while (spend_val < required) {
+    while (spendVal < required) {
       if (coins.isEmpty) {
         break;
       }
 
-      DartLelantusEntry? choosen;
-      int need = required - spend_val;
+      DartLelantusEntry? chosen;
+      int need = required - spendVal;
 
       var itr = coins.first;
       if (need >= itr.amount) {
-        choosen = itr;
+        chosen = itr;
         coins.remove(itr);
       } else {
         for (int index = coins.length - 1; index != 0; index--) {
@@ -3730,32 +4418,32 @@ class FiroWallet extends CoinServiceAPI {
 
           if (coinIt.amount >= need &&
               (index - 1 == 0 || nextItr.amount != coinIt.amount)) {
-            choosen = coinIt;
-            coins.remove(choosen);
+            chosen = coinIt;
+            coins.remove(chosen);
             break;
           }
         }
       }
 
-      spend_val += choosen!.amount;
-      coinsToSpend.insert(coinsToSpend.length, choosen);
+      spendVal += chosen!.amount;
+      coinsToSpend.insert(coinsToSpend.length, chosen);
     }
 
-    // sort by group id ay ascending order. it is mandatory for creting proper joinsplit
+    // sort by group id ay ascending order. it is mandatory for creating proper joinsplit
     coinsToSpend.sort((a, b) => a.anonymitySetId < b.anonymitySetId ? 1 : -1);
 
-    int changeToMint = spend_val - required;
+    int changeToMint = spendVal - required;
     List<int> indices = [];
     for (var l in coinsToSpend) {
       indices.add(l.index);
     }
-    List<DartLelantusEntry> coinsToBeSpent_out = [];
-    coinsToBeSpent_out.addAll(coinsToSpend);
+    List<DartLelantusEntry> coinsToBeSpentOut = [];
+    coinsToBeSpentOut.addAll(coinsToSpend);
 
-    return {"changeToMint": changeToMint, "coinsToSpend": coinsToBeSpent_out};
+    return {"changeToMint": changeToMint, "coinsToSpend": coinsToBeSpentOut};
   }
 
-  Future<int> EstimateJoinSplitFee(
+  Future<int> estimateJoinSplitFee(
     int spendAmount,
   ) async {
     int fee;
@@ -3764,7 +4452,7 @@ class FiroWallet extends CoinServiceAPI {
     for (fee = 0;;) {
       int currentRequired = spendAmount;
 
-      var map = await GetCoinsToJoinSplit(currentRequired);
+      var map = await getCoinsToJoinSplit(currentRequired);
       if (map is bool && !map) {
         return 0;
       }
@@ -3791,8 +4479,72 @@ class FiroWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    int fee = await EstimateJoinSplitFee(satoshiAmount);
+    int fee = await estimateJoinSplitFee(satoshiAmount);
     return fee;
+  }
+
+  Future<int> estimateFeeForPublic(int satoshiAmount, int feeRate) async {
+    final available =
+        Format.decimalAmountToSatoshis(await availablePublicBalance());
+
+    if (available == satoshiAmount) {
+      return satoshiAmount - sweepAllEstimate(feeRate);
+    } else if (satoshiAmount <= 0 || satoshiAmount > available) {
+      return roughFeeEstimate(1, 2, feeRate);
+    }
+
+    int runningBalance = 0;
+    int inputCount = 0;
+    for (final output in _outputsList) {
+      runningBalance += output.value;
+      inputCount++;
+      if (runningBalance > satoshiAmount) {
+        break;
+      }
+    }
+
+    final oneOutPutFee = roughFeeEstimate(inputCount, 1, feeRate);
+    final twoOutPutFee = roughFeeEstimate(inputCount, 2, feeRate);
+
+    if (runningBalance - satoshiAmount > oneOutPutFee) {
+      if (runningBalance - satoshiAmount > oneOutPutFee + DUST_LIMIT) {
+        final change = runningBalance - satoshiAmount - twoOutPutFee;
+        if (change > DUST_LIMIT &&
+            runningBalance - satoshiAmount - change == twoOutPutFee) {
+          return runningBalance - satoshiAmount - change;
+        } else {
+          return runningBalance - satoshiAmount;
+        }
+      } else {
+        return runningBalance - satoshiAmount;
+      }
+    } else if (runningBalance - satoshiAmount == oneOutPutFee) {
+      return oneOutPutFee;
+    } else {
+      return twoOutPutFee;
+    }
+  }
+
+  // TODO: correct formula for firo?
+  int roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return ((181 * inputCount) + (34 * outputCount) + 10) *
+        (feeRatePerKB / 1000).ceil();
+  }
+
+  int sweepAllEstimate(int feeRate) {
+    int available = 0;
+    int inputCount = 0;
+    for (final output in _outputsList) {
+      if (output.status.confirmed) {
+        available += output.value;
+        inputCount++;
+      }
+    }
+
+    // transaction will only have 1 output minus the fee
+    final estimatedFee = roughFeeEstimate(inputCount, 1, feeRate);
+
+    return available - estimatedFee;
   }
 
   Future<List<models.Transaction>> getJMintTransactions(
@@ -3881,5 +4633,13 @@ class FiroWallet extends CoinServiceAPI {
           level: LogLevel.Error);
       return false;
     }
+  }
+
+  Future<Decimal> availablePrivateBalance() async {
+    return (await balances)[0];
+  }
+
+  Future<Decimal> availablePublicBalance() async {
+    return (await balances)[4];
   }
 }
