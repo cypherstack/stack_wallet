@@ -42,7 +42,7 @@ extension CoinExt on Coin {
       case Coin.monero:
         return "Monero";
       case Coin.bitcoincash:
-        return "Bitcoincash";
+        return "Bitcoin Cash";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
       case Coin.firoTestNet:
@@ -161,6 +161,7 @@ Coin coinFromPrettyName(String name) {
       return Coin.monero;
     case "Bitcoincash":
     case "bitcoincash":
+    case "Bitcoin Cash":
       return Coin.bitcoincash;
     case "Bitcoin Testnet":
     case "tBitcoin":

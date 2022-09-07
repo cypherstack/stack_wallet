@@ -304,14 +304,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
               throw Exception("genesis hash does not match main net!");
             }
             break;
-          // case Coin.dogecoinTestNet:
-          //   if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
-          //     throw Exception("genesis hash does not match test net!");
-          //   }
-          //   break;
           default:
             throw Exception(
-                "Attempted to generate a BitcoinCashWallet using a non dogecoin coin type: ${coin.name}");
+                "Attempted to generate a BitcoinCashWallet using a non bch coin type: ${coin.name}");
         }
       }
       // check to make sure we aren't overwriting a mnemonic
@@ -3023,7 +3018,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     }
   }
 
-  // TODO: correct formula for doge?
+  // TODO: correct formula for bch?
   int roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return ((181 * inputCount) + (34 * outputCount) + 10) *
         (feeRatePerKB / 1000).ceil();
