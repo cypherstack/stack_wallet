@@ -10,6 +10,8 @@ import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
+import 'package:stackwallet/utilities/logger.dart';
+
 class DB {
   static const String boxNameAddressBook = "addressBook";
   static const String boxNameDebugInfo = "debugInfoBox";
@@ -141,6 +143,18 @@ class DB {
 
   Future<void> _loadWalletBoxes() async {
     final names = _boxAllWalletsData.get("names") as Map? ?? {};
+    names.removeWhere((name, dyn) {
+      final jsonObject = Map<String, dynamic>.from(dyn as Map);
+      try {
+        Coin.values.byName(jsonObject["coin"] as String);
+        return false;
+      } catch (e, s) {
+        Logging.instance.log(
+            "Error, ${jsonObject["coin"]} does not exist, $name wallet cannot be loaded",
+            level: LogLevel.Error);
+        return true;
+      }
+    });
     final mapped = Map<String, dynamic>.from(names).map((name, dyn) => MapEntry(
         name, WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map))));
 

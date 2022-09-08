@@ -731,6 +731,38 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
   // setTestnet(isTestnet);
 }
 
+Future<bool> getAnonymity(int groupID) async {
+  Logging.instance.log("getAnonymity", level: LogLevel.Info);
+  final Client client = Client();
+  try {
+    final uri = Uri.parse("$kStackCommunityNodesEndpoint/getAnonymity");
+
+    final anonSetResult = await client.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "jsonrpc": "2.0",
+        "id": "0",
+        'index': groupID,
+      }),
+    );
+
+    // TODO: should the following be removed for security reasons in production?
+    Logging.instance
+        .log(anonSetResult.statusCode.toString(), level: LogLevel.Info);
+    Logging.instance.log(anonSetResult.body.toString(), level: LogLevel.Info);
+    final response = jsonDecode(anonSetResult.body.toString());
+    if (response['status'] == 'success') {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (e, s) {
+    Logging.instance.log("$e $s", level: LogLevel.Error);
+    return false;
+  }
+}
+
 /// Handles a single instance of a firo wallet
 class FiroWallet extends CoinServiceAPI {
   static const integrationTestFlag =
@@ -1087,8 +1119,16 @@ class FiroWallet extends CoinServiceAPI {
     Map<String, dynamic>? args,
   }) async {
     try {
+      // check for send all
+      bool isSendAll = false;
+      final balance =
+          Format.decimalAmountToSatoshis(await availablePrivateBalance());
+      if (satoshiAmount == balance) {
+        print("is send all");
+        isSendAll = true;
+      }
       dynamic txHexOrError =
-          await _createJoinSplitTransaction(satoshiAmount, address, false);
+          await _createJoinSplitTransaction(satoshiAmount, address, isSendAll);
       Logging.instance.log("txHexOrError $txHexOrError", level: LogLevel.Error);
       if (txHexOrError is int) {
         // Here, we assume that transaction crafting returned an error
