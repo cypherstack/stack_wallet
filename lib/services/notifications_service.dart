@@ -103,75 +103,79 @@ class NotificationsService extends ChangeNotifier {
 
   void _checkTransactions() async {
     for (final notification in _watchedTransactionNotifications) {
-      final Coin coin = coinFromPrettyName(notification.coinName);
-      final txid = notification.txid!;
+      try {
+        final Coin coin = coinFromPrettyName(notification.coinName);
+        final txid = notification.txid!;
 
-      final node = nodeService.getPrimaryNodeFor(coin: coin);
-      if (node != null) {
-        if (coin.isElectrumXCoin) {
-          final eNode = ElectrumXNode(
-            address: node.host,
-            port: node.port,
-            name: node.name,
-            id: node.id,
-            useSSL: node.useSSL,
-          );
-          final failovers = nodeService
-              .failoverNodesFor(coin: coin)
-              .map((e) => ElectrumXNode(
-                    address: e.host,
-                    port: e.port,
-                    name: e.name,
-                    id: e.id,
-                    useSSL: e.useSSL,
-                  ))
-              .toList();
-
-          final client = ElectrumX.from(
-            node: eNode,
-            failovers: failovers,
-            prefs: prefs,
-          );
-          final tx = await client.getTransaction(txHash: txid);
-
-          int confirmations = tx["confirmations"] as int? ?? 0;
-
-          bool shouldWatchForUpdates = true;
-          // check if the number of confirmations is greater than the number
-          // required by the wallet to count the tx as confirmed and update the
-          // flag on whether this notification should still be monitored
-          if (confirmations >= coin.requiredConfirmations) {
-            shouldWatchForUpdates = false;
-            confirmations = coin.requiredConfirmations;
-          }
-
-          // grab confirms string to compare
-          final String newConfirms =
-              "($confirmations/${coin.requiredConfirmations})";
-          final String oldConfirms =
-              notification.title.substring(notification.title.lastIndexOf("("));
-
-          // only update if they don't match
-          if (oldConfirms != newConfirms) {
-            final String newTitle =
-                notification.title.replaceFirst(oldConfirms, newConfirms);
-
-            final updatedNotification = notification.copyWith(
-              title: newTitle,
-              shouldWatchForUpdates: shouldWatchForUpdates,
+        final node = nodeService.getPrimaryNodeFor(coin: coin);
+        if (node != null) {
+          if (coin.isElectrumXCoin) {
+            final eNode = ElectrumXNode(
+              address: node.host,
+              port: node.port,
+              name: node.name,
+              id: node.id,
+              useSSL: node.useSSL,
             );
+            final failovers = nodeService
+                .failoverNodesFor(coin: coin)
+                .map((e) => ElectrumXNode(
+                      address: e.host,
+                      port: e.port,
+                      name: e.name,
+                      id: e.id,
+                      useSSL: e.useSSL,
+                    ))
+                .toList();
 
-            // remove from watch list if shouldWatchForUpdates was changed
-            if (!shouldWatchForUpdates) {
-              await _deleteWatchedTxNotification(notification);
+            final client = ElectrumX.from(
+              node: eNode,
+              failovers: failovers,
+              prefs: prefs,
+            );
+            final tx = await client.getTransaction(txHash: txid);
+
+            int confirmations = tx["confirmations"] as int? ?? 0;
+
+            bool shouldWatchForUpdates = true;
+            // check if the number of confirmations is greater than the number
+            // required by the wallet to count the tx as confirmed and update the
+            // flag on whether this notification should still be monitored
+            if (confirmations >= coin.requiredConfirmations) {
+              shouldWatchForUpdates = false;
+              confirmations = coin.requiredConfirmations;
             }
 
-            // replaces the current notification with the updated one
-            add(updatedNotification, true);
+            // grab confirms string to compare
+            final String newConfirms =
+                "($confirmations/${coin.requiredConfirmations})";
+            final String oldConfirms = notification.title
+                .substring(notification.title.lastIndexOf("("));
+
+            // only update if they don't match
+            if (oldConfirms != newConfirms) {
+              final String newTitle =
+                  notification.title.replaceFirst(oldConfirms, newConfirms);
+
+              final updatedNotification = notification.copyWith(
+                title: newTitle,
+                shouldWatchForUpdates: shouldWatchForUpdates,
+              );
+
+              // remove from watch list if shouldWatchForUpdates was changed
+              if (!shouldWatchForUpdates) {
+                await _deleteWatchedTxNotification(notification);
+              }
+
+              // replaces the current notification with the updated one
+              add(updatedNotification, true);
+            }
+          } else {
+            // TODO: check non electrumx coins
           }
-        } else {
-          // TODO: check non electrumx coins
         }
+      } catch (e, s) {
+        Logging.instance.log("$e $s", level: LogLevel.Error);
       }
     }
   }
