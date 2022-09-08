@@ -731,7 +731,7 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
   // setTestnet(isTestnet);
 }
 
-Future<bool> getAnonymity(int groupID) async {
+Future<dynamic> getAnonymity(int groupID) async {
   Logging.instance.log("getAnonymity", level: LogLevel.Info);
   final Client client = Client();
   try {
@@ -743,7 +743,7 @@ Future<bool> getAnonymity(int groupID) async {
       body: jsonEncode({
         "jsonrpc": "2.0",
         "id": "0",
-        'index': groupID,
+        'aset': groupID.toString(),
       }),
     );
 
@@ -753,7 +753,10 @@ Future<bool> getAnonymity(int groupID) async {
     Logging.instance.log(anonSetResult.body.toString(), level: LogLevel.Info);
     final response = jsonDecode(anonSetResult.body.toString());
     if (response['status'] == 'success') {
-      return true;
+      final anonResponse = jsonDecode(response['result'] as String);
+
+      Logging.instance.log(anonResponse, level: LogLevel.Info);
+      return response;
     } else {
       return false;
     }
