@@ -191,7 +191,7 @@ class _TransactionDetailsViewState
                 ),
               ),
           onPressed: () {
-            Navigator.of(context).pop(false);
+            Navigator.of(context).pop(true);
           },
           child: Text(
             "Continue",
