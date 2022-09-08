@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart';
 import 'package:stackwallet/models/exchange/change_now/change_now_response.dart';
+import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/currency.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
@@ -17,6 +18,7 @@ class ChangeNow {
   static const String scheme = "https";
   static const String authority = "api.changenow.io";
   static const String apiVersion = "/v1";
+  static const String apiVersionV2 = "/v2";
 
   ChangeNow._();
   static final ChangeNow _instance = ChangeNow._();
@@ -27,6 +29,10 @@ class ChangeNow {
 
   Uri _buildUri(String path, Map<String, dynamic>? params) {
     return Uri.https(authority, apiVersion + path, params);
+  }
+
+  Uri _buildUriV2(String path, Map<String, dynamic>? params) {
+    return Uri.https(authority, apiVersionV2 + path, params);
   }
 
   Future<dynamic> _makeGetRequest(Uri uri) async {
@@ -43,6 +49,27 @@ class ChangeNow {
     } catch (e, s) {
       Logging.instance
           .log("_makeRequest($uri) threw: $e\n$s", level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  Future<dynamic> _makeGetRequestV2(Uri uri, String apiKey) async {
+    final client = this.client ?? http.Client();
+    try {
+      final response = await client.get(
+        uri,
+        headers: {
+          // 'Content-Type': 'application/json',
+          'x-changenow-api-key': apiKey,
+        },
+      );
+
+      final parsed = jsonDecode(response.body);
+
+      return parsed;
+    } catch (e, s) {
+      Logging.instance
+          .log("_makeRequestV2($uri) threw: $e\n$s", level: LogLevel.Error);
       rethrow;
     }
   }
@@ -283,37 +310,109 @@ class ChangeNow {
     }
   }
 
+  // old v1 version
   /// This API endpoint returns fixed-rate estimated exchange amount of
   /// [toTicker] cryptocurrency to receive for [fromAmount] of [fromTicker]
-  Future<ChangeNowResponse<EstimatedExchangeAmount>>
-      getEstimatedFixedRateExchangeAmount({
+  // Future<ChangeNowResponse<EstimatedExchangeAmount>>
+  //     getEstimatedFixedRateExchangeAmount({
+  //   required String fromTicker,
+  //   required String toTicker,
+  //   required Decimal fromAmount,
+  //   // (Optional) Use rateId for fixed-rate flow. If this field is true, you
+  //   // could use returned field "rateId" in next method for creating transaction
+  //   // to freeze estimated amount that you got in this method. Current estimated
+  //   // amount would be valid until time in field "validUntil"
+  //   bool useRateId = true,
+  //   String? apiKey,
+  // }) async {
+  //   Map<String, dynamic> params = {
+  //     "api_key": apiKey ?? kChangeNowApiKey,
+  //     "useRateId": useRateId.toString(),
+  //   };
+  //
+  //   final uri = _buildUri(
+  //     "/exchange-amount/fixed-rate/${fromAmount.toString()}/${fromTicker}_$toTicker",
+  //     params,
+  //   );
+  //
+  //   try {
+  //     // simple json object is expected here
+  //     final json = await _makeGetRequest(uri);
+  //
+  //     try {
+  //       final value = EstimatedExchangeAmount.fromJson(
+  //           Map<String, dynamic>.from(json as Map));
+  //       return ChangeNowResponse(value: value);
+  //     } catch (_) {
+  //       return ChangeNowResponse(
+  //         exception: ChangeNowException(
+  //           "Failed to serialize $json",
+  //           ChangeNowExceptionType.serializeResponseError,
+  //         ),
+  //       );
+  //     }
+  //   } catch (e, s) {
+  //     Logging.instance.log(
+  //         "getEstimatedFixedRateExchangeAmount exception: $e\n$s",
+  //         level: LogLevel.Error);
+  //     return ChangeNowResponse(
+  //       exception: ChangeNowException(
+  //         e.toString(),
+  //         ChangeNowExceptionType.generic,
+  //       ),
+  //     );
+  //   }
+  // }
+
+  /// Get estimated amount of [toTicker] cryptocurrency to receive
+  /// for [fromAmount] of [fromTicker]
+  Future<ChangeNowResponse<CNExchangeEstimate>> getEstimatedExchangeAmountV2({
     required String fromTicker,
     required String toTicker,
-    required Decimal fromAmount,
-    // (Optional) Use rateId for fixed-rate flow. If this field is true, you
-    // could use returned field "rateId" in next method for creating transaction
-    // to freeze estimated amount that you got in this method. Current estimated
-    // amount would be valid until time in field "validUntil"
-    bool useRateId = true,
+    required CNEstimateType fromOrTo,
+    required Decimal amount,
+    String? fromNetwork,
+    String? toNetwork,
+    CNFlowType flow = CNFlowType.standard,
     String? apiKey,
   }) async {
-    Map<String, dynamic> params = {
-      "api_key": apiKey ?? kChangeNowApiKey,
-      "useRateId": useRateId.toString(),
+    Map<String, dynamic>? params = {
+      "fromCurrency": fromTicker,
+      "toCurrency": toTicker,
+      "flow": flow.value,
+      "type": fromOrTo.name,
     };
 
-    final uri = _buildUri(
-      "/exchange-amount/fixed-rate/${fromAmount.toString()}/${fromTicker}_$toTicker",
-      params,
-    );
+    switch (fromOrTo) {
+      case CNEstimateType.direct:
+        params["fromAmount"] = amount.toString();
+        break;
+      case CNEstimateType.reverse:
+        params["toAmount"] = amount.toString();
+        break;
+    }
+
+    if (fromNetwork != null) {
+      params["fromNetwork"] = fromNetwork;
+    }
+
+    if (toNetwork != null) {
+      params["toNetwork"] = toNetwork;
+    }
+
+    if (flow == CNFlowType.fixedRate) {
+      params["useRateId"] = "true";
+    }
+
+    final uri = _buildUriV2("/exchange/estimated-amount", params);
 
     try {
       // simple json object is expected here
-      final json = await _makeGetRequest(uri);
+      final json = await _makeGetRequestV2(uri, apiKey ?? kChangeNowApiKey);
 
       try {
-        final value = EstimatedExchangeAmount.fromJson(
-            Map<String, dynamic>.from(json as Map));
+        final value =
+            CNExchangeEstimate.fromJson(Map<String, dynamic>.from(json as Map));
         return ChangeNowResponse(value: value);
       } catch (_) {
         return ChangeNowResponse(
@@ -324,8 +423,7 @@ class ChangeNow {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-          "getEstimatedFixedRateExchangeAmount exception: $e\n$s",
+      Logging.instance.log("getEstimatedExchangeAmountV2 exception: $e\n$s",
           level: LogLevel.Error);
       return ChangeNowResponse(
         exception: ChangeNowException(
