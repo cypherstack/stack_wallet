@@ -731,8 +731,10 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
   // setTestnet(isTestnet);
 }
 
-Future<dynamic> getAnonymity(int groupID) async {
-  Logging.instance.log("getAnonymity", level: LogLevel.Info);
+Future<Map<String, dynamic>?> getInitialAnonymitySetCache(
+  String groupID,
+) async {
+  Logging.instance.log("getInitialAnonymitySetCache", level: LogLevel.Info);
   final Client client = Client();
   try {
     final uri = Uri.parse("$kStackCommunityNodesEndpoint/getAnonymity");
@@ -743,26 +745,22 @@ Future<dynamic> getAnonymity(int groupID) async {
       body: jsonEncode({
         "jsonrpc": "2.0",
         "id": "0",
-        'aset': groupID.toString(),
+        'aset': groupID,
       }),
     );
 
-    // TODO: should the following be removed for security reasons in production?
-    Logging.instance
-        .log(anonSetResult.statusCode.toString(), level: LogLevel.Info);
-    Logging.instance.log(anonSetResult.body.toString(), level: LogLevel.Info);
     final response = jsonDecode(anonSetResult.body.toString());
     if (response['status'] == 'success') {
       final anonResponse = jsonDecode(response['result'] as String);
 
-      Logging.instance.log(anonResponse, level: LogLevel.Info);
-      return response;
+      final setData = Map<String, dynamic>.from(anonResponse["result"] as Map);
+      return setData;
     } else {
-      return false;
+      return null;
     }
   } catch (e, s) {
     Logging.instance.log("$e $s", level: LogLevel.Error);
-    return false;
+    return null;
   }
 }
 
