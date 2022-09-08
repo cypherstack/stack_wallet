@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart';
+import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/currency.dart';
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
@@ -1436,11 +1437,12 @@ class _WalletInitiatedExchangeViewState
 
                                     final response = await ref
                                         .read(changeNowProvider)
-                                        .getEstimatedFixedRateExchangeAmount(
+                                        .getEstimatedExchangeAmountV2(
                                           fromTicker: fromTicker,
                                           toTicker: toTicker,
-                                          fromAmount: sendAmount,
-                                          useRateId: true,
+                                          fromOrTo: CNEstimateType.direct,
+                                          amount: sendAmount,
+                                          flow: CNFlowType.fixedRate,
                                         );
 
                                     bool? shouldCancel;
@@ -1518,15 +1520,14 @@ class _WalletInitiatedExchangeViewState
                                     }
 
                                     String rate =
-                                        "1 $fromTicker ~${ref.read(fixedRateExchangeFormProvider).market!.rate.toStringAsFixed(8)} $toTicker";
+                                        "1 $fromTicker ~${ref.read(fixedRateExchangeFormProvider).rate!.toStringAsFixed(8)} $toTicker";
 
                                     final model = IncompleteExchangeModel(
                                       sendTicker: fromTicker,
                                       receiveTicker: toTicker,
                                       rateInfo: rate,
                                       sendAmount: sendAmount,
-                                      receiveAmount:
-                                          response.value!.estimatedAmount,
+                                      receiveAmount: response.value!.toAmount,
                                       rateId: response.value!.rateId,
                                       rateType: rateType,
                                     );

@@ -113,7 +113,7 @@ class EstimatedRateExchangeFormState extends ChangeNotifier {
 
       await _updateMinFromAmount(shouldNotifyListeners: shouldNotifyListeners);
 
-      await updateRate();
+      await updateRate(shouldNotifyListeners: shouldNotifyListeners);
 
       debugPrint(
           "_updated TO: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$_fromAmount _toAmount=$_toAmount rate:$rate");
@@ -138,7 +138,7 @@ class EstimatedRateExchangeFormState extends ChangeNotifier {
 
       await _updateMinFromAmount(shouldNotifyListeners: shouldNotifyListeners);
 
-      await updateRate();
+      await updateRate(shouldNotifyListeners: shouldNotifyListeners);
 
       debugPrint(
           "_updated FROM: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$_fromAmount _toAmount=$_toAmount rate:$rate");
@@ -182,7 +182,7 @@ class EstimatedRateExchangeFormState extends ChangeNotifier {
     }
 
     _fromAmount = newFromAmount;
-    await updateRate();
+    await updateRate(shouldNotifyListeners: shouldNotifyListeners);
 
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -256,7 +256,7 @@ class EstimatedRateExchangeFormState extends ChangeNotifier {
     }
   }
 
-  Future<void> updateRate() async {
+  Future<void> updateRate({bool shouldNotifyListeners = false}) async {
     rate = null;
     final amount = _fromAmount;
     final minAmount = _minFromAmount;
@@ -274,6 +274,9 @@ class EstimatedRateExchangeFormState extends ChangeNotifier {
       if (rate != null && amt != null) {
         _toAmount = amt;
       }
+    }
+    if (shouldNotifyListeners) {
+      notifyListeners();
     }
   }
 }
