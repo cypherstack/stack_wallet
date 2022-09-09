@@ -225,7 +225,7 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
     sendPort
         .send("Error An error was thrown in this isolate $function: $e\n$s");
   } finally {
-    Logging.instance.isar?.close();
+    await Logging.instance.isar?.close();
   }
 }
 
@@ -539,7 +539,7 @@ class EpicCashWallet extends CoinServiceAPI {
     // TODO notify ui/ fire event for node changed?
 
     if (shouldRefresh) {
-      refresh();
+      unawaited(refresh());
     }
   }
 
@@ -705,7 +705,7 @@ class EpicCashWallet extends CoinServiceAPI {
     try {
       result = await cancelPendingTransaction(tx_slate_id);
       Logging.instance.log("result?: $result", level: LogLevel.Info);
-      if (result != null && !(result.toLowerCase().contains("error"))) {
+      if (!(result.toLowerCase().contains("error"))) {
         await postCancel(
             receiveAddress, tx_slate_id, signature, sendersAddress);
       }
@@ -1180,10 +1180,10 @@ class EpicCashWallet extends CoinServiceAPI {
         transactionFees = message['result'] as String;
       });
       debugPrint(transactionFees);
-      var decodeData;
+      dynamic decodeData;
       try {
         decodeData = json.decode(transactionFees!);
-      } catch (e, s) {
+      } catch (e) {
         if (ifErrorEstimateFee) {
           //Error Not enough funds. Required: 0.56500000, Available: 0.56200000
           if (transactionFees!.contains("Required")) {
@@ -1705,7 +1705,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
             try {
               final String response = message['result'] as String;
-              if (response == null || response == "") {
+              if (response == "") {
                 Logging.instance.log("response: ${response.runtimeType}",
                     level: LogLevel.Info);
                 await deleteSlate(currentAddress,
@@ -1921,7 +1921,7 @@ class EpicCashWallet extends CoinServiceAPI {
       if (currentHeight != storedHeight) {
         if (currentHeight != -1) {
           // -1 failed to fetch current height
-          updateStoredChainHeight(newHeight: currentHeight);
+          unawaited(updateStoredChainHeight(newHeight: currentHeight));
         }
 
         final newTxData = _fetchTransactionData();
@@ -2288,7 +2288,7 @@ class EpicCashWallet extends CoinServiceAPI {
         timer?.cancel();
         timer = null;
         if (isActive) {
-          startSync();
+          unawaited(startSync());
         } else {
           for (final isolate in isolates.values) {
             isolate.kill(priority: Isolate.immediate);
