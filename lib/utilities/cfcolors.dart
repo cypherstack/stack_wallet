@@ -8,8 +8,8 @@ class _CoinThemeColor {
   Color get bitcoin => const Color(0xFFFCC17B);
   Color get firo => const Color(0xFFFF897A);
   Color get dogecoin => const Color(0xFFFFE079);
-  Color get epicCash => const Color(0xFFC1C1FF);
-  Color get monero => const Color(0xFFB1C5FF);
+  Color get epicCash => const Color(0xFFC5C7CB);
+  Color get monero => const Color(0xFFFF9E6B);
 
   Color forCoin(Coin coin) {
     switch (coin) {

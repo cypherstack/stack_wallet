@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +12,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
+import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/exchange/trade_note_service_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -63,6 +66,26 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
     clipboard = widget.clipboard;
     transactionIfSentFromStack = widget.transactionIfSentFromStack;
     walletId = widget.walletId;
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      final trade = ref
+          .read(tradesServiceProvider)
+          .trades
+          .firstWhere((e) => e.id == tradeId);
+
+      if (mounted && trade.statusObject == null ||
+          trade.statusObject!.amountSendDecimal.isEmpty) {
+        final status = await ref
+            .read(changeNowProvider)
+            .getTransactionStatus(id: trade.id);
+
+        if (mounted && status.value != null) {
+          await ref.read(tradesServiceProvider).edit(
+              trade: trade.copyWith(statusObject: status.value),
+              shouldNotifyListeners: true);
+        }
+      }
+    });
     super.initState();
   }
 
@@ -77,8 +100,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       status = ChangeNowTransactionStatus.Failed;
     }
 
-    debugPrint("statusstatusstatusstatus: $status");
-    debugPrint("statusstatusstatusstatusSTRING: $statusString");
     switch (status) {
       case ChangeNowTransactionStatus.New:
       case ChangeNowTransactionStatus.Waiting:
@@ -112,6 +133,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
     debugPrint("sentFromStack: $sentFromStack");
     debugPrint("hasTx: $hasTx");
     debugPrint("trade: ${trade.toString()}");
+
+    final sendAmount = Decimal.tryParse(
+            trade.statusObject?.amountSendDecimal ?? "") ??
+        Decimal.tryParse(trade.statusObject?.expectedSendAmountDecimal ?? "") ??
+        Decimal.parse("-1");
 
     return Scaffold(
       backgroundColor: CFColors.almostWhite,
@@ -150,7 +176,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             height: 4,
                           ),
                           SelectableText(
-                            "${Format.localizedStringAsFixed(value: Decimal.parse(trade.statusObject?.amountSendDecimal ?? trade.amount), locale: ref.watch(
+                            "${Format.localizedStringAsFixed(value: sendAmount, locale: ref.watch(
                                   localeServiceChangeNotifierProvider
                                       .select((value) => value.locale),
                                 ), decimalPlaces: trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.fromCurrency.toUpperCase()}",
@@ -205,7 +231,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     ],
                   ),
                 ),
-                if (!sentFromStack && hasTx)
+                if (!sentFromStack && !hasTx)
                   const SizedBox(
                     height: 12,
                   ),
@@ -214,9 +240,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     color: CFColors.warningBackground,
                     child: RichText(
                       text: TextSpan(
-                          text: "You must send at least ${Decimal.parse(
-                            trade.statusObject!.amountSendDecimal,
-                          ).toStringAsFixed(
+                          text:
+                              "You must send at least ${sendAmount.toStringAsFixed(
                             trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8,
                           )} ${trade.fromCurrency.toUpperCase()}. ",
                           style: STextStyles.label.copyWith(
@@ -225,9 +250,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           ),
                           children: [
                             TextSpan(
-                              text: "If you send less than ${Decimal.parse(
-                                trade.statusObject!.amountSendDecimal,
-                              ).toStringAsFixed(
+                              text:
+                                  "If you send less than ${sendAmount.toStringAsFixed(
                                 trade.fromCurrency.toLowerCase() == "xmr"
                                     ? 12
                                     : 8,
@@ -623,11 +647,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             onTap: () async {
                               final data = ClipboardData(text: trade.id);
                               await clipboard.setData(data);
-                              showFloatingFlushBar(
+                              unawaited(showFloatingFlushBar(
                                 type: FlushBarType.info,
                                 message: "Copied to clipboard",
                                 context: context,
-                              );
+                              ));
                             },
                             child: SvgPicture.asset(
                               Assets.svg.copy,

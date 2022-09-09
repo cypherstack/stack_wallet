@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
@@ -22,6 +24,7 @@ import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -31,11 +34,17 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../providers/wallet/wallet_balance_toggle_state_provider.dart';
+import '../../utilities/enums/wallet_balance_toggle_state.dart';
 
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
@@ -155,7 +164,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     const timeout = Duration(milliseconds: 1500);
     if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
       _cachedTime = now;
-      showDialog<dynamic>(
+      unawaited(showDialog<dynamic>(
         context: context,
         barrierDismissible: false,
         builder: (_) => WillPopScope(
@@ -173,7 +182,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         onTimeout: () => Navigator.of(context).popUntil(
           ModalRoute.withName(WalletView.routeName),
         ),
-      );
+      ));
     }
     return false;
   }
@@ -222,14 +231,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
     final coin = ref.read(managerProvider).coin;
 
     if (coin == Coin.epicCash) {
-      showDialog<void>(
+      await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
           title: "ChangeNOW not available for Epic Cash",
         ),
       );
     } else if (coin.name.endsWith("TestNet")) {
-      showDialog<void>(
+      await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
           title: "ChangeNOW not available for test net coins",
@@ -247,10 +256,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
               element.ticker.toLowerCase() == coin.ticker.toLowerCase());
 
       if (currencies.isNotEmpty) {
-        ref
+        unawaited(ref
             .read(estimatedRateExchangeFormProvider)
-            .updateFrom(currencies.first, false);
-        ref.read(estimatedRateExchangeFormProvider).updateTo(
+            .updateFrom(currencies.first, false));
+        unawaited(ref.read(estimatedRateExchangeFormProvider).updateTo(
             ref
                 .read(availableChangeNowCurrenciesStateProvider.state)
                 .state
@@ -258,22 +267,90 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   (element) =>
                       element.ticker.toLowerCase() != coin.ticker.toLowerCase(),
                 ),
-            false);
+            false));
       }
 
-      Navigator.of(context).pushNamed(
+      unawaited(Navigator.of(context).pushNamed(
         WalletInitiatedExchangeView.routeName,
         arguments: Tuple2(
           walletId,
           coin,
         ),
-      );
+      ));
+    }
+  }
+
+  Future<void> attemptAnonymize() async {
+    bool shouldPop = false;
+    unawaited(
+      showDialog(
+        context: context,
+        builder: (context) => WillPopScope(
+          child: const CustomLoadingOverlay(
+            message: "Anonymizing balance",
+            eventBus: null,
+          ),
+          onWillPop: () async => shouldPop,
+        ),
+      ),
+    );
+    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
+
+    final publicBalance = await firoWallet.availablePublicBalance();
+    if (publicBalance <= Decimal.zero) {
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(WalletView.routeName),
+        );
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.info,
+            message: "No funds available to anonymize!",
+            context: context,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      await firoWallet.anonymizeAllPublicFunds();
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(WalletView.routeName),
+        );
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "Anonymize transaction submitted",
+            context: context,
+          ),
+        );
+      }
+    } catch (e) {
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(WalletView.routeName),
+        );
+        await showDialog<dynamic>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: "Anonymize all failed",
+            message: "Reason: $e",
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+
+    final coin = ref.watch(managerProvider.select((value) => value.coin));
 
     return WillPopScope(
       onWillPop: _onWillPop,
@@ -283,9 +360,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
           title: Row(
             children: [
               SvgPicture.asset(
-                Assets.svg.iconFor(
-                    coin: ref
-                        .watch(managerProvider.select((value) => value.coin))),
+                Assets.svg.iconFor(coin: coin),
                 // color: CFColors.stackAccent,
                 width: 24,
                 height: 24,
@@ -440,6 +515,69 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   ),
                 ),
+                if (coin == Coin.firo)
+                  const SizedBox(
+                    height: 10,
+                  ),
+                if (coin == Coin.firo)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () async {
+                              await showDialog<void>(
+                                context: context,
+                                builder: (context) => StackDialog(
+                                  title: "Attention!",
+                                  message:
+                                      "You're about to anonymize all of your public funds.",
+                                  leftButton: TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text(
+                                      "Cancel",
+                                      style: STextStyles.button.copyWith(
+                                        color: CFColors.stackAccent,
+                                      ),
+                                    ),
+                                  ),
+                                  rightButton: TextButton(
+                                    onPressed: () async {
+                                      Navigator.of(context).pop();
+
+                                      unawaited(attemptAnonymize());
+                                    },
+                                    style: Theme.of(context)
+                                        .textButtonTheme
+                                        .style
+                                        ?.copyWith(
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                            CFColors.stackAccent,
+                                          ),
+                                        ),
+                                    child: Text(
+                                      "Continue",
+                                      style: STextStyles.button,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              "Anonymize funds",
+                              style: STextStyles.button.copyWith(
+                                color: CFColors.stackAccent,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 const SizedBox(
                   height: 20,
                 ),
@@ -532,19 +670,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     onExchangePressed: () =>
                                         _onExchangePressed(context),
                                     onReceivePressed: () async {
-                                      final address = await ref
-                                          .read(managerProvider)
-                                          .currentReceivingAddress;
                                       final coin =
                                           ref.read(managerProvider).coin;
                                       if (mounted) {
-                                        Navigator.of(context).pushNamed(
+                                        unawaited(
+                                            Navigator.of(context).pushNamed(
                                           ReceiveView.routeName,
                                           arguments: Tuple2(
-                                            address,
+                                            walletId,
                                             coin,
                                           ),
-                                        );
+                                        ));
                                       }
                                     },
                                     onSendPressed: () {
@@ -552,6 +688,25 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                           ref.read(managerProvider).walletId;
                                       final coin =
                                           ref.read(managerProvider).coin;
+                                      switch (ref
+                                          .read(walletBalanceToggleStateProvider
+                                              .state)
+                                          .state) {
+                                        case WalletBalanceToggleState.full:
+                                          ref
+                                              .read(
+                                                  publicPrivateBalanceStateProvider
+                                                      .state)
+                                              .state = "Public";
+                                          break;
+                                        case WalletBalanceToggleState.available:
+                                          ref
+                                              .read(
+                                                  publicPrivateBalanceStateProvider
+                                                      .state)
+                                              .state = "Private";
+                                          break;
+                                      }
                                       Navigator.of(context).pushNamed(
                                         SendView.routeName,
                                         arguments: Tuple2(

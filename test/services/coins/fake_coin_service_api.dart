@@ -176,4 +176,10 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
     // TODO: implement testNetworkConnection
     throw UnimplementedError();
   }
+
+  @override
+  Future<bool> generateNewAddress() {
+    // TODO: implement generateNewAddress
+    throw UnimplementedError();
+  }
 }

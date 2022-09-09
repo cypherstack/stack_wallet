@@ -30,7 +30,7 @@ void main() {
       expect(MINIMUM_CONFIRMATIONS, 2);
     });
     test("bitcoin dust limit", () async {
-      expect(DUST_LIMIT, 546);
+      expect(DUST_LIMIT, 294);
     });
     test("bitcoin mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,

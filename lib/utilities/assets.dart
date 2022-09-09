@@ -84,6 +84,10 @@ class _SVG {
   String get solidSliders => "assets/svg/sliders-solid.svg";
   String get questionMessage => "assets/svg/message-question.svg";
   String get envelope => "assets/svg/envelope.svg";
+  String get share => "assets/svg/share-2.svg";
+  String get anonymize => "assets/svg/tx-icon-anonymize.svg";
+  String get anonymizePending => "assets/svg/tx-icon-anonymize-pending.svg";
+  String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
 
   String get receive => "assets/svg/tx-icon-receive.svg";
   String get receivePending => "assets/svg/tx-icon-receive-pending.svg";

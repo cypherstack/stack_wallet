@@ -1,27 +1,44 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
+import 'package:stackwallet/services/change_now/change_now.dart';
+import 'package:stackwallet/utilities/logger.dart';
 
 class FixedRateExchangeFormState extends ChangeNotifier {
   Decimal? _fromAmount;
   Decimal? _toAmount;
 
   FixedRateMarket? _market;
-
   FixedRateMarket? get market => _market;
+
+  CNExchangeEstimate? _estimate;
+  CNExchangeEstimate? get estimate => _estimate;
+
+  Decimal? get rate {
+    if (_estimate == null) {
+      return null;
+    } else {
+      return (_estimate!.toAmount / _estimate!.fromAmount)
+          .toDecimal(scaleOnInfinitePrecision: 12);
+    }
+  }
 
   Future<void> swap(FixedRateMarket reverseFixedRateMarket) async {
     final Decimal? tmp = _fromAmount;
     _fromAmount = _toAmount;
     _toAmount = tmp;
 
-    await updateMarket(reverseFixedRateMarket, true);
+    await updateMarket(reverseFixedRateMarket, false);
+    await updateRateEstimate(CNEstimateType.direct);
+    _toAmount = _estimate?.toAmount ?? Decimal.zero;
+    notifyListeners();
   }
 
   String get fromAmountString =>
-      _fromAmount == null ? "-" : _fromAmount!.toStringAsFixed(8);
+      _fromAmount == null ? "" : _fromAmount!.toStringAsFixed(8);
   String get toAmountString =>
-      _toAmount == null ? "-" : _toAmount!.toStringAsFixed(8);
+      _toAmount == null ? "" : _toAmount!.toStringAsFixed(8);
 
   Future<void> updateMarket(
     FixedRateMarket? market,
@@ -37,7 +54,7 @@ class FixedRateExchangeFormState extends ChangeNotifier {
         if (_fromAmount! <= Decimal.zero) {
           _toAmount = Decimal.zero;
         } else {
-          _toAmount = (_fromAmount! * _market!.rate) - _market!.minerFee;
+          await updateRateEstimate(CNEstimateType.direct);
         }
       }
     }
@@ -48,10 +65,10 @@ class FixedRateExchangeFormState extends ChangeNotifier {
   }
 
   String get rateDisplayString {
-    if (_market == null) {
+    if (_market == null || _estimate == null) {
       return "N/A";
     } else {
-      return "1 ${_market!.from.toUpperCase()} ~${_market!.rate.toStringAsFixed(8)} ${_market!.to.toUpperCase()}";
+      return "1 ${_estimate!.fromCurrency.toUpperCase()} ~${rate!.toStringAsFixed(8)} ${_estimate!.toCurrency.toUpperCase()}";
     }
   }
 
@@ -78,14 +95,10 @@ class FixedRateExchangeFormState extends ChangeNotifier {
     Decimal newToAmount,
     bool shouldNotifyListeners,
   ) async {
-    if (_market != null) {
-      _fromAmount = (newToAmount / _market!.rate)
-              .toDecimal(scaleOnInfinitePrecision: 12) +
-          _market!.minerFee;
-    }
-
     _toAmount = newToAmount;
+
     if (shouldNotifyListeners) {
+      await updateRateEstimate(CNEstimateType.reverse);
       notifyListeners();
     }
   }
@@ -94,12 +107,10 @@ class FixedRateExchangeFormState extends ChangeNotifier {
     Decimal newFromAmount,
     bool shouldNotifyListeners,
   ) async {
-    if (_market != null) {
-      _toAmount = (newFromAmount * _market!.rate) - _market!.minerFee;
-    }
-
     _fromAmount = newFromAmount;
+
     if (shouldNotifyListeners) {
+      await updateRateEstimate(CNEstimateType.direct);
       notifyListeners();
     }
   }
@@ -113,6 +124,55 @@ class FixedRateExchangeFormState extends ChangeNotifier {
     _onError = onError;
     if (shouldNotifyListeners) {
       notifyListeners();
+    }
+  }
+
+  Future<void> updateRateEstimate(CNEstimateType direction) async {
+    if (market != null) {
+      Decimal? amount;
+      // set amount based on trade estimate direction
+      switch (direction) {
+        case CNEstimateType.direct:
+          if (_fromAmount != null
+              // &&
+              // market!.min >= _fromAmount! &&
+              // _fromAmount! <= market!.max
+              ) {
+            amount = _fromAmount!;
+          }
+          break;
+        case CNEstimateType.reverse:
+          if (_toAmount != null
+              // &&
+              // market!.min >= _toAmount! &&
+              // _toAmount! <= market!.max
+              ) {
+            amount = _toAmount!;
+          }
+          break;
+      }
+
+      if (amount != null && market != null && amount > Decimal.zero) {
+        final response = await ChangeNow.instance.getEstimatedExchangeAmountV2(
+          fromTicker: market!.from,
+          toTicker: market!.to,
+          fromOrTo: direction,
+          flow: CNFlowType.fixedRate,
+          amount: amount,
+        );
+
+        if (response.value != null) {
+          // update estimate if response succeeded
+          _estimate = response.value;
+
+          _toAmount = _estimate?.toAmount;
+          _fromAmount = _estimate?.fromAmount;
+          notifyListeners();
+        } else if (response.exception != null) {
+          Logging.instance.log("updateRateEstimate(): ${response.exception}",
+              level: LogLevel.Warning);
+        }
+      }
     }
   }
 }

@@ -55,7 +55,7 @@ class StepRow extends StatelessWidget {
       ));
     }
     list.add(StepIndicator(
-      step: count - 1,
+      step: count,
       status: getStatus(count - 1),
     ));
     return list;

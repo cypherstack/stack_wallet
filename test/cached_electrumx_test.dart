@@ -10,7 +10,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
 import 'cached_electrumx_test.mocks.dart';
-import 'sample_data/get_anonymity_set_sample_data.dart';
+// import 'sample_data/get_anonymity_set_sample_data.dart';
 
 @GenerateMocks([ElectrumX, Prefs])
 void main() {
@@ -23,36 +23,36 @@ void main() {
       await Hive.openBox<dynamic>(DB.instance.boxNameTxCache(coin: Coin.firo));
     });
     group("getAnonymitySet", () {
-      test("empty set cache call", () async {
-        final client = MockElectrumX();
-        when(
-          client.getAnonymitySet(
-            groupId: "1",
-            blockhash: "",
-          ),
-        ).thenAnswer(
-          (_) async => GetAnonymitySetSampleData.data,
-        );
-
-        final cachedClient = CachedElectrumX(
-            electrumXClient: client,
-            port: 0,
-            failovers: [],
-            server: '',
-            useSSL: true,
-            prefs: Prefs.instance);
-
-        final result = await cachedClient.getAnonymitySet(
-          groupId: "1",
-          coin: Coin.firo,
-        );
-
-        final expected =
-            Map<String, dynamic>.from(GetAnonymitySetSampleData.data);
-        expected["setId"] = "1";
-
-        expect(result, expected);
-      });
+      // test("empty set cache call", () async {
+      //   final client = MockElectrumX();
+      //   when(
+      //     client.getAnonymitySet(
+      //       groupId: "1",
+      //       blockhash: "",
+      //     ),
+      //   ).thenAnswer(
+      //     (_) async => GetAnonymitySetSampleData.data,
+      //   );
+      //
+      //   final cachedClient = CachedElectrumX(
+      //       electrumXClient: client,
+      //       port: 0,
+      //       failovers: [],
+      //       server: '',
+      //       useSSL: true,
+      //       prefs: Prefs.instance);
+      //
+      //   final result = await cachedClient.getAnonymitySet(
+      //     groupId: "1",
+      //     coin: Coin.firo,
+      //   );
+      //
+      //   final expected =
+      //       Map<String, dynamic>.from(GetAnonymitySetSampleData.data);
+      //   expected["setId"] = "1";
+      //
+      //   expect(result, expected);
+      // });
       //
       // test("use and update set cache call", () async {
       //   final storedData = Map.from(GetAnonymitySetSampleData.initialData);
@@ -91,30 +91,30 @@ void main() {
       //   fail("This test needs updating");
       // });
 
-      test("getAnonymitySet throws", () async {
-        final client = MockElectrumX();
-        when(
-          client.getAnonymitySet(
-            groupId: "1",
-            blockhash: "",
-          ),
-        ).thenThrow(Exception());
-
-        final cachedClient = CachedElectrumX(
-            electrumXClient: client,
-            port: 0,
-            failovers: [],
-            server: '',
-            useSSL: true,
-            prefs: Prefs.instance);
-
-        expect(
-            () async => await cachedClient.getAnonymitySet(
-                  groupId: "1",
-                  coin: Coin.firo,
-                ),
-            throwsA(isA<Exception>()));
-      });
+      // test("getAnonymitySet throws", () async {
+      //   final client = MockElectrumX();
+      //   when(
+      //     client.getAnonymitySet(
+      //       groupId: "1",
+      //       blockhash: "",
+      //     ),
+      //   ).thenThrow(Exception());
+      //
+      //   final cachedClient = CachedElectrumX(
+      //       electrumXClient: client,
+      //       port: 0,
+      //       failovers: [],
+      //       server: '',
+      //       useSSL: true,
+      //       prefs: Prefs.instance);
+      //
+      //   expect(
+      //       () async => await cachedClient.getAnonymitySet(
+      //             groupId: "1",
+      //             coin: Coin.firo,
+      //           ),
+      //       throwsA(isA<Exception>()));
+      // });
     });
 
     test("getTransaction throws", () async {

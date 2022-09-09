@@ -164,7 +164,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                           height: 8,
                         ),
                         Text(
-                          "Send FIRO to the address below. Once it is received, ChangeNOW will send the BTC to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
+                          "Send ${model.sendTicker} to the address below. Once it is received, ChangeNOW will send the ${model.receiveTicker} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
                           style: STextStyles.itemSubtitle,
                         ),
                         const SizedBox(
