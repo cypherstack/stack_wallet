@@ -43,6 +43,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
+import 'package:uuid/uuid.dart';
 
 const DUST_LIMIT = 1000;
 const MINIMUM_CONFIRMATIONS = 1;
@@ -145,25 +146,17 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       final setDataMap = arguments['setDataMap'] as Map;
       final usedSerialNumbers = arguments['usedSerialNumbers'] as List?;
       final mnemonic = arguments['mnemonic'] as String;
-      final transactionData =
-          arguments['transactionData'] as models.TransactionData;
-      final currency = arguments['currency'] as String;
       final coin = arguments['coin'] as Coin;
       final network = arguments['network'] as NetworkType?;
-      final currentPrice = arguments['currentPrice'] as Decimal;
-      final locale = arguments['locale'] as String;
       if (!(usedSerialNumbers == null || network == null)) {
         var restoreData = await isolateRestore(
-            mnemonic,
-            transactionData,
-            currency,
-            coin,
-            latestSetId,
-            setDataMap,
-            usedSerialNumbers,
-            network,
-            currentPrice,
-            locale);
+          mnemonic,
+          coin,
+          latestSetId,
+          setDataMap,
+          usedSerialNumbers,
+          network,
+        );
         sendPort.send(restoreData);
         return;
       }
@@ -240,15 +233,11 @@ Future<Map<String, dynamic>> isolateDerive(
 
 Future<Map<String, dynamic>> isolateRestore(
   String mnemonic,
-  models.TransactionData data,
-  String currency,
   Coin coin,
   int _latestSetId,
   Map<dynamic, dynamic> _setDataMap,
   List<dynamic> _usedSerialNumbers,
   NetworkType network,
-  Decimal currentPrice,
-  String locale,
 ) async {
   List<int> jindexes = [];
   List<Map<dynamic, LelantusCoin>> lelantusCoins = [];
@@ -373,6 +362,20 @@ Future<Map<String, dynamic>> isolateRestore(
   result['_lelantus_coins'] = lelantusCoins;
   result['mintIndex'] = lastFoundIndex + 1;
   result['jindex'] = jindexes;
+  result['spendTxIds'] = spendTxIds;
+
+  return result;
+}
+
+Future<Map<dynamic, dynamic>> staticProcessRestore(
+  models.TransactionData data,
+  Map<dynamic, dynamic> result,
+) async {
+  List<dynamic>? _l = result['_lelantus_coins'] as List?;
+  final List<Map<dynamic, LelantusCoin>> lelantusCoins = [];
+  for (var el in _l ?? []) {
+    lelantusCoins.add({el.keys.first: el.values.first as LelantusCoin});
+  }
 
   // Edit the receive transactions with the mint fees.
   Map<String, models.Transaction> editedTransactions =
@@ -437,7 +440,6 @@ Future<Map<String, dynamic>> isolateRestore(
       (value.height == -1 && !value.confirmedStatus));
 
   result['newTxMap'] = transactionMap;
-  result['spendTxIds'] = spendTxIds;
   return result;
 }
 
@@ -2193,7 +2195,7 @@ class FiroWallet extends CoinServiceAPI {
       final newTxData = _fetchTransactionData();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.35, walletId));
 
-      final FeeObject feeObj = await _getFees();
+      final feeObj = _getFees();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
 
       _utxoData = Future(() => newUtxoData);
@@ -2217,9 +2219,6 @@ class FiroWallet extends CoinServiceAPI {
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.95, walletId));
 
-      final maxFee = await _fetchMaxFee();
-      _maxFee = Future(() => maxFee);
-
       var txData = (await _txnData);
       var lTxData = (await lelantusTransactionData);
       await getAllTxsToWatch(txData, lTxData);
@@ -2236,7 +2235,7 @@ class FiroWallet extends CoinServiceAPI {
       refreshMutex = false;
 
       if (isActive || shouldAutoSync) {
-        timer ??= Timer.periodic(const Duration(seconds: 150), (timer) async {
+        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
           bool shouldNotify = await refreshIfThereIsNewData();
           if (shouldNotify) {
             await refresh();
@@ -2744,7 +2743,7 @@ class FiroWallet extends CoinServiceAPI {
     };
   }
 
-  Future<void> _refreshLelantusData() async {
+  Future<models.TransactionData> _refreshLelantusData() async {
     final List<Map<dynamic, LelantusCoin>> lelantusCoins = getLelantusCoinMap();
     final jindexes =
         DB.instance.get<dynamic>(boxName: walletId, key: 'jindex') as List?;
@@ -2826,6 +2825,7 @@ class FiroWallet extends CoinServiceAPI {
     _lelantusTransactionData = Future(() => newTxData);
     await DB.instance.put<dynamic>(
         boxName: walletId, key: 'latest_lelantus_tx_model', value: newTxData);
+    return newTxData;
   }
 
   Future<String> _getMintHex(int amount, int index) async {
@@ -3122,24 +3122,44 @@ class FiroWallet extends CoinServiceAPI {
       List<String> allAddresses) async {
     try {
       List<Map<String, dynamic>> allTxHashes = [];
-      // int latestTxnBlockHeight = 0;
 
-      for (final address in allAddresses) {
-        final scripthash = AddressUtils.convertToScriptHash(address, _network);
-        final txs = await electrumXClient.getHistory(scripthash: scripthash);
-        for (final map in txs) {
-          if (!allTxHashes.contains(map)) {
-            map['address'] = address;
-            allTxHashes.add(map);
+      final Map<int, Map<String, List<dynamic>>> batches = {};
+      final Map<String, String> requestIdToAddressMap = {};
+      const batchSizeMax = 100;
+      int batchNumber = 0;
+      for (int i = 0; i < allAddresses.length; i++) {
+        if (batches[batchNumber] == null) {
+          batches[batchNumber] = {};
+        }
+        final scripthash =
+            AddressUtils.convertToScriptHash(allAddresses[i], _network);
+        final id = const Uuid().v1();
+        requestIdToAddressMap[id] = allAddresses[i];
+        batches[batchNumber]!.addAll({
+          id: [scripthash]
+        });
+        if (i % batchSizeMax == batchSizeMax - 1) {
+          batchNumber++;
+        }
+      }
+
+      for (int i = 0; i < batches.length; i++) {
+        final response =
+            await _electrumXClient.getBatchHistory(args: batches[i]!);
+        for (final entry in response.entries) {
+          for (int j = 0; j < entry.value.length; j++) {
+            entry.value[j]["address"] = requestIdToAddressMap[entry.key];
+            if (!allTxHashes.contains(entry.value[j])) {
+              allTxHashes.add(entry.value[j]);
+            }
           }
         }
       }
 
       return allTxHashes;
     } catch (e, s) {
-      Logging.instance.log("Exception caught in _fetchHistory(): $e\n$s",
-          level: LogLevel.Error);
-      return [];
+      Logging.instance.log("_fetchHistory: $e\n$s", level: LogLevel.Error);
+      rethrow;
     }
   }
 
@@ -3178,20 +3198,11 @@ class FiroWallet extends CoinServiceAPI {
       }
     }
 
-    List<Map<String, dynamic>> allTransactions = [];
-
-    for (final txHash in allTxHashes) {
-      final tx = await cachedElectrumXClient.getTransaction(
-        txHash: txHash["tx_hash"] as String,
-        verbose: true,
-        coin: coin,
-      );
-      // delete unused large parts
-      tx.remove("hex");
-      tx.remove("lelantusData");
-
-      allTransactions.add(tx);
+    List<String> hashes = [];
+    for (var element in allTxHashes) {
+      hashes.add(element['tx_hash'] as String);
     }
+    List<Map<String, dynamic>> allTransactions = await fastFetch(hashes);
 
     Logging.instance.log("allTransactions length: ${allTransactions.length}",
         level: LogLevel.Info);
@@ -3441,81 +3452,83 @@ class FiroWallet extends CoinServiceAPI {
   }
 
   Future<UtxoData> _fetchUtxoData() async {
-    final List<String> allAddresses = [];
-    final receivingAddresses =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'receivingAddresses')
-            as List<dynamic>;
-    final changeAddresses =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses')
-            as List<dynamic>;
-
-    for (var i = 0; i < receivingAddresses.length; i++) {
-      if (!allAddresses.contains(receivingAddresses[i])) {
-        allAddresses.add(receivingAddresses[i] as String);
-      }
-    }
-    for (var i = 0; i < changeAddresses.length; i++) {
-      if (!allAddresses.contains(changeAddresses[i])) {
-        allAddresses.add(changeAddresses[i] as String);
-      }
-    }
+    final List<String> allAddresses = await _fetchAllOwnAddresses();
 
     try {
-      final utxoData = <List<Map<String, dynamic>>>[];
+      final fetchedUtxoList = <List<Map<String, dynamic>>>[];
 
+      final Map<int, Map<String, List<dynamic>>> batches = {};
+      const batchSizeMax = 100;
+      int batchNumber = 0;
       for (int i = 0; i < allAddresses.length; i++) {
+        if (batches[batchNumber] == null) {
+          batches[batchNumber] = {};
+        }
         final scripthash =
             AddressUtils.convertToScriptHash(allAddresses[i], _network);
-        final utxos = await electrumXClient.getUTXOs(scripthash: scripthash);
-        if (utxos.isNotEmpty) {
-          utxoData.add(utxos);
+        batches[batchNumber]!.addAll({
+          scripthash: [scripthash]
+        });
+        if (i % batchSizeMax == batchSizeMax - 1) {
+          batchNumber++;
         }
       }
 
-      Decimal currentPrice = await firoPrice;
+      for (int i = 0; i < batches.length; i++) {
+        final response =
+            await _electrumXClient.getBatchUTXOs(args: batches[i]!);
+        for (final entry in response.entries) {
+          if (entry.value.isNotEmpty) {
+            fetchedUtxoList.add(entry.value);
+          }
+        }
+      }
+      final priceData =
+          await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+      Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
       final List<Map<String, dynamic>> outputArray = [];
       int satoshiBalance = 0;
       int satoshiBalancePending = 0;
 
-      for (int i = 0; i < utxoData.length; i++) {
-        for (int j = 0; j < utxoData[i].length; j++) {
-          int value = utxoData[i][j]["value"] as int;
+      for (int i = 0; i < fetchedUtxoList.length; i++) {
+        for (int j = 0; j < fetchedUtxoList[i].length; j++) {
+          int value = fetchedUtxoList[i][j]["value"] as int;
           satoshiBalance += value;
 
           final txn = await cachedElectrumXClient.getTransaction(
-            txHash: utxoData[i][j]["tx_hash"] as String,
+            txHash: fetchedUtxoList[i][j]["tx_hash"] as String,
             verbose: true,
             coin: coin,
           );
 
-          final Map<String, dynamic> tx = {};
+          final Map<String, dynamic> utxo = {};
           final int confirmations = txn["confirmations"] as int? ?? 0;
           final bool confirmed = confirmations >= MINIMUM_CONFIRMATIONS;
           if (!confirmed) {
             satoshiBalancePending += value;
           }
 
-          tx["txid"] = txn["txid"];
-          tx["vout"] = utxoData[i][j]["tx_pos"];
-          tx["value"] = value;
+          utxo["txid"] = txn["txid"];
+          utxo["vout"] = fetchedUtxoList[i][j]["tx_pos"];
+          utxo["value"] = value;
 
-          tx["status"] = <String, dynamic>{};
-          tx["status"]["confirmed"] = confirmed;
-          tx["status"]["confirmations"] = confirmations;
-          tx["status"]["confirmed"] =
+          utxo["status"] = <String, dynamic>{};
+          utxo["status"]["confirmed"] = confirmed;
+          utxo["status"]["confirmations"] = confirmations;
+          utxo["status"]["confirmed"] =
               txn["confirmations"] == null ? false : txn["confirmations"] > 0;
 
-          tx["status"]["block_height"] = txn["height"];
-          tx["status"]["block_hash"] = txn["blockhash"];
-          tx["status"]["block_time"] = txn["blocktime"];
+          utxo["status"]["block_height"] = fetchedUtxoList[i][j]["height"];
+          utxo["status"]["block_hash"] = txn["blockhash"];
+          utxo["status"]["block_time"] = txn["blocktime"];
 
           final fiatValue = ((Decimal.fromInt(value) * currentPrice) /
                   Decimal.fromInt(Constants.satsPerCoin))
               .toDecimal(scaleOnInfinitePrecision: 2);
-          tx["rawWorth"] = fiatValue;
-          tx["fiatWorth"] = fiatValue.toString();
-          tx["is_coinbase"] = txn['vin'][0]['coinbase'] != null;
-          outputArray.add(tx);
+          utxo["rawWorth"] = fiatValue;
+          utxo["fiatWorth"] = fiatValue.toString();
+          utxo["is_coinbase"] = txn['vin'][0]['coinbase'] != null;
+          outputArray.add(utxo);
         }
       }
 
@@ -3538,13 +3551,19 @@ class FiroWallet extends CoinServiceAPI {
       final dataModel = UtxoData.fromJson(result);
 
       final List<UtxoObject> allOutputs = dataModel.unspentOutputArray;
-      // Logging.instance.log('Outputs fetched: $allOutputs');
+      Logging.instance
+          .log('Outputs fetched: $allOutputs', level: LogLevel.Info);
       await _sortOutputs(allOutputs);
       await DB.instance.put<dynamic>(
           boxName: walletId, key: 'latest_utxo_model', value: dataModel);
+      // await DB.instance.put<dynamic>(
+      //     boxName: walletId,
+      //     key: 'totalBalance',
+      //     value: dataModel.satoshiBalance);
       return dataModel;
-    } catch (e) {
-      // Logging.instance.log("Output fetch unsuccessful: $e\n$s");
+    } catch (e, s) {
+      Logging.instance
+          .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
       final latestTxModel =
           DB.instance.get<dynamic>(boxName: walletId, key: 'latest_utxo_model')
               as models.UtxoData?;
@@ -4056,6 +4075,135 @@ class FiroWallet extends CoinServiceAPI {
 
   bool longMutex = false;
 
+  Future<Map<int, dynamic>> getSetDataMap(int latestSetId) async {
+    final Map<int, dynamic> setDataMap = {};
+    final anonymitySets = await fetchAnonymitySets();
+    for (int setId = 1; setId <= latestSetId; setId++) {
+      final setData = anonymitySets
+          .firstWhere((element) => element["setId"] == setId, orElse: () => {});
+
+      if (setData.isNotEmpty) {
+        setDataMap[setId] = setData;
+      }
+    }
+    return setDataMap;
+  }
+
+  Future<void> _makeDerivations(
+      String suppliedMnemonic, int maxUnusedAddressGap) async {
+    List<String> receivingAddressArray = [];
+    List<String> changeAddressArray = [];
+
+    int receivingIndex = -1;
+    int changeIndex = -1;
+
+    // The gap limit will be capped at 20
+    int receivingGapCounter = 0;
+    int changeGapCounter = 0;
+
+    await fillAddresses(suppliedMnemonic,
+        numberOfThreads: Platform.numberOfProcessors - isolates.length - 1);
+
+    final receiveDerivationsString =
+        await _secureStore.read(key: "${walletId}_receiveDerivations");
+    final changeDerivationsString =
+        await _secureStore.read(key: "${walletId}_changeDerivations");
+
+    final receiveDerivations = Map<String, dynamic>.from(
+        jsonDecode(receiveDerivationsString ?? "{}") as Map);
+    final changeDerivations = Map<String, dynamic>.from(
+        jsonDecode(changeDerivationsString ?? "{}") as Map);
+
+    // log("rcv: $receiveDerivations");
+    // log("chg: $changeDerivations");
+
+    // Deriving and checking for receiving addresses
+    for (var i = 0; i < receiveDerivations.length; i++) {
+      // Break out of loop when receivingGapCounter hits maxUnusedAddressGap
+      // Same gap limit for change as for receiving, breaks when it hits maxUnusedAddressGap
+      if (receivingGapCounter >= maxUnusedAddressGap &&
+          changeGapCounter >= maxUnusedAddressGap) {
+        break;
+      }
+
+      final receiveDerivation = receiveDerivations["$i"];
+      final address = receiveDerivation['address'] as String;
+
+      final changeDerivation = changeDerivations["$i"];
+      final _address = changeDerivation['address'] as String;
+      Future<int>? futureNumTxs;
+      Future<int>? _futureNumTxs;
+      if (receivingGapCounter < maxUnusedAddressGap) {
+        futureNumTxs = _getReceivedTxCount(address: address);
+      }
+      if (changeGapCounter < maxUnusedAddressGap) {
+        _futureNumTxs = _getReceivedTxCount(address: _address);
+      }
+      try {
+        if (futureNumTxs != null) {
+          int numTxs = await futureNumTxs;
+          if (numTxs >= 1) {
+            receivingIndex = i;
+            receivingAddressArray.add(address);
+          } else if (numTxs == 0) {
+            receivingGapCounter += 1;
+          }
+        }
+      } catch (e, s) {
+        Logging.instance.log(
+            "Exception rethrown from recoverWalletFromBIP32SeedPhrase(): $e\n$s",
+            level: LogLevel.Error);
+        rethrow;
+      }
+
+      try {
+        if (_futureNumTxs != null) {
+          int numTxs = await _futureNumTxs;
+          if (numTxs >= 1) {
+            changeIndex = i;
+            changeAddressArray.add(_address);
+          } else if (numTxs == 0) {
+            changeGapCounter += 1;
+          }
+        }
+      } catch (e, s) {
+        Logging.instance.log(
+            "Exception rethrown from recoverWalletFromBIP32SeedPhrase(): $e\n$s",
+            level: LogLevel.Error);
+        rethrow;
+      }
+    }
+
+    // If restoring a wallet that never received any funds, then set receivingArray manually
+    // If we didn't do this, it'd store an empty array
+    if (receivingIndex == -1) {
+      final String receivingAddress = await _generateAddressForChain(0, 0);
+      receivingAddressArray.add(receivingAddress);
+    }
+
+    // If restoring a wallet that never sent any funds with change, then set changeArray
+    // manually. If we didn't do this, it'd store an empty array.
+    if (changeIndex == -1) {
+      final String changeAddress = await _generateAddressForChain(1, 0);
+      changeAddressArray.add(changeAddress);
+    }
+
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'receivingAddresses',
+        value: receivingAddressArray);
+    await DB.instance.put<dynamic>(
+        boxName: walletId, key: 'changeAddresses', value: changeAddressArray);
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'receivingIndex',
+        value: receivingIndex == -1 ? 0 : receivingIndex);
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'changeIndex',
+        value: changeIndex == -1 ? 0 : changeIndex);
+  }
+
   /// Recovers wallet from [suppliedMnemonic]. Expects a valid mnemonic.
   Future<void> _recoverWalletFromBIP32SeedPhrase(
       String suppliedMnemonic, int maxUnusedAddressGap) async {
@@ -4063,137 +4211,20 @@ class FiroWallet extends CoinServiceAPI {
     Logging.instance
         .log("PROCESSORS ${Platform.numberOfProcessors}", level: LogLevel.Info);
     try {
-      final Map<int, dynamic> setDataMap = {};
       final latestSetId = await getLatestSetId();
-      final anonymitySets = await fetchAnonymitySets();
-      for (int setId = 1; setId <= latestSetId; setId++) {
-        final setData = anonymitySets.firstWhere(
-            (element) => element["setId"] == setId,
-            orElse: () => {});
-
-        if (setData.isNotEmpty) {
-          setDataMap[setId] = setData;
-        }
-      }
+      final setDataMap = getSetDataMap(latestSetId);
       final usedSerialNumbers = getUsedCoinSerials();
+      final makeDerivations =
+          _makeDerivations(suppliedMnemonic, maxUnusedAddressGap);
 
-      List<String> receivingAddressArray = [];
-      List<String> changeAddressArray = [];
-
-      int receivingIndex = -1;
-      int changeIndex = -1;
-
-      // The gap limit will be capped at 20
-      int receivingGapCounter = 0;
-      int changeGapCounter = 0;
-
-      await fillAddresses(suppliedMnemonic,
-          numberOfThreads: Platform.numberOfProcessors - isolates.length - 1);
-
-      final receiveDerivationsString =
-          await _secureStore.read(key: "${walletId}_receiveDerivations");
-      final changeDerivationsString =
-          await _secureStore.read(key: "${walletId}_changeDerivations");
-
-      final receiveDerivations = Map<String, dynamic>.from(
-          jsonDecode(receiveDerivationsString ?? "{}") as Map);
-      final changeDerivations = Map<String, dynamic>.from(
-          jsonDecode(changeDerivationsString ?? "{}") as Map);
-
-      // log("rcv: $receiveDerivations");
-      // log("chg: $changeDerivations");
-
-      // Deriving and checking for receiving addresses
-      for (var i = 0; i < receiveDerivations.length; i++) {
-        // Break out of loop when receivingGapCounter hits maxUnusedAddressGap
-        // Same gap limit for change as for receiving, breaks when it hits maxUnusedAddressGap
-        if (receivingGapCounter >= maxUnusedAddressGap &&
-            changeGapCounter >= maxUnusedAddressGap) {
-          break;
-        }
-
-        final receiveDerivation = receiveDerivations["$i"];
-        final address = receiveDerivation['address'] as String;
-
-        final changeDerivation = changeDerivations["$i"];
-        final _address = changeDerivation['address'] as String;
-        Future<int>? futureNumTxs;
-        Future<int>? _futureNumTxs;
-        if (receivingGapCounter < maxUnusedAddressGap) {
-          futureNumTxs = _getReceivedTxCount(address: address);
-        }
-        if (changeGapCounter < maxUnusedAddressGap) {
-          _futureNumTxs = _getReceivedTxCount(address: _address);
-        }
-        try {
-          if (futureNumTxs != null) {
-            int numTxs = await futureNumTxs;
-            if (numTxs >= 1) {
-              receivingIndex = i;
-              receivingAddressArray.add(address);
-            } else if (numTxs == 0) {
-              receivingGapCounter += 1;
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.log(
-              "Exception rethrown from recoverWalletFromBIP32SeedPhrase(): $e\n$s",
-              level: LogLevel.Error);
-          rethrow;
-        }
-
-        try {
-          if (_futureNumTxs != null) {
-            int numTxs = await _futureNumTxs;
-            if (numTxs >= 1) {
-              changeIndex = i;
-              changeAddressArray.add(_address);
-            } else if (numTxs == 0) {
-              changeGapCounter += 1;
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.log(
-              "Exception rethrown from recoverWalletFromBIP32SeedPhrase(): $e\n$s",
-              level: LogLevel.Error);
-          rethrow;
-        }
-      }
-
-      // If restoring a wallet that never received any funds, then set receivingArray manually
-      // If we didn't do this, it'd store an empty array
-      if (receivingIndex == -1) {
-        final String receivingAddress = await _generateAddressForChain(0, 0);
-        receivingAddressArray.add(receivingAddress);
-      }
-
-      // If restoring a wallet that never sent any funds with change, then set changeArray
-      // manually. If we didn't do this, it'd store an empty array.
-      if (changeIndex == -1) {
-        final String changeAddress = await _generateAddressForChain(1, 0);
-        changeAddressArray.add(changeAddress);
-      }
-
-      await DB.instance.put<dynamic>(
-          boxName: walletId,
-          key: 'receivingAddresses',
-          value: receivingAddressArray);
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: 'changeAddresses', value: changeAddressArray);
-      await DB.instance.put<dynamic>(
-          boxName: walletId,
-          key: 'receivingIndex',
-          value: receivingIndex == -1 ? 0 : receivingIndex);
-      await DB.instance.put<dynamic>(
-          boxName: walletId,
-          key: 'changeIndex',
-          value: changeIndex == -1 ? 0 : changeIndex);
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
 
-      await _restore(latestSetId, setDataMap, await usedSerialNumbers);
+      await Future.wait([usedSerialNumbers, setDataMap, makeDerivations]);
+
+      await _restore(latestSetId, await setDataMap, await usedSerialNumbers);
       longMutex = false;
     } catch (e, s) {
       longMutex = false;
@@ -4207,33 +4238,33 @@ class FiroWallet extends CoinServiceAPI {
   Future<void> _restore(int latestSetId, Map<dynamic, dynamic> setDataMap,
       dynamic usedSerialNumbers) async {
     final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-    models.TransactionData data = await _txnData;
+    Future data = _txnData;
     final String currency = _prefs.currency;
     final Decimal currentPrice = await firoPrice;
-    final locale = await Devicelocale.currentLocale;
 
     ReceivePort receivePort = await getIsolate({
       "function": "restore",
       "mnemonic": mnemonic,
-      "transactionData": data,
-      "currency": currency,
       "coin": coin,
       "latestSetId": latestSetId,
       "setDataMap": setDataMap,
       "usedSerialNumbers": usedSerialNumbers,
       "network": _network,
-      "currentPrice": currentPrice,
-      "locale": locale,
     });
 
-    var message = await receivePort.first;
-    if (message is String) {
+    await Future.wait([data]);
+    var result = await receivePort.first;
+    if (result is String) {
       Logging.instance
           .log("restore() ->> this is a string", level: LogLevel.Error);
       stop(receivePort);
       throw Exception("isolate restore failed.");
     }
     stop(receivePort);
+
+    final message = await staticProcessRestore(
+        (await data) as models.TransactionData,
+        result as Map<dynamic, dynamic>);
 
     await DB.instance.put<dynamic>(
         boxName: walletId, key: 'mintIndex', value: message['mintIndex']);
@@ -4274,11 +4305,18 @@ class FiroWallet extends CoinServiceAPI {
       final latestSetId = await getLatestSetId();
 
       final List<Map<String, dynamic>> sets = [];
+      List<Future> anonFutures = [];
       for (int i = 1; i <= latestSetId; i++) {
-        Map<String, dynamic> set = await cachedElectrumXClient.getAnonymitySet(
+        final set = cachedElectrumXClient.getAnonymitySet(
           groupId: "$i",
           coin: coin,
         );
+        anonFutures.add(set);
+      }
+      await Future.wait(anonFutures);
+      for (int i = 1; i <= latestSetId; i++) {
+        Map<String, dynamic> set =
+            (await anonFutures[i - 1]) as Map<String, dynamic>;
         set["setId"] = i;
         sets.add(set);
       }
@@ -4567,6 +4605,49 @@ class FiroWallet extends CoinServiceAPI {
     return available - estimatedFee;
   }
 
+  Future<List<Map<String, dynamic>>> fastFetch(List<String> allTxHashes) async {
+    List<Map<String, dynamic>> allTransactions = [];
+
+    const futureLimit = 30;
+    List<Future<Map<String, dynamic>>> transactionFutures = [];
+    int currentFutureCount = 0;
+    for (final txHash in allTxHashes) {
+      Future<Map<String, dynamic>> transactionFuture =
+          cachedElectrumXClient.getTransaction(
+        txHash: txHash,
+        verbose: true,
+        coin: coin,
+      );
+      transactionFutures.add(transactionFuture);
+      currentFutureCount++;
+      if (currentFutureCount > futureLimit) {
+        currentFutureCount = 0;
+        await Future.wait(transactionFutures);
+        for (final fTx in transactionFutures) {
+          final tx = await fTx;
+          // delete unused large parts
+          tx.remove("hex");
+          tx.remove("lelantusData");
+
+          allTransactions.add(tx);
+        }
+      }
+    }
+    if (currentFutureCount != 0) {
+      currentFutureCount = 0;
+      await Future.wait(transactionFutures);
+      for (final fTx in transactionFutures) {
+        final tx = await fTx;
+        // delete unused large parts
+        tx.remove("hex");
+        tx.remove("lelantusData");
+
+        allTransactions.add(tx);
+      }
+    }
+    return allTransactions;
+  }
+
   Future<List<models.Transaction>> getJMintTransactions(
     CachedElectrumX cachedClient,
     List<String> transactions,
@@ -4577,14 +4658,12 @@ class FiroWallet extends CoinServiceAPI {
   ) async {
     try {
       List<models.Transaction> txs = [];
+      List<Map<String, dynamic>> allTransactions =
+          await fastFetch(transactions);
 
-      for (int i = 0; i < transactions.length; i++) {
+      for (int i = 0; i < allTransactions.length; i++) {
         try {
-          final tx = await cachedClient.getTransaction(
-            txHash: transactions[i],
-            verbose: true,
-            coin: coin,
-          );
+          final tx = allTransactions[i];
 
           tx["confirmed_status"] =
               tx["confirmations"] != null && tx["confirmations"] as int > 0;
