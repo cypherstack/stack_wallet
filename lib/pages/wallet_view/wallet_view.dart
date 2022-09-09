@@ -351,7 +351,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   void _loadCNData() {
     // unawaited future
-    _cnLoadingService.loadAll(ref);
+    _cnLoadingService.loadAll(ref, coin: ref.read(managerProvider).coin);
   }
 
   @override

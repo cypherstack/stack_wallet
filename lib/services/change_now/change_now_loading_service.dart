@@ -6,14 +6,15 @@ import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dar
 import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ChangeNowLoadingService {
-  Future<void> loadAll(WidgetRef ref) async {
+  Future<void> loadAll(WidgetRef ref, {Coin? coin}) async {
     try {
       await Future.wait([
-        _loadFixedRateMarkets(ref),
-        _loadChangeNowStandardCurrencies(ref),
+        _loadFixedRateMarkets(ref, coin: coin),
+        _loadChangeNowStandardCurrencies(ref, coin: coin),
       ]);
     } catch (e, s) {
       Logging.instance.log("ChangeNowLoadingService.loadAll failed: $e\n$s",
@@ -21,7 +22,7 @@ class ChangeNowLoadingService {
     }
   }
 
-  Future<void> _loadFixedRateMarkets(WidgetRef ref) async {
+  Future<void> _loadFixedRateMarkets(WidgetRef ref, {Coin? coin}) async {
     if (ref.read(changeNowFixedInitialLoadStatusStateProvider.state).state ==
         ChangeNowLoadStatus.loading) {
       // already in progress so just
@@ -38,8 +39,15 @@ class ChangeNowLoadingService {
           response3.value!;
 
       if (ref.read(fixedRateExchangeFormProvider).market == null) {
-        final matchingMarkets =
-            response3.value!.where((e) => e.to == "doge" && e.from == "btc");
+        String fromTicker = "btc";
+        String toTicker = "xmr";
+
+        if (coin != null) {
+          fromTicker = coin.ticker.toLowerCase();
+        }
+
+        final matchingMarkets = response3.value!
+            .where((e) => e.to == toTicker && e.from == fromTicker);
         if (matchingMarkets.isNotEmpty) {
           await ref
               .read(fixedRateExchangeFormProvider)
@@ -60,7 +68,8 @@ class ChangeNowLoadingService {
         ChangeNowLoadStatus.success;
   }
 
-  Future<void> _loadChangeNowStandardCurrencies(WidgetRef ref) async {
+  Future<void> _loadChangeNowStandardCurrencies(WidgetRef ref,
+      {Coin? coin}) async {
     if (ref
             .read(changeNowEstimatedInitialLoadStatusStateProvider.state)
             .state ==
@@ -82,17 +91,28 @@ class ChangeNowLoadingService {
         ref.read(availableFloatingRatePairsStateProvider.state).state =
             response2.value!;
 
+        String fromTicker = "btc";
+        String toTicker = "xmr";
+
+        if (coin != null) {
+          fromTicker = coin.ticker.toLowerCase();
+        }
+
         if (response.value!.length > 1) {
           if (ref.read(estimatedRateExchangeFormProvider).from == null) {
-            if (response.value!.where((e) => e.ticker == "btc").isNotEmpty) {
+            if (response.value!
+                .where((e) => e.ticker == fromTicker)
+                .isNotEmpty) {
               await ref.read(estimatedRateExchangeFormProvider).updateFrom(
-                  response.value!.firstWhere((e) => e.ticker == "btc"), false);
+                  response.value!.firstWhere((e) => e.ticker == fromTicker),
+                  false);
             }
           }
           if (ref.read(estimatedRateExchangeFormProvider).to == null) {
-            if (response.value!.where((e) => e.ticker == "doge").isNotEmpty) {
+            if (response.value!.where((e) => e.ticker == toTicker).isNotEmpty) {
               await ref.read(estimatedRateExchangeFormProvider).updateTo(
-                  response.value!.firstWhere((e) => e.ticker == "doge"), false);
+                  response.value!.firstWhere((e) => e.ticker == toTicker),
+                  false);
             }
           }
         }
