@@ -101,6 +101,7 @@ class _SVG {
   String get txExchangeFailed => "assets/svg/tx-exchange-icon-failed.svg";
 
   String get bitcoin => "assets/svg/coin_icons/Bitcoin.svg";
+  String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
   String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
   String get firo => "assets/svg/coin_icons/Firo.svg";
@@ -110,12 +111,13 @@ class _SVG {
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
   String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
   String get dogecoinTestnet => "assets/svg/coin_icons/Dogecoin.svg";
-  String get bitcoincash => "assets/svg/coin_icons/Bitcoin.svg";
 
   String iconFor({required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
         return bitcoin;
+      case Coin.bitcoincash:
+        return bitcoincash;
       case Coin.dogecoin:
         return dogecoin;
       case Coin.epicCash:
@@ -124,8 +126,6 @@ class _SVG {
         return firo;
       case Coin.monero:
         return monero;
-      case Coin.bitcoincash:
-        return bitcoincash;
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
       case Coin.firoTestNet:
@@ -147,21 +147,22 @@ class _PNG {
   String get dogecoin => "assets/images/doge.png";
   String get bitcoin => "assets/images/bitcoin.png";
   String get epicCash => "assets/images/epic-cash.png";
-  String get bitcoincash => "assets/images/bitcoin.png";
+  String get bitcoincash => "assets/images/bitcoincash.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
+      case Coin.bitcoincash:
+        return bitcoincash;
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
       case Coin.firo:
-      case Coin.bitcoincash:
-        return bitcoincash;
+        return firo;
       case Coin.firoTestNet:
         return firo;
       case Coin.monero:

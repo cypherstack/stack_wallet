@@ -31,6 +31,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get bitcoincash => NodeModel(
+        host: "electrum1.cipig.net",
+        port: 20055,
+        name: defaultName,
+        id: _nodeId(Coin.bitcoincash),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.bitcoincash.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get dogecoin => NodeModel(
         host: "dogecoin.stackwallet.com",
         port: 50022,
@@ -81,18 +93,6 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
-  static NodeModel get bitcoincash => NodeModel(
-        host: "electrum1.cipig.net",
-        port: 20055,
-        name: defaultName,
-        id: _nodeId(Coin.bitcoincash),
-        useSSL: true,
-        enabled: true,
-        coinName: Coin.bitcoincash.name,
-        isFailover: true,
-        isDown: false,
-      );
-
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "electrumx-testnet.cypherstack.com",
         port: 51002,
@@ -134,6 +134,9 @@ abstract class DefaultNodes {
       case Coin.bitcoin:
         return bitcoin;
 
+      case Coin.bitcoincash:
+        return bitcoincash;
+
       case Coin.dogecoin:
         return dogecoin;
 
@@ -145,9 +148,6 @@ abstract class DefaultNodes {
 
       case Coin.monero:
         return monero;
-
-      case Coin.bitcoincash:
-        return bitcoincash;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;

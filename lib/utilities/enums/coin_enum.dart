@@ -10,11 +10,11 @@ import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
 
 enum Coin {
   bitcoin,
+  bitcoincash,
   dogecoin,
   epicCash,
   firo,
   monero,
-  bitcoincash,
 
   ///
   ///
@@ -33,6 +33,8 @@ extension CoinExt on Coin {
     switch (this) {
       case Coin.bitcoin:
         return "Bitcoin";
+      case Coin.bitcoincash:
+        return "Bitcoin Cash";
       case Coin.dogecoin:
         return "Dogecoin";
       case Coin.epicCash:
@@ -41,8 +43,6 @@ extension CoinExt on Coin {
         return "Firo";
       case Coin.monero:
         return "Monero";
-      case Coin.bitcoincash:
-        return "Bitcoin Cash";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
       case Coin.firoTestNet:
@@ -56,6 +56,8 @@ extension CoinExt on Coin {
     switch (this) {
       case Coin.bitcoin:
         return "BTC";
+      case Coin.bitcoincash:
+        return "BCH";
       case Coin.dogecoin:
         return "DOGE";
       case Coin.epicCash:
@@ -64,8 +66,6 @@ extension CoinExt on Coin {
         return "FIRO";
       case Coin.monero:
         return "XMR";
-      case Coin.bitcoincash:
-        return "BCH";
       case Coin.bitcoinTestNet:
         return "tBTC";
       case Coin.firoTestNet:
@@ -79,6 +79,8 @@ extension CoinExt on Coin {
     switch (this) {
       case Coin.bitcoin:
         return "bitcoin";
+      case Coin.bitcoincash:
+        return "bitcoincash";
       case Coin.dogecoin:
         return "dogecoin";
       case Coin.epicCash:
@@ -88,8 +90,6 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.monero:
         return "monero";
-      case Coin.bitcoincash:
-        return "bitcoincash";
       case Coin.bitcoinTestNet:
         return "bitcoin";
       case Coin.firoTestNet:
@@ -102,9 +102,9 @@ extension CoinExt on Coin {
   bool get isElectrumXCoin {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.bitcoincash:
       case Coin.dogecoin:
       case Coin.firo:
-      case Coin.bitcoincash:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -122,6 +122,9 @@ extension CoinExt on Coin {
       case Coin.bitcoinTestNet:
         return btc.MINIMUM_CONFIRMATIONS;
 
+      case Coin.bitcoincash:
+        return bch.MINIMUM_CONFIRMATIONS;
+
       case Coin.firo:
       case Coin.firoTestNet:
         return firo.MINIMUM_CONFIRMATIONS;
@@ -135,9 +138,6 @@ extension CoinExt on Coin {
 
       case Coin.monero:
         return xmr.MINIMUM_CONFIRMATIONS;
-
-      case Coin.bitcoincash:
-        return bch.MINIMUM_CONFIRMATIONS;
     }
   }
 }
@@ -147,6 +147,10 @@ Coin coinFromPrettyName(String name) {
     case "Bitcoin":
     case "bitcoin":
       return Coin.bitcoin;
+    case "Bitcoincash":
+    case "bitcoincash":
+    case "Bitcoin Cash":
+      return Coin.bitcoincash;
     case "Dogecoin":
     case "dogecoin":
       return Coin.dogecoin;
@@ -159,10 +163,6 @@ Coin coinFromPrettyName(String name) {
     case "Monero":
     case "monero":
       return Coin.monero;
-    case "Bitcoincash":
-    case "bitcoincash":
-    case "Bitcoin Cash":
-      return Coin.bitcoincash;
     case "Bitcoin Testnet":
     case "tBitcoin":
     case "bitcoinTestNet":
@@ -185,6 +185,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
   switch (ticker.toLowerCase()) {
     case "btc":
       return Coin.bitcoin;
+    case "bch":
+      return Coin.bitcoincash;
     case "doge":
       return Coin.dogecoin;
     case "epic":
@@ -193,8 +195,6 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.firo;
     case "xmr":
       return Coin.monero;
-    case "bch":
-      return Coin.bitcoincash;
     case "tbtc":
       return Coin.bitcoinTestNet;
     case "tfiro":

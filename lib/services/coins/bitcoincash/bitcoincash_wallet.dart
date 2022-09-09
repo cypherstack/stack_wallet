@@ -1938,6 +1938,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     unconfirmedCachedTransactions
         .removeWhere((key, value) => value.confirmedStatus);
 
+    print("CACHED_TRANSACTIONS_IS $cachedTransactions");
     if (cachedTransactions != null) {
       for (final tx in allTxHashes.toList(growable: false)) {
         final txHeight = tx["height"] as int;

@@ -98,6 +98,16 @@ abstract class CoinServiceAPI {
           tracker: tracker,
         );
 
+      case Coin.bitcoincash:
+        return BitcoinCashWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
+
       case Coin.dogecoin:
         return DogecoinWallet(
           walletId: walletId,
@@ -126,16 +136,6 @@ abstract class CoinServiceAPI {
 
       case Coin.dogecoinTestNet:
         return DogecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
-
-      case Coin.bitcoincash:
-        return BitcoinCashWallet(
           walletId: walletId,
           walletName: walletName,
           coin: coin,
