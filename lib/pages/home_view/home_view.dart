@@ -44,6 +44,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
   final _cnLoadingService = ChangeNowLoadingService();
 
   Future<bool> _onWillPop() async {
+
+    // go to home view when tapping back on the main exchange view
+    if (ref.read(homeViewPageIndexStateProvider.state).state == 1) {
+      ref.read(homeViewPageIndexStateProvider.state).state = 0;
+      return false;
+    }
+
     if (_exitEnabled) {
       return true;
     }
