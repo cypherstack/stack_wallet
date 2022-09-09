@@ -24,6 +24,9 @@ import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
+import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
+import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
+import 'package:stackwallet/services/change_now/change_now_loading_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -35,16 +38,13 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../providers/wallet/public_private_balance_state_provider.dart';
-import '../../providers/wallet/wallet_balance_toggle_state_provider.dart';
-import '../../utilities/enums/wallet_balance_toggle_state.dart';
 
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
@@ -78,6 +78,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
+
+  final _cnLoadingService = ChangeNowLoadingService();
 
   @override
   void initState() {
@@ -272,9 +274,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
       unawaited(Navigator.of(context).pushNamed(
         WalletInitiatedExchangeView.routeName,
-        arguments: Tuple2(
+        arguments: Tuple3(
           walletId,
           coin,
+          _loadCNData,
         ),
       ));
     }
@@ -344,6 +347,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
         );
       }
     }
+  }
+
+  void _loadCNData() {
+    // unawaited future
+    _cnLoadingService.loadAll(ref);
   }
 
   @override

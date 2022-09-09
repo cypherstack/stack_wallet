@@ -719,7 +719,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletInitiatedExchangeView.routeName:
-        if (args is Tuple2<String, Coin>) {
+        if (args is Tuple3<String, Coin, VoidCallback>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => Stack(
@@ -728,7 +728,9 @@ class RouteGenerator {
                   walletId: args.item1,
                   coin: args.item2,
                 ),
-                const ExchangeLoadingOverlayView(),
+                ExchangeLoadingOverlayView(
+                  unawaitedLoad: args.item3,
+                ),
               ],
             ),
             settings: RouteSettings(

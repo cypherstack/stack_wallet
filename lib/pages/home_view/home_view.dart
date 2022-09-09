@@ -13,6 +13,7 @@ import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
+import 'package:stackwallet/services/change_now/change_now_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -39,6 +40,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
   DateTime? _cachedTime;
 
   bool _exitEnabled = false;
+
+  final _cnLoadingService = ChangeNowLoadingService();
 
   Future<bool> _onWillPop() async {
     if (_exitEnabled) {
@@ -70,6 +73,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
     return _exitEnabled;
   }
 
+  void _loadCNData() {
+    // unawaited future
+    _cnLoadingService.loadAll(ref);
+  }
+
   @override
   void initState() {
     _pageController = PageController();
@@ -77,9 +85,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
       const WalletsView(),
       if (Constants.enableExchange)
         Stack(
-          children: const [
-            ExchangeView(),
-            ExchangeLoadingOverlayView(),
+          children: [
+            const ExchangeView(),
+            ExchangeLoadingOverlayView(
+              unawaitedLoad: _loadCNData,
+            ),
           ],
         ),
       // const BuyView(),
