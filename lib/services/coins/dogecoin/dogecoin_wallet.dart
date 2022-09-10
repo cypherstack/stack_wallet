@@ -251,7 +251,7 @@ class DogecoinWallet extends CoinServiceAPI {
   }
 
   Future<void> updateStoredChainHeight({required int newHeight}) async {
-    DB.instance.put<dynamic>(
+    await DB.instance.put<dynamic>(
         boxName: walletId, key: "storedChainHeight", value: newHeight);
   }
 
@@ -365,7 +365,7 @@ class DogecoinWallet extends CoinServiceAPI {
           "index: $index, \t GapCounter $account ${type.name}: $gapCounter",
           level: LogLevel.Info);
 
-      final ID = "k_$index";
+      final _id = "k_$index";
       Map<String, String> txCountCallArgs = {};
       final Map<String, dynamic> receivingNodes = {};
 
@@ -392,13 +392,13 @@ class DogecoinWallet extends CoinServiceAPI {
             throw Exception("No Path type $type exists");
         }
         receivingNodes.addAll({
-          "${ID}_$j": {
+          "${_id}_$j": {
             "node": node,
             "address": address,
           }
         });
         txCountCallArgs.addAll({
-          "${ID}_$j": address,
+          "${_id}_$j": address,
         });
       }
 
@@ -407,9 +407,9 @@ class DogecoinWallet extends CoinServiceAPI {
 
       // check and add appropriate addresses
       for (int k = 0; k < txCountBatchSize; k++) {
-        int count = counts["${ID}_$k"]!;
+        int count = counts["${_id}_$k"]!;
         if (count > 0) {
-          final node = receivingNodes["${ID}_$k"];
+          final node = receivingNodes["${_id}_$k"];
           // add address to array
           addressArray.add(node["address"] as String);
           iterationsAddressArray.add(node["address"] as String);
@@ -455,7 +455,7 @@ class DogecoinWallet extends CoinServiceAPI {
           continue;
         }
       }
-    } catch (e, s) {
+    } catch (e) {
       //
     }
   }
@@ -485,13 +485,13 @@ class DogecoinWallet extends CoinServiceAPI {
       // receiving addresses
       Logging.instance
           .log("checking receiving addresses...", level: LogLevel.Info);
-      Future resultReceive44 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultReceive44 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
 
       Logging.instance
           .log("checking change addresses...", level: LogLevel.Info);
       // change addresses
-      Future resultChange44 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultChange44 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
 
       await Future.wait([
@@ -653,7 +653,7 @@ class DogecoinWallet extends CoinServiceAPI {
     // notify on new incoming transaction
     for (final tx in unconfirmedTxnsToNotifyPending) {
       if (tx.txType == "Received") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Incoming transaction",
           body: walletName,
           walletId: walletId,
@@ -664,10 +664,10 @@ class DogecoinWallet extends CoinServiceAPI {
           txid: tx.txid,
           confirmations: tx.confirmations,
           requiredConfirmations: MINIMUM_CONFIRMATIONS,
-        );
+        ));
         await txTracker.addNotifiedPending(tx.txid);
       } else if (tx.txType == "Sent") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Sending transaction",
           body: walletName,
           walletId: walletId,
@@ -678,7 +678,7 @@ class DogecoinWallet extends CoinServiceAPI {
           txid: tx.txid,
           confirmations: tx.confirmations,
           requiredConfirmations: MINIMUM_CONFIRMATIONS,
-        );
+        ));
         await txTracker.addNotifiedPending(tx.txid);
       }
     }
@@ -686,7 +686,7 @@ class DogecoinWallet extends CoinServiceAPI {
     // notify on confirmed
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
       if (tx.txType == "Received") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Incoming transaction confirmed",
           body: walletName,
           walletId: walletId,
@@ -694,11 +694,11 @@ class DogecoinWallet extends CoinServiceAPI {
           date: DateTime.now(),
           shouldWatchForUpdates: false,
           coinName: coin.name,
-        );
+        ));
 
         await txTracker.addNotifiedConfirmed(tx.txid);
       } else if (tx.txType == "Sent") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Outgoing transaction confirmed",
           body: walletName,
           walletId: walletId,
@@ -706,7 +706,7 @@ class DogecoinWallet extends CoinServiceAPI {
           date: DateTime.now(),
           shouldWatchForUpdates: false,
           coinName: coin.name,
-        );
+        ));
         await txTracker.addNotifiedConfirmed(tx.txid);
       }
     }
@@ -770,7 +770,7 @@ class DogecoinWallet extends CoinServiceAPI {
       if (currentHeight != storedHeight) {
         if (currentHeight != -1) {
           // -1 failed to fetch current height
-          updateStoredChainHeight(newHeight: currentHeight);
+          unawaited(updateStoredChainHeight(newHeight: currentHeight));
         }
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
@@ -1127,7 +1127,7 @@ class DogecoinWallet extends CoinServiceAPI {
     );
 
     if (shouldRefresh) {
-      refresh();
+      unawaited(refresh());
     }
   }
 
@@ -2796,7 +2796,7 @@ class DogecoinWallet extends CoinServiceAPI {
     );
 
     // clear cache
-    _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
+    await _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
 
     // back up data
     await _rescanBackup();
@@ -3062,6 +3062,7 @@ class DogecoinWallet extends CoinServiceAPI {
     return available - estimatedFee;
   }
 
+  @override
   Future<bool> generateNewAddress() async {
     try {
       await _incrementAddressIndexForChain(

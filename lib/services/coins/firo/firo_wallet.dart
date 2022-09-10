@@ -1127,7 +1127,7 @@ class FiroWallet extends CoinServiceAPI {
       final balance =
           Format.decimalAmountToSatoshis(await availablePrivateBalance());
       if (satoshiAmount == balance) {
-        print("is send all");
+        // print("is send all");
         isSendAll = true;
       }
       dynamic txHexOrError =
@@ -2796,18 +2796,18 @@ class FiroWallet extends CoinServiceAPI {
     final listTxData = txData.getAllTransactions();
     listTxData.forEach((key, value) {
       // ignore change addresses
-      bool hasAtLeastOneReceive = false;
+      // bool hasAtLeastOneReceive = false;
       // int howManyReceiveInputs = 0;
-      for (var element in value.inputs) {
-        if (listLelantusTxData.containsKey(element.txid) &&
-                listLelantusTxData[element.txid]!.txType == "Received"
-            // &&
-            // listLelantusTxData[element.txid].subType != "mint"
-            ) {
-          hasAtLeastOneReceive = true;
-          // howManyReceiveInputs++;
-        }
-      }
+      // for (var element in value.inputs) {
+      //   if (listLelantusTxData.containsKey(element.txid) &&
+      //           listLelantusTxData[element.txid]!.txType == "Received"
+      //       // &&
+      //       // listLelantusTxData[element.txid].subType != "mint"
+      //       ) {
+      //     // hasAtLeastOneReceive = true;
+      //     // howManyReceiveInputs++;
+      //   }
+      // }
 
       if (value.txType == "Received" && value.subType != "mint") {
         // Every receive other than a mint should be shown. Mints will be collected and shown from the send side
@@ -4238,7 +4238,7 @@ class FiroWallet extends CoinServiceAPI {
   Future<void> _restore(int latestSetId, Map<dynamic, dynamic> setDataMap,
       dynamic usedSerialNumbers) async {
     final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-    Future data = _txnData;
+    final dataFuture = _txnData;
     final String currency = _prefs.currency;
     final Decimal currentPrice = await firoPrice;
 
@@ -4252,7 +4252,7 @@ class FiroWallet extends CoinServiceAPI {
       "network": _network,
     });
 
-    await Future.wait([data]);
+    await Future.wait([dataFuture]);
     var result = await receivePort.first;
     if (result is String) {
       Logging.instance
@@ -4263,8 +4263,7 @@ class FiroWallet extends CoinServiceAPI {
     stop(receivePort);
 
     final message = await staticProcessRestore(
-        (await data) as models.TransactionData,
-        result as Map<dynamic, dynamic>);
+        (await dataFuture), result as Map<dynamic, dynamic>);
 
     await DB.instance.put<dynamic>(
         boxName: walletId, key: 'mintIndex', value: message['mintIndex']);
@@ -4305,7 +4304,7 @@ class FiroWallet extends CoinServiceAPI {
       final latestSetId = await getLatestSetId();
 
       final List<Map<String, dynamic>> sets = [];
-      List<Future> anonFutures = [];
+      List<Future<Map<String, dynamic>>> anonFutures = [];
       for (int i = 1; i <= latestSetId; i++) {
         final set = cachedElectrumXClient.getAnonymitySet(
           groupId: "$i",
@@ -4315,8 +4314,7 @@ class FiroWallet extends CoinServiceAPI {
       }
       await Future.wait(anonFutures);
       for (int i = 1; i <= latestSetId; i++) {
-        Map<String, dynamic> set =
-            (await anonFutures[i - 1]) as Map<String, dynamic>;
+        Map<String, dynamic> set = (await anonFutures[i - 1]);
         set["setId"] = i;
         sets.add(set);
       }

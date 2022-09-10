@@ -418,7 +418,7 @@ class BitcoinWallet extends CoinServiceAPI {
           "index: $index, \t GapCounter $account ${type.name}: $gapCounter",
           level: LogLevel.Info);
 
-      final ID = "k_$index";
+      final _id = "k_$index";
       Map<String, String> txCountCallArgs = {};
       final Map<String, dynamic> receivingNodes = {};
 
@@ -463,13 +463,13 @@ class BitcoinWallet extends CoinServiceAPI {
             throw Exception("No Path type $type exists");
         }
         receivingNodes.addAll({
-          "${ID}_$j": {
+          "${_id}_$j": {
             "node": node,
             "address": address,
           }
         });
         txCountCallArgs.addAll({
-          "${ID}_$j": address,
+          "${_id}_$j": address,
         });
       }
 
@@ -478,9 +478,9 @@ class BitcoinWallet extends CoinServiceAPI {
 
       // check and add appropriate addresses
       for (int k = 0; k < txCountBatchSize; k++) {
-        int count = counts["${ID}_$k"]!;
+        int count = counts["${_id}_$k"]!;
         if (count > 0) {
-          final node = receivingNodes["${ID}_$k"];
+          final node = receivingNodes["${_id}_$k"];
           // add address to array
           addressArray.add(node["address"] as String);
           iterationsAddressArray.add(node["address"] as String);
@@ -526,7 +526,7 @@ class BitcoinWallet extends CoinServiceAPI {
           continue;
         }
       }
-    } catch (e, s) {
+    } catch (e) {
       //
     }
   }
@@ -568,25 +568,25 @@ class BitcoinWallet extends CoinServiceAPI {
       // receiving addresses
       Logging.instance
           .log("checking receiving addresses...", level: LogLevel.Info);
-      Future resultReceive44 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultReceive44 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
 
-      Future resultReceive49 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultReceive49 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 0);
 
-      Future resultReceive84 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultReceive84 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip84, 0);
 
       Logging.instance
           .log("checking change addresses...", level: LogLevel.Info);
       // change addresses
-      Future resultChange44 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultChange44 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
 
-      Future resultChange49 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultChange49 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 1);
 
-      Future resultChange84 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultChange84 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip84, 1);
 
       await Future.wait([
@@ -851,7 +851,7 @@ class BitcoinWallet extends CoinServiceAPI {
     // notify on unconfirmed transactions
     for (final tx in unconfirmedTxnsToNotifyPending) {
       if (tx.txType == "Received") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Incoming transaction",
           body: walletName,
           walletId: walletId,
@@ -862,10 +862,10 @@ class BitcoinWallet extends CoinServiceAPI {
           txid: tx.txid,
           confirmations: tx.confirmations,
           requiredConfirmations: MINIMUM_CONFIRMATIONS,
-        );
+        ));
         await txTracker.addNotifiedPending(tx.txid);
       } else if (tx.txType == "Sent") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Sending transaction",
           body: walletName,
           walletId: walletId,
@@ -876,7 +876,7 @@ class BitcoinWallet extends CoinServiceAPI {
           txid: tx.txid,
           confirmations: tx.confirmations,
           requiredConfirmations: MINIMUM_CONFIRMATIONS,
-        );
+        ));
         await txTracker.addNotifiedPending(tx.txid);
       }
     }
@@ -884,7 +884,7 @@ class BitcoinWallet extends CoinServiceAPI {
     // notify on confirmed
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
       if (tx.txType == "Received") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Incoming transaction confirmed",
           body: walletName,
           walletId: walletId,
@@ -892,10 +892,10 @@ class BitcoinWallet extends CoinServiceAPI {
           date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
           shouldWatchForUpdates: false,
           coinName: coin.name,
-        );
+        ));
         await txTracker.addNotifiedConfirmed(tx.txid);
       } else if (tx.txType == "Sent") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Outgoing transaction confirmed",
           body: walletName,
           walletId: walletId,
@@ -903,7 +903,7 @@ class BitcoinWallet extends CoinServiceAPI {
           date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
           shouldWatchForUpdates: false,
           coinName: coin.name,
-        );
+        ));
         await txTracker.addNotifiedConfirmed(tx.txid);
       }
     }
@@ -970,15 +970,15 @@ class BitcoinWallet extends CoinServiceAPI {
       if (currentHeight != storedHeight) {
         if (currentHeight != -1) {
           // -1 failed to fetch current height
-          updateStoredChainHeight(newHeight: currentHeight);
+          unawaited(updateStoredChainHeight(newHeight: currentHeight));
         }
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
-        Future changeAddressForTransactions =
+        final changeAddressForTransactions =
             _checkChangeAddressForTransactions(DerivePathType.bip84);
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
-        Future currentReceivingAddressesForTransactions =
+        final currentReceivingAddressesForTransactions =
             _checkCurrentReceivingAddressesForTransactions();
 
         final newTxData = _fetchTransactionData();
@@ -999,7 +999,7 @@ class BitcoinWallet extends CoinServiceAPI {
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.80, walletId));
 
-        Future allTxsToWatch = getAllTxsToWatch(await newTxData);
+        final allTxsToWatch = getAllTxsToWatch(await newTxData);
         await Future.wait([
           newTxData,
           changeAddressForTransactions,
@@ -1358,7 +1358,7 @@ class BitcoinWallet extends CoinServiceAPI {
     );
 
     if (shouldRefresh) {
-      refresh();
+      unawaited(refresh());
     }
   }
 
