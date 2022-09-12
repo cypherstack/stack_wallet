@@ -26,6 +26,7 @@ import 'firo_wallet_test.mocks.dart';
 import 'firo_wallet_test_parameters.dart';
 import 'sample_data/get_anonymity_set_sample_data.dart';
 import 'sample_data/get_used_serials_sample_data.dart';
+import 'sample_data/get_utxos_sample_data.dart';
 import 'sample_data/gethistory_samples.dart';
 import 'sample_data/transaction_data_samples.dart';
 
@@ -66,18 +67,15 @@ void main() {
         return SampleGetTransactionData.txData7;
       });
 
-      final result = await isolateRestore(
+      final message = await isolateRestore(
         TEST_MNEMONIC,
-        txData,
-        "USD",
         Coin.firo,
         1,
         setData,
         usedSerials,
         firoNetwork,
-        Decimal.ten,
-        "en_US",
       );
+      final result = await staticProcessRestore(txData, message);
 
       expect(result, isA<Map<String, dynamic>>());
       expect(result["mintIndex"], 8);
@@ -88,22 +86,17 @@ void main() {
     });
 
     test("isolateRestore throws", () async {
-      final txData = TransactionData();
       final Map setData = {};
       final usedSerials = [];
 
       expect(
           () => isolateRestore(
                 TEST_MNEMONIC,
-                txData,
-                "USD",
                 Coin.firo,
                 1,
                 setData,
                 usedSerials,
                 firoNetwork,
-                Decimal.ten,
-                "en_US",
               ),
           throwsA(isA<Error>()));
     });
@@ -1018,15 +1011,8 @@ void main() {
                 "f4217364cbe6a81ef7ecaaeba0a6d6b576a9850b3e891fa7b88ed4927c505218"))
             .thenAnswer((realInvocation) => true);
 
-        // mock history calls
-        when(client.getHistory(scripthash: SampleGetHistoryData.scripthash0))
-            .thenAnswer((_) async => SampleGetHistoryData.data0);
-        when(client.getHistory(scripthash: SampleGetHistoryData.scripthash1))
-            .thenAnswer((_) async => SampleGetHistoryData.data1);
-        when(client.getHistory(scripthash: SampleGetHistoryData.scripthash2))
-            .thenAnswer((_) async => SampleGetHistoryData.data2);
-        when(client.getHistory(scripthash: SampleGetHistoryData.scripthash3))
-            .thenAnswer((_) async => SampleGetHistoryData.data3);
+        when(client.getBatchHistory(args: batchHistoryRequest0))
+            .thenAnswer((realInvocation) async => batchHistoryResponse0);
 
         // mock transaction calls
         when(cachedClient.getTransaction(
@@ -1322,6 +1308,48 @@ void main() {
       );
 
       when(cachedClient.getTransaction(
+        txHash: SampleGetTransactionData.txHash0,
+        coin: Coin.firo,
+      )).thenAnswer((_) async {
+        return SampleGetTransactionData.txData0;
+      });
+      when(cachedClient.getTransaction(
+        txHash: SampleGetTransactionData.txHash1,
+        coin: Coin.firo,
+      )).thenAnswer((_) async {
+        return SampleGetTransactionData.txData1;
+      });
+      when(cachedClient.getTransaction(
+        txHash: SampleGetTransactionData.txHash2,
+        coin: Coin.firo,
+      )).thenAnswer((_) async {
+        return SampleGetTransactionData.txData2;
+      });
+      when(cachedClient.getTransaction(
+        txHash: SampleGetTransactionData.txHash3,
+        coin: Coin.firo,
+      )).thenAnswer((_) async {
+        return SampleGetTransactionData.txData3;
+      });
+      when(cachedClient.getTransaction(
+        txHash: SampleGetTransactionData.txHash4,
+        coin: Coin.firo,
+      )).thenAnswer((_) async {
+        return SampleGetTransactionData.txData4;
+      });
+      when(cachedClient.getTransaction(
+        txHash: SampleGetTransactionData.txHash5,
+        coin: Coin.firo,
+      )).thenAnswer((_) async {
+        return SampleGetTransactionData.txData5;
+      });
+      when(cachedClient.getTransaction(
+        txHash: SampleGetTransactionData.txHash6,
+        coin: Coin.firo,
+      )).thenAnswer((_) async {
+        return SampleGetTransactionData.txData6;
+      });
+      when(cachedClient.getTransaction(
         txHash: SampleGetTransactionData.txHash8,
         coin: Coin.firo,
       )).thenAnswer((_) async {
@@ -1415,6 +1443,14 @@ void main() {
             .thenAnswer((_) async => data);
       }
 
+      when(client.getBatchHistory(args: {
+        "0": [SampleGetHistoryData.scripthash0],
+        "1": [SampleGetHistoryData.scripthash3]
+      })).thenAnswer((realInvocation) async => {
+            "0": SampleGetHistoryData.data0,
+            "1": SampleGetHistoryData.data3,
+          });
+
       await firo.recoverFromMnemonic(
           mnemonic: TEST_MNEMONIC,
           maxUnusedAddressGap: 20,
@@ -1473,8 +1509,8 @@ void main() {
       expect(jIndex, [2, 4, 6]);
 
       final lelantusTxModel = await wallet.get('latest_lelantus_tx_model');
-      expect(lelantusTxModel.getAllTransactions().length, 3);
-    }, timeout: const Timeout(Duration(minutes: 3)));
+      expect(lelantusTxModel.getAllTransactions().length, 5);
+    }, timeout: const Timeout(Duration(minutes: 5)));
 
     test("fullRescan succeeds", () async {
       TestWidgetsFlutterBinding.ensureInitialized();
@@ -1580,6 +1616,14 @@ void main() {
             .thenAnswer((_) async => data);
       }
 
+      when(client.getBatchHistory(args: {
+        "0": [SampleGetHistoryData.scripthash0],
+        "1": [SampleGetHistoryData.scripthash3]
+      })).thenAnswer((realInvocation) async => {
+            "0": SampleGetHistoryData.data0,
+            "1": SampleGetHistoryData.data3,
+          });
+
       // mock transaction calls
       when(cachedClient.getTransaction(
         txHash: SampleGetTransactionData.txHash0,
@@ -1680,8 +1724,8 @@ void main() {
       expect(jIndex, [2, 4, 6]);
 
       final lelantusTxModel = await wallet.get('latest_lelantus_tx_model');
-      expect(lelantusTxModel.getAllTransactions().length, 3);
-    }, timeout: Timeout(Duration(minutes: 3)));
+      expect(lelantusTxModel.getAllTransactions().length, 5);
+    }, timeout: const Timeout(Duration(minutes: 3)));
 
     test("fullRescan fails", () async {
       TestWidgetsFlutterBinding.ensureInitialized();
@@ -1939,6 +1983,14 @@ void main() {
             .thenAnswer((_) async => data);
       }
 
+      when(client.getBatchHistory(args: {
+        "0": [SampleGetHistoryData.scripthash0],
+        "1": [SampleGetHistoryData.scripthash3]
+      })).thenAnswer((realInvocation) async => {
+            "0": SampleGetHistoryData.data0,
+            "1": SampleGetHistoryData.data3,
+          });
+
       // mock transaction calls
       when(cachedClient.getTransaction(
         txHash: SampleGetTransactionData.txHash0,
@@ -2043,7 +2095,7 @@ void main() {
       expect(jIndex, [2, 4, 6]);
 
       final lelantusTxModel = await wallet.get('latest_lelantus_tx_model');
-      expect(lelantusTxModel.getAllTransactions().length, 3);
+      expect(lelantusTxModel.getAllTransactions().length, 5);
 
       await firo.fullRescan(20, 1000);
 
@@ -2099,7 +2151,7 @@ void main() {
       expect(_jIndex, [2, 4, 6]);
 
       final _lelantusTxModel = await wallet.get('latest_lelantus_tx_model');
-      expect(_lelantusTxModel.getAllTransactions().length, 3);
+      expect(_lelantusTxModel.getAllTransactions().length, 5);
     }, timeout: const Timeout(Duration(minutes: 6)));
 
     test("recoverFromMnemonic fails testnet", () async {
@@ -2397,7 +2449,11 @@ void main() {
       expect(serials, GetUsedSerialsSampleData.serials['serials']);
     });
 
-    test("refresh", () async {
+    test("firo refresh", () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      const MethodChannel('uk.spiralarm.flutter/devicelocale')
+          .setMockMethodCallHandler((methodCall) async => 'en_US');
+
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
@@ -2407,6 +2463,21 @@ void main() {
       await secureStore.write(
           key: "${testWalletId}refresh_mnemonic",
           value: RefreshTestParams.mnemonic);
+
+      when(client.getBatchUTXOs(args: batchUtxoRequest))
+          .thenAnswer((realInvocation) async => {});
+
+      when(client.getBatchHistory(args: {
+        "0": [SampleGetHistoryData.scripthash1],
+        "1": [SampleGetHistoryData.scripthash0],
+        "2": [SampleGetHistoryData.scripthash2],
+        "3": [SampleGetHistoryData.scripthash3],
+      })).thenAnswer((realInvocation) async => {
+            "0": SampleGetHistoryData.data1,
+            "1": SampleGetHistoryData.data0,
+            "2": SampleGetHistoryData.data2,
+            "3": SampleGetHistoryData.data3,
+          });
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
@@ -2688,6 +2759,10 @@ void main() {
     // }, timeout: const Timeout(Duration(minutes: 3)));
 
     test("send fails due to insufficient balance", () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      const MethodChannel('uk.spiralarm.flutter/devicelocale')
+          .setMockMethodCallHandler((methodCall) async => 'en_US');
+
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
@@ -2711,6 +2786,8 @@ void main() {
         final txid = Format.uint8listToString(reversedBytes);
         return txid;
       });
+      when(client.getBatchHistory(args: batchHistoryRequest0))
+          .thenAnswer((realInvocation) async => batchHistoryResponse0);
 
       when(cachedClient.getAnonymitySet(
         groupId: "1",
@@ -2859,9 +2936,13 @@ void main() {
           () async => await firo.send(
               toAddress: "aHZJsucDrhr4Uzzx6XXrKnaTgLxsEAokvV", amount: 100),
           throwsA(isA<Exception>()));
-    }, timeout: Timeout(const Duration(minutes: 3)));
+    }, timeout: const Timeout(Duration(minutes: 3)));
 
     test("send fails due to bad transaction created", () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      const MethodChannel('uk.spiralarm.flutter/devicelocale')
+          .setMockMethodCallHandler((methodCall) async => 'en_US');
+
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
@@ -2874,6 +2955,9 @@ void main() {
           .thenAnswer((_) async {
         return "some bad txid";
       });
+
+      when(client.getBatchHistory(args: batchHistoryRequest0))
+          .thenAnswer((realInvocation) async => batchHistoryResponse0);
 
       when(cachedClient.getAnonymitySet(
         groupId: "1",
@@ -3022,9 +3106,13 @@ void main() {
           () async => await firo.send(
               toAddress: "aHZJsucDrhr4Uzzx6XXrKnaTgLxsEAokvV", amount: 100),
           throwsA(isA<Exception>()));
-    }, timeout: Timeout(const Duration(minutes: 3)));
+    }, timeout: const Timeout(Duration(minutes: 3)));
 
     test("wallet balances", () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      const MethodChannel('uk.spiralarm.flutter/devicelocale')
+          .setMockMethodCallHandler((methodCall) async => 'en_US');
+
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final priceAPI = MockPriceAPI();
@@ -3041,6 +3129,12 @@ void main() {
           .thenAnswer((_) async => SampleGetHistoryData.data2);
       when(client.getHistory(scripthash: SampleGetHistoryData.scripthash3))
           .thenAnswer((_) async => SampleGetHistoryData.data3);
+
+      when(client.getBatchHistory(args: batchHistoryRequest0))
+          .thenAnswer((realInvocation) async => batchHistoryResponse0);
+
+      when(client.getBatchUTXOs(args: batchUtxoRequest))
+          .thenAnswer((realInvocation) async => {});
 
       // mock transaction calls
       when(cachedClient.getTransaction(
@@ -3111,6 +3205,12 @@ void main() {
       final cachedClient = MockCachedElectrumX();
       final priceAPI = MockPriceAPI();
       final secureStore = FakeSecureStorage();
+
+      when(client.getBatchHistory(args: batchHistoryRequest0))
+          .thenAnswer((realInvocation) async => batchHistoryResponse0);
+
+      when(client.getBatchUTXOs(args: batchUtxoRequest))
+          .thenAnswer((realInvocation) async => {});
 
       // mock price calls
       when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
@@ -3189,6 +3289,10 @@ void main() {
     });
 
     test("wallet balance minus maxfee - wallet balance is not zero", () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      const MethodChannel('uk.spiralarm.flutter/devicelocale')
+          .setMockMethodCallHandler((methodCall) async => 'en_US');
+
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final priceAPI = MockPriceAPI();
@@ -3207,6 +3311,12 @@ void main() {
           .thenAnswer((_) async => SampleGetHistoryData.data2);
       when(client.getHistory(scripthash: SampleGetHistoryData.scripthash3))
           .thenAnswer((_) async => SampleGetHistoryData.data3);
+
+      when(client.getBatchHistory(args: batchHistoryRequest0))
+          .thenAnswer((realInvocation) async => batchHistoryResponse0);
+
+      when(client.getBatchUTXOs(args: batchUtxoRequest))
+          .thenAnswer((realInvocation) async => {});
 
       // mock transaction calls
       when(cachedClient.getTransaction(

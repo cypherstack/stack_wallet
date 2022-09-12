@@ -399,6 +399,138 @@ class BitcoinWallet extends CoinServiceAPI {
         level: LogLevel.Info);
   }
 
+  Future<Map<String, dynamic>> _checkGaps(
+      int maxNumberOfIndexesToCheck,
+      int maxUnusedAddressGap,
+      int txCountBatchSize,
+      bip32.BIP32 root,
+      DerivePathType type,
+      int account) async {
+    List<String> addressArray = [];
+    int returningIndex = -1;
+    Map<String, Map<String, String>> derivations = {};
+    int gapCounter = 0;
+    for (int index = 0;
+        index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
+        index += txCountBatchSize) {
+      List<String> iterationsAddressArray = [];
+      Logging.instance.log(
+          "index: $index, \t GapCounter $account ${type.name}: $gapCounter",
+          level: LogLevel.Info);
+
+      final _id = "k_$index";
+      Map<String, String> txCountCallArgs = {};
+      final Map<String, dynamic> receivingNodes = {};
+
+      for (int j = 0; j < txCountBatchSize; j++) {
+        final node = await compute(
+          getBip32NodeFromRootWrapper,
+          Tuple4(
+            account,
+            index + j,
+            root,
+            type,
+          ),
+        );
+        String? address;
+        switch (type) {
+          case DerivePathType.bip44:
+            address = P2PKH(
+                    data: PaymentData(pubkey: node.publicKey),
+                    network: _network)
+                .data
+                .address!;
+            break;
+          case DerivePathType.bip49:
+            address = P2SH(
+                    data: PaymentData(
+                        redeem: P2WPKH(
+                                data: PaymentData(pubkey: node.publicKey),
+                                network: _network)
+                            .data),
+                    network: _network)
+                .data
+                .address!;
+            break;
+          case DerivePathType.bip84:
+            address = P2WPKH(
+                    network: _network,
+                    data: PaymentData(pubkey: node.publicKey))
+                .data
+                .address!;
+            break;
+          default:
+            throw Exception("No Path type $type exists");
+        }
+        receivingNodes.addAll({
+          "${_id}_$j": {
+            "node": node,
+            "address": address,
+          }
+        });
+        txCountCallArgs.addAll({
+          "${_id}_$j": address,
+        });
+      }
+
+      // get address tx counts
+      final counts = await _getBatchTxCount(addresses: txCountCallArgs);
+
+      // check and add appropriate addresses
+      for (int k = 0; k < txCountBatchSize; k++) {
+        int count = counts["${_id}_$k"]!;
+        if (count > 0) {
+          final node = receivingNodes["${_id}_$k"];
+          // add address to array
+          addressArray.add(node["address"] as String);
+          iterationsAddressArray.add(node["address"] as String);
+          // set current index
+          returningIndex = index + k;
+          // reset counter
+          gapCounter = 0;
+          // add info to derivations
+          derivations[node["address"] as String] = {
+            "pubKey": Format.uint8listToString(
+                (node["node"] as bip32.BIP32).publicKey),
+            "wif": (node["node"] as bip32.BIP32).toWIF(),
+          };
+        }
+
+        // increase counter when no tx history found
+        if (count == 0) {
+          gapCounter++;
+        }
+      }
+      // cache all the transactions while waiting for the current function to finish.
+      unawaited(getTransactionCacheEarly(iterationsAddressArray));
+    }
+    return {
+      "addressArray": addressArray,
+      "index": returningIndex,
+      "derivations": derivations
+    };
+  }
+
+  Future<void> getTransactionCacheEarly(List<String> allAddresses) async {
+    try {
+      final List<Map<String, dynamic>> allTxHashes =
+          await _fetchHistory(allAddresses);
+      for (final txHash in allTxHashes) {
+        try {
+          unawaited(cachedElectrumXClient.getTransaction(
+            txHash: txHash["tx_hash"] as String,
+            verbose: true,
+            coin: coin,
+          ));
+        } catch (e) {
+          continue;
+        }
+      }
+    } catch (e) {
+      //
+    }
+  }
+
   Future<void> _recoverWalletFromBIP32SeedPhrase({
     required String mnemonic,
     int maxUnusedAddressGap = 20,
@@ -429,10 +561,6 @@ class BitcoinWallet extends CoinServiceAPI {
     int p2shChangeIndex = -1;
     int p2wpkhChangeIndex = -1;
 
-    // The gap limit will be capped at [maxUnusedAddressGap]
-    int receivingGapCounter = 0;
-    int changeGapCounter = 0;
-
     // actual size is 36 due to p2pkh, p2sh, and p2wpkh so 12x3
     const txCountBatchSize = 12;
 
@@ -440,323 +568,71 @@ class BitcoinWallet extends CoinServiceAPI {
       // receiving addresses
       Logging.instance
           .log("checking receiving addresses...", level: LogLevel.Info);
-      for (int index = 0;
-          index < maxNumberOfIndexesToCheck &&
-              receivingGapCounter < maxUnusedAddressGap;
-          index += txCountBatchSize) {
-        Logging.instance.log(
-            "index: $index, \t receivingGapCounter: $receivingGapCounter",
-            level: LogLevel.Info);
+      final resultReceive44 = _checkGaps(maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
 
-        final receivingP2pkhID = "k_$index";
-        final receivingP2shID = "s_$index";
-        final receivingP2wpkhID = "w_$index";
-        Map<String, String> txCountCallArgs = {};
-        final Map<String, dynamic> receivingNodes = {};
+      final resultReceive49 = _checkGaps(maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 0);
 
-        for (int j = 0; j < txCountBatchSize; j++) {
-          // bip44 / P2PKH
-          final node44 = await compute(
-            getBip32NodeFromRootWrapper,
-            Tuple4(
-              0,
-              index + j,
-              root,
-              DerivePathType.bip44,
-            ),
-          );
-          final p2pkhReceiveAddress = P2PKH(
-                  data: PaymentData(pubkey: node44.publicKey),
-                  network: _network)
-              .data
-              .address!;
-          receivingNodes.addAll({
-            "${receivingP2pkhID}_$j": {
-              "node": node44,
-              "address": p2pkhReceiveAddress,
-            }
-          });
-          txCountCallArgs.addAll({
-            "${receivingP2pkhID}_$j": p2pkhReceiveAddress,
-          });
-
-          // bip49 / P2SH
-          final node49 = await compute(
-            getBip32NodeFromRootWrapper,
-            Tuple4(
-              0,
-              index + j,
-              root,
-              DerivePathType.bip49,
-            ),
-          );
-          final p2shReceiveAddress = P2SH(
-                  data: PaymentData(
-                      redeem: P2WPKH(
-                              data: PaymentData(pubkey: node49.publicKey),
-                              network: _network)
-                          .data),
-                  network: _network)
-              .data
-              .address!;
-          receivingNodes.addAll({
-            "${receivingP2shID}_$j": {
-              "node": node49,
-              "address": p2shReceiveAddress,
-            }
-          });
-          txCountCallArgs.addAll({
-            "${receivingP2shID}_$j": p2shReceiveAddress,
-          });
-
-          // bip84 / P2WPKH
-          final node84 = await compute(
-            getBip32NodeFromRootWrapper,
-            Tuple4(
-              0,
-              index + j,
-              root,
-              DerivePathType.bip84,
-            ),
-          );
-          final p2wpkhReceiveAddress = P2WPKH(
-                  network: _network,
-                  data: PaymentData(pubkey: node84.publicKey))
-              .data
-              .address!;
-          receivingNodes.addAll({
-            "${receivingP2wpkhID}_$j": {
-              "node": node84,
-              "address": p2wpkhReceiveAddress,
-            }
-          });
-          txCountCallArgs.addAll({
-            "${receivingP2wpkhID}_$j": p2wpkhReceiveAddress,
-          });
-        }
-
-        // get address tx counts
-        final counts = await _getBatchTxCount(addresses: txCountCallArgs);
-
-        // check and add appropriate addresses
-        for (int k = 0; k < txCountBatchSize; k++) {
-          int p2pkhTxCount = counts["${receivingP2pkhID}_$k"]!;
-          if (p2pkhTxCount > 0) {
-            final node = receivingNodes["${receivingP2pkhID}_$k"];
-            // add address to array
-            p2pkhReceiveAddressArray.add(node["address"] as String);
-            // set current index
-            p2pkhReceiveIndex = index + k;
-            // reset counter
-            receivingGapCounter = 0;
-            // add info to derivations
-            p2pkhReceiveDerivations[node["address"] as String] = {
-              "pubKey": Format.uint8listToString(
-                  (node["node"] as bip32.BIP32).publicKey),
-              "wif": (node["node"] as bip32.BIP32).toWIF(),
-            };
-          }
-
-          int p2shTxCount = counts["${receivingP2shID}_$k"]!;
-          if (p2shTxCount > 0) {
-            final node = receivingNodes["${receivingP2shID}_$k"];
-            // add address to array
-            p2shReceiveAddressArray.add(node["address"] as String);
-            // set current index
-            p2shReceiveIndex = index + k;
-            // reset counter
-            receivingGapCounter = 0;
-            // add info to derivations
-            p2shReceiveDerivations[node["address"] as String] = {
-              "pubKey": Format.uint8listToString(
-                  (node["node"] as bip32.BIP32).publicKey),
-              "wif": (node["node"] as bip32.BIP32).toWIF(),
-            };
-          }
-
-          int p2wpkhTxCount = counts["${receivingP2wpkhID}_$k"]!;
-          if (p2wpkhTxCount > 0) {
-            final node = receivingNodes["${receivingP2wpkhID}_$k"];
-            // add address to array
-            p2wpkhReceiveAddressArray.add(node["address"] as String);
-            // set current index
-            p2wpkhReceiveIndex = index + k;
-            // reset counter
-            receivingGapCounter = 0;
-            // add info to derivations
-            p2wpkhReceiveDerivations[node["address"] as String] = {
-              "pubKey": Format.uint8listToString(
-                  (node["node"] as bip32.BIP32).publicKey),
-              "wif": (node["node"] as bip32.BIP32).toWIF(),
-            };
-          }
-
-          // increase counter when no tx history found
-          if (p2wpkhTxCount == 0 && p2pkhTxCount == 0 && p2shTxCount == 0) {
-            receivingGapCounter++;
-          }
-        }
-      }
+      final resultReceive84 = _checkGaps(maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip84, 0);
 
       Logging.instance
           .log("checking change addresses...", level: LogLevel.Info);
       // change addresses
-      for (int index = 0;
-          index < maxNumberOfIndexesToCheck &&
-              changeGapCounter < maxUnusedAddressGap;
-          index += txCountBatchSize) {
-        Logging.instance.log(
-            "index: $index, \t changeGapCounter: $changeGapCounter",
-            level: LogLevel.Info);
-        final changeP2pkhID = "k_$index";
-        final changeP2shID = "s_$index";
-        final changeP2wpkhID = "w_$index";
-        Map<String, String> args = {};
-        final Map<String, dynamic> changeNodes = {};
+      final resultChange44 = _checkGaps(maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
 
-        for (int j = 0; j < txCountBatchSize; j++) {
-          // bip44 / P2PKH
-          final node44 = await compute(
-            getBip32NodeFromRootWrapper,
-            Tuple4(
-              1,
-              index + j,
-              root,
-              DerivePathType.bip44,
-            ),
-          );
-          final p2pkhChangeAddress = P2PKH(
-                  data: PaymentData(pubkey: node44.publicKey),
-                  network: _network)
-              .data
-              .address!;
-          changeNodes.addAll({
-            "${changeP2pkhID}_$j": {
-              "node": node44,
-              "address": p2pkhChangeAddress,
-            }
-          });
-          args.addAll({
-            "${changeP2pkhID}_$j": p2pkhChangeAddress,
-          });
+      final resultChange49 = _checkGaps(maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 1);
 
-          // bip49 / P2SH
-          final node49 = await compute(
-            getBip32NodeFromRootWrapper,
-            Tuple4(
-              1,
-              index + j,
-              root,
-              DerivePathType.bip49,
-            ),
-          );
-          final p2shChangeAddress = P2SH(
-                  data: PaymentData(
-                      redeem: P2WPKH(
-                              data: PaymentData(pubkey: node49.publicKey),
-                              network: _network)
-                          .data),
-                  network: _network)
-              .data
-              .address!;
-          changeNodes.addAll({
-            "${changeP2shID}_$j": {
-              "node": node49,
-              "address": p2shChangeAddress,
-            }
-          });
-          args.addAll({
-            "${changeP2shID}_$j": p2shChangeAddress,
-          });
+      final resultChange84 = _checkGaps(maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip84, 1);
 
-          // bip84 / P2WPKH
-          final node84 = await compute(
-            getBip32NodeFromRootWrapper,
-            Tuple4(
-              1,
-              index + j,
-              root,
-              DerivePathType.bip84,
-            ),
-          );
-          final p2wpkhChangeAddress = P2WPKH(
-                  network: _network,
-                  data: PaymentData(pubkey: node84.publicKey))
-              .data
-              .address!;
-          changeNodes.addAll({
-            "${changeP2wpkhID}_$j": {
-              "node": node84,
-              "address": p2wpkhChangeAddress,
-            }
-          });
-          args.addAll({
-            "${changeP2wpkhID}_$j": p2wpkhChangeAddress,
-          });
-        }
+      await Future.wait([
+        resultReceive44,
+        resultReceive49,
+        resultReceive84,
+        resultChange44,
+        resultChange49,
+        resultChange84
+      ]);
 
-        // get address tx counts
-        final counts = await _getBatchTxCount(addresses: args);
+      p2pkhReceiveAddressArray =
+          (await resultReceive44)['addressArray'] as List<String>;
+      p2pkhReceiveIndex = (await resultReceive44)['index'] as int;
+      p2pkhReceiveDerivations = (await resultReceive44)['derivations']
+          as Map<String, Map<String, String>>;
 
-        // check and add appropriate addresses
-        for (int k = 0; k < txCountBatchSize; k++) {
-          int p2pkhTxCount = counts["${changeP2pkhID}_$k"]!;
-          if (p2pkhTxCount > 0) {
-            final node = changeNodes["${changeP2pkhID}_$k"];
-            // add address to array
-            p2pkhChangeAddressArray.add(node["address"] as String);
-            // set current index
-            p2pkhChangeIndex = index + k;
-            // reset counter
-            changeGapCounter = 0;
-            // add info to derivations
-            p2pkhChangeDerivations[node["address"] as String] = {
-              "pubKey": Format.uint8listToString(
-                  (node["node"] as bip32.BIP32).publicKey),
-              "wif": (node["node"] as bip32.BIP32).toWIF(),
-            };
-          }
+      p2shReceiveAddressArray =
+          (await resultReceive49)['addressArray'] as List<String>;
+      p2shReceiveIndex = (await resultReceive49)['index'] as int;
+      p2shReceiveDerivations = (await resultReceive49)['derivations']
+          as Map<String, Map<String, String>>;
 
-          int p2shTxCount = counts["${changeP2shID}_$k"]!;
-          if (p2shTxCount > 0) {
-            final node = changeNodes["${changeP2shID}_$k"];
-            // add address to array
-            p2shChangeAddressArray.add(node["address"] as String);
-            // set current index
-            p2shChangeIndex = index + k;
-            // reset counter
-            changeGapCounter = 0;
-            // add info to derivations
-            p2shChangeDerivations[node["address"] as String] = {
-              "pubKey": Format.uint8listToString(
-                  (node["node"] as bip32.BIP32).publicKey),
-              "wif": (node["node"] as bip32.BIP32).toWIF(),
-            };
-          }
+      p2wpkhReceiveAddressArray =
+          (await resultReceive84)['addressArray'] as List<String>;
+      p2wpkhReceiveIndex = (await resultReceive84)['index'] as int;
+      p2wpkhReceiveDerivations = (await resultReceive84)['derivations']
+          as Map<String, Map<String, String>>;
 
-          int p2wpkhTxCount = counts["${changeP2wpkhID}_$k"]!;
-          if (p2wpkhTxCount > 0) {
-            final node = changeNodes["${changeP2wpkhID}_$k"];
-            // add address to array
-            p2wpkhChangeAddressArray.add(node["address"] as String);
-            // set current index
-            p2wpkhChangeIndex = index + k;
-            // reset counter
-            changeGapCounter = 0;
-            // add info to derivations
-            p2wpkhChangeDerivations[node["address"] as String] = {
-              "pubKey": Format.uint8listToString(
-                  (node["node"] as bip32.BIP32).publicKey),
-              "wif": (node["node"] as bip32.BIP32).toWIF(),
-            };
-          }
+      p2pkhChangeAddressArray =
+          (await resultChange44)['addressArray'] as List<String>;
+      p2pkhChangeIndex = (await resultChange44)['index'] as int;
+      p2pkhChangeDerivations = (await resultChange44)['derivations']
+          as Map<String, Map<String, String>>;
 
-          // increase counter when no tx history found
-          if (p2wpkhTxCount == 0 && p2pkhTxCount == 0 && p2shTxCount == 0) {
-            changeGapCounter++;
-          }
-        }
-      }
+      p2shChangeAddressArray =
+          (await resultChange49)['addressArray'] as List<String>;
+      p2shChangeIndex = (await resultChange49)['index'] as int;
+      p2shChangeDerivations = (await resultChange49)['derivations']
+          as Map<String, Map<String, String>>;
+
+      p2wpkhChangeAddressArray =
+          (await resultChange84)['addressArray'] as List<String>;
+      p2wpkhChangeIndex = (await resultChange84)['index'] as int;
+      p2wpkhChangeDerivations = (await resultChange84)['derivations']
+          as Map<String, Map<String, String>>;
 
       // save the derivations (if any)
       if (p2pkhReceiveDerivations.isNotEmpty) {
@@ -975,7 +851,7 @@ class BitcoinWallet extends CoinServiceAPI {
     // notify on unconfirmed transactions
     for (final tx in unconfirmedTxnsToNotifyPending) {
       if (tx.txType == "Received") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Incoming transaction",
           body: walletName,
           walletId: walletId,
@@ -986,10 +862,10 @@ class BitcoinWallet extends CoinServiceAPI {
           txid: tx.txid,
           confirmations: tx.confirmations,
           requiredConfirmations: MINIMUM_CONFIRMATIONS,
-        );
+        ));
         await txTracker.addNotifiedPending(tx.txid);
       } else if (tx.txType == "Sent") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Sending transaction",
           body: walletName,
           walletId: walletId,
@@ -1000,7 +876,7 @@ class BitcoinWallet extends CoinServiceAPI {
           txid: tx.txid,
           confirmations: tx.confirmations,
           requiredConfirmations: MINIMUM_CONFIRMATIONS,
-        );
+        ));
         await txTracker.addNotifiedPending(tx.txid);
       }
     }
@@ -1008,7 +884,7 @@ class BitcoinWallet extends CoinServiceAPI {
     // notify on confirmed
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
       if (tx.txType == "Received") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Incoming transaction confirmed",
           body: walletName,
           walletId: walletId,
@@ -1016,10 +892,10 @@ class BitcoinWallet extends CoinServiceAPI {
           date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
           shouldWatchForUpdates: false,
           coinName: coin.name,
-        );
+        ));
         await txTracker.addNotifiedConfirmed(tx.txid);
       } else if (tx.txType == "Sent") {
-        NotificationApi.showNotification(
+        unawaited(NotificationApi.showNotification(
           title: "Outgoing transaction confirmed",
           body: walletName,
           walletId: walletId,
@@ -1027,7 +903,7 @@ class BitcoinWallet extends CoinServiceAPI {
           date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
           shouldWatchForUpdates: false,
           coinName: coin.name,
-        );
+        ));
         await txTracker.addNotifiedConfirmed(tx.txid);
       }
     }
@@ -1094,14 +970,16 @@ class BitcoinWallet extends CoinServiceAPI {
       if (currentHeight != storedHeight) {
         if (currentHeight != -1) {
           // -1 failed to fetch current height
-          updateStoredChainHeight(newHeight: currentHeight);
+          unawaited(updateStoredChainHeight(newHeight: currentHeight));
         }
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
-        await _checkChangeAddressForTransactions(DerivePathType.bip84);
+        final changeAddressForTransactions =
+            _checkChangeAddressForTransactions(DerivePathType.bip84);
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
-        await _checkCurrentReceivingAddressesForTransactions();
+        final currentReceivingAddressesForTransactions =
+            _checkCurrentReceivingAddressesForTransactions();
 
         final newTxData = _fetchTransactionData();
         GlobalEventBus.instance
@@ -1121,7 +999,15 @@ class BitcoinWallet extends CoinServiceAPI {
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.80, walletId));
 
-        await getAllTxsToWatch(await newTxData);
+        final allTxsToWatch = getAllTxsToWatch(await newTxData);
+        await Future.wait([
+          newTxData,
+          changeAddressForTransactions,
+          currentReceivingAddressesForTransactions,
+          newUtxoData,
+          feeObj,
+          allTxsToWatch,
+        ]);
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.90, walletId));
       }
@@ -1137,7 +1023,7 @@ class BitcoinWallet extends CoinServiceAPI {
       );
 
       if (shouldAutoSync) {
-        timer ??= Timer.periodic(const Duration(seconds: 150), (timer) async {
+        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
           Logging.instance.log(
               "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
               level: LogLevel.Info);
@@ -1472,7 +1358,7 @@ class BitcoinWallet extends CoinServiceAPI {
     );
 
     if (shouldRefresh) {
-      refresh();
+      unawaited(refresh());
     }
   }
 
@@ -1972,7 +1858,7 @@ class BitcoinWallet extends CoinServiceAPI {
       final fetchedUtxoList = <List<Map<String, dynamic>>>[];
 
       final Map<int, Map<String, List<dynamic>>> batches = {};
-      const batchSizeMax = 10;
+      const batchSizeMax = 100;
       int batchNumber = 0;
       for (int i = 0; i < allAddresses.length; i++) {
         if (batches[batchNumber] == null) {
@@ -2357,7 +2243,7 @@ class BitcoinWallet extends CoinServiceAPI {
 
       final Map<int, Map<String, List<dynamic>>> batches = {};
       final Map<String, String> requestIdToAddressMap = {};
-      const batchSizeMax = 10;
+      const batchSizeMax = 100;
       int batchNumber = 0;
       for (int i = 0; i < allAddresses.length; i++) {
         if (batches[batchNumber] == null) {
@@ -2402,6 +2288,43 @@ class BitcoinWallet extends CoinServiceAPI {
       }
     }
     return false;
+  }
+
+  Future<List<Map<String, dynamic>>> fastFetch(List<String> allTxHashes) async {
+    List<Map<String, dynamic>> allTransactions = [];
+
+    const futureLimit = 30;
+    List<Future<Map<String, dynamic>>> transactionFutures = [];
+    int currentFutureCount = 0;
+    for (final txHash in allTxHashes) {
+      Future<Map<String, dynamic>> transactionFuture =
+          cachedElectrumXClient.getTransaction(
+        txHash: txHash,
+        verbose: true,
+        coin: coin,
+      );
+      transactionFutures.add(transactionFuture);
+      currentFutureCount++;
+      if (currentFutureCount > futureLimit) {
+        currentFutureCount = 0;
+        await Future.wait(transactionFutures);
+        for (final fTx in transactionFutures) {
+          final tx = await fTx;
+
+          allTransactions.add(tx);
+        }
+      }
+    }
+    if (currentFutureCount != 0) {
+      currentFutureCount = 0;
+      await Future.wait(transactionFutures);
+      for (final fTx in transactionFutures) {
+        final tx = await fTx;
+
+        allTransactions.add(tx);
+      }
+    }
+    return allTransactions;
   }
 
   Future<TransactionData> _fetchTransactionData() async {
@@ -2451,6 +2374,11 @@ class BitcoinWallet extends CoinServiceAPI {
       }
     }
 
+    Set<String> hashes = {};
+    for (var element in allTxHashes) {
+      hashes.add(element['tx_hash'] as String);
+    }
+    await fastFetch(hashes.toList());
     List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
@@ -2479,6 +2407,16 @@ class BitcoinWallet extends CoinServiceAPI {
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
     final List<Map<String, dynamic>> midSortedArray = [];
+
+    Set<String> vHashes = {};
+    for (final txObject in allTransactions) {
+      for (int i = 0; i < (txObject["vin"] as List).length; i++) {
+        final input = txObject["vin"]![i] as Map;
+        final prevTxid = input["txid"] as String;
+        vHashes.add(prevTxid);
+      }
+    }
+    await fastFetch(vHashes.toList());
 
     for (final txObject in allTransactions) {
       List<String> sendersArray = [];

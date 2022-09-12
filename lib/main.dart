@@ -589,9 +589,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                 _loadChangeNowData();
               }
 
-              return const LockscreenView(
+              String? startupWalletId;
+              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
+                startupWalletId =
+                    ref.read(prefsChangeNotifierProvider).startupWalletId;
+              }
+
+              return LockscreenView(
                 isInitialAppLogin: true,
                 routeOnSuccess: HomeView.routeName,
+                routeOnSuccessArguments: startupWalletId,
                 biometricsAuthenticationTitle: "Unlock Stack",
                 biometricsLocalizedReason:
                     "Unlock your stack wallet using biometrics",

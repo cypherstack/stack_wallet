@@ -217,6 +217,18 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
               #hideBlockExplorerWarning, hideBlockExplorerWarning),
           returnValueForMissingStub: null);
   @override
+  bool get gotoWalletOnStartup =>
+      (super.noSuchMethod(Invocation.getter(#gotoWalletOnStartup),
+          returnValue: false) as bool);
+  @override
+  set gotoWalletOnStartup(bool? gotoWalletOnStartup) => super.noSuchMethod(
+      Invocation.setter(#gotoWalletOnStartup, gotoWalletOnStartup),
+      returnValueForMissingStub: null);
+  @override
+  set startupWalletId(String? startupWalletId) =>
+      super.noSuchMethod(Invocation.setter(#startupWalletId, startupWalletId),
+          returnValueForMissingStub: null);
+  @override
   bool get hasListeners =>
       (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
           as bool);

@@ -429,6 +429,11 @@ class MockFiroWallet extends _i1.Mock implements _i7.FiroWallet {
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
+  _i8.Future<Map<int, dynamic>> getSetDataMap(int? latestSetId) =>
+      (super.noSuchMethod(Invocation.method(#getSetDataMap, [latestSetId]),
+              returnValue: Future<Map<int, dynamic>>.value(<int, dynamic>{}))
+          as _i8.Future<Map<int, dynamic>>);
+  @override
   _i8.Future<List<Map<String, dynamic>>> fetchAnonymitySets() =>
       (super.noSuchMethod(Invocation.method(#fetchAnonymitySets, []),
               returnValue: Future<List<Map<String, dynamic>>>.value(
@@ -475,6 +480,12 @@ class MockFiroWallet extends _i1.Mock implements _i7.FiroWallet {
   int sweepAllEstimate(int? feeRate) =>
       (super.noSuchMethod(Invocation.method(#sweepAllEstimate, [feeRate]),
           returnValue: 0) as int);
+  @override
+  _i8.Future<List<Map<String, dynamic>>> fastFetch(List<String>? allTxHashes) =>
+      (super.noSuchMethod(Invocation.method(#fastFetch, [allTxHashes]),
+              returnValue: Future<List<Map<String, dynamic>>>.value(
+                  <Map<String, dynamic>>[]))
+          as _i8.Future<List<Map<String, dynamic>>>);
   @override
   _i8.Future<List<_i4.Transaction>> getJMintTransactions(
           _i6.CachedElectrumX? cachedClient,
