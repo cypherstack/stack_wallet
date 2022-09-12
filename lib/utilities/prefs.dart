@@ -34,6 +34,8 @@ class Prefs extends ChangeNotifier {
       _backupFrequencyType = await _getBackupFrequencyType();
       _lastAutoBackup = await _getLastAutoBackup();
       _hideBlockExplorerWarning = await _getHideBlockExplorerWarning();
+      _gotoWalletOnStartup = await _getGotoWalletOnStartup();
+      _startupWalletId = await _getStartupWalletId();
 
       _initialized = true;
     }
@@ -468,8 +470,6 @@ class Prefs extends ChangeNotifier {
         boxName: DB.boxNamePrefs, key: "autoBackupFileUri") as DateTime?;
   }
 
-
-
   // auto backup
 
   bool _hideBlockExplorerWarning = false;
@@ -480,9 +480,9 @@ class Prefs extends ChangeNotifier {
     if (_hideBlockExplorerWarning != hideBlockExplorerWarning) {
       DB.instance
           .put<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "hideBlockExplorerWarning",
-          value: hideBlockExplorerWarning)
+              boxName: DB.boxNamePrefs,
+              key: "hideBlockExplorerWarning",
+              value: hideBlockExplorerWarning)
           .then((_) {
         _hideBlockExplorerWarning = hideBlockExplorerWarning;
         notifyListeners();
@@ -492,7 +492,56 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getHideBlockExplorerWarning() async {
     return await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "hideBlockExplorerWarning") as bool? ??
+            boxName: DB.boxNamePrefs,
+            key: "hideBlockExplorerWarning") as bool? ??
         false;
+  }
+
+  // auto backup
+
+  bool _gotoWalletOnStartup = false;
+
+  bool get gotoWalletOnStartup => _gotoWalletOnStartup;
+
+  set gotoWalletOnStartup(bool gotoWalletOnStartup) {
+    if (_gotoWalletOnStartup != gotoWalletOnStartup) {
+      DB.instance
+          .put<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "gotoWalletOnStartup",
+              value: gotoWalletOnStartup)
+          .then((_) {
+        _gotoWalletOnStartup = gotoWalletOnStartup;
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<bool> _getGotoWalletOnStartup() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "gotoWalletOnStartup") as bool? ??
+        false;
+  }
+
+  // startup wallet id
+
+  String? _startupWalletId;
+
+  String? get startupWalletId => _startupWalletId;
+
+  set startupWalletId(String? startupWalletId) {
+    if (this.startupWalletId != startupWalletId) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "startupWalletId",
+          value: startupWalletId);
+      _startupWalletId = startupWalletId;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> _getStartupWalletId() async {
+    return await DB.instance.get<dynamic>(
+        boxName: DB.boxNamePrefs, key: "startupWalletId") as String?;
   }
 }

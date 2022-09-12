@@ -29,7 +29,6 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -1272,55 +1271,55 @@ class _WalletInitiatedExchangeViewState
                                       .read(estimatedRateExchangeFormProvider)
                                       .fromAmountString);
 
-                                  if (ft.toLowerCase() ==
-                                      coin.ticker.toLowerCase()) {
-                                    bool shouldPop = false;
-                                    bool wasPopped = false;
-                                    unawaited(showDialog<void>(
-                                      context: context,
-                                      builder: (_) => WillPopScope(
-                                        onWillPop: () async {
-                                          if (shouldPop) {
-                                            wasPopped = true;
-                                          }
-                                          return shouldPop;
-                                        },
-                                        child: const CustomLoadingOverlay(
-                                          message: "Checking available balance",
-                                          eventBus: null,
-                                        ),
-                                      ),
-                                    ));
-
-                                    final availableBalance =
-                                        await manager.availableBalance;
-
-                                    final feeObject = await manager.fees;
-
-                                    final fee = await manager.estimateFeeFor(
-                                        Format.decimalAmountToSatoshis(
-                                            sendAmount),
-                                        feeObject.medium);
-
-                                    shouldPop = true;
-                                    if (!wasPopped && mounted) {
-                                      Navigator.of(context).pop();
-                                    }
-
-                                    if (availableBalance <
-                                        sendAmount +
-                                            Format.satoshisToAmount(fee)) {
-                                      unawaited(showDialog<void>(
-                                        context: context,
-                                        builder: (_) => StackOkDialog(
-                                          title: "Insufficient balance",
-                                          message:
-                                              "Current ${coin.prettyName} wallet does not have enough ${coin.ticker} for this trade",
-                                        ),
-                                      ));
-                                      return;
-                                    }
-                                  }
+                                  // if (ft.toLowerCase() ==
+                                  //     coin.ticker.toLowerCase()) {
+                                  //   bool shouldPop = false;
+                                  //   bool wasPopped = false;
+                                  //   unawaited(showDialog<void>(
+                                  //     context: context,
+                                  //     builder: (_) => WillPopScope(
+                                  //       onWillPop: () async {
+                                  //         if (shouldPop) {
+                                  //           wasPopped = true;
+                                  //         }
+                                  //         return shouldPop;
+                                  //       },
+                                  //       child: const CustomLoadingOverlay(
+                                  //         message: "Checking available balance",
+                                  //         eventBus: null,
+                                  //       ),
+                                  //     ),
+                                  //   ));
+                                  //
+                                  //   final availableBalance =
+                                  //       await manager.availableBalance;
+                                  //
+                                  //   final feeObject = await manager.fees;
+                                  //
+                                  //   final fee = await manager.estimateFeeFor(
+                                  //       Format.decimalAmountToSatoshis(
+                                  //           sendAmount),
+                                  //       feeObject.medium);
+                                  //
+                                  //   shouldPop = true;
+                                  //   if (!wasPopped && mounted) {
+                                  //     Navigator.of(context).pop();
+                                  //   }
+                                  //
+                                  //   if (availableBalance <
+                                  //       sendAmount +
+                                  //           Format.satoshisToAmount(fee)) {
+                                  //     unawaited(showDialog<void>(
+                                  //       context: context,
+                                  //       builder: (_) => StackOkDialog(
+                                  //         title: "Insufficient balance",
+                                  //         message:
+                                  //             "Current ${coin.prettyName} wallet does not have enough ${coin.ticker} for this trade",
+                                  //       ),
+                                  //     ));
+                                  //     return;
+                                  //   }
+                                  // }
 
                                   if (isEstimated) {
                                     final fromTicker = ref
