@@ -1877,6 +1877,9 @@ class EpicCashWallet extends CoinServiceAPI {
             boxName: walletId, key: "creationHeight", value: await chainHeight);
       }
 
+      final int curAdd = await setCurrentIndex();
+      _currentReceivingAddress = _getCurrentAddressForChain(curAdd);
+
       if (!await startScans()) {
         refreshMutex = false;
         GlobalEventBus.instance.fire(
@@ -1895,9 +1898,6 @@ class EpicCashWallet extends CoinServiceAPI {
         );
         return;
       }
-      final int curAdd = await setCurrentIndex();
-
-      _currentReceivingAddress = _getCurrentAddressForChain(curAdd);
 
       await processAllSlates();
       await processAllCancels();
