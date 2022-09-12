@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
@@ -14,6 +15,7 @@ abstract class DefaultNodes {
         monero,
         epicCash,
         bitcoincash,
+        namecoin,
         bitcoinTestnet,
         dogecoinTestnet,
         firoTestnet,
@@ -93,6 +95,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get namecoin => NodeModel(
+        host: "46.229.238.187",
+        port: 57002,
+        name: defaultName,
+        id: _nodeId(Coin.namecoin),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.namecoin.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "electrumx-testnet.cypherstack.com",
         port: 51002,
@@ -148,6 +162,9 @@ abstract class DefaultNodes {
 
       case Coin.monero:
         return monero;
+
+      case Coin.namecoin:
+        return namecoin;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;

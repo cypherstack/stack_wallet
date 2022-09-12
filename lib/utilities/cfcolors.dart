@@ -11,6 +11,7 @@ class _CoinThemeColor {
   Color get dogecoin => const Color(0xFFFFE079);
   Color get epicCash => const Color(0xFFC5C7CB);
   Color get monero => const Color(0xFFFF9E6B);
+  Color get namecoin => const Color(0xFFFCC17B);
 
   Color forCoin(Coin coin) {
     switch (coin) {
@@ -29,6 +30,8 @@ class _CoinThemeColor {
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.namecoin:
+        return namecoin;
     }
   }
 }

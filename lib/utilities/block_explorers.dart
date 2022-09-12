@@ -24,5 +24,7 @@ Uri getBlockExplorerTransactionUrlFor({
       return Uri.parse("https://testexplorer.firo.org/tx/$txid");
     case Coin.bitcoincash:
       return Uri.parse("https://blockchair.com/bitcoin-cash/transaction/$txid");
+    case Coin.namecoin:
+      return Uri.parse("uri");
   }
 }

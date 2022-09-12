@@ -1,3 +1,4 @@
+import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class Assets {
@@ -110,6 +111,7 @@ class _SVG {
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
   String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";
+  String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
@@ -130,6 +132,8 @@ class _SVG {
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.namecoin:
+        return namecoin;
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
       case Coin.firoTestNet:
@@ -152,6 +156,7 @@ class _PNG {
   String get bitcoin => "assets/images/bitcoin.png";
   String get epicCash => "assets/images/epic-cash.png";
   String get bitcoincash => "assets/images/bitcoincash.png";
+  String get namecoin => "assets/images/bitcoincash.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {
@@ -171,6 +176,8 @@ class _PNG {
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.namecoin:
+        return namecoin;
     }
   }
 }

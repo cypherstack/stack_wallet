@@ -46,9 +46,7 @@ const int MINIMUM_CONFIRMATIONS = 3;
 const int DUST_LIMIT = 1000000;
 
 const String GENESIS_HASH_MAINNET =
-    "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
-const String GENESIS_HASH_TESTNET =
-    "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
+    "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770";
 
 enum DerivePathType { bip44 }
 
@@ -77,11 +75,11 @@ bip32.BIP32 getBip32NodeFromRoot(
     int chain, int index, bip32.BIP32 root, DerivePathType derivePathType) {
   String coinType;
   switch (root.network.wif) {
-    case 0x80: // bch mainnet wif
-      coinType = "145"; // bch mainnet
+    case 0x80: // nmc mainnet wif
+      coinType = "7"; // nmc mainnet
       break;
     default:
-      throw Exception("Invalid Bitcoincash network type used!");
+      throw Exception("Invalid Namecoin network type used!");
   }
   switch (derivePathType) {
     case DerivePathType.bip44:
@@ -122,7 +120,7 @@ bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
   return getBip32Root(args.item1, args.item2);
 }
 
-class NamecoinCashWallet extends CoinServiceAPI {
+class NamecoinWallet extends CoinServiceAPI {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
   final _prefs = Prefs.instance;
@@ -134,10 +132,10 @@ class NamecoinCashWallet extends CoinServiceAPI {
 
   NetworkType get _network {
     switch (coin) {
-      case Coin.bitcoincash:
-        return bitcoincash;
+      case Coin.namecoin:
+        return namecoin;
       default:
-        throw Exception("Bitcoincash network type not set!");
+        throw Exception("Namecoin network type not set!");
     }
   }
 
@@ -298,14 +296,14 @@ class NamecoinCashWallet extends CoinServiceAPI {
         final features = await electrumXClient.getServerFeatures();
         Logging.instance.log("features: $features", level: LogLevel.Info);
         switch (coin) {
-          case Coin.bitcoincash:
+          case Coin.namecoin:
             if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
               throw Exception("genesis hash does not match main net!");
             }
             break;
           default:
             throw Exception(
-                "Attempted to generate a BitcoinCashWallet using a non bch coin type: ${coin.name}");
+                "Attempted to generate a NamecoinWallet using a non namecoin coin type: ${coin.name}");
         }
       }
       // check to make sure we aren't overwriting a mnemonic
@@ -730,9 +728,6 @@ class NamecoinCashWallet extends CoinServiceAPI {
   /// Refreshes display data for the wallet
   @override
   Future<void> refresh() async {
-    final bchaddr = Bitbox.Address.toCashAddress(await currentReceivingAddress);
-    print("bchaddr: $bchaddr ${await currentReceivingAddress}");
-
     if (refreshMutex) {
       Logging.instance.log("$walletId $walletName refreshMutex denied",
           level: LogLevel.Info);
@@ -1048,14 +1043,7 @@ class NamecoinCashWallet extends CoinServiceAPI {
 
   @override
   bool validateAddress(String address) {
-    try {
-      // 0 for bitcoincash: address scheme, 1 for legacy address
-      final format = Bitbox.Address.detectFormat(address);
-      print("format $format");
-      return true;
-    } catch (e, s) {
-      return false;
-    }
+    return Address.validateAddress(address, _network);
   }
 
   @override
@@ -1082,7 +1070,7 @@ class NamecoinCashWallet extends CoinServiceAPI {
 
   late PriceAPI _priceAPI;
 
-  BitcoinCashWallet({
+  NamecoinWallet({
     required String walletId,
     required String walletName,
     required Coin coin,
@@ -1222,14 +1210,14 @@ class NamecoinCashWallet extends CoinServiceAPI {
       final features = await electrumXClient.getServerFeatures();
       Logging.instance.log("features: $features", level: LogLevel.Info);
       switch (coin) {
-        case Coin.bitcoincash:
+        case Coin.namecoin:
           if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
             throw Exception("genesis hash does not match main net!");
           }
           break;
         default:
           throw Exception(
-              "Attempted to generate a BitcoinWallet using a non bitcoin coin type: ${coin.name}");
+              "Attempted to generate a NamecoinWallet using a non namecoin coin type: ${coin.name}");
       }
     }
 
@@ -1840,10 +1828,10 @@ class NamecoinCashWallet extends CoinServiceAPI {
 
   /// attempts to convert a string to a valid scripthash
   ///
-  /// Returns the scripthash or throws an exception on invalid bch address
-  String _convertToScriptHash(String bchAddress, NetworkType network) {
+  /// Returns the scripthash or throws an exception on invalid namecoin address
+  String _convertToScriptHash(String namecoinAddress, NetworkType network) {
     try {
-      final output = Address.addressToOutputScript(bchAddress, network);
+      final output = Address.addressToOutputScript(namecoinAddress, network);
       final hash = sha256.convert(output.toList(growable: false)).toString();
 
       final chars = hash.split("");
@@ -1937,7 +1925,6 @@ class NamecoinCashWallet extends CoinServiceAPI {
     unconfirmedCachedTransactions
         .removeWhere((key, value) => value.confirmedStatus);
 
-    print("CACHED_TRANSACTIONS_IS $cachedTransactions");
     if (cachedTransactions != null) {
       for (final tx in allTxHashes.toList(growable: false)) {
         final txHeight = tx["height"] as int;
@@ -1953,7 +1940,6 @@ class NamecoinCashWallet extends CoinServiceAPI {
     List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
-      Logging.instance.log("bch: $txHash", level: LogLevel.Info);
       final tx = await cachedElectrumXClient.getTransaction(
         txHash: txHash["tx_hash"] as String,
         verbose: true,
@@ -2325,8 +2311,8 @@ class NamecoinCashWallet extends CoinServiceAPI {
         vSize: vSizeForOneOutput,
         feeRatePerKB: selectedTxFeeRate,
       );
-      if (feeForOneOutput < (vSizeForOneOutput + 1)) {
-        feeForOneOutput = (vSizeForOneOutput + 1);
+      if (feeForOneOutput < (vSizeForOneOutput + 1) * 1000) {
+        feeForOneOutput = (vSizeForOneOutput + 1) * 1000;
       }
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
@@ -2382,11 +2368,11 @@ class NamecoinCashWallet extends CoinServiceAPI {
         .log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
     Logging.instance
         .log("feeForOneOutput: $feeForOneOutput", level: LogLevel.Info);
-    if (feeForOneOutput < (vSizeForOneOutput + 1)) {
-      feeForOneOutput = (vSizeForOneOutput + 1);
+    if (feeForOneOutput < (vSizeForOneOutput + 1) * 1000) {
+      feeForOneOutput = (vSizeForOneOutput + 1) * 1000;
     }
-    if (feeForTwoOutputs < ((vSizeForTwoOutPuts + 1))) {
-      feeForTwoOutputs = ((vSizeForTwoOutPuts + 1));
+    if (feeForTwoOutputs < ((vSizeForTwoOutPuts + 1) * 1000)) {
+      feeForTwoOutputs = ((vSizeForTwoOutPuts + 1) * 1000);
     }
 
     Logging.instance
@@ -2686,76 +2672,45 @@ class NamecoinCashWallet extends CoinServiceAPI {
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
-    final builder = Bitbox.Bitbox.transactionBuilder();
+    Logging.instance
+        .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
-    // retrieve address' utxos from the rest api
-    List<Bitbox.Utxo> _utxos =
-        []; // await Bitbox.Address.utxo(address) as List<Bitbox.Utxo>;
-    utxosToUse.forEach((element) {
-      _utxos.add(Bitbox.Utxo(
-          element.txid,
-          element.vout,
-          Bitbox.BitcoinCash.fromSatoshi(element.value),
-          element.value,
-          0,
-          MINIMUM_CONFIRMATIONS + 1));
-    });
-    Logger.print("bch utxos: ${_utxos}");
+    final txb = TransactionBuilder(network: _network);
+    txb.setVersion(1);
 
-    // placeholder for input signatures
-    final signatures = <Map>[];
-
-    // placeholder for total input balance
-    int totalBalance = 0;
-
-    // iterate through the list of address _utxos and use them as inputs for the
-    // withdrawal transaction
-    _utxos.forEach((Bitbox.Utxo utxo) {
-      // add the utxo as an input for the transaction
-      builder.addInput(utxo.txid, utxo.vout);
-      final ec = utxoSigningData[utxo.txid]["keyPair"] as ECPair;
-
-      final bitboxEC = Bitbox.ECPair.fromWIF(ec.toWIF());
-
-      // add a signature to the list to be used later
-      signatures.add({
-        "vin": signatures.length,
-        "key_pair": bitboxEC,
-        "original_amount": utxo.satoshis
-      });
-
-      totalBalance += utxo.satoshis;
-    });
-
-    // calculate the fee based on number of inputs and one expected output
-    final fee =
-        Bitbox.BitcoinCash.getByteCount(signatures.length, recipients.length);
-
-    // calculate how much balance will be left over to spend after the fee
-    final sendAmount = totalBalance - fee;
-
-    // add the output based on the address provided in the testing data
-    for (int i = 0; i < recipients.length; i++) {
-      String recipient = recipients[i];
-      int satoshiAmount = satoshiAmounts[i];
-      builder.addOutput(recipient, satoshiAmount);
+    // Add transaction inputs
+    for (var i = 0; i < utxosToUse.length; i++) {
+      final txid = utxosToUse[i].txid;
+      txb.addInput(txid, utxosToUse[i].vout, null,
+          utxoSigningData[txid]["output"] as Uint8List);
     }
 
-    // sign all inputs
-    signatures.forEach((signature) {
-      builder.sign(
-          signature["vin"] as int,
-          signature["key_pair"] as Bitbox.ECPair,
-          signature["original_amount"] as int);
-    });
+    // Add transaction output
+    for (var i = 0; i < recipients.length; i++) {
+      txb.addOutput(recipients[i], satoshiAmounts[i]);
+    }
 
-    // build the transaction
-    final tx = builder.build();
-    final txHex = tx.toHex();
-    final vSize = tx.virtualSize();
-    Logger.print("bch raw hex: $txHex");
+    try {
+      // Sign the transaction accordingly
+      for (var i = 0; i < utxosToUse.length; i++) {
+        final txid = utxosToUse[i].txid;
+        txb.sign(
+          vin: i,
+          keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
+          witnessValue: utxosToUse[i].value,
+          redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log("Caught exception while signing transaction: $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
 
-    return {"hex": txHex, "vSize": vSize};
+    final builtTx = txb.build();
+    final vSize = builtTx.virtualSize();
+
+    return {"hex": builtTx.toHex(), "vSize": vSize};
   }
 
   @override
@@ -3018,7 +2973,7 @@ class NamecoinCashWallet extends CoinServiceAPI {
     }
   }
 
-  // TODO: correct formula for bch?
+  // TODO: correct formula for nmc?
   int roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return ((181 * inputCount) + (34 * outputCount) + 10) *
         (feeRatePerKB / 1000).ceil();
@@ -3039,10 +2994,39 @@ class NamecoinCashWallet extends CoinServiceAPI {
 
     return available - estimatedFee;
   }
+
+  Future<bool> generateNewAddress() async {
+    try {
+      await _incrementAddressIndexForChain(
+          0, DerivePathType.bip44); // First increment the receiving index
+      final newReceivingIndex = DB.instance.get<dynamic>(
+          boxName: walletId,
+          key: 'receivingIndexP2PKH') as int; // Check the new receiving index
+      final newReceivingAddress = await _generateAddressForChain(
+          0,
+          newReceivingIndex,
+          DerivePathType
+              .bip44); // Use new index to derive a new receiving address
+      await _addToAddressesArrayForChain(
+          newReceivingAddress,
+          0,
+          DerivePathType
+              .bip44); // Add that new receiving address to the array of receiving addresses
+      _currentReceivingAddressP2PKH = Future(() =>
+          newReceivingAddress); // Set the new receiving address that the service
+
+      return true;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from generateNewAddress(): $e\n$s",
+          level: LogLevel.Error);
+      return false;
+    }
+  }
 }
 
-// Bitcoincash Network
-final bitcoincash = NetworkType(
+// Namecoin Network
+final namecoin = NetworkType(
     messagePrefix: '\x18Bitcoin Signed Message:\n',
     bech32: 'bc',
     bip32: Bip32Type(public: 0x0488b21e, private: 0x0488ade4),

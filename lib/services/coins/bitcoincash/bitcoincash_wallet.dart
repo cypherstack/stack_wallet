@@ -3040,6 +3040,36 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
     return available - estimatedFee;
   }
+
+  @override
+  Future<bool> generateNewAddress() async {
+    try {
+      await _incrementAddressIndexForChain(
+          0, DerivePathType.bip44); // First increment the receiving index
+      final newReceivingIndex = DB.instance.get<dynamic>(
+          boxName: walletId,
+          key: 'receivingIndexP2PKH') as int; // Check the new receiving index
+      final newReceivingAddress = await _generateAddressForChain(
+          0,
+          newReceivingIndex,
+          DerivePathType
+              .bip44); // Use new index to derive a new receiving address
+      await _addToAddressesArrayForChain(
+          newReceivingAddress,
+          0,
+          DerivePathType
+              .bip44); // Add that new receiving address to the array of receiving addresses
+      _currentReceivingAddressP2PKH = Future(() =>
+          newReceivingAddress); // Set the new receiving address that the service
+
+      return true;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from generateNewAddress(): $e\n$s",
+          level: LogLevel.Error);
+      return false;
+    }
+  }
 }
 
 // Bitcoincash Network

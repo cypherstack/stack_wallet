@@ -271,6 +271,7 @@ flutter:
     - assets/svg/coin_icons/EpicCash.svg
     - assets/svg/coin_icons/Firo.svg
     - assets/svg/coin_icons/Monero.svg
+    - assets/svg/coin_icons/Namecoin.svg
     # lottie animations
     - assets/lottie/test.json
     - assets/lottie/test2.json
