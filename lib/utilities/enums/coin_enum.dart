@@ -15,6 +15,7 @@ enum Coin {
   epicCash,
   firo,
   monero,
+  namecoin,
 
   ///
   ///
@@ -43,6 +44,8 @@ extension CoinExt on Coin {
         return "Firo";
       case Coin.monero:
         return "Monero";
+      case Coin.namecoin:
+        return "Namecoin";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
       case Coin.firoTestNet:
