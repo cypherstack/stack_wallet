@@ -358,6 +358,16 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
       super.noSuchMethod(Invocation.setter(#lastAutoBackup, lastAutoBackup),
           returnValueForMissingStub: null);
   @override
+  bool get hideBlockExplorerWarning =>
+      (super.noSuchMethod(Invocation.getter(#hideBlockExplorerWarning),
+          returnValue: false) as bool);
+  @override
+  set hideBlockExplorerWarning(bool? hideBlockExplorerWarning) =>
+      super.noSuchMethod(
+          Invocation.setter(
+              #hideBlockExplorerWarning, hideBlockExplorerWarning),
+          returnValueForMissingStub: null);
+  @override
   bool get hasListeners =>
       (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
           as bool);

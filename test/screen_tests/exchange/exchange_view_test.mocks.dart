@@ -9,18 +9,20 @@ import 'package:decimal/decimal.dart' as _i15;
 import 'package:http/http.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart'
-    as _i19;
+    as _i20;
 import 'package:stackwallet/models/exchange/change_now/change_now_response.dart'
     as _i2;
+import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart'
+    as _i17;
 import 'package:stackwallet/models/exchange/change_now/currency.dart' as _i14;
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart'
     as _i16;
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart'
     as _i10;
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart'
-    as _i18;
+    as _i19;
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart'
-    as _i17;
+    as _i18;
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
     as _i5;
 import 'package:stackwallet/services/change_now/change_now.dart' as _i12;
@@ -181,6 +183,16 @@ class MockPrefs extends _i1.Mock implements _i3.Prefs {
   @override
   set lastAutoBackup(DateTime? lastAutoBackup) =>
       super.noSuchMethod(Invocation.setter(#lastAutoBackup, lastAutoBackup),
+          returnValueForMissingStub: null);
+  @override
+  bool get hideBlockExplorerWarning =>
+      (super.noSuchMethod(Invocation.getter(#hideBlockExplorerWarning),
+          returnValue: false) as bool);
+  @override
+  set hideBlockExplorerWarning(bool? hideBlockExplorerWarning) =>
+      super.noSuchMethod(
+          Invocation.setter(
+              #hideBlockExplorerWarning, hideBlockExplorerWarning),
           returnValueForMissingStub: null);
   @override
   bool get hasListeners =>
@@ -386,36 +398,40 @@ class MockChangeNow extends _i1.Mock implements _i12.ChangeNow {
               as _i7
                   .Future<_i2.ChangeNowResponse<_i16.EstimatedExchangeAmount>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<_i16.EstimatedExchangeAmount>>
-      getEstimatedFixedRateExchangeAmount(
+  _i7.Future<_i2.ChangeNowResponse<_i17.CNExchangeEstimate>>
+      getEstimatedExchangeAmountV2(
               {String? fromTicker,
               String? toTicker,
-              _i15.Decimal? fromAmount,
-              bool? useRateId = true,
+              _i17.CNEstimateType? fromOrTo,
+              _i15.Decimal? amount,
+              String? fromNetwork,
+              String? toNetwork,
+              _i17.CNFlowType? flow = _i17.CNFlowType.standard,
               String? apiKey}) =>
           (super.noSuchMethod(
-                  Invocation.method(#getEstimatedFixedRateExchangeAmount, [], {
+                  Invocation.method(#getEstimatedExchangeAmountV2, [], {
                     #fromTicker: fromTicker,
                     #toTicker: toTicker,
-                    #fromAmount: fromAmount,
-                    #useRateId: useRateId,
+                    #fromOrTo: fromOrTo,
+                    #amount: amount,
+                    #fromNetwork: fromNetwork,
+                    #toNetwork: toNetwork,
+                    #flow: flow,
                     #apiKey: apiKey
                   }),
                   returnValue: Future<
-                          _i2.ChangeNowResponse<
-                              _i16.EstimatedExchangeAmount>>.value(
-                      _FakeChangeNowResponse_0<_i16.EstimatedExchangeAmount>()))
-              as _i7
-                  .Future<_i2.ChangeNowResponse<_i16.EstimatedExchangeAmount>>);
+                          _i2.ChangeNowResponse<_i17.CNExchangeEstimate>>.value(
+                      _FakeChangeNowResponse_0<_i17.CNExchangeEstimate>()))
+              as _i7.Future<_i2.ChangeNowResponse<_i17.CNExchangeEstimate>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<List<_i17.FixedRateMarket>>>
+  _i7.Future<_i2.ChangeNowResponse<List<_i18.FixedRateMarket>>>
       getAvailableFixedRateMarkets({String? apiKey}) => (super.noSuchMethod(
           Invocation.method(
               #getAvailableFixedRateMarkets, [], {#apiKey: apiKey}),
           returnValue:
-              Future<_i2.ChangeNowResponse<List<_i17.FixedRateMarket>>>.value(
-                  _FakeChangeNowResponse_0<List<_i17.FixedRateMarket>>())) as _i7
-          .Future<_i2.ChangeNowResponse<List<_i17.FixedRateMarket>>>);
+              Future<_i2.ChangeNowResponse<List<_i18.FixedRateMarket>>>.value(
+                  _FakeChangeNowResponse_0<List<_i18.FixedRateMarket>>())) as _i7
+          .Future<_i2.ChangeNowResponse<List<_i18.FixedRateMarket>>>);
   @override
   _i7.Future<_i2.ChangeNowResponse<_i10.ExchangeTransaction>>
       createStandardExchangeTransaction(
@@ -479,22 +495,22 @@ class MockChangeNow extends _i1.Mock implements _i12.ChangeNow {
                   _FakeChangeNowResponse_0<_i10.ExchangeTransaction>())) as _i7
               .Future<_i2.ChangeNowResponse<_i10.ExchangeTransaction>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<_i18.ExchangeTransactionStatus>>
+  _i7.Future<_i2.ChangeNowResponse<_i19.ExchangeTransactionStatus>>
       getTransactionStatus({String? id, String? apiKey}) => (super.noSuchMethod(
           Invocation.method(
               #getTransactionStatus, [], {#id: id, #apiKey: apiKey}),
           returnValue:
-              Future<_i2.ChangeNowResponse<_i18.ExchangeTransactionStatus>>.value(
-                  _FakeChangeNowResponse_0<_i18.ExchangeTransactionStatus>())) as _i7
-          .Future<_i2.ChangeNowResponse<_i18.ExchangeTransactionStatus>>);
+              Future<_i2.ChangeNowResponse<_i19.ExchangeTransactionStatus>>.value(
+                  _FakeChangeNowResponse_0<_i19.ExchangeTransactionStatus>())) as _i7
+          .Future<_i2.ChangeNowResponse<_i19.ExchangeTransactionStatus>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<List<_i19.AvailableFloatingRatePair>>>
+  _i7.Future<_i2.ChangeNowResponse<List<_i20.AvailableFloatingRatePair>>>
       getAvailableFloatingRatePairs({bool? includePartners = false}) => (super
           .noSuchMethod(
               Invocation.method(#getAvailableFloatingRatePairs, [],
                   {#includePartners: includePartners}),
               returnValue:
-                  Future<_i2.ChangeNowResponse<List<_i19.AvailableFloatingRatePair>>>.value(
-                      _FakeChangeNowResponse_0<List<_i19.AvailableFloatingRatePair>>())) as _i7
-          .Future<_i2.ChangeNowResponse<List<_i19.AvailableFloatingRatePair>>>);
+                  Future<_i2.ChangeNowResponse<List<_i20.AvailableFloatingRatePair>>>.value(
+                      _FakeChangeNowResponse_0<List<_i20.AvailableFloatingRatePair>>())) as _i7
+          .Future<_i2.ChangeNowResponse<List<_i20.AvailableFloatingRatePair>>>);
 }
