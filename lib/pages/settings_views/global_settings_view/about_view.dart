@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:http/http.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +11,85 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
+import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
+
+import 'package:stackwallet/utilities/logger.dart';
+
+const kGithubAPI = "https://api.github.com";
+const kGithubSearch = "/search/commits";
+const kGithubHead = "/repos";
+
+enum CommitStatus { isHead, isOldCommit, notACommit, notLoaded }
+
+Future<bool> doesCommitExist(
+  String organization,
+  String project,
+  String commit,
+) async {
+  Logging.instance.log("doesCommitExist", level: LogLevel.Info);
+  final Client client = Client();
+  try {
+    final uri = Uri.parse(
+        "$kGithubAPI$kGithubHead/$organization/$project/commits/$commit");
+
+    final commitQuery = await client.get(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    final response = jsonDecode(commitQuery.body.toString());
+    Logging.instance.log("doesCommitExist $project $commit $response",
+        level: LogLevel.Info);
+    bool isThereCommit;
+    try {
+      isThereCommit = response['sha'] == commit;
+      Logging.instance
+          .log("isThereCommit $isThereCommit", level: LogLevel.Info);
+      return isThereCommit;
+    } catch (e, s) {
+      return false;
+    }
+  } catch (e, s) {
+    Logging.instance.log("$e $s", level: LogLevel.Error);
+    return false;
+  }
+}
+
+Future<bool> isHeadCommit(
+  String organization,
+  String project,
+  String branch,
+  String commit,
+) async {
+  Logging.instance.log("doesCommitExist", level: LogLevel.Info);
+  final Client client = Client();
+  try {
+    final uri = Uri.parse(
+        "$kGithubAPI$kGithubHead/$organization/$project/commits/$branch");
+
+    final commitQuery = await client.get(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    final response = jsonDecode(commitQuery.body.toString());
+    Logging.instance.log("isHeadCommit $project $commit $branch $response",
+        level: LogLevel.Info);
+    bool isHead;
+    try {
+      isHead = response['sha'] == commit;
+      Logging.instance.log("isHead $isHead", level: LogLevel.Info);
+      return isHead;
+    } catch (e, s) {
+      return false;
+    }
+  } catch (e, s) {
+    Logging.instance.log("$e $s", level: LogLevel.Error);
+    return false;
+  }
+}
 
 class AboutView extends ConsumerWidget {
   const AboutView({Key? key}) : super(key: key);
@@ -16,6 +98,26 @@ class AboutView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    String firoCommit = FIRO_VERSIONS.getPluginVersion();
+    String epicCashCommit = EPIC_VERSIONS.getPluginVersion();
+    String moneroCommit = MONERO_VERSIONS.getPluginVersion();
+    List<Future> futureFiroList = [
+      doesCommitExist("cypherstack", "flutter_liblelantus", firoCommit),
+      isHeadCommit("cypherstack", "flutter_liblelantus", "main", firoCommit),
+    ];
+    Future commitFiroFuture = Future.wait(futureFiroList);
+    List<Future> futureEpicList = [
+      doesCommitExist("cypherstack", "flutter_libepiccash", epicCashCommit),
+      isHeadCommit(
+          "cypherstack", "flutter_libepiccash", "main", epicCashCommit),
+    ];
+    Future commitEpicFuture = Future.wait(futureEpicList);
+    List<Future> futureMoneroList = [
+      doesCommitExist("cypherstack", "flutter_libmonero", moneroCommit),
+      isHeadCommit("cypherstack", "flutter_libmonero", "main", moneroCommit),
+    ];
+    Future commitMoneroFuture = Future.wait(futureMoneroList);
+
     return Scaffold(
       backgroundColor: CFColors.almostWhite,
       appBar: AppBar(
@@ -139,6 +241,186 @@ class AboutView extends ConsumerWidget {
                           );
                         },
                       ),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      FutureBuilder(
+                          future: commitFiroFuture,
+                          builder: (context, AsyncSnapshot<dynamic> snapshot) {
+                            bool commitExists = false;
+                            bool isHead = false;
+                            CommitStatus stateOfCommit = CommitStatus.notLoaded;
+
+                            if (snapshot.connectionState ==
+                                    ConnectionState.done &&
+                                snapshot.hasData) {
+                              commitExists = snapshot.data![0] as bool;
+                              isHead = snapshot.data![1] as bool;
+                              if (commitExists && isHead) {
+                                stateOfCommit = CommitStatus.isHead;
+                              } else if (commitExists) {
+                                stateOfCommit = CommitStatus.isOldCommit;
+                              } else {
+                                stateOfCommit = CommitStatus.notACommit;
+                              }
+                            }
+                            TextStyle indicationStyle =
+                                STextStyles.itemSubtitle;
+                            switch (stateOfCommit) {
+                              case CommitStatus.isHead:
+                                indicationStyle = STextStyles.itemSubtitle
+                                    .copyWith(color: CFColors.stackGreen);
+                                break;
+                              case CommitStatus.isOldCommit:
+                                indicationStyle = STextStyles.itemSubtitle
+                                    .copyWith(color: CFColors.stackYellow);
+                                break;
+                              case CommitStatus.notACommit:
+                                indicationStyle = STextStyles.itemSubtitle
+                                    .copyWith(color: CFColors.stackRed);
+                                break;
+                              default:
+                                break;
+                            }
+                            return RoundedWhiteContainer(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    "Firo Build Commit",
+                                    style: STextStyles.titleBold12,
+                                  ),
+                                  const SizedBox(
+                                    height: 4,
+                                  ),
+                                  SelectableText(
+                                    firoCommit,
+                                    style: indicationStyle,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      FutureBuilder(
+                          future: commitEpicFuture,
+                          builder: (context, AsyncSnapshot<dynamic> snapshot) {
+                            bool commitExists = false;
+                            bool isHead = false;
+                            CommitStatus stateOfCommit = CommitStatus.notLoaded;
+
+                            if (snapshot.connectionState ==
+                                    ConnectionState.done &&
+                                snapshot.hasData) {
+                              commitExists = snapshot.data![0] as bool;
+                              isHead = snapshot.data![1] as bool;
+                              if (commitExists && isHead) {
+                                stateOfCommit = CommitStatus.isHead;
+                              } else if (commitExists) {
+                                stateOfCommit = CommitStatus.isOldCommit;
+                              } else {
+                                stateOfCommit = CommitStatus.notACommit;
+                              }
+                            }
+                            TextStyle indicationStyle =
+                                STextStyles.itemSubtitle;
+                            switch (stateOfCommit) {
+                              case CommitStatus.isHead:
+                                indicationStyle = STextStyles.itemSubtitle
+                                    .copyWith(color: CFColors.stackGreen);
+                                break;
+                              case CommitStatus.isOldCommit:
+                                indicationStyle = STextStyles.itemSubtitle
+                                    .copyWith(color: CFColors.stackYellow);
+                                break;
+                              case CommitStatus.notACommit:
+                                indicationStyle = STextStyles.itemSubtitle
+                                    .copyWith(color: CFColors.stackRed);
+                                break;
+                              default:
+                                break;
+                            }
+                            return RoundedWhiteContainer(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    "Epic Cash Build Commit",
+                                    style: STextStyles.titleBold12,
+                                  ),
+                                  const SizedBox(
+                                    height: 4,
+                                  ),
+                                  SelectableText(
+                                    epicCashCommit,
+                                    style: indicationStyle,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      FutureBuilder(
+                          future: commitMoneroFuture,
+                          builder: (context, AsyncSnapshot<dynamic> snapshot) {
+                            bool commitExists = false;
+                            bool isHead = false;
+                            CommitStatus stateOfCommit = CommitStatus.notLoaded;
+
+                            if (snapshot.connectionState ==
+                                    ConnectionState.done &&
+                                snapshot.hasData) {
+                              commitExists = snapshot.data![0] as bool;
+                              isHead = snapshot.data![1] as bool;
+                              if (commitExists && isHead) {
+                                stateOfCommit = CommitStatus.isHead;
+                              } else if (commitExists) {
+                                stateOfCommit = CommitStatus.isOldCommit;
+                              } else {
+                                stateOfCommit = CommitStatus.notACommit;
+                              }
+                            }
+                            TextStyle indicationStyle =
+                                STextStyles.itemSubtitle;
+                            switch (stateOfCommit) {
+                              case CommitStatus.isHead:
+                                indicationStyle = STextStyles.itemSubtitle
+                                    .copyWith(color: CFColors.stackGreen);
+                                break;
+                              case CommitStatus.isOldCommit:
+                                indicationStyle = STextStyles.itemSubtitle
+                                    .copyWith(color: CFColors.stackYellow);
+                                break;
+                              case CommitStatus.notACommit:
+                                indicationStyle = STextStyles.itemSubtitle
+                                    .copyWith(color: CFColors.stackRed);
+                                break;
+                              default:
+                                break;
+                            }
+                            return RoundedWhiteContainer(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    "Monero Build Commit",
+                                    style: STextStyles.titleBold12,
+                                  ),
+                                  const SizedBox(
+                                    height: 4,
+                                  ),
+                                  SelectableText(
+                                    moneroCommit,
+                                    style: indicationStyle,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
                       const SizedBox(
                         height: 12,
                       ),
