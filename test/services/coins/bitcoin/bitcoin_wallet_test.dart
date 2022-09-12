@@ -15,6 +15,7 @@ import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:tuple/tuple.dart';
 
 import 'bitcoin_history_sample_data.dart';
 import 'bitcoin_transaction_data_samples.dart';
@@ -2233,6 +2234,14 @@ void main() {
           .thenAnswer((_) async => emptyHistoryBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs4))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs5))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
       // await DB.instance.init();
       final wallet = await Hive.openBox(testWalletId);
       bool hasThrown = false;
@@ -2250,6 +2259,10 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
 
       expect(secureStore?.interactions, 20);
       expect(secureStore?.writes, 7);
@@ -2276,6 +2289,14 @@ void main() {
           .thenAnswer((_) async => emptyHistoryBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs4))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs5))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
 
       final wallet = await Hive.openBox(testWalletId);
 
@@ -2290,6 +2311,10 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -2312,8 +2337,27 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs4))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs5))
+          .thenAnswer((_) async => historyBatchResponse);
 
-      final wallet = await Hive.openBox(testWalletId);
+      List<dynamic> dynamicArgValues = [];
+
+      when(client?.getBatchHistory(args: anyNamed("args")))
+          .thenAnswer((realInvocation) async {
+        if (realInvocation.namedArguments.values.first.length == 1) {
+          dynamicArgValues.add(realInvocation.namedArguments.values.first);
+        }
+
+        return historyBatchResponse;
+      });
+
+      await Hive.openBox<dynamic>(testWalletId);
 
       bool hasThrown = false;
       try {
@@ -2330,6 +2374,18 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
+
+      for (final arg in dynamicArgValues) {
+        final map = Map<String, List<dynamic>>.from(arg as Map);
+
+        verify(client?.getBatchHistory(args: map)).called(1);
+        expect(activeScriptHashes.contains(map.values.first.first as String),
+            true);
+      }
 
       expect(secureStore?.interactions, 14);
       expect(secureStore?.writes, 7);
@@ -2356,10 +2412,29 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs4))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs5))
+          .thenAnswer((_) async => historyBatchResponse);
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoin))
           .thenAnswer((realInvocation) async {});
 
-      final wallet = await Hive.openBox(testWalletId);
+      List<dynamic> dynamicArgValues = [];
+
+      when(client?.getBatchHistory(args: anyNamed("args")))
+          .thenAnswer((realInvocation) async {
+        if (realInvocation.namedArguments.values.first.length == 1) {
+          dynamicArgValues.add(realInvocation.namedArguments.values.first);
+        }
+
+        return historyBatchResponse;
+      });
+
+      final wallet = await Hive.openBox<dynamic>(testWalletId);
 
       // restore so we have something to rescan
       await btc?.recoverFromMnemonic(
@@ -2491,8 +2566,20 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(2);
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoin))
           .called(1);
+
+      for (final arg in dynamicArgValues) {
+        final map = Map<String, List<dynamic>>.from(arg as Map);
+
+        verify(client?.getBatchHistory(args: map)).called(1);
+        expect(activeScriptHashes.contains(map.values.first.first as String),
+            true);
+      }
 
       expect(secureStore?.writes, 25);
       expect(secureStore?.reads, 32);
@@ -2519,10 +2606,29 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs4))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs5))
+          .thenAnswer((_) async => historyBatchResponse);
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoin))
           .thenAnswer((realInvocation) async {});
 
-      final wallet = await Hive.openBox(testWalletId);
+      List<dynamic> dynamicArgValues = [];
+
+      when(client?.getBatchHistory(args: anyNamed("args")))
+          .thenAnswer((realInvocation) async {
+        if (realInvocation.namedArguments.values.first.length == 1) {
+          dynamicArgValues.add(realInvocation.namedArguments.values.first);
+        }
+
+        return historyBatchResponse;
+      });
+
+      final wallet = await Hive.openBox<dynamic>(testWalletId);
 
       // restore so we have something to rescan
       await btc?.recoverFromMnemonic(
@@ -2624,9 +2730,21 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(2);
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoin))
           .called(1);
+
+      for (final arg in dynamicArgValues) {
+        final map = Map<String, List<dynamic>>.from(arg as Map);
+
+        verify(client?.getBatchHistory(args: map)).called(1);
+        expect(activeScriptHashes.contains(map.values.first.first as String),
+            true);
+      }
 
       expect(secureStore?.writes, 19);
       expect(secureStore?.reads, 32);
@@ -3911,8 +4029,27 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs4))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs5))
+          .thenAnswer((_) async => historyBatchResponse);
 
-      final wallet = await Hive.openBox(testWalletId);
+      List<dynamic> dynamicArgValues = [];
+
+      when(client?.getBatchHistory(args: anyNamed("args")))
+          .thenAnswer((realInvocation) async {
+        if (realInvocation.namedArguments.values.first.length == 1) {
+          dynamicArgValues.add(realInvocation.namedArguments.values.first);
+        }
+
+        return historyBatchResponse;
+      });
+
+      await Hive.openBox<dynamic>(testWalletId);
 
       when(cachedClient?.getTransaction(
               txHash:
@@ -3995,6 +4132,18 @@ void main() {
       //     .called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
+
+      for (final arg in dynamicArgValues) {
+        final map = Map<String, List<dynamic>>.from(arg as Map);
+
+        verify(client?.getBatchHistory(args: map)).called(1);
+        expect(activeScriptHashes.contains(map.values.first.first as String),
+            true);
+      }
 
       expect(secureStore?.interactions, 20);
       expect(secureStore?.writes, 10);
@@ -4169,8 +4318,27 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs4))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs5))
+          .thenAnswer((_) async => historyBatchResponse);
 
-      final wallet = await Hive.openBox(testWalletId);
+      List<dynamic> dynamicArgValues = [];
+
+      when(client?.getBatchHistory(args: anyNamed("args")))
+          .thenAnswer((realInvocation) async {
+        if (realInvocation.namedArguments.values.first.length == 1) {
+          dynamicArgValues.add(realInvocation.namedArguments.values.first);
+        }
+
+        return historyBatchResponse;
+      });
+
+      await Hive.openBox<dynamic>(testWalletId);
 
       // recover to fill data
       await btc?.recoverFromMnemonic(
@@ -4186,6 +4354,18 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
+
+      for (final arg in dynamicArgValues) {
+        final map = Map<String, List<dynamic>>.from(arg as Map);
+
+        verify(client?.getBatchHistory(args: map)).called(1);
+        expect(activeScriptHashes.contains(map.values.first.first as String),
+            true);
+      }
 
       expect(secureStore?.interactions, 14);
       expect(secureStore?.writes, 7);
@@ -4198,8 +4378,9 @@ void main() {
       verifyNoMoreInteractions(priceAPI);
     });
 
-    test("refresh wallet throws", () async {
-      when(client?.getBlockHeadTip()).thenThrow(Exception("some exception"));
+    test("refresh wallet normally", () async {
+      when(client?.getBlockHeadTip()).thenAnswer((realInvocation) async =>
+          {"height": 520481, "hex": "some block hex"});
       when(client?.getServerFeatures()).thenAnswer((_) async => {
             "hosts": {},
             "pruning": null,
@@ -4210,14 +4391,23 @@ void main() {
             "hash_function": "sha256",
             "services": []
           });
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => historyBatchResponse);
       when(client?.getHistory(scripthash: anyNamed("scripthash")))
-          .thenThrow(Exception("some exception"));
+          .thenAnswer((_) async => []);
+      when(client?.estimateFee(blocks: anyNamed("blocks")))
+          .thenAnswer((_) async => Decimal.one);
 
-      final wallet = await Hive.openBox(testWalletId);
+      when(priceAPI?.getPricesAnd24hChange(baseCurrency: "USD"))
+          .thenAnswer((_) async => {Coin.bitcoin: Tuple2(Decimal.one, 0.3)});
+
+      final List<dynamic> dynamicArgValues = [];
+
+      when(client?.getBatchHistory(args: anyNamed("args")))
+          .thenAnswer((realInvocation) async {
+        dynamicArgValues.add(realInvocation.namedArguments.values.first);
+        return historyBatchResponse;
+      });
+
+      await Hive.openBox<dynamic>(testWalletId);
 
       // recover to fill data
       await btc?.recoverFromMnemonic(
@@ -4226,82 +4416,34 @@ void main() {
           maxNumberOfIndexesToCheck: 1000,
           height: 4000);
 
+      when(client?.getBatchHistory(args: anyNamed("args")))
+          .thenAnswer((_) async => {});
+      when(client?.getBatchUTXOs(args: anyNamed("args")))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
+
       await btc?.refresh();
 
       verify(client?.getServerFeatures()).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(4);
+      verify(client?.estimateFee(blocks: anyNamed("blocks"))).called(3);
       verify(client?.getBlockHeadTip()).called(1);
-      verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
+      verify(priceAPI?.getPricesAnd24hChange(baseCurrency: "USD")).called(2);
+
+      for (final arg in dynamicArgValues) {
+        final map = Map<String, List<dynamic>>.from(arg as Map);
+
+        verify(client?.getBatchHistory(args: map)).called(1);
+      }
 
       expect(secureStore?.interactions, 14);
       expect(secureStore?.writes, 7);
       expect(secureStore?.reads, 7);
       expect(secureStore?.deletes, 0);
 
-      verifyNoMoreInteractions(client);
+      // verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(tracker);
       verifyNoMoreInteractions(priceAPI);
     });
-
-    // test("refresh wallet normally", () async {
-    //   when(client?.getBlockHeadTip()).thenAnswer((realInvocation) async =>
-    //       {"height": 520481, "hex": "some block hex"});
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenAnswer((_) async => []);
-    //   when(client?.estimateFee(blocks: anyNamed("blocks")))
-    //       .thenAnswer((_) async => Decimal.one);
-    //   // when(priceAPI.getBitcoinPrice(baseCurrency: "USD"))
-    //   //     .thenAnswer((_) async => Decimal.one);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
-    //       height: 4000);
-    //
-    //   when(client?.getBatchHistory(args: anyNamed("args")))
-    //       .thenAnswer((_) async => {});
-    //   when(client?.getBatchUTXOs(args: anyNamed("args")))
-    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
-    //
-    //   await btc?.refresh();
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //   verify(client?.getBatchHistory(args: anyNamed("args"))).called(1);
-    //   verify(client?.getBatchUTXOs(args: anyNamed("args"))).called(1);
-    //   verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(4);
-    //   verify(client?.estimateFee(blocks: anyNamed("blocks"))).called(3);
-    //   verify(client?.getBlockHeadTip()).called(1);
-    //   // verify(priceAPI.getBitcoinPrice(baseCurrency: "USD")).called(2);
-    //
-    //   expect(secureStore?.interactions, 14);
-    //   expect(secureStore?.writes, 7);
-    //   expect(secureStore?.reads, 7);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
 
     tearDown(() async {
       await tearDownTestHive();

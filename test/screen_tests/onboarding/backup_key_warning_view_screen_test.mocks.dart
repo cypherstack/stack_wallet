@@ -371,6 +371,10 @@ class MockManager extends _i1.Mock implements _i9.Manager {
           Invocation.method(#estimateFeeFor, [satoshiAmount, feeRate]),
           returnValue: Future<int>.value(0)) as _i6.Future<int>);
   @override
+  _i6.Future<bool> generateNewAddress() =>
+      (super.noSuchMethod(Invocation.method(#generateNewAddress, []),
+          returnValue: Future<bool>.value(false)) as _i6.Future<bool>);
+  @override
   void addListener(_i8.VoidCallback? listener) =>
       super.noSuchMethod(Invocation.method(#addListener, [listener]),
           returnValueForMissingStub: null);

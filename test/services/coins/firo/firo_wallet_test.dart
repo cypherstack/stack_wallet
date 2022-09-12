@@ -66,18 +66,15 @@ void main() {
         return SampleGetTransactionData.txData7;
       });
 
-      final result = await isolateRestore(
+      final message = await isolateRestore(
         TEST_MNEMONIC,
-        txData,
-        "USD",
         Coin.firo,
         1,
         setData,
         usedSerials,
         firoNetwork,
-        Decimal.ten,
-        "en_US",
       );
+      final result = await staticProcessRestore(txData, message);
 
       expect(result, isA<Map<String, dynamic>>());
       expect(result["mintIndex"], 8);
@@ -88,22 +85,17 @@ void main() {
     });
 
     test("isolateRestore throws", () async {
-      final txData = TransactionData();
       final Map setData = {};
       final usedSerials = [];
 
       expect(
           () => isolateRestore(
                 TEST_MNEMONIC,
-                txData,
-                "USD",
                 Coin.firo,
                 1,
                 setData,
                 usedSerials,
                 firoNetwork,
-                Decimal.ten,
-                "en_US",
               ),
           throwsA(isA<Error>()));
     });
