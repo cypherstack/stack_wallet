@@ -77,11 +77,8 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       final startHeight = arguments['startHeight'] as int?;
       final numberOfBlocks = arguments['numberOfBlocks'] as int?;
       Map<String, dynamic> result = {};
-      if (!(wallet == null ||
-          startHeight == null ||
-          numberOfBlocks == null)) {
-        var outputs =
-            await scanOutPuts(wallet, startHeight, numberOfBlocks);
+      if (!(wallet == null || startHeight == null || numberOfBlocks == null)) {
+        var outputs = await scanOutPuts(wallet, startHeight, numberOfBlocks);
         result['outputs'] = outputs;
         sendPort.send(result);
         return;
@@ -111,8 +108,8 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
           epicboxConfig == null)) {
         Logging.instance
             .log("SECRET_KEY_INDEX_IS $secretKeyIndex", level: LogLevel.Info);
-        result['result'] = await getSubscribeRequest(
-            wallet, secretKeyIndex, epicboxConfig);
+        result['result'] =
+            await getSubscribeRequest(wallet, secretKeyIndex, epicboxConfig);
         sendPort.send(result);
         return;
       }
@@ -122,8 +119,7 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       Map<String, dynamic> result = {};
 
       if (!(wallet == null || slates == null)) {
-        result['result'] =
-            await processSlates(wallet, slates.toString());
+        result['result'] = await processSlates(wallet, slates.toString());
         sendPort.send(result);
         return;
       }
@@ -135,8 +131,8 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       if (!(wallet == null ||
           refreshFromNode == null ||
           minimumConfirmations == null)) {
-        var res = await getWalletInfo(
-            wallet, refreshFromNode, minimumConfirmations);
+        var res =
+            await getWalletInfo(wallet, refreshFromNode, minimumConfirmations);
         result['result'] = res;
         sendPort.send(result);
         return;
@@ -166,11 +162,9 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       final amount = arguments['amount'] as int?;
       final minimumConfirmations = arguments['minimumConfirmations'] as int?;
       Map<String, dynamic> result = {};
-      if (!(wallet == null ||
-          amount == null ||
-          minimumConfirmations == null)) {
-        var res = await getTransactionFees(
-            wallet, amount, minimumConfirmations);
+      if (!(wallet == null || amount == null || minimumConfirmations == null)) {
+        var res =
+            await getTransactionFees(wallet, amount, minimumConfirmations);
         result['result'] = res;
         sendPort.send(result);
         return;
@@ -198,7 +192,8 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       }
     } else if (function == "txHttpSend") {
       final wallet = arguments['wallet'] as String?;
-      final selectionStrategyIsAll = arguments['selectionStrategyIsAll'] as int?;
+      final selectionStrategyIsAll =
+          arguments['selectionStrategyIsAll'] as int?;
       final minimumConfirmations = arguments['minimumConfirmations'] as int?;
       final message = arguments['message'] as String?;
       final amount = arguments['amount'] as int?;
@@ -218,7 +213,6 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
         sendPort.send(result);
         return;
       }
-
     }
     Logging.instance.log(
         "Error Arguments for $function not formatted correctly",
@@ -245,8 +239,7 @@ void stop(ReceivePort port) {
 
 // Keep Wrapper functions outside of the class to avoid memory leaks and errors about receive ports and illegal arguments.
 // TODO: Can get rid of this wrapper and call it in a full isolate instead of compute() if we want more control over this
-Future<String> _cancelTransactionWrapper(
-    Tuple2<String, String> data) async {
+Future<String> _cancelTransactionWrapper(Tuple2<String, String> data) async {
   // assuming this returns an empty string on success
   // or an error message string on failure
   return cancelTransaction(data.item1, data.item2);
@@ -290,8 +283,7 @@ Future<String> _initWalletWrapper(
 
 Future<String> _initGetAddressInfoWrapper(
     Tuple3<String, int, String> data) async {
-  String walletAddress =
-  getAddressInfo(data.item1, data.item2, data.item3);
+  String walletAddress = getAddressInfo(data.item1, data.item2, data.item3);
   return walletAddress;
 }
 
@@ -727,7 +719,7 @@ class EpicCashWallet extends CoinServiceAPI {
   /// returns an empty String on success, error message on failure
   Future<String> cancelPendingTransaction(String tx_slate_id) async {
     final String wallet =
-    (await _secureStore.read(key: '${_walletId}_wallet'))!;
+        (await _secureStore.read(key: '${_walletId}_wallet'))!;
 
     String? result;
     await m.protect(() async {
@@ -754,7 +746,8 @@ class EpicCashWallet extends CoinServiceAPI {
 
       String receiverAddress = txData['addresss'] as String;
       await m.protect(() async {
-        if (receiverAddress.startsWith("http://") || receiverAddress.startsWith("https://")) {
+        if (receiverAddress.startsWith("http://") ||
+            receiverAddress.startsWith("https://")) {
           const int selectionStrategyIsAll = 0;
           ReceivePort receivePort = await getIsolate({
             "function": "txHttpSend",
@@ -774,9 +767,8 @@ class EpicCashWallet extends CoinServiceAPI {
             throw Exception("txHttpSend isolate failed");
           }
           stop(receivePort);
-          Logging.instance.log('Closing txHttpSend!\n  $message',
-              level: LogLevel.Info);
-
+          Logging.instance
+              .log('Closing txHttpSend!\n  $message', level: LogLevel.Info);
         } else {
           ReceivePort receivePort = await getIsolate({
             "function": "createTransaction",
@@ -809,7 +801,6 @@ class EpicCashWallet extends CoinServiceAPI {
 
       await putSendToAddresses(sendTx);
 
-
       Logging.instance.log("CONFIRM_RESULT_IS $sendTx", level: LogLevel.Info);
 
       final decodeData = json.decode(sendTx);
@@ -818,9 +809,9 @@ class EpicCashWallet extends CoinServiceAPI {
         String errorMessage = decodeData[1] as String;
         throw Exception("Transaction failed with error code $errorMessage");
       } else {
-
         //If it's HTTP send no need to post to epicbox
-        if (!(receiverAddress.startsWith("http://") || receiverAddress.startsWith("https://"))) {
+        if (!(receiverAddress.startsWith("http://") ||
+            receiverAddress.startsWith("https://"))) {
           final postSlateRequest = decodeData[1];
           final postToServer = await postSlate(
               txData['addresss'] as String, postSlateRequest as String);
@@ -969,10 +960,9 @@ class EpicCashWallet extends CoinServiceAPI {
         level: LogLevel.Info);
 
     final config = await getRealConfig();
-    final password =
-    await _secureStore.read(key: '${_walletId}_password');
+    final password = await _secureStore.read(key: '${_walletId}_password');
 
-    final walletOpen = openWallet(config!, password!);
+    final walletOpen = openWallet(config, password!);
     await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
     if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
@@ -1297,7 +1287,6 @@ class EpicCashWallet extends CoinServiceAPI {
 
   Future<bool> startScans() async {
     try {
-
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
 
       var restoreHeight =
@@ -1445,7 +1434,6 @@ class EpicCashWallet extends CoinServiceAPI {
 
       //Store Epic box address info
       await storeEpicboxInfo();
-
     } catch (e, s) {
       Logging.instance
           .log("Error recovering wallet $e\n$s", level: LogLevel.Error);
@@ -1724,11 +1712,13 @@ class EpicCashWallet extends CoinServiceAPI {
                     subscribeRequest['signature'] as String, slate as String);
               }
 
-              if (response.contains("Error Wallet store error: DB Not Found Error")) {
+              if (response
+                  .contains("Error Wallet store error: DB Not Found Error")) {
                 //Already processed - to be deleted
-                Logging.instance.log("DELETING_PROCESSED_SLATE",
-                    level: LogLevel.Info);
-                final slateDelete = await deleteSlate(currentAddress, subscribeRequest['signature'] as String, slate as String);
+                Logging.instance
+                    .log("DELETING_PROCESSED_SLATE", level: LogLevel.Info);
+                final slateDelete = await deleteSlate(currentAddress,
+                    subscribeRequest['signature'] as String, slate as String);
                 Logging.instance.log("DELETE_SLATE_RESPONSE $slateDelete",
                     level: LogLevel.Info);
               } else {
@@ -1738,14 +1728,14 @@ class EpicCashWallet extends CoinServiceAPI {
                 if (slateStatus == "PendingProcessing") {
                   //Encrypt slate
                   String encryptedSlate = await getEncryptedSlate(
-                      wallet!,
+                      wallet,
                       slateSender,
                       currentReceivingIndex,
                       epicboxConfig!,
                       decodedResponse[1] as String);
 
                   final postSlateToServer =
-                  await postSlate(slateSender, encryptedSlate);
+                      await postSlate(slateSender, encryptedSlate);
 
                   await deleteSlate(currentAddress,
                       subscribeRequest['signature'] as String, slate as String);
@@ -1753,7 +1743,8 @@ class EpicCashWallet extends CoinServiceAPI {
                       level: LogLevel.Info);
                 } else {
                   //Finalise Slate
-                  final processSlate = json.decode(decodedResponse[1] as String);
+                  final processSlate =
+                      json.decode(decodedResponse[1] as String);
                   Logging.instance.log(
                       "PROCESSED_SLATE_TO_FINALIZE $processSlate",
                       level: LogLevel.Info);
@@ -1762,8 +1753,7 @@ class EpicCashWallet extends CoinServiceAPI {
                   String txSlateId = tx[0]['tx_slate_id'] as String;
                   Logging.instance
                       .log("TX_SLATE_ID_IS $txSlateId", level: LogLevel.Info);
-                  final postToNode = await postSlateToNode(
-                      wallet!, txSlateId);
+                  final postToNode = await postSlateToNode(wallet, txSlateId);
                   await deleteSlate(currentAddress,
                       subscribeRequest['signature'] as String, slate as String);
                   Logging.instance.log("POST_SLATE_RESPONSE $postToNode",
@@ -2315,5 +2305,30 @@ class EpicCashWallet extends CoinServiceAPI {
     int currentFee = await nativeFee(satoshiAmount, ifErrorEstimateFee: true);
     // TODO: implement this
     return currentFee;
+  }
+
+  // not used in epic currently
+  @override
+  Future<bool> generateNewAddress() async {
+    try {
+      // await incrementAddressIndexForChain(
+      //     0); // First increment the receiving index
+      // final newReceivingIndex =
+      // DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndex')
+      // as int; // Check the new receiving index
+      // final newReceivingAddress = await _generateAddressForChain(0,
+      //     newReceivingIndex); // Use new index to derive a new receiving address
+      // await addToAddressesArrayForChain(newReceivingAddress,
+      //     0); // Add that new receiving address to the array of receiving addresses
+      // _currentReceivingAddress = Future(() =>
+      // newReceivingAddress); // Set the new receiving address that the service
+
+      return true;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from generateNewAddress(): $e\n$s",
+          level: LogLevel.Error);
+      return false;
+    }
   }
 }

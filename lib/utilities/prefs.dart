@@ -33,6 +33,7 @@ class Prefs extends ChangeNotifier {
       _autoBackupLocation = await _getAutoBackupLocation();
       _backupFrequencyType = await _getBackupFrequencyType();
       _lastAutoBackup = await _getLastAutoBackup();
+      _hideBlockExplorerWarning = await _getHideBlockExplorerWarning();
 
       _initialized = true;
     }
@@ -465,5 +466,33 @@ class Prefs extends ChangeNotifier {
   Future<DateTime?> _getLastAutoBackup() async {
     return await DB.instance.get<dynamic>(
         boxName: DB.boxNamePrefs, key: "autoBackupFileUri") as DateTime?;
+  }
+
+
+
+  // auto backup
+
+  bool _hideBlockExplorerWarning = false;
+
+  bool get hideBlockExplorerWarning => _hideBlockExplorerWarning;
+
+  set hideBlockExplorerWarning(bool hideBlockExplorerWarning) {
+    if (_hideBlockExplorerWarning != hideBlockExplorerWarning) {
+      DB.instance
+          .put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "hideBlockExplorerWarning",
+          value: hideBlockExplorerWarning)
+          .then((_) {
+        _hideBlockExplorerWarning = hideBlockExplorerWarning;
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<bool> _getHideBlockExplorerWarning() async {
+    return await DB.instance.get<dynamic>(
+        boxName: DB.boxNamePrefs, key: "hideBlockExplorerWarning") as bool? ??
+        false;
   }
 }

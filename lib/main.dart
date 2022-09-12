@@ -51,6 +51,7 @@ import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -119,17 +120,15 @@ void main() async {
 
   Hive.registerAdapter(UnspentCoinsInfoAdapter());
 
+  await Hive.openBox<dynamic>(DB.boxNameDBInfo);
+  int dbVersion = DB.instance.get<dynamic>(
+          boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
+      0;
+  if (dbVersion < Constants.currentHiveDbVersion) {
+    await DbVersionMigrator().migrate(dbVersion);
+  }
+
   monero.onStartup();
-
-  // final wallets = await Hive.openBox('wallets');
-  // await wallets.put('currentWalletName', "");
-
-  // NOT USED YET
-  // int dbVersion = await wallets.get("db_version");
-  // if (dbVersion == null || dbVersion < Constants.currentDbVersion) {
-  //   if (dbVersion == null) dbVersion = 0;
-  //   await DbVersionMigrator().migrate(dbVersion);
-  // }
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
@@ -344,20 +343,23 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     _prefs = ref.read(prefsChangeNotifierProvider);
     _wallets = ref.read(walletsChangeNotifierProvider);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // fetch open file if it exists
-      await getOpenFile();
+    if (Platform.isAndroid) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // fetch open file if it exists
+        await getOpenFile();
 
-      if (ref.read(openedFromSWBFileStringStateProvider.state).state != null) {
-        // waiting for loading to complete before going straight to restore if the app was opened via file
-        await loadingCompleter.future;
+        if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
+            null) {
+          // waiting for loading to complete before going straight to restore if the app was opened via file
+          await loadingCompleter.future;
 
-        await goToRestoreSWB(
-            ref.read(openedFromSWBFileStringStateProvider.state).state!);
-        ref.read(openedFromSWBFileStringStateProvider.state).state = null;
-      }
-      // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
-    });
+          await goToRestoreSWB(
+              ref.read(openedFromSWBFileStringStateProvider.state).state!);
+          ref.read(openedFromSWBFileStringStateProvider.state).state = null;
+        }
+        // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
+      });
+    }
 
     super.initState();
   }
@@ -378,14 +380,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       case AppLifecycleState.paused:
         break;
       case AppLifecycleState.resumed:
-        // fetch open file if it exists
-        await getOpenFile();
-        // go straight to restore if the app was resumed via file
-        if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
-            null) {
-          await goToRestoreSWB(
-              ref.read(openedFromSWBFileStringStateProvider.state).state!);
-          ref.read(openedFromSWBFileStringStateProvider.state).state = null;
+        if (Platform.isAndroid) {
+          // fetch open file if it exists
+          await getOpenFile();
+          // go straight to restore if the app was resumed via file
+          if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
+              null) {
+            await goToRestoreSWB(
+                ref.read(openedFromSWBFileStringStateProvider.state).state!);
+            ref.read(openedFromSWBFileStringStateProvider.state).state = null;
+          }
         }
         // if (ref.read(hasAuthenticatedOnStartStateProvider.state).state &&
         //     ref.read(shouldShowLockscreenOnResumeStateProvider.state).state) {
@@ -419,6 +423,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     }
   }
 
+  /// should only be called on android currently
   Future<void> getOpenFile() async {
     // update provider with new file content state
     ref.read(openedFromSWBFileStringStateProvider.state).state =
@@ -432,6 +437,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         level: LogLevel.Info);
   }
 
+  /// should only be called on android currently
   Future<void> resetOpenPath() async {
     await platform.invokeMethod("resetOpenPath");
   }

@@ -223,4 +223,6 @@ abstract class CoinServiceAPI {
   bool get isConnected;
 
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate);
+
+  Future<bool> generateNewAddress();
 }

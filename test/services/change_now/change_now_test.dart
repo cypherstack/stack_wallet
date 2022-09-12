@@ -339,80 +339,80 @@ void main() {
     });
   });
 
-  group("getEstimatedFixedRateExchangeAmount", () {
-    test("getEstimatedFixedRateExchangeAmount succeeds", () async {
-      final client = MockClient();
-      ChangeNow.instance.client = client;
-
-      when(client.get(
-        Uri.parse(
-            "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
-        headers: {'Content-Type': 'application/json'},
-      )).thenAnswer((realInvocation) async =>
-          Response(jsonEncode(estFixedRateExchangeAmountJSON), 200));
-
-      final result =
-          await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
-        fromTicker: "xmr",
-        toTicker: "btc",
-        fromAmount: Decimal.fromInt(10),
-        apiKey: "testAPIKEY",
-      );
-
-      expect(result.exception, null);
-      expect(result.value == null, false);
-      expect(result.value.toString(),
-          'EstimatedExchangeAmount: {estimatedAmount: 0.07271053, transactionSpeedForecast: 10-60, warningMessage: null, rateId: 1t2W5KBPqhycSJVYpaNZzYWLfMr0kSFe, networkFee: 0.00002408}');
-    });
-
-    test(
-        "getEstimatedFixedRateExchangeAmount fails with ChangeNowExceptionType.serializeResponseError",
-        () async {
-      final client = MockClient();
-      ChangeNow.instance.client = client;
-
-      when(client.get(
-        Uri.parse(
-            "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
-        headers: {'Content-Type': 'application/json'},
-      )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
-
-      final result =
-          await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
-        fromTicker: "xmr",
-        toTicker: "btc",
-        fromAmount: Decimal.fromInt(10),
-        apiKey: "testAPIKEY",
-      );
-
-      expect(result.exception!.type,
-          ChangeNowExceptionType.serializeResponseError);
-      expect(result.value == null, true);
-    });
-
-    test("getEstimatedFixedRateExchangeAmount fails for any other reason",
-        () async {
-      final client = MockClient();
-      ChangeNow.instance.client = client;
-
-      when(client.get(
-        Uri.parse(
-            "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
-        headers: {'Content-Type': 'application/json'},
-      )).thenAnswer((realInvocation) async => Response('', 400));
-
-      final result =
-          await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
-        fromTicker: "xmr",
-        toTicker: "btc",
-        fromAmount: Decimal.fromInt(10),
-        apiKey: "testAPIKEY",
-      );
-
-      expect(result.exception!.type, ChangeNowExceptionType.generic);
-      expect(result.value == null, true);
-    });
-  });
+  // group("getEstimatedFixedRateExchangeAmount", () {
+  //   test("getEstimatedFixedRateExchangeAmount succeeds", () async {
+  //     final client = MockClient();
+  //     ChangeNow.instance.client = client;
+  //
+  //     when(client.get(
+  //       Uri.parse(
+  //           "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
+  //       headers: {'Content-Type': 'application/json'},
+  //     )).thenAnswer((realInvocation) async =>
+  //         Response(jsonEncode(estFixedRateExchangeAmountJSON), 200));
+  //
+  //     final result =
+  //         await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
+  //       fromTicker: "xmr",
+  //       toTicker: "btc",
+  //       fromAmount: Decimal.fromInt(10),
+  //       apiKey: "testAPIKEY",
+  //     );
+  //
+  //     expect(result.exception, null);
+  //     expect(result.value == null, false);
+  //     expect(result.value.toString(),
+  //         'EstimatedExchangeAmount: {estimatedAmount: 0.07271053, transactionSpeedForecast: 10-60, warningMessage: null, rateId: 1t2W5KBPqhycSJVYpaNZzYWLfMr0kSFe, networkFee: 0.00002408}');
+  //   });
+  //
+  //   test(
+  //       "getEstimatedFixedRateExchangeAmount fails with ChangeNowExceptionType.serializeResponseError",
+  //       () async {
+  //     final client = MockClient();
+  //     ChangeNow.instance.client = client;
+  //
+  //     when(client.get(
+  //       Uri.parse(
+  //           "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
+  //       headers: {'Content-Type': 'application/json'},
+  //     )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
+  //
+  //     final result =
+  //         await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
+  //       fromTicker: "xmr",
+  //       toTicker: "btc",
+  //       fromAmount: Decimal.fromInt(10),
+  //       apiKey: "testAPIKEY",
+  //     );
+  //
+  //     expect(result.exception!.type,
+  //         ChangeNowExceptionType.serializeResponseError);
+  //     expect(result.value == null, true);
+  //   });
+  //
+  //   test("getEstimatedFixedRateExchangeAmount fails for any other reason",
+  //       () async {
+  //     final client = MockClient();
+  //     ChangeNow.instance.client = client;
+  //
+  //     when(client.get(
+  //       Uri.parse(
+  //           "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
+  //       headers: {'Content-Type': 'application/json'},
+  //     )).thenAnswer((realInvocation) async => Response('', 400));
+  //
+  //     final result =
+  //         await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
+  //       fromTicker: "xmr",
+  //       toTicker: "btc",
+  //       fromAmount: Decimal.fromInt(10),
+  //       apiKey: "testAPIKEY",
+  //     );
+  //
+  //     expect(result.exception!.type, ChangeNowExceptionType.generic);
+  //     expect(result.value == null, true);
+  //   });
+  // });
 
   group("getAvailableFixedRateMarkets", () {
     test("getAvailableFixedRateMarkets succeeds", () async {

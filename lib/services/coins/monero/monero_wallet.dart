@@ -1521,4 +1521,33 @@ class MoneroWallet extends CoinServiceAPI {
             10000;
     return fee;
   }
+
+  @override
+  Future<bool> generateNewAddress() async {
+    try {
+      const String indexKey = "receivingIndex";
+      // First increment the receiving index
+      await _incrementAddressIndexForChain(0);
+      final newReceivingIndex =
+          DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
+
+      // Use new index to derive a new receiving address
+      final newReceivingAddress =
+          await _generateAddressForChain(0, newReceivingIndex);
+
+      // Add that new receiving address to the array of receiving addresses
+      await _addToAddressesArrayForChain(newReceivingAddress, 0);
+
+      // Set the new receiving address that the service
+
+      _currentReceivingAddress = Future(() => newReceivingAddress);
+
+      return true;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from generateNewAddress(): $e\n$s",
+          level: LogLevel.Error);
+      return false;
+    }
+  }
 }

@@ -6,10 +6,12 @@ import 'dart:ui' as ui;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -318,8 +320,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                             child: QrImage(
                                               data: uriString,
                                               size: width,
-                                              backgroundColor:
-                                                  CFColors.almostWhite,
+                                              backgroundColor: CFColors.white,
                                               foregroundColor:
                                                   CFColors.stackAccent,
                                             ),
@@ -344,12 +345,40 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                                 CFColors.buttonGray,
                                               ),
                                             ),
-                                            child: Text(
-                                              "Share",
-                                              style:
-                                                  STextStyles.button.copyWith(
-                                                color: CFColors.stackAccent,
-                                              ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Center(
+                                                  child: SvgPicture.asset(
+                                                    Assets.svg.share,
+                                                    width: 14,
+                                                    height: 14,
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  width: 4,
+                                                ),
+                                                Column(
+                                                  children: [
+                                                    Text(
+                                                      "Share",
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: STextStyles.button
+                                                          .copyWith(
+                                                        color: CFColors
+                                                            .stackAccent,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 2,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),

@@ -33,7 +33,7 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentDbVersion = 0;
+  static const int currentHiveDbVersion = 1;
 
   static List<int> possibleLengthsForCoin(Coin coin) {
     final List<int> values = [];

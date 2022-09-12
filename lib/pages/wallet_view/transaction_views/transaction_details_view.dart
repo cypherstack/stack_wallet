@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,13 +69,19 @@ class _TransactionDetailsViewState
     coin = widget.coin;
     amount = Format.satoshisToAmount(_transaction.amount);
     fee = Format.satoshisToAmount(_transaction.fees);
-    amountPrefix = _transaction.txType.toLowerCase() == "sent" ? "- " : "+ ";
 
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      showFeePending = true;
+    if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+        _transaction.subType == "mint") {
+      amountPrefix = "";
     } else {
-      showFeePending = false;
+      amountPrefix = _transaction.txType.toLowerCase() == "sent" ? "- " : "+ ";
     }
+
+    // if (coin == Coin.firo || coin == Coin.firoTestNet) {
+    //   showFeePending = true;
+    // } else {
+    //   showFeePending = false;
+    // }
     super.initState();
   }
 
@@ -83,10 +91,21 @@ class _TransactionDetailsViewState
   }
 
   String whatIsIt(String type) {
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      if (_transaction.subType == "mint") {
+        if (_transaction.confirmedStatus) {
+          return "Minted";
+        } else {
+          return "Minting";
+        }
+      }
+    }
+
     if (type == "Received") {
-      if (_transaction.isMinting) {
-        return "Minting";
-      } else if (_transaction.confirmedStatus) {
+      // if (_transaction.isMinting) {
+      //   return "Minting";
+      // } else
+      if (_transaction.confirmedStatus) {
         return "Received";
       } else {
         return "Receiving";
@@ -123,6 +142,66 @@ class _TransactionDetailsViewState
   }
 
   String _note = "";
+
+  Future<bool> showExplorerWarning(String explorer) async {
+    final bool? shouldContinue = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => StackDialog(
+        title: "Attention",
+        message:
+            "You are about to view this transaction in a block explorer. The explorer may log your IP address and link it to the transaction. Only proceed if you trust $explorer.",
+        icon: Row(
+          children: [
+            Consumer(builder: (_, ref, __) {
+              return Checkbox(
+                value: ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.hideBlockExplorerWarning)),
+                onChanged: (value) {
+                  if (value is bool) {
+                    ref
+                        .read(prefsChangeNotifierProvider)
+                        .hideBlockExplorerWarning = value;
+                    setState(() {});
+                  }
+                },
+              );
+            }),
+            Text(
+              "Never show again",
+              style: STextStyles.smallMed14,
+            )
+          ],
+        ),
+        leftButton: TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
+          child: Text(
+            "Cancel",
+            style: STextStyles.button.copyWith(
+              color: CFColors.stackAccent,
+            ),
+          ),
+        ),
+        rightButton: TextButton(
+          style: Theme.of(context).textButtonTheme.style?.copyWith(
+                backgroundColor: MaterialStateProperty.all<Color>(
+                  CFColors.stackAccent,
+                ),
+              ),
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
+          child: Text(
+            "Continue",
+            style: STextStyles.button,
+          ),
+        ),
+      ),
+    );
+    return shouldContinue ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -221,12 +300,16 @@ class _TransactionDetailsViewState
                   ),
                 ),
                 if (!(coin == Coin.monero &&
-                    _transaction.txType.toLowerCase() == "sent"))
+                        _transaction.txType.toLowerCase() == "sent") &&
+                    !((coin == Coin.firo || coin == Coin.firoTestNet) &&
+                        _transaction.subType == "mint"))
                   const SizedBox(
                     height: 12,
                   ),
                 if (!(coin == Coin.monero &&
-                    _transaction.txType.toLowerCase() == "sent"))
+                        _transaction.txType.toLowerCase() == "sent") &&
+                    !((coin == Coin.firo || coin == Coin.firoTestNet) &&
+                        _transaction.subType == "mint"))
                   RoundedWhiteContainer(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -469,6 +552,19 @@ class _TransactionDetailsViewState
                               coin: coin,
                               txid: _transaction.txid,
                             );
+
+                            if (ref
+                                    .read(prefsChangeNotifierProvider)
+                                    .hideBlockExplorerWarning ==
+                                false) {
+                              final shouldContinue =
+                                  await showExplorerWarning(uri.host);
+
+                              if (!shouldContinue) {
+                                return;
+                              }
+                            }
+
                             // ref
                             //     .read(
                             //         shouldShowLockscreenOnResumeStateProvider
@@ -480,14 +576,14 @@ class _TransactionDetailsViewState
                                 mode: LaunchMode.externalApplication,
                               );
                             } catch (_) {
-                              showDialog<void>(
+                              unawaited(showDialog<void>(
                                 context: context,
                                 builder: (_) => StackOkDialog(
                                   title: "Could not open in block explorer",
                                   message:
                                       "Failed to open \"${uri.toString()}\"",
                                 ),
-                              );
+                              ));
                             } finally {
                               // Future<void>.delayed(
                               //   const Duration(seconds: 1),
@@ -505,83 +601,83 @@ class _TransactionDetailsViewState
                     ],
                   ),
                 ),
-                if ((coin == Coin.firoTestNet || coin == Coin.firo) &&
-                    _transaction.subType == "mint")
-                  const SizedBox(
-                    height: 12,
-                  ),
-                if ((coin == Coin.firoTestNet || coin == Coin.firo) &&
-                    _transaction.subType == "mint")
-                  RoundedWhiteContainer(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Mint Transaction ID",
-                              style: STextStyles.itemSubtitle,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        // Flexible(
-                        //   child: FittedBox(
-                        //     fit: BoxFit.scaleDown,
-                        //     child:
-                        SelectableText(
-                          _transaction.otherData ?? "Unknown",
-                          style: STextStyles.itemSubtitle12,
-                        ),
-                        //   ),
-                        // ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        BlueTextButton(
-                          text: "Open in block explorer",
-                          onTap: () async {
-                            final uri = getBlockExplorerTransactionUrlFor(
-                              coin: coin,
-                              txid: _transaction.otherData ?? "Unknown",
-                            );
-                            // ref
-                            //     .read(
-                            //         shouldShowLockscreenOnResumeStateProvider
-                            //             .state)
-                            //     .state = false;
-                            try {
-                              await launchUrl(
-                                uri,
-                                mode: LaunchMode.externalApplication,
-                              );
-                            } catch (_) {
-                              showDialog<void>(
-                                context: context,
-                                builder: (_) => StackOkDialog(
-                                  title: "Could not open in block explorer",
-                                  message:
-                                      "Failed to open \"${uri.toString()}\"",
-                                ),
-                              );
-                            } finally {
-                              // Future<void>.delayed(
-                              //   const Duration(seconds: 1),
-                              //   () => ref
-                              //       .read(
-                              //           shouldShowLockscreenOnResumeStateProvider
-                              //               .state)
-                              //       .state = true,
-                              // );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                // if ((coin == Coin.firoTestNet || coin == Coin.firo) &&
+                //     _transaction.subType == "mint")
+                //   const SizedBox(
+                //     height: 12,
+                //   ),
+                // if ((coin == Coin.firoTestNet || coin == Coin.firo) &&
+                //     _transaction.subType == "mint")
+                //   RoundedWhiteContainer(
+                //     child: Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         Row(
+                //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //           children: [
+                //             Text(
+                //               "Mint Transaction ID",
+                //               style: STextStyles.itemSubtitle,
+                //             ),
+                //           ],
+                //         ),
+                //         const SizedBox(
+                //           height: 8,
+                //         ),
+                //         // Flexible(
+                //         //   child: FittedBox(
+                //         //     fit: BoxFit.scaleDown,
+                //         //     child:
+                //         SelectableText(
+                //           _transaction.otherData ?? "Unknown",
+                //           style: STextStyles.itemSubtitle12,
+                //         ),
+                //         //   ),
+                //         // ),
+                //         const SizedBox(
+                //           height: 8,
+                //         ),
+                //         BlueTextButton(
+                //           text: "Open in block explorer",
+                //           onTap: () async {
+                //             final uri = getBlockExplorerTransactionUrlFor(
+                //               coin: coin,
+                //               txid: _transaction.otherData ?? "Unknown",
+                //             );
+                //             // ref
+                //             //     .read(
+                //             //         shouldShowLockscreenOnResumeStateProvider
+                //             //             .state)
+                //             //     .state = false;
+                //             try {
+                //               await launchUrl(
+                //                 uri,
+                //                 mode: LaunchMode.externalApplication,
+                //               );
+                //             } catch (_) {
+                //               unawaited(showDialog<void>(
+                //                 context: context,
+                //                 builder: (_) => StackOkDialog(
+                //                   title: "Could not open in block explorer",
+                //                   message:
+                //                       "Failed to open \"${uri.toString()}\"",
+                //                 ),
+                //               ));
+                //             } finally {
+                //               // Future<void>.delayed(
+                //               //   const Duration(seconds: 1),
+                //               //   () => ref
+                //               //       .read(
+                //               //           shouldShowLockscreenOnResumeStateProvider
+                //               //               .state)
+                //               //       .state = true,
+                //               // );
+                //             }
+                //           },
+                //         ),
+                //       ],
+                //     ),
+                //   ),
                 if (coin == Coin.epicCash)
                   const SizedBox(
                     height: 12,
@@ -637,20 +733,20 @@ class _TransactionDetailsViewState
                   if (manager.wallet is EpicCashWallet) {
                     final String? id = _transaction.slateId;
                     if (id == null) {
-                      showFloatingFlushBar(
+                      unawaited(showFloatingFlushBar(
                         type: FlushBarType.warning,
                         message: "Could not find Epic transaction ID",
                         context: context,
-                      );
+                      ));
                       return;
                     }
 
-                    showDialog<dynamic>(
+                    unawaited(showDialog<dynamic>(
                       barrierDismissible: false,
                       context: context,
                       builder: (_) =>
                           const CancellingTransactionProgressDialog(),
-                    );
+                    ));
 
                     final result = await (manager.wallet as EpicCashWallet)
                         .cancelPendingTransactionAndPost(id);
@@ -681,11 +777,11 @@ class _TransactionDetailsViewState
                       }
                     }
                   } else {
-                    showFloatingFlushBar(
+                    unawaited(showFloatingFlushBar(
                       type: FlushBarType.warning,
                       message: "ERROR: Wallet type is not Epic Cash",
                       context: context,
-                    );
+                    ));
                     return;
                   }
                 },
