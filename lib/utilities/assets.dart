@@ -156,7 +156,7 @@ class _PNG {
   String get bitcoin => "assets/images/bitcoin.png";
   String get epicCash => "assets/images/epic-cash.png";
   String get bitcoincash => "assets/images/bitcoincash.png";
-  String get namecoin => "assets/images/bitcoincash.png";
+  String get namecoin => "assets/images/namecoin.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {

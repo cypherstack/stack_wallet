@@ -189,6 +189,7 @@ flutter:
     - assets/images/bitcoin.png
     - assets/images/epic-cash.png
     - assets/images/bitcoincash.png
+    - assets/images/namecoin.png
     - assets/svg/plus.svg
     - assets/svg/gear.svg
     - assets/svg/bell.svg
