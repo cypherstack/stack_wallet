@@ -46,7 +46,7 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: a35968c2d2d900e77baa9f8b28c89b722c074039
+      ref: 65eb920719c8f7895c5402a07497647e7fc4b346
 
   stack_wallet_backup:
     git:
@@ -74,7 +74,10 @@ dependencies:
       url: https://github.com/Quppy/bitbox-flutter.git
       ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
   bip32: ^2.0.0
-  bech32: ^0.2.1
+  bech32:
+    git:
+      url: https://github.com/cypherstack/bech32.git
+      ref: 22279d4bb24ed541b431acd269a1bc50af0f36a0
   bs58check: ^1.0.2
 
   # Storage plugins
