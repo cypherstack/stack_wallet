@@ -42,7 +42,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
-const int MINIMUM_CONFIRMATIONS = 2;
+const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 294;
 
 const String GENESIS_HASH_MAINNET =
