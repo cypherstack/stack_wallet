@@ -28,7 +28,7 @@ import 'bitcoin_wallet_test_parameters.dart';
 void main() {
   group("bitcoin constants", () {
     test("bitcoin minimum confirmations", () async {
-      expect(MINIMUM_CONFIRMATIONS, 2);
+      expect(MINIMUM_CONFIRMATIONS, 1);
     });
     test("bitcoin dust limit", () async {
       expect(DUST_LIMIT, 294);
