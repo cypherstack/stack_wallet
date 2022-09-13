@@ -56,6 +56,8 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/stack_backup_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/startup_preferences/startup_preferences_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/startup_preferences/startup_wallet_selection_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/support_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
@@ -222,6 +224,18 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const SyncingPreferencesView(),
+            settings: RouteSettings(name: settings.name));
+
+      case StartupPreferencesView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const StartupPreferencesView(),
+            settings: RouteSettings(name: settings.name));
+
+      case StartupWalletSelectionView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const StartupWalletSelectionView(),
             settings: RouteSettings(name: settings.name));
 
       case ManageNodesView.routeName:
@@ -719,7 +733,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletInitiatedExchangeView.routeName:
-        if (args is Tuple2<String, Coin>) {
+        if (args is Tuple3<String, Coin, VoidCallback>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => Stack(
@@ -728,7 +742,9 @@ class RouteGenerator {
                   walletId: args.item1,
                   coin: args.item2,
                 ),
-                const ExchangeLoadingOverlayView(),
+                ExchangeLoadingOverlayView(
+                  unawaitedLoad: args.item3,
+                ),
               ],
             ),
             settings: RouteSettings(

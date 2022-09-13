@@ -164,8 +164,15 @@ class Wallets extends ChangeNotifier {
       try {
         final walletId = entry.value.walletId;
 
-        final isVerified =
-            await walletsService.isMnemonicVerified(walletId: walletId);
+        late final bool isVerified;
+        try {
+          isVerified =
+              await walletsService.isMnemonicVerified(walletId: walletId);
+        } catch (e, s) {
+          Logging.instance.log("$e $s", level: LogLevel.Warning);
+          isVerified = false;
+        }
+
         Logging.instance.log(
             "LOADING WALLET: ${entry.value.toString()} IS VERIFIED: $isVerified",
             level: LogLevel.Info);

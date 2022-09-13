@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
@@ -15,6 +20,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/shake/shake.dart';
+import 'package:tuple/tuple.dart';
 
 class LockscreenView extends ConsumerStatefulWidget {
   const LockscreenView({
@@ -75,10 +81,20 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     if (widget.popOnSuccess) {
       Navigator.of(context).pop(widget.routeOnSuccessArguments);
     } else {
-      Navigator.of(context).pushReplacementNamed(
+      unawaited(Navigator.of(context).pushReplacementNamed(
         widget.routeOnSuccess,
         arguments: widget.routeOnSuccessArguments,
-      );
+      ));
+      if (widget.routeOnSuccess == HomeView.routeName &&
+          widget.routeOnSuccessArguments is String) {
+        final walletId = widget.routeOnSuccessArguments as String;
+        unawaited(Navigator.of(context).pushNamed(WalletView.routeName,
+            arguments: Tuple2(
+                walletId,
+                ref
+                    .read(walletsChangeNotifierProvider)
+                    .getManagerProvider(walletId))));
+      }
     }
   }
 
@@ -105,7 +121,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         //       await walletsService.getWalletId(currentWalletName));
         // }
 
-        _onUnlock();
+        unawaited(_onUnlock());
       }
       // leave this commented to enable pin fall back should biometrics not work properly
       // else {
@@ -250,10 +266,10 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                                 _timeout = const Duration(minutes: 60);
                             }
 
-                            Future<void>.delayed(_timeout).then((_) {
+                            unawaited(Future<void>.delayed(_timeout).then((_) {
                               _attemptLock = false;
                               _attempts = 0;
-                            });
+                            }));
                           }
 
                           if (_attemptLock) {
@@ -264,13 +280,13 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                               prettyTime += "${_timeout.inSeconds} seconds";
                             }
 
-                            showFloatingFlushBar(
+                            unawaited(showFloatingFlushBar(
                               type: FlushBarType.warning,
                               message:
                                   "Incorrect PIN entered too many times. Please wait $prettyTime",
                               context: context,
                               iconAsset: Assets.svg.alertCircle,
-                            );
+                            ));
 
                             await Future<void>.delayed(
                                 const Duration(milliseconds: 100));
@@ -286,15 +302,15 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           if (storedPin == pin) {
                             await Future<void>.delayed(
                                 const Duration(milliseconds: 200));
-                            _onUnlock();
+                            unawaited(_onUnlock());
                           } else {
-                            _shakeController.shake();
-                            showFloatingFlushBar(
+                            unawaited(_shakeController.shake());
+                            unawaited(showFloatingFlushBar(
                               type: FlushBarType.warning,
                               message: "Incorrect PIN. Please try again",
                               context: context,
                               iconAsset: Assets.svg.alertCircle,
-                            );
+                            ));
 
                             await Future<void>.delayed(
                                 const Duration(milliseconds: 100));
