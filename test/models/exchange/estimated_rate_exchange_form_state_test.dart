@@ -21,6 +21,9 @@ void main() {
     featured: false,
     isStable: true,
     supportsFixedRate: true,
+    sell: true,
+    buy: true,
+    network: 'btc',
   );
   final currencyB = Currency(
     ticker: "xmr",
@@ -31,6 +34,9 @@ void main() {
     featured: false,
     isStable: true,
     supportsFixedRate: true,
+    sell: true,
+    buy: true,
+    network: 'xmr',
   );
   final currencyC = Currency(
     ticker: "firo",
@@ -41,6 +47,9 @@ void main() {
     featured: false,
     isStable: true,
     supportsFixedRate: true,
+    sell: true,
+    buy: true,
+    network: 'firo',
   );
 
   test("EstimatedRateExchangeFormState constructor", () async {

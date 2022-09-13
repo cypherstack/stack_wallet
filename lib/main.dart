@@ -15,6 +15,7 @@ import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
@@ -238,7 +239,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             .isNotEmpty) {
       return;
     }
-    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
+    final response = await ref
+        .read(changeNowProvider)
+        .getAvailableCurrenciesV2(flow: CNFlowType.standard);
     final response2 =
         await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
     if (response.value != null) {

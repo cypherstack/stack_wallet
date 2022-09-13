@@ -129,23 +129,20 @@ class HiddenSettings extends StatelessWidget {
                       // ),
                       // GestureDetector(
                       //   onTap: () async {
-                      //     showDialog<void>(
-                      //       context: context,
-                      //       builder: (_) {
-                      //         return StackDialogBase(
-                      //           child: SizedBox(
-                      //             width: 200,
-                      //             child: Lottie.asset(
-                      //               Assets.lottie.test2,
-                      //             ),
-                      //           ),
-                      //         );
-                      //       },
-                      //     );
+                      //     final curs = await ChangeNow.instance
+                      //         .getAvailableCurrenciesV2(
+                      //             flow: CNFlowType.standard);
+                      //
+                      //     int count = 0;
+                      //     for (final cur in curs.value!) {
+                      //       if (cur.ticker == "usdt") {
+                      //         print(cur);
+                      //       }
+                      //     }
                       //   },
                       //   child: RoundedWhiteContainer(
                       //     child: Text(
-                      //       "Lottie test",
+                      //       "Currencies v2 test",
                       //       style: STextStyles.button.copyWith(
                       //         color: CFColors.stackAccent,
                       //       ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
@@ -43,7 +44,9 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
+    final response = await ref
+        .read(changeNowProvider)
+        .getAvailableCurrenciesV2(flow: CNFlowType.standard);
     final response2 =
         await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
     if (response.value != null && response2.value != null) {

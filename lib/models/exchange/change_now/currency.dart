@@ -23,9 +23,17 @@ class Currency {
   /// Indicates if a currency is available on a fixed-rate flow
   final bool supportsFixedRate;
 
-  /// (Optional - based on api call) Indicates whether the pair is
-  /// currently supported by change now
-  final bool? isAvailable;
+  /// Currency network
+  final String network;
+
+  /// Contract for token or null for non-token
+  final String? tokenContract;
+
+  /// Indicates if a currency is available to buy
+  final bool buy;
+
+  /// Indicates if a currency is available to sell
+  final bool sell;
 
   Currency({
     required this.ticker,
@@ -36,7 +44,10 @@ class Currency {
     required this.featured,
     required this.isStable,
     required this.supportsFixedRate,
-    this.isAvailable,
+    required this.network,
+    this.tokenContract,
+    required this.buy,
+    required this.sell,
   });
 
   factory Currency.fromJson(Map<String, dynamic> json) {
@@ -50,7 +61,10 @@ class Currency {
         featured: json["featured"] as bool,
         isStable: json["isStable"] as bool,
         supportsFixedRate: json["supportsFixedRate"] as bool,
-        isAvailable: json["isAvailable"] as bool?,
+        network: json["network"] as String,
+        tokenContract: json["tokenContract"] as String?,
+        buy: json["buy"] as bool,
+        sell: json["sell"] as bool,
       );
     } catch (e) {
       rethrow;
@@ -67,10 +81,13 @@ class Currency {
       "featured": featured,
       "isStable": isStable,
       "supportsFixedRate": supportsFixedRate,
+      "network": network,
+      "buy": buy,
+      "sell": sell,
     };
 
-    if (isAvailable != null) {
-      map["isAvailable"] = isAvailable!;
+    if (tokenContract != null) {
+      map["tokenContract"] = tokenContract!;
     }
 
     return map;
@@ -86,6 +103,10 @@ class Currency {
     bool? isStable,
     bool? supportsFixedRate,
     bool? isAvailable,
+    String? network,
+    String? tokenContract,
+    bool? buy,
+    bool? sell,
   }) {
     return Currency(
       ticker: ticker ?? this.ticker,
@@ -96,7 +117,10 @@ class Currency {
       featured: featured ?? this.featured,
       isStable: isStable ?? this.isStable,
       supportsFixedRate: supportsFixedRate ?? this.supportsFixedRate,
-      isAvailable: isAvailable ?? this.isAvailable,
+      network: network ?? this.network,
+      tokenContract: tokenContract ?? this.tokenContract,
+      buy: buy ?? this.buy,
+      sell: sell ?? this.sell,
     );
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
 import 'package:stackwallet/providers/exchange/change_now_provider.dart';
@@ -81,7 +82,9 @@ class ChangeNowLoadingService {
     ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
         ChangeNowLoadStatus.loading;
 
-    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
+    final response = await ref
+        .read(changeNowProvider)
+        .getAvailableCurrenciesV2(flow: CNFlowType.standard);
     final response2 =
         await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
     if (response.value != null) {

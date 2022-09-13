@@ -170,54 +170,42 @@ class ChangeNow {
     }
   }
 
-  /// This API endpoint returns the array of markets available for the specified currency be default.
-  /// The availability of a particular pair is determined by the 'isAvailable' field.
-  ///
-  /// Required [ticker] to fetch paired currencies for.
-  /// Set [fixedRate] to true to return only currencies available on a fixed-rate flow.
-  Future<ChangeNowResponse<List<Currency>>> getPairedCurrencies({
-    required String ticker,
-    bool? fixedRate,
+  /// This v2 API endpoint returns the list of available currencies.
+  Future<ChangeNowResponse<List<Currency>>> getAvailableCurrenciesV2({
+    bool? active,
+    required CNFlowType flow,
   }) async {
-    Map<String, dynamic>? params;
+    Map<String, dynamic> params = {
+      "flow": flow.value,
+    };
 
-    if (fixedRate != null) {
-      params = {};
-      params.addAll({"fixedRate": fixedRate.toString()});
+    if (active != null && active) {
+      params.addAll({"active": active.toString()});
     }
 
-    final uri = _buildUri("/currencies-to/$ticker", params);
+    final uri = _buildUriV2("/exchange/currencies", params);
 
     try {
       // json array is expected here
-      final jsonArray = (await _makeGetRequest(uri)) as List;
+      final jsonArray = await _makeGetRequest(uri);
 
-      List<Currency> currencies = [];
       try {
-        for (final json in jsonArray) {
-          try {
-            currencies
-                .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
-          } catch (_) {
-            return ChangeNowResponse(
-              exception: ChangeNowException(
-                "Failed to serialize $json",
-                ChangeNowExceptionType.serializeResponseError,
-              ),
-            );
-          }
-        }
+        final result = await compute(
+            _parseAvailableCurrenciesJsonV2, jsonArray as List<dynamic>);
+        return result;
       } catch (e, s) {
-        Logging.instance.log("getPairedCurrencies exception: $e\n$s",
+        Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
             level: LogLevel.Error);
         return ChangeNowResponse(
-            exception: ChangeNowException("Error: $jsonArray",
-                ChangeNowExceptionType.serializeResponseError));
+          exception: ChangeNowException(
+            "Error: $jsonArray",
+            ChangeNowExceptionType.serializeResponseError,
+          ),
+        );
       }
-      return ChangeNowResponse(value: currencies);
     } catch (e, s) {
-      Logging.instance
-          .log("getPairedCurrencies exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
+          level: LogLevel.Error);
       return ChangeNowResponse(
         exception: ChangeNowException(
           e.toString(),
@@ -226,6 +214,85 @@ class ChangeNow {
       );
     }
   }
+
+  ChangeNowResponse<List<Currency>> _parseAvailableCurrenciesJsonV2(
+      List<dynamic> jsonArray) {
+    try {
+      List<Currency> currencies = [];
+
+      for (final json in jsonArray) {
+        try {
+          currencies
+              .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
+        } catch (_) {
+          return ChangeNowResponse(
+              exception: ChangeNowException("Failed to serialize $json",
+                  ChangeNowExceptionType.serializeResponseError));
+        }
+      }
+
+      return ChangeNowResponse(value: currencies);
+    } catch (_) {
+      rethrow;
+    }
+  }
+
+  // /// This API endpoint returns the array of markets available for the specified currency be default.
+  // /// The availability of a particular pair is determined by the 'isAvailable' field.
+  // ///
+  // /// Required [ticker] to fetch paired currencies for.
+  // /// Set [fixedRate] to true to return only currencies available on a fixed-rate flow.
+  // Future<ChangeNowResponse<List<Currency>>> getPairedCurrencies({
+  //   required String ticker,
+  //   bool? fixedRate,
+  // }) async {
+  //   Map<String, dynamic>? params;
+  //
+  //   if (fixedRate != null) {
+  //     params = {};
+  //     params.addAll({"fixedRate": fixedRate.toString()});
+  //   }
+  //
+  //   final uri = _buildUri("/currencies-to/$ticker", params);
+  //
+  //   try {
+  //     // json array is expected here
+  //     final jsonArray = (await _makeGetRequest(uri)) as List;
+  //
+  //     List<Currency> currencies = [];
+  //     try {
+  //       for (final json in jsonArray) {
+  //         try {
+  //           currencies
+  //               .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
+  //         } catch (_) {
+  //           return ChangeNowResponse(
+  //             exception: ChangeNowException(
+  //               "Failed to serialize $json",
+  //               ChangeNowExceptionType.serializeResponseError,
+  //             ),
+  //           );
+  //         }
+  //       }
+  //     } catch (e, s) {
+  //       Logging.instance.log("getPairedCurrencies exception: $e\n$s",
+  //           level: LogLevel.Error);
+  //       return ChangeNowResponse(
+  //           exception: ChangeNowException("Error: $jsonArray",
+  //               ChangeNowExceptionType.serializeResponseError));
+  //     }
+  //     return ChangeNowResponse(value: currencies);
+  //   } catch (e, s) {
+  //     Logging.instance
+  //         .log("getPairedCurrencies exception: $e\n$s", level: LogLevel.Error);
+  //     return ChangeNowResponse(
+  //       exception: ChangeNowException(
+  //         e.toString(),
+  //         ChangeNowExceptionType.generic,
+  //       ),
+  //     );
+  //   }
+  // }
 
   /// The API endpoint returns minimal payment amount required to make
   /// an exchange of [fromTicker] to [toTicker].

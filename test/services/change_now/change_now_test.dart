@@ -125,81 +125,81 @@ void main() {
       expect(result.value == null, true);
     });
   });
-
-  group("getPairedCurrencies", () {
-    test("getPairedCurrencies succeeds without fixedRate option", () async {
-      final client = MockClient();
-      ChangeNow.instance.client = client;
-
-      when(client.get(
-        Uri.parse("https://api.ChangeNow.io/v1/currencies-to/XMR"),
-        headers: {'Content-Type': 'application/json'},
-      )).thenAnswer((realInvocation) async =>
-          Response(jsonEncode(getPairedCurrenciesJSON), 200));
-
-      final result =
-          await ChangeNow.instance.getPairedCurrencies(ticker: "XMR");
-
-      expect(result.exception, null);
-      expect(result.value == null, false);
-      expect(result.value!.length, 537);
-    });
-
-    test("getPairedCurrencies succeeds with fixedRate option", () async {
-      final client = MockClient();
-      ChangeNow.instance.client = client;
-
-      when(client.get(
-        Uri.parse(
-            "https://api.ChangeNow.io/v1/currencies-to/XMR?fixedRate=true"),
-        headers: {'Content-Type': 'application/json'},
-      )).thenAnswer((realInvocation) async =>
-          Response(jsonEncode(getPairedCurrenciesJSONFixedRate), 200));
-
-      final result = await ChangeNow.instance
-          .getPairedCurrencies(ticker: "XMR", fixedRate: true);
-
-      expect(result.exception, null);
-      expect(result.value == null, false);
-      expect(result.value!.length, 410);
-    });
-
-    test(
-        "getPairedCurrencies fails with ChangeNowExceptionType.serializeResponseError A",
-        () async {
-      final client = MockClient();
-      ChangeNow.instance.client = client;
-
-      when(client.get(
-        Uri.parse("https://api.ChangeNow.io/v1/currencies-to/XMR"),
-        headers: {'Content-Type': 'application/json'},
-      )).thenAnswer((realInvocation) async =>
-          Response('[{"some unexpected": "but valid json data"}]', 200));
-
-      final result =
-          await ChangeNow.instance.getPairedCurrencies(ticker: "XMR");
-
-      expect(result.exception!.type,
-          ChangeNowExceptionType.serializeResponseError);
-      expect(result.value == null, true);
-    });
-
-    test("getPairedCurrencies fails for any other reason", () async {
-      final client = MockClient();
-      ChangeNow.instance.client = client;
-
-      when(client.get(
-        Uri.parse("https://api.ChangeNow.io/v1/currencies"),
-        headers: {'Content-Type': 'application/json'},
-      )).thenAnswer((realInvocation) async => Response("", 400));
-
-      final result = await ChangeNow.instance
-          .getPairedCurrencies(ticker: "XMR", fixedRate: true);
-
-      expect(result.exception!.type, ChangeNowExceptionType.generic);
-      expect(result.value == null, true);
-    });
-  });
+  //
+  // group("getPairedCurrencies", () {
+  //   test("getPairedCurrencies succeeds without fixedRate option", () async {
+  //     final client = MockClient();
+  //     ChangeNow.instance.client = client;
+  //
+  //     when(client.get(
+  //       Uri.parse("https://api.ChangeNow.io/v1/currencies-to/XMR"),
+  //       headers: {'Content-Type': 'application/json'},
+  //     )).thenAnswer((realInvocation) async =>
+  //         Response(jsonEncode(getPairedCurrenciesJSON), 200));
+  //
+  //     final result =
+  //         await ChangeNow.instance.getPairedCurrencies(ticker: "XMR");
+  //
+  //     expect(result.exception, null);
+  //     expect(result.value == null, false);
+  //     expect(result.value!.length, 537);
+  //   });
+  //
+  //   test("getPairedCurrencies succeeds with fixedRate option", () async {
+  //     final client = MockClient();
+  //     ChangeNow.instance.client = client;
+  //
+  //     when(client.get(
+  //       Uri.parse(
+  //           "https://api.ChangeNow.io/v1/currencies-to/XMR?fixedRate=true"),
+  //       headers: {'Content-Type': 'application/json'},
+  //     )).thenAnswer((realInvocation) async =>
+  //         Response(jsonEncode(getPairedCurrenciesJSONFixedRate), 200));
+  //
+  //     final result = await ChangeNow.instance
+  //         .getPairedCurrencies(ticker: "XMR", fixedRate: true);
+  //
+  //     expect(result.exception, null);
+  //     expect(result.value == null, false);
+  //     expect(result.value!.length, 410);
+  //   });
+  //
+  //   test(
+  //       "getPairedCurrencies fails with ChangeNowExceptionType.serializeResponseError A",
+  //       () async {
+  //     final client = MockClient();
+  //     ChangeNow.instance.client = client;
+  //
+  //     when(client.get(
+  //       Uri.parse("https://api.ChangeNow.io/v1/currencies-to/XMR"),
+  //       headers: {'Content-Type': 'application/json'},
+  //     )).thenAnswer((realInvocation) async =>
+  //         Response('[{"some unexpected": "but valid json data"}]', 200));
+  //
+  //     final result =
+  //         await ChangeNow.instance.getPairedCurrencies(ticker: "XMR");
+  //
+  //     expect(result.exception!.type,
+  //         ChangeNowExceptionType.serializeResponseError);
+  //     expect(result.value == null, true);
+  //   });
+  //
+  //   test("getPairedCurrencies fails for any other reason", () async {
+  //     final client = MockClient();
+  //     ChangeNow.instance.client = client;
+  //
+  //     when(client.get(
+  //       Uri.parse("https://api.ChangeNow.io/v1/currencies"),
+  //       headers: {'Content-Type': 'application/json'},
+  //     )).thenAnswer((realInvocation) async => Response("", 400));
+  //
+  //     final result = await ChangeNow.instance
+  //         .getPairedCurrencies(ticker: "XMR", fixedRate: true);
+  //
+  //     expect(result.exception!.type, ChangeNowExceptionType.generic);
+  //     expect(result.value == null, true);
+  //   });
+  // });
 
   group("getMinimalExchangeAmount", () {
     test("getMinimalExchangeAmount succeeds", () async {
