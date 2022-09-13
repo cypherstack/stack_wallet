@@ -308,7 +308,7 @@ class NamecoinWallet extends CoinServiceAPI {
       throw ArgumentError('Invalid version or Network mismatch');
     } else {
       try {
-        decodeBech32 = segwit.decode(address);
+        decodeBech32 = segwit.decode(address, namecoin.bech32!);
       } catch (err) {
         // Bech32 decode fail
       }
