@@ -75,7 +75,7 @@ bip32.BIP32 getBip32NodeFromRoot(
     int chain, int index, bip32.BIP32 root, DerivePathType derivePathType) {
   String coinType;
   switch (root.network.wif) {
-    case 0x80: // nmc mainnet wif
+    case 0xb4: // nmc mainnet wif
       coinType = "7"; // nmc mainnet
       break;
     default:
@@ -159,6 +159,7 @@ class NamecoinWallet extends CoinServiceAPI {
   @override
   Future<Decimal> get availableBalance async {
     final data = await utxoData;
+    print("DATA IN GET BALANCE IS $data");
     return Format.satoshisToAmount(
         data.satoshiBalance - data.satoshiBalanceUnconfirmed);
   }
@@ -3027,9 +3028,9 @@ class NamecoinWallet extends CoinServiceAPI {
 
 // Namecoin Network
 final namecoin = NetworkType(
-    messagePrefix: '\x18Bitcoin Signed Message:\n',
+    messagePrefix: '\x18Namecoin Signed Message:\n',
     bech32: 'bc',
     bip32: Bip32Type(public: 0x0488b21e, private: 0x0488ade4),
-    pubKeyHash: 0x00,
-    scriptHash: 0x05,
-    wif: 0x80);
+    pubKeyHash: 0x34, //From 52
+    scriptHash: 0x0d, //13
+    wif: 0xb4); //from 180
