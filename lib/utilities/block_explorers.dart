@@ -25,6 +25,6 @@ Uri getBlockExplorerTransactionUrlFor({
     case Coin.bitcoincash:
       return Uri.parse("https://blockchair.com/bitcoin-cash/transaction/$txid");
     case Coin.namecoin:
-      return Uri.parse("uri");
+      return Uri.parse("https://chainz.cryptoid.info/nmc/tx.dws?$txid.htm");
   }
 }
