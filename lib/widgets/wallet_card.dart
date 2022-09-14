@@ -79,44 +79,46 @@ class WalletSheetCard extends ConsumerWidget {
             const SizedBox(
               width: 12,
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  manager.walletName,
-                  style: STextStyles.titleBold12,
-                ),
-                const SizedBox(
-                  height: 2,
-                ),
-                FutureBuilder(
-                  future: manager.totalBalance,
-                  builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done &&
-                        snapshot.hasData) {
-                      return Text(
-                        "${Format.localizedStringAsFixed(
-                          value: snapshot.data!,
-                          locale: locale,
-                          decimalPlaces: 8,
-                        )} ${coin.ticker}",
-                        style: STextStyles.itemSubtitle,
-                      );
-                    } else {
-                      return AnimatedText(
-                        stringsToLoopThrough: const [
-                          "Loading balance",
-                          "Loading balance.",
-                          "Loading balance..",
-                          "Loading balance..."
-                        ],
-                        style: STextStyles.itemSubtitle,
-                      );
-                    }
-                  },
-                ),
-              ],
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    manager.walletName,
+                    style: STextStyles.titleBold12,
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  FutureBuilder(
+                    future: manager.totalBalance,
+                    builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        return Text(
+                          "${Format.localizedStringAsFixed(
+                            value: snapshot.data!,
+                            locale: locale,
+                            decimalPlaces: 8,
+                          )} ${coin.ticker}",
+                          style: STextStyles.itemSubtitle,
+                        );
+                      } else {
+                        return AnimatedText(
+                          stringsToLoopThrough: const [
+                            "Loading balance",
+                            "Loading balance.",
+                            "Loading balance..",
+                            "Loading balance..."
+                          ],
+                          style: STextStyles.itemSubtitle,
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
