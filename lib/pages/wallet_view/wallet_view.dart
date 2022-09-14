@@ -376,9 +376,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
               const SizedBox(
                 width: 16,
               ),
-              Text(
-                ref.watch(managerProvider.select((value) => value.walletName)),
-                style: STextStyles.navBarTitle,
+              Expanded(
+                child: Text(
+                  ref.watch(
+                      managerProvider.select((value) => value.walletName)),
+                  style: STextStyles.navBarTitle,
+                  overflow: TextOverflow.ellipsis,
+                ),
               )
             ],
           ),
