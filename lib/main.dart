@@ -56,6 +56,7 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
@@ -65,6 +66,13 @@ final openedFromSWBFileStringStateProvider =
 // miscellaneous box for later use
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+    setWindowTitle('Stack Wallet');
+    setWindowMinSize(const Size(1200, 900));
+    setWindowMaxSize(Size.infinite);
+  }
+
   Directory appDirectory = (await getApplicationDocumentsDirectory());
   if (Platform.isIOS) {
     appDirectory = (await getLibraryDirectory());
