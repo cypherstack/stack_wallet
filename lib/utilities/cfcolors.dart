@@ -147,6 +147,10 @@ abstract class CFColors {
   }
 
   // new
+
+  static const Color popupBackground = Color(0xFFFFFFFF);
+  static const Color background = Color(0xFFF7F7F7);
+
   static const Color textDark = Color(0xFF232323);
   static const Color textSubtitle1 = Color(0xFF8E9192);
   static const Color textSubtitle2 = Color(0xFFA9ACAC);
@@ -178,6 +182,20 @@ abstract class CFColors {
           );
 
   static ButtonStyle? getSecondaryEnabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              CFColors.textFieldDefaultBackground,
+            ),
+          );
+
+  static ButtonStyle? getDesktopMenuButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              CFColors.popupBackground,
+            ),
+          );
+
+  static ButtonStyle? getDesktopMenuButtonColorSelected(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               CFColors.textFieldDefaultBackground,

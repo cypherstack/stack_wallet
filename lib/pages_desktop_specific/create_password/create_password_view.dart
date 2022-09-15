@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -75,6 +76,12 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
 
     await widget.secureStore
         .write(key: "stackDesktopPassword", value: passphrase);
+
+    if (mounted) {
+      unawaited(Navigator.of(context)
+          .pushReplacementNamed(DesktopHomeView.routeName));
+    }
+
     unawaited(showFloatingFlushBar(
       type: FlushBarType.success,
       message: "Your password is set up",
@@ -121,27 +128,6 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                 },
               ),
               const Spacer(),
-              SizedBox(
-                height: 56,
-                child: TextButton(
-                  style: CFColors.getSecondaryEnabledButtonColor(context),
-                  onPressed: () {
-                    //
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 30,
-                    ),
-                    child: Text(
-                      "Exit to My Stack",
-                      style: STextStyles.desktopButtonSecondaryEnabled,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(
-                width: 24,
-              ),
             ],
           ),
           Expanded(

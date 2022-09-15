@@ -200,4 +200,17 @@ class STextStyles {
     fontSize: 20,
     height: 30 / 20,
   );
+
+  static final TextStyle desktopMenuItem = GoogleFonts.inter(
+    color: CFColors.textDark.withOpacity(0.8),
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
+    height: 20.8 / 16,
+  );
+  static final TextStyle desktopMenuItemSelected = GoogleFonts.inter(
+    color: CFColors.textDark,
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
+    height: 20.8 / 16,
+  );
 }
