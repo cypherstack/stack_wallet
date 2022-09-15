@@ -1506,6 +1506,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
           batches[batchNumber] = {};
         }
         final scripthash = _convertToScriptHash(allAddresses[i], _network);
+        print("SCRIPT_HASH_FOR_ADDRESS ${allAddresses[i]} IS $scripthash");
         batches[batchNumber]!.addAll({
           scripthash: [scripthash]
         });
@@ -1681,15 +1682,20 @@ class BitcoinCashWallet extends CoinServiceAPI {
   }) async {
     try {
       final Map<String, List<dynamic>> args = {};
+      print("Address $addresses");
       for (final entry in addresses.entries) {
         args[entry.key] = [_convertToScriptHash(entry.value, _network)];
       }
-      final response = await electrumXClient.getBatchHistory(args: args);
 
+      print("Args ${jsonEncode(args)}");
+
+      final response = await electrumXClient.getBatchHistory(args: args);
+      print("Response ${jsonEncode(response)}");
       final Map<String, int> result = {};
       for (final entry in response.entries) {
         result[entry.key] = entry.value.length;
       }
+      print("result ${jsonEncode(result)}");
       return result;
     } catch (e, s) {
       Logging.instance.log(

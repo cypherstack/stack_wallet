@@ -1858,6 +1858,8 @@ class NamecoinWallet extends CoinServiceAPI {
           batches[batchNumber] = {};
         }
         final scripthash = _convertToScriptHash(allAddresses[i], _network);
+
+        print("SCRIPT_HASH_FOR_ADDRESS ${allAddresses[i]} IS $scripthash");
         batches[batchNumber]!.addAll({
           scripthash: [scripthash]
         });
