@@ -145,4 +145,42 @@ abstract class CFColors {
     }
     return MaterialColor(color.value, swatch);
   }
+
+  // new
+  static const Color textDark = Color(0xFF232323);
+  static const Color textSubtitle1 = Color(0xFF8E9192);
+  static const Color textSubtitle2 = Color(0xFFA9ACAC);
+
+  static const Color buttonTextSecondary = Color(0xFF232323);
+
+  static const Color buttonTextPrimary = Color(0xFFFFFFFF);
+  static const Color buttonTextPrimaryDisabled = Color(0xFFF8F8F8);
+
+  static const Color textFieldDefaultBackground = Color(0xFFEEEFF1);
+
+  static const Color buttonBackgroundPrimary = Color(0xFF232323);
+
+  static const Color buttonBackPrimaryDisabled = Color(0xFFD7D7D7);
+
+  // button color themes
+
+  static ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              CFColors.buttonBackgroundPrimary,
+            ),
+          );
+  static ButtonStyle? getPrimaryDisabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              CFColors.buttonBackPrimaryDisabled,
+            ),
+          );
+
+  static ButtonStyle? getSecondaryEnabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              CFColors.textFieldDefaultBackground,
+            ),
+          );
 }

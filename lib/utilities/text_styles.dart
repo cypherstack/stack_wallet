@@ -143,33 +143,61 @@ class STextStyles {
     fontSize: 10,
   );
 
-  // static final TextStyle pinkHeader = GoogleFonts.workSans(
-  //   color: CFColors.spark,
-  //   fontWeight: FontWeight.w600,
-  //   fontSize: 20,
-  // );
-  //
-  // static final TextStyle textField = GoogleFonts.workSans(
-  //   color: CFColors.dusk,
-  //   fontWeight: FontWeight.w400,
-  //   fontSize: 16,
-  // );
-  //
-  // static final TextStyle textFieldHint = GoogleFonts.workSans(
-  //   color: CFColors.twilight,
-  //   fontWeight: FontWeight.w400,
-  //   fontSize: 16,
-  // );
-  //
-  // static final TextStyle textFieldSuffix = GoogleFonts.workSans(
-  //   color: CFColors.twilight,
-  //   fontWeight: FontWeight.w600,
-  //   fontSize: 16,
-  // );
-  //
-  // static final TextStyle label = GoogleFonts.workSans(
-  //   color: CFColors.twilight,
-  //   fontWeight: FontWeight.w500,
-  //   fontSize: 12,
-  // );
+// Desktop
+
+  static final TextStyle desktopH2 = GoogleFonts.inter(
+    color: CFColors.textDark,
+    fontWeight: FontWeight.w600,
+    fontSize: 32,
+    height: 32 / 32,
+  );
+
+  static final TextStyle desktopTextMedium = GoogleFonts.inter(
+    color: CFColors.textDark,
+    fontWeight: FontWeight.w500,
+    fontSize: 20,
+    height: 30 / 20,
+  );
+
+  static final TextStyle desktopSubtitleH2 = GoogleFonts.inter(
+    color: CFColors.textDark,
+    fontWeight: FontWeight.w400,
+    fontSize: 20,
+    height: 28 / 20,
+  );
+
+  static final TextStyle desktopButtonEnabled = GoogleFonts.inter(
+    color: CFColors.buttonTextPrimary,
+    fontWeight: FontWeight.w500,
+    fontSize: 20,
+    height: 26 / 20,
+  );
+
+  static final TextStyle desktopButtonDisabled = GoogleFonts.inter(
+    color: CFColors.buttonTextPrimaryDisabled,
+    fontWeight: FontWeight.w500,
+    fontSize: 20,
+    height: 26 / 20,
+  );
+
+  static final TextStyle desktopTextExtraSmall = GoogleFonts.inter(
+    color: CFColors.buttonTextPrimaryDisabled,
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
+    height: 24 / 16,
+  );
+
+  static final TextStyle desktopButtonSecondaryEnabled = GoogleFonts.inter(
+    color: CFColors.buttonTextSecondary,
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
+    height: 24 / 16,
+  );
+
+  static final TextStyle desktopTextFieldLabel = GoogleFonts.inter(
+    color: CFColors.textSubtitle2,
+    fontWeight: FontWeight.w500,
+    fontSize: 20,
+    height: 30 / 20,
+  );
 }

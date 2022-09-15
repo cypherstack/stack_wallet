@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -52,10 +54,20 @@ class AppBarBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop =
+        Platform.isMacOS || Platform.isWindows || Platform.isLinux;
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: isDesktop
+          ? const EdgeInsets.symmetric(
+              vertical: 20,
+              horizontal: 24,
+            )
+          : const EdgeInsets.all(10),
       child: AppBarIconButton(
-        color: CFColors.almostWhite,
+        size: isDesktop ? 56 : 32,
+        color: isDesktop
+            ? CFColors.textFieldDefaultBackground
+            : CFColors.almostWhite,
         shadows: const [],
         icon: SvgPicture.asset(
           Assets.svg.arrowLeft,

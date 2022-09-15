@@ -53,6 +53,7 @@ Future<dynamic> showFloatingFlushBar({
       Constants.size.circularBorderRadius,
     ),
     margin: const EdgeInsets.all(20),
+    maxWidth: 550,
   );
 
   final _route = flushRoute.showFlushbar<dynamic>(
