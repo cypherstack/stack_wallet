@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -396,46 +397,46 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     passwordRepeatController.text;
 
                                 if (pathToSave.isEmpty) {
-                                  showFloatingFlushBar(
+                                  unawaited(showFloatingFlushBar(
                                     type: FlushBarType.warning,
                                     message: "Directory not chosen",
                                     context: context,
-                                  );
+                                  ));
                                   return;
                                 }
                                 if (!(await Directory(pathToSave).exists())) {
-                                  showFloatingFlushBar(
+                                  unawaited(showFloatingFlushBar(
                                     type: FlushBarType.warning,
                                     message: "Directory does not exist",
                                     context: context,
-                                  );
+                                  ));
                                   return;
                                 }
                                 if (passphrase.isEmpty) {
-                                  showFloatingFlushBar(
+                                  unawaited(showFloatingFlushBar(
                                     type: FlushBarType.warning,
                                     message: "A passphrase is required",
                                     context: context,
-                                  );
+                                  ));
                                   return;
                                 }
                                 if (passphrase != repeatPassphrase) {
-                                  showFloatingFlushBar(
+                                  unawaited(showFloatingFlushBar(
                                     type: FlushBarType.warning,
                                     message: "Passphrase does not match",
                                     context: context,
-                                  );
+                                  ));
                                   return;
                                 }
 
-                                showDialog<dynamic>(
+                                unawaited(showDialog<dynamic>(
                                   context: context,
                                   barrierDismissible: false,
                                   builder: (_) => const StackDialog(
                                     title: "Encrypting backup",
                                     message: "This shouldn't take long",
                                   ),
-                                );
+                                ));
                                 // make sure the dialog is able to be displayed for at least 1 second
                                 await Future<void>.delayed(
                                     const Duration(seconds: 1));
