@@ -46,3 +46,4 @@ test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart
 coverage
 scripts/**/build
 /lib/external_api_keys.dart
+/test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart
