@@ -143,6 +143,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get bitcoincashTestnet => NodeModel(
+        host: "testnet.hsmiths.com",
+        port: 53012,
+        name: defaultName,
+        id: _nodeId(Coin.bitcoincash),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.bitcoincash.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
@@ -168,6 +180,9 @@ abstract class DefaultNodes {
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
+
+      case Coin.bitcoincashTestnet:
+        return bitcoincashTestnet;
 
       case Coin.firoTestNet:
         return firoTestnet;

@@ -57,6 +57,8 @@ class AddressUtils {
         return Address.validateAddress(address, namecoin);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
+      case Coin.bitcoincashTestnet:
+        return Address.validateAddress(address, bitcoincashtestnet);
       case Coin.firoTestNet:
         return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:

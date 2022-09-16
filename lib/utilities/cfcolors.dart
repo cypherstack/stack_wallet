@@ -19,6 +19,7 @@ class _CoinThemeColor {
       case Coin.bitcoinTestNet:
         return bitcoin;
       case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
         return bitcoincash;
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:

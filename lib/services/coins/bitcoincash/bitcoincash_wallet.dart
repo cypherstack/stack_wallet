@@ -81,6 +81,9 @@ bip32.BIP32 getBip32NodeFromRoot(
     case 0x80: // bch mainnet wif
       coinType = "145"; // bch mainnet
       break;
+    case 0xef: // bch testnet wif
+      coinType = "1"; // bch testnet
+      break;
     default:
       throw Exception("Invalid Bitcoincash network type used!");
   }
@@ -137,6 +140,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
     switch (coin) {
       case Coin.bitcoincash:
         return bitcoincash;
+      case Coin.bitcoincashTestnet:
+        return bitcoincashtestnet;
       default:
         throw Exception("Bitcoincash network type not set!");
     }
@@ -1226,6 +1231,11 @@ class BitcoinCashWallet extends CoinServiceAPI {
         case Coin.bitcoincash:
           if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
             throw Exception("genesis hash does not match main net!");
+          }
+          break;
+        case Coin.bitcoincashTestnet:
+          if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
+            throw Exception("genesis hash does not match test net!");
           }
           break;
         default:
@@ -3086,3 +3096,11 @@ final bitcoincash = NetworkType(
     pubKeyHash: 0x00,
     scriptHash: 0x05,
     wif: 0x80);
+
+final bitcoincashtestnet = NetworkType(
+    messagePrefix: '\x18Bitcoin Signed Message:\n',
+    bech32: 'tb',
+    bip32: Bip32Type(public: 0x043587cf, private: 0x04358394),
+    pubKeyHash: 0x6f,
+    scriptHash: 0xc4,
+    wif: 0xef);

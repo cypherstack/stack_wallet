@@ -115,6 +115,7 @@ class _SVG {
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
+  String get bitcoincashTestnet => "assets/svg/coin_icons/Bitcoincash.svg";
   String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
   String get dogecoinTestnet => "assets/svg/coin_icons/Dogecoin.svg";
 
@@ -135,6 +136,8 @@ class _SVG {
       case Coin.namecoin:
         return namecoin;
       case Coin.bitcoinTestNet:
+        return bitcoinTestnet;
+      case Coin.bitcoincashTestnet:
         return bitcoinTestnet;
       case Coin.firoTestNet:
         return firoTestnet;
@@ -164,6 +167,7 @@ class _PNG {
       case Coin.bitcoinTestNet:
         return bitcoin;
       case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
         return bitcoincash;
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:

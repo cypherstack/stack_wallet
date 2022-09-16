@@ -24,6 +24,7 @@ enum Coin {
   ///
 
   bitcoinTestNet,
+  bitcoincashTestnet,
   dogecoinTestNet,
   firoTestNet,
 }
@@ -50,6 +51,8 @@ extension CoinExt on Coin {
         return "Namecoin";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
+      case Coin.bitcoincashTestnet:
+        return "tBitcoincash";
       case Coin.firoTestNet:
         return "tFiro";
       case Coin.dogecoinTestNet:
@@ -75,6 +78,8 @@ extension CoinExt on Coin {
         return "NMC";
       case Coin.bitcoinTestNet:
         return "tBTC";
+      case Coin.bitcoincashTestnet:
+        return "tBCH";
       case Coin.firoTestNet:
         return "tFIRO";
       case Coin.dogecoinTestNet:
@@ -101,6 +106,8 @@ extension CoinExt on Coin {
         return "namecoin";
       case Coin.bitcoinTestNet:
         return "bitcoin";
+      case Coin.bitcoincashTestnet:
+        return "bitcoincash";
       case Coin.firoTestNet:
         return "firo";
       case Coin.dogecoinTestNet:
@@ -116,6 +123,7 @@ extension CoinExt on Coin {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoinTestNet:
+      case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
         return true;
@@ -133,6 +141,7 @@ extension CoinExt on Coin {
         return btc.MINIMUM_CONFIRMATIONS;
 
       case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
         return bch.MINIMUM_CONFIRMATIONS;
 
       case Coin.firo:
@@ -182,6 +191,11 @@ Coin coinFromPrettyName(String name) {
     case "tBitcoin":
     case "bitcoinTestNet":
       return Coin.bitcoinTestNet;
+
+    case "Bitcoincash Testnet":
+    case "tBitcoincash":
+    case "Bitcoin Cash Testnet":
+      return Coin.bitcoincashTestnet;
     case "Firo Testnet":
     case "tFiro":
     case "firoTestNet":
@@ -214,6 +228,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.namecoin;
     case "tbtc":
       return Coin.bitcoinTestNet;
+    case "tbch":
+      return Coin.bitcoincashTestnet;
     case "tfiro":
       return Coin.firoTestNet;
     case "tdoge":

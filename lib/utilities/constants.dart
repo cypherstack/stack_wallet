@@ -65,6 +65,7 @@ abstract class Constants {
         return 600;
 
       case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
         return 600;
 
       case Coin.dogecoin:

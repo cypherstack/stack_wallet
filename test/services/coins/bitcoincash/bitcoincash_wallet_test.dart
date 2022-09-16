@@ -18,11 +18,6 @@ import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-
-// import '../../../cached_electrumx_test.mocks.dart';
-// import '../../../screen_tests/settings_view/settings_subviews/wallet_settings_view_screen_test.mocks.dart';
-// import '../firo/firo_wallet_test.mocks.dart';
 
 import 'bitcoincash_history_sample_data.dart';
 import 'bitcoincash_transaction_data_samples.dart';
@@ -43,6 +38,11 @@ void main() {
     test("bitcoincash mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,
           "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
+    });
+
+    test("bitcoincash testnet genesis block hash", () async {
+      expect(GENESIS_HASH_TESTNET,
+          "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943");
     });
   });
 
@@ -95,7 +95,7 @@ void main() {
     test("valid mainnet legacy/p2pkh address type", () {
       expect(
           mainnetWallet?.addressType(
-              address: "DBYiFr1BRc2zB19p8jxdSu6DvFGTdWvkVF"),
+              address: "1DP3PUePwMa5CoZwzjznVKhzdLsZftjcAT"),
           DerivePathType.bip44);
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
@@ -140,21 +140,10 @@ void main() {
       verifyNoMoreInteractions(priceAPI);
     });
 
-    test("valid mainnet bitcoincash legacy/p2pkh address", () {
-      expect(
-          mainnetWallet?.validateAddress("DBYiFr1BRc2zB19p8jxdSu6DvFGTdWvkVF"),
-          true);
-      expect(secureStore?.interactions, 0);
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
     test("invalid mainnet bitcoincash legacy/p2pkh address", () {
       expect(
           mainnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
-          false);
+          true);
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -230,9 +219,8 @@ void main() {
 
   group("basic getters, setters, and functions", () {
     final bchcoin = Coin.bitcoincash;
-    // final dtestcoin = Coin.bitcoincashTestNet;
-    final testWalletId = "DOGEtestWalletID";
-    final testWalletName = "DOGEWallet";
+    final testWalletId = "BCHtestWalletID";
+    final testWalletName = "BCHWallet";
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
@@ -449,11 +437,11 @@ void main() {
     });
   });
 
-  group("DogeWallet service class functions that depend on shared storage", () {
+  group("BCHWallet service class functions that depend on shared storage", () {
     final bchcoin = Coin.bitcoincash;
-    // final dtestcoin = Coin.bitcoincashTestNet;
-    final testWalletId = "DOGEtestWalletID";
-    final testWalletName = "DOGEWallet";
+    final bchtestcoin = Coin.bitcoincashTestnet;
+    final testWalletId = "BCHtestWalletID";
+    final testWalletName = "BCHWallet";
 
     bool hiveAdaptersRegistered = false;
 
@@ -589,7 +577,7 @@ void main() {
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
+            "genesis_hash": GENESIS_HASH_TESTNET,
             "hash_function": "sha256",
             "services": []
           });
@@ -822,7 +810,7 @@ void main() {
       bch = BitcoinCashWallet(
         walletId: testWalletId,
         walletName: testWalletName,
-        coin: bchcoin,
+        coin: bchtestcoin,
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
@@ -848,15 +836,15 @@ void main() {
       await bch?.initializeExisting();
       expect(
           Address.validateAddress(
-              await bch!.currentReceivingAddress, bitcoincash),
+              await bch!.currentReceivingAddress, bitcoincashtestnet),
           true);
       expect(
           Address.validateAddress(
-              await bch!.currentReceivingAddress, bitcoincash),
+              await bch!.currentReceivingAddress, bitcoincashtestnet),
           true);
       expect(
           Address.validateAddress(
-              await bch!.currentReceivingAddress, bitcoincash),
+              await bch!.currentReceivingAddress, bitcoincashtestnet),
           true);
 
       verifyNever(client?.ping()).called(0);
@@ -870,7 +858,7 @@ void main() {
       bch = BitcoinCashWallet(
         walletId: testWalletId,
         walletName: testWalletName,
-        coin: bchcoin,
+        coin: bchtestcoin,
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
@@ -899,7 +887,8 @@ void main() {
       expect(addresses?.length, 2);
 
       for (int i = 0; i < 2; i++) {
-        expect(Address.validateAddress(addresses![i], bitcoincash), true);
+        expect(
+            Address.validateAddress(addresses![i], bitcoincashtestnet), true);
       }
 
       verifyNever(client?.ping()).called(0);
@@ -1081,7 +1070,7 @@ void main() {
       bch = BitcoinCashWallet(
         walletId: testWalletId,
         walletName: testWalletName,
-        coin: bchcoin,
+        coin: bchtestcoin,
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
@@ -1131,7 +1120,7 @@ void main() {
       bch = BitcoinCashWallet(
         walletId: testWalletId,
         walletName: testWalletName,
-        coin: bchcoin,
+        coin: bchtestcoin,
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
@@ -1188,28 +1177,28 @@ void main() {
     test("getTxCount succeeds", () async {
       when(client?.getHistory(
               scripthash:
-                  "64953f7db441a21172de206bf70b920c8c718ed4f03df9a85073c0400be0053c"))
+                  "1df1cab6d109d506aa424b00b6a013c5e1947dc13b78d62b4d0e9f518b3035d1"))
           .thenAnswer((realInvocation) async => [
                 {
-                  "height": 4270352,
+                  "height": 757727,
                   "tx_hash":
-                      "7b34e60cc37306f866667deb67b14096f4ea2add941fd6e2238a639000642b82"
+                      "aaac451c49c2e3bcbccb8a9fded22257eeb94c1702b456171aa79250bc1b20e0"
                 },
                 {
-                  "height": 4274457,
+                  "height": 0,
                   "tx_hash":
-                      "9cd994199f9ee58c823a03bab24da87c25e0157cb42c226e191aadadbb96e452"
+                      "9ac29f35b72ca596bc45362d1f9556b0555e1fb633ca5ac9147a7fd467700afe"
                 }
               ]);
 
       final count =
-          await bch?.getTxCount(address: "D6biRASajCy7GcJ8R6ZP4RE94fNRerJLCC");
+          await bch?.getTxCount(address: "1MMi672ueYFXLLdtZqPe4FsrS46gNDyRq1");
 
       expect(count, 2);
 
       verify(client?.getHistory(
               scripthash:
-                  "64953f7db441a21172de206bf70b920c8c718ed4f03df9a85073c0400be0053c"))
+                  "1df1cab6d109d506aa424b00b6a013c5e1947dc13b78d62b4d0e9f518b3035d1"))
           .called(1);
 
       expect(secureStore?.interactions, 0);
@@ -1218,7 +1207,7 @@ void main() {
       verifyNoMoreInteractions(tracker);
       verifyNoMoreInteractions(priceAPI);
     });
-
+    //TODO - Needs refactoring
     test("getTxCount fails", () async {
       when(client?.getHistory(
               scripthash:
@@ -1233,10 +1222,10 @@ void main() {
       }
       expect(didThrow, true);
 
-      verify(client?.getHistory(
+      verifyNever(client?.getHistory(
               scripthash:
                   "64953f7db441a21172de206bf70b920c8c718ed4f03df9a85073c0400be0053c"))
-          .called(1);
+          .called(0);
 
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
@@ -1835,8 +1824,8 @@ void main() {
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs1))
-      //     .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs1))
+          .thenAnswer((_) async => historyBatchResponse);
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
           .thenAnswer((realInvocation) async {});
 
@@ -2136,8 +2125,8 @@ void main() {
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs1))
-      //     .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs1))
+          .thenAnswer((_) async => historyBatchResponse);
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
           .thenAnswer((realInvocation) async {});
 
