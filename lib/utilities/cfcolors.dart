@@ -155,6 +155,8 @@ abstract class CFColors {
   static const Color textSubtitle1 = Color(0xFF8E9192);
   static const Color textSubtitle2 = Color(0xFFA9ACAC);
 
+  static const Color borderNormal = Color(0xFF111111);
+
   static const Color buttonTextSecondary = Color(0xFF232323);
 
   static const Color buttonTextPrimary = Color(0xFFFFFFFF);
@@ -165,6 +167,8 @@ abstract class CFColors {
   static const Color buttonBackgroundPrimary = Color(0xFF232323);
 
   static const Color buttonBackPrimaryDisabled = Color(0xFFD7D7D7);
+
+  static const Color textFieldDefaultSearchIconLeft = Color(0xFFA9ACAC);
 
   // button color themes
 

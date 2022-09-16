@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 
 class DesktopHomeView extends ConsumerStatefulWidget {
@@ -16,9 +17,13 @@ class DesktopHomeView extends ConsumerStatefulWidget {
 class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   int currentViewIndex = 0;
   final List<Widget> contentViews = [
-    const MyStackView(
-      key: Key("myStackViewKey"),
+    const Navigator(
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: MyStackView.routeName,
     ),
+    // const MyStackView(
+    //   key: Key("myStackViewKey"),
+    // ),
     Container(
       color: Colors.green,
     ),
@@ -57,7 +62,9 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
           DesktopMenu(
             onSelectionChanged: onMenuSelectionChanged,
           ),
-          Expanded(child: contentViews[currentViewIndex]),
+          Expanded(
+            child: contentViews[currentViewIndex],
+          ),
         ],
       ),
     );

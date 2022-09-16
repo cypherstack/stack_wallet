@@ -11,6 +11,9 @@ import 'package:stackwallet/utilities/text_styles.dart';
 class MyStackView extends ConsumerStatefulWidget {
   const MyStackView({Key? key}) : super(key: key);
 
+
+  static const String routeName = "/myStackDesktop";
+
   @override
   ConsumerState<MyStackView> createState() => _MyStackViewState();
 }
