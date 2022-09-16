@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,8 +18,6 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'bitcoincash_history_sample_data.dart';
-import 'bitcoincash_transaction_data_samples.dart';
-import 'bitcoincash_utxo_sample_data.dart';
 import 'bitcoincash_wallet_test.mocks.dart';
 import 'bitcoincash_wallet_test_parameters.dart';
 
@@ -1811,102 +1807,6 @@ void main() {
     // //   verifyNoMoreInteractions(priceAPI);
     // // });
 
-    test("fullRescan succeeds", () async {
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
-          .thenAnswer((realInvocation) async {});
-
-      final wallet = await Hive.openBox(testWalletId);
-
-      // restore so we have something to rescan
-      await bch?.recoverFromMnemonic(
-          mnemonic: TEST_MNEMONIC,
-          maxUnusedAddressGap: 2,
-          maxNumberOfIndexesToCheck: 1000,
-          height: 4000);
-
-      // fetch valid wallet data
-      final preReceivingAddressesP2PKH =
-          await wallet.get('receivingAddressesP2PKH');
-      final preChangeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
-      final preReceivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
-      final preChangeIndexP2PKH = await wallet.get('changeIndexP2PKH');
-      final preUtxoData = await wallet.get('latest_utxo_model');
-      final preReceiveDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_receiveDerivationsP2PKH");
-      final preChangeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
-
-      // destroy the data that the rescan will fix
-      await wallet.put(
-          'receivingAddressesP2PKH', ["some address", "some other address"]);
-      await wallet
-          .put('changeAddressesP2PKH', ["some address", "some other address"]);
-
-      await wallet.put('receivingIndexP2PKH', 123);
-      await wallet.put('changeIndexP2PKH', 123);
-      await secureStore?.write(
-          key: "${testWalletId}_receiveDerivationsP2PKH", value: "{}");
-      await secureStore?.write(
-          key: "${testWalletId}_changeDerivationsP2PKH", value: "{}");
-
-      bool hasThrown = false;
-      try {
-        await bch?.fullRescan(2, 1000);
-      } catch (_) {
-        hasThrown = true;
-      }
-      expect(hasThrown, false);
-
-      // fetch wallet data again
-      final receivingAddressesP2PKH =
-          await wallet.get('receivingAddressesP2PKH');
-      final changeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
-      final receivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
-      final changeIndexP2PKH = await wallet.get('changeIndexP2PKH');
-      final utxoData = await wallet.get('latest_utxo_model');
-      final receiveDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_receiveDerivationsP2PKH");
-      final changeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
-
-      expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
-      expect(preChangeAddressesP2PKH, changeAddressesP2PKH);
-      expect(preReceivingIndexP2PKH, receivingIndexP2PKH);
-      expect(preChangeIndexP2PKH, changeIndexP2PKH);
-      expect(preUtxoData, utxoData);
-      expect(preReceiveDerivationsStringP2PKH, receiveDerivationsStringP2PKH);
-      expect(preChangeDerivationsStringP2PKH, changeDerivationsStringP2PKH);
-
-      verify(client?.getServerFeatures()).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
-      // verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
-      verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
-          .called(1);
-
-      expect(secureStore?.writes, 9);
-      expect(secureStore?.reads, 12);
-      expect(secureStore?.deletes, 2);
-
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
     test("get mnemonic list", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
             "hosts": {},
@@ -2125,8 +2025,9 @@ void main() {
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs1))
-      //     .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs1))
+          .thenAnswer((_) async => historyBatchResponse);
+
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
           .thenAnswer((realInvocation) async {});
 
@@ -2194,7 +2095,7 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
-      // verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
           .called(1);
 
