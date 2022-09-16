@@ -37,10 +37,8 @@ class _DesktopMenuState extends State<DesktopMenu> {
             SizedBox(
               width: 70,
               height: 70,
-              child: Image(
-                image: AssetImage(
-                  Assets.png.splash,
-                ),
+              child: SvgPicture.asset(
+                Assets.svg.stackIcon,
               ),
             ),
             const SizedBox(

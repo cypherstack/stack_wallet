@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -109,10 +110,8 @@ class _IntroViewState extends State<IntroView> {
                     SizedBox(
                       width: 130,
                       height: 130,
-                      child: Image(
-                        image: AssetImage(
-                          Assets.png.splash,
-                        ),
+                      child: SvgPicture.asset(
+                        Assets.svg.stackIcon,
                       ),
                     ),
                     const Spacer(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_app_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
@@ -118,17 +119,15 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
     return Material(
       child: Column(
         children: [
-          Row(
-            children: [
-              AppBarBackButton(
-                onPressed: () async {
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-              const Spacer(),
-            ],
+          DesktopAppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            isCompactHeight: false,
           ),
           Expanded(
             child: Center(
