@@ -110,6 +110,9 @@ class _SVG {
   String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";
 
+  // desktop specific
+  String get minimize => "assets/svg/minimize.svg";
+
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
   String get firoTestnet => "assets/svg/coin_icons/Firo.svg";

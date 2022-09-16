@@ -10,6 +10,7 @@ class DesktopMenuItem<T> extends StatelessWidget {
     required this.value,
     required this.group,
     required this.onChanged,
+    required this.iconOnly,
   }) : super(key: key);
 
   final Widget icon;
@@ -17,6 +18,7 @@ class DesktopMenuItem<T> extends StatelessWidget {
   final T value;
   final T group;
   final void Function(T) onChanged;
+  final bool iconOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -28,22 +30,26 @@ class DesktopMenuItem<T> extends StatelessWidget {
         onChanged(value);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           vertical: 16,
-          horizontal: 16,
+          horizontal: iconOnly ? 0 : 16,
         ),
         child: Row(
+          mainAxisAlignment:
+              iconOnly ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
             icon,
-            const SizedBox(
-              width: 12,
-            ),
-            Text(
-              label,
-              style: value == group
-                  ? STextStyles.desktopMenuItemSelected
-                  : STextStyles.desktopMenuItem,
-            ),
+            if (!iconOnly)
+              const SizedBox(
+                width: 12,
+              ),
+            if (!iconOnly)
+              Text(
+                label,
+                style: value == group
+                    ? STextStyles.desktopMenuItemSelected
+                    : STextStyles.desktopMenuItem,
+              ),
           ],
         ),
       ),

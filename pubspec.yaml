@@ -278,6 +278,8 @@ flutter:
     - assets/svg/socials/reddit-alien-brands.svg
     - assets/svg/socials/twitter-brands.svg
     - assets/svg/socials/telegram-brands.svg
+    # desktop specific
+    - assets/svg/minimize.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

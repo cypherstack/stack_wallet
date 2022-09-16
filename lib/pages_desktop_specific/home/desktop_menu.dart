@@ -1,24 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu_item.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 
-class DesktopMenu extends StatefulWidget {
-  const DesktopMenu({Key? key}) : super(key: key);
+class DesktopMenu extends ConsumerStatefulWidget {
+  const DesktopMenu({
+    Key? key,
+    required this.onSelectionChanged,
+  }) : super(key: key);
+
+  final void Function(int)? onSelectionChanged;
 
   @override
-  State<DesktopMenu> createState() => _DesktopMenuState();
+  ConsumerState<DesktopMenu> createState() => _DesktopMenuState();
 }
 
-class _DesktopMenuState extends State<DesktopMenu> {
-  double _width = 225;
+class _DesktopMenuState extends ConsumerState<DesktopMenu> {
+  static const expandedWidth = 225.0;
+  static const minimizedWidth = 72.0;
+
+  double _width = expandedWidth;
   int selectedMenuItem = 0;
 
   void updateSelectedMenuItem(int index) {
     setState(() {
       selectedMenuItem = index;
+    });
+    widget.onSelectionChanged?.call(index);
+  }
+
+  void toggleMinimize() {
+    setState(() {
+      _width = _width == expandedWidth ? minimizedWidth : expandedWidth;
     });
   }
 
@@ -31,12 +47,12 @@ class _DesktopMenuState extends State<DesktopMenu> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(
-              height: 22,
+            SizedBox(
+              height: _width == expandedWidth ? 22 : 25,
             ),
             SizedBox(
-              width: 70,
-              height: 70,
+              width: _width == expandedWidth ? 70 : 32,
+              height: _width == expandedWidth ? 70 : 32,
               child: SvgPicture.asset(
                 Assets.svg.stackIcon,
               ),
@@ -45,7 +61,7 @@ class _DesktopMenuState extends State<DesktopMenu> {
               height: 10,
             ),
             Text(
-              "Stack Wallet",
+              _width == expandedWidth ? "Stack Wallet" : "",
               style: STextStyles.desktopH2.copyWith(
                 fontSize: 18,
                 height: 23.4 / 18,
@@ -55,7 +71,9 @@ class _DesktopMenuState extends State<DesktopMenu> {
               height: 60,
             ),
             SizedBox(
-              width: _width - 32, // 16 padding on either side
+              width: _width == expandedWidth
+                  ? _width - 32 // 16 padding on either side
+                  : _width - 16, // 8 padding on either side
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -69,6 +87,10 @@ class _DesktopMenuState extends State<DesktopMenu> {
                     value: 0,
                     group: selectedMenuItem,
                     onChanged: updateSelectedMenuItem,
+                    iconOnly: _width == minimizedWidth,
+                  ),
+                  const SizedBox(
+                    height: 2,
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
@@ -80,6 +102,10 @@ class _DesktopMenuState extends State<DesktopMenu> {
                     value: 1,
                     group: selectedMenuItem,
                     onChanged: updateSelectedMenuItem,
+                    iconOnly: _width == minimizedWidth,
+                  ),
+                  const SizedBox(
+                    height: 2,
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
@@ -91,6 +117,10 @@ class _DesktopMenuState extends State<DesktopMenu> {
                     value: 2,
                     group: selectedMenuItem,
                     onChanged: updateSelectedMenuItem,
+                    iconOnly: _width == minimizedWidth,
+                  ),
+                  const SizedBox(
+                    height: 2,
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
@@ -102,6 +132,10 @@ class _DesktopMenuState extends State<DesktopMenu> {
                     value: 3,
                     group: selectedMenuItem,
                     onChanged: updateSelectedMenuItem,
+                    iconOnly: _width == minimizedWidth,
+                  ),
+                  const SizedBox(
+                    height: 2,
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
@@ -113,6 +147,10 @@ class _DesktopMenuState extends State<DesktopMenu> {
                     value: 4,
                     group: selectedMenuItem,
                     onChanged: updateSelectedMenuItem,
+                    iconOnly: _width == minimizedWidth,
+                  ),
+                  const SizedBox(
+                    height: 2,
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
@@ -124,6 +162,10 @@ class _DesktopMenuState extends State<DesktopMenu> {
                     value: 5,
                     group: selectedMenuItem,
                     onChanged: updateSelectedMenuItem,
+                    iconOnly: _width == minimizedWidth,
+                  ),
+                  const SizedBox(
+                    height: 2,
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
@@ -135,6 +177,10 @@ class _DesktopMenuState extends State<DesktopMenu> {
                     value: 6,
                     group: selectedMenuItem,
                     onChanged: updateSelectedMenuItem,
+                    iconOnly: _width == minimizedWidth,
+                  ),
+                  const SizedBox(
+                    height: 2,
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
@@ -146,10 +192,27 @@ class _DesktopMenuState extends State<DesktopMenu> {
                     value: 7,
                     group: selectedMenuItem,
                     onChanged: updateSelectedMenuItem,
+                    iconOnly: _width == minimizedWidth,
                   ),
                 ],
               ),
             ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Spacer(),
+                IconButton(
+                  splashRadius: 18,
+                  onPressed: toggleMinimize,
+                  icon: SvgPicture.asset(
+                    Assets.svg.minimize,
+                    height: 12,
+                    width: 12,
+                  ),
+                ),
+              ],
+            )
           ],
         ),
       ),

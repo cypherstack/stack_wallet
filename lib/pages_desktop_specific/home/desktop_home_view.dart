@@ -4,8 +4,6 @@ import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 
-final homeContent = Provider<Widget>((ref) => const MyStackView());
-
 class DesktopHomeView extends ConsumerStatefulWidget {
   const DesktopHomeView({Key? key}) : super(key: key);
 
@@ -16,14 +14,50 @@ class DesktopHomeView extends ConsumerStatefulWidget {
 }
 
 class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
+  int currentViewIndex = 0;
+  final List<Widget> contentViews = [
+    const MyStackView(
+      key: Key("myStackViewKey"),
+    ),
+    Container(
+      color: Colors.green,
+    ),
+    Container(
+      color: Colors.red,
+    ),
+    Container(
+      color: Colors.orange,
+    ),
+    Container(
+      color: Colors.yellow,
+    ),
+    Container(
+      color: Colors.blue,
+    ),
+    Container(
+      color: Colors.pink,
+    ),
+    Container(
+      color: Colors.purple,
+    ),
+  ];
+
+  void onMenuSelectionChanged(int newIndex) {
+    setState(() {
+      currentViewIndex = newIndex;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: CFColors.almostWhite,
+      color: CFColors.background,
       child: Row(
         children: [
-          const DesktopMenu(),
-          Expanded(child: ref.watch(homeContent)),
+          DesktopMenu(
+            onSelectionChanged: onMenuSelectionChanged,
+          ),
+          Expanded(child: contentViews[currentViewIndex]),
         ],
       ),
     );
