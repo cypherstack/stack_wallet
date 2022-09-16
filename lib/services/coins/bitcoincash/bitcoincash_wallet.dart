@@ -309,6 +309,11 @@ class BitcoinCashWallet extends CoinServiceAPI {
               throw Exception("genesis hash does not match main net!");
             }
             break;
+          case Coin.bitcoincashTestnet:
+            if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
+              throw Exception("genesis hash does not match test net!");
+            }
+            break;
           default:
             throw Exception(
                 "Attempted to generate a BitcoinCashWallet using a non bch coin type: ${coin.name}");
