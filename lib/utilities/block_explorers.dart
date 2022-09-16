@@ -26,5 +26,8 @@ Uri getBlockExplorerTransactionUrlFor({
       return Uri.parse("https://blockchair.com/bitcoin-cash/transaction/$txid");
     case Coin.namecoin:
       return Uri.parse("https://chainz.cryptoid.info/nmc/tx.dws?$txid.htm");
+    case Coin.bitcoincashTestnet:
+      throw UnimplementedError("missing block explorer for epic cash");
+      break;
   }
 }
