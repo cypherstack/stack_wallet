@@ -42,13 +42,12 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
-const int MINIMUM_CONFIRMATIONS = 1;
-const int DUST_LIMIT = 294;
+const int MINIMUM_CONFIRMATIONS = 2;
+// Find real dust limit
+const int DUST_LIMIT = 1000000;
 
 const String GENESIS_HASH_MAINNET =
-    "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
-const String GENESIS_HASH_TESTNET =
-    "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
+    "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770";
 
 enum DerivePathType { bip44, bip49, bip84 }
 
@@ -86,14 +85,11 @@ bip32.BIP32 getBip32NodeFromRoot(
 ) {
   String coinType;
   switch (root.network.wif) {
-    case 0x80: // btc mainnet wif
-      coinType = "0"; // btc mainnet
-      break;
-    case 0xef: // btc testnet wif
-      coinType = "1"; // btc testnet
+    case 0xb4: // nmc mainnet wif
+      coinType = "7"; // nmc mainnet
       break;
     default:
-      throw Exception("Invalid Bitcoin network type used!");
+      throw Exception("Invalid Namecoin network type used!");
   }
   switch (derivePathType) {
     case DerivePathType.bip44:
@@ -138,7 +134,7 @@ bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
   return getBip32Root(args.item1, args.item2);
 }
 
-class BitcoinWallet extends CoinServiceAPI {
+class NamecoinWallet extends CoinServiceAPI {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
@@ -151,10 +147,8 @@ class BitcoinWallet extends CoinServiceAPI {
 
   NetworkType get _network {
     switch (coin) {
-      case Coin.bitcoin:
-        return bitcoin;
-      case Coin.bitcoinTestNet:
-        return testnet;
+      case Coin.namecoin:
+        return namecoin;
       default:
         throw Exception("Invalid network type!");
     }
@@ -314,7 +308,7 @@ class BitcoinWallet extends CoinServiceAPI {
       throw ArgumentError('Invalid version or Network mismatch');
     } else {
       try {
-        decodeBech32 = segwit.decode(address);
+        decodeBech32 = segwit.decode(address, namecoin.bech32!);
       } catch (err) {
         // Bech32 decode fail
       }
@@ -347,19 +341,14 @@ class BitcoinWallet extends CoinServiceAPI {
         final features = await electrumXClient.getServerFeatures();
         Logging.instance.log("features: $features", level: LogLevel.Info);
         switch (coin) {
-          case Coin.bitcoin:
+          case Coin.namecoin:
             if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
               throw Exception("genesis hash does not match main net!");
             }
             break;
-          case Coin.bitcoinTestNet:
-            if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
-              throw Exception("genesis hash does not match test net!");
-            }
-            break;
           default:
             throw Exception(
-                "Attempted to generate a BitcoinWallet using a non bitcoin coin type: ${coin.name}");
+                "Attempted to generate a NamecoinWallet using a non namecoin coin type: ${coin.name}");
         }
         // if (_networkType == BasicNetworkType.main) {
         //   if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
@@ -446,7 +435,8 @@ class BitcoinWallet extends CoinServiceAPI {
                     data: PaymentData(
                         redeem: P2WPKH(
                                 data: PaymentData(pubkey: node.publicKey),
-                                network: _network)
+                                network: _network,
+                                overridePrefix: namecoin.bech32!)
                             .data),
                     network: _network)
                 .data
@@ -455,7 +445,8 @@ class BitcoinWallet extends CoinServiceAPI {
           case DerivePathType.bip84:
             address = P2WPKH(
                     network: _network,
-                    data: PaymentData(pubkey: node.publicKey))
+                    data: PaymentData(pubkey: node.publicKey),
+                    overridePrefix: namecoin.bech32!)
                 .data
                 .address!;
             break;
@@ -1284,7 +1275,7 @@ class BitcoinWallet extends CoinServiceAPI {
 
   @override
   bool validateAddress(String address) {
-    return Address.validateAddress(address, _network);
+    return Address.validateAddress(address, _network, namecoin.bech32!);
   }
 
   @override
@@ -1311,7 +1302,7 @@ class BitcoinWallet extends CoinServiceAPI {
 
   late PriceAPI _priceAPI;
 
-  BitcoinWallet({
+  NamecoinWallet({
     required String walletId,
     required String walletName,
     required Coin coin,
@@ -1469,19 +1460,14 @@ class BitcoinWallet extends CoinServiceAPI {
       final features = await electrumXClient.getServerFeatures();
       Logging.instance.log("features: $features", level: LogLevel.Info);
       switch (coin) {
-        case Coin.bitcoin:
+        case Coin.namecoin:
           if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
             throw Exception("genesis hash does not match main net!");
           }
           break;
-        case Coin.bitcoinTestNet:
-          if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
-            throw Exception("genesis hash does not match test net!");
-          }
-          break;
         default:
           throw Exception(
-              "Attempted to generate a BitcoinWallet using a non bitcoin coin type: ${coin.name}");
+              "Attempted to generate a NamecoinWallet using a non namecoin coin type: ${coin.name}");
       }
     }
 
@@ -1636,13 +1622,20 @@ class BitcoinWallet extends CoinServiceAPI {
       case DerivePathType.bip49:
         address = P2SH(
                 data: PaymentData(
-                    redeem: P2WPKH(data: data, network: _network).data),
+                    redeem: P2WPKH(
+                            data: data,
+                            network: _network,
+                            overridePrefix: namecoin.bech32!)
+                        .data),
                 network: _network)
             .data
             .address!;
         break;
       case DerivePathType.bip84:
-        address = P2WPKH(network: _network, data: data).data.address!;
+        address = P2WPKH(
+                network: _network, data: data, overridePrefix: namecoin.bech32!)
+            .data
+            .address!;
         break;
     }
 
@@ -1865,6 +1858,8 @@ class BitcoinWallet extends CoinServiceAPI {
           batches[batchNumber] = {};
         }
         final scripthash = _convertToScriptHash(allAddresses[i], _network);
+
+        print("SCRIPT_HASH_FOR_ADDRESS ${allAddresses[i]} IS $scripthash");
         batches[batchNumber]!.addAll({
           scripthash: [scripthash]
         });
@@ -2216,10 +2211,11 @@ class BitcoinWallet extends CoinServiceAPI {
 
   /// attempts to convert a string to a valid scripthash
   ///
-  /// Returns the scripthash or throws an exception on invalid bitcoin address
-  String _convertToScriptHash(String bitcoinAddress, NetworkType network) {
+  /// Returns the scripthash or throws an exception on invalid namecoin address
+  String _convertToScriptHash(String namecoinAddress, NetworkType network) {
     try {
-      final output = Address.addressToOutputScript(bitcoinAddress, network);
+      final output = Address.addressToOutputScript(
+          namecoinAddress, network, namecoin.bech32!);
       final hash = sha256.convert(output.toList(growable: false)).toString();
 
       final chars = hash.split("");
@@ -2442,7 +2438,7 @@ class BitcoinWallet extends CoinServiceAPI {
 
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["address"] as String?;
+            final address = out["scriptPubKey"]["addresses"][0] as String?;
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2453,7 +2449,7 @@ class BitcoinWallet extends CoinServiceAPI {
       Logging.instance.log("sendersArray: $sendersArray", level: LogLevel.Info);
 
       for (final output in txObject["vout"] as List) {
-        final address = output["scriptPubKey"]["address"] as String?;
+        final address = output["scriptPubKey"]["addresses"][0] as String?;
         if (address != null) {
           recipientsArray.add(address);
         }
@@ -2493,8 +2489,8 @@ class BitcoinWallet extends CoinServiceAPI {
         int totalOutput = 0;
 
         for (final output in txObject["vout"] as List) {
-          final String address = output["scriptPubKey"]!["address"] as String;
-          final value = output["value"]!;
+          final address = output["scriptPubKey"]["addresses"][0];
+          final value = output["value"];
           final _value = (Decimal.parse(value.toString()) *
                   Decimal.fromInt(Constants.satsPerCoin))
               .toBigInt()
@@ -2518,7 +2514,7 @@ class BitcoinWallet extends CoinServiceAPI {
 
         // add up received tx value
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["address"];
+          final address = output["scriptPubKey"]["addresses"][0];
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
                     Decimal.fromInt(Constants.satsPerCoin))
@@ -3021,6 +3017,7 @@ class BitcoinWallet extends CoinServiceAPI {
     List<String> addressesP2PKH = [];
     List<String> addressesP2SH = [];
     List<String> addressesP2WPKH = [];
+    Logging.instance.log("utxos: $utxosToUse", level: LogLevel.Info);
 
     try {
       // Populating the addresses to check
@@ -3030,11 +3027,13 @@ class BitcoinWallet extends CoinServiceAPI {
           txHash: txid,
           coin: coin,
         );
+        Logging.instance.log("tx: ${json.encode(tx)}",
+            level: LogLevel.Info, printFullLength: true);
 
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["address"] as String;
+            final address = output["scriptPubKey"]["addresses"][0] as String;
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
             }
@@ -3132,7 +3131,8 @@ class BitcoinWallet extends CoinServiceAPI {
                     data: PaymentData(
                         pubkey: Format.stringToUint8List(
                             receiveDerivation["pubKey"] as String)),
-                    network: _network)
+                    network: _network,
+                    overridePrefix: namecoin.bech32!)
                 .data;
 
             final redeemScript = p2wpkh.output;
@@ -3159,7 +3159,8 @@ class BitcoinWallet extends CoinServiceAPI {
                       data: PaymentData(
                           pubkey: Format.stringToUint8List(
                               changeDerivation["pubKey"] as String)),
-                      network: _network)
+                      network: _network,
+                      overridePrefix: namecoin.bech32!)
                   .data;
 
               final redeemScript = p2wpkh.output;
@@ -3201,11 +3202,12 @@ class BitcoinWallet extends CoinServiceAPI {
           // if a match exists it will not be null
           if (receiveDerivation != null) {
             final data = P2WPKH(
-              data: PaymentData(
-                  pubkey: Format.stringToUint8List(
-                      receiveDerivation["pubKey"] as String)),
-              network: _network,
-            ).data;
+                    data: PaymentData(
+                        pubkey: Format.stringToUint8List(
+                            receiveDerivation["pubKey"] as String)),
+                    network: _network,
+                    overridePrefix: namecoin.bech32!)
+                .data;
 
             for (String tx in addressTxid[addressesP2WPKH[i]]!) {
               results[tx] = {
@@ -3222,11 +3224,12 @@ class BitcoinWallet extends CoinServiceAPI {
             // if a match exists it will not be null
             if (changeDerivation != null) {
               final data = P2WPKH(
-                data: PaymentData(
-                    pubkey: Format.stringToUint8List(
-                        changeDerivation["pubKey"] as String)),
-                network: _network,
-              ).data;
+                      data: PaymentData(
+                          pubkey: Format.stringToUint8List(
+                              changeDerivation["pubKey"] as String)),
+                      network: _network,
+                      overridePrefix: namecoin.bech32!)
+                  .data;
 
               for (String tx in addressTxid[addressesP2WPKH[i]]!) {
                 results[tx] = {
@@ -3261,18 +3264,18 @@ class BitcoinWallet extends CoinServiceAPI {
         .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
     final txb = TransactionBuilder(network: _network);
-    txb.setVersion(1);
+    txb.setVersion(2);
 
     // Add transaction inputs
     for (var i = 0; i < utxosToUse.length; i++) {
       final txid = utxosToUse[i].txid;
       txb.addInput(txid, utxosToUse[i].vout, null,
-          utxoSigningData[txid]["output"] as Uint8List);
+          utxoSigningData[txid]["output"] as Uint8List, namecoin.bech32!);
     }
 
     // Add transaction output
     for (var i = 0; i < recipients.length; i++) {
-      txb.addOutput(recipients[i], satoshiAmounts[i]);
+      txb.addOutput(recipients[i], satoshiAmounts[i], namecoin.bech32!);
     }
 
     try {
@@ -3280,11 +3283,11 @@ class BitcoinWallet extends CoinServiceAPI {
       for (var i = 0; i < utxosToUse.length; i++) {
         final txid = utxosToUse[i].txid;
         txb.sign(
-          vin: i,
-          keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
-          witnessValue: utxosToUse[i].value,
-          redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
-        );
+            vin: i,
+            keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
+            witnessValue: utxosToUse[i].value,
+            redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
+            overridePrefix: namecoin.bech32!);
       }
     } catch (e, s) {
       Logging.instance.log("Caught exception while signing transaction: $e\n$s",
@@ -3292,7 +3295,7 @@ class BitcoinWallet extends CoinServiceAPI {
       rethrow;
     }
 
-    final builtTx = txb.build();
+    final builtTx = txb.build(namecoin.bech32!);
     final vSize = builtTx.virtualSize();
 
     return {"hex": builtTx.toHex(), "vSize": vSize};
@@ -3743,6 +3746,7 @@ class BitcoinWallet extends CoinServiceAPI {
     }
   }
 
+  // TODO: Check if this is the correct formula for namecoin
   int roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
         (feeRatePerKB / 1000).ceil();
@@ -3794,3 +3798,12 @@ class BitcoinWallet extends CoinServiceAPI {
     }
   }
 }
+
+// Namecoin Network
+final namecoin = NetworkType(
+    messagePrefix: '\x18Namecoin Signed Message:\n',
+    bech32: 'nc',
+    bip32: Bip32Type(public: 0x0488b21e, private: 0x0488ade4),
+    pubKeyHash: 0x34, //From 52
+    scriptHash: 0x0d, //13
+    wif: 0xb4); //from 180
