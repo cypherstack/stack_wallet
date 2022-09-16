@@ -25,8 +25,8 @@ import 'bitcoincash_utxo_sample_data.dart';
 import 'bitcoincash_wallet_test.mocks.dart';
 import 'bitcoincash_wallet_test_parameters.dart';
 
-@GenerateMocks(
-    [ElectrumX, CachedElectrumX, PriceAPI, TransactionNotificationTracker])
+@GenerateMocks([CachedElectrumX, PriceAPI, TransactionNotificationTracker],
+    customMocks: [MockSpec<ElectrumX>(returnNullOnMissingStub: true)])
 void main() {
   group("bitcoincash constants", () {
     test("bitcoincash minimum confirmations", () async {
@@ -2080,8 +2080,8 @@ void main() {
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs1))
-      //     .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs1))
+          .thenAnswer((_) async => historyBatchResponse);
 
       final wallet = await Hive.openBox(testWalletId);
 
@@ -2099,7 +2099,7 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      // verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
 
       expect(secureStore?.interactions, 6);
       expect(secureStore?.writes, 3);
@@ -2125,8 +2125,8 @@ void main() {
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => historyBatchResponse);
+      // when(client?.getBatchHistory(args: historyBatchArgs1))
+      //     .thenAnswer((_) async => historyBatchResponse);
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
           .thenAnswer((realInvocation) async {});
 
