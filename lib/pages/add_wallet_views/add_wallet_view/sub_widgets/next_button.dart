@@ -6,15 +6,23 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 
 class AddWalletNextButton extends ConsumerWidget {
-  const AddWalletNextButton({Key? key}) : super(key: key);
+  const AddWalletNextButton({
+    Key? key,
+    required this.isDesktop,
+  }) : super(key: key);
+
+  final bool isDesktop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: NextButton");
     final selectedCoin =
         ref.watch(addWalletSelectedCoinStateProvider.state).state;
+
+    final enabled = selectedCoin != null;
+
     return TextButton(
-      onPressed: selectedCoin == null
+      onPressed: !enabled
           ? null
           : () {
               final selectedCoin =
@@ -25,22 +33,16 @@ class AddWalletNextButton extends ConsumerWidget {
                 arguments: selectedCoin,
               );
             },
-      style: selectedCoin == null
-          ? Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.stackAccent.withOpacity(
-                    0.25,
-                  ),
-                ),
-              )
-          : Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.stackAccent,
-                ),
-              ),
+      style: enabled
+          ? CFColors.getPrimaryEnabledButtonColor(context)
+          : CFColors.getPrimaryDisabledButtonColor(context),
       child: Text(
         "Next",
-        style: STextStyles.button,
+        style: isDesktop
+            ? enabled
+                ? STextStyles.desktopButtonEnabled
+                : STextStyles.desktopButtonDisabled
+            : STextStyles.button,
       ),
     );
   }

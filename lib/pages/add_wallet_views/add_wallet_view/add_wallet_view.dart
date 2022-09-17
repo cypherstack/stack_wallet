@@ -174,7 +174,9 @@ class _AddWalletViewState extends State<AddWalletView> {
                   const SizedBox(
                     height: 70,
                     width: 480,
-                    child: AddWalletNextButton(),
+                    child: AddWalletNextButton(
+                      isDesktop: true,
+                    ),
                   ),
                   const SizedBox(
                     height: 32,
@@ -216,7 +218,9 @@ class _AddWalletViewState extends State<AddWalletView> {
                 const SizedBox(
                   height: 16,
                 ),
-                const AddWalletNextButton(),
+                const AddWalletNextButton(
+                  isDesktop: false,
+                ),
               ],
             ),
           ),
