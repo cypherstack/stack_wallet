@@ -214,14 +214,12 @@ class ContactPopUp extends ConsumerWidget {
                                                 style:
                                                     STextStyles.itemSubtitle12,
                                               ),
-                                            if (contact.id == "default")
-                                              const SizedBox(
-                                                height: 2,
+                                            if (contact.id != "default")
+                                              Text(
+                                                "${e.label} (${e.coin.ticker})",
+                                                style:
+                                                    STextStyles.itemSubtitle12,
                                               ),
-                                            Text(
-                                              "${e.label} (${e.coin.ticker})",
-                                              style: STextStyles.itemSubtitle12,
-                                            ),
                                             const SizedBox(
                                               height: 2,
                                             ),
