@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_app_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
@@ -13,6 +12,8 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
@@ -116,19 +117,19 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
 
-    return Material(
-      child: Column(
+    return DesktopScaffold(
+      appBar: DesktopAppBar(
+        leading: AppBarBackButton(
+          onPressed: () async {
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+        isCompactHeight: false,
+      ),
+      body: Column(
         children: [
-          DesktopAppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            isCompactHeight: false,
-          ),
           Expanded(
             child: Center(
               child: SizedBox(
@@ -381,10 +382,7 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
             ),
           ),
           const SizedBox(
-            // balance out height of "appbar"
-            // 56 = height of app bar buttons
-            // 20 = top and bottom padding
-            height: 56 + 20 + 20,
+            height: kDesktopAppBarHeight,
           ),
         ],
       ),

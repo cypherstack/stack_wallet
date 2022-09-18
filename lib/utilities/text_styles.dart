@@ -187,6 +187,13 @@ class STextStyles {
     height: 26 / 20,
   );
 
+  static final TextStyle desktopButtonSecondaryEnabled = GoogleFonts.inter(
+    color: CFColors.buttonTextSecondary,
+    fontWeight: FontWeight.w500,
+    fontSize: 20,
+    height: 26 / 20,
+  );
+
   static final TextStyle desktopTextExtraSmall = GoogleFonts.inter(
     color: CFColors.buttonTextPrimaryDisabled,
     fontWeight: FontWeight.w500,
@@ -194,7 +201,7 @@ class STextStyles {
     height: 24 / 16,
   );
 
-  static final TextStyle desktopButtonSecondaryEnabled = GoogleFonts.inter(
+  static final TextStyle desktopButtonSmallSecondaryEnabled = GoogleFonts.inter(
     color: CFColors.buttonTextSecondary,
     fontWeight: FontWeight.w500,
     fontSize: 16,

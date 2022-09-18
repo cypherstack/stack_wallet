@@ -165,6 +165,7 @@ abstract class CFColors {
   static const Color textFieldDefaultBackground = Color(0xFFEEEFF1);
 
   static const Color buttonBackgroundPrimary = Color(0xFF232323);
+  static const Color buttonBackSecondary = Color(0xFFE0E3E3);
 
   static const Color buttonBackPrimaryDisabled = Color(0xFFD7D7D7);
 
@@ -185,7 +186,16 @@ abstract class CFColors {
             ),
           );
 
-  static ButtonStyle? getSecondaryEnabledButtonColor(BuildContext context) =>
+  static ButtonStyle? getSecondaryEnabledButtonColor(
+          BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              CFColors.buttonBackSecondary,
+            ),
+          );
+
+  static ButtonStyle? getSmallSecondaryEnabledButtonColor(
+          BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               CFColors.textFieldDefaultBackground,

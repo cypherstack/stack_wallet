@@ -48,9 +48,9 @@ class AppBarIconButton extends StatelessWidget {
 }
 
 class AppBarBackButton extends StatelessWidget {
-  const AppBarBackButton({Key? key, required this.onPressed}) : super(key: key);
+  const AppBarBackButton({Key? key, this.onPressed}) : super(key: key);
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +74,7 @@ class AppBarBackButton extends StatelessWidget {
           width: 24,
           height: 24,
         ),
-        onPressed: onPressed,
+        onPressed: onPressed ?? Navigator.of(context).pop,
       ),
     );
   }
