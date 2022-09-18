@@ -21,8 +21,8 @@ import 'bitcoincash_history_sample_data.dart';
 import 'bitcoincash_wallet_test.mocks.dart';
 import 'bitcoincash_wallet_test_parameters.dart';
 
-@GenerateMocks([CachedElectrumX, PriceAPI, TransactionNotificationTracker],
-    customMocks: [MockSpec<ElectrumX>(returnNullOnMissingStub: true)])
+@GenerateMocks(
+    [ElectrumX, CachedElectrumX, PriceAPI, TransactionNotificationTracker])
 void main() {
   group("bitcoincash constants", () {
     test("bitcoincash minimum confirmations", () async {
