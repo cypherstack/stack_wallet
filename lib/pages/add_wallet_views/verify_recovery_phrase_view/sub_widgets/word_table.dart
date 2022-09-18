@@ -6,9 +6,11 @@ class WordTable extends ConsumerWidget {
   const WordTable({
     Key? key,
     required this.words,
+    required this.isDesktop,
   }) : super(key: key);
 
   final List<String> words;
+  final bool isDesktop;
 
   static const wordsPerRow = 3;
   static const wordsToShow = 9;
@@ -24,18 +26,19 @@ class WordTable extends ConsumerWidget {
       children: [
         for (int i = 1; i <= rows; i++)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5),
+            padding: EdgeInsets.symmetric(vertical: isDesktop ? 8 : 5),
             child: Row(
               children: [
                 for (int j = 1; j <= wordsPerRow; j++) ...[
                   if (j > 1)
-                    const SizedBox(
-                      width: 6,
+                    SizedBox(
+                      width: isDesktop ? 10 : 6,
                     ),
                   Expanded(
                     child: WordTableItem(
                       number: ++index,
                       word: words[index - 1],
+                      isDesktop: isDesktop,
                     ),
                   ),
                 ],

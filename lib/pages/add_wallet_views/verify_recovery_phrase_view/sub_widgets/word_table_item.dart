@@ -10,10 +10,12 @@ class WordTableItem extends ConsumerWidget {
     Key? key,
     required this.number,
     required this.word,
+    required this.isDesktop,
   }) : super(key: key);
 
   final int number;
   final String word;
+  final bool isDesktop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,7 +32,12 @@ class WordTableItem extends ConsumerWidget {
       child: MaterialButton(
         splashColor: CFColors.splashLight,
         key: Key("coinSelectItemButtonKey_$word"),
-        padding: const EdgeInsets.all(12),
+        padding: isDesktop
+            ? const EdgeInsets.symmetric(
+                vertical: 18,
+                horizontal: 12,
+              )
+            : const EdgeInsets.all(12),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
           borderRadius:
@@ -45,7 +52,11 @@ class WordTableItem extends ConsumerWidget {
             Text(
               word,
               textAlign: TextAlign.center,
-              style: STextStyles.baseXS,
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall.copyWith(
+                      color: CFColors.textDark,
+                    )
+                  : STextStyles.baseXS,
             ),
           ],
         ),

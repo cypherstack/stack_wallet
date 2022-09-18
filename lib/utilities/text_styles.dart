@@ -180,6 +180,13 @@ class STextStyles {
     height: 28 / 20,
   );
 
+  static final TextStyle desktopSubtitleH1 = GoogleFonts.inter(
+    color: CFColors.textDark,
+    fontWeight: FontWeight.w400,
+    fontSize: 24,
+    height: 33 / 24,
+  );
+
   static final TextStyle desktopButtonEnabled = GoogleFonts.inter(
     color: CFColors.buttonTextPrimary,
     fontWeight: FontWeight.w500,
