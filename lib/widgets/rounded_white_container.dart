@@ -8,11 +8,15 @@ class RoundedWhiteContainer extends StatelessWidget {
     this.child,
     this.padding = const EdgeInsets.all(12),
     this.radiusMultiplier = 1.0,
+    this.width,
+    this.height,
   }) : super(key: key);
 
   final Widget? child;
   final EdgeInsets padding;
   final double radiusMultiplier;
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +24,8 @@ class RoundedWhiteContainer extends StatelessWidget {
       color: CFColors.white,
       padding: padding,
       radiusMultiplier: radiusMultiplier,
+      width: width,
+      height: height,
       child: child,
     );
   }

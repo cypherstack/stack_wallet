@@ -8,16 +8,22 @@ class RoundedContainer extends StatelessWidget {
     required this.color,
     this.padding = const EdgeInsets.all(12),
     this.radiusMultiplier = 1.0,
+    this.width,
+    this.height,
   }) : super(key: key);
 
   final Widget? child;
   final Color color;
   final EdgeInsets padding;
   final double radiusMultiplier;
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: width,
+      height: height,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(

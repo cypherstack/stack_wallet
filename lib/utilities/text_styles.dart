@@ -166,6 +166,13 @@ class STextStyles {
     height: 30 / 20,
   );
 
+  static final TextStyle desktopTextMediumRegular = GoogleFonts.inter(
+    color: CFColors.textDark,
+    fontWeight: FontWeight.w400,
+    fontSize: 20,
+    height: 30 / 20,
+  );
+
   static final TextStyle desktopSubtitleH2 = GoogleFonts.inter(
     color: CFColors.textDark,
     fontWeight: FontWeight.w400,

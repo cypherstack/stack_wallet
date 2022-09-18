@@ -30,3 +30,35 @@ class DesktopScaffold extends StatelessWidget {
     );
   }
 }
+
+class MasterScaffold extends StatelessWidget {
+  const MasterScaffold({
+    Key? key,
+    required this.isDesktop,
+    required this.appBar,
+    required this.body,
+    this.background = CFColors.background,
+  }) : super(key: key);
+
+  final bool isDesktop;
+  final Widget appBar;
+  final Widget body;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isDesktop) {
+      return DesktopScaffold(
+        background: background,
+        appBar: appBar,
+        body: body,
+      );
+    } else {
+      return Scaffold(
+        backgroundColor: background,
+        appBar: appBar as PreferredSizeWidget?,
+        body: body,
+      );
+    }
+  }
+}
