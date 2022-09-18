@@ -140,6 +140,7 @@ class _DeleteWalletRecoveryPhraseViewState
               child: SingleChildScrollView(
                 child: MnemonicTable(
                   words: _mnemonic,
+                  isDesktop: false,
                 ),
               ),
             ),

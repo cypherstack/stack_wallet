@@ -93,6 +93,7 @@ class RecoverPhraseView extends StatelessWidget {
               child: SingleChildScrollView(
                 child: MnemonicTable(
                   words: mnemonic,
+                  isDesktop: false,
                 ),
               ),
             ),

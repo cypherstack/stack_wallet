@@ -4,7 +4,12 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 
 class ExitToMyStackButton extends StatelessWidget {
-  const ExitToMyStackButton({Key? key}) : super(key: key);
+  const ExitToMyStackButton({
+    Key? key,
+    this.onPressed,
+  }) : super(key: key);
+
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -16,11 +21,12 @@ class ExitToMyStackButton extends StatelessWidget {
         height: 56,
         child: TextButton(
           style: CFColors.getSmallSecondaryEnabledButtonColor(context),
-          onPressed: () {
-            Navigator.of(context).popUntil(
-              ModalRoute.withName(DesktopHomeView.routeName),
-            );
-          },
+          onPressed: onPressed ??
+              () {
+                Navigator.of(context).popUntil(
+                  ModalRoute.withName(DesktopHomeView.routeName),
+                );
+              },
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 30,

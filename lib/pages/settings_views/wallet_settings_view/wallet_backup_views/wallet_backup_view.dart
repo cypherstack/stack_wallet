@@ -123,6 +123,7 @@ class WalletBackupView extends ConsumerWidget {
               child: SingleChildScrollView(
                 child: MnemonicTable(
                   words: mnemonic,
+                  isDesktop: false,
                 ),
               ),
             ),
