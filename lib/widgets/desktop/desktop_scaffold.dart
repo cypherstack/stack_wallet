@@ -18,7 +18,7 @@ class DesktopScaffold extends StatelessWidget {
     return Material(
       color: background,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        // crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (appBar != null) appBar!,
           if (body != null)
