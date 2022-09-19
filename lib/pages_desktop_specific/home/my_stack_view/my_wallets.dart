@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_table.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_summary_table.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -61,7 +61,7 @@ class _MyWalletsState extends State<MyWallets> {
             const SizedBox(
               height: 20,
             ),
-            const WalletTable(),
+            const WalletSummaryTable(),
           ],
         ),
       ),
