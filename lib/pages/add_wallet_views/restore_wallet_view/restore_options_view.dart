@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
@@ -14,6 +12,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -51,7 +50,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   void initState() {
     walletName = widget.walletName;
     coin = widget.coin;
-    isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    isDesktop = Util.isDesktop;
 
     _dateController = TextEditingController();
     textFieldFocusNode = FocusNode();

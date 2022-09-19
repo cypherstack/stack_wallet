@@ -34,6 +34,7 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -117,7 +118,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   @override
   void initState() {
     _seedWordCount = widget.seedWordsLength;
-    isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    isDesktop = Util.isDesktop;
 
     textSelectionControls = Platform.isIOS
         ? CustomCupertinoTextSelectionControls(onPaste: onControlsPaste)
@@ -199,7 +200,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           context: context,
         ));
       } else {
-        if (!Platform.isLinux) Wakelock.enable();
+        if (!Platform.isLinux) await Wakelock.enable();
         final walletsService = ref.read(walletsServiceChangeNotifierProvider);
 
         final walletId = await walletsService.addNewWallet(

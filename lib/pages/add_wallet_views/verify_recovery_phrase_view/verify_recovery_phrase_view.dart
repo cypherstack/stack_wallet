@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -17,6 +16,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -51,7 +51,7 @@ class _VerifyRecoveryPhraseViewState
   void initState() {
     _manager = widget.manager;
     _mnemonic = widget.mnemonic;
-    isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    isDesktop = Util.isDesktop;
     // WidgetsBinding.instance?.addObserver(this);
     super.initState();
   }

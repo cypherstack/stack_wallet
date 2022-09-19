@@ -57,6 +57,7 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
@@ -68,7 +69,7 @@ final openedFromSWBFileStringStateProvider =
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
-  if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+  if (Util.isDesktop) {
     setWindowTitle('Stack Wallet');
     setWindowMinSize(const Size(1200, 900));
     setWindowMaxSize(Size.infinite);
@@ -605,7 +606,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               }
 
               // TODO proper desktop auth view
-              if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+              if (Util.isDesktop) {
                 Future<void>.delayed(Duration.zero).then((value) =>
                     Navigator.of(context).pushNamedAndRemoveUntil(
                         DesktopHomeView.routeName, (route) => false));

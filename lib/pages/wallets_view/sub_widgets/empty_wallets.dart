@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class EmptyWallets extends StatelessWidget {
   const EmptyWallets({Key? key}) : super(key: key);
@@ -14,8 +13,7 @@ class EmptyWallets extends StatelessWidget {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final isDesktop =
-        Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    final isDesktop = Util.isDesktop;
 
     return SafeArea(
       child: Padding(

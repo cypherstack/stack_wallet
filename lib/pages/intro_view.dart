@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -8,6 +6,7 @@ import 'package:stackwallet/pages_desktop_specific/create_password/create_passwo
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class IntroView extends StatefulWidget {
@@ -22,7 +21,7 @@ class _IntroViewState extends State<IntroView> {
 
   @override
   void initState() {
-    isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    isDesktop = Util.isDesktop;
     super.initState();
   }
 

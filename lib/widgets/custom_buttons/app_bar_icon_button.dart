@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class AppBarIconButton extends StatelessWidget {
   const AppBarIconButton({
@@ -54,8 +53,7 @@ class AppBarBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop =
-        Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    final isDesktop = Util.isDesktop;
     return Padding(
       padding: isDesktop
           ? const EdgeInsets.symmetric(

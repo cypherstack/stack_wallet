@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +16,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/name_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -67,7 +67,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
 
   @override
   void initState() {
-    isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    isDesktop = Util.isDesktop;
 
     ref.read(walletsServiceChangeNotifierProvider).walletNames.then(
           (value) => namesToExclude.addAll(

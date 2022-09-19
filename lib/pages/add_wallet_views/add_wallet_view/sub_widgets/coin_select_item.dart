@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -9,6 +7,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class CoinSelectItem extends ConsumerWidget {
   const CoinSelectItem({
@@ -23,8 +22,7 @@ class CoinSelectItem extends ConsumerWidget {
     debugPrint("BUILD: CoinSelectItem for ${coin.name}");
     final selectedCoin = ref.watch(addWalletSelectedCoinStateProvider);
 
-    final isDesktop =
-        Platform.isLinux || Platform.isMacOS || Platform.isWindows;
+    final isDesktop = Util.isDesktop;
 
     return Container(
       decoration: BoxDecoration(

@@ -1,12 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 InputDecoration standardInputDecoration(
     String? labelText, FocusNode textFieldFocusNode) {
-  final isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  final isDesktop = Util.isDesktop;
 
   return InputDecoration(
     labelText: labelText,
