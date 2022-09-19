@@ -29,8 +29,5 @@ Uri getBlockExplorerTransactionUrlFor({
           "https://blockexplorer.one/bitcoin-cash/testnet/tx/$txid");
     case Coin.namecoin:
       return Uri.parse("https://chainz.cryptoid.info/nmc/tx.dws?$txid.htm");
-    case Coin.bitcoincashTestnet:
-      throw UnimplementedError("missing block explorer for epic cash");
-      break;
   }
 }
