@@ -73,6 +73,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
             coin: manager.coin,
             address: await manager.currentReceivingAddress,
             label: "Current Receiving",
+            other: manager.walletName,
           ),
         );
       }

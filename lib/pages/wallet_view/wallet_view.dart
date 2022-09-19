@@ -189,7 +189,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     return false;
   }
 
-  void _logout() {
+  void _logout() async {
     if (_shouldDisableAutoSyncOnLogOut) {
       // disable auto sync if it was enabled only when loading wallet
       ref.read(managerProvider).shouldAutoSync = false;
@@ -199,7 +199,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
         ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
             BackupFrequencyType.afterClosingAWallet) {
-      ref.read(autoSWBServiceProvider).doBackup();
+      unawaited(ref.read(autoSWBServiceProvider).doBackup());
     }
   }
 
@@ -364,7 +364,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
+          leading: AppBarBackButton(
+            onPressed: () {
+              _logout();
+              Navigator.of(context).pop();
+            },
+          ),
+          titleSpacing: 0,
           title: Row(
             children: [
               SvgPicture.asset(
@@ -376,9 +382,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
               const SizedBox(
                 width: 16,
               ),
-              Text(
-                ref.watch(managerProvider.select((value) => value.walletName)),
-                style: STextStyles.navBarTitle,
+              Expanded(
+                child: Text(
+                  ref.watch(
+                      managerProvider.select((value) => value.walletName)),
+                  style: STextStyles.navBarTitle,
+                  overflow: TextOverflow.ellipsis,
+                ),
               )
             ],
           ),
