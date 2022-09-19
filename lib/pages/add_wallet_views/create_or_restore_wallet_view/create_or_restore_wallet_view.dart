@@ -198,6 +198,8 @@ class CreateWalletButtonGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment:
+          isDesktop ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
       children: [
         ConstrainedBox(
           constraints: BoxConstraints(
