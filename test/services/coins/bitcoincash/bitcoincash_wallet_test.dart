@@ -29,7 +29,7 @@ void main() {
       expect(MINIMUM_CONFIRMATIONS, 3);
     });
     test("bitcoincash dust limit", () async {
-      expect(DUST_LIMIT, 1000000);
+      expect(DUST_LIMIT, 546);
     });
     test("bitcoincash mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,
@@ -1891,7 +1891,7 @@ void main() {
       bch = BitcoinCashWallet(
         walletId: testWalletId,
         walletName: testWalletName,
-        coin: Coin.bitcoincash,
+        coin: Coin.bitcoincashTestnet,
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,

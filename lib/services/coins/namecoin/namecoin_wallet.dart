@@ -44,7 +44,7 @@ import 'package:uuid/uuid.dart';
 
 const int MINIMUM_CONFIRMATIONS = 2;
 // Find real dust limit
-const int DUST_LIMIT = 1000000;
+const int DUST_LIMIT = 546;
 
 const String GENESIS_HASH_MAINNET =
     "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770";

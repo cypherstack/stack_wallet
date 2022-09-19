@@ -177,7 +177,10 @@ final Map<String, List<Map<String, dynamic>>> emptyHistoryBatchResponse = {
 };
 
 final List<String> activeScriptHashes = [
-  "83b744ccb88827d544081c1a03ea782a7d00d6224ff9fddb7d0fbad399e1cae7",
+  "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c",
+  "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e",
+  "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9",
   "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874",
-  "5baba32b1899d5e740838559ef39b7d8e9ba302bd24b732eeedd4c0e6ec65b51",
+  "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b",
+  "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
 ];

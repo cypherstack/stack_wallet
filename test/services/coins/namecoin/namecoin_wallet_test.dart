@@ -32,7 +32,7 @@ void main() {
       expect(MINIMUM_CONFIRMATIONS, 2);
     });
     test("namecoin dust limit", () async {
-      expect(DUST_LIMIT, 1000000);
+      expect(DUST_LIMIT, 546);
     });
     test("namecoin mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,
@@ -761,14 +761,14 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs2))
-      //     .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs3))
-      //     .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs4))
-      //     .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs5))
-      //     .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs4))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs5))
+          .thenAnswer((_) async => historyBatchResponse);
 
       List<dynamic> dynamicArgValues = [];
 
@@ -1000,7 +1000,7 @@ void main() {
       for (final arg in dynamicArgValues) {
         final map = Map<String, List<dynamic>>.from(arg as Map);
 
-        verify(client?.getBatchHistory(args: map)).called(1);
+        verify(client?.getBatchHistory(args: map)).called(2);
         expect(activeScriptHashes.contains(map.values.first.first as String),
             true);
       }

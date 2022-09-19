@@ -44,7 +44,7 @@ import 'package:uuid/uuid.dart';
 import 'package:bitbox/bitbox.dart' as Bitbox;
 
 const int MINIMUM_CONFIRMATIONS = 3;
-const int DUST_LIMIT = 1000000;
+const int DUST_LIMIT = 546;
 
 const String GENESIS_HASH_MAINNET =
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
