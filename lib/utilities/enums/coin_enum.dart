@@ -1,12 +1,12 @@
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as btc;
+import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
+    as bch;
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
     as doge;
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
-    as bch;
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
     as nmc;
 
@@ -30,7 +30,7 @@ enum Coin {
 }
 
 // remove firotestnet for now
-const int kTestNetCoinCount = 2;
+const int kTestNetCoinCount = 3;
 
 extension CoinExt on Coin {
   String get prettyName {
@@ -52,7 +52,7 @@ extension CoinExt on Coin {
       case Coin.bitcoinTestNet:
         return "tBitcoin";
       case Coin.bitcoincashTestnet:
-        return "tBitcoincash";
+        return "tBitcoin Cash";
       case Coin.firoTestNet:
         return "tFiro";
       case Coin.dogecoinTestNet:
@@ -193,7 +193,7 @@ Coin coinFromPrettyName(String name) {
       return Coin.bitcoinTestNet;
 
     case "Bitcoincash Testnet":
-    case "tBitcoincash":
+    case "tBitcoin Cash":
     case "Bitcoin Cash Testnet":
       return Coin.bitcoincashTestnet;
     case "Firo Testnet":

@@ -208,6 +208,16 @@ class ContactPopUp extends ConsumerWidget {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
+                                            if (contact.id == "default")
+                                              Text(
+                                                e.other!,
+                                                style:
+                                                    STextStyles.itemSubtitle12,
+                                              ),
+                                            if (contact.id == "default")
+                                              const SizedBox(
+                                                height: 2,
+                                              ),
                                             Text(
                                               "${e.label} (${e.coin.ticker})",
                                               style: STextStyles.itemSubtitle12,

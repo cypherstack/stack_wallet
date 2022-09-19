@@ -6,22 +6,26 @@ class ContactAddressEntry {
   final Coin coin;
   final String address;
   final String label;
+  final String? other;
 
   const ContactAddressEntry({
     required this.coin,
     required this.address,
     required this.label,
+    this.other,
   });
 
   ContactAddressEntry copyWith({
     Coin? coin,
     String? address,
     String? label,
+    String? other,
   }) {
     return ContactAddressEntry(
       coin: coin ?? this.coin,
       address: address ?? this.address,
       label: label ?? this.label,
+      other: other ?? this.other,
     );
   }
 
@@ -30,6 +34,7 @@ class ContactAddressEntry {
       coin: Coin.values.byName(jsonObject["coin"] as String),
       address: jsonObject["address"] as String,
       label: jsonObject["label"] as String,
+      other: jsonObject["other"] as String?,
     );
   }
 
@@ -38,6 +43,7 @@ class ContactAddressEntry {
       "label": label,
       "address": address,
       "coin": coin.name,
+      "other": other ?? "",
     };
   }
 
