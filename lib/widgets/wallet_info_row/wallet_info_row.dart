@@ -58,8 +58,8 @@ class WalletInfoRow extends ConsumerWidget {
                   children: [
                     SvgPicture.asset(
                       Assets.svg.chevronRight,
-                      width: 6,
-                      height: 12,
+                      width: 20,
+                      height: 20,
                       color: CFColors.textSubtitle1,
                     )
                   ],
