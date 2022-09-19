@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/coin_wallets_table.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -49,7 +51,11 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                 flex: 4,
                 child: Row(
                   children: [
-                    // logo/icon
+                    SvgPicture.asset(
+                      Assets.svg.iconFor(coin: providersByCoin[i].key),
+                      width: 28,
+                      height: 28,
+                    ),
                     const SizedBox(
                       width: 10,
                     ),
