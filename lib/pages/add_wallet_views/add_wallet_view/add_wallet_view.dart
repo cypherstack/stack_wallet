@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/coin_select_item.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_text.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/searchable_coin_list.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -216,125 +216,5 @@ class _AddWalletViewState extends State<AddWalletView> {
         ),
       );
     }
-  }
-}
-
-class AddWalletText extends StatelessWidget {
-  const AddWalletText({Key? key, required this.isDesktop}) : super(key: key);
-
-  final bool isDesktop;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          "Add wallet",
-          textAlign: TextAlign.center,
-          style: isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Text(
-          "Select wallet currency",
-          textAlign: TextAlign.center,
-          style:
-              isDesktop ? STextStyles.desktopSubtitleH2 : STextStyles.subtitle,
-        ),
-      ],
-    );
-  }
-}
-
-class MobileCoinList extends StatelessWidget {
-  const MobileCoinList({
-    Key? key,
-    required this.coins,
-    required this.isDesktop,
-  }) : super(key: key);
-
-  final List<Coin> coins;
-  final bool isDesktop;
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer(
-      builder: (_, ref, __) {
-        bool showTestNet = ref.watch(
-          prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
-        );
-
-        return ListView.builder(
-          itemCount:
-              showTestNet ? coins.length : coins.length - (kTestNetCoinCount),
-          itemBuilder: (ctx, index) {
-            return Padding(
-              padding: const EdgeInsets.all(4),
-              child: CoinSelectItem(
-                coin: coins[index],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class SearchableCoinList extends StatelessWidget {
-  const SearchableCoinList({
-    Key? key,
-    required this.coins,
-    required this.isDesktop,
-    required this.searchTerm,
-  }) : super(key: key);
-
-  final List<Coin> coins;
-  final bool isDesktop;
-  final String searchTerm;
-
-  List<Coin> filterCoins(String text, bool showTestNetCoins) {
-    final _coins = [...coins];
-    if (text.isNotEmpty) {
-      final lowercaseTerm = text.toLowerCase();
-      _coins.retainWhere((e) =>
-          e.ticker.toLowerCase().contains(lowercaseTerm) ||
-          e.prettyName.toLowerCase().contains(lowercaseTerm) ||
-          e.name.toLowerCase().contains(lowercaseTerm));
-    }
-    if (!showTestNetCoins) {
-      _coins.removeWhere((e) => e.name.endsWith("TestNet"));
-    }
-    // remove firo testnet regardless
-    _coins.remove(Coin.firoTestNet);
-
-    return _coins;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer(
-      builder: (_, ref, __) {
-        bool showTestNet = ref.watch(
-          prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
-        );
-
-        final _coins = filterCoins(searchTerm, showTestNet);
-
-        return ListView.builder(
-          itemCount: _coins.length,
-          itemBuilder: (ctx, index) {
-            return Padding(
-              padding: const EdgeInsets.all(4),
-              child: CoinSelectItem(
-                coin: _coins[index],
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 }
