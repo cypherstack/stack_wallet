@@ -16,7 +16,7 @@ class CoinWalletsTable extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
-        color: CFColors.background,
+        color: CFColors.popupBackground,
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),

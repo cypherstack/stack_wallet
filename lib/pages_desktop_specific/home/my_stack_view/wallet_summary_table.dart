@@ -41,7 +41,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
               vertical: 16,
             ),
             decoration: BoxDecoration(
-              color: CFColors.background,
+              color: CFColors.popupBackground,
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),
