@@ -29,8 +29,16 @@ class CoinWalletsTable extends ConsumerWidget {
         child: Column(
           children: [
             for (int i = 0; i < walletIds.length; i++)
-              WalletInfoRow(
-                walletId: walletIds[i],
+              Column(
+                children: [
+                  if (i != 0)
+                    const SizedBox(
+                      height: 32,
+                    ),
+                  WalletInfoRow(
+                    walletId: walletIds[i],
+                  ),
+                ],
               ),
           ],
         ),

@@ -60,7 +60,9 @@ class _MyWalletsState extends State<MyWallets> {
           const SizedBox(
             height: 20,
           ),
-          const WalletSummaryTable(),
+          const Expanded(
+            child: WalletSummaryTable(),
+          ),
         ],
       ),
     );
