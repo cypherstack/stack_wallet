@@ -57,7 +57,7 @@ class WalletInfoRow extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     SvgPicture.asset(
-                      Assets.svg.chevronDown,
+                      Assets.svg.chevronRight,
                       width: 6,
                       height: 12,
                       color: CFColors.textSubtitle1,

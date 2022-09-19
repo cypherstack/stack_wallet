@@ -219,6 +219,7 @@ flutter:
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
     - assets/svg/address-book.svg
+    - assets/svg/address-book2.svg
     - assets/svg/arrow-right.svg
     - assets/svg/delete.svg
     - assets/svg/dollar-sign.svg
@@ -278,8 +279,11 @@ flutter:
     - assets/svg/socials/reddit-alien-brands.svg
     - assets/svg/socials/twitter-brands.svg
     - assets/svg/socials/telegram-brands.svg
-    # desktop specific
+    - assets/svg/chevron-right.svg
     - assets/svg/minimize.svg
+    - assets/svg/wallet-fa.svg
+    - assets/svg/exchange-3.svg
+    - assets/svg/message-question-1.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

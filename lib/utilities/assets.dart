@@ -51,6 +51,7 @@ class _SVG {
   String get lock => "assets/svg/lock-keyhole.svg";
   String get network => "assets/svg/network-wired.svg";
   String get addressBook => "assets/svg/address-book.svg";
+  String get addressBook2 => "assets/svg/address-book2.svg";
   String get arrowRotate3 => "assets/svg/rotate-exclamation.svg";
   String get delete => "assets/svg/delete.svg";
   String get arrowRight => "assets/svg/arrow-right.svg";
@@ -110,8 +111,11 @@ class _SVG {
   String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";
 
-  // desktop specific
+  String get chevronRight => "assets/svg/chevron-right.svg";
   String get minimize => "assets/svg/minimize.svg";
+  String get walletFa => "assets/svg/wallet-fa.svg";
+  String get exchange3 => "assets/svg/exchange-3.svg";
+  String get messageQuestion => "assets/svg/message-question-1.svg";
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";

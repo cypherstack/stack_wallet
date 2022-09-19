@@ -79,7 +79,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                 children: [
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
-                      Assets.svg.bell,
+                      Assets.svg.walletFa,
                       width: 20,
                       height: 20,
                     ),
@@ -94,7 +94,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
-                      Assets.svg.bell,
+                      Assets.svg.exchange3,
                       width: 20,
                       height: 20,
                     ),
@@ -124,7 +124,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
-                      Assets.svg.bell,
+                      Assets.svg.addressBook2,
                       width: 20,
                       height: 20,
                     ),
@@ -139,7 +139,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
-                      Assets.svg.bell,
+                      Assets.svg.gear,
                       width: 20,
                       height: 20,
                     ),
@@ -154,7 +154,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
-                      Assets.svg.bell,
+                      Assets.svg.messageQuestion,
                       width: 20,
                       height: 20,
                     ),
@@ -169,7 +169,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
-                      Assets.svg.bell,
+                      Assets.svg.messageQuestion,
                       width: 20,
                       height: 20,
                     ),
@@ -184,7 +184,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   ),
                   DesktopMenuItem(
                     icon: SvgPicture.asset(
-                      Assets.svg.bell,
+                      Assets.svg.messageQuestion,
                       width: 20,
                       height: 20,
                     ),
