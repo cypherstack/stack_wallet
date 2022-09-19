@@ -10,7 +10,7 @@ import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view
 import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';

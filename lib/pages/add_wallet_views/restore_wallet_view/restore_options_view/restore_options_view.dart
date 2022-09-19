@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/mobile_mnemonic_length_selector.dart';
+import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_from_date_picker.dart';
+import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_next_button.dart';
+import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_platform_layout.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
@@ -221,7 +225,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 },
               ),
             ),
-      body: PlatformRestoreOptionsLayout(
+      body: RestoreOptionsPlatformLayout(
         isDesktop: isDesktop,
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -370,198 +374,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 const SizedBox(
                   height: 32,
                 ),
-              RestoreNextButton(
+              RestoreOptionsNextButton(
                 isDesktop: isDesktop,
                 onPressed: _nextEnabled ? nextPressed : null,
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class PlatformRestoreOptionsLayout extends StatelessWidget {
-  const PlatformRestoreOptionsLayout({
-    Key? key,
-    required this.isDesktop,
-    required this.child,
-  }) : super(key: key);
-
-  final bool isDesktop;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    if (isDesktop) {
-      return child;
-    } else {
-      return Container(
-        color: CFColors.background,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: LayoutBuilder(
-            builder: (ctx, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: child,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      );
-    }
-  }
-}
-
-class RestoreFromDatePicker extends StatefulWidget {
-  const RestoreFromDatePicker({Key? key, required this.onTap})
-      : super(key: key);
-
-  final VoidCallback onTap;
-
-  @override
-  State<RestoreFromDatePicker> createState() => _RestoreFromDatePickerState();
-}
-
-class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
-  late final TextEditingController _dateController;
-  late final VoidCallback onTap;
-
-  @override
-  void initState() {
-    onTap = widget.onTap;
-    _dateController = TextEditingController();
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _dateController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      child: TextField(
-        onTap: onTap,
-        controller: _dateController,
-        style: STextStyles.field,
-        decoration: InputDecoration(
-          hintText: "Restore from...",
-          suffixIcon: UnconstrainedBox(
-            child: Row(
-              children: [
-                const SizedBox(
-                  width: 16,
-                ),
-                SvgPicture.asset(
-                  Assets.svg.calendar,
-                  color: CFColors.neutral50,
-                  width: 16,
-                  height: 16,
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
-              ],
-            ),
-          ),
-        ),
-        key: const Key("restoreOptionsViewDatePickerKey"),
-        readOnly: true,
-        toolbarOptions: const ToolbarOptions(
-          copy: true,
-          cut: false,
-          paste: false,
-          selectAll: false,
-        ),
-        onChanged: (newValue) {},
-      ),
-    );
-  }
-}
-
-class MobileMnemonicLengthSelector extends ConsumerWidget {
-  const MobileMnemonicLengthSelector({
-    Key? key,
-    required this.chooseMnemonicLength,
-  }) : super(key: key);
-
-  final VoidCallback chooseMnemonicLength;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Stack(
-      children: [
-        const TextField(
-          // controller: _lengthController,
-          readOnly: true,
-          textInputAction: TextInputAction.none,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-          ),
-          child: RawMaterialButton(
-            splashColor: CFColors.splashLight,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-            onPressed: chooseMnemonicLength,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "${ref.watch(mnemonicWordCountStateProvider.state).state} words",
-                  style: STextStyles.itemSubtitle12,
-                ),
-                SvgPicture.asset(
-                  Assets.svg.chevronDown,
-                  width: 8,
-                  height: 4,
-                  color: CFColors.gray3,
-                ),
-              ],
-            ),
-          ),
-        )
-      ],
-    );
-  }
-}
-
-class RestoreNextButton extends StatelessWidget {
-  const RestoreNextButton({Key? key, required this.isDesktop, this.onPressed})
-      : super(key: key);
-
-  final bool isDesktop;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        minHeight: isDesktop ? 70 : 0,
-      ),
-      child: TextButton(
-        onPressed: onPressed,
-        style: onPressed != null
-            ? CFColors.getPrimaryEnabledButtonColor(context)
-            : CFColors.getPrimaryDisabledButtonColor(context),
-        child: Text(
-          "Next",
-          style: STextStyles.button,
         ),
       ),
     );
