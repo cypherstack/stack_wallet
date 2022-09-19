@@ -1,3 +1,4 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
@@ -199,6 +200,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType with ${coin.name} $walletName");
 
+    final lengths = Constants.possibleLengthsForCoin(coin).toList();
+
     return DesktopScaffold(
       appBar: isDesktop
           ? const DesktopAppBar(
@@ -220,35 +223,84 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
             ),
       body: PlatformRestoreOptionsLayout(
         isDesktop: isDesktop,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (!isDesktop)
-              const Spacer(
-                flex: 1,
-              ),
-            if (!isDesktop)
-              Image(
-                image: AssetImage(
-                  Assets.png.imageFor(coin: coin),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isDesktop ? 480 : double.infinity,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!isDesktop)
+                const Spacer(
+                  flex: 1,
                 ),
-                height: 100,
+              if (!isDesktop)
+                Image(
+                  image: AssetImage(
+                    Assets.png.imageFor(coin: coin),
+                  ),
+                  height: 100,
+                ),
+              SizedBox(
+                height: isDesktop ? 24 : 16,
               ),
-            SizedBox(
-              height: isDesktop ? 24 : 16,
-            ),
-            Text(
-              "Restore options",
-              textAlign: TextAlign.center,
-              style:
-                  isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
-            ),
-            SizedBox(
-              height: isDesktop ? 40 : 24,
-            ),
-            if (coin == Coin.monero || coin == Coin.epicCash)
               Text(
-                "Choose start date",
+                "Restore options",
+                textAlign: TextAlign.center,
+                style:
+                    isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
+              ),
+              SizedBox(
+                height: isDesktop ? 40 : 24,
+              ),
+              if (coin == Coin.monero || coin == Coin.epicCash)
+                Text(
+                  "Choose start date",
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraSmall.copyWith(
+                          color: CFColors.textFieldActiveSearchIconRight,
+                        )
+                      : STextStyles.smallMed12,
+                  textAlign: TextAlign.left,
+                ),
+              if (coin == Coin.monero || coin == Coin.epicCash)
+                SizedBox(
+                  height: isDesktop ? 16 : 8,
+                ),
+              if (coin == Coin.monero || coin == Coin.epicCash)
+
+                // if (!isDesktop)
+                RestoreFromDatePicker(
+                  onTap: chooseDate,
+                ),
+
+              // if (isDesktop)
+              //   // TODO desktop date picker
+              if (coin == Coin.monero || coin == Coin.epicCash)
+                const SizedBox(
+                  height: 8,
+                ),
+              if (coin == Coin.monero || coin == Coin.epicCash)
+                RoundedWhiteContainer(
+                  child: Center(
+                    child: Text(
+                      "Choose the date you made the wallet (approximate is fine)",
+                      style: isDesktop
+                          ? STextStyles.desktopTextExtraSmall.copyWith(
+                              color: CFColors.textSubtitle1,
+                            )
+                          : STextStyles.smallMed12.copyWith(
+                              fontSize: 10,
+                            ),
+                    ),
+                  ),
+                ),
+              if (coin == Coin.monero || coin == Coin.epicCash)
+                SizedBox(
+                  height: isDesktop ? 24 : 16,
+                ),
+              Text(
+                "Choose recovery phrase length",
                 style: isDesktop
                     ? STextStyles.desktopTextExtraSmall.copyWith(
                         color: CFColors.textFieldActiveSearchIconRight,
@@ -256,70 +308,74 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     : STextStyles.smallMed12,
                 textAlign: TextAlign.left,
               ),
-            if (coin == Coin.monero || coin == Coin.epicCash)
               SizedBox(
                 height: isDesktop ? 16 : 8,
               ),
-            if (coin == Coin.monero || coin == Coin.epicCash)
-
-              // if (!isDesktop)
-              RestoreFromDatePicker(
-                onTap: chooseDate,
-              ),
-
-            // if (isDesktop)
-            //   // TODO desktop date picker
-            if (coin == Coin.monero || coin == Coin.epicCash)
-              const SizedBox(
-                height: 8,
-              ),
-            if (coin == Coin.monero || coin == Coin.epicCash)
-              RoundedWhiteContainer(
-                child: Center(
-                  child: Text(
-                    "Choose the date you made the wallet (approximate is fine)",
-                    style: isDesktop
-                        ? STextStyles.desktopTextExtraSmall.copyWith(
-                            color: CFColors.textSubtitle1,
-                          )
-                        : STextStyles.smallMed12.copyWith(
-                            fontSize: 10,
+              if (isDesktop)
+                DropdownButtonHideUnderline(
+                  child: DropdownButton2<int>(
+                    value:
+                        ref.watch(mnemonicWordCountStateProvider.state).state,
+                    items: [
+                      ...lengths.map(
+                        (e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(
+                            "$e words",
+                            style: STextStyles.desktopTextMedium,
                           ),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value is int) {
+                        ref.read(mnemonicWordCountStateProvider.state).state =
+                            value;
+                      }
+                    },
+                    isExpanded: true,
+                    icon: SvgPicture.asset(
+                      Assets.svg.chevronDown,
+                      width: 12,
+                      height: 6,
+                      color: CFColors.textFieldActiveSearchIconRight,
+                    ),
+                    buttonPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    buttonDecoration: BoxDecoration(
+                      color: CFColors.fieldGray,
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                    ),
+                    dropdownDecoration: BoxDecoration(
+                      color: CFColors.fieldGray,
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                    ),
                   ),
                 ),
+              if (!isDesktop)
+                MobileMnemonicLengthSelector(
+                  chooseMnemonicLength: chooseMnemonicLength,
+                ),
+              if (!isDesktop)
+                const Spacer(
+                  flex: 3,
+                ),
+              if (isDesktop)
+                const SizedBox(
+                  height: 32,
+                ),
+              RestoreNextButton(
+                isDesktop: isDesktop,
+                onPressed: _nextEnabled ? nextPressed : null,
               ),
-            if (coin == Coin.monero || coin == Coin.epicCash)
-              SizedBox(
-                height: isDesktop ? 24 : 16,
-              ),
-            Text(
-              "Choose recovery phrase length",
-              style: isDesktop
-                  ? STextStyles.desktopTextExtraSmall.copyWith(
-                      color: CFColors.textFieldActiveSearchIconRight,
-                    )
-                  : STextStyles.smallMed12,
-              textAlign: TextAlign.left,
-            ),
-            SizedBox(
-              height: isDesktop ? 16 : 8,
-            ),
-            MobileMnemonicLengthSelector(
-              chooseMnemonicLength: chooseMnemonicLength,
-            ),
-            if (!isDesktop)
-              const Spacer(
-                flex: 3,
-              ),
-            if (isDesktop)
-              const SizedBox(
-                height: 32,
-              ),
-            RestoreNextButton(
-              isDesktop: isDesktop,
-              onPressed: _nextEnabled ? nextPressed : null,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -339,7 +395,7 @@ class PlatformRestoreOptionsLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isDesktop) {
-      return Container();
+      return child;
     } else {
       return Container(
         color: CFColors.background,

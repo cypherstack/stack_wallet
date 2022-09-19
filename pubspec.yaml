@@ -121,6 +121,7 @@ dependencies:
 #  document_file_save_plus: ^1.0.5
   isar: 3.0.0-dev.10
   isar_flutter_libs: 3.0.0-dev.10 # contains the binaries
+  dropdown_button2: 1.7.2
 
 dev_dependencies:
   flutter_test:
