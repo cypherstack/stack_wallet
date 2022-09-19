@@ -158,6 +158,7 @@ abstract class CFColors {
   static const Color borderNormal = Color(0xFF111111);
 
   static const Color buttonTextSecondary = Color(0xFF232323);
+  static const Color topNavPrimary = Color(0xFF232323);
 
   static const Color buttonTextPrimary = Color(0xFFFFFFFF);
   static const Color buttonTextPrimaryDisabled = Color(0xFFF8F8F8);
