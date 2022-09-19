@@ -94,8 +94,20 @@ class _VerifyRecoveryPhraseViewState
           .addWallet(walletId: _manager.walletId, manager: _manager);
 
       if (mounted) {
-        unawaited(Navigator.of(context)
-            .pushNamedAndRemoveUntil(HomeView.routeName, (route) => false));
+        if (isDesktop) {
+          Navigator.of(context).popUntil(
+            ModalRoute.withName(
+              DesktopHomeView.routeName,
+            ),
+          );
+        } else {
+          unawaited(
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              HomeView.routeName,
+              (route) => false,
+            ),
+          );
+        }
       }
 
       unawaited(showFloatingFlushBar(
