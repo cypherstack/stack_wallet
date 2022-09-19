@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
@@ -13,6 +15,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -35,9 +39,9 @@ class RestoreOptionsView extends ConsumerStatefulWidget {
 class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   late final String walletName;
   late final Coin coin;
+  late final bool isDesktop;
 
   late TextEditingController _dateController;
-  late TextEditingController _lengthController;
   late FocusNode textFieldFocusNode;
 
   final bool _nextEnabled = true;
@@ -47,9 +51,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   void initState() {
     walletName = widget.walletName;
     coin = widget.coin;
+    isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 
     _dateController = TextEditingController();
-    _lengthController = TextEditingController();
     textFieldFocusNode = FocusNode();
 
     super.initState();
@@ -58,7 +62,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   @override
   void dispose() {
     _dateController.dispose();
-    _lengthController.dispose();
     textFieldFocusNode.dispose();
     super.dispose();
   }
@@ -122,26 +125,225 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     );
   }
 
+  Future<void> nextPressed() async {
+    if (!isDesktop) {
+      // hide keyboard if has focus
+      if (FocusScope.of(context).hasFocus) {
+        FocusScope.of(context).unfocus();
+        await Future<void>.delayed(const Duration(milliseconds: 75));
+      }
+    }
+
+    if (mounted) {
+      await Navigator.of(context).pushNamed(
+        RestoreWalletView.routeName,
+        arguments: Tuple4(
+          walletName,
+          coin,
+          ref.read(mnemonicWordCountStateProvider.state).state,
+          _restoreFromDate,
+        ),
+      );
+    }
+  }
+
+  Future<void> chooseDate() async {
+    final height = MediaQuery.of(context).size.height;
+    // check and hide keyboard
+    if (FocusScope.of(context).hasFocus) {
+      FocusScope.of(context).unfocus();
+      await Future<void>.delayed(const Duration(milliseconds: 125));
+    }
+
+    final date = await showRoundedDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      height: height * 0.5,
+      theme: ThemeData(
+        primarySwatch: CFColors.createMaterialColor(CFColors.stackAccent),
+      ),
+      //TODO pick a better initial date
+      // 2007 chosen as that is just before bitcoin launched
+      firstDate: DateTime(2007),
+      lastDate: DateTime.now(),
+      borderRadius: Constants.size.circularBorderRadius * 2,
+
+      textPositiveButton: "SELECT",
+
+      styleDatePicker: _buildDatePickerStyle(),
+      styleYearPicker: _buildYearPickerStyle(),
+    );
+    if (date != null) {
+      _restoreFromDate = date;
+      _dateController.text = Format.formatDate(date);
+    }
+  }
+
+  Future<void> chooseMnemonicLength() async {
+    await showModalBottomSheet<dynamic>(
+      backgroundColor: Colors.transparent,
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+      builder: (_) {
+        return MnemonicWordCountSelectSheet(
+          lengthOptions: Constants.possibleLengthsForCoin(coin),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType with ${coin.name} $walletName");
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            if (textFieldFocusNode.hasFocus) {
-              textFieldFocusNode.unfocus();
-              Future<void>.delayed(const Duration(milliseconds: 100))
-                  .then((value) => Navigator.of(context).pop());
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
+    return DesktopScaffold(
+      appBar: isDesktop
+          ? const DesktopAppBar(
+              isCompactHeight: false,
+              leading: AppBarBackButton(),
+            )
+          : AppBar(
+              leading: AppBarBackButton(
+                onPressed: () {
+                  if (textFieldFocusNode.hasFocus) {
+                    textFieldFocusNode.unfocus();
+                    Future<void>.delayed(const Duration(milliseconds: 100))
+                        .then((value) => Navigator.of(context).pop());
+                  } else {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+            ),
+      body: PlatformRestoreOptionsLayout(
+        isDesktop: isDesktop,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!isDesktop)
+              const Spacer(
+                flex: 1,
+              ),
+            if (!isDesktop)
+              Image(
+                image: AssetImage(
+                  Assets.png.imageFor(coin: coin),
+                ),
+                height: 100,
+              ),
+            SizedBox(
+              height: isDesktop ? 24 : 16,
+            ),
+            Text(
+              "Restore options",
+              textAlign: TextAlign.center,
+              style:
+                  isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
+            ),
+            SizedBox(
+              height: isDesktop ? 40 : 24,
+            ),
+            if (coin == Coin.monero || coin == Coin.epicCash)
+              Text(
+                "Choose start date",
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraSmall.copyWith(
+                        color: CFColors.textFieldActiveSearchIconRight,
+                      )
+                    : STextStyles.smallMed12,
+                textAlign: TextAlign.left,
+              ),
+            if (coin == Coin.monero || coin == Coin.epicCash)
+              SizedBox(
+                height: isDesktop ? 16 : 8,
+              ),
+            if (coin == Coin.monero || coin == Coin.epicCash)
+
+              // if (!isDesktop)
+              RestoreFromDatePicker(
+                onTap: chooseDate,
+              ),
+
+            // if (isDesktop)
+            //   // TODO desktop date picker
+            if (coin == Coin.monero || coin == Coin.epicCash)
+              const SizedBox(
+                height: 8,
+              ),
+            if (coin == Coin.monero || coin == Coin.epicCash)
+              RoundedWhiteContainer(
+                child: Center(
+                  child: Text(
+                    "Choose the date you made the wallet (approximate is fine)",
+                    style: isDesktop
+                        ? STextStyles.desktopTextExtraSmall.copyWith(
+                            color: CFColors.textSubtitle1,
+                          )
+                        : STextStyles.smallMed12.copyWith(
+                            fontSize: 10,
+                          ),
+                  ),
+                ),
+              ),
+            if (coin == Coin.monero || coin == Coin.epicCash)
+              SizedBox(
+                height: isDesktop ? 24 : 16,
+              ),
+            Text(
+              "Choose recovery phrase length",
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall.copyWith(
+                      color: CFColors.textFieldActiveSearchIconRight,
+                    )
+                  : STextStyles.smallMed12,
+              textAlign: TextAlign.left,
+            ),
+            SizedBox(
+              height: isDesktop ? 16 : 8,
+            ),
+            MobileMnemonicLengthSelector(
+              chooseMnemonicLength: chooseMnemonicLength,
+            ),
+            if (!isDesktop)
+              const Spacer(
+                flex: 3,
+              ),
+            if (isDesktop)
+              const SizedBox(
+                height: 32,
+              ),
+            RestoreNextButton(
+              isDesktop: isDesktop,
+              onPressed: _nextEnabled ? nextPressed : null,
+            ),
+          ],
         ),
       ),
-      body: Container(
-        color: CFColors.almostWhite,
+    );
+  }
+}
+
+class PlatformRestoreOptionsLayout extends StatelessWidget {
+  const PlatformRestoreOptionsLayout({
+    Key? key,
+    required this.isDesktop,
+    required this.child,
+  }) : super(key: key);
+
+  final bool isDesktop;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isDesktop) {
+      return Container();
+    } else {
+      return Container(
+        color: CFColors.background,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: LayoutBuilder(
@@ -150,258 +352,161 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Spacer(
-                          flex: 1,
-                        ),
-                        Image(
-                          image: AssetImage(
-                            Assets.png.imageFor(coin: coin),
-                          ),
-                          height: 100,
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        Text(
-                          "Restore options",
-                          textAlign: TextAlign.center,
-                          style: STextStyles.pageTitleH1,
-                        ),
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        if (coin == Coin.monero || coin == Coin.epicCash)
-                          Text(
-                            "Choose start date",
-                            style: STextStyles.smallMed12,
-                            textAlign: TextAlign.left,
-                          ),
-                        if (coin == Coin.monero || coin == Coin.epicCash)
-                          const SizedBox(
-                            height: 8,
-                          ),
-                        if (coin == Coin.monero || coin == Coin.epicCash)
-                          Container(
-                            color: Colors.transparent,
-                            child: TextField(
-                              onTap: () async {
-                                final height =
-                                    MediaQuery.of(context).size.height;
-                                // check and hide keyboard
-                                if (FocusScope.of(context).hasFocus) {
-                                  FocusScope.of(context).unfocus();
-                                  await Future<void>.delayed(
-                                      const Duration(milliseconds: 125));
-                                }
-
-                                final date = await showRoundedDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  height: height * 0.5,
-                                  theme: ThemeData(
-                                    primarySwatch: CFColors.createMaterialColor(
-                                        CFColors.stackAccent),
-                                  ),
-                                  //TODO pick a better initial date
-                                  // 2007 chosen as that is just before bitcoin launched
-                                  firstDate: DateTime(2007),
-                                  lastDate: DateTime.now(),
-                                  borderRadius:
-                                      Constants.size.circularBorderRadius * 2,
-
-                                  textPositiveButton: "SELECT",
-
-                                  styleDatePicker: _buildDatePickerStyle(),
-                                  styleYearPicker: _buildYearPickerStyle(),
-                                );
-                                if (date != null) {
-                                  _restoreFromDate = date;
-                                  _dateController.text =
-                                      Format.formatDate(date);
-                                }
-                              },
-                              controller: _dateController,
-                              style: STextStyles.field,
-                              decoration: InputDecoration(
-                                hintText: "Restore from...",
-                                suffixIcon: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      const SizedBox(
-                                        width: 16,
-                                      ),
-                                      SvgPicture.asset(
-                                        Assets.svg.calendar,
-                                        color: CFColors.neutral50,
-                                        width: 16,
-                                        height: 16,
-                                      ),
-                                      const SizedBox(
-                                        width: 12,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              key: const Key("restoreOptionsViewDatePickerKey"),
-                              readOnly: true,
-                              toolbarOptions: const ToolbarOptions(
-                                copy: true,
-                                cut: false,
-                                paste: false,
-                                selectAll: false,
-                              ),
-                              onChanged: (newValue) {},
-                            ),
-                          ),
-                        if (coin == Coin.monero || coin == Coin.epicCash)
-                          const SizedBox(
-                            height: 8,
-                          ),
-                        if (coin == Coin.monero || coin == Coin.epicCash)
-                          RoundedWhiteContainer(
-                            child: Center(
-                              child: Text(
-                                "Choose the date you made the wallet (approximate is fine)",
-                                style: STextStyles.smallMed12.copyWith(
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ),
-                          ),
-                        if (coin == Coin.monero || coin == Coin.epicCash)
-                          const SizedBox(
-                            height: 16,
-                          ),
-                        Text(
-                          "Choose recovery phrase length",
-                          style: STextStyles.smallMed12,
-                          textAlign: TextAlign.left,
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        Stack(
-                          children: [
-                            TextField(
-                              controller: _lengthController,
-                              readOnly: true,
-                              textInputAction: TextInputAction.none,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              child: RawMaterialButton(
-                                splashColor: CFColors.splashLight,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  showModalBottomSheet<dynamic>(
-                                    backgroundColor: Colors.transparent,
-                                    context: context,
-                                    shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(20),
-                                      ),
-                                    ),
-                                    builder: (_) {
-                                      return MnemonicWordCountSelectSheet(
-                                        lengthOptions:
-                                            Constants.possibleLengthsForCoin(
-                                                coin),
-                                      );
-                                    },
-                                  );
-                                },
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "${ref.watch(mnemonicWordCountStateProvider.state).state} words",
-                                      style: STextStyles.itemSubtitle12,
-                                    ),
-                                    SvgPicture.asset(
-                                      Assets.svg.chevronDown,
-                                      width: 8,
-                                      height: 4,
-                                      color: CFColors.gray3,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                        const Spacer(
-                          flex: 3,
-                        ),
-                        TextButton(
-                          onPressed: _nextEnabled
-                              ? () async {
-                                  // hide keyboard if has focus
-                                  if (FocusScope.of(context).hasFocus) {
-                                    FocusScope.of(context).unfocus();
-                                    await Future<void>.delayed(
-                                        const Duration(milliseconds: 75));
-                                  }
-
-                                  if (mounted) {
-                                    Navigator.of(context).pushNamed(
-                                      RestoreWalletView.routeName,
-                                      arguments: Tuple4(
-                                        walletName,
-                                        coin,
-                                        ref
-                                            .read(mnemonicWordCountStateProvider
-                                                .state)
-                                            .state,
-                                        _restoreFromDate,
-                                      ),
-                                    );
-                                  }
-                                }
-                              : null,
-                          style: _nextEnabled
-                              ? Theme.of(context)
-                                  .textButtonTheme
-                                  .style
-                                  ?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  )
-                              : Theme.of(context)
-                                  .textButtonTheme
-                                  .style
-                                  ?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent.withOpacity(
-                                        0.25,
-                                      ),
-                                    ),
-                                  ),
-                          child: Text(
-                            "Next",
-                            style: STextStyles.button,
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: child,
                   ),
                 ),
               );
             },
           ),
+        ),
+      );
+    }
+  }
+}
+
+class RestoreFromDatePicker extends StatefulWidget {
+  const RestoreFromDatePicker({Key? key, required this.onTap})
+      : super(key: key);
+
+  final VoidCallback onTap;
+
+  @override
+  State<RestoreFromDatePicker> createState() => _RestoreFromDatePickerState();
+}
+
+class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
+  late final TextEditingController _dateController;
+  late final VoidCallback onTap;
+
+  @override
+  void initState() {
+    onTap = widget.onTap;
+    _dateController = TextEditingController();
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _dateController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.transparent,
+      child: TextField(
+        onTap: onTap,
+        controller: _dateController,
+        style: STextStyles.field,
+        decoration: InputDecoration(
+          hintText: "Restore from...",
+          suffixIcon: UnconstrainedBox(
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 16,
+                ),
+                SvgPicture.asset(
+                  Assets.svg.calendar,
+                  color: CFColors.neutral50,
+                  width: 16,
+                  height: 16,
+                ),
+                const SizedBox(
+                  width: 12,
+                ),
+              ],
+            ),
+          ),
+        ),
+        key: const Key("restoreOptionsViewDatePickerKey"),
+        readOnly: true,
+        toolbarOptions: const ToolbarOptions(
+          copy: true,
+          cut: false,
+          paste: false,
+          selectAll: false,
+        ),
+        onChanged: (newValue) {},
+      ),
+    );
+  }
+}
+
+class MobileMnemonicLengthSelector extends ConsumerWidget {
+  const MobileMnemonicLengthSelector({
+    Key? key,
+    required this.chooseMnemonicLength,
+  }) : super(key: key);
+
+  final VoidCallback chooseMnemonicLength;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Stack(
+      children: [
+        const TextField(
+          // controller: _lengthController,
+          readOnly: true,
+          textInputAction: TextInputAction.none,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+          ),
+          child: RawMaterialButton(
+            splashColor: CFColors.splashLight,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+            onPressed: chooseMnemonicLength,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${ref.watch(mnemonicWordCountStateProvider.state).state} words",
+                  style: STextStyles.itemSubtitle12,
+                ),
+                SvgPicture.asset(
+                  Assets.svg.chevronDown,
+                  width: 8,
+                  height: 4,
+                  color: CFColors.gray3,
+                ),
+              ],
+            ),
+          ),
+        )
+      ],
+    );
+  }
+}
+
+class RestoreNextButton extends StatelessWidget {
+  const RestoreNextButton({Key? key, required this.isDesktop, this.onPressed})
+      : super(key: key);
+
+  final bool isDesktop;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: isDesktop ? 70 : 0,
+      ),
+      child: TextButton(
+        onPressed: onPressed,
+        style: onPressed != null
+            ? CFColors.getPrimaryEnabledButtonColor(context)
+            : CFColors.getPrimaryDisabledButtonColor(context),
+        child: Text(
+          "Next",
+          style: STextStyles.button,
         ),
       ),
     );

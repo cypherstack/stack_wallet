@@ -170,6 +170,7 @@ abstract class CFColors {
   static const Color buttonBackPrimaryDisabled = Color(0xFFD7D7D7);
 
   static const Color textFieldDefaultSearchIconLeft = Color(0xFFA9ACAC);
+  static const Color textFieldActiveSearchIconRight = Color(0xFF747778);
 
   // button color themes
 
@@ -186,8 +187,7 @@ abstract class CFColors {
             ),
           );
 
-  static ButtonStyle? getSecondaryEnabledButtonColor(
-          BuildContext context) =>
+  static ButtonStyle? getSecondaryEnabledButtonColor(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               CFColors.buttonBackSecondary,

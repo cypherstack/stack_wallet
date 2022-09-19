@@ -29,6 +29,7 @@ import 'package:stackwallet/pages/loading_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
 import 'package:stackwallet/providers/exchange/change_now_provider.dart';
@@ -601,6 +602,14 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
                 startupWalletId =
                     ref.read(prefsChangeNotifierProvider).startupWalletId;
+              }
+
+              // TODO proper desktop auth view
+              if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+                Future<void>.delayed(Duration.zero).then((value) =>
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                        DesktopHomeView.routeName, (route) => false));
+                return Container();
               }
 
               return LockscreenView(
