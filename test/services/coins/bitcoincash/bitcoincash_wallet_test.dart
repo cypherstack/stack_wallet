@@ -2123,9 +2123,20 @@ void main() {
 
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs1))
-      //     .thenAnswer((_) async => historyBatchResponse);
-      when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
+      when(client?.getBatchHistory(args: historyBatchArgs1))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+      when(cachedClient?.clearSharedTransactionCache(coin: Coin.dogecoin))
           .thenAnswer((realInvocation) async {});
 
       final wallet = await Hive.openBox(testWalletId);
@@ -2184,18 +2195,13 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
-      // verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
           .called(1);
 
       expect(secureStore?.writes, 7);
       expect(secureStore?.reads, 12);
       expect(secureStore?.deletes, 4);
-
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     // // test("fetchBuildTxData succeeds", () async {
@@ -2678,11 +2684,21 @@ void main() {
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs1))
-      //     .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs1))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
 
       final wallet = await Hive.openBox(testWalletId);
-
       // recover to fill data
       await bch?.recoverFromMnemonic(
           mnemonic: TEST_MNEMONIC,
@@ -2696,7 +2712,7 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      // verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
 
       expect(secureStore?.interactions, 6);
       expect(secureStore?.writes, 3);
@@ -2723,8 +2739,19 @@ void main() {
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
-      // when(client?.getBatchHistory(args: historyBatchArgs1))
-      //     .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs1))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
       when(client?.getHistory(scripthash: anyNamed("scripthash")))
           .thenThrow(Exception("some exception"));
 
@@ -2741,7 +2768,7 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      // verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
       verify(client?.getBlockHeadTip()).called(1);
       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
 
