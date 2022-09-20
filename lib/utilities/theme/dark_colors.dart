@@ -1,6 +1,27 @@
 import 'package:flutter/material.dart';
 
 abstract class DarkColors {
+  static const Color background = Color(0xFF2A2D34);
+  static const Color overlay = Color(0xFF111215);
+
+  static const Color accentColorBlue = Color(0xFF111215);
+  static const Color accentColorGreen = Color(0xFF4CC0A0);
+  static const Color accentColorYellow = Color(0xFFF7D65D);
+  static const Color accentColorRed = Color(0xFFD34E50);
+  static const Color accentColorOrange = Color(0xFFFEA68D);
+  static const Color accentColorDark = Color(0xFFF3F3F3);
+
+  static const Color textDark = Color(0xFFF3F3F3);
+  static const Color textDark2 = Color(0xFFF3F3F3);
+  static const Color textDark3 = Color(0xFFF3F3F3);
+  static const Color textSubtitle1 = Color(0xFFF3F3F3);
+  static const Color textSubtitle2 = Color(0xFF969696);
+  static const Color textSubtitle3 = Color(0xFFA9ACAC);
+  static const Color textSubtitle4 = Color(0xFF8E9192);
+  static const Color textSubtitle5 = Color(0xFF747778);
+  static const Color textSubtitle6 = Color(0xFF414141);
+  static const Color textWhite = Color(0xFF232323);
+
   // button background
   static const Color buttonBackPrimary = Color(0xFF4C86E9);
   static const Color buttonBackSecondary = Color(0xFF444E5C);
