@@ -1,3 +1,4 @@
+import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
@@ -120,10 +121,12 @@ class _SVG {
       "assets/svg/${StackTheme.instance.theme.name}/tx-exchange-icon-failed.svg";
 
   String get bitcoin => "assets/svg/coin_icons/Bitcoin.svg";
+  String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
   String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
   String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";
+  String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
 
   String get chevronRight => "assets/svg/chevron-right.svg";
   String get minimize => "assets/svg/minimize.svg";
@@ -133,6 +136,7 @@ class _SVG {
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
+  String get bitcoincashTestnet => "assets/svg/coin_icons/Bitcoincash.svg";
   String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
   String get dogecoinTestnet => "assets/svg/coin_icons/Dogecoin.svg";
 
@@ -140,6 +144,8 @@ class _SVG {
     switch (coin) {
       case Coin.bitcoin:
         return bitcoin;
+      case Coin.bitcoincash:
+        return bitcoincash;
       case Coin.dogecoin:
         return dogecoin;
       case Coin.epicCash:
@@ -148,7 +154,11 @@ class _SVG {
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.namecoin:
+        return namecoin;
       case Coin.bitcoinTestNet:
+        return bitcoinTestnet;
+      case Coin.bitcoincashTestnet:
         return bitcoinTestnet;
       case Coin.firoTestNet:
         return firoTestnet;
@@ -169,22 +179,30 @@ class _PNG {
   String get dogecoin => "assets/images/doge.png";
   String get bitcoin => "assets/images/bitcoin.png";
   String get epicCash => "assets/images/epic-cash.png";
+  String get bitcoincash => "assets/images/bitcoincash.png";
+  String get namecoin => "assets/images/namecoin.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+        return bitcoincash;
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
       case Coin.firo:
+        return firo;
       case Coin.firoTestNet:
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.namecoin:
+        return namecoin;
     }
   }
 }

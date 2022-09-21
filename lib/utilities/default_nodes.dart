@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
@@ -13,6 +14,8 @@ abstract class DefaultNodes {
         firo,
         monero,
         epicCash,
+        bitcoincash,
+        namecoin,
         bitcoinTestnet,
         dogecoinTestnet,
         firoTestnet,
@@ -26,6 +29,18 @@ abstract class DefaultNodes {
         useSSL: true,
         enabled: true,
         coinName: Coin.bitcoin.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get bitcoincash => NodeModel(
+        host: "bitcoincash.stackwallet.com",
+        port: 8332,
+        name: defaultName,
+        id: _nodeId(Coin.bitcoincash),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.bitcoincash.name,
         isFailover: true,
         isDown: false,
       );
@@ -80,6 +95,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get namecoin => NodeModel(
+        host: "namecoin.stackwallet.com",
+        port: 8336,
+        name: defaultName,
+        id: _nodeId(Coin.namecoin),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.namecoin.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "electrumx-testnet.cypherstack.com",
         port: 51002,
@@ -116,10 +143,25 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get bitcoincashTestnet => NodeModel(
+        host: "testnet.hsmiths.com",
+        port: 53012,
+        name: defaultName,
+        id: _nodeId(Coin.bitcoincash),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.bitcoincash.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
         return bitcoin;
+
+      case Coin.bitcoincash:
+        return bitcoincash;
 
       case Coin.dogecoin:
         return dogecoin;
@@ -133,8 +175,14 @@ abstract class DefaultNodes {
       case Coin.monero:
         return monero;
 
+      case Coin.namecoin:
+        return namecoin;
+
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
+
+      case Coin.bitcoincashTestnet:
+        return bitcoincashTestnet;
 
       case Coin.firoTestNet:
         return firoTestnet;

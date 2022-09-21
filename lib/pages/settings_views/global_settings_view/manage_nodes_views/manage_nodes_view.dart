@@ -46,7 +46,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
 
     List<Coin> coins = showTestNet
         ? _coins
-        : _coins.sublist(0, Coin.values.length - kTestNetCoinCount);
+        : _coins.sublist(0, _coins.length - kTestNetCoinCount);
 
     return Scaffold(
       backgroundColor: StackTheme.instance.color.background,

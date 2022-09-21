@@ -8,6 +8,8 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
+import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
+import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -97,6 +99,26 @@ abstract class CoinServiceAPI {
           tracker: tracker,
         );
 
+      case Coin.bitcoincash:
+        return BitcoinCashWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
+
+      case Coin.bitcoincashTestnet:
+        return BitcoinCashWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
+
       case Coin.dogecoin:
         return DogecoinWallet(
           walletId: walletId,
@@ -121,6 +143,16 @@ abstract class CoinServiceAPI {
           walletName: walletName,
           coin: coin,
           // tracker: tracker,
+        );
+
+      case Coin.namecoin:
+        return NamecoinWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          tracker: tracker,
+          cachedClient: cachedClient,
+          client: client,
         );
 
       case Coin.dogecoinTestNet:
