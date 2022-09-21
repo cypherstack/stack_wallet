@@ -35,7 +35,7 @@ abstract class DefaultNodes {
 
   static NodeModel get bitcoincash => NodeModel(
         host: "bitcoincash.stackwallet.com",
-        port: 8332,
+        port: 50002,
         name: defaultName,
         id: _nodeId(Coin.bitcoincash),
         useSSL: true,
