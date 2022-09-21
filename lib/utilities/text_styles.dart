@@ -5,43 +5,43 @@ import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class STextStyles {
   static final TextStyle pageTitleH1 = GoogleFonts.inter(
-    color: CFColors.black,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w600,
     fontSize: 20,
   );
 
   static final TextStyle pageTitleH2 = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w600,
     fontSize: 18,
   );
 
   static final TextStyle navBarTitle = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w600,
     fontSize: 16,
   );
 
   static final TextStyle titleBold12 = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w600,
     fontSize: 16,
   );
 
   static final TextStyle subtitle = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w400,
     fontSize: 16,
   );
 
   static final TextStyle button = GoogleFonts.inter(
-    color: CFColors.white,
+    color: StackTheme.instance.color.buttonTextPrimary,
     fontWeight: FontWeight.w500,
     fontSize: 16,
   );
 
   static final TextStyle largeMedium14 = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w500,
     fontSize: 16,
   );
@@ -59,7 +59,7 @@ class STextStyles {
   );
 
   static final TextStyle label = GoogleFonts.inter(
-    color: CFColors.neutral60,
+    color: StackTheme.instance.color.textSubtitle1,
     fontWeight: FontWeight.w500,
     fontSize: 12,
   );
@@ -71,7 +71,7 @@ class STextStyles {
   );
 
   static final TextStyle itemSubtitle12 = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w500,
     fontSize: 14,
   );
@@ -84,14 +84,14 @@ class STextStyles {
   );
 
   static final TextStyle field = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w500,
     fontSize: 14,
     height: 1.5,
   );
 
   static final TextStyle baseXS = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w400,
     fontSize: 14,
   );
@@ -109,25 +109,25 @@ class STextStyles {
   );
 
   static final TextStyle richLink = GoogleFonts.inter(
-    color: CFColors.primaryBlue,
+    color: StackTheme.instance.color.accentColorBlue,
     fontWeight: FontWeight.w500,
     fontSize: 12,
   );
 
   static final TextStyle w600_10 = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w600,
     fontSize: 12,
   );
 
   static final TextStyle syncPercent = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w500,
     fontSize: 12,
   );
 
   static final TextStyle buttonSmall = GoogleFonts.inter(
-    color: CFColors.stackAccent,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w500,
     fontSize: 12,
   );
@@ -147,42 +147,42 @@ class STextStyles {
 // Desktop
 
   static final TextStyle desktopH2 = GoogleFonts.inter(
-    color: CFColors.textDark,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w600,
     fontSize: 32,
     height: 32 / 32,
   );
 
   static final TextStyle desktopH3 = GoogleFonts.inter(
-    color: CFColors.textDark,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w600,
     fontSize: 24,
     height: 24 / 24,
   );
 
   static final TextStyle desktopTextMedium = GoogleFonts.inter(
-    color: CFColors.textDark,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w500,
     fontSize: 20,
     height: 30 / 20,
   );
 
   static final TextStyle desktopTextMediumRegular = GoogleFonts.inter(
-    color: CFColors.textDark,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w400,
     fontSize: 20,
     height: 30 / 20,
   );
 
   static final TextStyle desktopSubtitleH2 = GoogleFonts.inter(
-    color: CFColors.textDark,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w400,
     fontSize: 20,
     height: 28 / 20,
   );
 
   static final TextStyle desktopSubtitleH1 = GoogleFonts.inter(
-    color: CFColors.textDark,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w400,
     fontSize: 24,
     height: 33 / 24,
@@ -231,13 +231,13 @@ class STextStyles {
   );
 
   static final TextStyle desktopMenuItem = GoogleFonts.inter(
-    color: CFColors.textDark.withOpacity(0.8),
+    color: StackTheme.instance.color.textDark.withOpacity(0.8),
     fontWeight: FontWeight.w500,
     fontSize: 16,
     height: 20.8 / 16,
   );
   static final TextStyle desktopMenuItemSelected = GoogleFonts.inter(
-    color: CFColors.textDark,
+    color: StackTheme.instance.color.textDark,
     fontWeight: FontWeight.w500,
     fontSize: 16,
     height: 20.8 / 16,

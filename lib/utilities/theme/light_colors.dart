@@ -8,7 +8,7 @@ class LightColors extends StackColorTheme {
   Color get overlay => const Color(0xFF111215);
 
   @override
-  Color get accentColorBlue => const Color(0xFF111215);
+  Color get accentColorBlue => const Color(0xFF4C86E9);
   @override
   Color get accentColorGreen => const Color(0xFF4CC0A0);
   @override
@@ -18,7 +18,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get accentColorOrange => const Color(0xFFFEA68D);
   @override
-  Color get accentColorDark => const Color(0xFFF3F3F3);
+  Color get accentColorDark => const Color(0xFF232323);
 
   @override
   Color get textDark => const Color(0xFF232323);

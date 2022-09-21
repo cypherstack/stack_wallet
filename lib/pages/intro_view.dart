@@ -4,7 +4,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -237,11 +236,7 @@ class GetStartedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return !isDesktop
         ? TextButton(
-            style: Theme.of(context).textButtonTheme.style?.copyWith(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    CFColors.stackAccent,
-                  ),
-                ),
+            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
             onPressed: () {
               Navigator.of(context).pushNamed(CreatePinView.routeName);
             },
