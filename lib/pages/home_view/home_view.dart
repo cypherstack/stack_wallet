@@ -15,7 +15,6 @@ import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/services/change_now/change_now_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
@@ -180,6 +179,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         : Assets.svg.bell,
                     width: 20,
                     height: 20,
+                    color: ref.watch(notificationsProvider
+                            .select((value) => value.hasUnreadNotifications))
+                        ? null
+                        : StackTheme.instance.color.topNavIconPrimary,
                   ),
                   onPressed: () {
                     // reset unread state
@@ -228,7 +231,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     Assets.svg.gear,
-                    color: CFColors.stackAccent,
+                    color: StackTheme.instance.color.topNavIconPrimary,
                     width: 20,
                     height: 20,
                   ),
@@ -251,7 +254,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   decoration: BoxDecoration(
                     color: StackTheme.instance.color.background,
                     boxShadow: [
-                      CFColors.standardBoxShadow,
+                      StackTheme.instance.standardBoxShadow,
                     ],
                   ),
                   child: const Padding(

@@ -23,6 +23,12 @@ class StackTheme {
     }
   }
 
+  BoxShadow get standardBoxShadow => BoxShadow(
+        color: color.shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
+
   ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(

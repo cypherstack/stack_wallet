@@ -30,7 +30,7 @@ class AppBarIconButton extends StatelessWidget {
       width: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(1000),
-        color: color ?? CFColors.white,
+        color: color ?? StackTheme.instance.color.background,
         boxShadow: shadows,
       ),
       child: MaterialButton(
@@ -65,13 +65,14 @@ class AppBarBackButton extends StatelessWidget {
       child: AppBarIconButton(
         size: isDesktop ? 56 : 32,
         color: isDesktop
-            ? CFColors.textFieldDefaultBackground
+            ? StackTheme.instance.color.textFieldDefaultBG
             : StackTheme.instance.color.background,
         shadows: const [],
         icon: SvgPicture.asset(
           Assets.svg.arrowLeft,
           width: 24,
           height: 24,
+          color: StackTheme.instance.color.topNavIconPrimary,
         ),
         onPressed: onPressed ?? Navigator.of(context).pop,
       ),

@@ -15,6 +15,8 @@ abstract class StackColorTheme {
   Color get accentColorOrange;
   Color get accentColorDark;
 
+  Color get shadow;
+
   Color get textDark;
   Color get textDark2;
   Color get textDark3;
