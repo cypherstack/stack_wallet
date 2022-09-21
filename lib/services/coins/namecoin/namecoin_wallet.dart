@@ -44,10 +44,12 @@ import 'package:uuid/uuid.dart';
 
 const int MINIMUM_CONFIRMATIONS = 2;
 // Find real dust limit
-const int DUST_LIMIT = 1000000;
+const int DUST_LIMIT = 546;
 
 const String GENESIS_HASH_MAINNET =
     "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770";
+const String GENESIS_HASH_TESTNET =
+    "00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008";
 
 enum DerivePathType { bip44, bip49, bip84 }
 
@@ -2033,15 +2035,18 @@ class NamecoinWallet extends CoinServiceAPI {
   }) async {
     try {
       final Map<String, List<dynamic>> args = {};
+      print("Address $addresses");
       for (final entry in addresses.entries) {
         args[entry.key] = [_convertToScriptHash(entry.value, _network)];
       }
+      print("Args ${jsonEncode(args)}");
       final response = await electrumXClient.getBatchHistory(args: args);
-
+      print("Response ${jsonEncode(response)}");
       final Map<String, int> result = {};
       for (final entry in response.entries) {
         result[entry.key] = entry.value.length;
       }
+
       return result;
     } catch (e, s) {
       Logging.instance.log(

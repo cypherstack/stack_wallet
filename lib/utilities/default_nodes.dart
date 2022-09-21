@@ -34,8 +34,8 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get bitcoincash => NodeModel(
-        host: "electrum1.cipig.net",
-        port: 20055,
+        host: "bitcoincash.stackwallet.com",
+        port: 8332,
         name: defaultName,
         id: _nodeId(Coin.bitcoincash),
         useSSL: true,
@@ -96,8 +96,8 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get namecoin => NodeModel(
-        host: "46.229.238.187",
-        port: 57002,
+        host: "namecoin.stackwallet.com",
+        port: 8336,
         name: defaultName,
         id: _nodeId(Coin.namecoin),
         useSSL: true,

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +9,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/paymint/utxo_model.dart';
@@ -31,11 +34,15 @@ void main() {
       expect(MINIMUM_CONFIRMATIONS, 2);
     });
     test("namecoin dust limit", () async {
-      expect(DUST_LIMIT, 294);
+      expect(DUST_LIMIT, 546);
     });
     test("namecoin mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,
-          "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
+          "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770");
+    });
+    test("namecoin testnet genesis block hash", () async {
+      expect(GENESIS_HASH_TESTNET,
+          "00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008");
     });
   });
 
@@ -46,10 +53,10 @@ void main() {
   });
 
   group("bip32 node/root", () {
-    // test("getBip32Root", () {
-    //   final root = getBip32Root(TEST_MNEMONIC, namecoin);
-    //   expect(root.toWIF(), ROOT_WIF);
-    // });
+    test("getBip32Root", () {
+      final root = getBip32Root(TEST_MNEMONIC, namecoin);
+      expect(root.toWIF(), ROOT_WIF);
+    });
 
     // test("getBip32NodeFromRoot", () {
     //   final root = getBip32Root(TEST_MNEMONIC, namecoin);
@@ -95,97 +102,6 @@ void main() {
     // });
   });
 
-  // group("validate testnet namecoin addresses", () {
-  //   MockElectrumX? client;
-  //   MockCachedElectrumX? cachedClient;
-  //   MockPriceAPI? priceAPI;
-  //   FakeSecureStorage? secureStore;
-  //   MockTransactionNotificationTracker? tracker;
-  //
-  //   NamecoinWallet? testnetWallet;
-  //
-  //   setUp(() {
-  //     client = MockElectrumX();
-  //     cachedClient = MockCachedElectrumX();
-  //     priceAPI = MockPriceAPI();
-  //     secureStore = FakeSecureStorage();
-  //     tracker = MockTransactionNotificationTracker();
-  //
-  //     testnetWallet = NamecoinWallet(
-  //       walletId: "validateAddressTestNet",
-  //       walletName: "validateAddressTestNet",
-  //       coin: Coin.bitcoinTestNet,
-  //       client: client!,
-  //       cachedClient: cachedClient!,
-  //       tracker: tracker!,
-  //       priceAPI: priceAPI,
-  //       secureStore: secureStore,
-  //     );
-  //   });
-  //
-  //   test("valid testnet namecoin legacy/p2pkh address", () {
-  //     expect(
-  //         testnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
-  //         true);
-  //     expect(secureStore?.interactions, 0);
-  //     verifyNoMoreInteractions(client);
-  //     verifyNoMoreInteractions(cachedClient);
-  //     verifyNoMoreInteractions(priceAPI);
-  //   });
-  //
-  //   test("valid testnet namecoin p2sh-p2wpkh address", () {
-  //     expect(
-  //         testnetWallet?.validateAddress("2Mugf9hpSYdQPPLNtWiU2utCi6cM9v5Pnro"),
-  //         true);
-  //     expect(secureStore?.interactions, 0);
-  //     verifyNoMoreInteractions(client);
-  //     verifyNoMoreInteractions(cachedClient);
-  //     verifyNoMoreInteractions(priceAPI);
-  //   });
-  //
-  //   test("valid testnet namecoin p2wpkh address", () {
-  //     expect(
-  //         testnetWallet
-  //             ?.validateAddress("tb1qzzlm6mnc8k54mx6akehl8p9ray8r439va5ndyq"),
-  //         true);
-  //     expect(secureStore?.interactions, 0);
-  //     verifyNoMoreInteractions(client);
-  //     verifyNoMoreInteractions(cachedClient);
-  //     verifyNoMoreInteractions(priceAPI);
-  //   });
-  //
-  //   test("invalid testnet namecoin legacy/p2pkh address", () {
-  //     expect(
-  //         testnetWallet?.validateAddress("16YB85zQHjro7fqjR2hMcwdQWCX8jNVtr5"),
-  //         false);
-  //     expect(secureStore?.interactions, 0);
-  //     verifyNoMoreInteractions(client);
-  //     verifyNoMoreInteractions(cachedClient);
-  //     verifyNoMoreInteractions(priceAPI);
-  //   });
-  //
-  //   test("invalid testnet namecoin p2sh-p2wpkh address", () {
-  //     expect(
-  //         testnetWallet?.validateAddress("3Ns8HuQmkyyKnVixk2yQtG7pN3GcJ6xctk"),
-  //         false);
-  //     expect(secureStore?.interactions, 0);
-  //     verifyNoMoreInteractions(client);
-  //     verifyNoMoreInteractions(cachedClient);
-  //     verifyNoMoreInteractions(priceAPI);
-  //   });
-  //
-  //   test("invalid testnet namecoin p2wpkh address", () {
-  //     expect(
-  //         testnetWallet
-  //             ?.validateAddress("bc1qc5ymmsay89r6gr4fy2kklvrkuvzyln4shdvjhf"),
-  //         false);
-  //     expect(secureStore?.interactions, 0);
-  //     verifyNoMoreInteractions(client);
-  //     verifyNoMoreInteractions(cachedClient);
-  //     verifyNoMoreInteractions(priceAPI);
-  //   });
-  // });
-
   group("validate mainnet namecoin addresses", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
@@ -214,35 +130,11 @@ void main() {
       );
     });
 
-    // test("valid mainnet legacy/p2pkh address type", () {
-    //   expect(
-    //       mainnetWallet?.addressType(
-    //           address: "nc1qmdt0fxhpwx7x5ymmm9gvh229adu0kmtukfcsjk"),
-    //       DerivePathType.bip44);
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-
-    // test("valid mainnet p2sh-p2wpkh address type", () {
-    //   expect(
-    //       mainnetWallet?.addressType(
-    //           address: "3Ns8HuQmkyyKnVixk2yQtG7pN3GcJ6xctk"),
-    //       DerivePathType.bip49);
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-
-    test("valid mainnet bech32 p2wpkh address type", () {
+    test("valid mainnet legacy/p2pkh address type", () {
       expect(
           mainnetWallet?.addressType(
-              address: "bc1qc5ymmsay89r6gr4fy2kklvrkuvzyln4shdvjhf"),
-          DerivePathType.bip84);
+              address: "N673DDbjPcrNgJmrhJ1xQXF9LLizQzvjEs"),
+          DerivePathType.bip44);
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -250,17 +142,17 @@ void main() {
       verifyNoMoreInteractions(priceAPI);
     });
 
-    // test("invalid base58 address type", () {
-    //   expect(
-    //       () => mainnetWallet?.addressType(
-    //           address: "mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
-    //       throwsArgumentError);
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
+    test("valid mainnet bech32 p2wpkh address type", () {
+      expect(
+          mainnetWallet?.addressType(
+              address: "nc1q6k4x8ye6865z3rc8zkt8gyu52na7njqt6hsk4v"),
+          DerivePathType.bip84);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
 
     test("invalid bech32 address type", () {
       expect(
@@ -285,74 +177,6 @@ void main() {
       verifyNoMoreInteractions(tracker);
       verifyNoMoreInteractions(priceAPI);
     });
-
-    // test("valid mainnet namecoin legacy/p2pkh address", () {
-    //   expect(
-    //       mainnetWallet?.validateAddress("16YB85zQHjro7fqjR2hMcwdQWCX8jNVtr5"),
-    //       true);
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("valid mainnet namecoin p2sh-p2wpkh address", () {
-    //   expect(
-    //       mainnetWallet?.validateAddress("3Ns8HuQmkyyKnVixk2yQtG7pN3GcJ6xctk"),
-    //       true);
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("valid mainnet namecoin p2wpkh address", () {
-    //   expect(
-    //       mainnetWallet
-    //           ?.validateAddress("bc1qc5ymmsay89r6gr4fy2kklvrkuvzyln4shdvjhf"),
-    //       true);
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("invalid mainnet namecoin legacy/p2pkh address", () {
-    //   expect(
-    //       mainnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
-    //       false);
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("invalid mainnet namecoin p2sh-p2wpkh address", () {
-    //   expect(
-    //       mainnetWallet?.validateAddress("2Mugf9hpSYdQPPLNtWiU2utCi6cM9v5Pnro"),
-    //       false);
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("invalid mainnet namecoin p2wpkh address", () {
-    //   expect(
-    //       mainnetWallet
-    //           ?.validateAddress("tb1qzzlm6mnc8k54mx6akehl8p9ray8r439va5ndyq"),
-    //       false);
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
   });
 
   group("testNetworkConnection", () {
@@ -362,7 +186,7 @@ void main() {
     FakeSecureStorage? secureStore;
     MockTransactionNotificationTracker? tracker;
 
-    NamecoinWallet? btc;
+    NamecoinWallet? nmc;
 
     setUp(() {
       client = MockElectrumX();
@@ -371,7 +195,7 @@ void main() {
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
-      btc = NamecoinWallet(
+      nmc = NamecoinWallet(
         walletId: "testNetworkConnection",
         walletName: "testNetworkConnection",
         coin: Coin.namecoin,
@@ -385,7 +209,7 @@ void main() {
 
     test("attempted connection fails due to server error", () async {
       when(client?.ping()).thenAnswer((_) async => false);
-      final bool? result = await btc?.testNetworkConnection();
+      final bool? result = await nmc?.testNetworkConnection();
       expect(result, false);
       expect(secureStore?.interactions, 0);
       verify(client?.ping()).called(1);
@@ -396,7 +220,7 @@ void main() {
 
     test("attempted connection fails due to exception", () async {
       when(client?.ping()).thenThrow(Exception);
-      final bool? result = await btc?.testNetworkConnection();
+      final bool? result = await nmc?.testNetworkConnection();
       expect(result, false);
       expect(secureStore?.interactions, 0);
       verify(client?.ping()).called(1);
@@ -407,7 +231,7 @@ void main() {
 
     test("attempted connection test success", () async {
       when(client?.ping()).thenAnswer((_) async => true);
-      final bool? result = await btc?.testNetworkConnection();
+      final bool? result = await nmc?.testNetworkConnection();
       expect(result, true);
       expect(secureStore?.interactions, 0);
       verify(client?.ping()).called(1);
@@ -418,8 +242,8 @@ void main() {
   });
 
   group("basic getters, setters, and functions", () {
-    final testWalletId = "BTCtestWalletID";
-    final testWalletName = "BTCWallet";
+    final testWalletId = "NMCtestWalletID";
+    final testWalletName = "NMCWallet";
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
@@ -427,7 +251,7 @@ void main() {
     FakeSecureStorage? secureStore;
     MockTransactionNotificationTracker? tracker;
 
-    NamecoinWallet? btc;
+    NamecoinWallet? nmc;
 
     setUp(() async {
       client = MockElectrumX();
@@ -436,7 +260,7 @@ void main() {
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
-      btc = NamecoinWallet(
+      nmc = NamecoinWallet(
         walletId: testWalletId,
         walletName: testWalletName,
         coin: Coin.namecoin,
@@ -457,17 +281,17 @@ void main() {
     });
 
     test("get networkType test", () async {
-      btc = NamecoinWallet(
+      nmc = NamecoinWallet(
         walletId: testWalletId,
         walletName: testWalletName,
-        coin: Coin.bitcoinTestNet,
+        coin: Coin.namecoin,
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
         priceAPI: priceAPI,
         secureStore: secureStore,
       );
-      expect(Coin.bitcoinTestNet, Coin.bitcoinTestNet);
+      expect(Coin.namecoin, Coin.namecoin);
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -500,8 +324,8 @@ void main() {
 
     test("get and set walletName", () async {
       expect(Coin.namecoin, Coin.namecoin);
-      btc?.walletName = "new name";
-      expect(btc?.walletName, "new name");
+      nmc?.walletName = "new name";
+      expect(nmc?.walletName, "new name");
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -509,14 +333,14 @@ void main() {
     });
 
     test("estimateTxFee", () async {
-      expect(btc?.estimateTxFee(vSize: 356, feeRatePerKB: 1), 356);
-      expect(btc?.estimateTxFee(vSize: 356, feeRatePerKB: 900), 356);
-      expect(btc?.estimateTxFee(vSize: 356, feeRatePerKB: 999), 356);
-      expect(btc?.estimateTxFee(vSize: 356, feeRatePerKB: 1000), 356);
-      expect(btc?.estimateTxFee(vSize: 356, feeRatePerKB: 1001), 712);
-      expect(btc?.estimateTxFee(vSize: 356, feeRatePerKB: 1699), 712);
-      expect(btc?.estimateTxFee(vSize: 356, feeRatePerKB: 2000), 712);
-      expect(btc?.estimateTxFee(vSize: 356, feeRatePerKB: 12345), 4628);
+      expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 1), 356);
+      expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 900), 356);
+      expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 999), 356);
+      expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 1000), 356);
+      expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 1001), 712);
+      expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 1699), 712);
+      expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 2000), 712);
+      expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 12345), 4628);
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -531,7 +355,7 @@ void main() {
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_TESTNET,
+            "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
             "services": []
           });
@@ -542,7 +366,7 @@ void main() {
       when(client?.estimateFee(blocks: 20))
           .thenAnswer((realInvocation) async => Decimal.ten);
 
-      final fees = await btc?.fees;
+      final fees = await nmc?.fees;
       expect(fees, isA<FeeObject>());
       expect(fees?.slow, 1000000000);
       expect(fees?.medium, 100000000);
@@ -578,7 +402,7 @@ void main() {
 
       bool didThrow = false;
       try {
-        await btc?.fees;
+        await nmc?.fees;
       } catch (_) {
         didThrow = true;
       }
@@ -613,7 +437,7 @@ void main() {
     //   when(client?.estimateFee(blocks: 1))
     //       .thenAnswer((realInvocation) async => Decimal.ten);
     //
-    //   final maxFee = await btc?.maxFee;
+    //   final maxFee = await nmc?.maxFee;
     //   expect(maxFee, 1000000000);
     //
     //   verify(client?.estimateFee(blocks: 1)).called(1);
@@ -627,9 +451,9 @@ void main() {
     // });
   });
 
-  group("Bitcoin service class functions that depend on shared storage", () {
-    final testWalletId = "BTCtestWalletID";
-    final testWalletName = "BTCWallet";
+  group("Namecoin service class functions that depend on shared storage", () {
+    final testWalletId = "NMCtestWalletID";
+    final testWalletName = "NMCWallet";
 
     bool hiveAdaptersRegistered = false;
 
@@ -639,7 +463,7 @@ void main() {
     FakeSecureStorage? secureStore;
     MockTransactionNotificationTracker? tracker;
 
-    NamecoinWallet? btc;
+    NamecoinWallet? nmc;
 
     setUp(() async {
       await setUpTestHive();
@@ -668,7 +492,7 @@ void main() {
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
-      btc = NamecoinWallet(
+      nmc = NamecoinWallet(
         walletId: testWalletId,
         walletName: testWalletName,
         coin: Coin.namecoin,
@@ -682,7 +506,7 @@ void main() {
 
     // test("initializeWallet no network", () async {
     //   when(client?.ping()).thenAnswer((_) async => false);
-    //   expect(await btc?.initializeWallet(), false);
+    //   expect(await nmc?.initializeWallet(), false);
     //   expect(secureStore?.interactions, 0);
     //   verify(client?.ping()).called(1);
     //   verifyNoMoreInteractions(client);
@@ -693,7 +517,7 @@ void main() {
     // test("initializeWallet no network exception", () async {
     //   when(client?.ping()).thenThrow(Exception("Network connection failed"));
     //   final wallets = await Hive.openBox(testWalletId);
-    //   expect(await btc?.initializeExisting(), false);
+    //   expect(await nmc?.initializeExisting(), false);
     //   expect(secureStore?.interactions, 0);
     //   verify(client?.ping()).called(1);
     //   verifyNoMoreInteractions(client);
@@ -713,10 +537,10 @@ void main() {
             "hash_function": "sha256",
             "services": []
           });
-      // await btc?.initializeNew();
+      // await nmc?.initializeNew();
       final wallets = await Hive.openBox(testWalletId);
 
-      expectLater(() => btc?.initializeExisting(), throwsA(isA<Exception>()))
+      expectLater(() => nmc?.initializeExisting(), throwsA(isA<Exception>()))
           .then((_) {
         expect(secureStore?.interactions, 0);
         // verify(client?.ping()).called(1);
@@ -743,7 +567,7 @@ void main() {
           key: "${testWalletId}_mnemonic", value: "some mnemonic");
 
       final wallets = await Hive.openBox(testWalletId);
-      expectLater(() => btc?.initializeExisting(), throwsA(isA<Exception>()))
+      expectLater(() => nmc?.initializeExisting(), throwsA(isA<Exception>()))
           .then((_) {
         expect(secureStore?.interactions, 1);
         // verify(client?.ping()).called(1);
@@ -753,1352 +577,6 @@ void main() {
         verifyNoMoreInteractions(priceAPI);
       });
     });
-
-    // test("initializeWallet testnet throws bad network", () async {
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //
-    //   expectLater(() => btc?.initializeWallet(), throwsA(isA<Exception>()))
-    //       .then((_) {
-    //     expect(secureStore?.interactions, 0);
-    //     verify(client?.ping()).called(1);
-    //     verify(client?.getServerFeatures()).called(1);
-    //     verifyNoMoreInteractions(client);
-    //     verifyNoMoreInteractions(cachedClient);
-    //     verifyNoMoreInteractions(priceAPI);
-    //   });
-    // });
-
-    // test("getCurrentNode", () async {
-    //   // when(priceAPI.getBitcoinPrice(baseCurrency: "USD"))
-    //   //     .thenAnswer((realInvocation) async => Decimal.fromInt(10));
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   expect(await btc?.initializeWallet(), true);
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await btc?.getCurrentNode();
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   // expect no nodes on a fresh wallet unless set in db externally
-    //   expect(didThrow, true);
-    //
-    //   // set node
-    //   final wallet = await Hive.openBox(testWalletId);
-    //   await wallet.put("nodes", {
-    //     "default": {
-    //       "id": "some nodeID",
-    //       "ipAddress": "some address",
-    //       "port": "9000",
-    //       "useSSL": true,
-    //     }
-    //   });
-    //   await wallet.put("activeNodeID_Bitcoin", "default");
-    //
-    //   // try fetching again
-    //   final node = await btc?.getCurrentNode();
-    //   expect(node.toString(),
-    //       "ElectrumXNode: {address: some address, port: 9000, name: default, useSSL: true}");
-    //
-    //   verify(client?.ping()).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("initializeWallet new main net wallet", () async {
-    //   // when(priceAPI.getBitcoinPrice(baseCurrency: "USD"))
-    //   //     .thenAnswer((realInvocation) async => Decimal.fromInt(10));
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   expect(await btc?.initializeWallet(), true);
-    //
-    //   final wallet = await Hive.openBox(testWalletId);
-    //
-    //   expect(await wallet.get("addressBookEntries"), {});
-    //   expect(await wallet.get('notes'), null);
-    //   expect(await wallet.get("id"), testWalletId);
-    //   expect(await wallet.get("preferredFiatCurrency"), null);
-    //   expect(await wallet.get("blocked_tx_hashes"), ["0xdefault"]);
-    //
-    //   final changeAddressesP2PKH = await wallet.get("changeAddressesP2PKH");
-    //   expect(changeAddressesP2PKH, isA<List<String>>());
-    //   expect(changeAddressesP2PKH.length, 1);
-    //   expect(await wallet.get("changeIndexP2PKH"), 0);
-    //   final changeAddressesP2SH = await wallet.get("changeAddressesP2SH");
-    //   expect(changeAddressesP2SH, isA<List<String>>());
-    //   expect(changeAddressesP2SH.length, 1);
-    //   expect(await wallet.get("changeIndexP2SH"), 0);
-    //   final changeAddressesP2WPKH = await wallet.get("changeAddressesP2WPKH");
-    //   expect(changeAddressesP2WPKH, isA<List<String>>());
-    //   expect(changeAddressesP2WPKH.length, 1);
-    //   expect(await wallet.get("changeIndexP2WPKH"), 0);
-    //
-    //   final receivingAddressesP2PKH =
-    //       await wallet.get("receivingAddressesP2PKH");
-    //   expect(receivingAddressesP2PKH, isA<List<String>>());
-    //   expect(receivingAddressesP2PKH.length, 1);
-    //   expect(await wallet.get("receivingIndexP2PKH"), 0);
-    //   final receivingAddressesP2SH = await wallet.get("receivingAddressesP2SH");
-    //   expect(receivingAddressesP2SH, isA<List<String>>());
-    //   expect(receivingAddressesP2SH.length, 1);
-    //   expect(await wallet.get("receivingIndexP2SH"), 0);
-    //   final receivingAddressesP2WPKH =
-    //       await wallet.get("receivingAddressesP2WPKH");
-    //   expect(receivingAddressesP2WPKH, isA<List<String>>());
-    //   expect(receivingAddressesP2WPKH.length, 1);
-    //   expect(await wallet.get("receivingIndexP2WPKH"), 0);
-    //
-    //   final p2pkhReceiveDerivations = jsonDecode(await secureStore?.read(
-    //       key: "${testWalletId}_receiveDerivationsP2PKH"));
-    //   expect(p2pkhReceiveDerivations.length, 1);
-    //   final p2shReceiveDerivations = jsonDecode(await secureStore.read(
-    //       key: "${testWalletId}_receiveDerivationsP2SH"));
-    //   expect(p2shReceiveDerivations.length, 1);
-    //   final p2wpkhReceiveDerivations = jsonDecode(await secureStore.read(
-    //       key: "${testWalletId}_receiveDerivationsP2WPKH"));
-    //   expect(p2wpkhReceiveDerivations.length, 1);
-    //
-    //   final p2pkhChangeDerivations = jsonDecode(await secureStore.read(
-    //       key: "${testWalletId}_changeDerivationsP2PKH"));
-    //   expect(p2pkhChangeDerivations.length, 1);
-    //   final p2shChangeDerivations = jsonDecode(
-    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH"));
-    //   expect(p2shChangeDerivations.length, 1);
-    //   final p2wpkhChangeDerivations = jsonDecode(await secureStore.read(
-    //       key: "${testWalletId}_changeDerivationsP2WPKH"));
-    //   expect(p2wpkhChangeDerivations.length, 1);
-    //
-    //   expect(secureStore?.interactions, 26); // 20 in reality + 6 in this test
-    //   expect(secureStore?.reads, 19); // 13 in reality + 6 in this test
-    //   expect(secureStore?.writes, 7);
-    //   expect(secureStore?.deletes, 0);
-    //   verify(client?.ping()).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("initializeWallet existing main net wallet", () async {
-    //   // when(priceAPI.getBitcoinPrice(baseCurrency: "USD"))
-    //   //     .thenAnswer((realInvocation) async => Decimal.fromInt(10));
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getBatchHistory(args: anyNamed("args")))
-    //       .thenAnswer((_) async => {});
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   // init new wallet
-    //   expect(await btc?.initializeWallet(), true);
-    //
-    //   // fetch data to compare later
-    //   final newWallet = await Hive.openBox(testWalletId);
-    //
-    //   final addressBookEntries = await newWallet.get("addressBookEntries");
-    //   final notes = await newWallet.get('notes');
-    //   final wID = await newWallet.get("id");
-    //   final currency = await newWallet.get("preferredFiatCurrency");
-    //   final blockedHashes = await newWallet.get("blocked_tx_hashes");
-    //
-    //   final changeAddressesP2PKH = await newWallet.get("changeAddressesP2PKH");
-    //   final changeIndexP2PKH = await newWallet.get("changeIndexP2PKH");
-    //   final changeAddressesP2SH = await newWallet.get("changeAddressesP2SH");
-    //   final changeIndexP2SH = await newWallet.get("changeIndexP2SH");
-    //   final changeAddressesP2WPKH =
-    //       await newWallet.get("changeAddressesP2WPKH");
-    //   final changeIndexP2WPKH = await newWallet.get("changeIndexP2WPKH");
-    //
-    //   final receivingAddressesP2PKH =
-    //       await newWallet.get("receivingAddressesP2PKH");
-    //   final receivingIndexP2PKH = await newWallet.get("receivingIndexP2PKH");
-    //   final receivingAddressesP2SH =
-    //       await newWallet.get("receivingAddressesP2SH");
-    //   final receivingIndexP2SH = await newWallet.get("receivingIndexP2SH");
-    //   final receivingAddressesP2WPKH =
-    //       await newWallet.get("receivingAddressesP2WPKH");
-    //   final receivingIndexP2WPKH = await newWallet.get("receivingIndexP2WPKH");
-    //
-    //   final p2pkhReceiveDerivations = jsonDecode(await secureStore.read(
-    //       key: "${testWalletId}_receiveDerivationsP2PKH"));
-    //   final p2shReceiveDerivations = jsonDecode(await secureStore.read(
-    //       key: "${testWalletId}_receiveDerivationsP2SH"));
-    //   final p2wpkhReceiveDerivations = jsonDecode(await secureStore.read(
-    //       key: "${testWalletId}_receiveDerivationsP2WPKH"));
-    //
-    //   final p2pkhChangeDerivations = jsonDecode(await secureStore.read(
-    //       key: "${testWalletId}_changeDerivationsP2PKH"));
-    //   final p2shChangeDerivations = jsonDecode(
-    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH"));
-    //   final p2wpkhChangeDerivations = jsonDecode(await secureStore.read(
-    //       key: "${testWalletId}_changeDerivationsP2WPKH"));
-    //
-    //   // exit new wallet
-    //   await btc?.exit();
-    //
-    //   // open existing/created wallet
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.namecoin,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //
-    //   // init existing
-    //   expect(await btc?.initializeWallet(), true);
-    //
-    //   // compare data to ensure state matches state of previously closed wallet
-    //   final wallet = await Hive.openBox(testWalletId);
-    //
-    //   expect(await wallet.get("addressBookEntries"), addressBookEntries);
-    //   expect(await wallet.get('notes'), notes);
-    //   expect(await wallet.get("id"), wID);
-    //   expect(await wallet.get("preferredFiatCurrency"), currency);
-    //   expect(await wallet.get("blocked_tx_hashes"), blockedHashes);
-    //
-    //   expect(await wallet.get("changeAddressesP2PKH"), changeAddressesP2PKH);
-    //   expect(await wallet.get("changeIndexP2PKH"), changeIndexP2PKH);
-    //   expect(await wallet.get("changeAddressesP2SH"), changeAddressesP2SH);
-    //   expect(await wallet.get("changeIndexP2SH"), changeIndexP2SH);
-    //   expect(await wallet.get("changeAddressesP2WPKH"), changeAddressesP2WPKH);
-    //   expect(await wallet.get("changeIndexP2WPKH"), changeIndexP2WPKH);
-    //
-    //   expect(
-    //       await wallet.get("receivingAddressesP2PKH"), receivingAddressesP2PKH);
-    //   expect(await wallet.get("receivingIndexP2PKH"), receivingIndexP2PKH);
-    //   expect(
-    //       await wallet.get("receivingAddressesP2SH"), receivingAddressesP2SH);
-    //   expect(await wallet.get("receivingIndexP2SH"), receivingIndexP2SH);
-    //   expect(await wallet.get("receivingAddressesP2WPKH"),
-    //       receivingAddressesP2WPKH);
-    //   expect(await wallet.get("receivingIndexP2WPKH"), receivingIndexP2WPKH);
-    //
-    //   expect(
-    //       jsonDecode(await secureStore.read(
-    //           key: "${testWalletId}_receiveDerivationsP2PKH")),
-    //       p2pkhReceiveDerivations);
-    //   expect(
-    //       jsonDecode(await secureStore.read(
-    //           key: "${testWalletId}_receiveDerivationsP2SH")),
-    //       p2shReceiveDerivations);
-    //   expect(
-    //       jsonDecode(await secureStore.read(
-    //           key: "${testWalletId}_receiveDerivationsP2WPKH")),
-    //       p2wpkhReceiveDerivations);
-    //
-    //   expect(
-    //       jsonDecode(await secureStore.read(
-    //           key: "${testWalletId}_changeDerivationsP2PKH")),
-    //       p2pkhChangeDerivations);
-    //   expect(
-    //       jsonDecode(await secureStore.read(
-    //           key: "${testWalletId}_changeDerivationsP2SH")),
-    //       p2shChangeDerivations);
-    //   expect(
-    //       jsonDecode(await secureStore.read(
-    //           key: "${testWalletId}_changeDerivationsP2WPKH")),
-    //       p2wpkhChangeDerivations);
-    //
-    //   expect(secureStore?.interactions, 32); // 20 in reality + 12 in this test
-    //   expect(secureStore?.reads, 25); // 13 in reality + 12 in this test
-    //   expect(secureStore?.writes, 7);
-    //   expect(secureStore?.deletes, 0);
-    //   verify(client?.ping()).called(2);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // // test("get fiatPrice", () async {
-    // //   // when(priceAPI.getBitcoinPrice(baseCurrency: "USD"))
-    // //   //     .thenAnswer((realInvocation) async => Decimal.fromInt(10));
-    // //   await Hive.openBox(testWalletId);
-    // //   expect(await btc.basePrice, Decimal.fromInt(10));
-    // //   verify(priceAPI.getBitcoinPrice(baseCurrency: "USD")).called(1);
-    // //   verifyNoMoreInteractions(client);
-    // //   verifyNoMoreInteractions(cachedClient);
-    // //   verifyNoMoreInteractions(priceAPI);
-    // // });
-    //
-    // test("get current receiving addresses", () async {
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_TESTNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   await btc?.initializeWallet();
-    //   expect(
-    //       Address.validateAddress(await btc!.currentReceivingAddress, testnet),
-    //       true);
-    //   expect(
-    //       Address.validateAddress(
-    //           await btc!.currentReceivingAddressP2SH, testnet),
-    //       true);
-    //   expect(
-    //       Address.validateAddress(
-    //           await btc!.currentLegacyReceivingAddress, testnet),
-    //       true);
-    //
-    //   verify(client?.ping()).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("get allOwnAddresses", () async {
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_TESTNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   await btc?.initializeWallet();
-    //   final addresses = await btc?.allOwnAddresses;
-    //   expect(addresses, isA<List<String>>());
-    //   expect(addresses?.length, 6);
-    //
-    //   for (int i = 0; i < 6; i++) {
-    //     expect(Address.validateAddress(addresses[i], testnet), true);
-    //   }
-    //
-    //   verify(client?.ping()).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-
-    // test("get utxos and balances", () async {
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_TESTNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //
-    //   when(client?.getBatchUTXOs(args: anyNamed("args")))
-    //       .thenAnswer((_) async => batchGetUTXOResponse0);
-    //
-    //   when(client?.estimateFee(blocks: 10))
-    //       .thenAnswer((realInvocation) async => Decimal.zero);
-    //   when(client?.estimateFee(blocks: 5))
-    //       .thenAnswer((realInvocation) async => Decimal.one);
-    //   when(client?.estimateFee(blocks: 1))
-    //       .thenAnswer((realInvocation) async => Decimal.ten);
-    //   // when(priceAPI.getBitcoinPrice(baseCurrency: "USD"))
-    //   //     .thenAnswer((realInvocation) async => Decimal.fromInt(10));
-    //
-    //   when(cachedClient?.getTransaction(
-    //           txHash: tx1.txid,
-    //           coin: Coin.bitcoinTestNet,
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx1Raw);
-    //   when(cachedClient?.getTransaction(
-    //           txHash: tx2.txid,
-    //           coin: Coin.bitcoinTestNet,
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx2Raw);
-    //   when(cachedClient?.getTransaction(
-    //           txHash: tx3.txid,
-    //           coin: Coin.bitcoinTestNet,
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx3Raw);
-    //   when(cachedClient?.getTransaction(
-    //           txHash: tx4.txid,
-    //           coin: Coin.bitcoinTestNet,
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx4Raw);
-    //
-    //   await btc?.initializeNew();
-    //   await btc?.initializeExisting();
-    //   final utxoData = await btc?.utxoData;
-    //   expect(utxoData, isA<UtxoData>());
-    //   expect(utxoData.toString(),
-    //       r"{totalUserCurrency: $0.0076497, satoshiBalance: 76497, bitcoinBalance: 0.00076497, unspentOutputArray: [{txid: 88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c, vout: 0, value: 17000, fiat: $0.0017, blocked: false, status: {confirmed: true, blockHash: 00000000000000198ca8300deab26c5c1ec1df0da5afd30c9faabd340d8fc194, blockHeight: 437146, blockTime: 1652994245, confirmations: 100}}, {txid: b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528, vout: 0, value: 36037, fiat: $0.0036037, blocked: false, status: {confirmed: false, blockHash: 000000000000003db63ad679a539f2088dcc97a149c99ca790ce0c5f7b5acff0, blockHeight: 441696, blockTime: 1652923129, confirmations: 0}}, {txid: dcca229760b44834478f0b266c9b3f5801e0139fdecacdc0820e447289a006d3, vout: 1, value: 14714, fiat: $0.0014714, blocked: false, status: {confirmed: false, blockHash: 0000000000000030bec9bc58a3ab4857de1cc63cfed74204a6be57f125fb2fa7, blockHeight: 437146, blockTime: 1652888705, confirmations: 0}}, {txid: b39bac02b65af46a49e2985278fe24ca00dd5d627395d88f53e35568a04e10fa, vout: 0, value: 8746, fiat: $0.0008746, blocked: false, status: {confirmed: true, blockHash: 0000000039b80e9a10b7bcaf0f193b51cb870a4febe9b427c1f41a3f42eaa80b, blockHeight: 441696, blockTime: 1652993683, confirmations: 22861}}]}");
-    //
-    //   final outputs = await btc?.unspentOutputs;
-    //   expect(outputs, isA<List<UtxoObject>>());
-    //   expect(outputs?.length, 4);
-    //
-    //   final availableBalance = await btc?.availableBalance;
-    //   expect(availableBalance, Decimal.parse("0.00025746"));
-    //
-    //   final totalBalance = await btc?.totalBalance;
-    //   expect(totalBalance, Decimal.parse("0.00076497"));
-    //
-    //   final pendingBalance = await btc?.pendingBalance;
-    //   expect(pendingBalance, Decimal.parse("0.00050751"));
-    //
-    //   final balanceMinusMaxFee = await btc?.balanceMinusMaxFee;
-    //   expect(balanceMinusMaxFee, Decimal.parse("-9.99974254"));
-    //
-    //   verify(client?.ping()).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.estimateFee(blocks: 1)).called(1);
-    //   verify(client?.estimateFee(blocks: 5)).called(1);
-    //   verify(client?.estimateFee(blocks: 10)).called(1);
-    //   verify(client?.getBatchUTXOs(args: anyNamed("args"))).called(1);
-    //   // verify(priceAPI.getBitcoinPrice(baseCurrency: "USD")).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           txHash: tx1.txid,
-    //           coin: Coin.bitcoinTestNet,
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           txHash: tx2.txid,
-    //           coin: Coin.bitcoinTestNet,
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           txHash: tx3.txid,
-    //           coin: Coin.bitcoinTestNet,
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           txHash: tx4.txid,
-    //           coin: Coin.bitcoinTestNet,
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-
-    // test("get utxos - multiple batches", () async {
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_TESTNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //
-    //   when(client?.getBatchUTXOs(args: anyNamed("args")))
-    //       .thenAnswer((_) async => {});
-    //
-    //   // when(priceAPI.getBitcoinPrice(baseCurrency: "USD"))
-    //   //     .thenAnswer((realInvocation) async => Decimal.fromInt(10));
-    //
-    //   await btc?.initializeNew();
-    //   await btc?.initializeExisting();
-    //
-    //   // add some extra addresses to make sure we have more than the single batch size of 10
-    //   final wallet = await Hive.openBox(DB);
-    //   final addresses = await wallet.get("receivingAddressesP2WPKH");
-    //   addresses.add("tb1qpfl2uz3jvazy9wr4vqhwluyhgtd29rsmghpqxp");
-    //   addresses.add("tb1qznt3psdpcyz8lwj7xxl6q78hjw2mj095nd4gxu");
-    //   addresses.add("tb1q7yjjyh9h4uy7j0wdtcmptw3g083kxrqlvgjz86");
-    //   addresses.add("tb1qt05shktwcq7kgxccva20cfwt47kav9s6n8yr9p");
-    //   addresses.add("tb1q4nk5wdylywl4dg2a45naae7u08vtgyujqfrv58");
-    //   addresses.add("tb1qxwccgfq9tmd6lx823cuejuea9wdzpaml9wkapm");
-    //   addresses.add("tb1qk88negkdqusr8tpj0hpvs98lq6ka4vyw6kfnqf");
-    //   addresses.add("tb1qw0jzneqwp0t4ah9w3za4k9d8d4tz8y3zxqmtgx");
-    //   addresses.add("tb1qccqjlpndx46sv7t6uurlyyjre5vwjfdzzlf2vd");
-    //   addresses.add("tb1q3hfpe69rrhr5348xd04rfz9g3h22yk64pwur8v");
-    //   addresses.add("tb1q4rp373202aur96a28lp0pmts6kp456nka45e7d");
-    //   await wallet.put("receivingAddressesP2WPKH", addresses);
-    //
-    //   final utxoData = await btc?.utxoData;
-    //   expect(utxoData, isA<UtxoData>());
-    //
-    //   final outputs = await btc?.unspentOutputs;
-    //   expect(outputs, isA<List<UtxoObject>>());
-    //   expect(outputs?.length, 0);
-    //
-    //   verify(client?.ping()).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.getBatchUTXOs(args: anyNamed("args"))).called(2);
-    //   // verify(priceAPI.getBitcoinPrice(baseCurrency: "USD")).called(1);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("get utxos fails", () async {
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_TESTNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //
-    //   when(client?.getBatchUTXOs(args: anyNamed("args")))
-    //       .thenThrow(Exception("some exception"));
-    //
-    //   await btc?.initializeWallet();
-    //   final utxoData = await btc?.utxoData;
-    //   expect(utxoData, isA<UtxoData>());
-    //   expect(utxoData.toString(),
-    //       r"{totalUserCurrency: $0.00, satoshiBalance: 0, bitcoinBalance: 0, unspentOutputArray: []}");
-    //
-    //   final outputs = await btc?.unspentOutputs;
-    //   expect(outputs, isA<List<UtxoObject>>());
-    //   expect(outputs?.length, 0);
-    //
-    //   verify(client?.ping()).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.getBatchUTXOs(args: anyNamed("args"))).called(1);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("chain height fetch, update, and get", () async {
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_TESTNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   await btc?.initializeWallet();
-    //
-    //   // get stored
-    //   expect(await btc?.storedChainHeight, 0);
-    //
-    //   // fetch fails
-    //   when(client?.getBlockHeadTip()).thenThrow(Exception("Some exception"));
-    //   expect(await btc?.chainHeight, -1);
-    //
-    //   // fetch succeeds
-    //   when(client?.getBlockHeadTip()).thenAnswer((realInvocation) async => {
-    //         "height": 100,
-    //         "hex": "some block hex",
-    //       });
-    //   expect(await btc?.chainHeight, 100);
-    //
-    //   // update
-    //   await btc?.updateStoredChainHeight(newHeight: 1000);
-    //
-    //   // fetch updated
-    //   expect(await btc?.storedChainHeight, 1000);
-    //
-    //   verify(client?.ping()).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.getBlockHeadTip()).called(2);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("fetch and update useBiometrics", () async {
-    //   // get
-    //   expect(await btc?.useBiometrics, false);
-    //
-    //   // then update
-    //   await btc?.updateBiometricsUsage(true);
-    //
-    //   // finally check updated
-    //   expect(await btc?.useBiometrics, true);
-    //
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("getTxCount succeeds", () async {
-    //   when(client?.getHistory(
-    //           scripthash:
-    //               "4e94cc7b4a85791445260ae4403233b6a4784185f9716d73f136c6642615fce9"))
-    //       .thenAnswer((realInvocation) async => [
-    //             {
-    //               "height": 200004,
-    //               "tx_hash":
-    //                   "acc3758bd2a26f869fcc67d48ff30b96464d476bca82c1cd6656e7d506816412"
-    //             },
-    //             {
-    //               "height": 215008,
-    //               "tx_hash":
-    //                   "f3e1bf48975b8d6060a9de8884296abb80be618dc00ae3cb2f6cee3085e09403"
-    //             }
-    //           ]);
-    //
-    //   final count =
-    //       await btc?.getTxCount(address: "3Ns8HuQmkyyKnVixk2yQtG7pN3GcJ6xctk");
-    //
-    //   expect(count, 2);
-    //
-    //   verify(client?.getHistory(
-    //           scripthash:
-    //               "4e94cc7b4a85791445260ae4403233b6a4784185f9716d73f136c6642615fce9"))
-    //       .called(1);
-    //
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("getTxCount fails", () async {
-    //   when(client?.getHistory(
-    //           scripthash:
-    //               "4e94cc7b4a85791445260ae4403233b6a4784185f9716d73f136c6642615fce9"))
-    //       .thenThrow(Exception("some exception"));
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await btc?.getTxCount(address: "3Ns8HuQmkyyKnVixk2yQtG7pN3GcJ6xctk");
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    //
-    //   verify(client?.getHistory(
-    //           scripthash:
-    //               "4e94cc7b4a85791445260ae4403233b6a4784185f9716d73f136c6642615fce9"))
-    //       .called(1);
-    //
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("_checkCurrentReceivingAddressesForTransactions succeeds", () async {
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenAnswer((realInvocation) async => [
-    //             {
-    //               "height": 200004,
-    //               "tx_hash":
-    //                   "acc3758bd2a26f869fcc67d48ff30b96464d476bca82c1cd6656e7d506816412"
-    //             },
-    //             {
-    //               "height": 215008,
-    //               "tx_hash":
-    //                   "f3e1bf48975b8d6060a9de8884296abb80be618dc00ae3cb2f6cee3085e09403"
-    //             }
-    //           ]);
-    //
-    //   await btc?.initializeWallet();
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await btc?.checkCurrentReceivingAddressesForTransactions();
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, false);
-    //
-    //   verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(3);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.ping()).called(1);
-    //
-    //   expect(secureStore?.interactions, 29);
-    //   expect(secureStore?.reads, 19);
-    //   expect(secureStore?.writes, 10);
-    //   expect(secureStore?.deletes, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-
-    // test("_checkCurrentReceivingAddressesForTransactions fails", () async {
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenThrow(Exception("some exception"));
-    //   final wallet = await Hive.openBox(testWalletId);
-    //
-    //   await btc?.initializeNew();
-    //   await btc?.initializeExisting();
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await btc?.checkCurrentReceivingAddressesForTransactions();
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    //
-    //   verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.ping()).called(1);
-    //
-    //   expect(secureStore?.interactions, 20);
-    //   expect(secureStore?.reads, 13);
-    //   expect(secureStore?.writes, 7);
-    //   expect(secureStore?.deletes, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-
-    // test("_checkCurrentChangeAddressesForTransactions succeeds", () async {
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenAnswer((realInvocation) async => [
-    //             {
-    //               "height": 200004,
-    //               "tx_hash":
-    //                   "acc3758bd2a26f869fcc67d48ff30b96464d476bca82c1cd6656e7d506816412"
-    //             },
-    //             {
-    //               "height": 215008,
-    //               "tx_hash":
-    //                   "f3e1bf48975b8d6060a9de8884296abb80be618dc00ae3cb2f6cee3085e09403"
-    //             }
-    //           ]);
-    //
-    //   await btc?.initializeWallet();
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await btc?.checkCurrentChangeAddressesForTransactions();
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, false);
-    //
-    //   verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(3);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.ping()).called(1);
-    //
-    //   expect(secureStore?.interactions, 29);
-    //   expect(secureStore?.reads, 19);
-    //   expect(secureStore?.writes, 10);
-    //   expect(secureStore?.deletes, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("_checkCurrentChangeAddressesForTransactions fails", () async {
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenThrow(Exception("some exception"));
-    //
-    //   await btc?.initializeWallet();
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await btc?.checkCurrentChangeAddressesForTransactions();
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    //
-    //   verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.ping()).called(1);
-    //
-    //   expect(secureStore?.interactions, 20);
-    //   expect(secureStore?.reads, 13);
-    //   expect(secureStore?.writes, 7);
-    //   expect(secureStore?.deletes, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("getAllTxsToWatch", () async {
-    //   TestWidgetsFlutterBinding.ensureInitialized();
-    //   var notifications = {"show": 0};
-    //   const MethodChannel('dexterous.com/flutter/local_notifications')
-    //       .setMockMethodCallHandler((call) async {
-    //     notifications[call.method]++;
-    //   });
-    //
-    //   btc?.pastUnconfirmedTxs = {
-    //     "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c",
-    //     "b39bac02b65af46a49e2985278fe24ca00dd5d627395d88f53e35568a04e10fa",
-    //   };
-    //
-    //   await btc?.getAllTxsToWatch(transactionData);
-    //   expect(notifications.length, 1);
-    //   expect(notifications["show"], 3);
-    //
-    //   expect(btc?.unconfirmedTxs, {
-    //     "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //     'dcca229760b44834478f0b266c9b3f5801e0139fdecacdc0820e447289a006d3',
-    //   });
-    //
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("refreshIfThereIsNewData true A", () async {
-    //   when(client?.getTransaction(
-    //     tx_hash:
-    //         "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   )).thenAnswer((_) async => tx2Raw);
-    //   when(client?.getTransaction(
-    //     tx_hash:
-    //         "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c",
-    //   )).thenAnswer((_) async => tx1Raw);
-    //
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   final wallet = await Hive.openBox(testWalletId);
-    //   await wallet.put('receivingAddressesP2PKH', []);
-    //   await wallet.put('receivingAddressesP2SH', [
-    //     "2Mv83bPh2HzPRXptuQg9ejbKpSp87Zi52zT",
-    //   ]);
-    //   await wallet.put('receivingAddressesP2WPKH', [
-    //     "tb1q3ywehep0ykrkaqkt0hrgsqyns4mnz2ls8nxfzg",
-    //   ]);
-    //
-    //   await wallet.put('changeAddressesP2PKH', []);
-    //   await wallet.put('changeAddressesP2SH', []);
-    //   await wallet.put('changeAddressesP2WPKH', []);
-    //
-    //   btc?.unconfirmedTxs = {
-    //     "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //     "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c"
-    //   };
-    //
-    //   final result = await btc?.refreshIfThereIsNewData();
-    //
-    //   expect(result, true);
-    //
-    //   verify(client?.getTransaction(
-    //     tx_hash:
-    //         "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   )).called(1);
-    //   verify(client.getTransaction(
-    //     tx_hash:
-    //         "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c",
-    //   )).called(1);
-    //
-    //   expect(secureStore.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("refreshIfThereIsNewData true B", () async {
-    //   // when(priceAPI.getBitcoinPrice(baseCurrency: "USD"))
-    //   //     .thenAnswer((_) async => Decimal.fromInt(10));
-    //
-    //   when(client?.getBatchHistory(args: anyNamed("args")))
-    //       .thenAnswer((realInvocation) async {
-    //     final uuids = Map<String, List<dynamic>>.from(
-    //             realInvocation.namedArguments.values.first)
-    //         .keys
-    //         .toList(growable: false);
-    //     return {
-    //       uuids[0]: [
-    //         {
-    //           "tx_hash":
-    //               "dcca229760b44834478f0b266c9b3f5801e0139fdecacdc0820e447289a006d3",
-    //           "height": 2226003
-    //         },
-    //         {
-    //           "tx_hash":
-    //               "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //           "height": 2226102
-    //         }
-    //       ],
-    //       uuids[1]: [
-    //         {
-    //           "tx_hash":
-    //               "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c",
-    //           "height": 2226326
-    //         }
-    //       ],
-    //     };
-    //   });
-    //
-    //   when(client?.getTransaction(
-    //     tx_hash:
-    //         "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   )).thenAnswer((_) async => tx2Raw);
-    //   when(client?.getTransaction(
-    //     tx_hash:
-    //         "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c",
-    //   )).thenAnswer((_) async => tx1Raw);
-    //
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "dcca229760b44834478f0b266c9b3f5801e0139fdecacdc0820e447289a006d3",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx3Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx3Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx1Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "6261002b30122ab3b2ba8c481134e8a3ce08a3a1a429b8ebb3f28228b100ac1a",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx5Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "717080fc0054f655260b1591a0059bf377a589a98284173d20a1c8f3316c086e",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx6Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "1baec51e7630e3640ccf0e34f160c8ad3eb6021ecafe3618a1afae328f320f53",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx7Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "b39bac02b65af46a49e2985278fe24ca00dd5d627395d88f53e35568a04e10fa",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx4Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "46b1f19763ac68e39b8218429f4e29b150f850901562fe44a05fade9e0acd65f",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx8Raw);
-    //
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   final wallet = await Hive.openBox(testWalletId);
-    //   await wallet.put('receivingAddressesP2PKH', []);
-    //   await wallet.put('receivingAddressesP2SH', [
-    //     "2Mv83bPh2HzPRXptuQg9ejbKpSp87Zi52zT",
-    //   ]);
-    //   await wallet.put('receivingAddressesP2WPKH', [
-    //     "tb1q3ywehep0ykrkaqkt0hrgsqyns4mnz2ls8nxfzg",
-    //   ]);
-    //
-    //   await wallet.put('changeAddressesP2PKH', []);
-    //   await wallet.put('changeAddressesP2SH', []);
-    //   await wallet.put('changeAddressesP2WPKH', []);
-    //
-    //   btc.unconfirmedTxs = {
-    //     "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   };
-    //
-    //   final result = await btc?.refreshIfThereIsNewData();
-    //
-    //   expect(result, true);
-    //
-    //   verify(client?.getBatchHistory(args: anyNamed("args"))).called(2);
-    //   verify(client?.getTransaction(
-    //     tx_hash:
-    //         "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   )).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash: anyNamed("tx_hash"),
-    //           verbose: true,
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(9);
-    //   // verify(priceAPI.getBitcoinPrice(baseCurrency: "USD")).called(1);
-    //
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("refreshIfThereIsNewData false A", () async {
-    //   // when(priceAPI.getBitcoinPrice(baseCurrency: "USD"))
-    //   //     .thenAnswer((_) async => Decimal.fromInt(10));
-    //
-    //   when(client?.getBatchHistory(args: anyNamed("args")))
-    //       .thenAnswer((realInvocation) async {
-    //     final uuids = Map<String, List<dynamic>>.from(
-    //             realInvocation.namedArguments.values.first)
-    //         .keys
-    //         .toList(growable: false);
-    //     return {
-    //       uuids[0]: [
-    //         {
-    //           "tx_hash":
-    //               "dcca229760b44834478f0b266c9b3f5801e0139fdecacdc0820e447289a006d3",
-    //           "height": 2226003
-    //         },
-    //         {
-    //           "tx_hash":
-    //               "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //           "height": 2226102
-    //         }
-    //       ],
-    //       uuids[1]: [
-    //         {
-    //           "tx_hash":
-    //               "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c",
-    //           "height": 2226326
-    //         }
-    //       ],
-    //     };
-    //   });
-    //
-    //   when(client?.getTransaction(
-    //     tx_hash:
-    //         "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   )).thenAnswer((_) async => tx2Raw);
-    //   when(client?.getTransaction(
-    //     tx_hash:
-    //         "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c",
-    //   )).thenAnswer((_) async => tx1Raw);
-    //
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "dcca229760b44834478f0b266c9b3f5801e0139fdecacdc0820e447289a006d3",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx3Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx2Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "88b7b5077d940dde1bc63eba37a09dec8e7b9dad14c183a2e879a21b6ec0ac1c",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx1Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "6261002b30122ab3b2ba8c481134e8a3ce08a3a1a429b8ebb3f28228b100ac1a",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx5Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "717080fc0054f655260b1591a0059bf377a589a98284173d20a1c8f3316c086e",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx6Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "1baec51e7630e3640ccf0e34f160c8ad3eb6021ecafe3618a1afae328f320f53",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx7Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "b39bac02b65af46a49e2985278fe24ca00dd5d627395d88f53e35568a04e10fa",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx4Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "46b1f19763ac68e39b8218429f4e29b150f850901562fe44a05fade9e0acd65f",
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx8Raw);
-    //
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   final wallet = await Hive.openBox(testWalletId);
-    //   await wallet.put('receivingAddressesP2PKH', []);
-    //   await wallet.put('receivingAddressesP2SH', [
-    //     "2Mv83bPh2HzPRXptuQg9ejbKpSp87Zi52zT",
-    //   ]);
-    //   await wallet.put('receivingAddressesP2WPKH', [
-    //     "tb1q3ywehep0ykrkaqkt0hrgsqyns4mnz2ls8nxfzg",
-    //   ]);
-    //
-    //   await wallet.put('changeAddressesP2PKH', []);
-    //   await wallet.put('changeAddressesP2SH', []);
-    //   await wallet.put('changeAddressesP2WPKH', []);
-    //
-    //   btc?.unconfirmedTxs = {
-    //     "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   };
-    //
-    //   final result = await btc?.refreshIfThereIsNewData();
-    //
-    //   expect(result, false);
-    //
-    //   verify(client?.getBatchHistory(args: anyNamed("args"))).called(2);
-    //   verify(client?.getTransaction(
-    //     tx_hash:
-    //         "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   )).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash: anyNamed("tx_hash"),
-    //           verbose: true,
-    //           coinName: "tBitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(15);
-    //   // verify(priceAPI.getBitcoinPrice(baseCurrency: "USD")).called(1);
-    //
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-
-    // test("refreshIfThereIsNewData false B", () async {
-    //   when(client?.getBatchHistory(args: anyNamed("args")))
-    //       .thenThrow(Exception("some exception"));
-    //
-    //   when(client?.getTransaction(
-    //     txHash:
-    //         "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   )).thenAnswer((_) async => tx2Raw);
-    //
-    //   btc = NamecoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //     priceAPI: priceAPI,
-    //     secureStore: secureStore,
-    //   );
-    //   final wallet = await Hive.openBox(testWalletId);
-    //   await wallet.put('receivingAddressesP2PKH', []);
-    //   await wallet.put('receivingAddressesP2SH', [
-    //     "2Mv83bPh2HzPRXptuQg9ejbKpSp87Zi52zT",
-    //   ]);
-    //   await wallet.put('receivingAddressesP2WPKH', [
-    //     "tb1q3ywehep0ykrkaqkt0hrgsqyns4mnz2ls8nxfzg",
-    //   ]);
-    //
-    //   await wallet.put('changeAddressesP2PKH', []);
-    //   await wallet.put('changeAddressesP2SH', []);
-    //   await wallet.put('changeAddressesP2WPKH', []);
-    //
-    //   btc?.txTracker = {
-    //     "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   };
-    //
-    //   // btc?.unconfirmedTxs = {
-    //   //   "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   // };
-    //
-    //   final result = await btc?.refreshIfThereIsNewData();
-    //
-    //   expect(result, false);
-    //
-    //   verify(client?.getBatchHistory(args: anyNamed("args"))).called(1);
-    //   verify(client?.getTransaction(
-    //     txHash:
-    //         "b2f75a017a7435f1b8c2e080a865275d8f80699bba68d8dce99a94606e7b3528",
-    //   )).called(1);
-    //
-    //   expect(secureStore?.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
 
     test(
         "recoverFromMnemonic using empty seed on mainnet fails due to bad genesis hash match",
@@ -2116,51 +594,7 @@ void main() {
 
       bool hasThrown = false;
       try {
-        await btc?.recoverFromMnemonic(
-            mnemonic: TEST_MNEMONIC,
-            maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
-            height: 4000);
-      } catch (_) {
-        hasThrown = true;
-      }
-      expect(hasThrown, true);
-
-      verify(client?.getServerFeatures()).called(1);
-
-      expect(secureStore?.interactions, 0);
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
-    test(
-        "recoverFromMnemonic using empty seed on testnet fails due to bad genesis hash match",
-        () async {
-      btc = NamecoinWallet(
-        walletId: testWalletId,
-        walletName: testWalletName,
-        coin: Coin.bitcoinTestNet,
-        client: client!,
-        cachedClient: cachedClient!,
-        tracker: tracker!,
-        priceAPI: priceAPI,
-        secureStore: secureStore,
-      );
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-
-      bool hasThrown = false;
-      try {
-        await btc?.recoverFromMnemonic(
+        await nmc?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
             maxNumberOfIndexesToCheck: 1000,
@@ -2197,7 +631,7 @@ void main() {
 
       bool hasThrown = false;
       try {
-        await btc?.recoverFromMnemonic(
+        await nmc?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
             maxNumberOfIndexesToCheck: 1000,
@@ -2238,11 +672,11 @@ void main() {
           .thenAnswer((_) async => emptyHistoryBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs5))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
-      // await DB.instance.init();
+      await DB.instance.init();
       final wallet = await Hive.openBox(testWalletId);
       bool hasThrown = false;
       try {
-        await btc?.recoverFromMnemonic(
+        await nmc?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
             maxNumberOfIndexesToCheck: 1000,
@@ -2296,13 +730,13 @@ void main() {
 
       final wallet = await Hive.openBox(testWalletId);
 
-      await btc?.recoverFromMnemonic(
+      await nmc?.recoverFromMnemonic(
           mnemonic: TEST_MNEMONIC,
           maxUnusedAddressGap: 2,
           maxNumberOfIndexesToCheck: 1000,
           height: 4000);
 
-      expect(await btc?.mnemonic, TEST_MNEMONIC.split(" "));
+      expect(await nmc?.mnemonic, TEST_MNEMONIC.split(" "));
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
@@ -2357,7 +791,7 @@ void main() {
 
       bool hasThrown = false;
       try {
-        await btc?.recoverFromMnemonic(
+        await nmc?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
             maxNumberOfIndexesToCheck: 1000,
@@ -2419,21 +853,44 @@ void main() {
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
           .thenAnswer((realInvocation) async {});
 
-      List<dynamic> dynamicArgValues = [];
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
 
-      when(client?.getBatchHistory(args: anyNamed("args")))
-          .thenAnswer((realInvocation) async {
-        if (realInvocation.namedArguments.values.first.length == 1) {
-          dynamicArgValues.add(realInvocation.namedArguments.values.first);
-        }
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
 
-        return historyBatchResponse;
-      });
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
 
       final wallet = await Hive.openBox<dynamic>(testWalletId);
 
       // restore so we have something to rescan
-      await btc?.recoverFromMnemonic(
+      await nmc?.recoverFromMnemonic(
           mnemonic: TEST_MNEMONIC,
           maxUnusedAddressGap: 2,
           maxNumberOfIndexesToCheck: 1000,
@@ -2504,7 +961,7 @@ void main() {
 
       bool hasThrown = false;
       try {
-        await btc?.fullRescan(2, 1000);
+        await nmc?.fullRescan(2, 1000);
       } catch (_) {
         hasThrown = true;
       }
@@ -2566,16 +1023,67 @@ void main() {
       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
       verify(client?.getBatchHistory(args: historyBatchArgs4)).called(2);
       verify(client?.getBatchHistory(args: historyBatchArgs5)).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
+        ]
+      })).called(2);
+
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
+        ]
+      })).called(2);
+
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
+        ]
+      })).called(2);
+
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
+        ]
+      })).called(2);
+
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
+        ]
+      })).called(2);
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
           .called(1);
 
-      for (final arg in dynamicArgValues) {
-        final map = Map<String, List<dynamic>>.from(arg as Map);
+      // for (final arg in dynamicArgValues) {
+      //   final map = Map<String, List<dynamic>>.from(arg as Map);
+      //   Map<String, int> argCount = {};
+      //
+      //   // verify(client?.getBatchHistory(args: map)).called(1);
+      //   // expect(activeScriptHashes.contains(map.values.first.first as String),
+      //   //     true);
+      // }
 
-        verify(client?.getBatchHistory(args: map)).called(1);
-        expect(activeScriptHashes.contains(map.values.first.first as String),
-            true);
-      }
+      // Map<String, int> argCount = {};
+      //
+      // for (final arg in dynamicArgValues) {
+      //   final map = Map<String, List<dynamic>>.from(arg as Map);
+      //
+      //   final str = jsonEncode(map);
+      //
+      //   if (argCount[str] == null) {
+      //     argCount[str] = 1;
+      //   } else {
+      //     argCount[str] = argCount[str]! + 1;
+      //   }
+      // }
+      //
+      // argCount.forEach((key, value) => print("arg: $key\ncount: $value"));
 
       expect(secureStore?.writes, 25);
       expect(secureStore?.reads, 32);
@@ -2610,24 +1118,50 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs5))
           .thenAnswer((_) async => historyBatchResponse);
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
           .thenAnswer((realInvocation) async {});
-
-      List<dynamic> dynamicArgValues = [];
-
-      when(client?.getBatchHistory(args: anyNamed("args")))
-          .thenAnswer((realInvocation) async {
-        if (realInvocation.namedArguments.values.first.length == 1) {
-          dynamicArgValues.add(realInvocation.namedArguments.values.first);
-        }
-
-        return historyBatchResponse;
-      });
 
       final wallet = await Hive.openBox<dynamic>(testWalletId);
 
       // restore so we have something to rescan
-      await btc?.recoverFromMnemonic(
+      await nmc?.recoverFromMnemonic(
           mnemonic: TEST_MNEMONIC,
           maxUnusedAddressGap: 2,
           maxNumberOfIndexesToCheck: 1000,
@@ -2669,7 +1203,7 @@ void main() {
 
       bool hasThrown = false;
       try {
-        await btc?.fullRescan(2, 1000);
+        await nmc?.fullRescan(2, 1000);
       } catch (_) {
         hasThrown = true;
       }
@@ -2731,16 +1265,39 @@ void main() {
       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
       verify(client?.getBatchHistory(args: historyBatchArgs4)).called(2);
       verify(client?.getBatchHistory(args: historyBatchArgs5)).called(2);
+
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
+        ]
+      })).called(1);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
+        ]
+      })).called(2);
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
           .called(1);
-
-      for (final arg in dynamicArgValues) {
-        final map = Map<String, List<dynamic>>.from(arg as Map);
-
-        verify(client?.getBatchHistory(args: map)).called(1);
-        expect(activeScriptHashes.contains(map.values.first.first as String),
-            true);
-      }
 
       expect(secureStore?.writes, 19);
       expect(secureStore?.reads, 32);
@@ -2750,1265 +1307,6 @@ void main() {
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
     });
-
-    // test("fetchBuildTxData succeeds", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx11Raw);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to trigger all change code branches
-    //   final chg44 = await secureStore?.read(
-    //       key: testWalletId + "_changeDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_changeDerivationsP2PKH",
-    //       value: chg44?.replaceFirst("1vFHF5q21GccoBwrB4zEUAs9i3Bfx797U",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final chg49 =
-    //       await secureStore?.read(key: testWalletId + "_changeDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_changeDerivationsP2SH",
-    //       value: chg49?.replaceFirst("3ANTVqufTH1tLAuoQHhng8jndRsA9hcNy7",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final chg84 = await secureStore?.read(
-    //       key: testWalletId + "_changeDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_changeDerivationsP2WPKH",
-    //       value: chg84?.replaceFirst(
-    //           "bc1qn2x7h96kufgfjxtkhsnq03jqwqde8zasffqvd2",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final data = await btc?.fetchBuildTxData(utxoList);
-    //
-    //   expect(data?.length, 3);
-    //   expect(
-    //       data?["2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703"]
-    //           ?.length,
-    //       2);
-    //   expect(
-    //       data?["ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7"]
-    //           .length,
-    //       3);
-    //   expect(
-    //       data?["3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4"]
-    //           .length,
-    //       2);
-    //   expect(
-    //       data?["2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703"]
-    //           ["output"],
-    //       isA<Uint8List>());
-    //   expect(
-    //       data?["ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7"]
-    //           ["output"],
-    //       isA<Uint8List>());
-    //   expect(
-    //       data?["3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4"]
-    //           ["output"],
-    //       isA<Uint8List>());
-    //   expect(
-    //       data?["2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703"]
-    //           ["keyPair"],
-    //       isA<ECPair>());
-    //   expect(
-    //       data?["ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7"]
-    //           ["keyPair"],
-    //       isA<ECPair>());
-    //   expect(
-    //       data?["3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4"]
-    //           ["keyPair"],
-    //       isA<ECPair>());
-    //   expect(
-    //       data?["ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7"]
-    //           ["redeemScript"],
-    //       isA<Uint8List>());
-    //
-    //   // modify addresses to trigger all receiving code branches
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final data2 = await btc?.fetchBuildTxData(utxoList);
-    //
-    //   expect(data2?.length, 3);
-    //   expect(
-    //       data2?["2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703"]
-    //           .length,
-    //       2);
-    //   expect(
-    //       data2?["ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7"]
-    //           .length,
-    //       3);
-    //   expect(
-    //       data2?["3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4"]
-    //           .length,
-    //       2);
-    //   expect(
-    //       data2?["2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703"]
-    //           ["output"],
-    //       isA<Uint8List>());
-    //   expect(
-    //       data2?["ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7"]
-    //           ["output"],
-    //       isA<Uint8List>());
-    //   expect(
-    //       data2?["3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4"]
-    //           ["output"],
-    //       isA<Uint8List>());
-    //   expect(
-    //       data2?["2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703"]
-    //           ["keyPair"],
-    //       isA<ECPair>());
-    //   expect(
-    //       data2?["ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7"]
-    //           ["keyPair"],
-    //       isA<ECPair>());
-    //   expect(
-    //       data2?["3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4"]
-    //           ["keyPair"],
-    //       isA<ECPair>());
-    //   expect(
-    //       data2?["ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7"]
-    //           ["redeemScript"],
-    //       isA<Uint8List>());
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(2);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(2);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(2);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //
-    //   expect(secureStore?.interactions, 38);
-    //   expect(secureStore?.writes, 13);
-    //   expect(secureStore?.reads, 25);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("fetchBuildTxData throws", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenThrow(Exception("some exception"));
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await btc?.fetchBuildTxData(utxoList);
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //
-    //   expect(secureStore?.interactions, 14);
-    //   expect(secureStore?.writes, 7);
-    //   expect(secureStore?.reads, 7);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("build transaction succeeds", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx11Raw);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final data = await btc?.fetchBuildTxData(utxoList);
-    //
-    //   final txData = await btc?.buildTransaction(
-    //       utxosToUse: utxoList,
-    //       utxoSigningData: data!,
-    //       recipients: ["bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"],
-    //       satoshiAmounts: [13000]);
-    //
-    //   expect(txData?.length, 2);
-    //   expect(txData?["hex"], isA<String>());
-    //   expect(txData?["vSize"], isA<int>());
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //
-    //   expect(secureStore?.interactions, 26);
-    //   expect(secureStore?.writes, 10);
-    //   expect(secureStore?.reads, 16);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("build transaction fails", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx11Raw);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final data = await btc?.fetchBuildTxData(utxoList);
-    //
-    //   // give bad data toi build tx
-    //   data["ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7"]
-    //       ["keyPair"] = null;
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await btc?.buildTransaction(
-    //         utxosToUse: utxoList,
-    //         utxoSigningData: data!,
-    //         recipients: ["bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"],
-    //         satoshiAmounts: [13000]);
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //
-    //   expect(secureStore?.interactions, 26);
-    //   expect(secureStore?.writes, 10);
-    //   expect(secureStore?.reads, 16);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("two output coinSelection succeeds", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenAnswer((_) async => [
-    //             {"height": 1000, "tx_hash": "some tx hash"}
-    //           ]);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx11Raw);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final result = await btc?.coinSelection(
-    //       18000, 1000, "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc",
-    //       utxos: utxoList);
-    //
-    //   expect(result, isA<Map<String, dynamic>>());
-    //   expect(result.length > 0, true);
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //   verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
-    //
-    //   expect(secureStore?.interactions, 29);
-    //   expect(secureStore?.writes, 11);
-    //   expect(secureStore?.reads, 18);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("one output option A coinSelection", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenAnswer((_) async => [
-    //             {"height": 1000, "tx_hash": "some tx hash"}
-    //           ]);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx11Raw);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final result = await btc?.coinSelection(
-    //       18500, 1000, "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc",
-    //       utxos: utxoList);
-    //
-    //   expect(result, isA<Map<String, dynamic>>());
-    //   expect(result.length > 0, true);
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //
-    //   expect(secureStore?.interactions, 26);
-    //   expect(secureStore?.writes, 10);
-    //   expect(secureStore?.reads, 16);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("one output option B coinSelection", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenAnswer((_) async => [
-    //             {"height": 1000, "tx_hash": "some tx hash"}
-    //           ]);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx11Raw);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 =
-    //       await secureStore?.read(key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final result = await btc?.coinSelection(
-    //       18651, 1000, "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc",
-    //       utxos: utxoList);
-    //
-    //   expect(result, isA<Map<String, dynamic>>());
-    //   expect(result.length > 0, true);
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //
-    //   expect(secureStore?.interactions, 26);
-    //   expect(secureStore?.writes, 10);
-    //   expect(secureStore?.reads, 16);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("insufficient funds option A coinSelection", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 =
-    //       await secureStore?.read(key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final result = await btc?.coinSelection(
-    //       20000, 1000, "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc",
-    //       utxos: utxoList);
-    //
-    //   expect(result, 1);
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //
-    //   expect(secureStore?.interactions, 20);
-    //   expect(secureStore?.writes, 10);
-    //   expect(secureStore?.reads, 10);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("insufficient funds option B coinSelection", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 =
-    //       await secureStore?.read(key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final result = await btc?.coinSelection(
-    //       19000, 1000, "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc",
-    //       utxos: utxoList);
-    //
-    //   expect(result, 2);
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //
-    //   expect(secureStore?.interactions, 20);
-    //   expect(secureStore?.writes, 10);
-    //   expect(secureStore?.reads, 10);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("insufficient funds option C coinSelection", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(cachedClient.?getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx11Raw);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 =
-    //       await secureStore?.read(key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   final result = await btc?.coinSelection(
-    //       18900, 1000, "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc",
-    //       utxos: utxoList);
-    //
-    //   expect(result, 2);
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //
-    //   expect(secureStore?.interactions, 26);
-    //   expect(secureStore?.writes, 10);
-    //   expect(secureStore?.reads, 16);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("check for more outputs coinSelection", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx11Raw);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 =
-    //       await secureStore?.read(key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenAnswer((_) async => [
-    //             {"height": 1000, "tx_hash": "some tx hash"}
-    //           ]);
-    //
-    //   final result = await btc?.coinSelection(
-    //       11900, 1000, "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc",
-    //       utxos: utxoList);
-    //
-    //   expect(result, isA<Map<String, dynamic>>());
-    //   expect(result.length > 0, true);
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(2);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(2);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //
-    //   verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
-    //
-    //   expect(secureStore?.interactions, 33);
-    //   expect(secureStore?.writes, 11);
-    //   expect(secureStore?.reads, 22);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
-    //
-    // test("prepareSend and confirmSend succeed", () async {
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.getBatchHistory(args: historyBatchArgs0))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getBatchHistory(args: historyBatchArgs1))
-    //       .thenAnswer((_) async => historyBatchResponse);
-    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
-    //       .thenAnswer((_) async => [
-    //             {"height": 1000, "tx_hash": "some tx hash"}
-    //           ]);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx9Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx10Raw);
-    //   when(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .thenAnswer((_) async => tx11Raw);
-    //
-    //   // recover to fill data
-    //   await btc?.recoverFromMnemonic(
-    //       mnemonic: TEST_MNEMONIC,
-    //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
-    //
-    //   // modify addresses to properly mock data to build a tx
-    //   final rcv44 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2PKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2PKH",
-    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-    //   final rcv49 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2SH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2SH",
-    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-    //   final rcv84 = await secureStore?.read(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH");
-    //   await secureStore?.write(
-    //       key: testWalletId + "_receiveDerivationsP2WPKH",
-    //       value: rcv84?.replaceFirst(
-    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-    //
-    //   btc?.outputsList = utxoList;
-    //
-    //   final result = await btc?.prepareSend(
-    //       toAddress: "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc",
-    //       amount: 15000);
-    //
-    //   expect(result, isA<Map<String, dynamic>>());
-    //   expect(result?.length! > 0, true);
-    //
-    //   when(client?.broadcastTransaction(
-    //           rawTx: result!["hex"], requestID: anyNamed("requestID")))
-    //       .thenAnswer((_) async => "some txHash");
-    //
-    //   final sentResult = await btc?.confirmSend(txData: result!);
-    //   expect(sentResult, "some txHash");
-    //
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(cachedClient?.getTransaction(
-    //           tx_hash:
-    //               "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-    //           coinName: "Bitcoin",
-    //           callOutSideMainIsolate: false))
-    //       .called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-    //   verify(client?.broadcastTransaction(
-    //           rawTx: result!["hex"], requestID: anyNamed("requestID")))
-    //       .called(1);
-    //   verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
-    //
-    //   expect(secureStore?.interactions, 29);
-    //   expect(secureStore?.writes, 11);
-    //   expect(secureStore?.reads, 18);
-    //   expect(secureStore?.deletes, 0);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
 
     test("prepareSend fails", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
@@ -4049,22 +1347,22 @@ void main() {
 
       when(cachedClient?.getTransaction(
               txHash:
-                  "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
+                  "dffa9543852197f9fb90f8adafaab8a0b9b4925e9ada8c6bdcaf00bf2e9f60d7",
               coin: Coin.namecoin))
-          .thenAnswer((_) async => tx9Raw);
+          .thenAnswer((_) async => tx2Raw);
       when(cachedClient?.getTransaction(
               txHash:
-                  "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
+                  "71b56532e9e7321bd8c30d0f8b14530743049d2f3edd5623065c46eee1dda04d",
               coin: Coin.namecoin))
-          .thenAnswer((_) async => tx10Raw);
+          .thenAnswer((_) async => tx3Raw);
       when(cachedClient?.getTransaction(
         txHash:
-            "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
+            "c7e700f7e23a85bbdd9de86d502322a933607ee7ea7e16adaf02e477cdd849b9",
         coin: Coin.namecoin,
-      )).thenAnswer((_) async => tx11Raw);
+      )).thenAnswer((_) async => tx4Raw);
 
       // recover to fill data
-      await btc?.recoverFromMnemonic(
+      await nmc?.recoverFromMnemonic(
           mnemonic: TEST_MNEMONIC,
           maxUnusedAddressGap: 2,
           maxNumberOfIndexesToCheck: 1000,
@@ -4091,12 +1389,12 @@ void main() {
               "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
               "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
 
-      btc?.outputsList = utxoList;
+      nmc?.outputsList = utxoList;
 
       bool didThrow = false;
       try {
-        await btc?.prepareSend(
-            address: "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc",
+        await nmc?.prepareSend(
+            address: "nc1q6k4x8ye6865z3rc8zkt8gyu52na7njqt6hsk4v",
             satoshiAmount: 15000);
       } catch (_) {
         didThrow = true;
@@ -4154,7 +1452,7 @@ void main() {
     test("confirmSend no hex", () async {
       bool didThrow = false;
       try {
-        await btc?.confirmSend(txData: {"some": "strange map"});
+        await nmc?.confirmSend(txData: {"some": "strange map"});
       } catch (_) {
         didThrow = true;
       }
@@ -4170,7 +1468,7 @@ void main() {
     test("confirmSend hex is not string", () async {
       bool didThrow = false;
       try {
-        await btc?.confirmSend(txData: {"hex": true});
+        await nmc?.confirmSend(txData: {"hex": true});
       } catch (_) {
         didThrow = true;
       }
@@ -4186,7 +1484,7 @@ void main() {
     test("confirmSend hex is string but missing other data", () async {
       bool didThrow = false;
       try {
-        await btc?.confirmSend(txData: {"hex": "a string"});
+        await nmc?.confirmSend(txData: {"hex": "a string"});
       } catch (_) {
         didThrow = true;
       }
@@ -4206,7 +1504,7 @@ void main() {
     test("confirmSend fails due to vSize being greater than fee", () async {
       bool didThrow = false;
       try {
-        await btc
+        await nmc
             ?.confirmSend(txData: {"hex": "a string", "fee": 1, "vSize": 10});
       } catch (_) {
         didThrow = true;
@@ -4231,7 +1529,7 @@ void main() {
 
       bool didThrow = false;
       try {
-        await btc
+        await nmc
             ?.confirmSend(txData: {"hex": "a string", "fee": 10, "vSize": 10});
       } catch (_) {
         didThrow = true;
@@ -4254,7 +1552,7 @@ void main() {
     // // to the provided ipAddress below. This will throw a bunch of errors
     // // which what we want here as actually calling electrumx calls here is unwanted.
     // // test("listen to NodesChangedEvent", () async {
-    // //   btc = NamecoinWallet(
+    // //   nmc = NamecoinWallet(
     // //     walletId: testWalletId,
     // //     walletName: testWalletName,
     // //     networkType: BasicNetworkType.test,
@@ -4276,10 +1574,10 @@ void main() {
     // //   });
     // //   await wallet.put("activeNodeID_Bitcoin", "default");
     // //
-    // //   final a = btc.cachedElectrumXClient;
+    // //   final a = nmc.cachedElectrumXClient;
     // //
     // //   // return when refresh is called on node changed trigger
-    // //   btc.longMutex = true;
+    // //   nmc.longMutex = true;
     // //
     // //   GlobalEventBus.instance
     // //       .fire(NodesChangedEvent(NodesChangedEventType.updatedCurrentNode));
@@ -4287,11 +1585,11 @@ void main() {
     // //   // make sure event has processed before continuing
     // //   await Future.delayed(Duration(seconds: 5));
     // //
-    // //   final b = btc.cachedElectrumXClient;
+    // //   final b = nmc.cachedElectrumXClient;
     // //
     // //   expect(identical(a, b), false);
     // //
-    // //   await btc.exit();
+    // //   await nmc.exit();
     // //
     // //   expect(secureStore.interactions, 0);
     // //   verifyNoMoreInteractions(client);
@@ -4337,15 +1635,15 @@ void main() {
       await Hive.openBox<dynamic>(testWalletId);
 
       // recover to fill data
-      await btc?.recoverFromMnemonic(
+      await nmc?.recoverFromMnemonic(
           mnemonic: TEST_MNEMONIC,
           maxUnusedAddressGap: 2,
           maxNumberOfIndexesToCheck: 1000,
           height: 4000);
 
-      btc?.refreshMutex = true;
+      nmc?.refreshMutex = true;
 
-      await btc?.refresh();
+      await nmc?.refresh();
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
@@ -4406,7 +1704,7 @@ void main() {
       await Hive.openBox<dynamic>(testWalletId);
 
       // recover to fill data
-      await btc?.recoverFromMnemonic(
+      await nmc?.recoverFromMnemonic(
           mnemonic: TEST_MNEMONIC,
           maxUnusedAddressGap: 2,
           maxNumberOfIndexesToCheck: 1000,
@@ -4417,7 +1715,7 @@ void main() {
       when(client?.getBatchUTXOs(args: anyNamed("args")))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
 
-      await btc?.refresh();
+      await nmc?.refresh();
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(4);
