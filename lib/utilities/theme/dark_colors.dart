@@ -49,7 +49,8 @@ class DarkColors extends StackColorTheme {
   Color get textSubtitle6 => const Color(0xFF414141);
   @override
   Color get textWhite => const Color(0xFF232323);
-
+  @override
+  Color get textFavoriteCard => const Color(0xFF232323);
   @override
   Color get textError => const Color(0xFFF37475);
 
@@ -272,7 +273,7 @@ class DarkColors extends StackColorTheme {
 
   // currency list
   @override
-  Color get currencyListItemBG => const Color(0xFF35383D);
+  Color get currencyListItemBG => const Color(0xFF484B51);
 
   // bottom nav
   @override

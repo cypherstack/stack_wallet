@@ -119,9 +119,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                 ),
                                 Text(
                                   "${lengthOptions[i]} words",
-                                  style: STextStyles.titleBold12.copyWith(
-                                    color: const Color(0xFF44464E),
-                                  ),
+                                  style: STextStyles.titleBold12,
                                   textAlign: TextAlign.left,
                                 ),
                               ],

@@ -313,14 +313,7 @@ class _ConfirmTransactionViewState
                           height: 16,
                         ),
                         TextButton(
-                          style: Theme.of(context)
-                              .textButtonTheme
-                              .style
-                              ?.copyWith(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(StackTheme
-                                        .instance.color.accentColorDark),
-                              ),
+                          style:  StackTheme.instance.getPrimaryEnabledButtonColor(context),
                           onPressed: () async {
                             final unlocked = await Navigator.push(
                               context,

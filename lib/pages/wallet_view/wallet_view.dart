@@ -568,15 +568,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
                                       unawaited(attemptAnonymize());
                                     },
-                                    style: Theme.of(context)
-                                        .textButtonTheme
-                                        .style
-                                        ?.copyWith(
-                                          backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                                  StackTheme.instance.color
-                                                      .accentColorDark),
-                                        ),
+                                    style: StackTheme.instance
+                                        .getPrimaryEnabledButtonColor(context),
                                     child: Text(
                                       "Continue",
                                       style: STextStyles.button,

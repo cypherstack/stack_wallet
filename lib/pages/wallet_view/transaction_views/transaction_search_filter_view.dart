@@ -695,15 +695,8 @@ class _TransactionSearchViewState
                             child: SizedBox(
                               height: 48,
                               child: TextButton(
-                                style: Theme.of(context)
-                                    .textButtonTheme
-                                    .style
-                                    ?.copyWith(
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                              StackTheme.instance.color
-                                                  .accentColorDark),
-                                    ),
+                                style: StackTheme.instance
+                                    .getPrimaryEnabledButtonColor(context),
                                 onPressed: () async {
                                   _onApplyPressed();
                                 },

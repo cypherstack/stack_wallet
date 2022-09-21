@@ -129,14 +129,8 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                               Navigator.of(context).pop();
                             }
                           },
-                          style: Theme.of(context)
-                              .textButtonTheme
-                              .style
-                              ?.copyWith(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(StackTheme
-                                        .instance.color.accentColorDark),
-                              ),
+                          style: StackTheme.instance
+                              .getPrimaryEnabledButtonColor(context),
                           child: Text(
                             "Save",
                             style: STextStyles.button,

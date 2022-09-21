@@ -1461,6 +1461,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
 
                                 debugPrint("name: ${manager.walletName}");
 
+                                // TODO store tx data completely locally in isar so we don't lock up ui here when querying txData
                                 final txData = await manager.transactionData;
 
                                 final tx = txData.getAllTransactions()[txid];

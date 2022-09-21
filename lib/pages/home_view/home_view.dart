@@ -144,7 +144,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 onTap: _hiddenOptions,
                 child: SvgPicture.asset(
                   Assets.svg.stackIcon,
-                  // color: StackTheme.instance.color.accentColorDark
                   width: 24,
                   height: 24,
                 ),

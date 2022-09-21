@@ -4,7 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/coin_wallets_table.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';

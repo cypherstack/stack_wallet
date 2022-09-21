@@ -144,9 +144,7 @@ class _FiroBalanceSelectionSheetState
                               //   children: [
                               Text(
                                 "Private balance",
-                                style: STextStyles.titleBold12.copyWith(
-                                  color: const Color(0xFF44464E),
-                                ),
+                                style: STextStyles.titleBold12,
                                 textAlign: TextAlign.left,
                               ),
                               const SizedBox(
@@ -235,9 +233,7 @@ class _FiroBalanceSelectionSheetState
                               //   children: [
                               Text(
                                 "Public balance",
-                                style: STextStyles.titleBold12.copyWith(
-                                  color: const Color(0xFF44464E),
-                                ),
+                                style: STextStyles.titleBold12,
                                 textAlign: TextAlign.left,
                               ),
                               const SizedBox(

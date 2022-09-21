@@ -49,7 +49,8 @@ class LightColors extends StackColorTheme {
   Color get textSubtitle6 => const Color(0xFFF5F5F5);
   @override
   Color get textWhite => const Color(0xFFFFFFFF);
-
+  @override
+  Color get textFavoriteCard => const Color(0xFF232323);
   @override
   Color get textError => const Color(0xFF930006);
 

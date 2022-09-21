@@ -140,13 +140,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         },
                       ),
                       rightButton: TextButton(
-                        style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  StackTheme.instance.color.accentColorDark),
-                            ),
+                        style: StackTheme.instance
+                            .getPrimaryEnabledButtonColor(context),
                         child: Text(
                           "Delete logs",
                           style: STextStyles.button,

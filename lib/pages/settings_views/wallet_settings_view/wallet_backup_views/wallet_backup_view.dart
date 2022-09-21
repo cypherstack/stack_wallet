@@ -131,10 +131,7 @@ class WalletBackupView extends ConsumerWidget {
               height: 12,
             ),
             TextButton(
-              style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                        StackTheme.instance.color.accentColorDark),
-                  ),
+              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
               onPressed: () {
                 String data = AddressUtils.encodeQRSeedData(mnemonic);
 

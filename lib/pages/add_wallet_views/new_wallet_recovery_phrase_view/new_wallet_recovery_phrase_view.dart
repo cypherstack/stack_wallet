@@ -14,7 +14,7 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -148,6 +148,7 @@ class _NewWalletRecoveryPhraseViewState
                             Assets.svg.copy,
                             width: 24,
                             height: 24,
+                            color: StackTheme.instance.color.topNavIconPrimary,
                           ),
                           onPressed: () async {
                             await _copy();

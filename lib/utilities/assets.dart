@@ -1,4 +1,3 @@
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
@@ -159,7 +158,7 @@ class _SVG {
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
       case Coin.bitcoincashTestnet:
-        return bitcoinTestnet;
+        return bitcoincashTestnet;
       case Coin.firoTestNet:
         return firoTestnet;
       case Coin.dogecoinTestNet:

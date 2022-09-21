@@ -8,7 +8,6 @@ import 'package:stackwallet/pages/wallets_view/sub_widgets/favorite_card.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
@@ -83,7 +82,9 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
             children: [
               Text(
                 "Favorite Wallets",
-                style: STextStyles.itemSubtitle,
+                style: STextStyles.itemSubtitle.copyWith(
+                  color: StackTheme.instance.color.textDark3,
+                ),
               ),
               const Spacer(),
               if (hasFavorites)
@@ -96,6 +97,7 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                     Assets.svg.ellipsis,
                     width: 16,
                     height: 16,
+                    color: StackTheme.instance.color.accentColorDark,
                   ),
                   onPressed: () {
                     Navigator.of(context).pushNamed(

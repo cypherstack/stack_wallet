@@ -134,7 +134,9 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                     Text(
                       ref.watch(
                           managerProvider.select((value) => value.walletName)),
-                      style: STextStyles.itemSubtitle12,
+                      style: STextStyles.itemSubtitle12.copyWith(
+                        color: StackTheme.instance.color.textFavoriteCard,
+                      ),
                     ),
                     const Spacer(),
                     SvgPicture.asset(
@@ -179,6 +181,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             )} ${coin.ticker}",
                             style: STextStyles.titleBold12.copyWith(
                               fontSize: 16,
+                              color: StackTheme.instance.color.textFavoriteCard,
                             ),
                           ),
                         ),
@@ -199,6 +202,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                           )}",
                           style: STextStyles.itemSubtitle12.copyWith(
                             fontSize: 10,
+                            color: StackTheme.instance.color.textFavoriteCard,
                           ),
                         ),
                       ],

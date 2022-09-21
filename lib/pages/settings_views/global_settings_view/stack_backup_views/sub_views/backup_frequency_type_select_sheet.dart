@@ -94,7 +94,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                           child: Container(
                             color: Colors.transparent,
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SizedBox(
                                   width: 20,
@@ -119,17 +119,17 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                 const SizedBox(
                                   width: 12,
                                 ),
-                                Column(
-                                  children: [
-                                    Text(
-                                      prettyFrequencyType(
-                                          BackupFrequencyType.values[i]),
-                                      style: STextStyles.titleBold12.copyWith(
-                                        color: const Color(0xFF44464E),
+                                Flexible(
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        prettyFrequencyType(
+                                            BackupFrequencyType.values[i]),
+                                        style: STextStyles.titleBold12,
+                                        textAlign: TextAlign.left,
                                       ),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),

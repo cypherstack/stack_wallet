@@ -9,7 +9,7 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';

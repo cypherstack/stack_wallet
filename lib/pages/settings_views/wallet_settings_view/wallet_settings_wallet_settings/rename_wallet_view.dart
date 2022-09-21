@@ -106,10 +106,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
             ),
             const Spacer(),
             TextButton(
-              style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                        StackTheme.instance.color.accentColorDark),
-                  ),
+              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
               onPressed: () async {
                 final newName = _controller.text;
                 final success = await ref

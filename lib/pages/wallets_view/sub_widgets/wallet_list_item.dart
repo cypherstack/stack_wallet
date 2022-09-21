@@ -92,7 +92,10 @@ class WalletListItem extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Text(coin.prettyName),
+                          Text(
+                            coin.prettyName,
+                            style: STextStyles.titleBold12,
+                          ),
                           const Spacer(),
                           Text(
                             "$priceString $currency/${coin.ticker}",

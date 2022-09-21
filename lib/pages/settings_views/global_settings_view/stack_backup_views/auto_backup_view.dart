@@ -93,11 +93,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             },
           ),
           rightButton: TextButton(
-            style: Theme.of(context).textButtonTheme.style?.copyWith(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    StackTheme.instance.color.accentColorDark,
-                  ),
-                ),
+            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
             child: Text(
               "Continue",
               style: STextStyles.button,
@@ -149,11 +145,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             },
           ),
           rightButton: TextButton(
-            style: Theme.of(context).textButtonTheme.style?.copyWith(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    StackTheme.instance.color.accentColorDark,
-                  ),
-                ),
+            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
             child: Text(
               "Disable",
               style: STextStyles.button,

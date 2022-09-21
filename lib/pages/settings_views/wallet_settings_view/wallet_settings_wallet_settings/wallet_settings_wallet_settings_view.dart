@@ -114,14 +114,8 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                           ),
                         ),
                         rightButton: TextButton(
-                          style: Theme.of(context)
-                              .textButtonTheme
-                              .style
-                              ?.copyWith(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(StackTheme
-                                        .instance.color.accentColorDark),
-                              ),
+                          style: StackTheme.instance
+                              .getPrimaryEnabledButtonColor(context),
                           onPressed: () {
                             Navigator.pop(context);
                             Navigator.push(
