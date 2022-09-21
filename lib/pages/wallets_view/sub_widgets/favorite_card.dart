@@ -128,25 +128,29 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      ref.watch(
-                          managerProvider.select((value) => value.walletName)),
-                      style: STextStyles.itemSubtitle12.copyWith(
-                        color: StackTheme.instance.color.textFavoriteCard,
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          ref.watch(managerProvider
+                              .select((value) => value.walletName)),
+                          style: STextStyles.itemSubtitle12.copyWith(
+                            color: StackTheme.instance.color.textFavoriteCard,
+                          ),
+                          overflow: TextOverflow.fade,
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    SvgPicture.asset(
-                      Assets.svg.iconFor(coin: coin),
-                      width: 24,
-                      height: 24,
-                    ),
-                  ],
+                      SvgPicture.asset(
+                        Assets.svg.iconFor(coin: coin),
+                        width: 24,
+                        height: 24,
+                      ),
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 FutureBuilder(
                   future: ref.watch(
                       managerProvider.select((value) => value.totalBalance)),

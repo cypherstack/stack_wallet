@@ -141,6 +141,19 @@ void main() async {
 
   monero.onStartup();
 
+  await Hive.openBox<dynamic>(DB.boxNameTheme);
+  final colorScheme =
+      DB.instance.get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
+
+  switch (colorScheme) {
+    case "dark":
+      StackTheme.instance.setTheme(ThemeType.dark);
+      break;
+    case "light":
+    default:
+      StackTheme.instance.setTheme(ThemeType.light);
+  }
+
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
   await NotificationApi.init();
@@ -156,8 +169,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final localeService = LocaleService();
     localeService.loadLocale();
-
-    StackTheme.instance.setTheme(ThemeType.dark);
 
     return const KeyboardDismisser(
       child: MaterialAppWithTheme(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -79,6 +80,74 @@ class AppearanceSettingsView extends ConsumerWidget {
                                           ref
                                               .read(prefsChangeNotifierProvider)
                                               .showFavoriteWallets = newValue;
+                                        },
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      RoundedWhiteContainer(
+                        child: Consumer(
+                          builder: (_, ref, __) {
+                            return RawMaterialButton(
+                              splashColor: StackTheme.instance.color.highlight,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                              ),
+                              onPressed: null,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 2),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Enabled dark mode",
+                                          style: STextStyles.titleBold12,
+                                          textAlign: TextAlign.left,
+                                        ),
+                                        Text(
+                                          "Requires restart",
+                                          style: STextStyles.itemSubtitle,
+                                          textAlign: TextAlign.left,
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 20,
+                                      width: 40,
+                                      child: DraggableSwitchButton(
+                                        isOn: (DB.instance.get<dynamic>(
+                                                    boxName: DB.boxNameTheme,
+                                                    key: "colorScheme")
+                                                as String?) ==
+                                            "dark",
+                                        onValueChanged: (newValue) {
+                                          // StackTheme.instance.setTheme(newValue
+                                          //     ? ThemeType.dark
+                                          //     : ThemeType.light);
+                                          DB.instance.put<dynamic>(
+                                            boxName: DB.boxNameTheme,
+                                            key: "colorScheme",
+                                            value:
+                                                StackTheme.instance.theme.name,
+                                          );
                                         },
                                       ),
                                     )

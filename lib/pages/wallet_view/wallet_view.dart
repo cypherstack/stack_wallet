@@ -440,6 +440,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         : Assets.svg.bell,
                     width: 20,
                     height: 20,
+                    color: ref.watch(notificationsProvider.select((value) =>
+                            value.hasUnreadNotificationsFor(walletId)))
+                        ? null
+                        : StackTheme.instance.color.topNavIconPrimary,
                   ),
                   onPressed: () {
                     // reset unread state
@@ -544,6 +548,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       children: [
                         Expanded(
                           child: TextButton(
+                            style: StackTheme.instance
+                                .getSecondaryEnabledButtonColor(context),
                             onPressed: () async {
                               await showDialog<void>(
                                 context: context,
@@ -558,8 +564,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     child: Text(
                                       "Cancel",
                                       style: STextStyles.button.copyWith(
-                                          color: StackTheme
-                                              .instance.color.accentColorDark),
+                                        color: StackTheme
+                                            .instance.color.accentColorDark,
+                                      ),
                                     ),
                                   ),
                                   rightButton: TextButton(
@@ -581,8 +588,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             child: Text(
                               "Anonymize funds",
                               style: STextStyles.button.copyWith(
-                                  color: StackTheme
-                                      .instance.color.accentColorDark),
+                                color: StackTheme
+                                    .instance.color.buttonTextSecondary,
+                              ),
                             ),
                           ),
                         ),

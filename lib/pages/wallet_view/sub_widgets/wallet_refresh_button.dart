@@ -123,7 +123,7 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
             Assets.svg.arrowRotate,
             width: 24,
             height: 24,
-            color: StackTheme.instance.color.accentColorDark,
+            color: StackTheme.instance.color.textFavoriteCard,
           ),
         ),
       ),
