@@ -11,7 +11,6 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/node_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -119,6 +118,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoinTestNet:
+      case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
         final client = ElectrumX(
@@ -140,17 +140,17 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     if (showFlushBar) {
       if (testPassed) {
-        showFloatingFlushBar(
+        unawaited(showFloatingFlushBar(
           type: FlushBarType.success,
           message: "Server ping success",
           context: context,
-        );
+        ));
       } else {
-        showFloatingFlushBar(
+        unawaited(showFloatingFlushBar(
           type: FlushBarType.warning,
           message: "Server unreachable",
           context: context,
-        );
+        ));
       }
     }
 
@@ -226,7 +226,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     Assets.svg.trash,
-                    color: CFColors.stackAccent,
+                    color: StackTheme.instance.color.accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -299,8 +299,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                             "Test connection",
                             style: STextStyles.button.copyWith(
                               color: testConnectionEnabled
-                                  ? CFColors.stackAccent
-                                  : CFColors.white,
+                                  ? StackTheme.instance.color.textDark
+                                  : StackTheme.instance.color.textWhite,
                             ),
                           ),
                         ),
@@ -334,8 +334,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                           child: Text(
                                             "Cancel",
                                             style: STextStyles.button.copyWith(
-                                              color: CFColors.stackAccent,
-                                            ),
+                                                color: StackTheme.instance.color
+                                                    .accentColorDark),
                                           ),
                                         ),
                                         rightButton: TextButton(
@@ -347,10 +347,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                               .style
                                               ?.copyWith(
                                                 backgroundColor:
-                                                    MaterialStateProperty.all<
-                                                        Color>(
-                                                  CFColors.stackAccent,
-                                                ),
+                                                    MaterialStateProperty
+                                                        .all<Color>(StackTheme
+                                                            .instance
+                                                            .color
+                                                            .accentColorDark),
                                               ),
                                           child: Text(
                                             "Save",

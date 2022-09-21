@@ -56,7 +56,7 @@ class _StartupPreferencesViewState
                             Padding(
                               padding: const EdgeInsets.all(4.0),
                               child: RawMaterialButton(
-                                // splashColor: CFColors.splashLight,
+                                // splashColor: StackTheme.instance.color.highlight,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
                                 shape: RoundedRectangleBorder(
@@ -129,7 +129,7 @@ class _StartupPreferencesViewState
                             Padding(
                               padding: const EdgeInsets.all(4),
                               child: RawMaterialButton(
-                                // splashColor: CFColors.splashLight,
+                                // splashColor: StackTheme.instance.color.highlight,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
                                 shape: RoundedRectangleBorder(
@@ -224,7 +224,7 @@ class _StartupPreferencesViewState
                                       ),
                                       Flexible(
                                         child: RawMaterialButton(
-                                          // splashColor: CFColors.splashLight,
+                                          // splashColor: StackTheme.instance.color.highlight,
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
                                           shape: RoundedRectangleBorder(

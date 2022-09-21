@@ -4,10 +4,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:tuple/tuple.dart';
 
@@ -66,7 +65,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                 color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.plus,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                   width: 20,
                   height: 20,
                 ),

@@ -16,7 +16,6 @@ import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/block_explorers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -180,9 +179,8 @@ class _TransactionDetailsViewState
           },
           child: Text(
             "Cancel",
-            style: STextStyles.button.copyWith(
-              color: CFColors.stackAccent,
-            ),
+            style: STextStyles.button
+                .copyWith(color: StackTheme.instance.color.accentColorDark),
           ),
         ),
         rightButton: TextButton(

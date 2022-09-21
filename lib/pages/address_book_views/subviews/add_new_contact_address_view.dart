@@ -9,7 +9,6 @@ import 'package:stackwallet/providers/ui/address_book_providers/address_entry_da
 import 'package:stackwallet/providers/ui/address_book_providers/valid_contact_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
@@ -151,8 +150,8 @@ class _AddNewContactAddressViewState
                                 child: Text(
                                   "Cancel",
                                   style: STextStyles.button.copyWith(
-                                    color: CFColors.stackAccent,
-                                  ),
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                                 onPressed: () async {
                                   if (FocusScope.of(context).hasFocus) {

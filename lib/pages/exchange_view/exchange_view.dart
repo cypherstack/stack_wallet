@@ -29,7 +29,6 @@ import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_prov
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -67,7 +66,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
         builder: (_) => WillPopScope(
           onWillPop: () async => false,
           child: Container(
-            color: CFColors.stackAccent.withOpacity(0.8),
+            color: StackTheme.instance.color.overlay.withOpacity(0.8),
             child: const CustomLoadingOverlay(
               message: "Updating exchange rate",
               eventBus: null,
@@ -368,7 +367,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                       Text(
                         "You will send",
                         style: STextStyles.itemSubtitle.copyWith(
-                          color: CFColors.neutral50,
+                          color: StackTheme.instance.color.textDark3,
                         ),
                       ),
                       const SizedBox(
@@ -562,7 +561,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                     width: 18,
                                                     height: 18,
                                                     decoration: BoxDecoration(
-                                                      color: CFColors.gray3,
+                                                      color: StackTheme
+                                                          .instance
+                                                          .color
+                                                          .textFieldDefaultBG,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                         18,
@@ -584,7 +586,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                 width: 18,
                                                 height: 18,
                                                 decoration: BoxDecoration(
-                                                  // color: CFColors.stackAccent,
+                                                  // color: StackTheme.instance.color.accentColorDark
                                                   borderRadius:
                                                       BorderRadius.circular(18),
                                                 ),
@@ -592,7 +594,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                   Assets.svg.circleQuestion,
                                                   width: 18,
                                                   height: 18,
-                                                  color: CFColors.gray3,
+                                                  color: StackTheme.instance
+                                                      .color.textFieldDefaultBG,
                                                 ),
                                               );
                                             }
@@ -617,7 +620,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                             .toUpperCase())) ??
                                                 "-",
                                         style: STextStyles.smallMed14.copyWith(
-                                          color: CFColors.stackAccent,
+                                          color: StackTheme
+                                              .instance.color.textDark,
                                         ),
                                       ),
                                       const SizedBox(
@@ -627,7 +631,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                         Assets.svg.chevronDown,
                                         width: 5,
                                         height: 2.5,
-                                        color: CFColors.stackAccent,
+                                        color:
+                                            StackTheme.instance.color.textDark,
                                       ),
                                     ],
                                   ),
@@ -648,7 +653,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                               child: Text(
                                 "You will receive",
                                 style: STextStyles.itemSubtitle.copyWith(
-                                  color: CFColors.neutral50,
+                                  color: StackTheme.instance.color.textDark3,
                                 ),
                               ),
                             ),
@@ -664,6 +669,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                   Assets.svg.swap,
                                   width: 20,
                                   height: 20,
+                                  color:
+                                      StackTheme.instance.color.accentColorDark,
                                 ),
                               ),
                             ),
@@ -875,7 +882,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                     width: 18,
                                                     height: 18,
                                                     decoration: BoxDecoration(
-                                                      color: CFColors.gray3,
+                                                      color: StackTheme
+                                                          .instance
+                                                          .color
+                                                          .textFieldDefaultBG,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               18),
@@ -896,7 +906,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                 width: 18,
                                                 height: 18,
                                                 decoration: BoxDecoration(
-                                                  // color: CFColors.stackAccent,
+                                                  // color: StackTheme.instance.color.accentColorDark
                                                   borderRadius:
                                                       BorderRadius.circular(18),
                                                 ),
@@ -904,7 +914,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                   Assets.svg.circleQuestion,
                                                   width: 18,
                                                   height: 18,
-                                                  color: CFColors.gray3,
+                                                  color: StackTheme.instance
+                                                      .color.textFieldDefaultBG,
                                                 ),
                                               );
                                             }
@@ -929,7 +940,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                             .toUpperCase())) ??
                                                 "-",
                                         style: STextStyles.smallMed14.copyWith(
-                                          color: CFColors.stackAccent,
+                                          color: StackTheme
+                                              .instance.color.textDark,
                                         ),
                                       ),
                                       const SizedBox(
@@ -939,7 +951,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                         Assets.svg.chevronDown,
                                         width: 5,
                                         height: 2.5,
-                                        color: CFColors.stackAccent,
+                                        color:
+                                            StackTheme.instance.color.textDark,
                                       ),
                                     ],
                                   ),
@@ -1118,29 +1131,18 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                         height: 12,
                       ),
                       TextButton(
-                        style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                ((ref
-                                                .read(
-                                                    prefsChangeNotifierProvider)
-                                                .exchangeRateType ==
-                                            ExchangeRateType.estimated)
-                                        ? ref.watch(
-                                            estimatedRateExchangeFormProvider
-                                                .select((value) =>
-                                                    value.canExchange))
-                                        : ref.watch(
-                                            fixedRateExchangeFormProvider
-                                                .select((value) =>
-                                                    value.canExchange)))
-                                    ? CFColors.stackAccent
-                                    : StackTheme
-                                        .instance.color.buttonBackSecondary,
-                              ),
-                            ),
+                        style: ((ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .exchangeRateType ==
+                                    ExchangeRateType.estimated)
+                                ? ref.watch(estimatedRateExchangeFormProvider
+                                    .select((value) => value.canExchange))
+                                : ref.watch(fixedRateExchangeFormProvider
+                                    .select((value) => value.canExchange)))
+                            ? StackTheme.instance
+                                .getPrimaryEnabledButtonColor(context)
+                            : StackTheme.instance
+                                .getPrimaryDisabledButtonColor(context),
                         onPressed: ((ref
                                         .read(prefsChangeNotifierProvider)
                                         .exchangeRateType ==
@@ -1318,16 +1320,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                           },
                                         ),
                                         rightButton: TextButton(
-                                          style: Theme.of(context)
-                                              .textButtonTheme
-                                              .style
-                                              ?.copyWith(
-                                                backgroundColor:
-                                                    MaterialStateProperty.all<
-                                                        Color>(
-                                                  CFColors.stackAccent,
-                                                ),
-                                              ),
+                                          style: StackTheme.instance
+                                              .getPrimaryEnabledButtonColor(
+                                                  context),
                                           child: Text(
                                             "Attempt",
                                             style: STextStyles.button,
@@ -1346,7 +1341,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                   }
 
                                   String rate =
-                                      "1 $fromTicker ~${ref.read(fixedRateExchangeFormProvider).rate!.toStringAsFixed(8)} $toTicker";
+                                      "1 ${fromTicker.toUpperCase()} ~${ref.read(fixedRateExchangeFormProvider).rate!.toStringAsFixed(8)} ${toTicker.toUpperCase()}";
 
                                   final model = IncompleteExchangeModel(
                                     sendTicker: fromTicker,
@@ -1383,7 +1378,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                       // Text(
                       //   "Trades",
                       //   style: STextStyles.itemSubtitle.copyWith(
-                      //     color: CFColors.neutral50,
+                      //     color: StackTheme.instance.color.textDark3,
                       //   ),
                       // ),
                       // SizedBox(
@@ -1423,7 +1418,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                           Text(
                             "Trades",
                             style: STextStyles.itemSubtitle.copyWith(
-                              color: CFColors.neutral50,
+                              color: StackTheme.instance.color.textDark3,
                             ),
                           ),
                           const SizedBox(
@@ -1495,7 +1490,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: CFColors.white,
+                            color: StackTheme.instance.color.popupBG,
                             borderRadius: BorderRadius.circular(
                               Constants.size.circularBorderRadius,
                             ),
@@ -1537,7 +1532,7 @@ class RateInfo extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: CFColors.white,
+        color: StackTheme.instance.color.popupBG,
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),
@@ -1625,7 +1620,7 @@ class RateInfo extends ConsumerWidget {
                       Assets.svg.chevronDown,
                       width: 5,
                       height: 2.5,
-                      color: CFColors.neutral60,
+                      color: StackTheme.instance.color.infoItemLabel,
                     ),
                 ],
               ),

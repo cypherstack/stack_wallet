@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/security_views/security_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -32,8 +31,9 @@ class ChangePinView extends StatefulWidget {
 class _ChangePinViewState extends State<ChangePinView> {
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: CFColors.gray3,
-      border: Border.all(width: 1, color: CFColors.gray3),
+      color: StackTheme.instance.color.textSubtitle2,
+      border:
+          Border.all(width: 1, color: StackTheme.instance.color.textSubtitle2),
       borderRadius: BorderRadius.circular(6),
     );
   }

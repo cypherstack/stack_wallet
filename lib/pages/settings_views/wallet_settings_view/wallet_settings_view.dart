@@ -22,7 +22,6 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -303,8 +302,8 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                               child: Text(
                                 "Log out",
                                 style: STextStyles.button.copyWith(
-                                  color: CFColors.stackAccent,
-                                ),
+                                    color: StackTheme
+                                        .instance.color.accentColorDark),
                               ),
                             );
                           },
@@ -406,9 +405,8 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             },
             child: Text(
               "Save",
-              style: STextStyles.button.copyWith(
-                color: CFColors.stackAccent,
-              ),
+              style: STextStyles.button
+                  .copyWith(color: StackTheme.instance.color.accentColorDark),
             ),
           ),
         ],

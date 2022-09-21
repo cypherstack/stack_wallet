@@ -33,7 +33,6 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -376,7 +375,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
             children: [
               SvgPicture.asset(
                 Assets.svg.iconFor(coin: coin),
-                // color: CFColors.stackAccent,
+                // color: StackTheme.instance.color.accentColorDark
                 width: 24,
                 height: 24,
               ),
@@ -492,7 +491,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     Assets.svg.bars,
-                    color: CFColors.stackAccent,
+                    color: StackTheme.instance.color.accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -559,8 +558,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     child: Text(
                                       "Cancel",
                                       style: STextStyles.button.copyWith(
-                                        color: CFColors.stackAccent,
-                                      ),
+                                          color: StackTheme
+                                              .instance.color.accentColorDark),
                                     ),
                                   ),
                                   rightButton: TextButton(
@@ -575,8 +574,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                         ?.copyWith(
                                           backgroundColor:
                                               MaterialStateProperty.all<Color>(
-                                            CFColors.stackAccent,
-                                          ),
+                                                  StackTheme.instance.color
+                                                      .accentColorDark),
                                         ),
                                     child: Text(
                                       "Continue",
@@ -589,8 +588,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             child: Text(
                               "Anonymize funds",
                               style: STextStyles.button.copyWith(
-                                color: CFColors.stackAccent,
-                              ),
+                                  color: StackTheme
+                                      .instance.color.accentColorDark),
                             ),
                           ),
                         ),
@@ -608,7 +607,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       Text(
                         "Transactions",
                         style: STextStyles.itemSubtitle.copyWith(
-                          color: CFColors.neutral50,
+                          color: StackTheme.instance.color.textDark3,
                         ),
                       ),
                       BlueTextButton(

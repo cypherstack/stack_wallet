@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -60,12 +59,10 @@ class _RestoringDialogState extends State<RestoringDialog>
         message: "This may take a while. Please do not exit this screen.",
         icon: RotationTransition(
           turns: _spinAnimation,
-          child: SvgPicture.asset(
-            Assets.svg.arrowRotate3,
-            width: 24,
-            height: 24,
-            color: CFColors.stackAccent,
-          ),
+          child: SvgPicture.asset(Assets.svg.arrowRotate3,
+              width: 24,
+              height: 24,
+              color: StackTheme.instance.color.accentColorDark),
         ),
         rightButton: TextButton(
           style: StackTheme.instance.getSecondaryEnabledButtonColor(context),

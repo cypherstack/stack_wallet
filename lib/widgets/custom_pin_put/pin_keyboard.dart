@@ -45,7 +45,7 @@ class _NumberKeyState extends State<NumberKey> {
         shadows: const [],
       ),
       child: MaterialButton(
-        // splashColor: CFColors.splashLight,
+        // splashColor: StackTheme.instance.color.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () async {
@@ -114,7 +114,7 @@ class _BackspaceKeyState extends State<BackspaceKey> {
         shadows: const [],
       ),
       child: MaterialButton(
-        // splashColor: CFColors.splashLight,
+        // splashColor: StackTheme.instance.color.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () {
@@ -164,7 +164,7 @@ class SubmitKey extends StatelessWidget {
         shadows: const [],
       ),
       child: MaterialButton(
-        // splashColor: CFColors.splashLight,
+        // splashColor: StackTheme.instance.color.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () {

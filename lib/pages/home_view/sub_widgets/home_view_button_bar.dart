@@ -261,7 +261,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
         //       style: STextStyles.button.copyWith(
         //         fontSize: 14,
         //         color:
-        //             selectedIndex == 2 ? CFColors.light1 : CFColors.stackAccent,
+        //             selectedIndex == 2 ? CFColors.light1 : StackTheme.instance.color.accentColorDark
         //       ),
         //     ),
         //   ),

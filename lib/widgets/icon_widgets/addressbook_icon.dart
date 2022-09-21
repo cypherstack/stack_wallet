@@ -9,7 +9,7 @@ class AddressBookIcon extends StatelessWidget {
     Key? key,
     this.width = 16,
     this.height = 16,
-    this.color = CFColors.neutral50,
+    this.color,
   }) : super(key: key);
 
   final double width;
@@ -22,7 +22,7 @@ class AddressBookIcon extends StatelessWidget {
       Assets.svg.addressBook,
       width: width,
       height: height,
-      color: color,
+      color: color ?? StackTheme.instance.color.textDark3,
     );
   }
 }

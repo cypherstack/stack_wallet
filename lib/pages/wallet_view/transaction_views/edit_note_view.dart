@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -130,13 +129,14 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                               Navigator.of(context).pop();
                             }
                           },
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
+                          style: Theme.of(context)
+                              .textButtonTheme
+                              .style
+                              ?.copyWith(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(StackTheme
+                                        .instance.color.accentColorDark),
+                              ),
                           child: Text(
                             "Save",
                             style: STextStyles.button,

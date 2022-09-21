@@ -10,7 +10,6 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -139,7 +138,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                 ),
                                 SvgPicture.asset(
                                   Assets.svg.folder,
-                                  color: CFColors.neutral50,
+                                  color: StackTheme.instance.color.textDark3,
                                   width: 16,
                                   height: 16,
                                 ),
@@ -197,7 +196,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                       hidePassword
                                           ? Assets.svg.eye
                                           : Assets.svg.eyeSlash,
-                                      color: CFColors.neutral50,
+                                      color:
+                                          StackTheme.instance.color.textDark3,
                                       width: 16,
                                       height: 16,
                                     ),
@@ -270,7 +270,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                               "Decrypting Stack backup file",
                                               style: STextStyles.pageTitleH2
                                                   .copyWith(
-                                                color: CFColors.white,
+                                                color: StackTheme
+                                                    .instance.color.textWhite,
                                               ),
                                             ),
                                           ),

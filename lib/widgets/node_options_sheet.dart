@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -7,7 +9,6 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -105,6 +106,9 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.namecoin:
+      case Coin.bitcoincashTestnet:
         final client = ElectrumX(
           host: node.host,
           port: node.port,
@@ -129,12 +133,12 @@ class NodeOptionsSheet extends ConsumerWidget {
       //   context: context,
       // );
     } else {
-      showFloatingFlushBar(
+      unawaited(showFloatingFlushBar(
         type: FlushBarType.warning,
         iconAsset: Assets.svg.circleAlert,
         message: "Could not connect to node",
         context: context,
-      );
+      ));
     }
 
     return testPassed;
@@ -155,9 +159,9 @@ class NodeOptionsSheet extends ConsumerWidget {
         : "Connected";
 
     return Container(
-      decoration: const BoxDecoration(
-        color: CFColors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: StackTheme.instance.color.popupBG,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
       ),
@@ -271,8 +275,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                         child: Text(
                           "Details",
                           style: STextStyles.button.copyWith(
-                            color: CFColors.stackAccent,
-                          ),
+                              color: StackTheme.instance.color.accentColorDark),
                         ),
                       ),
                     ),
@@ -296,7 +299,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                                   return;
                                 }
 
-                                ref
+                                await ref
                                     .read(nodeServiceChangeNotifierProvider)
                                     .setPrimaryNodeFor(
                                       coin: coin,
@@ -304,7 +307,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                                       shouldNotifyListeners: true,
                                     );
 
-                                _notifyWalletsOfUpdatedNode(ref);
+                                await _notifyWalletsOfUpdatedNode(ref);
                               },
                         child: Text(
                           // status == "Connected" ? "Disconnect" : "Connect",

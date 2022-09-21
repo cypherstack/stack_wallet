@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -35,7 +34,7 @@ class CoinSelectItem extends ConsumerWidget {
             BorderRadius.circular(Constants.size.circularBorderRadius),
       ),
       child: MaterialButton(
-        // splashColor: CFColors.splashLight,
+        // splashColor: StackTheme.instance.color.highlight,
         key: Key("coinSelectItemButtonKey_${coin.name}"),
         padding: isDesktop
             ? const EdgeInsets.only(left: 24)
@@ -79,7 +78,7 @@ class CoinSelectItem extends ConsumerWidget {
                     height: 24,
                     child: SvgPicture.asset(
                       Assets.svg.check,
-                      color: CFColors.borderNormal,
+                      color: StackTheme.instance.color.accentColorDark,
                     ),
                   ),
                 ),

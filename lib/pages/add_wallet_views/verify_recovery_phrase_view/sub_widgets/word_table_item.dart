@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class WordTableItem extends ConsumerWidget {
   const WordTableItem({
@@ -25,13 +24,15 @@ class WordTableItem extends ConsumerWidget {
         ref.watch(verifyMnemonicSelectedWordStateProvider.state).state;
     return Container(
       decoration: BoxDecoration(
-        color: selectedWord == word ? CFColors.selection : CFColors.white,
+        color: selectedWord == word
+            ? StackTheme.instance.color.snackBarBackInfo
+            : StackTheme.instance.color.popupBG,
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),
       ),
       child: MaterialButton(
-        splashColor: CFColors.splashLight,
+        splashColor: StackTheme.instance.color.highlight,
         key: Key("coinSelectItemButtonKey_$word"),
         padding: isDesktop
             ? const EdgeInsets.symmetric(
@@ -55,7 +56,7 @@ class WordTableItem extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall.copyWith(
-                      color: CFColors.textDark,
+                      color: StackTheme.instance.color.textDark,
                     )
                   : STextStyles.baseXS,
             ),

@@ -17,7 +17,6 @@ import 'package:stackwallet/providers/exchange/trade_note_service_provider.dart'
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -222,9 +221,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         trade.statusObject?.status.name ?? trade.statusString,
                         style: STextStyles.itemSubtitle.copyWith(
                           color: trade.statusObject != null
-                              ? CFColors.status
-                                  .forStatus(trade.statusObject!.status)
-                              : CFColors.stackAccent,
+                              ? StackTheme.instance
+                                  .colorForStatus(trade.statusObject!.status)
+                              : StackTheme.instance.color.accentColorDark,
                         ),
                       ),
                       //   ),
@@ -238,7 +237,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   ),
                 if (!sentFromStack && !hasTx)
                   RoundedContainer(
-                    color: CFColors.warningBackground,
+                    color: StackTheme.instance.color.warningBackground,
                     child: RichText(
                       text: TextSpan(
                           text:
@@ -246,7 +245,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8,
                           )} ${trade.fromCurrency.toUpperCase()}. ",
                           style: STextStyles.label.copyWith(
-                            color: CFColors.stackAccent,
+                            color: StackTheme.instance.color.accentColorDark,
                             fontWeight: FontWeight.w700,
                           ),
                           children: [
@@ -258,7 +257,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     : 8,
                               )} ${trade.fromCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
                               style: STextStyles.label.copyWith(
-                                color: CFColors.stackAccent,
+                                color:
+                                    StackTheme.instance.color.accentColorDark,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -383,12 +383,14 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                             width: width + 20,
                                             height: width + 20,
                                             child: QrImage(
-                                              data: trade.payinAddress,
-                                              size: width,
-                                              backgroundColor: CFColors.white,
-                                              foregroundColor:
-                                                  CFColors.stackAccent,
-                                            ),
+                                                data: trade.payinAddress,
+                                                size: width,
+                                                backgroundColor: StackTheme
+                                                    .instance.color.popupBG,
+                                                foregroundColor: StackTheme
+                                                    .instance
+                                                    .color
+                                                    .accentColorDark),
                                           ),
                                         ),
                                       ),
@@ -408,10 +410,12 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                                     context),
                                             child: Text(
                                               "Cancel",
-                                              style:
-                                                  STextStyles.button.copyWith(
-                                                color: CFColors.stackAccent,
-                                              ),
+                                              style: STextStyles.button
+                                                  .copyWith(
+                                                      color: StackTheme
+                                                          .instance
+                                                          .color
+                                                          .accentColorDark),
                                             ),
                                           ),
                                         ),

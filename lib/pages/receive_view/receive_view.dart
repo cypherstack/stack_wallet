@@ -10,7 +10,6 @@ import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_vi
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -202,8 +201,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                     child: Text(
                       "Generate new address",
                       style: STextStyles.button.copyWith(
-                        color: CFColors.stackAccent,
-                      ),
+                          color: StackTheme.instance.color.accentColorDark),
                     ),
                   ),
                 const SizedBox(
@@ -216,10 +214,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       child: Column(
                         children: [
                           QrImage(
-                            data: "${coin.uriScheme}:$receivingAddress",
-                            size: MediaQuery.of(context).size.width / 2,
-                            foregroundColor: CFColors.stackAccent,
-                          ),
+                              data: "${coin.uriScheme}:$receivingAddress",
+                              size: MediaQuery.of(context).size.width / 2,
+                              foregroundColor:
+                                  StackTheme.instance.color.accentColorDark),
                           const SizedBox(
                             height: 20,
                           ),

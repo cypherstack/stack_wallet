@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -71,8 +70,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
               style: isDesktop
                   ? STextStyles.desktopButtonSecondaryEnabled
                   : STextStyles.button.copyWith(
-                      color: CFColors.stackAccent,
-                    ),
+                      color: StackTheme.instance.color.accentColorDark),
             ),
           ),
         ),

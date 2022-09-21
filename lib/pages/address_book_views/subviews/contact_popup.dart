@@ -10,7 +10,6 @@ import 'package:stackwallet/providers/exchange/exchange_flow_is_active_state_pro
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -72,7 +71,7 @@ class ContactPopUp extends ConsumerWidget {
                   ),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: CFColors.white,
+                      color: StackTheme.instance.color.popupBG,
                       borderRadius: BorderRadius.circular(
                         20,
                       ),
@@ -259,11 +258,11 @@ class ContactPopUp extends ConsumerWidget {
                                                   .textFieldDefaultBG,
                                               padding: const EdgeInsets.all(4),
                                               child: SvgPicture.asset(
-                                                Assets.svg.copy,
-                                                width: 12,
-                                                height: 12,
-                                                color: CFColors.stackAccent,
-                                              ),
+                                                  Assets.svg.copy,
+                                                  width: 12,
+                                                  height: 12,
+                                                  color: StackTheme.instance
+                                                      .color.accentColorDark),
                                             ),
                                           ),
                                         ],
@@ -311,11 +310,12 @@ class ContactPopUp extends ConsumerWidget {
                                                 padding:
                                                     const EdgeInsets.all(4),
                                                 child: SvgPicture.asset(
-                                                  Assets.svg.circleArrowUpRight,
-                                                  width: 12,
-                                                  height: 12,
-                                                  color: CFColors.stackAccent,
-                                                ),
+                                                    Assets
+                                                        .svg.circleArrowUpRight,
+                                                    width: 12,
+                                                    height: 12,
+                                                    color: StackTheme.instance
+                                                        .color.accentColorDark),
                                               ),
                                             ),
                                           ],

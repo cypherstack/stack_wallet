@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
@@ -162,20 +161,22 @@ class _EditContactNameEmojiViewState
                                     height: 14,
                                     width: 14,
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(14),
-                                      color: CFColors.stackAccent,
-                                    ),
+                                        borderRadius: BorderRadius.circular(14),
+                                        color: StackTheme
+                                            .instance.color.accentColorDark),
                                     child: Center(
                                       child: _selectedEmoji == null
                                           ? SvgPicture.asset(
                                               Assets.svg.plus,
-                                              color: CFColors.white,
+                                              color: StackTheme
+                                                  .instance.color.textWhite,
                                               width: 12,
                                               height: 12,
                                             )
                                           : SvgPicture.asset(
                                               Assets.svg.thickX,
-                                              color: CFColors.white,
+                                              color: StackTheme
+                                                  .instance.color.textWhite,
                                               width: 8,
                                               height: 8,
                                             ),
@@ -237,8 +238,8 @@ class _EditContactNameEmojiViewState
                                 child: Text(
                                   "Cancel",
                                   style: STextStyles.button.copyWith(
-                                    color: CFColors.stackAccent,
-                                  ),
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                                 onPressed: () async {
                                   if (FocusScope.of(context).hasFocus) {

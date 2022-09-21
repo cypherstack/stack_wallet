@@ -10,13 +10,12 @@ import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_prov
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
@@ -157,9 +156,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                           children: [
                             Text(
                               "Recipient Wallet",
-                              style: STextStyles.itemSubtitle.copyWith(
-                                color: CFColors.neutral50,
-                              ),
+                              style: STextStyles.smallMed12,
                             ),
                             // GestureDetector(
                             //   onTap: () {
@@ -199,7 +196,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                             focusNode: _toFocusNode,
                             style: STextStyles.field,
                             decoration: standardInputDecoration(
-                              "Enter the ${model.receiveTicker} payout address",
+                              "Enter the ${model.receiveTicker.toUpperCase()} payout address",
                               _toFocusNode,
                             ).copyWith(
                               contentPadding: const EdgeInsets.only(
@@ -336,7 +333,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                         ),
                         RoundedWhiteContainer(
                           child: Text(
-                            "This is the wallet where your ${model.receiveTicker} will be sent to.",
+                            "This is the wallet where your ${model.receiveTicker.toUpperCase()} will be sent to.",
                             style: STextStyles.label,
                           ),
                         ),
@@ -387,7 +384,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                             focusNode: _refundFocusNode,
                             style: STextStyles.field,
                             decoration: standardInputDecoration(
-                              "Enter ${model.sendTicker} refund address",
+                              "Enter ${model.sendTicker.toUpperCase()} refund address",
                               _refundFocusNode,
                             ).copyWith(
                               contentPadding: const EdgeInsets.only(
@@ -538,10 +535,13 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
+                                style: StackTheme.instance
+                                    .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Back",
                                   style: STextStyles.button.copyWith(
-                                    color: CFColors.stackAccent,
+                                    color: StackTheme
+                                        .instance.color.buttonTextSecondary,
                                   ),
                                 ),
                               ),
@@ -559,15 +559,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                       Step3View.routeName,
                                       arguments: model);
                                 },
-                                style: Theme.of(context)
-                                    .textButtonTheme
-                                    .style
-                                    ?.copyWith(
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                        CFColors.stackAccent,
-                                      ),
-                                    ),
+                                style: StackTheme.instance
+                                    .getPrimaryEnabledButtonColor(context),
                                 child: Text(
                                   "Next",
                                   style: STextStyles.button,

@@ -7,10 +7,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/providers/global/node_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -104,6 +102,9 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.namecoin:
+      case Coin.bitcoincashTestnet:
         final client = ElectrumX(
           host: node!.host,
           port: node.port,
@@ -173,7 +174,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                   color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     Assets.svg.pencil,
-                    color: CFColors.stackAccent,
+                    color: StackTheme.instance.color.accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -230,8 +231,8 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                           child: Text(
                             "Test connection",
                             style: STextStyles.button.copyWith(
-                              color: CFColors.stackAccent,
-                            ),
+                                color:
+                                    StackTheme.instance.color.accentColorDark),
                           ),
                         ),
                         const SizedBox(height: 16),

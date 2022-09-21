@@ -123,7 +123,7 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                         Constants.size.circularBorderRadius),
                   ),
                   child: MaterialButton(
-                    splashColor: CFColors.splashLight,
+                    splashColor: StackTheme.instance.color.highlight,
                     key: const Key("favoriteWalletsAddFavoriteButtonKey"),
                     padding: const EdgeInsets.all(12),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -142,7 +142,7 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                           Assets.svg.plus,
                           width: 8,
                           height: 8,
-                          color: CFColors.neutral60,
+                          color: StackTheme.instance.color.textSubtitle1,
                         ),
                         const SizedBox(
                           width: 4,

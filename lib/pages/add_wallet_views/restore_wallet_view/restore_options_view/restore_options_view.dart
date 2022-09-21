@@ -12,7 +12,6 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_w
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -72,7 +71,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   }
 
   final _datePickerTextStyleBase = GoogleFonts.inter(
-    color: CFColors.gray3,
+    color: StackTheme.instance.color.textSubtitle2,
     fontSize: 12,
     fontWeight: FontWeight.w400,
     letterSpacing: 0.5,
@@ -80,34 +79,34 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
       paddingMonthHeader: const EdgeInsets.only(top: 11),
-      colorArrowNext: CFColors.neutral60,
-      colorArrowPrevious: CFColors.neutral60,
+      colorArrowNext: StackTheme.instance.color.textSubtitle1,
+      colorArrowPrevious: StackTheme.instance.color.textSubtitle1,
       textStyleButtonNegative: _datePickerTextStyleBase.copyWith(
           fontSize: 16, fontWeight: FontWeight.w600),
       textStyleButtonPositive: _datePickerTextStyleBase.copyWith(
           fontSize: 16, fontWeight: FontWeight.w600),
       textStyleCurrentDayOnCalendar: _datePickerTextStyleBase.copyWith(
-        color: CFColors.stackAccent,
+        color: StackTheme.instance.color.accentColorDark,
       ),
       textStyleDayHeader: _datePickerTextStyleBase.copyWith(
-        color: CFColors.stackAccent,
+        color: StackTheme.instance.color.accentColorDark,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
       textStyleDayOnCalendar: _datePickerTextStyleBase,
       textStyleDayOnCalendarDisabled: _datePickerTextStyleBase.copyWith(
-        color: CFColors.neutral80,
+        color: StackTheme.instance.color.textSubtitle3,
       ),
       textStyleDayOnCalendarSelected: _datePickerTextStyleBase.copyWith(
-        color: CFColors.white,
+        color: StackTheme.instance.color.popupBG,
       ),
       textStyleMonthYearHeader: _datePickerTextStyleBase.copyWith(
-        color: CFColors.neutral60,
+        color: StackTheme.instance.color.textSubtitle1,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
       textStyleYearButton: _datePickerTextStyleBase.copyWith(
-        color: CFColors.white,
+        color: StackTheme.instance.color.textWhite,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
@@ -118,12 +117,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
       textStyleYear: _datePickerTextStyleBase.copyWith(
-        color: CFColors.gray3,
+        color: StackTheme.instance.color.textSubtitle2,
         fontWeight: FontWeight.w600,
         fontSize: 16,
       ),
       textStyleYearSelected: _datePickerTextStyleBase.copyWith(
-        color: CFColors.stackAccent,
+        color: StackTheme.instance.color.accentColorDark,
         fontWeight: FontWeight.w600,
         fontSize: 18,
       ),
@@ -165,7 +164,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       initialDate: DateTime.now(),
       height: height * 0.5,
       theme: ThemeData(
-        primarySwatch: CFColors.createMaterialColor(CFColors.stackAccent),
+        primarySwatch:
+            Util.createMaterialColor(StackTheme.instance.color.accentColorDark),
       ),
       //TODO pick a better initial date
       // 2007 chosen as that is just before bitcoin launched
@@ -292,7 +292,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       "Choose the date you made the wallet (approximate is fine)",
                       style: isDesktop
                           ? STextStyles.desktopTextExtraSmall.copyWith(
-                              color: CFColors.textSubtitle1,
+                              color: StackTheme.instance.color.textSubtitle1,
                             )
                           : STextStyles.smallMed12.copyWith(
                               fontSize: 10,

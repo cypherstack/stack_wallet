@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class MobileMnemonicLengthSelector extends ConsumerWidget {
   const MobileMnemonicLengthSelector({
@@ -30,7 +29,7 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
             horizontal: 12,
           ),
           child: RawMaterialButton(
-            splashColor: CFColors.splashLight,
+            splashColor: StackTheme.instance.color.highlight,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -48,7 +47,7 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
                   Assets.svg.chevronDown,
                   width: 8,
                   height: 4,
-                  color: CFColors.gray3,
+                  color: StackTheme.instance.color.textSubtitle2,
                 ),
               ],
             ),

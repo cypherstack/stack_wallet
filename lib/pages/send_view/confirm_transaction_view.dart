@@ -11,7 +11,6 @@ import 'package:stackwallet/providers/wallet/public_private_balance_state_provid
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -116,9 +115,8 @@ class _ConfirmTransactionViewState
                   StackTheme.instance.getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.button.copyWith(
-                  color: CFColors.stackAccent,
-                ),
+                style: STextStyles.button
+                    .copyWith(color: StackTheme.instance.color.accentColorDark),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -315,13 +313,14 @@ class _ConfirmTransactionViewState
                           height: 16,
                         ),
                         TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
+                          style: Theme.of(context)
+                              .textButtonTheme
+                              .style
+                              ?.copyWith(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(StackTheme
+                                        .instance.color.accentColorDark),
+                              ),
                           onPressed: () async {
                             final unlocked = await Navigator.push(
                               context,

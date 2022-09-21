@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -202,7 +201,7 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                       (context, index) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: CFColors.white,
+                            color: StackTheme.instance.color.popupBG,
                             borderRadius: _borderRadius(index),
                           ),
                           child: Padding(
@@ -212,8 +211,8 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
                               color: index == 0
-                                  ? CFColors.selected
-                                  : CFColors.white,
+                                  ? StackTheme.instance.color.currencyListItemBG
+                                  : StackTheme.instance.color.popupBG,
                               child: RawMaterialButton(
                                 onPressed: () async {
                                   onTap(index);

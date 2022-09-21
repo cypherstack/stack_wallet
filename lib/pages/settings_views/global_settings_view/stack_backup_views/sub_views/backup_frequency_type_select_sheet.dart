@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -32,9 +31,9 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
         return false;
       },
       child: Container(
-        decoration: const BoxDecoration(
-          color: CFColors.white,
-          borderRadius: BorderRadius.vertical(
+        decoration: BoxDecoration(
+          color: StackTheme.instance.color.popupBG,
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(20),
           ),
         ),

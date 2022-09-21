@@ -54,7 +54,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(4),
       child: RawMaterialButton(
-        // splashColor: CFColors.splashLight,
+        // splashColor: StackTheme.instance.color.highlight,
         padding: const EdgeInsets.all(0),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(

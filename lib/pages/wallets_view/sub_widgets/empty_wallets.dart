@@ -44,10 +44,10 @@ class EmptyWallets extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: isDesktop
                     ? STextStyles.desktopSubtitleH2.copyWith(
-                        color: CFColors.textSubtitle1,
+                        color: StackTheme.instance.color.textSubtitle1,
                       )
                     : STextStyles.subtitle.copyWith(
-                        color: CFColors.neutral60,
+                        color: StackTheme.instance.color.textSubtitle1,
                       ),
               ),
               SizedBox(

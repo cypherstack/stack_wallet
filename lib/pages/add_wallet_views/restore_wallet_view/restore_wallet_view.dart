@@ -24,7 +24,6 @@ import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/custom_text_selection_controls.dart';
@@ -356,7 +355,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     switch (status) {
       case FormInputStatus.empty:
         color = StackTheme.instance.color.textFieldDefaultBG;
-        prefixColor = CFColors.gray3;
+        prefixColor = StackTheme.instance.color.textSubtitle2;
         break;
       case FormInputStatus.invalid:
         color = StackTheme.instance.color.textFieldErrorBG;
@@ -549,10 +548,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 size: 36,
                 shadows: const [],
                 color: StackTheme.instance.color.background,
-                icon: const QrCodeIcon(
+                icon: QrCodeIcon(
                   width: 20,
                   height: 20,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                 ),
                 onPressed: scanMnemonicQr,
               ),
@@ -571,10 +570,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 size: 36,
                 shadows: const [],
                 color: StackTheme.instance.color.background,
-                icon: const ClipboardIcon(
+                icon: ClipboardIcon(
                   width: 20,
                   height: 20,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                 ),
                 onPressed: pasteMnemonic,
               ),

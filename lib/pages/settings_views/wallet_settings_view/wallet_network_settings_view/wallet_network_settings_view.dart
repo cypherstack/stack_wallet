@@ -18,7 +18,6 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -309,7 +308,7 @@ class _WalletNetworkSettingsViewState
                 color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.verticalEllipsis,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -326,7 +325,7 @@ class _WalletNetworkSettingsViewState
                             right: 10,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: CFColors.white,
+                                color: StackTheme.instance.color.popupBG,
                                 borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius),
                                 // boxShadow: [CFColors.standardBoxShadow],
@@ -631,7 +630,7 @@ class _WalletNetworkSettingsViewState
                         top: 12,
                       ),
                       child: RoundedContainer(
-                        color: CFColors.warningBackground,
+                        color: StackTheme.instance.color.warningBackground,
                         child: Text(
                           "Please check your internet connection and make sure your current node is not having issues.",
                           style: STextStyles.baseXS,

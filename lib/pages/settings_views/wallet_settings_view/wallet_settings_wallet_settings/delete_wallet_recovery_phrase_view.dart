@@ -8,7 +8,6 @@ import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -120,7 +119,7 @@ class _DeleteWalletRecoveryPhraseViewState
             ),
             Container(
               decoration: BoxDecoration(
-                color: CFColors.white,
+                color: StackTheme.instance.color.popupBG,
                 borderRadius:
                     BorderRadius.circular(Constants.size.circularBorderRadius),
               ),
@@ -129,8 +128,7 @@ class _DeleteWalletRecoveryPhraseViewState
                 child: Text(
                   "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
                   style: STextStyles.label.copyWith(
-                    color: CFColors.stackAccent,
-                  ),
+                      color: StackTheme.instance.color.accentColorDark),
                 ),
               ),
             ),
@@ -151,8 +149,7 @@ class _DeleteWalletRecoveryPhraseViewState
             TextButton(
               style: Theme.of(context).textButtonTheme.style?.copyWith(
                     backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.stackAccent,
-                    ),
+                        StackTheme.instance.color.accentColorDark),
                   ),
               onPressed: () {
                 showDialog<dynamic>(
@@ -169,15 +166,13 @@ class _DeleteWalletRecoveryPhraseViewState
                       child: Text(
                         "Cancel",
                         style: STextStyles.button.copyWith(
-                          color: CFColors.stackAccent,
-                        ),
+                            color: StackTheme.instance.color.accentColorDark),
                       ),
                     ),
                     rightButton: TextButton(
                       style: Theme.of(context).textButtonTheme.style?.copyWith(
                             backgroundColor: MaterialStateProperty.all<Color>(
-                              CFColors.stackAccent,
-                            ),
+                                StackTheme.instance.color.accentColorDark),
                           ),
                       onPressed: () async {
                         final walletId = _manager.walletId;

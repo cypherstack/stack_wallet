@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
@@ -22,7 +21,7 @@ class SettingsListButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RawMaterialButton(
-      // splashColor: CFColors.splashLight,
+      // splashColor: StackTheme.instance.color.highlight,
       constraints: const BoxConstraints(
         minHeight: 32,
         minWidth: 32,
@@ -52,7 +51,7 @@ class SettingsListButton extends StatelessWidget {
                   child: Center(
                     child: SvgPicture.asset(
                       iconAssetName,
-                      color: CFColors.stackAccent,
+                      color: StackTheme.instance.color.accentColorDark,
                       width: iconSize,
                       height: iconSize,
                     ),
@@ -67,7 +66,7 @@ class SettingsListButton extends StatelessWidget {
               child: Text(
                 title,
                 style: STextStyles.smallMed14.copyWith(
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                 ),
               ),
             ),

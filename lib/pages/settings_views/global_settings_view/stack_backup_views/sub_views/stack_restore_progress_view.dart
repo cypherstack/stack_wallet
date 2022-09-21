@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -11,7 +13,6 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -40,7 +41,7 @@ class _StackRestoreProgressViewState
     extends ConsumerState<StackRestoreProgressView> {
   Future<void> _cancel() async {
     bool shouldPop = false;
-    showDialog<void>(
+    unawaited(showDialog<void>(
       barrierDismissible: false,
       context: context,
       builder: (_) => WillPopScope(
@@ -57,7 +58,7 @@ class _StackRestoreProgressViewState
                 child: Text(
                   "Cancelling restore. Please wait.",
                   style: STextStyles.pageTitleH2.copyWith(
-                    color: CFColors.white,
+                    color: StackTheme.instance.color.textWhite,
                   ),
                 ),
               ),
@@ -73,7 +74,7 @@ class _StackRestoreProgressViewState
           ],
         ),
       ),
-    );
+    ));
 
     await SWB.cancelRestore();
     shouldPop = true;
@@ -245,7 +246,8 @@ class _StackRestoreProgressViewState
                                 Assets.svg.gear,
                                 width: 16,
                                 height: 16,
-                                color: CFColors.stackAccent,
+                                color:
+                                    StackTheme.instance.color.accentColorDark,
                               ),
                             ),
                           ),
@@ -280,11 +282,12 @@ class _StackRestoreProgressViewState
                             padding: const EdgeInsets.all(0),
                             color:
                                 StackTheme.instance.color.buttonBackSecondary,
-                            child: const Center(
+                            child: Center(
                               child: AddressBookIcon(
                                 width: 16,
                                 height: 16,
-                                color: CFColors.stackAccent,
+                                color:
+                                    StackTheme.instance.color.accentColorDark,
                               ),
                             ),
                           ),
@@ -324,7 +327,8 @@ class _StackRestoreProgressViewState
                                 Assets.svg.node,
                                 width: 16,
                                 height: 16,
-                                color: CFColors.stackAccent,
+                                color:
+                                    StackTheme.instance.color.accentColorDark,
                               ),
                             ),
                           ),
@@ -364,7 +368,8 @@ class _StackRestoreProgressViewState
                                 Assets.svg.arrowRotate2,
                                 width: 16,
                                 height: 16,
-                                color: CFColors.stackAccent,
+                                color:
+                                    StackTheme.instance.color.accentColorDark,
                               ),
                             ),
                           ),
@@ -428,10 +433,11 @@ class _StackRestoreProgressViewState
                 }
               }
             },
+            style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
             child: Text(
               _success ? "OK" : "Cancel restore process",
               style: STextStyles.button.copyWith(
-                color: CFColors.stackAccent,
+                color: StackTheme.instance.color.buttonTextPrimary,
               ),
             ),
           ),

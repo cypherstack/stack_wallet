@@ -4,11 +4,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -83,7 +82,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                     child: RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
                       child: RawMaterialButton(
-                        // splashColor: CFColors.splashLight,
+                        // splashColor: StackTheme.instance.color.highlight,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,

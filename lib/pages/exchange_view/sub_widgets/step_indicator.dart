@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 enum StepIndicatorStatus { current, completed, incomplete }
@@ -23,11 +22,11 @@ class StepIndicator extends StatelessWidget {
   Color get background {
     switch (status) {
       case StepIndicatorStatus.current:
-        return CFColors.selection;
+        return StackTheme.instance.color.stepIndicatorBGNumber;
       case StepIndicatorStatus.completed:
-        return CFColors.selection;
+        return StackTheme.instance.color.stepIndicatorBGCheck;
       case StepIndicatorStatus.incomplete:
-        return CFColors.stackAccent.withOpacity(0.2);
+        return StackTheme.instance.color.stepIndicatorBGInactive;
     }
   }
 

@@ -266,7 +266,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                 "Roll the dice to pick a random name.",
                 style: isDesktop
                     ? STextStyles.desktopTextExtraSmall.copyWith(
-                        color: CFColors.textSubtitle1,
+                        color: StackTheme.instance.color.textSubtitle1,
                       )
                     : STextStyles.itemSubtitle,
               ),

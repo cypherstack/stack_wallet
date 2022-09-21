@@ -5,9 +5,8 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary_info.da
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class WalletSummary extends StatelessWidget {
   const WalletSummary({
@@ -49,7 +48,7 @@ class WalletSummary extends StatelessWidget {
               builder: (_, ref, __) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: CFColors.coin.forCoin(ref
+                    color: StackTheme.instance.colorForCoin(ref
                         .watch(managerProvider.select((value) => value.coin))),
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,

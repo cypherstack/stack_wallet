@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/managed_favorite.dart';
 
@@ -44,7 +42,7 @@ class ManageFavoritesView extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CFColors.white,
+                    color: StackTheme.instance.color.popupBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -69,10 +67,7 @@ class ManageFavoritesView extends StatelessWidget {
                       key: key,
                       itemCount: favorites.length,
                       itemBuilder: (builderContext, index) {
-                        final walletId = ref
-                            .read(favorites[index]
-                                as ChangeNotifierProvider<Manager>)
-                            .walletId;
+                        final walletId = ref.read(favorites[index]).walletId;
                         return Padding(
                           key: Key(
                             "manageFavoriteWalletsItem_$walletId",
@@ -122,7 +117,7 @@ class ManageFavoritesView extends StatelessWidget {
                 child: Text(
                   "Add to favorites",
                   style: STextStyles.itemSubtitle12.copyWith(
-                    color: CFColors.neutral50,
+                    color: StackTheme.instance.color.textDark3,
                   ),
                 ),
               ),
@@ -136,10 +131,7 @@ class ManageFavoritesView extends StatelessWidget {
                       itemBuilder: (buildContext, index) {
                         // final walletId = ref.watch(
                         //     nonFavorites[index].select((value) => value.walletId));
-                        final walletId = ref
-                            .read(nonFavorites[index]
-                                as ChangeNotifierProvider<Manager>)
-                            .walletId;
+                        final walletId = ref.read(nonFavorites[index]).walletId;
                         return Padding(
                           key: Key(
                             "manageNonFavoriteWalletsItem_$walletId",

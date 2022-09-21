@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class DesktopHomeView extends ConsumerStatefulWidget {
@@ -56,7 +55,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: CFColors.background,
+      color: StackTheme.instance.color.background,
       child: Row(
         children: [
           DesktopMenu(

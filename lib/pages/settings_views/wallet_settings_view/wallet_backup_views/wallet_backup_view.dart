@@ -8,7 +8,6 @@ import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_vi
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -105,7 +104,7 @@ class WalletBackupView extends ConsumerWidget {
             ),
             Container(
               decoration: BoxDecoration(
-                color: CFColors.white,
+                color: StackTheme.instance.color.popupBG,
                 borderRadius:
                     BorderRadius.circular(Constants.size.circularBorderRadius),
               ),
@@ -134,8 +133,7 @@ class WalletBackupView extends ConsumerWidget {
             TextButton(
               style: Theme.of(context).textButtonTheme.style?.copyWith(
                     backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.stackAccent,
-                    ),
+                        StackTheme.instance.color.accentColorDark),
                   ),
               onPressed: () {
                 String data = AddressUtils.encodeQRSeedData(mnemonic);
@@ -166,11 +164,12 @@ class WalletBackupView extends ConsumerWidget {
                                 width: width + 20,
                                 height: width + 20,
                                 child: QrImage(
-                                  data: data,
-                                  size: width,
-                                  backgroundColor: CFColors.white,
-                                  foregroundColor: CFColors.stackAccent,
-                                ),
+                                    data: data,
+                                    size: width,
+                                    backgroundColor:
+                                        StackTheme.instance.color.popupBG,
+                                    foregroundColor: StackTheme
+                                        .instance.color.accentColorDark),
                               ),
                             ),
                           ),
@@ -190,8 +189,8 @@ class WalletBackupView extends ConsumerWidget {
                                 child: Text(
                                   "Cancel",
                                   style: STextStyles.button.copyWith(
-                                    color: CFColors.stackAccent,
-                                  ),
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                               ),
                             ),

@@ -34,7 +34,7 @@ class AppBarIconButton extends StatelessWidget {
         boxShadow: shadows,
       ),
       child: MaterialButton(
-        splashColor: CFColors.splashLight,
+        splashColor: StackTheme.instance.color.highlight,
         padding: EdgeInsets.zero,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(

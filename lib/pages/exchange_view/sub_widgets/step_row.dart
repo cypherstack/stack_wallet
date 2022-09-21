@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_indicator.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class StepRow extends StatelessWidget {
@@ -21,7 +20,7 @@ class StepRow extends StatelessWidget {
 
   Color getColor(int index) {
     if (current >= count - 1) {
-      return CFColors.stackAccent;
+      return StackTheme.instance.color.accentColorDark;
     }
 
     if (current <= index) {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -24,9 +23,9 @@ class WalletsSheet extends ConsumerWidget {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: CFColors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: StackTheme.instance.color.popupBG,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
       ),

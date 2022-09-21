@@ -32,7 +32,7 @@ class WalletListItem extends ConsumerWidget {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
-        // splashColor: CFColors.splashLight,
+        // splashColor: StackTheme.instance.color.highlight,
         key: Key("walletListItemButtonKey_${coin.name}"),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

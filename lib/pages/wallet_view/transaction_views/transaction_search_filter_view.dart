@@ -9,12 +9,12 @@ import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -90,8 +90,9 @@ class _TransactionSearchViewState
     return Text(
       isDateSelected ? "From..." : _fromDateString,
       style: STextStyles.fieldLabel.copyWith(
-        color: isDateSelected ? CFColors.gray3 : CFColors.stackAccent,
-      ),
+          color: isDateSelected
+              ? StackTheme.instance.color.textSubtitle2
+              : StackTheme.instance.color.accentColorDark),
     );
   }
 
@@ -100,8 +101,9 @@ class _TransactionSearchViewState
     return Text(
       isDateSelected ? "To..." : _toDateString,
       style: STextStyles.fieldLabel.copyWith(
-        color: isDateSelected ? CFColors.gray3 : CFColors.stackAccent,
-      ),
+          color: isDateSelected
+              ? StackTheme.instance.color.textSubtitle2
+              : StackTheme.instance.color.accentColorDark),
     );
   }
 
@@ -109,7 +111,7 @@ class _TransactionSearchViewState
   var _selectedToDate = DateTime.now();
 
   final _datePickerTextStyleBase = GoogleFonts.inter(
-    color: CFColors.gray3,
+    color: StackTheme.instance.color.textSubtitle2,
     fontSize: 12,
     fontWeight: FontWeight.w400,
     letterSpacing: 0.5,
@@ -118,34 +120,33 @@ class _TransactionSearchViewState
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
       paddingMonthHeader: const EdgeInsets.only(top: 11),
-      colorArrowNext: CFColors.neutral60,
-      colorArrowPrevious: CFColors.neutral60,
+      colorArrowNext: StackTheme.instance.color.textSubtitle1,
+      colorArrowPrevious: StackTheme.instance.color.textSubtitle1,
       textStyleButtonNegative: _datePickerTextStyleBase.copyWith(
           fontSize: 16, fontWeight: FontWeight.w600),
       textStyleButtonPositive: _datePickerTextStyleBase.copyWith(
           fontSize: 16, fontWeight: FontWeight.w600),
       textStyleCurrentDayOnCalendar: _datePickerTextStyleBase.copyWith(
-        color: CFColors.stackAccent,
-      ),
+          color: StackTheme.instance.color.accentColorDark),
       textStyleDayHeader: _datePickerTextStyleBase.copyWith(
-        color: CFColors.stackAccent,
+        color: StackTheme.instance.color.accentColorDark,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
       textStyleDayOnCalendar: _datePickerTextStyleBase,
       textStyleDayOnCalendarDisabled: _datePickerTextStyleBase.copyWith(
-        color: CFColors.neutral80,
+        color: StackTheme.instance.color.textSubtitle3,
       ),
       textStyleDayOnCalendarSelected: _datePickerTextStyleBase.copyWith(
-        color: CFColors.white,
+        color: StackTheme.instance.color.textWhite,
       ),
       textStyleMonthYearHeader: _datePickerTextStyleBase.copyWith(
-        color: CFColors.neutral60,
+        color: StackTheme.instance.color.textSubtitle1,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
       textStyleYearButton: _datePickerTextStyleBase.copyWith(
-        color: CFColors.white,
+        color: StackTheme.instance.color.textWhite,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
@@ -156,12 +157,12 @@ class _TransactionSearchViewState
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
       textStyleYear: _datePickerTextStyleBase.copyWith(
-        color: CFColors.gray3,
+        color: StackTheme.instance.color.textSubtitle2,
         fontWeight: FontWeight.w600,
         fontSize: 16,
       ),
       textStyleYearSelected: _datePickerTextStyleBase.copyWith(
-        color: CFColors.stackAccent,
+        color: StackTheme.instance.color.accentColorDark,
         fontWeight: FontWeight.w600,
         fontSize: 18,
       ),
@@ -197,8 +198,9 @@ class _TransactionSearchViewState
               initialDate: DateTime.now(),
               height: height * 0.5,
               theme: ThemeData(
-                primarySwatch:
-                    CFColors.createMaterialColor(CFColors.stackAccent),
+                primarySwatch: Util.createMaterialColor(
+                  StackTheme.instance.color.accentColorDark,
+                ),
               ),
               //TODO pick a better initial date
               // 2007 chosen as that is just before bitcoin launched
@@ -248,7 +250,7 @@ class _TransactionSearchViewState
                     Assets.svg.calendar,
                     height: 20,
                     width: 20,
-                    color: CFColors.gray3,
+                    color: StackTheme.instance.color.textSubtitle2,
                   ),
                   const SizedBox(
                     width: 10,
@@ -289,8 +291,9 @@ class _TransactionSearchViewState
               context: context,
               height: height * 0.5,
               theme: ThemeData(
-                primarySwatch:
-                    CFColors.createMaterialColor(CFColors.stackAccent),
+                primarySwatch: Util.createMaterialColor(
+                  StackTheme.instance.color.accentColorDark,
+                ),
               ),
               //TODO pick a better initial date
               // 2007 chosen as that is just before bitcoin launched
@@ -341,7 +344,7 @@ class _TransactionSearchViewState
                     Assets.svg.calendar,
                     height: 20,
                     width: 20,
-                    color: CFColors.gray3,
+                    color: StackTheme.instance.color.textSubtitle2,
                   ),
                   const SizedBox(
                     width: 10,
@@ -679,8 +682,8 @@ class _TransactionSearchViewState
                                 child: Text(
                                   "Cancel",
                                   style: STextStyles.button.copyWith(
-                                    color: CFColors.stackAccent,
-                                  ),
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                               ),
                             ),
@@ -698,8 +701,8 @@ class _TransactionSearchViewState
                                     ?.copyWith(
                                       backgroundColor:
                                           MaterialStateProperty.all<Color>(
-                                        CFColors.stackAccent,
-                                      ),
+                                              StackTheme.instance.color
+                                                  .accentColorDark),
                                     ),
                                 onPressed: () async {
                                   _onApplyPressed();

@@ -158,7 +158,7 @@ class _NewWalletRecoveryPhraseViewState
                   ],
                 ),
           body: Container(
-            color: CFColors.background,
+            color: StackTheme.instance.color.background,
             width: isDesktop ? 600 : null,
             child: Padding(
               padding: isDesktop
@@ -195,8 +195,8 @@ class _NewWalletRecoveryPhraseViewState
                   Container(
                     decoration: BoxDecoration(
                       color: isDesktop
-                          ? CFColors.background
-                          : CFColors.popupBackground,
+                          ? StackTheme.instance.color.background
+                          : StackTheme.instance.color.popupBG,
                       borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius),
                     ),
@@ -210,8 +210,8 @@ class _NewWalletRecoveryPhraseViewState
                         style: isDesktop
                             ? STextStyles.desktopSubtitleH2
                             : STextStyles.label.copyWith(
-                                color: CFColors.stackAccent,
-                              ),
+                                color:
+                                    StackTheme.instance.color.accentColorDark),
                       ),
                     ),
                   ),

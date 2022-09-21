@@ -14,7 +14,6 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/backup_frequency_type_select_sheet.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -165,7 +164,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                               ),
                               SvgPicture.asset(
                                 Assets.svg.folder,
-                                color: CFColors.neutral50,
+                                color: StackTheme.instance.color.textDark3,
                                 width: 16,
                                 height: 16,
                               ),
@@ -224,7 +223,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: CFColors.neutral50,
+                                    color: StackTheme.instance.color.textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -350,7 +349,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: CFColors.neutral50,
+                                    color: StackTheme.instance.color.textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -386,7 +385,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                         ),
                         Positioned.fill(
                           child: RawMaterialButton(
-                            splashColor: CFColors.splashLight,
+                            splashColor: StackTheme.instance.color.highlight,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -423,7 +422,8 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     padding: const EdgeInsets.only(right: 4.0),
                                     child: SvgPicture.asset(
                                       Assets.svg.chevronDown,
-                                      color: CFColors.gray3,
+                                      color: StackTheme
+                                          .instance.color.textSubtitle2,
                                       width: 12,
                                       height: 6,
                                     ),

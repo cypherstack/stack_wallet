@@ -3,12 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/favorite_toggle.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -41,13 +40,13 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
           if (!manager.isFavorite) {
             ref.read(favoritesProvider).add(provider, true);
             ref.read(nonFavoritesProvider).remove(provider, true);
-            ref
+            await ref
                 .read(walletsServiceChangeNotifierProvider)
                 .addFavorite(manager.walletId);
           } else {
             ref.read(favoritesProvider).remove(provider, true);
             ref.read(nonFavoritesProvider).add(provider, true);
-            ref
+            await ref
                 .read(walletsServiceChangeNotifierProvider)
                 .removeFavorite(manager.walletId);
           }
@@ -65,7 +64,9 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: CFColors.coin.forCoin(manager.coin).withOpacity(0.5),
+                  color: StackTheme.instance
+                      .colorForCoin(manager.coin)
+                      .withOpacity(0.5),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),

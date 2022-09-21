@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -50,9 +49,9 @@ class _FiroBalanceSelectionSheetState
     final firoWallet = manager.wallet as FiroWallet;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: CFColors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: StackTheme.instance.color.popupBG,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
       ),

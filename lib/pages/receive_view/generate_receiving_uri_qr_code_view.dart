@@ -12,7 +12,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -245,13 +244,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           height: 8,
                         ),
                         TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
+                          style: StackTheme.instance
+                              .getPrimaryEnabledButtonColor(context),
                           onPressed: () {
                             final amountString = amountController.text;
                             final noteString = noteController.text;
@@ -319,12 +313,14 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                             width: width + 20,
                                             height: width + 20,
                                             child: QrImage(
-                                              data: uriString,
-                                              size: width,
-                                              backgroundColor: CFColors.white,
-                                              foregroundColor:
-                                                  CFColors.stackAccent,
-                                            ),
+                                                data: uriString,
+                                                size: width,
+                                                backgroundColor: StackTheme
+                                                    .instance.color.popupBG,
+                                                foregroundColor: StackTheme
+                                                    .instance
+                                                    .color
+                                                    .accentColorDark),
                                           ),
                                         ),
                                       ),
@@ -364,11 +360,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                                       "Share",
                                                       textAlign:
                                                           TextAlign.center,
-                                                      style: STextStyles.button
-                                                          .copyWith(
-                                                        color: CFColors
-                                                            .stackAccent,
-                                                      ),
+                                                      style: STextStyles.button,
                                                     ),
                                                     const SizedBox(
                                                       height: 2,

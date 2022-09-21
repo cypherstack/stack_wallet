@@ -50,7 +50,6 @@ import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -511,11 +510,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       title: 'Stack Wallet',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
-        highlightColor: CFColors.splashLight,
+        highlightColor: StackTheme.instance.color.highlight,
         brightness: Brightness.light,
         fontFamily: GoogleFonts.inter().fontFamily,
+        unselectedWidgetColor:
+            StackTheme.instance.color.radioButtonBorderDisabled,
         textTheme: GoogleFonts.interTextTheme().copyWith(
           button: STextStyles.button,
+          subtitle1: STextStyles.field.copyWith(
+            color: StackTheme.instance.color.textDark,
+          ),
         ),
         radioTheme: const RadioThemeData(
           splashRadius: 0,
@@ -523,16 +527,18 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         ),
         // splashFactory: NoSplash.splashFactory,
         splashColor: Colors.transparent,
-        buttonTheme: const ButtonThemeData(
-          splashColor: CFColors.splashMed,
+        buttonTheme: ButtonThemeData(
+          splashColor: StackTheme.instance.color.splash,
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
             // splashFactory: NoSplash.splashFactory,
-            overlayColor: MaterialStateProperty.all(CFColors.splashMed),
+            overlayColor:
+                MaterialStateProperty.all(StackTheme.instance.color.splash),
             minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
             textStyle: MaterialStateProperty.all<TextStyle>(STextStyles.button),
-            foregroundColor: MaterialStateProperty.all(CFColors.white),
+            foregroundColor: MaterialStateProperty.all(
+                StackTheme.instance.color.buttonTextSecondary),
             backgroundColor: MaterialStateProperty.all<Color>(
                 StackTheme.instance.color.buttonBackSecondary),
             shape: MaterialStateProperty.all<OutlinedBorder>(
@@ -543,8 +549,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             ),
           ),
         ),
-        primaryColor: CFColors.stackAccent,
-        primarySwatch: CFColors.createMaterialColor(CFColors.stackAccent),
+        primaryColor: StackTheme.instance.color.accentColorDark,
+        primarySwatch:
+            Util.createMaterialColor(StackTheme.instance.color.accentColorDark),
         checkboxTheme: CheckboxThemeData(
           splashRadius: 0,
           shape: RoundedRectangleBorder(

@@ -6,7 +6,6 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/edit_auto_backup_view.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -86,7 +85,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             child: Text(
               "Back",
               style: STextStyles.button.copyWith(
-                color: CFColors.stackAccent,
+                color: StackTheme.instance.color.accentColorDark,
               ),
             ),
             onPressed: () {
@@ -96,7 +95,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           rightButton: TextButton(
             style: Theme.of(context).textButtonTheme.style?.copyWith(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                    CFColors.stackAccent,
+                    StackTheme.instance.color.accentColorDark,
                   ),
                 ),
             child: Text(
@@ -142,7 +141,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             child: Text(
               "Back",
               style: STextStyles.button.copyWith(
-                color: CFColors.stackAccent,
+                color: StackTheme.instance.color.accentColorDark,
               ),
             ),
             onPressed: () {
@@ -152,7 +151,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           rightButton: TextButton(
             style: Theme.of(context).textButtonTheme.style?.copyWith(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                    CFColors.stackAccent,
+                    StackTheme.instance.color.accentColorDark,
                   ),
                 ),
             child: Text(
@@ -243,7 +242,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: CFColors.splashLight,
+                // splashColor: StackTheme.instance.color.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -356,7 +355,8 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       controller: fileLocationController,
                       enabled: false,
                       style: STextStyles.field.copyWith(
-                        color: CFColors.stackAccent.withOpacity(0.5),
+                        color:
+                            StackTheme.instance.color.textDark.withOpacity(0.5),
                       ),
                       readOnly: true,
                       enableSuggestions: false,
@@ -386,7 +386,8 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       controller: passwordController,
                       enabled: false,
                       style: STextStyles.field.copyWith(
-                        color: CFColors.stackAccent.withOpacity(0.5),
+                        color:
+                            StackTheme.instance.color.textDark.withOpacity(0.5),
                       ),
                       obscureText: true,
                       enableSuggestions: false,
@@ -418,7 +419,8 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                     controller: frequencyController,
                     enabled: false,
                     style: STextStyles.field.copyWith(
-                      color: CFColors.stackAccent.withOpacity(0.5),
+                      color:
+                          StackTheme.instance.color.textDark.withOpacity(0.5),
                     ),
                     toolbarOptions: const ToolbarOptions(
                       copy: true,

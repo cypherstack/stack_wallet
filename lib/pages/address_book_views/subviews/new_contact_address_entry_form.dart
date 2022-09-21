@@ -9,7 +9,6 @@ import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -82,7 +81,7 @@ class _NewContactAddressEntryFormState
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: RawMaterialButton(
-                  splashColor: CFColors.splashLight,
+                  splashColor: StackTheme.instance.color.highlight,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
@@ -136,7 +135,7 @@ class _NewContactAddressEntryFormState
                         Assets.svg.chevronDown,
                         width: 8,
                         height: 4,
-                        color: CFColors.gray3,
+                        color: StackTheme.instance.color.textSubtitle2,
                       ),
                     ],
                   ),

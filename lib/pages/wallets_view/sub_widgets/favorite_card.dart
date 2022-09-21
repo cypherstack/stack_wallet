@@ -6,12 +6,11 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:tuple/tuple.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
@@ -71,7 +70,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                 width: widget.width,
                 height: widget.height,
                 decoration: BoxDecoration(
-                  color: CFColors.coin.forCoin(coin),
+                  color: StackTheme.instance.colorForCoin(coin),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),

@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/exchange/change_now/currency.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -140,6 +139,7 @@ class _FloatingRateCurrencySelectionViewState
                                     setState(() {
                                       _searchController.text = "";
                                     });
+                                    filter("");
                                   },
                                 ),
                               ],
@@ -184,12 +184,12 @@ class _FloatingRateCurrencySelectionViewState
                           child: Row(
                             children: [
                               SizedBox(
-                                width: 20,
-                                height: 20,
+                                width: 24,
+                                height: 24,
                                 child: SvgPicture.network(
                                   items[index].image,
-                                  width: 20,
-                                  height: 20,
+                                  width: 24,
+                                  height: 24,
                                   placeholderBuilder: (_) =>
                                       const LoadingIndicator(),
                                 ),
@@ -197,9 +197,26 @@ class _FloatingRateCurrencySelectionViewState
                               const SizedBox(
                                 width: 10,
                               ),
-                              Text(
-                                "${items[index].name} / ${items[index].ticker.toUpperCase()}",
-                                style: STextStyles.titleBold12,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      items[index].name,
+                                      style: STextStyles.largeMedium14,
+                                    ),
+                                    const SizedBox(
+                                      height: 2,
+                                    ),
+                                    Text(
+                                      items[index].ticker.toUpperCase(),
+                                      style: STextStyles.smallMed12.copyWith(
+                                        color: StackTheme
+                                            .instance.color.textSubtitle1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -237,12 +254,12 @@ class _FloatingRateCurrencySelectionViewState
                           child: Row(
                             children: [
                               SizedBox(
-                                width: 20,
-                                height: 20,
+                                width: 24,
+                                height: 24,
                                 child: SvgPicture.network(
                                   _currencies[index].image,
-                                  width: 20,
-                                  height: 20,
+                                  width: 24,
+                                  height: 24,
                                   placeholderBuilder: (_) =>
                                       const LoadingIndicator(),
                                 ),
@@ -250,9 +267,26 @@ class _FloatingRateCurrencySelectionViewState
                               const SizedBox(
                                 width: 10,
                               ),
-                              Text(
-                                "${_currencies[index].name} / ${_currencies[index].ticker.toUpperCase()}",
-                                style: STextStyles.titleBold12,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _currencies[index].name,
+                                      style: STextStyles.largeMedium14,
+                                    ),
+                                    const SizedBox(
+                                      height: 2,
+                                    ),
+                                    Text(
+                                      _currencies[index].ticker.toUpperCase(),
+                                      style: STextStyles.smallMed12.copyWith(
+                                        color: StackTheme
+                                            .instance.color.textSubtitle1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),

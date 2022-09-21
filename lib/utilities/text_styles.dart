@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class STextStyles {
@@ -47,13 +46,13 @@ class STextStyles {
   );
 
   static final TextStyle smallMed14 = GoogleFonts.inter(
-    color: CFColors.neutral50,
+    color: StackTheme.instance.color.textDark3,
     fontWeight: FontWeight.w500,
     fontSize: 16,
   );
 
   static final TextStyle smallMed12 = GoogleFonts.inter(
-    color: CFColors.neutral50,
+    color: StackTheme.instance.color.textDark3,
     fontWeight: FontWeight.w500,
     fontSize: 14,
   );
@@ -65,7 +64,7 @@ class STextStyles {
   );
 
   static final TextStyle itemSubtitle = GoogleFonts.inter(
-    color: CFColors.neutral60,
+    color: StackTheme.instance.color.infoItemLabel,
     fontWeight: FontWeight.w500,
     fontSize: 14,
   );
@@ -77,7 +76,7 @@ class STextStyles {
   );
 
   static final TextStyle fieldLabel = GoogleFonts.inter(
-    color: CFColors.gray3,
+    color: StackTheme.instance.color.textSubtitle2,
     fontWeight: FontWeight.w500,
     fontSize: 14,
     height: 1.5,
@@ -139,7 +138,7 @@ class STextStyles {
   );
 
   static final TextStyle infoSmall = GoogleFonts.inter(
-    color: CFColors.neutral60,
+    color: StackTheme.instance.color.textSubtitle1,
     fontWeight: FontWeight.w500,
     fontSize: 10,
   );
@@ -189,42 +188,42 @@ class STextStyles {
   );
 
   static final TextStyle desktopButtonEnabled = GoogleFonts.inter(
-    color: CFColors.buttonTextPrimary,
+    color: StackTheme.instance.color.buttonTextPrimary,
     fontWeight: FontWeight.w500,
     fontSize: 20,
     height: 26 / 20,
   );
 
   static final TextStyle desktopButtonDisabled = GoogleFonts.inter(
-    color: CFColors.buttonTextPrimaryDisabled,
+    color: StackTheme.instance.color.buttonTextPrimaryDisabled,
     fontWeight: FontWeight.w500,
     fontSize: 20,
     height: 26 / 20,
   );
 
   static final TextStyle desktopButtonSecondaryEnabled = GoogleFonts.inter(
-    color: CFColors.buttonTextSecondary,
+    color: StackTheme.instance.color.buttonTextSecondary,
     fontWeight: FontWeight.w500,
     fontSize: 20,
     height: 26 / 20,
   );
 
   static final TextStyle desktopTextExtraSmall = GoogleFonts.inter(
-    color: CFColors.buttonTextPrimaryDisabled,
+    color: StackTheme.instance.color.buttonTextPrimaryDisabled,
     fontWeight: FontWeight.w500,
     fontSize: 16,
     height: 24 / 16,
   );
 
   static final TextStyle desktopButtonSmallSecondaryEnabled = GoogleFonts.inter(
-    color: CFColors.buttonTextSecondary,
+    color: StackTheme.instance.color.buttonTextSecondary,
     fontWeight: FontWeight.w500,
     fontSize: 16,
     height: 24 / 16,
   );
 
   static final TextStyle desktopTextFieldLabel = GoogleFonts.inter(
-    color: CFColors.textSubtitle2,
+    color: StackTheme.instance.color.textSubtitle2,
     fontWeight: FontWeight.w500,
     fontSize: 20,
     height: 30 / 20,

@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class XIcon extends StatelessWidget {
@@ -9,7 +8,7 @@ class XIcon extends StatelessWidget {
     Key? key,
     this.width = 18,
     this.height = 18,
-    this.color = CFColors.neutral50,
+    this.color,
   }) : super(key: key);
 
   final double width;
@@ -22,7 +21,7 @@ class XIcon extends StatelessWidget {
       Assets.svg.x,
       width: width,
       height: height,
-      color: color,
+      color: color ?? StackTheme.instance.color.textFieldActiveSearchIconRight,
     );
   }
 }

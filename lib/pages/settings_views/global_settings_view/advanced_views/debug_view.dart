@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
@@ -10,7 +11,6 @@ import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -117,12 +117,12 @@ class _DebugViewState extends ConsumerState<DebugView> {
                 color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.trash,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                   width: 20,
                   height: 20,
                 ),
                 onPressed: () async {
-                  showDialog<void>(
+                  await showDialog<void>(
                     context: context,
                     builder: (_) => StackDialog(
                       title: "Delete logs?",
@@ -145,8 +145,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             .style
                             ?.copyWith(
                               backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.stackAccent,
-                              ),
+                                  StackTheme.instance.color.accentColorDark),
                             ),
                         child: Text(
                           "Delete logs",
@@ -156,7 +155,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                           Navigator.of(context).pop();
 
                           bool shouldPop = false;
-                          showDialog<dynamic>(
+                          unawaited(showDialog<dynamic>(
                             barrierDismissible: false,
                             context: context,
                             builder: (_) => WillPopScope(
@@ -164,11 +163,11 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 return shouldPop;
                               },
                               child: const CustomLoadingOverlay(
-                                message: "Generating Stack logs file",
+                                message: "Deleting logs...",
                                 eventBus: null,
                               ),
                             ),
-                          );
+                          ));
 
                           await ref
                               .read(debugServiceProvider)
@@ -178,10 +177,10 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                           if (mounted) {
                             Navigator.pop(context);
-                            showFloatingFlushBar(
+                            unawaited(showFloatingFlushBar(
                                 type: FlushBarType.info,
                                 context: context,
-                                message: 'Logs cleared!');
+                                message: 'Logs cleared!'));
                           }
                         },
                       ),
@@ -312,7 +311,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 if (path != null) {
                                   final eventBus = EventBus();
                                   bool shouldPop = false;
-                                  showDialog<dynamic>(
+                                  unawaited(showDialog<dynamic>(
                                     barrierDismissible: false,
                                     context: context,
                                     builder: (_) => WillPopScope(
@@ -324,7 +323,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         eventBus: eventBus,
                                       ),
                                     ),
-                                  );
+                                  ));
 
                                   await ref
                                       .read(debugServiceProvider)
@@ -334,10 +333,10 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                                   if (mounted) {
                                     Navigator.pop(context);
-                                    showFloatingFlushBar(
+                                    unawaited(showFloatingFlushBar(
                                         type: FlushBarType.info,
                                         context: context,
-                                        message: 'Logs file saved');
+                                        message: 'Logs file saved'));
                                   }
                                 }
                               },
@@ -378,14 +377,14 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         return Container(
                           key: Key("log_${log.id}_${log.timestampInMillisUTC}"),
                           decoration: BoxDecoration(
-                            color: CFColors.white,
+                            color: StackTheme.instance.color.popupBG,
                             borderRadius: _borderRadius(index, logs.length),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(4),
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color: CFColors.white,
+                              color: StackTheme.instance.color.popupBG,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -415,7 +414,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         "[${DateTime.fromMillisecondsSinceEpoch(log.timestampInMillisUTC, isUtc: true)}]: ",
                                         style: STextStyles.baseXS.copyWith(
                                           fontSize: 8,
-                                          color: CFColors.neutral50,
+                                          color: StackTheme
+                                              .instance.color.textDark3,
                                         ),
                                       ),
                                     ],

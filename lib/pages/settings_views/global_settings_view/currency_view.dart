@@ -4,7 +4,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
@@ -204,7 +203,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                       (context, index) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: CFColors.white,
+                            color: StackTheme.instance.color.popupBG,
                             borderRadius: _borderRadius(index),
                           ),
                           child: Padding(
@@ -214,8 +213,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
                               color: currenciesWithoutSelected[index] == current
-                                  ? CFColors.selected
-                                  : CFColors.white,
+                                  ? StackTheme.instance.color.currencyListItemBG
+                                  : StackTheme.instance.color.popupBG,
                               child: RawMaterialButton(
                                 onPressed: () async {
                                   onTap(index);

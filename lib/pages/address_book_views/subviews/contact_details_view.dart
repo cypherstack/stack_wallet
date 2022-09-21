@@ -13,7 +13,6 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -164,7 +163,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.trash,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -279,12 +278,11 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Row(
                           children: [
-                            SvgPicture.asset(
-                              Assets.svg.pencil,
-                              width: 10,
-                              height: 10,
-                              color: CFColors.stackAccent,
-                            ),
+                            SvgPicture.asset(Assets.svg.pencil,
+                                width: 10,
+                                height: 10,
+                                color:
+                                    StackTheme.instance.color.accentColorDark),
                             const SizedBox(
                               width: 4,
                             ),
@@ -382,12 +380,11 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   color: StackTheme
                                       .instance.color.textFieldDefaultBG,
                                   padding: const EdgeInsets.all(4),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.pencil,
-                                    width: 12,
-                                    height: 12,
-                                    color: CFColors.stackAccent,
-                                  ),
+                                  child: SvgPicture.asset(Assets.svg.pencil,
+                                      width: 12,
+                                      height: 12,
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                               ),
                               const SizedBox(
@@ -409,12 +406,11 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   color: StackTheme
                                       .instance.color.textFieldDefaultBG,
                                   padding: const EdgeInsets.all(4),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.copy,
-                                    width: 12,
-                                    height: 12,
-                                    color: CFColors.stackAccent,
-                                  ),
+                                  child: SvgPicture.asset(Assets.svg.copy,
+                                      width: 12,
+                                      height: 12,
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                               ),
                             ],

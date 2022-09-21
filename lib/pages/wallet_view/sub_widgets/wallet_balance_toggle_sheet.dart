@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
@@ -25,9 +24,9 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
         .select((value) => value.getManager(walletId).coin));
 
     return Container(
-      decoration: const BoxDecoration(
-        color: CFColors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: StackTheme.instance.color.popupBG,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
       ),
@@ -126,7 +125,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                             Text(
                               "Current spendable (unlocked) balance",
                               style: STextStyles.itemSubtitle12.copyWith(
-                                color: CFColors.neutral60,
+                                color: StackTheme.instance.color.textSubtitle1,
                               ),
                             ),
                           ],
@@ -145,7 +144,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                             Text(
                               "Current private spendable (unlocked) balance",
                               style: STextStyles.itemSubtitle12.copyWith(
-                                color: CFColors.neutral60,
+                                color: StackTheme.instance.color.textSubtitle1,
                               ),
                             ),
                           ],
@@ -213,7 +212,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                             Text(
                               "Total wallet balance",
                               style: STextStyles.itemSubtitle12.copyWith(
-                                color: CFColors.neutral60,
+                                color: StackTheme.instance.color.textSubtitle1,
                               ),
                             ),
                           ],
@@ -232,7 +231,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                             Text(
                               "Current public spendable (unlocked) balance",
                               style: STextStyles.itemSubtitle12.copyWith(
-                                color: CFColors.neutral60,
+                                color: StackTheme.instance.color.textSubtitle1,
                               ),
                             ),
                           ],

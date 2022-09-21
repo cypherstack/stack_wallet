@@ -6,11 +6,10 @@ import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/n
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/searchable_coin_list.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -117,8 +116,8 @@ class _AddWalletViewState extends State<AddWalletView> {
                                   Assets.svg.search,
                                   width: 24,
                                   height: 24,
-                                  color:
-                                      CFColors.textFieldDefaultSearchIconLeft,
+                                  color: StackTheme.instance.color
+                                      .textFieldDefaultSearchIconLeft,
                                 ),
                               ),
                               suffixIcon: _searchFieldController.text.isNotEmpty

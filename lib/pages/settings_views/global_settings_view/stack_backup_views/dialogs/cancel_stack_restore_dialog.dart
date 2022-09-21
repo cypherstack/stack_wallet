@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -34,7 +33,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
           child: Text(
             "Yes, cancel",
             style: STextStyles.itemSubtitle12.copyWith(
-              color: CFColors.white,
+              color: StackTheme.instance.color.buttonTextPrimary,
             ),
           ),
           onPressed: () {

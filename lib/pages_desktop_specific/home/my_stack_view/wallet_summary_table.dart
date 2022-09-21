@@ -42,7 +42,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
               vertical: 16,
             ),
             decoration: BoxDecoration(
-              color: CFColors.popupBackground,
+              color: StackTheme.instance.color.popupBG,
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),
@@ -63,7 +63,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                     Text(
                       providersByCoin[i].key.prettyName,
                       style: STextStyles.desktopTextExtraSmall.copyWith(
-                        color: CFColors.textDark,
+                        color: StackTheme.instance.color.textDark,
                       ),
                     )
                   ],
@@ -76,7 +76,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                       ? "${providersByCoin[i].value.length} wallet"
                       : "${providersByCoin[i].value.length} wallets",
                   style: STextStyles.desktopTextExtraSmall.copyWith(
-                    color: CFColors.textSubtitle1,
+                    color: StackTheme.instance.color.textSubtitle1,
                   ),
                 ),
               ),
@@ -146,7 +146,7 @@ class TablePriceInfo extends ConsumerWidget {
         Text(
           "$priceString $currency/${coin.ticker}",
           style: STextStyles.desktopTextExtraSmall.copyWith(
-            color: CFColors.textSubtitle1,
+            color: StackTheme.instance.color.textSubtitle1,
           ),
         ),
         Text(

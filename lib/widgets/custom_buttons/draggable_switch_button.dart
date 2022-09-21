@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class DraggableSwitchButton extends StatefulWidget {
@@ -38,21 +37,21 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
   Color _colorBG(bool isOn, bool enabled, double alpha) {
     if (enabled) {
       return Color.alphaBlend(
-        CFColors.primary.withOpacity(alpha),
-        CFColors.primaryLight,
+        StackTheme.instance.color.switchBGOn.withOpacity(alpha),
+        StackTheme.instance.color.switchBGOff,
       );
     }
-    return CFColors.neutral80;
+    return StackTheme.instance.color.switchBGDisabled;
   }
 
   Color _colorFG(bool isOn, bool enabled, double alpha) {
     if (enabled) {
       return Color.alphaBlend(
-        CFColors.primaryLight.withOpacity(alpha),
-        CFColors.white,
+        StackTheme.instance.color.switchCircleOn.withOpacity(alpha),
+        StackTheme.instance.color.switchCircleOff,
       );
     }
-    return CFColors.white;
+    return StackTheme.instance.color.switchCircleDisabled;
   }
 
   @override

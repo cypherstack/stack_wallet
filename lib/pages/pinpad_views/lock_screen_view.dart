@@ -12,7 +12,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -152,8 +151,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: CFColors.gray3,
-      border: Border.all(width: 1, color: CFColors.gray3),
+      color: StackTheme.instance.color.textSubtitle2,
+      border:
+          Border.all(width: 1, color: StackTheme.instance.color.textSubtitle2),
       borderRadius: BorderRadius.circular(6),
     );
   }

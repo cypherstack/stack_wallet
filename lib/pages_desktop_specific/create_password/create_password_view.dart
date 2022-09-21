@@ -6,7 +6,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -196,7 +195,8 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                           hidePassword
                                               ? Assets.svg.eye
                                               : Assets.svg.eyeSlash,
-                                          color: CFColors.neutral50,
+                                          color: StackTheme
+                                              .instance.color.textDark3,
                                           width: 24,
                                           height: 19,
                                         ),
@@ -260,7 +260,8 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                 passwordFeedback,
                                 style:
                                     STextStyles.desktopTextExtraSmall.copyWith(
-                                  color: CFColors.textSubtitle1,
+                                  color:
+                                      StackTheme.instance.color.textSubtitle1,
                                 ),
                               )
                             : null,
@@ -340,7 +341,8 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                                   passwordStrength == 1
                                               ? StackTheme.instance.color
                                                   .accentColorGreen
-                                              : CFColors.neutral50,
+                                              : StackTheme
+                                                  .instance.color.textDark3,
                                           width: 24,
                                           height: 19,
                                         ),

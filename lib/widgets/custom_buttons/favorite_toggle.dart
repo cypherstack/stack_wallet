@@ -52,7 +52,7 @@ class _FavoriteToggleState extends State<FavoriteToggle> {
         borderRadius: widget.borderRadius,
       ),
       child: MaterialButton(
-        splashColor: CFColors.splashLight,
+        splashColor: StackTheme.instance.color.highlight,
         minWidth: 0,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(

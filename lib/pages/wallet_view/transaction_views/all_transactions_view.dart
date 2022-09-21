@@ -9,10 +9,9 @@ import 'package:stackwallet/providers/global/address_book_service_provider.dart'
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -200,7 +199,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                 color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.filter,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                   width: 20,
                   height: 20,
                 ),

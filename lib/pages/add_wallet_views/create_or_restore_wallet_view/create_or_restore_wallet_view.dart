@@ -4,9 +4,8 @@ import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_title.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_wallet_button_group.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -82,7 +81,7 @@ class CreateOrRestoreWalletView extends StatelessWidget {
           ),
         ),
         body: Container(
-          color: CFColors.background,
+          color: StackTheme.instance.color.background,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
