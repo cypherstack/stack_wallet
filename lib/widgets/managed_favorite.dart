@@ -83,29 +83,30 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
               const SizedBox(
                 width: 12,
               ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    manager.walletName,
-                    style: STextStyles.titleBold12,
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  Text(
-                    "${Format.localizedStringAsFixed(
-                      value: manager.cachedTotalBalance,
-                      locale: ref.watch(localeServiceChangeNotifierProvider
-                          .select((value) => value.locale)),
-                      decimalPlaces: 8,
-                    )} ${manager.coin.ticker}",
-                    style: STextStyles.itemSubtitle,
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      manager.walletName,
+                      style: STextStyles.titleBold12,
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
+                    Text(
+                      "${Format.localizedStringAsFixed(
+                        value: manager.cachedTotalBalance,
+                        locale: ref.watch(localeServiceChangeNotifierProvider
+                            .select((value) => value.locale)),
+                        decimalPlaces: 8,
+                      )} ${manager.coin.ticker}",
+                      style: STextStyles.itemSubtitle,
+                    ),
+                  ],
+                ),
               ),
-              const Spacer(),
               FavoriteToggle(
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
