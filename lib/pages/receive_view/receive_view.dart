@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -110,7 +111,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     });
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -158,7 +159,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                   Assets.svg.copy,
                                   width: 10,
                                   height: 10,
-                                  color: CFColors.link2,
+                                  color:
+                                      StackTheme.instance.color.infoItemIcons,
                                 ),
                                 const SizedBox(
                                   width: 4,
@@ -195,11 +197,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                 if (coin != Coin.epicCash)
                   TextButton(
                     onPressed: generateNewAddress,
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        CFColors.buttonGray,
-                      ),
-                    ),
+                    style: StackTheme.instance
+                        .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "Generate new address",
                       style: STextStyles.button.copyWith(

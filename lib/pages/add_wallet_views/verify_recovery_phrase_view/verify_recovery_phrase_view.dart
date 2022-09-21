@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -263,7 +264,7 @@ class _VerifyRecoveryPhraseViewState
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: CFColors.fieldGray,
+                    color: StackTheme.instance.color.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius),
                   ),
@@ -322,10 +323,10 @@ class _VerifyRecoveryPhraseViewState
                                     }
                                   : null,
                               style: selectedWord.isNotEmpty
-                                  ? CFColors.getPrimaryEnabledButtonColor(
-                                      context)
-                                  : CFColors.getPrimaryDisabledButtonColor(
-                                      context),
+                                  ? StackTheme.instance
+                                      .getPrimaryEnabledButtonColor(context)
+                                  : StackTheme.instance
+                                      .getPrimaryDisabledButtonColor(context),
                               child: isDesktop
                                   ? Text(
                                       "Verify",

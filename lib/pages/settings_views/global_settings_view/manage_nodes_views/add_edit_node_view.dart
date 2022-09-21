@@ -20,6 +20,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -189,7 +190,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             : null;
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -220,7 +221,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   key: const Key("deleteNodeAppBarButtonKey"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     Assets.svg.trash,
                     color: CFColors.stackAccent,
@@ -290,11 +291,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                   await _testConnection();
                                 }
                               : null,
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                              CFColors.buttonGray,
-                            ),
-                          ),
+                          style: StackTheme.instance
+                              .getSecondaryEnabledButtonColor(context),
                           child: Text(
                             "Test connection",
                             style: STextStyles.button.copyWith(
@@ -306,15 +304,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                         ),
                         const SizedBox(height: 16),
                         TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      saveEnabled
-                                          ? CFColors.stackAccent
-                                          : CFColors.disabledButton,
-                                    ),
-                                  ),
+                          style: saveEnabled
+                              ? StackTheme.instance
+                                  .getPrimaryEnabledButtonColor(context)
+                              : StackTheme.instance
+                                  .getPrimaryDisabledButtonColor(context),
                           onPressed: saveEnabled
                               ? () async {
                                   final canConnect = await _testConnection(
@@ -892,7 +886,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         child: Checkbox(
                           fillColor: widget.readOnly
                               ? MaterialStateProperty.all(
-                                  CFColors.disabledButton)
+                                  StackTheme.instance.color.checkboxBGDisabled)
                               : null,
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,

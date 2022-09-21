@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -89,7 +90,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -113,7 +114,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                 key: const Key("deleteLogsAppBarButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.trash,
                   color: CFColors.stackAccent,
@@ -128,14 +129,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                       message:
                           "You are about to delete all logs permanently. Are you sure?",
                       leftButton: TextButton(
-                        style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.buttonGray,
-                              ),
-                            ),
+                        style: StackTheme.instance
+                            .getSecondaryEnabledButtonColor(context),
                         child: Text(
                           "Cancel",
                           style: STextStyles.itemSubtitle12,
@@ -401,14 +396,19 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         style: STextStyles.baseXS.copyWith(
                                           fontSize: 8,
                                           color: (log.logLevel == LogLevel.Info
-                                              ? CFColors.stackGreen
+                                              ? StackTheme.instance.color
+                                                  .accentColorGreen
                                               : (log.logLevel ==
                                                       LogLevel.Warning
-                                                  ? CFColors.stackYellow
+                                                  ? StackTheme.instance.color
+                                                      .accentColorYellow
                                                   : (log.logLevel ==
                                                           LogLevel.Error
                                                       ? Colors.orange
-                                                      : CFColors.stackRed))),
+                                                      : StackTheme
+                                                          .instance
+                                                          .color
+                                                          .accentColorRed))),
                                         ),
                                       ),
                                       Text(

@@ -11,6 +11,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_page_view/custom_page_view.dart'
     as cpv;
 
@@ -88,8 +89,8 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
               if (hasFavorites)
                 TextButton(
                   style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(CFColors.almostWhite),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        StackTheme.instance.color.background),
                   ),
                   child: SvgPicture.asset(
                     Assets.svg.ellipsis,
@@ -117,7 +118,7 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                   height: cardHeight,
                   width: cardWidth,
                   decoration: BoxDecoration(
-                    color: CFColors.fieldGray,
+                    color: StackTheme.instance.color.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius),
                   ),

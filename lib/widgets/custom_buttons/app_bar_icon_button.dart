@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 class AppBarIconButton extends StatelessWidget {
@@ -65,7 +66,7 @@ class AppBarBackButton extends StatelessWidget {
         size: isDesktop ? 56 : 32,
         color: isDesktop
             ? CFColors.textFieldDefaultBackground
-            : CFColors.almostWhite,
+            : StackTheme.instance.color.background,
         shadows: const [],
         icon: SvgPicture.asset(
           Assets.svg.arrowLeft,

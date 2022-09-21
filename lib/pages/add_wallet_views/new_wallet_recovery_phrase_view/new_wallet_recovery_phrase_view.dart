@@ -19,6 +19,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -141,7 +142,7 @@ class _NewWalletRecoveryPhraseViewState
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          color: CFColors.almostWhite,
+                          color: StackTheme.instance.color.background,
                           shadows: const [],
                           icon: SvgPicture.asset(
                             Assets.svg.copy,
@@ -284,7 +285,8 @@ class _NewWalletRecoveryPhraseViewState
                           arguments: Tuple2(_manager, _mnemonic),
                         ));
                       },
-                      style: CFColors.getPrimaryEnabledButtonColor(context),
+                      style: StackTheme.instance
+                          .getPrimaryEnabledButtonColor(context),
                       child: Text(
                         "I saved my recovery phrase",
                         style: isDesktop

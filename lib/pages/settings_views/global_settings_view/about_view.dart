@@ -1,21 +1,20 @@
 import 'dart:convert';
 
-import 'package:http/http.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart';
+import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
-import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
-import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
-
-import 'package:stackwallet/utilities/logger.dart';
 
 const kGithubAPI = "https://api.github.com";
 const kGithubSearch = "/search/commits";
@@ -119,7 +118,7 @@ class AboutView extends ConsumerWidget {
     Future commitMoneroFuture = Future.wait(futureMoneroList);
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -269,15 +268,21 @@ class AboutView extends ConsumerWidget {
                             switch (stateOfCommit) {
                               case CommitStatus.isHead:
                                 indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackGreen);
+                                    .copyWith(
+                                        color: StackTheme
+                                            .instance.color.accentColorGreen);
                                 break;
                               case CommitStatus.isOldCommit:
                                 indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackYellow);
+                                    .copyWith(
+                                        color: StackTheme
+                                            .instance.color.accentColorYellow);
                                 break;
                               case CommitStatus.notACommit:
                                 indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackRed);
+                                    .copyWith(
+                                        color: StackTheme
+                                            .instance.color.accentColorRed);
                                 break;
                               default:
                                 break;
@@ -329,15 +334,21 @@ class AboutView extends ConsumerWidget {
                             switch (stateOfCommit) {
                               case CommitStatus.isHead:
                                 indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackGreen);
+                                    .copyWith(
+                                        color: StackTheme
+                                            .instance.color.accentColorGreen);
                                 break;
                               case CommitStatus.isOldCommit:
                                 indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackYellow);
+                                    .copyWith(
+                                        color: StackTheme
+                                            .instance.color.accentColorYellow);
                                 break;
                               case CommitStatus.notACommit:
                                 indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackRed);
+                                    .copyWith(
+                                        color: StackTheme
+                                            .instance.color.accentColorRed);
                                 break;
                               default:
                                 break;
@@ -389,15 +400,21 @@ class AboutView extends ConsumerWidget {
                             switch (stateOfCommit) {
                               case CommitStatus.isHead:
                                 indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackGreen);
+                                    .copyWith(
+                                        color: StackTheme
+                                            .instance.color.accentColorGreen);
                                 break;
                               case CommitStatus.isOldCommit:
                                 indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackYellow);
+                                    .copyWith(
+                                        color: StackTheme
+                                            .instance.color.accentColorYellow);
                                 break;
                               case CommitStatus.notACommit:
                                 indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackRed);
+                                    .copyWith(
+                                        color: StackTheme
+                                            .instance.color.accentColorRed);
                                 break;
                               default:
                                 break;

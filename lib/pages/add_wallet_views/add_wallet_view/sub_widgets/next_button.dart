@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class AddWalletNextButton extends ConsumerWidget {
   const AddWalletNextButton({
@@ -34,8 +34,8 @@ class AddWalletNextButton extends ConsumerWidget {
               );
             },
       style: enabled
-          ? CFColors.getPrimaryEnabledButtonColor(context)
-          : CFColors.getPrimaryDisabledButtonColor(context),
+          ? StackTheme.instance.getPrimaryEnabledButtonColor(context)
+          : StackTheme.instance.getPrimaryDisabledButtonColor(context),
       child: Text(
         "Next",
         style: isDesktop

@@ -7,6 +7,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class WalletBalanceToggleSheet extends ConsumerWidget {
   const WalletBalanceToggleSheet({
@@ -46,7 +47,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CFColors.fieldGray,
+                    color: StackTheme.instance.color.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -94,7 +95,8 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         width: 20,
                         height: 20,
                         child: Radio(
-                          activeColor: CFColors.link2,
+                          activeColor:
+                              StackTheme.instance.color.radioButtonIconEnabled,
                           value: WalletBalanceToggleState.available,
                           groupValue: ref
                               .watch(walletBalanceToggleStateProvider.state)
@@ -180,7 +182,8 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         width: 20,
                         height: 20,
                         child: Radio(
-                          activeColor: CFColors.link2,
+                          activeColor:
+                              StackTheme.instance.color.radioButtonIconEnabled,
                           value: WalletBalanceToggleState.full,
                           groupValue: ref
                               .watch(walletBalanceToggleStateProvider.state)

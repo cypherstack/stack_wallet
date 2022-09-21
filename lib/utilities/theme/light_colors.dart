@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 
-class DarkColors extends StackColorTheme {
+class LightColors extends StackColorTheme {
   @override
-  Color get background => const Color(0xFF2A2D34);
+  Color get background => const Color(0xFFF7F7F7);
   @override
   Color get overlay => const Color(0xFF111215);
 
@@ -21,32 +21,32 @@ class DarkColors extends StackColorTheme {
   Color get accentColorDark => const Color(0xFFF3F3F3);
 
   @override
-  Color get textDark => const Color(0xFFF3F3F3);
+  Color get textDark => const Color(0xFF232323);
   @override
-  Color get textDark2 => const Color(0xFFDBDBDB);
+  Color get textDark2 => const Color(0xFF414141);
   @override
-  Color get textDark3 => const Color(0xFFEEEFF1);
+  Color get textDark3 => const Color(0xFF747778);
   @override
-  Color get textSubtitle1 => const Color(0xFF9E9E9E);
+  Color get textSubtitle1 => const Color(0xFF8E9192);
   @override
-  Color get textSubtitle2 => const Color(0xFF969696);
+  Color get textSubtitle2 => const Color(0xFFA9ACAC);
   @override
-  Color get textSubtitle3 => const Color(0xFFA9ACAC);
+  Color get textSubtitle3 => const Color(0xFFC4C7C7);
   @override
-  Color get textSubtitle4 => const Color(0xFF8E9192);
+  Color get textSubtitle4 => const Color(0xFFE0E3E3);
   @override
-  Color get textSubtitle5 => const Color(0xFF747778);
+  Color get textSubtitle5 => const Color(0xFFEEEFF1);
   @override
-  Color get textSubtitle6 => const Color(0xFF414141);
+  Color get textSubtitle6 => const Color(0xFFF5F5F5);
   @override
-  Color get textWhite => const Color(0xFF232323);
+  Color get textWhite => const Color(0xFFFFFFFF);
 
   @override
-  Color get textError => const Color(0xFFF37475);
+  Color get textError => const Color(0xFF930006);
 
   // button background
   @override
-  Color get buttonBackPrimary => const Color(0xFF4C86E9);
+  Color get buttonBackPrimary => const Color(0xFF232323);
   @override
   Color get buttonBackSecondary => const Color(0xFF444E5C);
   @override
@@ -54,14 +54,14 @@ class DarkColors extends StackColorTheme {
   @override
   Color get buttonBackSecondaryDisabled => const Color(0xFF3B3F46);
   @override
-  Color get buttonBackBorder => const Color(0xFF4C86E9);
+  Color get buttonBackBorder => const Color(0xFF232323);
   @override
   Color get buttonBackBorderDisabled => const Color(0xFF314265);
 
   @override
   Color get numberBackDefault => const Color(0xFF484B51);
   @override
-  Color get numpadBackDefault => const Color(0xFF4C86E9);
+  Color get numpadBackDefault => const Color(0xFF232323);
   @override
   Color get bottomNavBack => const Color(0xFFA2A2A2);
 
@@ -91,39 +91,39 @@ class DarkColors extends StackColorTheme {
 
   // switch
   @override
-  Color get switchBGOn => const Color(0xFF4C86E9);
+  Color get switchBGOn => const Color(0xFF0052DF);
   @override
-  Color get switchBGOff => const Color(0xFFC1D9FF);
+  Color get switchBGOff => const Color(0xFFD8E4FB);
   @override
-  Color get switchBGDisabled => const Color(0xFFB5B7BA);
+  Color get switchBGDisabled => const Color(0xFFC5C6C9);
   @override
-  Color get switchCircleOn => const Color(0xFFC9DDFF);
+  Color get switchCircleOn => const Color(0xFFDAE2FF);
   @override
-  Color get switchCircleOff => const Color(0xFFFFFFFF);
+  Color get switchCircleOff => const Color(0xFFFBFCFF);
   @override
-  Color get switchCircleDisabled => const Color(0xFFFFFFFF);
+  Color get switchCircleDisabled => const Color(0xFFFBFCFF);
 
   // step indicator background
   @override
-  Color get stepIndicatorBGCheck => const Color(0xFF4C86E9);
+  Color get stepIndicatorBGCheck => const Color(0xFFD9E2FF);
   @override
-  Color get stepIndicatorBGNumber => const Color(0xFF4C86E9);
+  Color get stepIndicatorBGNumber => const Color(0xFFD9E2FF);
   @override
-  Color get stepIndicatorBGInactive => const Color(0xFF3B3F46);
+  Color get stepIndicatorBGInactive => const Color(0xFFCDCDCD);
   @override
-  Color get stepIndicatorBGLines => const Color(0xFF4C86E9);
+  Color get stepIndicatorBGLines => const Color(0xFF0056D2);
   @override
-  Color get stepIndicatorBGLinesInactive => const Color(0xFF3B3F46);
+  Color get stepIndicatorBGLinesInactive => const Color(0xFFCDCDCD);
   @override
-  Color get stepIndicatorIconText => const Color(0xFFFFFFFF);
+  Color get stepIndicatorIconText => const Color(0xFF0056D2);
   @override
-  Color get stepIndicatorIconNumber => const Color(0xFFFFFFFF);
+  Color get stepIndicatorIconNumber => const Color(0xFF0056D2);
   @override
-  Color get stepIndicatorIconInactive => const Color(0xFF747474);
+  Color get stepIndicatorIconInactive => const Color(0xFFD9E2FF);
 
   // checkbox
   @override
-  Color get checkboxBGChecked => const Color(0xFF4C86E9);
+  Color get checkboxBGChecked => const Color(0xFF0056D2);
   @override
   Color get checkboxBorderEmpty => const Color(0xFF8E9192);
   @override
@@ -133,7 +133,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get checkboxIconDisabled => const Color(0xFFFFFFFF);
   @override
-  Color get checkboxTextLabel => const Color(0xFFFFFFFF);
+  Color get checkboxTextLabel => const Color(0xFF232323);
 
   // snack bar
   @override
@@ -175,9 +175,9 @@ class DarkColors extends StackColorTheme {
 
   // text field
   @override
-  Color get textFieldActiveBG => const Color(0xFF4C5360);
+  Color get textFieldActiveBG => const Color(0xFFE9EAEC);
   @override
-  Color get textFieldDefaultBG => const Color(0xFF444953);
+  Color get textFieldDefaultBG => const Color(0xFFEEEFF1);
   @override
   Color get textFieldErrorBG => const Color(0xFFFFB4A9);
   @override

@@ -23,6 +23,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -140,9 +141,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
         Decimal.parse("-1");
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: StackTheme.instance.color.background,
         leading: AppBarBackButton(
           onPressed: () async {
             Navigator.of(context).pop();
@@ -402,13 +403,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                               // await _capturePng(true);
                                               Navigator.of(context).pop();
                                             },
-                                            style: ButtonStyle(
-                                              backgroundColor:
-                                                  MaterialStateProperty.all<
-                                                      Color>(
-                                                CFColors.buttonGray,
-                                              ),
-                                            ),
+                                            style: StackTheme.instance
+                                                .getSecondaryEnabledButtonColor(
+                                                    context),
                                             child: Text(
                                               "Cancel",
                                               style:
@@ -431,7 +428,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 Assets.svg.pencil,
                                 width: 10,
                                 height: 10,
-                                color: CFColors.link2,
+                                color: StackTheme.instance.color.infoItemIcons,
                               ),
                               const SizedBox(
                                 width: 4,
@@ -478,7 +475,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                   Assets.svg.pencil,
                                   width: 10,
                                   height: 10,
-                                  color: CFColors.link2,
+                                  color:
+                                      StackTheme.instance.color.infoItemIcons,
                                 ),
                                 const SizedBox(
                                   width: 4,
@@ -536,7 +534,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     Assets.svg.pencil,
                                     width: 10,
                                     height: 10,
-                                    color: CFColors.link2,
+                                    color:
+                                        StackTheme.instance.color.infoItemIcons,
                                   ),
                                   const SizedBox(
                                     width: 4,
@@ -655,7 +654,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             },
                             child: SvgPicture.asset(
                               Assets.svg.copy,
-                              color: CFColors.link2,
+                              color: StackTheme.instance.color.infoItemIcons,
                               width: 12,
                             ),
                           )

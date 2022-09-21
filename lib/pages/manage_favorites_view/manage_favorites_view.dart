@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -29,7 +30,7 @@ class ManageFavoritesView extends StatelessWidget {
         ),
       ),
       body: Container(
-        color: CFColors.almostWhite,
+        color: StackTheme.instance.color.background,
         child: Padding(
           padding: const EdgeInsets.only(
             left: 12,

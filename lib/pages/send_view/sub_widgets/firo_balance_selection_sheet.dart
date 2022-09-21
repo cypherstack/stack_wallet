@@ -8,6 +8,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 class FiroBalanceSelectionSheet extends ConsumerStatefulWidget {
@@ -69,7 +70,7 @@ class _FiroBalanceSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: CFColors.fieldGray,
+                  color: StackTheme.instance.color.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -114,7 +115,8 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor: CFColors.link2,
+                                activeColor: StackTheme
+                                    .instance.color.radioButtonIconEnabled,
                                 value: "Private",
                                 groupValue: ref
                                     .watch(
@@ -205,7 +207,8 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor: CFColors.link2,
+                                activeColor: StackTheme
+                                    .instance.color.radioButtonIconEnabled,
                                 value: "Public",
                                 groupValue: ref
                                     .watch(

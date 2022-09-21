@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -262,7 +263,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   "Choose start date",
                   style: isDesktop
                       ? STextStyles.desktopTextExtraSmall.copyWith(
-                          color: CFColors.textFieldActiveSearchIconRight,
+                          color: StackTheme.instance.color.textDark3,
                         )
                       : STextStyles.smallMed12,
                   textAlign: TextAlign.left,
@@ -307,7 +308,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 "Choose recovery phrase length",
                 style: isDesktop
                     ? STextStyles.desktopTextExtraSmall.copyWith(
-                        color: CFColors.textFieldActiveSearchIconRight,
+                        color: StackTheme.instance.color.textDark3,
                       )
                     : STextStyles.smallMed12,
                 textAlign: TextAlign.left,
@@ -342,20 +343,21 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       Assets.svg.chevronDown,
                       width: 12,
                       height: 6,
-                      color: CFColors.textFieldActiveSearchIconRight,
+                      color: StackTheme
+                          .instance.color.textFieldActiveSearchIconRight,
                     ),
                     buttonPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
                     ),
                     buttonDecoration: BoxDecoration(
-                      color: CFColors.fieldGray,
+                      color: StackTheme.instance.color.textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
                     ),
                     dropdownDecoration: BoxDecoration(
-                      color: CFColors.fieldGray,
+                      color: StackTheme.instance.color.textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),

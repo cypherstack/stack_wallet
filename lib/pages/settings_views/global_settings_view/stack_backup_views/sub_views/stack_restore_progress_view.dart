@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -138,22 +139,22 @@ class _StackRestoreProgressViewState
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: CFColors.buttonGray,
+          color: StackTheme.instance.color.buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: CFColors.stackGreen,
+          color: StackTheme.instance.color.accentColorGreen,
         );
       case StackRestoringStatus.success:
         return SvgPicture.asset(
           Assets.svg.checkCircle,
-          color: CFColors.stackGreen,
+          color: StackTheme.instance.color.accentColorGreen,
         );
       case StackRestoringStatus.failed:
         return SvgPicture.asset(
           Assets.svg.circleAlert,
-          color: CFColors.error,
+          color: StackTheme.instance.color.textError,
         );
     }
   }
@@ -178,7 +179,7 @@ class _StackRestoreProgressViewState
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: StackTheme.instance.color.background,
         appBar: AppBar(
           leading: AppBarBackButton(
             onPressed: () async {
@@ -237,7 +238,8 @@ class _StackRestoreProgressViewState
                           height: 32,
                           child: RoundedContainer(
                             padding: const EdgeInsets.all(0),
-                            color: CFColors.buttonGray,
+                            color:
+                                StackTheme.instance.color.buttonBackSecondary,
                             child: Center(
                               child: SvgPicture.asset(
                                 Assets.svg.gear,
@@ -271,13 +273,14 @@ class _StackRestoreProgressViewState
                       final state = ref.watch(stackRestoringUIStateProvider
                           .select((value) => value.addressBook));
                       return RestoringItemCard(
-                        left: const SizedBox(
+                        left: SizedBox(
                           width: 32,
                           height: 32,
                           child: RoundedContainer(
-                            padding: EdgeInsets.all(0),
-                            color: CFColors.buttonGray,
-                            child: Center(
+                            padding: const EdgeInsets.all(0),
+                            color:
+                                StackTheme.instance.color.buttonBackSecondary,
+                            child: const Center(
                               child: AddressBookIcon(
                                 width: 16,
                                 height: 16,
@@ -314,7 +317,8 @@ class _StackRestoreProgressViewState
                           height: 32,
                           child: RoundedContainer(
                             padding: const EdgeInsets.all(0),
-                            color: CFColors.buttonGray,
+                            color:
+                                StackTheme.instance.color.buttonBackSecondary,
                             child: Center(
                               child: SvgPicture.asset(
                                 Assets.svg.node,
@@ -353,7 +357,8 @@ class _StackRestoreProgressViewState
                           height: 32,
                           child: RoundedContainer(
                             padding: const EdgeInsets.all(0),
-                            color: CFColors.buttonGray,
+                            color:
+                                StackTheme.instance.color.buttonBackSecondary,
                             child: Center(
                               child: SvgPicture.asset(
                                 Assets.svg.arrowRotate2,

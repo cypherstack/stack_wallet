@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -52,7 +53,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -77,7 +78,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                 controller: _controller,
                 focusNode: _focusNode,
                 style: STextStyles.field,
-                onChanged: (_) => setState((){}),
+                onChanged: (_) => setState(() {}),
                 decoration: standardInputDecoration(
                   "Wallet name",
                   _focusNode,

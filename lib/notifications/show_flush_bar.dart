@@ -2,9 +2,9 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:another_flushbar/flushbar_route.dart' as flushRoute;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 Future<dynamic> showFloatingFlushBar({
   required FlushBarType type,
@@ -19,16 +19,16 @@ Future<dynamic> showFloatingFlushBar({
   Color fg;
   switch (type) {
     case FlushBarType.success:
-      fg = CFColors.notificationGreenForeground;
-      bg = CFColors.notificationGreenBackground;
+      fg = StackTheme.instance.color.snackBarTextSuccess;
+      bg = StackTheme.instance.color.snackBarBackSuccess;
       break;
     case FlushBarType.info:
-      fg = CFColors.notificationBlueForeground;
-      bg = CFColors.notificationBlueBackground;
+      fg = StackTheme.instance.color.snackBarTextInfo;
+      bg = StackTheme.instance.color.snackBarBackInfo;
       break;
     case FlushBarType.warning:
-      fg = CFColors.notificationRedForeground;
-      bg = CFColors.notificationRedBackground;
+      fg = StackTheme.instance.color.snackBarTextError;
+      bg = StackTheme.instance.color.snackBarBackError;
       break;
   }
   final bar = Flushbar<dynamic>(

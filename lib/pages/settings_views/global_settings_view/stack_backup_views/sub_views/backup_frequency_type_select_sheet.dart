@@ -5,6 +5,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
   const BackupFrequencyTypeSelectSheet({
@@ -51,7 +52,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CFColors.fieldGray,
+                    color: StackTheme.instance.color.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -100,7 +101,8 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: StackTheme
+                                        .instance.color.radioButtonIconEnabled,
                                     value: BackupFrequencyType.values[i],
                                     groupValue: ref.watch(
                                         prefsChangeNotifierProvider.select(

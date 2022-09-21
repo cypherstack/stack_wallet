@@ -8,6 +8,7 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -25,7 +26,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -101,11 +102,8 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         title:
                             "Do you want to delete ${ref.read(walletsChangeNotifierProvider).getManager(walletId).walletName}?",
                         leftButton: TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
-                              CFColors.buttonGray,
-                            ),
-                          ),
+                          style: StackTheme.instance
+                              .getSecondaryEnabledButtonColor(context),
                           onPressed: () {
                             Navigator.pop(context);
                           },

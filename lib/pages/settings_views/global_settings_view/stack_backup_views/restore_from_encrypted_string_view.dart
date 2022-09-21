@@ -12,6 +12,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -63,7 +64,7 @@ class _RestoreFromEncryptedStringViewState
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: StackTheme.instance.color.background,
         appBar: AppBar(
           leading: AppBarBackButton(
             onPressed: () async {
@@ -150,15 +151,11 @@ class _RestoreFromEncryptedStringViewState
                         ),
                         const Spacer(),
                         TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      passwordController.text.isEmpty
-                                          ? CFColors.disabledButton
-                                          : CFColors.stackAccent,
-                                    ),
-                                  ),
+                          style: passwordController.text.isEmpty
+                              ? StackTheme.instance
+                                  .getPrimaryEnabledButtonColor(context)
+                              : StackTheme.instance
+                                  .getPrimaryDisabledButtonColor(context),
                           onPressed: passwordController.text.isEmpty
                               ? null
                               : () async {

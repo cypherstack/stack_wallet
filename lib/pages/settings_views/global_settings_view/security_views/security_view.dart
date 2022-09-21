@@ -5,6 +5,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/security_v
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -23,7 +24,7 @@ class SecurityView extends StatelessWidget {
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class BlueTextButton extends StatefulWidget {
   const BlueTextButton({Key? key, required this.text, this.onTap})
@@ -22,14 +22,14 @@ class _BlueTextButtonState extends State<BlueTextButton>
 
   @override
   void initState() {
-    color = CFColors.link2;
+    color = StackTheme.instance.color.buttonTextBorderless;
     controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
     animation = ColorTween(
-      begin: CFColors.link2,
-      end: CFColors.link2.withOpacity(0.4),
+      begin: StackTheme.instance.color.buttonTextBorderless,
+      end: StackTheme.instance.color.buttonTextBorderless.withOpacity(0.4),
     ).animate(controller);
 
     animation.addListener(() {

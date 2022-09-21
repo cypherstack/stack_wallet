@@ -14,6 +14,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -231,11 +232,11 @@ class _TransactionSearchViewState
           child: Container(
             width: width,
             decoration: BoxDecoration(
-              color: CFColors.fieldGray,
+              color: StackTheme.instance.color.textFieldDefaultBG,
               borderRadius:
                   BorderRadius.circular(Constants.size.circularBorderRadius),
               border: Border.all(
-                color: CFColors.fieldGray,
+                color: StackTheme.instance.color.textFieldDefaultBG,
                 width: 1,
               ),
             ),
@@ -324,11 +325,11 @@ class _TransactionSearchViewState
           child: Container(
             width: width,
             decoration: BoxDecoration(
-              color: CFColors.fieldGray,
+              color: StackTheme.instance.color.textFieldDefaultBG,
               borderRadius:
                   BorderRadius.circular(Constants.size.circularBorderRadius),
               border: Border.all(
-                color: CFColors.fieldGray,
+                color: StackTheme.instance.color.textFieldDefaultBG,
                 width: 1,
               ),
             ),
@@ -363,9 +364,9 @@ class _TransactionSearchViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: StackTheme.instance.color.background,
         leading: AppBarBackButton(
           onPressed: () async {
             if (FocusScope.of(context).hasFocus) {
@@ -673,12 +674,8 @@ class _TransactionSearchViewState
                                     Navigator.of(context).pop();
                                   }
                                 },
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                    CFColors.buttonGray,
-                                  ),
-                                ),
+                                style: StackTheme.instance
+                                    .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
                                   style: STextStyles.button.copyWith(

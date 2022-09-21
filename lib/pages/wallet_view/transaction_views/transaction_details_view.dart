@@ -23,6 +23,7 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -185,11 +186,7 @@ class _TransactionDetailsViewState
           ),
         ),
         rightButton: TextButton(
-          style: Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.stackAccent,
-                ),
-              ),
+          style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
           onPressed: () {
             Navigator.of(context).pop(true);
           },
@@ -206,9 +203,9 @@ class _TransactionDetailsViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: StackTheme.instance.color.background,
         leading: AppBarBackButton(
           onPressed: () async {
             // if (FocusScope.of(context).hasFocus) {
@@ -380,7 +377,8 @@ class _TransactionDetailsViewState
                                   Assets.svg.pencil,
                                   width: 10,
                                   height: 10,
-                                  color: CFColors.link2,
+                                  color:
+                                      StackTheme.instance.color.infoItemIcons,
                                 ),
                                 const SizedBox(
                                   width: 4,
@@ -722,7 +720,7 @@ class _TransactionDetailsViewState
               child: TextButton(
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                    CFColors.error,
+                    StackTheme.instance.color.textError,
                   ),
                 ),
                 onPressed: () async {

@@ -11,6 +11,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -276,11 +277,12 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                           width: 458,
                           height: 8,
                           fillColor: passwordStrength < 0.51
-                              ? CFColors.stackRed
+                              ? StackTheme.instance.color.accentColorRed
                               : passwordStrength < 1
-                                  ? CFColors.stackYellow
-                                  : CFColors.stackGreen,
-                          backgroundColor: CFColors.buttonGray,
+                                  ? StackTheme.instance.color.accentColorYellow
+                                  : StackTheme.instance.color.accentColorGreen,
+                          backgroundColor:
+                              StackTheme.instance.color.buttonBackSecondary,
                           percent:
                               passwordStrength < 0.25 ? 0.03 : passwordStrength,
                         ),
@@ -336,7 +338,8 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                                   : Assets.svg.eyeSlash,
                                           color: fieldsMatch &&
                                                   passwordStrength == 1
-                                              ? CFColors.stackGreen
+                                              ? StackTheme.instance.color
+                                                  .accentColorGreen
                                               : CFColors.neutral50,
                                           width: 24,
                                           height: 19,
@@ -365,8 +368,10 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                       height: 70,
                       child: TextButton(
                         style: nextEnabled
-                            ? CFColors.getPrimaryEnabledButtonColor(context)
-                            : CFColors.getPrimaryDisabledButtonColor(context),
+                            ? StackTheme.instance
+                                .getPrimaryEnabledButtonColor(context)
+                            : StackTheme.instance
+                                .getPrimaryDisabledButtonColor(context),
                         onPressed: nextEnabled ? onNextPressed : null,
                         child: Text(
                           "Next",

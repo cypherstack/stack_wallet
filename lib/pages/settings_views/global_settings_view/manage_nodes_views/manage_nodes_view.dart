@@ -5,6 +5,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nod
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -48,7 +49,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
         : _coins.sublist(0, Coin.values.length - kTestNetCoinCount);
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {

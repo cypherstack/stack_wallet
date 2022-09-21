@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class DesktopMenuItem<T> extends StatelessWidget {
   const DesktopMenuItem({
@@ -24,8 +24,8 @@ class DesktopMenuItem<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       style: value == group
-          ? CFColors.getDesktopMenuButtonColorSelected(context)
-          : CFColors.getDesktopMenuButtonColor(context),
+          ? StackTheme.instance.getDesktopMenuButtonColorSelected(context)
+          : StackTheme.instance.getDesktopMenuButtonColor(context),
       onPressed: () {
         onChanged(value);
       },

@@ -33,6 +33,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -1136,7 +1137,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                 .select((value) =>
                                                     value.canExchange)))
                                     ? CFColors.stackAccent
-                                    : CFColors.buttonGray,
+                                    : StackTheme
+                                        .instance.color.buttonBackSecondary,
                               ),
                             ),
                         onPressed: ((ref
@@ -1303,16 +1305,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                         message:
                                             "${response.value!.warningMessage!}\n\nDo you want to attempt trade anyways?",
                                         leftButton: TextButton(
-                                          style: Theme.of(context)
-                                              .textButtonTheme
-                                              .style
-                                              ?.copyWith(
-                                                backgroundColor:
-                                                    MaterialStateProperty.all<
-                                                        Color>(
-                                                  CFColors.buttonGray,
-                                                ),
-                                              ),
+                                          style: StackTheme.instance
+                                              .getSecondaryEnabledButtonColor(
+                                                  context),
                                           child: Text(
                                             "Cancel",
                                             style: STextStyles.itemSubtitle12,

@@ -18,6 +18,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -44,7 +45,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
   final _cnLoadingService = ChangeNowLoadingService();
 
   Future<bool> _onWillPop() async {
-
     // go to home view when tapping back on the main exchange view
     if (ref.read(homeViewPageIndexStateProvider.state).state == 1) {
       ref.read(homeViewPageIndexStateProvider.state).state = 0;
@@ -172,7 +172,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   key: const Key("walletsViewAlertsButton"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     ref.watch(notificationsProvider
                             .select((value) => value.hasUnreadNotifications))
@@ -225,7 +225,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   key: const Key("walletsViewSettingsButton"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     Assets.svg.gear,
                     color: CFColors.stackAccent,
@@ -243,13 +243,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ],
         ),
         body: Container(
-          color: CFColors.almostWhite,
+          color: StackTheme.instance.color.background,
           child: Column(
             children: [
               if (Constants.enableExchange)
                 Container(
-                  decoration: const BoxDecoration(
-                    color: CFColors.almostWhite,
+                  decoration: BoxDecoration(
+                    color: StackTheme.instance.color.background,
                     boxShadow: [
                       CFColors.standardBoxShadow,
                     ],

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_indicator.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class StepRow extends StatelessWidget {
   const StepRow({
@@ -24,9 +25,9 @@ class StepRow extends StatelessWidget {
     }
 
     if (current <= index) {
-      return CFColors.stackAccent.withOpacity(0.2);
+      return StackTheme.instance.color.stepIndicatorBGLinesInactive;
     } else {
-      return CFColors.link2;
+      return StackTheme.instance.color.stepIndicatorBGLines;
     }
   }
 

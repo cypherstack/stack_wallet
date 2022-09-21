@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -177,7 +178,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                 Center(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: CFColors.fieldGray,
+                      color: StackTheme.instance.color.textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
@@ -203,8 +204,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                         height: 32,
                         decoration: BoxDecoration(
                           color: node.name == DefaultNodes.defaultName
-                              ? CFColors.buttonGray
-                              : CFColors.link2.withOpacity(0.2),
+                              ? StackTheme.instance.color.textSubtitle4
+                              : StackTheme.instance.color.infoItemIcons
+                                  .withOpacity(0.2),
                           borderRadius: BorderRadius.circular(100),
                         ),
                         child: Center(
@@ -213,8 +215,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                             height: 15,
                             width: 19,
                             color: node.name == DefaultNodes.defaultName
-                                ? CFColors.stackAccent
-                                : CFColors.link2,
+                                ? StackTheme.instance.color.accentColorDark
+                                : StackTheme.instance.color.infoItemIcons,
                           ),
                         ),
                       ),
@@ -241,8 +243,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                       SvgPicture.asset(
                         Assets.svg.network,
                         color: status == "Connected"
-                            ? CFColors.stackGreen
-                            : CFColors.buttonGray,
+                            ? StackTheme.instance.color.accentColorGreen
+                            : StackTheme.instance.color.buttonBackSecondary,
                         width: 18,
                       ),
                     ],
@@ -253,11 +255,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                     // if (!node.id.startsWith("default"))
                     Expanded(
                       child: TextButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            CFColors.buttonGray,
-                          ),
-                        ),
+                        style: StackTheme.instance
+                            .getSecondaryEnabledButtonColor(context),
                         onPressed: () {
                           Navigator.pop(context);
                           Navigator.of(context).pushNamed(
@@ -283,13 +282,11 @@ class NodeOptionsSheet extends ConsumerWidget {
                     ),
                     Expanded(
                       child: TextButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            status == "Connected"
-                                ? CFColors.disabledButton
-                                : CFColors.stackAccent,
-                          ),
-                        ),
+                        style: status == "Connected"
+                            ? StackTheme.instance
+                                .getPrimaryEnabledButtonColor(context)
+                            : StackTheme.instance
+                                .getPrimaryDisabledButtonColor(context),
                         onPressed: status == "Connected"
                             ? null
                             : () async {

@@ -25,6 +25,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -114,7 +115,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     final bool isWalletCoin =
         _isWalletCoinAndHasWallet(model.trade!.fromCurrency, ref);
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -225,7 +226,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       children: [
                                         SvgPicture.asset(
                                           Assets.svg.copy,
-                                          color: CFColors.link2,
+                                          color: StackTheme
+                                              .instance.color.infoItemIcons,
                                           width: 10,
                                         ),
                                         const SizedBox(
@@ -282,7 +284,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       children: [
                                         SvgPicture.asset(
                                           Assets.svg.copy,
-                                          color: CFColors.link2,
+                                          color: StackTheme
+                                              .instance.color.infoItemIcons,
                                           width: 10,
                                         ),
                                         const SizedBox(
@@ -340,7 +343,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     },
                                     child: SvgPicture.asset(
                                       Assets.svg.copy,
-                                      color: CFColors.link2,
+                                      color: StackTheme
+                                          .instance.color.infoItemIcons,
                                       width: 12,
                                     ),
                                   )
@@ -562,16 +566,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                 title: "Transaction failed",
                                                 message: e.toString(),
                                                 rightButton: TextButton(
-                                                  style: Theme.of(context)
-                                                      .textButtonTheme
-                                                      .style
-                                                      ?.copyWith(
-                                                        backgroundColor:
-                                                            MaterialStateProperty
-                                                                .all<Color>(
-                                                          CFColors.buttonGray,
-                                                        ),
-                                                      ),
+                                                  style: StackTheme.instance
+                                                      .getSecondaryEnabledButtonColor(
+                                                          context),
                                                   child: Text(
                                                     "Ok",
                                                     style: STextStyles.button

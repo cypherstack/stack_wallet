@@ -6,6 +6,7 @@ import 'package:stackwallet/pages_desktop_specific/create_password/create_passwo
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -29,7 +30,7 @@ class _IntroViewState extends State<IntroView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       body: Center(
         child: !isDesktop
             ? Column(
@@ -253,7 +254,7 @@ class GetStartedButton extends StatelessWidget {
             width: 328,
             height: 70,
             child: TextButton(
-              style: CFColors.getPrimaryEnabledButtonColor(context),
+              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
               onPressed: () {
                 Navigator.of(context).pushNamed(CreatePasswordView.routeName);
               },

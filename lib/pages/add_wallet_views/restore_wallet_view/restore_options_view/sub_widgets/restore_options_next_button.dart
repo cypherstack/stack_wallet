@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class RestoreOptionsNextButton extends StatelessWidget {
   const RestoreOptionsNextButton({
@@ -21,8 +21,8 @@ class RestoreOptionsNextButton extends StatelessWidget {
       child: TextButton(
         onPressed: onPressed,
         style: onPressed != null
-            ? CFColors.getPrimaryEnabledButtonColor(context)
-            : CFColors.getPrimaryDisabledButtonColor(context),
+            ? StackTheme.instance.getPrimaryEnabledButtonColor(context)
+            : StackTheme.instance.getPrimaryDisabledButtonColor(context),
         child: Text(
           "Next",
           style: STextStyles.button,

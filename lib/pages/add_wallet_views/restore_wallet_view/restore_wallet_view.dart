@@ -34,6 +34,7 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
@@ -354,27 +355,27 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     Widget? suffixIcon;
     switch (status) {
       case FormInputStatus.empty:
-        color = CFColors.fieldGray;
+        color = StackTheme.instance.color.textFieldDefaultBG;
         prefixColor = CFColors.gray3;
         break;
       case FormInputStatus.invalid:
-        color = CFColors.notificationRedBackground;
-        prefixColor = CFColors.notificationRedForeground;
+        color = StackTheme.instance.color.textFieldErrorBG;
+        prefixColor = StackTheme.instance.color.textFieldErrorSearchIconLeft;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
           height: 16,
-          color: CFColors.notificationRedForeground,
+          color: StackTheme.instance.color.textFieldErrorSearchIconRight,
         );
         break;
       case FormInputStatus.valid:
-        color = CFColors.notificationGreenBackground;
-        prefixColor = CFColors.notificationGreenForeground;
+        color = StackTheme.instance.color.textFieldSuccessBG;
+        prefixColor = StackTheme.instance.color.textFieldSuccessSearchIconLeft;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
           height: 16,
-          color: CFColors.notificationGreenForeground,
+          color: StackTheme.instance.color.textFieldSuccessSearchIconRight,
         );
         break;
     }
@@ -547,7 +548,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 key: const Key("restoreWalletViewQrCodeButton"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 icon: const QrCodeIcon(
                   width: 20,
                   height: 20,
@@ -569,7 +570,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 key: const Key("restoreWalletPasteButton"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 icon: const ClipboardIcon(
                   width: 20,
                   height: 20,
@@ -582,7 +583,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         ],
       ),
       body: Container(
-        color: CFColors.almostWhite,
+        color: StackTheme.instance.color.background,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
@@ -669,8 +670,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                         "Please check spelling",
                                         textAlign: TextAlign.left,
                                         style: STextStyles.label.copyWith(
-                                          color: CFColors
-                                              .notificationRedForeground,
+                                          color: StackTheme
+                                              .instance.color.textError,
                                         ),
                                       ),
                                     ),
@@ -682,8 +683,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                               top: 8.0,
                             ),
                             child: TextButton(
-                              style: CFColors.getPrimaryEnabledButtonColor(
-                                  context),
+                              style: StackTheme.instance
+                                  .getPrimaryEnabledButtonColor(context),
                               onPressed: requestRestore,
                               child: Text(
                                 "Restore",

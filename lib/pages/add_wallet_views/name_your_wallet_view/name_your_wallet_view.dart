@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/name_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -125,7 +126,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           ),
         ),
         body: Container(
-          color: CFColors.almostWhite,
+          color: StackTheme.instance.color.background,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: LayoutBuilder(
@@ -337,8 +338,8 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                     }
                   : null,
               style: _nextEnabled
-                  ? CFColors.getPrimaryEnabledButtonColor(context)
-                  : CFColors.getPrimaryDisabledButtonColor(context),
+                  ? StackTheme.instance.getPrimaryEnabledButtonColor(context)
+                  : StackTheme.instance.getPrimaryDisabledButtonColor(context),
               child: Text(
                 "Next",
                 style: isDesktop

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 
 class StackDialogBase extends StatelessWidget {

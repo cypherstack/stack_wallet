@@ -13,6 +13,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class HomeViewButtonBar extends ConsumerStatefulWidget {
@@ -147,14 +148,19 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
       children: [
         Expanded(
           child: TextButton(
-            style: ButtonStyle(
-              minimumSize: MaterialStateProperty.all<Size>(const Size(46, 36)),
-              backgroundColor: MaterialStateProperty.all<Color>(
-                selectedIndex == 0
-                    ? CFColors.stackAccent
-                    : CFColors.disabledButton,
-              ),
-            ),
+            style: selectedIndex == 0
+                ? StackTheme.instance
+                    .getPrimaryEnabledButtonColor(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    )
+                : StackTheme.instance
+                    .getPrimaryDisabledButtonColor(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    ),
             onPressed: () {
               FocusScope.of(context).unfocus();
               if (selectedIndex != 0) {
@@ -176,14 +182,19 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
         ),
         Expanded(
           child: TextButton(
-            style: ButtonStyle(
-              minimumSize: MaterialStateProperty.all<Size>(const Size(46, 36)),
-              backgroundColor: MaterialStateProperty.all<Color>(
-                selectedIndex == 1
-                    ? CFColors.stackAccent
-                    : CFColors.disabledButton,
-              ),
-            ),
+            style: selectedIndex == 0
+                ? StackTheme.instance
+                    .getPrimaryEnabledButtonColor(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    )
+                : StackTheme.instance
+                    .getPrimaryDisabledButtonColor(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    ),
             onPressed: () async {
               FocusScope.of(context).unfocus();
               if (selectedIndex != 1) {

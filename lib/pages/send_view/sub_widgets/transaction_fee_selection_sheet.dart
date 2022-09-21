@@ -12,6 +12,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 final feeSheetSessionCacheProvider =
@@ -182,7 +183,7 @@ class _TransactionFeeSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: CFColors.fieldGray,
+                  color: StackTheme.instance.color.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -235,7 +236,8 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: StackTheme
+                                        .instance.color.radioButtonIconEnabled,
                                     value: FeeRateType.fast,
                                     groupValue: ref
                                         .watch(feeRateTypeStateProvider.state)
@@ -360,7 +362,8 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: StackTheme
+                                        .instance.color.radioButtonIconEnabled,
                                     value: FeeRateType.average,
                                     groupValue: ref
                                         .watch(feeRateTypeStateProvider.state)
@@ -484,7 +487,8 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: StackTheme
+                                        .instance.color.radioButtonIconEnabled,
                                     value: FeeRateType.slow,
                                     groupValue: ref
                                         .watch(feeRateTypeStateProvider.state)

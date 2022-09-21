@@ -4,6 +4,7 @@ import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_co
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class MnemonicWordCountSelectSheet extends ConsumerWidget {
   const MnemonicWordCountSelectSheet({
@@ -42,7 +43,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CFColors.fieldGray,
+                    color: StackTheme.instance.color.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -96,7 +97,8 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: StackTheme
+                                        .instance.color.radioButtonIconEnabled,
                                     value: lengthOptions[i],
                                     groupValue: ref
                                         .watch(mnemonicWordCountStateProvider

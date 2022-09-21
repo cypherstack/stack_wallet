@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
 class RoundedWhiteContainer extends StatelessWidget {

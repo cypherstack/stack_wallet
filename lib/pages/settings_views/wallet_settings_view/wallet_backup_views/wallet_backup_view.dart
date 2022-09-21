@@ -13,6 +13,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -34,7 +35,7 @@ class WalletBackupView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -51,7 +52,7 @@ class WalletBackupView extends ConsumerWidget {
             child: AspectRatio(
               aspectRatio: 1,
               child: AppBarIconButton(
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.copy,
@@ -184,12 +185,8 @@ class WalletBackupView extends ConsumerWidget {
                                   // await _capturePng(true);
                                   Navigator.of(context).pop();
                                 },
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                    CFColors.buttonGray,
-                                  ),
-                                ),
+                                style: StackTheme.instance
+                                    .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
                                   style: STextStyles.button.copyWith(

@@ -4,10 +4,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class AddressBookCard extends ConsumerStatefulWidget {
@@ -80,7 +80,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: CFColors.contactIconBackground,
+                  color: StackTheme.instance.color.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(32),
                 ),
                 child: contact.id == "default"

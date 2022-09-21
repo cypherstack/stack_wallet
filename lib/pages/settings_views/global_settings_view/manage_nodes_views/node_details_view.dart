@@ -18,6 +18,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:tuple/tuple.dart';
 
@@ -138,7 +139,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -169,7 +170,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                   key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     Assets.svg.pencil,
                     color: CFColors.stackAccent,
@@ -221,11 +222,8 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         ),
                         const Spacer(),
                         TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                              CFColors.buttonGray,
-                            ),
-                          ),
+                          style: StackTheme.instance
+                              .getSecondaryEnabledButtonColor(context),
                           onPressed: () async {
                             await _testConnection(ref, context);
                           },

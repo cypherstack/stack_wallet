@@ -30,6 +30,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -353,7 +354,7 @@ class _WalletInitiatedExchangeViewState
     });
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -1233,7 +1234,8 @@ class _WalletInitiatedExchangeViewState
                                                       .select((value) =>
                                                           value.canExchange)))
                                           ? CFColors.stackAccent
-                                          : CFColors.buttonGray,
+                                          : StackTheme.instance.color
+                                              .buttonBackSecondary,
                                     ),
                                   ),
                           onPressed: ((ref
@@ -1471,16 +1473,9 @@ class _WalletInitiatedExchangeViewState
                                           message:
                                               "${response.value!.warningMessage!}\n\nDo you want to attempt trade anyways?",
                                           leftButton: TextButton(
-                                            style: Theme.of(context)
-                                                .textButtonTheme
-                                                .style
-                                                ?.copyWith(
-                                                  backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(
-                                                    CFColors.buttonGray,
-                                                  ),
-                                                ),
+                                            style: StackTheme.instance
+                                                .getSecondaryEnabledButtonColor(
+                                                    context),
                                             child: Text(
                                               "Cancel",
                                               style: STextStyles.itemSubtitle12,

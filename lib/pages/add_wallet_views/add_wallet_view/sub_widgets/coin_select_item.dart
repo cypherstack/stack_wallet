@@ -7,6 +7,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 class CoinSelectItem extends ConsumerWidget {
@@ -28,8 +29,8 @@ class CoinSelectItem extends ConsumerWidget {
       decoration: BoxDecoration(
         // color: selectedCoin == coin ? CFColors.selection : CFColors.white,
         color: selectedCoin == coin
-            ? CFColors.textFieldActive
-            : CFColors.popupBackground,
+            ? StackTheme.instance.color.textFieldActiveBG
+            : StackTheme.instance.color.popupBG,
         borderRadius:
             BorderRadius.circular(Constants.size.circularBorderRadius),
       ),

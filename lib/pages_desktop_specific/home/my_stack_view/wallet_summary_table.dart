@@ -9,6 +9,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/table_view/table_view.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 import 'package:stackwallet/widgets/table_view/table_view_row.dart';
@@ -132,11 +133,11 @@ class TablePriceInfo extends ConsumerWidget {
 
     final double percentChange = tuple.item2;
 
-    var percentChangedColor = CFColors.stackAccent;
+    var percentChangedColor = StackTheme.instance.color.textDark;
     if (percentChange > 0) {
-      percentChangedColor = CFColors.stackGreen;
+      percentChangedColor = StackTheme.instance.color.accentColorGreen;
     } else if (percentChange < 0) {
-      percentChangedColor = CFColors.stackRed;
+      percentChangedColor = StackTheme.instance.color.accentColorRed;
     }
 
     return Row(

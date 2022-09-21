@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class _CoinThemeColor {
   const _CoinThemeColor();
@@ -34,8 +35,8 @@ class _ChangeNowTradeStatusColors {
   const _ChangeNowTradeStatusColors();
 
   Color get yellow => const Color(0xFFD3A90F);
-  Color get green => CFColors.stackGreen;
-  Color get red => CFColors.link;
+  Color get green => StackTheme.instance.color.accentColorGreen;
+  Color get red => StackTheme.instance.color.accentColorRed;
   Color get gray => CFColors.gray3;
 
   Color forStatus(ChangeNowTransactionStatus status) {
@@ -71,48 +72,47 @@ abstract class CFColors {
   static const Color primary = Color(0xFF0052DF);
   static const Color primaryLight = Color(0xFFDAE2FF);
 
-  static const Color link = Color(0xFFC00205);
+  // static const Color link = Color(0xFFC00205);
   static const Color link2 = Color(0xFF0056D2);
 
   static const Color warningBackground = Color(0xFFFFDAD3);
 
-  static const Color marked = Color(0xFFF61515);
-  static const Color stackGreen = Color(0xFF00A578);
-  static const Color stackYellow = Color(0xFFF4C517);
-  static const Color stackGreen15 = Color(0xFFD2EBE4);
-  static const Color stackRed = Color(0xFFDC5673);
-  static const Color sentTx = Color(0x66FE805C);
-  static const Color receivedTx = Color(0x6600A578);
+  // static const Color marked = Color(0xFFF61515);
+  // static const Color stackGreen = Color(0xFF00A578);
+  // static const Color stackYellow = Color(0xFFF4C517);
+  // static const Color stackGreen15 = Color(0xFFD2EBE4);
+  // static const Color stackRed = Color(0xFFDC5673);
+  // static const Color sentTx = Color(0x66FE805C);
+  // static const Color receivedTx = Color(0x6600A578);
   // static const Color stackAccent = Color(0xFF232323);
   // static const Color stackAccent = Color(0xFF232323);
   static const Color stackAccent = Color(0xFF232323);
   static const Color black = Color(0xFF191B23);
 
   static const Color primaryBlue = Color(0xFF074EE8);
-  static const Color notificationBlueBackground = Color(0xFFDAE2FF);
-  static const Color notificationBlueForeground = Color(0xFF002A78);
-  static const Color notificationGreenBackground = Color(0xFFB9E9D4);
-  static const Color notificationGreenForeground = Color(0xFF006C4D);
-  static const Color notificationRedBackground = Color(0xFFFFDAD4);
-  static const Color notificationRedForeground = Color(0xFF930006);
-  static const Color error = Color(0xFF930006);
+  // static const Color notificationBlueBackground = Color(0xFFDAE2FF);
+  // static const Color notificationBlueForeground = Color(0xFF002A78);
+  // static const Color notificationGreenBackground = Color(0xFFB9E9D4);
+  // static const Color notificationGreenForeground = Color(0xFF006C4D);
+  // static const Color notificationRedBackground = Color(0xFFFFDAD4);
+  // static const Color notificationRedForeground = Color(0xFF930006);
+  // static const Color error = Color(0xFF930006);
 
-  static const Color almostWhite = Color(0xFFF7F7F7);
+  // static const Color almostWhite = Color(0xFFF7F7F7);
   static const Color light1 = Color(0xFFF5F5F5);
 
-  static const Color disabledButton = Color(0xFFE0E3E3);
+  // static const Color disabledButton = Color(0xFFE0E3E3);
 
   static const Color neutral80 = Color(0xFFC5C6C9);
   static const Color neutral60 = Color(0xFF8E9192);
   static const Color neutral50 = Color(0xFF747778);
   static const Color selection = Color(0xFFD9E2FF);
-  static const Color buttonGray = Color(0xFFE0E3E3);
+  // static const Color buttonGray = Color(0xFFE0E3E3);
 
-  static const Color textFieldInactive = Color(0xFFEEEFF1);
-  static const Color fieldGray = Color(0xFFEEEFF1);
-  static const Color textFieldActive = Color(0xFFE9EAEC);
+  // static const Color fieldGray = Color(0xFFEEEFF1);
+  // static const Color textFieldActive = Color(0xFFE9EAEC);
 
-  static const Color contactIconBackground = Color(0xFFF4F5F8);
+  // static const Color contactIconBackground = Color(0xFFF4F5F8);
 
   static const Color gray3 = Color(0xFFA9ACAC);
   // shadow
@@ -172,48 +172,4 @@ abstract class CFColors {
 
   static const Color textFieldDefaultSearchIconLeft = Color(0xFFA9ACAC);
   static const Color textFieldActiveSearchIconRight = Color(0xFF747778);
-
-  // button color themes
-
-  static ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
-      Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              CFColors.buttonBackgroundPrimary,
-            ),
-          );
-  static ButtonStyle? getPrimaryDisabledButtonColor(BuildContext context) =>
-      Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              CFColors.buttonBackPrimaryDisabled,
-            ),
-          );
-
-  static ButtonStyle? getSecondaryEnabledButtonColor(BuildContext context) =>
-      Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              CFColors.buttonBackSecondary,
-            ),
-          );
-
-  static ButtonStyle? getSmallSecondaryEnabledButtonColor(
-          BuildContext context) =>
-      Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              CFColors.textFieldDefaultBackground,
-            ),
-          );
-
-  static ButtonStyle? getDesktopMenuButtonColor(BuildContext context) =>
-      Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              CFColors.popupBackground,
-            ),
-          );
-
-  static ButtonStyle? getDesktopMenuButtonColorSelected(BuildContext context) =>
-      Theme.of(context).textButtonTheme.style?.copyWith(
-            backgroundColor: MaterialStateProperty.all<Color>(
-              CFColors.textFieldDefaultBackground,
-            ),
-          );
 }

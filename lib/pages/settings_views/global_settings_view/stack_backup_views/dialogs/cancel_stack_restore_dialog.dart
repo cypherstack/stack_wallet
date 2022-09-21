@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class CancelStackRestoreDialog extends StatelessWidget {
@@ -19,11 +20,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
         message:
             "Cancelling will revert any changes that may have been applied",
         leftButton: TextButton(
-          style: Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.buttonGray,
-                ),
-              ),
+          style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
           child: Text(
             "Back",
             style: STextStyles.itemSubtitle12,
@@ -33,11 +30,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
           },
         ),
         rightButton: TextButton(
-          style: Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.stackAccent,
-                ),
-              ),
+          style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
           child: Text(
             "Yes, cancel",
             style: STextStyles.itemSubtitle12.copyWith(

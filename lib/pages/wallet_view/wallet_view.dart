@@ -40,6 +40,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -208,21 +209,21 @@ class _WalletViewState extends ConsumerState<WalletView> {
       case WalletSyncStatus.unableToSync:
         return SvgPicture.asset(
           Assets.svg.radioProblem,
-          color: CFColors.link,
+          color: StackTheme.instance.color.accentColorRed,
           width: 20,
           height: 20,
         );
       case WalletSyncStatus.synced:
         return SvgPicture.asset(
           Assets.svg.radio,
-          color: CFColors.stackGreen,
+          color: StackTheme.instance.color.accentColorGreen,
           width: 20,
           height: 20,
         );
       case WalletSyncStatus.syncing:
         return SvgPicture.asset(
           Assets.svg.radioSyncing,
-          color: CFColors.stackYellow,
+          color: StackTheme.instance.color.accentColorYellow,
           width: 20,
           height: 20,
         );
@@ -405,7 +406,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   key: const Key("walletViewRadioButton"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: _buildNetworkIcon(_currentSyncStatus),
                   onPressed: () {
                     Navigator.of(context).pushNamed(
@@ -432,7 +433,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   key: const Key("walletViewAlertsButton"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     ref.watch(notificationsProvider.select((value) =>
                             value.hasUnreadNotificationsFor(walletId)))
@@ -488,7 +489,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   key: const Key("walletViewSettingsButton"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     Assets.svg.bars,
                     color: CFColors.stackAccent,
@@ -514,7 +515,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
         body: SafeArea(
           child: Container(
-            color: CFColors.almostWhite,
+            color: StackTheme.instance.color.background,
             child: Column(
               children: [
                 const SizedBox(

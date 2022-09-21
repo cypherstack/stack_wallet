@@ -4,6 +4,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:tuple/tuple.dart';
 
 class CreateWalletButtonGroup extends StatelessWidget {
@@ -28,7 +29,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
             minWidth: isDesktop ? 480 : 0,
           ),
           child: TextButton(
-            style: CFColors.getPrimaryEnabledButtonColor(context),
+            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
             onPressed: () {
               Navigator.of(context).pushNamed(
                 NameYourWalletView.routeName,
@@ -55,7 +56,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
             minWidth: isDesktop ? 480 : 0,
           ),
           child: TextButton(
-            style: CFColors.getSecondaryEnabledButtonColor(context),
+            style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
             onPressed: () {
               Navigator.of(context).pushNamed(
                 NameYourWalletView.routeName,

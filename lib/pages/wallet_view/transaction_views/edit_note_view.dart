@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -48,9 +49,9 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: StackTheme.instance.color.background,
         appBar: AppBar(
-          backgroundColor: CFColors.almostWhite,
+          backgroundColor: StackTheme.instance.color.background,
           leading: AppBarBackButton(
             onPressed: () async {
               if (FocusScope.of(context).hasFocus) {

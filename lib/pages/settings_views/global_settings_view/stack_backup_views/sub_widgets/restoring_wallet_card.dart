@@ -11,6 +11,7 @@ import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
@@ -35,23 +36,23 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: CFColors.buttonGray,
+          color:StackTheme.instance.color.buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return const LoadingIndicator();
       // return SvgPicture.asset(
       //   Assets.svg.loader,
-      //   color: CFColors.stackGreen,
+      //   color: StackTheme.instance.color.accentColorGreen,
       // );
       case StackRestoringStatus.success:
         return SvgPicture.asset(
           Assets.svg.checkCircle,
-          color: CFColors.stackGreen,
+          color: StackTheme.instance.color.accentColorGreen,
         );
       case StackRestoringStatus.failed:
         return SvgPicture.asset(
           Assets.svg.circleAlert,
-          color: CFColors.error,
+          color: StackTheme.instance.color.textError,
         );
     }
   }
@@ -155,7 +156,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
           ? Container(
               height: 20,
               decoration: BoxDecoration(
-                color: CFColors.buttonGray,
+                color: StackTheme.instance.color.buttonBackSecondary,
                 borderRadius: BorderRadius.circular(
                   1000,
                 ),

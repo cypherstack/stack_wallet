@@ -57,6 +57,8 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
 
@@ -155,6 +157,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final localeService = LocaleService();
     localeService.loadLocale();
+
+    StackTheme.instance.setTheme(ThemeType.dark);
 
     return const KeyboardDismisser(
       child: MaterialAppWithTheme(),
@@ -529,8 +533,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
             textStyle: MaterialStateProperty.all<TextStyle>(STextStyles.button),
             foregroundColor: MaterialStateProperty.all(CFColors.white),
-            backgroundColor:
-                MaterialStateProperty.all<Color>(CFColors.buttonGray),
+            backgroundColor: MaterialStateProperty.all<Color>(
+                StackTheme.instance.color.buttonBackSecondary),
             shape: MaterialStateProperty.all<OutlinedBorder>(
               RoundedRectangleBorder(
                 // 1000 to be relatively sure it keeps its pill shape
@@ -550,28 +554,28 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           checkColor: MaterialStateColor.resolveWith(
             (state) {
               if (state.contains(MaterialState.selected)) {
-                return CFColors.white;
+                return StackTheme.instance.color.checkboxIconChecked;
               }
-              return CFColors.link2;
+              return StackTheme.instance.color.checkboxBGChecked;
             },
           ),
           fillColor: MaterialStateColor.resolveWith(
             (states) {
               if (states.contains(MaterialState.selected)) {
-                return CFColors.link2;
+                return StackTheme.instance.color.checkboxBGChecked;
               }
-              return CFColors.disabledButton;
+              return StackTheme.instance.color.checkboxBorderEmpty;
             },
           ),
         ),
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           centerTitle: false,
-          color: CFColors.almostWhite,
+          color: StackTheme.instance.color.background,
           elevation: 0,
         ),
         inputDecorationTheme: InputDecorationTheme(
-          focusColor: CFColors.fieldGray,
-          fillColor: CFColors.fieldGray,
+          focusColor: StackTheme.instance.color.textFieldDefaultBG,
+          fillColor: StackTheme.instance.color.textFieldDefaultBG,
           filled: true,
           contentPadding: const EdgeInsets.symmetric(
             vertical: 6,
@@ -579,11 +583,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ),
           labelStyle: STextStyles.fieldLabel,
           hintStyle: STextStyles.fieldLabel,
-          enabledBorder: _buildOutlineInputBorder(CFColors.fieldGray),
-          focusedBorder: _buildOutlineInputBorder(CFColors.fieldGray),
-          errorBorder: _buildOutlineInputBorder(CFColors.fieldGray),
-          disabledBorder: _buildOutlineInputBorder(CFColors.fieldGray),
-          focusedErrorBorder: _buildOutlineInputBorder(CFColors.fieldGray),
+          enabledBorder: _buildOutlineInputBorder(
+              StackTheme.instance.color.textFieldDefaultBG),
+          focusedBorder: _buildOutlineInputBorder(
+              StackTheme.instance.color.textFieldDefaultBG),
+          errorBorder: _buildOutlineInputBorder(
+              StackTheme.instance.color.textFieldDefaultBG),
+          disabledBorder: _buildOutlineInputBorder(
+              StackTheme.instance.color.textFieldDefaultBG),
+          focusedErrorBorder: _buildOutlineInputBorder(
+              StackTheme.instance.color.textFieldDefaultBG),
         ),
       ),
       home: FutureBuilder(

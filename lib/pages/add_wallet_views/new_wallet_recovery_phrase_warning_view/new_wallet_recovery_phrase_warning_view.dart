@@ -8,12 +8,12 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -269,8 +269,10 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 }
                               : null,
                           style: ref.read(checkBoxStateProvider.state).state
-                              ? CFColors.getPrimaryEnabledButtonColor(context)
-                              : CFColors.getPrimaryDisabledButtonColor(context),
+                              ? StackTheme.instance
+                                  .getPrimaryEnabledButtonColor(context)
+                              : StackTheme.instance
+                                  .getPrimaryDisabledButtonColor(context),
                           child: Text(
                             "View recovery phrase",
                             style: isDesktop

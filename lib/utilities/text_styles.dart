@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class STextStyles {
   static final TextStyle pageTitleH1 = GoogleFonts.inter(
@@ -96,13 +97,13 @@ class STextStyles {
   );
 
   static final TextStyle link = GoogleFonts.inter(
-    color: CFColors.link,
+    color: StackTheme.instance.color.accentColorRed,
     fontWeight: FontWeight.w500,
     fontSize: 14,
   );
 
   static final TextStyle link2 = GoogleFonts.inter(
-    color: CFColors.link2,
+    color: StackTheme.instance.color.infoItemIcons,
     fontWeight: FontWeight.w500,
     fontSize: 14,
   );
@@ -132,7 +133,7 @@ class STextStyles {
   );
 
   static final TextStyle errorSmall = GoogleFonts.inter(
-    color: CFColors.error,
+    color: StackTheme.instance.color.textError,
     fontWeight: FontWeight.w500,
     fontSize: 10,
   );

@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 
@@ -81,7 +82,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -129,21 +130,21 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                   controller: _pinPutController1,
                   useNativeKeyboard: false,
                   obscureText: "",
-                  inputDecoration: const InputDecoration(
+                  inputDecoration: InputDecoration(
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
                     disabledBorder: InputBorder.none,
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
-                    fillColor: CFColors.almostWhite,
+                    fillColor: StackTheme.instance.color.background,
                     counterText: "",
                   ),
                   submittedFieldDecoration: _pinPutDecoration.copyWith(
-                    color: CFColors.link2,
+                    color: StackTheme.instance.color.infoItemIcons,
                     border: Border.all(
                       width: 1,
-                      color: CFColors.link2,
+                      color: StackTheme.instance.color.infoItemIcons,
                     ),
                   ),
                   selectedFieldDecoration: _pinPutDecoration,
@@ -189,21 +190,21 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                   controller: _pinPutController2,
                   useNativeKeyboard: false,
                   obscureText: "",
-                  inputDecoration: const InputDecoration(
+                  inputDecoration: InputDecoration(
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
                     disabledBorder: InputBorder.none,
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
-                    fillColor: CFColors.almostWhite,
+                    fillColor: StackTheme.instance.color.background,
                     counterText: "",
                   ),
                   submittedFieldDecoration: _pinPutDecoration.copyWith(
-                    color: CFColors.link2,
+                    color: StackTheme.instance.color.infoItemIcons,
                     border: Border.all(
                       width: 1,
-                      color: CFColors.link2,
+                      color: StackTheme.instance.color.infoItemIcons,
                     ),
                   ),
                   selectedFieldDecoration: _pinPutDecoration,

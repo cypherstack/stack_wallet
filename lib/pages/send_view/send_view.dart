@@ -28,6 +28,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -360,7 +361,7 @@ class _SendViewState extends ConsumerState<SendView> {
     }
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -840,7 +841,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                     error,
                                     textAlign: TextAlign.left,
                                     style: STextStyles.label.copyWith(
-                                      color: CFColors.notificationRedForeground,
+                                      color:
+                                          StackTheme.instance.color.textError,
                                     ),
                                   ),
                                 ),
@@ -1406,16 +1408,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                           message:
                                               "Sending to self is currently disabled",
                                           rightButton: TextButton(
-                                            style: Theme.of(context)
-                                                .textButtonTheme
-                                                .style
-                                                ?.copyWith(
-                                                  backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(
-                                                    CFColors.buttonGray,
-                                                  ),
-                                                ),
+                                            style: StackTheme.instance
+                                                .getSecondaryEnabledButtonColor(
+                                                    context),
                                             child: Text(
                                               "Ok",
                                               style:
@@ -1475,16 +1470,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                           message:
                                               "You are about to send your entire balance. Would you like to continue?",
                                           leftButton: TextButton(
-                                            style: Theme.of(context)
-                                                .textButtonTheme
-                                                .style
-                                                ?.copyWith(
-                                                  backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(
-                                                    CFColors.buttonGray,
-                                                  ),
-                                                ),
+                                            style: StackTheme.instance
+                                                .getSecondaryEnabledButtonColor(
+                                                    context),
                                             child: Text(
                                               "Cancel",
                                               style:
@@ -1611,16 +1599,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                             title: "Transaction failed",
                                             message: e.toString(),
                                             rightButton: TextButton(
-                                              style: Theme.of(context)
-                                                  .textButtonTheme
-                                                  .style
-                                                  ?.copyWith(
-                                                    backgroundColor:
-                                                        MaterialStateProperty
-                                                            .all<Color>(
-                                                      CFColors.buttonGray,
-                                                    ),
-                                                  ),
+                                              style: StackTheme.instance
+                                                  .getSecondaryEnabledButtonColor(
+                                                      context),
                                               child: Text(
                                                 "Ok",
                                                 style:

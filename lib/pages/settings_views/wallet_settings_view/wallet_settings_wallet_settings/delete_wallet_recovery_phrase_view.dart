@@ -13,6 +13,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -55,7 +56,7 @@ class _DeleteWalletRecoveryPhraseViewState
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -68,7 +69,7 @@ class _DeleteWalletRecoveryPhraseViewState
             child: AspectRatio(
               aspectRatio: 1,
               child: AppBarIconButton(
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.copy,
@@ -160,11 +161,8 @@ class _DeleteWalletRecoveryPhraseViewState
                   builder: (_) => StackDialog(
                     title: "Thanks! Your wallet will be deleted.",
                     leftButton: TextButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(
-                          CFColors.buttonGray,
-                        ),
-                      ),
+                      style: StackTheme.instance
+                          .getSecondaryEnabledButtonColor(context),
                       onPressed: () {
                         Navigator.pop(context);
                       },

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class FavoriteToggle extends StatefulWidget {
   const FavoriteToggle({
@@ -9,14 +10,14 @@ class FavoriteToggle extends StatefulWidget {
     this.backGround,
     this.borderRadius = BorderRadius.zero,
     this.initialState = false,
-    this.on = CFColors.link2,
-    this.off = CFColors.buttonGray,
+    this.on,
+    this.off,
     required this.onChanged,
   }) : super(key: key);
 
   final Color? backGround;
-  final Color on;
-  final Color off;
+  final Color? on;
+  final Color? off;
   final BorderRadiusGeometry borderRadius;
   final bool initialState;
   final void Function(bool)? onChanged;
@@ -30,10 +31,15 @@ class _FavoriteToggleState extends State<FavoriteToggle> {
   late Color _color;
   late void Function(bool)? _onChanged;
 
+  late final Color on;
+  late final Color off;
+
   @override
   void initState() {
+    on = widget.on ?? StackTheme.instance.color.infoItemIcons;
+    off = widget.off ?? StackTheme.instance.color.buttonBackSecondary;
     _isActive = widget.initialState;
-    _color = _isActive ? widget.on : widget.off;
+    _color = _isActive ? on : off;
     _onChanged = widget.onChanged;
     super.initState();
   }
@@ -56,7 +62,7 @@ class _FavoriteToggleState extends State<FavoriteToggle> {
             ? () {
                 _isActive = !_isActive;
                 setState(() {
-                  _color = _isActive ? widget.on : widget.off;
+                  _color = _isActive ? on : off;
                 });
                 _onChanged!.call(_isActive);
               }
