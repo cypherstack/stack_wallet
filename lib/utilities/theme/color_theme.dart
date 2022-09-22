@@ -163,6 +163,9 @@ abstract class StackColorTheme {
   Color get stackWalletMid;
   Color get stackWalletBottom;
   Color get bottomNavShadow;
+
+  Color get favoriteStarActive;
+  Color get favoriteStarInactive;
 }
 
 class CoinThemeColor {

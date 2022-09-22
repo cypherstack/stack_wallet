@@ -284,4 +284,9 @@ class DarkColors extends StackColorTheme {
   Color get stackWalletBottom => const Color(0xFFFFFFFF);
   @override
   Color get bottomNavShadow => const Color(0xFF282E33);
+
+  @override
+  Color get favoriteStarActive => accentColorYellow;
+  @override
+  Color get favoriteStarInactive => textSubtitle2;
 }

@@ -33,20 +33,20 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(4.0),
       child: RawMaterialButton(
-        onPressed: () async {
+        onPressed: () {
           final provider = ref
               .read(walletsChangeNotifierProvider)
               .getManagerProvider(manager.walletId);
           if (!manager.isFavorite) {
             ref.read(favoritesProvider).add(provider, true);
             ref.read(nonFavoritesProvider).remove(provider, true);
-            await ref
+            ref
                 .read(walletsServiceChangeNotifierProvider)
                 .addFavorite(manager.walletId);
           } else {
             ref.read(favoritesProvider).remove(provider, true);
             ref.read(nonFavoritesProvider).add(provider, true);
-            await ref
+            ref
                 .read(walletsServiceChangeNotifierProvider)
                 .removeFavorite(manager.walletId);
           }

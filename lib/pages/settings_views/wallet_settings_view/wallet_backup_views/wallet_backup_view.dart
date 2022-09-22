@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,16 +59,17 @@ class WalletBackupView extends ConsumerWidget {
                   Assets.svg.copy,
                   width: 20,
                   height: 20,
+                  color: StackTheme.instance.color.topNavIconPrimary,
                 ),
                 onPressed: () async {
                   await clipboardInterface
                       .setData(ClipboardData(text: mnemonic.join(" ")));
-                  showFloatingFlushBar(
+                  unawaited(showFloatingFlushBar(
                     type: FlushBarType.info,
                     message: "Copied to clipboard",
                     iconAsset: Assets.svg.copy,
                     context: context,
-                  );
+                  ));
                 },
               ),
             ),

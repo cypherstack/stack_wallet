@@ -133,8 +133,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 icon: SvgPicture.asset(
                   Assets.svg.star,
                   color: _contact.isFavorite
-                      ? StackTheme.instance.color.infoItemIcons
-                      : StackTheme.instance.color.buttonBackSecondary,
+                      ? StackTheme.instance.color.favoriteStarActive
+                      : StackTheme.instance.color.favoriteStarInactive,
                   width: 20,
                   height: 20,
                 ),

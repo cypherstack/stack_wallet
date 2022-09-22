@@ -127,8 +127,8 @@ class _AddAddressBookEntryViewState
                 icon: SvgPicture.asset(
                   Assets.svg.star,
                   color: _isFavorite
-                      ? StackTheme.instance.color.accentColorRed
-                      : StackTheme.instance.color.buttonBackSecondary,
+                      ? StackTheme.instance.color.favoriteStarActive
+                      : StackTheme.instance.color.favoriteStarInactive,
                   width: 20,
                   height: 20,
                 ),

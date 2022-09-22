@@ -284,4 +284,9 @@ class LightColors extends StackColorTheme {
   Color get stackWalletBottom => const Color(0xFF232323);
   @override
   Color get bottomNavShadow => const Color(0xFF282E33);
+
+  @override
+  Color get favoriteStarActive => infoItemIcons;
+  @override
+  Color get favoriteStarInactive => textSubtitle3;
 }

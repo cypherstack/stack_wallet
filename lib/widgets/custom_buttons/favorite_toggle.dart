@@ -35,8 +35,8 @@ class _FavoriteToggleState extends State<FavoriteToggle> {
 
   @override
   void initState() {
-    on = widget.on ?? StackTheme.instance.color.infoItemIcons;
-    off = widget.off ?? StackTheme.instance.color.buttonBackSecondary;
+    on = widget.on ?? StackTheme.instance.color.favoriteStarActive;
+    off = widget.off ?? StackTheme.instance.color.favoriteStarInactive;
     _isActive = widget.initialState;
     _color = _isActive ? on : off;
     _onChanged = widget.onChanged;
