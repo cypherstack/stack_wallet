@@ -6,7 +6,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class WalletBalanceToggleSheet extends ConsumerWidget {
   const WalletBalanceToggleSheet({
@@ -25,7 +25,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: StackTheme.instance.color.popupBG,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
@@ -46,7 +46,9 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -62,7 +64,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 padding: const EdgeInsets.only(left: 8.0),
                 child: Text(
                   "Wallet balance",
-                  style: STextStyles.pageTitleH2,
+                  style: STextStyles.pageTitleH2(context),
                   textAlign: TextAlign.left,
                 ),
               ),
@@ -94,8 +96,9 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         width: 20,
                         height: 20,
                         child: Radio(
-                          activeColor:
-                              StackTheme.instance.color.radioButtonIconEnabled,
+                          activeColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .radioButtonIconEnabled,
                           value: WalletBalanceToggleState.available,
                           groupValue: ref
                               .watch(walletBalanceToggleStateProvider.state)
@@ -117,15 +120,18 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                           children: [
                             Text(
                               "Available balance",
-                              style: STextStyles.titleBold12,
+                              style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(
                               height: 2,
                             ),
                             Text(
                               "Current spendable (unlocked) balance",
-                              style: STextStyles.itemSubtitle12.copyWith(
-                                color: StackTheme.instance.color.textSubtitle1,
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
                               ),
                             ),
                           ],
@@ -136,15 +142,18 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                           children: [
                             Text(
                               "Private balance",
-                              style: STextStyles.titleBold12,
+                              style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(
                               height: 2,
                             ),
                             Text(
                               "Current private spendable (unlocked) balance",
-                              style: STextStyles.itemSubtitle12.copyWith(
-                                color: StackTheme.instance.color.textSubtitle1,
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
                               ),
                             ),
                           ],
@@ -181,8 +190,9 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         width: 20,
                         height: 20,
                         child: Radio(
-                          activeColor:
-                              StackTheme.instance.color.radioButtonIconEnabled,
+                          activeColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .radioButtonIconEnabled,
                           value: WalletBalanceToggleState.full,
                           groupValue: ref
                               .watch(walletBalanceToggleStateProvider.state)
@@ -204,15 +214,18 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                           children: [
                             Text(
                               "Full balance",
-                              style: STextStyles.titleBold12,
+                              style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(
                               height: 2,
                             ),
                             Text(
                               "Total wallet balance",
-                              style: STextStyles.itemSubtitle12.copyWith(
-                                color: StackTheme.instance.color.textSubtitle1,
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
                               ),
                             ),
                           ],
@@ -223,15 +236,18 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                           children: [
                             Text(
                               "Public balance",
-                              style: STextStyles.titleBold12,
+                              style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(
                               height: 2,
                             ),
                             Text(
                               "Current public spendable (unlocked) balance",
-                              style: STextStyles.itemSubtitle12.copyWith(
-                                color: StackTheme.instance.color.textSubtitle1,
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
                               ),
                             ),
                           ],

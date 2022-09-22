@@ -6,7 +6,7 @@ import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:tuple/tuple.dart';
 
@@ -38,7 +38,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -47,7 +47,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
         ),
         title: Text(
           "${widget.coin.prettyName} nodes",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -62,10 +62,12 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                 key: const Key("manageNodesAddNewNodeButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.plus,
-                  color: StackTheme.instance.color.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),

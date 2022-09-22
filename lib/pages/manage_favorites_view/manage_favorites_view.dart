@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/managed_favorite.dart';
 
@@ -19,7 +19,7 @@ class ManageFavoritesView extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           "Favorite wallets",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         leading: AppBarBackButton(
           onPressed: () {
@@ -28,7 +28,7 @@ class ManageFavoritesView extends StatelessWidget {
         ),
       ),
       body: Container(
-        color: StackTheme.instance.color.background,
+        color: Theme.of(context).extension<StackColors>()!.background,
         child: Padding(
           padding: const EdgeInsets.only(
             left: 12,
@@ -42,7 +42,7 @@ class ManageFavoritesView extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.popupBG,
+                    color: Theme.of(context).extension<StackColors>()!.popupBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -51,7 +51,7 @@ class ManageFavoritesView extends StatelessWidget {
                     padding: const EdgeInsets.all(12.0),
                     child: Text(
                       "Drag to change wallet order.",
-                      style: STextStyles.label,
+                      style: STextStyles.label(context),
                     ),
                   ),
                 ),
@@ -116,8 +116,9 @@ class ManageFavoritesView extends StatelessWidget {
                 ),
                 child: Text(
                   "Add to favorites",
-                  style: STextStyles.itemSubtitle12.copyWith(
-                    color: StackTheme.instance.color.textDark3,
+                  style: STextStyles.itemSubtitle12(context).copyWith(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textDark3,
                   ),
                 ),
               ),

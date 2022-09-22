@@ -14,12 +14,11 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -142,13 +141,17 @@ class _NewWalletRecoveryPhraseViewState
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          color: StackTheme.instance.color.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           shadows: const [],
                           icon: SvgPicture.asset(
                             Assets.svg.copy,
                             width: 24,
                             height: 24,
-                            color: StackTheme.instance.color.topNavIconPrimary,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .topNavIconPrimary,
                           ),
                           onPressed: () async {
                             await _copy();
@@ -159,7 +162,7 @@ class _NewWalletRecoveryPhraseViewState
                   ],
                 ),
           body: Container(
-            color: StackTheme.instance.color.background,
+            color: Theme.of(context).extension<StackColors>()!.background,
             width: isDesktop ? 600 : null,
             child: Padding(
               padding: isDesktop
@@ -176,7 +179,7 @@ class _NewWalletRecoveryPhraseViewState
                     Text(
                       _manager.walletName,
                       textAlign: TextAlign.center,
-                      style: STextStyles.label.copyWith(
+                      style: STextStyles.label(context).copyWith(
                         fontSize: 12,
                       ),
                     ),
@@ -187,8 +190,8 @@ class _NewWalletRecoveryPhraseViewState
                     "Recovery Phrase",
                     textAlign: TextAlign.center,
                     style: isDesktop
-                        ? STextStyles.desktopH2
-                        : STextStyles.pageTitleH1,
+                        ? STextStyles.desktopH2(context)
+                        : STextStyles.pageTitleH1(context),
                   ),
                   const SizedBox(
                     height: 16,
@@ -196,8 +199,10 @@ class _NewWalletRecoveryPhraseViewState
                   Container(
                     decoration: BoxDecoration(
                       color: isDesktop
-                          ? StackTheme.instance.color.background
-                          : StackTheme.instance.color.popupBG,
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .background
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
                       borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius),
                     ),
@@ -209,10 +214,11 @@ class _NewWalletRecoveryPhraseViewState
                         "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
                         textAlign: TextAlign.center,
                         style: isDesktop
-                            ? STextStyles.desktopSubtitleH2
-                            : STextStyles.label.copyWith(
-                                color:
-                                    StackTheme.instance.color.accentColorDark),
+                            ? STextStyles.desktopSubtitleH2(context)
+                            : STextStyles.label(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark),
                       ),
                     ),
                   ),
@@ -256,7 +262,8 @@ class _NewWalletRecoveryPhraseViewState
                             ),
                             Text(
                               "Copy to clipboard",
-                              style: STextStyles.desktopButtonSecondaryEnabled,
+                              style: STextStyles.desktopButtonSecondaryEnabled(
+                                  context),
                             )
                           ],
                         ),
@@ -286,13 +293,14 @@ class _NewWalletRecoveryPhraseViewState
                           arguments: Tuple2(_manager, _mnemonic),
                         ));
                       },
-                      style: StackTheme.instance
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
                           .getPrimaryEnabledButtonColor(context),
                       child: Text(
                         "I saved my recovery phrase",
                         style: isDesktop
-                            ? STextStyles.desktopButtonEnabled
-                            : STextStyles.button,
+                            ? STextStyles.desktopButtonEnabled(context)
+                            : STextStyles.button(context),
                       ),
                     ),
                   ),

@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class WalletInfoCoinIcon extends StatelessWidget {
   const WalletInfoCoinIcon({Key? key, required this.coin}) : super(key: key);
@@ -14,7 +14,10 @@ class WalletInfoCoinIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: StackTheme.instance.colorForCoin(coin).withOpacity(0.5),
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .colorForCoin(coin)
+            .withOpacity(0.5),
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),

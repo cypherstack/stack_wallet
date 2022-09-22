@@ -17,7 +17,7 @@ import 'package:stackwallet/services/change_now/change_now_loading_service.dart'
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -153,7 +153,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ),
               Text(
                 "My Stack",
-                style: STextStyles.navBarTitle,
+                style: STextStyles.navBarTitle(context),
               )
             ],
           ),
@@ -170,7 +170,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   key: const Key("walletsViewAlertsButton"),
                   size: 36,
                   shadows: const [],
-                  color: StackTheme.instance.color.background,
+                  color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     ref.watch(notificationsProvider
                             .select((value) => value.hasUnreadNotifications))
@@ -181,7 +181,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     color: ref.watch(notificationsProvider
                             .select((value) => value.hasUnreadNotifications))
                         ? null
-                        : StackTheme.instance.color.topNavIconPrimary,
+                        : Theme.of(context)
+                            .extension<StackColors>()!
+                            .topNavIconPrimary,
                   ),
                   onPressed: () {
                     // reset unread state
@@ -227,10 +229,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   key: const Key("walletsViewSettingsButton"),
                   size: 36,
                   shadows: const [],
-                  color: StackTheme.instance.color.background,
+                  color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.gear,
-                    color: StackTheme.instance.color.topNavIconPrimary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .topNavIconPrimary,
                     width: 20,
                     height: 20,
                   ),
@@ -245,15 +249,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ],
         ),
         body: Container(
-          color: StackTheme.instance.color.background,
+          color: Theme.of(context).extension<StackColors>()!.background,
           child: Column(
             children: [
               if (Constants.enableExchange)
                 Container(
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.background,
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
                     boxShadow: [
-                      StackTheme.instance.standardBoxShadow,
+                      Theme.of(context)
+                          .extension<StackColors>()!
+                          .standardBoxShadow,
                     ],
                   ),
                   child: const Padding(

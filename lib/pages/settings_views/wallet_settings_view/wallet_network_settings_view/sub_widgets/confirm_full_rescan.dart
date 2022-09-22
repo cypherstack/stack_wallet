@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class ConfirmFullRescanDialog extends StatelessWidget {
@@ -20,20 +20,24 @@ class ConfirmFullRescanDialog extends StatelessWidget {
         message:
             "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
         leftButton: TextButton(
-          style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getSecondaryEnabledButtonColor(context),
           child: Text(
             "Cancel",
-            style: STextStyles.itemSubtitle12,
+            style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
         rightButton: TextButton(
-          style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getPrimaryEnabledButtonColor(context),
           child: Text(
             "Rescan",
-            style: STextStyles.button,
+            style: STextStyles.button(context),
           ),
           onPressed: () {
             Navigator.of(context).pop();

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 Future<dynamic> showFloatingFlushBar({
   required FlushBarType type,
@@ -19,16 +19,16 @@ Future<dynamic> showFloatingFlushBar({
   Color fg;
   switch (type) {
     case FlushBarType.success:
-      fg = StackTheme.instance.color.snackBarTextSuccess;
-      bg = StackTheme.instance.color.snackBarBackSuccess;
+      fg = Theme.of(context).extension<StackColors>()!.snackBarTextSuccess;
+      bg = Theme.of(context).extension<StackColors>()!.snackBarBackSuccess;
       break;
     case FlushBarType.info:
-      fg = StackTheme.instance.color.snackBarTextInfo;
-      bg = StackTheme.instance.color.snackBarBackInfo;
+      fg = Theme.of(context).extension<StackColors>()!.snackBarTextInfo;
+      bg = Theme.of(context).extension<StackColors>()!.snackBarBackInfo;
       break;
     case FlushBarType.warning:
-      fg = StackTheme.instance.color.snackBarTextError;
-      bg = StackTheme.instance.color.snackBarBackError;
+      fg = Theme.of(context).extension<StackColors>()!.snackBarTextError;
+      bg = Theme.of(context).extension<StackColors>()!.snackBarBackError;
       break;
   }
   final bar = Flushbar<dynamic>(

@@ -7,7 +7,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -25,7 +25,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -34,7 +34,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
         ),
         title: Text(
           "Wallet settings",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -50,7 +50,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
               RoundedWhiteContainer(
                 padding: const EdgeInsets.all(0),
                 child: RawMaterialButton(
-                  // splashColor: StackTheme.instance.color.highlight,
+                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
@@ -72,7 +72,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                       children: [
                         Text(
                           "Rename wallet",
-                          style: STextStyles.titleBold12,
+                          style: STextStyles.titleBold12(context),
                         ),
                       ],
                     ),
@@ -85,7 +85,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
               RoundedWhiteContainer(
                 padding: const EdgeInsets.all(0),
                 child: RawMaterialButton(
-                  // splashColor: StackTheme.instance.color.highlight,
+                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
@@ -101,20 +101,23 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         title:
                             "Do you want to delete ${ref.read(walletsChangeNotifierProvider).getManager(walletId).walletName}?",
                         leftButton: TextButton(
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getSecondaryEnabledButtonColor(context),
                           onPressed: () {
                             Navigator.pop(context);
                           },
                           child: Text(
                             "Cancel",
-                            style: STextStyles.button.copyWith(
-                                color:
-                                    StackTheme.instance.color.accentColorDark),
+                            style: STextStyles.button(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark),
                           ),
                         ),
                         rightButton: TextButton(
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getPrimaryEnabledButtonColor(context),
                           onPressed: () {
                             Navigator.pop(context);
@@ -141,7 +144,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                           },
                           child: Text(
                             "Delete",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ),
@@ -156,7 +159,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                       children: [
                         Text(
                           "Delete wallet",
-                          style: STextStyles.titleBold12,
+                          style: STextStyles.titleBold12(context),
                         ),
                       ],
                     ),

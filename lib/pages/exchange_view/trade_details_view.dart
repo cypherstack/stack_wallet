@@ -22,7 +22,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -140,9 +140,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
         Decimal.parse("-1");
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
-        backgroundColor: StackTheme.instance.color.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             Navigator.of(context).pop();
@@ -150,7 +150,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
         ),
         title: Text(
           "Trade details",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -170,7 +170,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         children: [
                           SelectableText(
                             "${trade.fromCurrency.toUpperCase()} → ${trade.toCurrency.toUpperCase()}",
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                           ),
                           const SizedBox(
                             height: 4,
@@ -180,7 +180,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                   localeServiceChangeNotifierProvider
                                       .select((value) => value.locale),
                                 ), decimalPlaces: trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.fromCurrency.toUpperCase()}",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ],
                       ),
@@ -212,18 +212,21 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     children: [
                       Text(
                         "Status",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       const SizedBox(
                         height: 4,
                       ),
                       SelectableText(
                         trade.statusObject?.status.name ?? trade.statusString,
-                        style: STextStyles.itemSubtitle.copyWith(
+                        style: STextStyles.itemSubtitle(context).copyWith(
                           color: trade.statusObject != null
-                              ? StackTheme.instance
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
                                   .colorForStatus(trade.statusObject!.status)
-                              : StackTheme.instance.color.accentColorDark,
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
                         ),
                       ),
                       //   ),
@@ -237,15 +240,19 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   ),
                 if (!sentFromStack && !hasTx)
                   RoundedContainer(
-                    color: StackTheme.instance.color.warningBackground,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .warningBackground,
                     child: RichText(
                       text: TextSpan(
                           text:
                               "You must send at least ${sendAmount.toStringAsFixed(
                             trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8,
                           )} ${trade.fromCurrency.toUpperCase()}. ",
-                          style: STextStyles.label.copyWith(
-                            color: StackTheme.instance.color.accentColorDark,
+                          style: STextStyles.label(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .warningForeground,
                             fontWeight: FontWeight.w700,
                           ),
                           children: [
@@ -256,9 +263,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     ? 12
                                     : 8,
                               )} ${trade.fromCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
-                              style: STextStyles.label.copyWith(
-                                color:
-                                    StackTheme.instance.color.accentColorDark,
+                              style: STextStyles.label(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .warningForeground,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -276,14 +284,14 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       children: [
                         Text(
                           "Sent from",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 4,
                         ),
                         SelectableText(
                           widget.walletName!,
-                          style: STextStyles.itemSubtitle12,
+                          style: STextStyles.itemSubtitle12(context),
                         ),
                         const SizedBox(
                           height: 10,
@@ -301,7 +309,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           },
                           child: Text(
                             "View transaction",
-                            style: STextStyles.link2,
+                            style: STextStyles.link2(context),
                           ),
                         ),
                       ],
@@ -318,14 +326,14 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       children: [
                         Text(
                           "ChangeNOW address",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 4,
                         ),
                         SelectableText(
                           trade.payinAddress,
-                          style: STextStyles.itemSubtitle12,
+                          style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
                     ),
@@ -341,14 +349,14 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       children: [
                         Text(
                           "Send ${trade.fromCurrency.toUpperCase()} to this address",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 4,
                         ),
                         SelectableText(
                           trade.payinAddress,
-                          style: STextStyles.itemSubtitle12,
+                          style: STextStyles.itemSubtitle12(context),
                         ),
                         const SizedBox(
                           height: 10,
@@ -369,8 +377,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     children: [
                                       Center(
                                         child: Text(
-                                          "Recovery phrase QR code",
-                                          style: STextStyles.pageTitleH2,
+                                          "Send ${trade.fromCurrency.toUpperCase()} to this address",
+                                          style:
+                                              STextStyles.pageTitleH2(context),
                                         ),
                                       ),
                                       const SizedBox(
@@ -385,11 +394,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                             child: QrImage(
                                                 data: trade.payinAddress,
                                                 size: width,
-                                                backgroundColor: StackTheme
-                                                    .instance.color.popupBG,
-                                                foregroundColor: StackTheme
-                                                    .instance
-                                                    .color
+                                                backgroundColor: Theme.of(
+                                                        context)
+                                                    .extension<StackColors>()!
+                                                    .popupBG,
+                                                foregroundColor: Theme.of(
+                                                        context)
+                                                    .extension<StackColors>()!
                                                     .accentColorDark),
                                           ),
                                         ),
@@ -405,16 +416,17 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                               // await _capturePng(true);
                                               Navigator.of(context).pop();
                                             },
-                                            style: StackTheme.instance
+                                            style: Theme.of(context)
+                                                .extension<StackColors>()!
                                                 .getSecondaryEnabledButtonColor(
                                                     context),
                                             child: Text(
                                               "Cancel",
-                                              style: STextStyles.button
+                                              style: STextStyles.button(context)
                                                   .copyWith(
-                                                      color: StackTheme
-                                                          .instance
-                                                          .color
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
                                                           .accentColorDark),
                                             ),
                                           ),
@@ -429,17 +441,19 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           child: Row(
                             children: [
                               SvgPicture.asset(
-                                Assets.svg.pencil,
-                                width: 10,
-                                height: 10,
-                                color: StackTheme.instance.color.infoItemIcons,
+                                Assets.svg.qrcode,
+                                width: 12,
+                                height: 12,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .infoItemIcons,
                               ),
                               const SizedBox(
                                 width: 4,
                               ),
                               Text(
-                                "Edit",
-                                style: STextStyles.link2,
+                                "Show QR code",
+                                style: STextStyles.link2(context),
                               ),
                             ],
                           ),
@@ -459,7 +473,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         children: [
                           Text(
                             "Trade note",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                           GestureDetector(
                             onTap: () {
@@ -479,15 +493,16 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                   Assets.svg.pencil,
                                   width: 10,
                                   height: 10,
-                                  color:
-                                      StackTheme.instance.color.infoItemIcons,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons,
                                 ),
                                 const SizedBox(
                                   width: 4,
                                 ),
                                 Text(
                                   "Edit",
-                                  style: STextStyles.link2,
+                                  style: STextStyles.link2(context),
                                 ),
                               ],
                             ),
@@ -500,7 +515,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       SelectableText(
                         ref.watch(tradeNoteServiceProvider.select(
                             (value) => value.getNote(tradeId: tradeId))),
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                     ],
                   ),
@@ -519,7 +534,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           children: [
                             Text(
                               "Transaction note",
-                              style: STextStyles.itemSubtitle,
+                              style: STextStyles.itemSubtitle(context),
                             ),
                             GestureDetector(
                               onTap: () {
@@ -538,15 +553,16 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     Assets.svg.pencil,
                                     width: 10,
                                     height: 10,
-                                    color:
-                                        StackTheme.instance.color.infoItemIcons,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .infoItemIcons,
                                   ),
                                   const SizedBox(
                                     width: 4,
                                   ),
                                   Text(
                                     "Edit",
-                                    style: STextStyles.link2,
+                                    style: STextStyles.link2(context),
                                   ),
                                 ],
                               ),
@@ -570,7 +586,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             }
                             return SelectableText(
                               _note,
-                              style: STextStyles.itemSubtitle12,
+                              style: STextStyles.itemSubtitle12(context),
                             );
                           },
                         ),
@@ -586,7 +602,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     children: [
                       Text(
                         "Date",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -595,7 +611,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       SelectableText(
                         Format.extractDateFrom(
                             trade.date.millisecondsSinceEpoch ~/ 1000),
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -611,7 +627,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     children: [
                       Text(
                         "Exchange",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -619,7 +635,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       //     child:
                       SelectableText(
                         "ChangeNOW",
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -634,14 +650,14 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     children: [
                       Text(
                         "Trade ID",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       const Spacer(),
                       Row(
                         children: [
                           Text(
                             trade.id,
-                            style: STextStyles.itemSubtitle12,
+                            style: STextStyles.itemSubtitle12(context),
                           ),
                           const SizedBox(
                             width: 10,
@@ -658,7 +674,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             },
                             child: SvgPicture.asset(
                               Assets.svg.copy,
-                              color: StackTheme.instance.color.infoItemIcons,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemIcons,
                               width: 12,
                             ),
                           )
@@ -676,7 +694,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     children: [
                       Text(
                         "Tracking",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       const SizedBox(
                         height: 4,
@@ -692,7 +710,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         },
                         child: Text(
                           "https://changenow.io/exchange/txs/${trade.id}",
-                          style: STextStyles.link2,
+                          style: STextStyles.link2(context),
                         ),
                       ),
                     ],

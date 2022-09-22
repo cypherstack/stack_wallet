@@ -16,7 +16,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -60,7 +60,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -69,7 +69,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
         ),
         title: Text(
           "Send ",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -79,14 +79,14 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
           children: [
             Text(
               "Choose your ${coin.ticker} wallet",
-              style: STextStyles.pageTitleH1,
+              style: STextStyles.pageTitleH1(context),
             ),
             const SizedBox(
               height: 8,
             ),
             Text(
               "You need to send ${amount.toStringAsFixed(coin == Coin.monero ? 12 : 8)} ${coin.ticker}",
-              style: STextStyles.itemSubtitle,
+              style: STextStyles.itemSubtitle(context),
             ),
             const SizedBox(
               height: 16,
@@ -161,7 +161,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
-        splashColor: StackTheme.instance.color.highlight,
+        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         key: Key("walletsSheetItemButtonKey_$walletId"),
         padding: const EdgeInsets.all(5),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -242,12 +242,15 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   title: "Transaction failed",
                   message: e.toString(),
                   rightButton: TextButton(
-                    style: StackTheme.instance
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
                         .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "Ok",
-                      style: STextStyles.button.copyWith(
-                        color: StackTheme.instance.color.buttonTextSecondary,
+                      style: STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonTextSecondary,
                       ),
                     ),
                     onPressed: () {
@@ -264,7 +267,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: StackTheme.instance
+                color: Theme.of(context)
+                    .extension<StackColors>()!
                     .colorForCoin(manager.coin)
                     .withOpacity(0.5),
                 borderRadius: BorderRadius.circular(
@@ -289,7 +293,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               children: [
                 Text(
                   manager.walletName,
-                  style: STextStyles.titleBold12,
+                  style: STextStyles.titleBold12(context),
                 ),
                 const SizedBox(
                   height: 2,
@@ -305,7 +309,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                           locale: locale,
                           decimalPlaces: coin == Coin.monero ? 12 : 8,
                         )} ${coin.ticker}",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       );
                     } else {
                       return AnimatedText(
@@ -315,7 +319,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                           "Loading balance..",
                           "Loading balance..."
                         ],
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       );
                     }
                   },

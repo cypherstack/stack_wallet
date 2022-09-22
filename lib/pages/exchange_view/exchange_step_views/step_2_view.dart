@@ -15,7 +15,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
@@ -95,7 +95,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -110,7 +110,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         ),
         title: Text(
           "Exchange",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -139,14 +139,14 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                         ),
                         Text(
                           "Exchange details",
-                          style: STextStyles.pageTitleH1,
+                          style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(
                           height: 8,
                         ),
                         Text(
                           "Enter your recipient and refund addresses",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 24,
@@ -156,7 +156,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                           children: [
                             Text(
                               "Recipient Wallet",
-                              style: STextStyles.smallMed12,
+                              style: STextStyles.smallMed12(context),
                             ),
                             // GestureDetector(
                             //   onTap: () {
@@ -164,7 +164,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                             //   },
                             //   child: Text(
                             //     "Choose from Stack",
-                            //     style: STextStyles.link2,
+                            //     style: STextStyles.link2(context),
                             //   ),
                             // ),
                           ],
@@ -194,10 +194,11 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               selectAll: false,
                             ),
                             focusNode: _toFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             decoration: standardInputDecoration(
                               "Enter the ${model.receiveTicker.toUpperCase()} payout address",
                               _toFocusNode,
+                              context,
                             ).copyWith(
                               contentPadding: const EdgeInsets.only(
                                 left: 16,
@@ -334,7 +335,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                         RoundedWhiteContainer(
                           child: Text(
                             "This is the wallet where your ${model.receiveTicker.toUpperCase()} will be sent to.",
-                            style: STextStyles.label,
+                            style: STextStyles.label(context),
                           ),
                         ),
                         const SizedBox(
@@ -345,7 +346,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                           children: [
                             Text(
                               "Refund Wallet (required)",
-                              style: STextStyles.smallMed12,
+                              style: STextStyles.smallMed12(context),
                             ),
                             // GestureDetector(
                             //   onTap: () {
@@ -353,7 +354,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                             //   },
                             //   child: Text(
                             //     "Choose from Stack",
-                            //     style: STextStyles.link2,
+                            //     style: STextStyles.link2(context),
                             //   ),
                             // ),
                           ],
@@ -382,10 +383,11 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               selectAll: false,
                             ),
                             focusNode: _refundFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             decoration: standardInputDecoration(
                               "Enter ${model.sendTicker.toUpperCase()} refund address",
                               _refundFocusNode,
+                              context,
                             ).copyWith(
                               contentPadding: const EdgeInsets.only(
                                 left: 16,
@@ -524,7 +526,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                         RoundedWhiteContainer(
                           child: Text(
                             "In case something goes wrong during the exchange, we might need a refund address so we can return your coins back to you.",
-                            style: STextStyles.label,
+                            style: STextStyles.label(context),
                           ),
                         ),
                         const Spacer(),
@@ -535,13 +537,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Back",
-                                  style: STextStyles.button.copyWith(
-                                    color: StackTheme
-                                        .instance.color.buttonTextSecondary,
+                                  style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
                                   ),
                                 ),
                               ),
@@ -559,11 +563,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                       Step3View.routeName,
                                       arguments: model);
                                 },
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getPrimaryEnabledButtonColor(context),
                                 child: Text(
                                   "Next",
-                                  style: STextStyles.button,
+                                  style: STextStyles.button(context),
                                 ),
                               ),
                             ),

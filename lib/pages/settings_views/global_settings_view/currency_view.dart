@@ -6,7 +6,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -101,7 +101,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
     }
     currenciesWithoutSelected = _filtered();
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -116,7 +116,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
         ),
         title: Text(
           "Currency",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -145,10 +145,11 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                         onChanged: (newString) {
                           setState(() => filter = newString);
                         },
-                        style: STextStyles.field,
+                        style: STextStyles.field(context),
                         decoration: standardInputDecoration(
                           "Search",
                           _searchFocusNode,
+                          context,
                         ).copyWith(
                           prefixIcon: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -203,7 +204,9 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                       (context, index) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: StackTheme.instance.color.popupBG,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .popupBG,
                             borderRadius: _borderRadius(index),
                           ),
                           child: Padding(
@@ -213,8 +216,12 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
                               color: currenciesWithoutSelected[index] == current
-                                  ? StackTheme.instance.color.currencyListItemBG
-                                  : StackTheme.instance.color.popupBG,
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .currencyListItemBG
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
                               child: RawMaterialButton(
                                 onPressed: () async {
                                   onTap(index);
@@ -234,7 +241,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                         width: 20,
                                         height: 20,
                                         child: Radio(
-                                          activeColor: StackTheme.instance.color
+                                          activeColor: Theme.of(context)
+                                              .extension<StackColors>()!
                                               .radioButtonIconEnabled,
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
@@ -262,7 +270,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                                 ? const Key(
                                                     "selectedCurrencySettingsCurrencyText")
                                                 : null,
-                                            style: STextStyles.largeMedium14,
+                                            style: STextStyles.largeMedium14(
+                                                context),
                                           ),
                                           const SizedBox(
                                             height: 2,
@@ -280,7 +289,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                                 ? const Key(
                                                     "selectedCurrencySettingsCurrencyTextDescription")
                                                 : null,
-                                            style: STextStyles.itemSubtitle,
+                                            style: STextStyles.itemSubtitle(
+                                                context),
                                           ),
                                         ],
                                       ),

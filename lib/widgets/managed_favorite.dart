@@ -7,7 +7,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/favorite_toggle.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -33,20 +33,20 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(4.0),
       child: RawMaterialButton(
-        onPressed: () async {
+        onPressed: () {
           final provider = ref
               .read(walletsChangeNotifierProvider)
               .getManagerProvider(manager.walletId);
           if (!manager.isFavorite) {
             ref.read(favoritesProvider).add(provider, true);
             ref.read(nonFavoritesProvider).remove(provider, true);
-            await ref
+            ref
                 .read(walletsServiceChangeNotifierProvider)
                 .addFavorite(manager.walletId);
           } else {
             ref.read(favoritesProvider).remove(provider, true);
             ref.read(nonFavoritesProvider).add(provider, true);
-            await ref
+            ref
                 .read(walletsServiceChangeNotifierProvider)
                 .removeFavorite(manager.walletId);
           }
@@ -64,7 +64,8 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: StackTheme.instance
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
                       .colorForCoin(manager.coin)
                       .withOpacity(0.5),
                   borderRadius: BorderRadius.circular(
@@ -90,7 +91,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                   children: [
                     Text(
                       manager.walletName,
-                      style: STextStyles.titleBold12,
+                      style: STextStyles.titleBold12(context),
                     ),
                     const SizedBox(
                       height: 2,
@@ -102,7 +103,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                             .select((value) => value.locale)),
                         decimalPlaces: 8,
                       )} ${manager.coin.ticker}",
-                      style: STextStyles.itemSubtitle,
+                      style: STextStyles.itemSubtitle(context),
                     ),
                   ],
                 ),

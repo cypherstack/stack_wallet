@@ -14,7 +14,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -64,7 +64,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -79,7 +79,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
         ),
         title: Text(
           "Restore from file",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -127,7 +127,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                           }
                         },
                         controller: fileLocationController,
-                        style: STextStyles.field,
+                        style: STextStyles.field(context),
                         decoration: InputDecoration(
                           hintText: "Choose file...",
                           suffixIcon: UnconstrainedBox(
@@ -138,7 +138,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                 ),
                                 SvgPicture.asset(
                                   Assets.svg.folder,
-                                  color: StackTheme.instance.color.textDark3,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
                                   width: 16,
                                   height: 16,
                                 ),
@@ -170,13 +172,14 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                           key: const Key("restoreFromFilePasswordFieldKey"),
                           focusNode: passwordFocusNode,
                           controller: passwordController,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           obscureText: hidePassword,
                           enableSuggestions: false,
                           autocorrect: false,
                           decoration: standardInputDecoration(
                             "Enter password",
                             passwordFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: UnconstrainedBox(
                               child: Row(
@@ -196,8 +199,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                       hidePassword
                                           ? Assets.svg.eye
                                           : Assets.svg.eyeSlash,
-                                      color:
-                                          StackTheme.instance.color.textDark3,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                       width: 16,
                                       height: 16,
                                     ),
@@ -221,10 +225,12 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                       TextButton(
                         style: passwordController.text.isEmpty ||
                                 fileLocationController.text.isEmpty
-                            ? StackTheme.instance
-                                .getPrimaryEnabledButtonColor(context)
-                            : StackTheme.instance
-                                .getPrimaryDisabledButtonColor(context),
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .getPrimaryDisabledButtonColor(context)
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .getPrimaryEnabledButtonColor(context),
                         onPressed: passwordController.text.isEmpty ||
                                 fileLocationController.text.isEmpty
                             ? null
@@ -268,10 +274,12 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                           child: Center(
                                             child: Text(
                                               "Decrypting Stack backup file",
-                                              style: STextStyles.pageTitleH2
+                                              style: STextStyles.pageTitleH2(
+                                                      context)
                                                   .copyWith(
-                                                color: StackTheme
-                                                    .instance.color.textWhite,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textWhite,
                                               ),
                                             ),
                                           ),
@@ -322,7 +330,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               },
                         child: Text(
                           "Restore",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                       ),
                     ],

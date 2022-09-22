@@ -6,7 +6,7 @@ import 'package:stackwallet/providers/global/address_book_service_provider.dart'
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/emoji_select_sheet.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -68,7 +68,7 @@ class _EditContactNameEmojiViewState
         .select((value) => value.getContactById(contactId)));
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -83,7 +83,7 @@ class _EditContactNameEmojiViewState
         ),
         title: Text(
           "Edit contact",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -139,8 +139,9 @@ class _EditContactNameEmojiViewState
                                   width: 48,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(24),
-                                    color: StackTheme
-                                        .instance.color.textFieldActiveBG,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldActiveBG,
                                   ),
                                   child: Center(
                                     child: _selectedEmoji == null
@@ -151,7 +152,8 @@ class _EditContactNameEmojiViewState
                                           )
                                         : Text(
                                             _selectedEmoji!.char,
-                                            style: STextStyles.pageTitleH1,
+                                            style: STextStyles.pageTitleH1(
+                                                context),
                                           ),
                                   ),
                                 ),
@@ -162,21 +164,24 @@ class _EditContactNameEmojiViewState
                                     width: 14,
                                     decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(14),
-                                        color: StackTheme
-                                            .instance.color.accentColorDark),
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark),
                                     child: Center(
                                       child: _selectedEmoji == null
                                           ? SvgPicture.asset(
                                               Assets.svg.plus,
-                                              color: StackTheme
-                                                  .instance.color.textWhite,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textWhite,
                                               width: 12,
                                               height: 12,
                                             )
                                           : SvgPicture.asset(
                                               Assets.svg.thickX,
-                                              color: StackTheme
-                                                  .instance.color.textWhite,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textWhite,
                                               width: 8,
                                               height: 8,
                                             ),
@@ -197,11 +202,12 @@ class _EditContactNameEmojiViewState
                           child: TextField(
                             controller: nameController,
                             focusNode: nameFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             onChanged: (_) => setState(() {}),
                             decoration: standardInputDecoration(
                               "Enter contact name",
                               nameFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: nameController.text.isNotEmpty
                                   ? Padding(
@@ -233,13 +239,15 @@ class _EditContactNameEmojiViewState
                           children: [
                             Expanded(
                               child: TextButton(
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
-                                  style: STextStyles.button.copyWith(
-                                      color: StackTheme
-                                          .instance.color.accentColorDark),
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                 ),
                                 onPressed: () async {
                                   if (FocusScope.of(context).hasFocus) {
@@ -264,10 +272,12 @@ class _EditContactNameEmojiViewState
 
                                   return TextButton(
                                     style: shouldEnableSave
-                                        ? StackTheme.instance
+                                        ? Theme.of(context)
+                                            .extension<StackColors>()!
                                             .getPrimaryEnabledButtonColor(
                                                 context)
-                                        : StackTheme.instance
+                                        : Theme.of(context)
+                                            .extension<StackColors>()!
                                             .getPrimaryDisabledButtonColor(
                                                 context),
                                     onPressed: shouldEnableSave
@@ -301,7 +311,7 @@ class _EditContactNameEmojiViewState
                                         : null,
                                     child: Text(
                                       "Save",
-                                      style: STextStyles.button,
+                                      style: STextStyles.button(context),
                                     ),
                                   );
                                 },

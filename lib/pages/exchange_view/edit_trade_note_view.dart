@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/exchange/trade_note_service_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -46,9 +46,9 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
-        backgroundColor: StackTheme.instance.color.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             if (FocusScope.of(context).hasFocus) {
@@ -62,7 +62,7 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
         ),
         title: Text(
           "Edit trade note",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -86,12 +86,13 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                           ),
                           child: TextField(
                             controller: _noteController,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             focusNode: noteFieldFocusNode,
                             onChanged: (_) => setState(() {}),
                             decoration: standardInputDecoration(
                               "Note",
                               noteFieldFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: _noteController.text.isNotEmpty
                                   ? Padding(
@@ -126,11 +127,12 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                               Navigator.of(context).pop();
                             }
                           },
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getPrimaryEnabledButtonColor(context),
                           child: Text(
                             "Save",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         )
                       ],

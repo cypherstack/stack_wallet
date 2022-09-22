@@ -13,7 +13,7 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -97,12 +97,15 @@ class _ConfirmChangeNowSendViewState
             title: "Broadcast transaction failed",
             message: e.toString(),
             rightButton: TextButton(
-              style:
-                  StackTheme.instance.getSecondaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.button.copyWith(
-                  color: StackTheme.instance.color.buttonTextSecondary,
+                style: STextStyles.button(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextSecondary,
                 ),
               ),
               onPressed: () {
@@ -130,7 +133,7 @@ class _ConfirmChangeNowSendViewState
         .select((value) => value.getManagerProvider(walletId)));
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: StackTheme.instance.color.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             // if (FocusScope.of(context).hasFocus) {
@@ -142,7 +145,7 @@ class _ConfirmChangeNowSendViewState
         ),
         title: Text(
           "Confirm transaction",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -166,7 +169,7 @@ class _ConfirmChangeNowSendViewState
                       children: [
                         Text(
                           "Send ${ref.watch(managerProvider.select((value) => value.coin)).ticker}",
-                          style: STextStyles.pageTitleH1,
+                          style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(
                           height: 12,
@@ -177,7 +180,7 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Send from",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               const SizedBox(
                                 height: 4,
@@ -187,7 +190,7 @@ class _ConfirmChangeNowSendViewState
                                     .watch(walletsChangeNotifierProvider)
                                     .getManager(walletId)
                                     .walletName,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
                           ),
@@ -204,14 +207,14 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "ChangeNOW address",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               const SizedBox(
                                 height: 4,
                               ),
                               Text(
                                 "${transactionInfo["address"] ?? "ERROR"}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
                           ),
@@ -225,7 +228,7 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Amount",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               Text(
                                 "${Format.satoshiAmountToPrettyString(
@@ -238,7 +241,7 @@ class _ConfirmChangeNowSendViewState
                                       managerProvider
                                           .select((value) => value.coin),
                                     ).ticker}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -253,7 +256,7 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Transaction fee",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               Text(
                                 "${Format.satoshiAmountToPrettyString(
@@ -266,7 +269,7 @@ class _ConfirmChangeNowSendViewState
                                       managerProvider
                                           .select((value) => value.coin),
                                     ).ticker}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -281,14 +284,14 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Note",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               const SizedBox(
                                 height: 4,
                               ),
                               Text(
                                 transactionInfo["note"] as String? ?? "",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
                           ),
@@ -302,11 +305,11 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Trade ID",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               Text(
                                 trade.id,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -316,13 +319,15 @@ class _ConfirmChangeNowSendViewState
                           height: 12,
                         ),
                         RoundedContainer(
-                          color: StackTheme.instance.color.snackBarBackSuccess,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .snackBarBackSuccess,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "Total amount",
-                                style: STextStyles.titleBold12,
+                                style: STextStyles.titleBold12(context),
                               ),
                               Text(
                                 "${Format.satoshiAmountToPrettyString(
@@ -336,7 +341,7 @@ class _ConfirmChangeNowSendViewState
                                       managerProvider
                                           .select((value) => value.coin),
                                     ).ticker}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -347,7 +352,8 @@ class _ConfirmChangeNowSendViewState
                         ),
                         const Spacer(),
                         TextButton(
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getPrimaryEnabledButtonColor(context),
                           onPressed: () async {
                             final unlocked = await Navigator.push(
@@ -377,7 +383,7 @@ class _ConfirmChangeNowSendViewState
                           },
                           child: Text(
                             "Send",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],

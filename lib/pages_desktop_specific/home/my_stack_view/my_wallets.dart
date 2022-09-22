@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_summary_table.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 
 class MyWallets extends StatefulWidget {
@@ -22,8 +22,10 @@ class _MyWalletsState extends State<MyWallets> {
         children: [
           Text(
             "Favorite wallets",
-            style: STextStyles.desktopTextExtraSmall.copyWith(
-              color: StackTheme.instance.color.textFieldActiveSearchIconRight,
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
           ),
           const SizedBox(
@@ -43,9 +45,10 @@ class _MyWalletsState extends State<MyWallets> {
             children: [
               Text(
                 "All wallets",
-                style: STextStyles.desktopTextExtraSmall.copyWith(
-                  color:
-                      StackTheme.instance.color.textFieldActiveSearchIconRight,
+                style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldActiveSearchIconRight,
                 ),
               ),
               const Spacer(),

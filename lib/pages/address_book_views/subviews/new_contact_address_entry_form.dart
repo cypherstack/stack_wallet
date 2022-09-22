@@ -8,13 +8,12 @@ import 'package:stackwallet/providers/ui/address_book_providers/address_entry_da
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -73,15 +72,16 @@ class _NewContactAddressEntryFormState
       children: [
         TextField(
           readOnly: true,
-          style: STextStyles.field,
+          style: STextStyles.field(context),
           decoration: InputDecoration(
             hintText: "Select cryptocurrency",
-            hintStyle: STextStyles.fieldLabel,
+            hintStyle: STextStyles.fieldLabel(context),
             prefixIcon: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: RawMaterialButton(
-                  splashColor: StackTheme.instance.color.highlight,
+                  splashColor:
+                      Theme.of(context).extension<StackColors>()!.highlight,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
@@ -107,7 +107,7 @@ class _NewContactAddressEntryFormState
                               null
                           ? Text(
                               "Select cryptocurrency",
-                              style: STextStyles.fieldLabel,
+                              style: STextStyles.fieldLabel(context),
                             )
                           : Row(
                               children: [
@@ -127,7 +127,7 @@ class _NewContactAddressEntryFormState
                                       .watch(addressEntryDataProvider(widget.id)
                                           .select((value) => value.coin))!
                                       .prettyName,
-                                  style: STextStyles.itemSubtitle12,
+                                  style: STextStyles.itemSubtitle12(context),
                                 ),
                               ],
                             ),
@@ -135,7 +135,9 @@ class _NewContactAddressEntryFormState
                         Assets.svg.chevronDown,
                         width: 8,
                         height: 4,
-                        color: StackTheme.instance.color.textSubtitle2,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle2,
                       ),
                     ],
                   ),
@@ -154,10 +156,11 @@ class _NewContactAddressEntryFormState
           child: TextField(
             focusNode: addressLabelFocusNode,
             controller: addressLabelController,
-            style: STextStyles.field,
+            style: STextStyles.field(context),
             decoration: standardInputDecoration(
               "Enter address label",
               addressLabelFocusNode,
+              context,
             ).copyWith(
               suffixIcon: addressLabelController.text.isNotEmpty
                   ? Padding(
@@ -196,10 +199,11 @@ class _NewContactAddressEntryFormState
           child: TextField(
             focusNode: addressFocusNode,
             controller: addressController,
-            style: STextStyles.field,
+            style: STextStyles.field(context),
             decoration: standardInputDecoration(
               "Paste address",
               addressFocusNode,
+              context,
             ).copyWith(
               suffixIcon: UnconstrainedBox(
                 child: Row(
@@ -352,8 +356,9 @@ class _NewContactAddressEntryFormState
                   Text(
                     "Invalid address",
                     textAlign: TextAlign.left,
-                    style: STextStyles.label.copyWith(
-                      color: StackTheme.instance.color.textError,
+                    style: STextStyles.label(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textError,
                     ),
                   ),
                 ],

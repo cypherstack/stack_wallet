@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +14,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -34,7 +36,7 @@ class WalletBackupView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -43,7 +45,7 @@ class WalletBackupView extends ConsumerWidget {
         ),
         title: Text(
           "Wallet backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -51,22 +53,25 @@ class WalletBackupView extends ConsumerWidget {
             child: AspectRatio(
               aspectRatio: 1,
               child: AppBarIconButton(
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.copy,
                   width: 20,
                   height: 20,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
                 ),
                 onPressed: () async {
                   await clipboardInterface
                       .setData(ClipboardData(text: mnemonic.join(" ")));
-                  showFloatingFlushBar(
+                  unawaited(showFloatingFlushBar(
                     type: FlushBarType.info,
                     message: "Copied to clipboard",
                     iconAsset: Assets.svg.copy,
                     context: context,
-                  );
+                  ));
                 },
               ),
             ),
@@ -87,7 +92,7 @@ class WalletBackupView extends ConsumerWidget {
                       .select((value) => value.getManager(walletId)))
                   .walletName,
               textAlign: TextAlign.center,
-              style: STextStyles.label.copyWith(
+              style: STextStyles.label(context).copyWith(
                 fontSize: 12,
               ),
             ),
@@ -97,14 +102,14 @@ class WalletBackupView extends ConsumerWidget {
             Text(
               "Recovery Phrase",
               textAlign: TextAlign.center,
-              style: STextStyles.pageTitleH1,
+              style: STextStyles.pageTitleH1(context),
             ),
             const SizedBox(
               height: 16,
             ),
             Container(
               decoration: BoxDecoration(
-                color: StackTheme.instance.color.popupBG,
+                color: Theme.of(context).extension<StackColors>()!.popupBG,
                 borderRadius:
                     BorderRadius.circular(Constants.size.circularBorderRadius),
               ),
@@ -112,7 +117,7 @@ class WalletBackupView extends ConsumerWidget {
                 padding: const EdgeInsets.all(12),
                 child: Text(
                   "Please write down your backup key. Keep it safe and never share it with anyone. Your backup key is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your backup key. Only you have access to your wallet.",
-                  style: STextStyles.label,
+                  style: STextStyles.label(context),
                 ),
               ),
             ),
@@ -131,7 +136,9 @@ class WalletBackupView extends ConsumerWidget {
               height: 12,
             ),
             TextButton(
-              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonColor(context),
               onPressed: () {
                 String data = AddressUtils.encodeQRSeedData(mnemonic);
 
@@ -148,7 +155,7 @@ class WalletBackupView extends ConsumerWidget {
                           Center(
                             child: Text(
                               "Recovery phrase QR code",
-                              style: STextStyles.pageTitleH2,
+                              style: STextStyles.pageTitleH2(context),
                             ),
                           ),
                           const SizedBox(
@@ -163,10 +170,12 @@ class WalletBackupView extends ConsumerWidget {
                                 child: QrImage(
                                     data: data,
                                     size: width,
-                                    backgroundColor:
-                                        StackTheme.instance.color.popupBG,
-                                    foregroundColor: StackTheme
-                                        .instance.color.accentColorDark),
+                                    backgroundColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .popupBG,
+                                    foregroundColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark),
                               ),
                             ),
                           ),
@@ -181,13 +190,15 @@ class WalletBackupView extends ConsumerWidget {
                                   // await _capturePng(true);
                                   Navigator.of(context).pop();
                                 },
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
-                                  style: STextStyles.button.copyWith(
-                                      color: StackTheme
-                                          .instance.color.accentColorDark),
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                 ),
                               ),
                             ),
@@ -200,7 +211,7 @@ class WalletBackupView extends ConsumerWidget {
               },
               child: Text(
                 "Show QR Code",
-                style: STextStyles.button,
+                style: STextStyles.button(context),
               ),
             ),
           ],

@@ -14,7 +14,9 @@ class CreateRestoreWalletSubTitle extends StatelessWidget {
     return Text(
       "Create a new wallet or restore an existing wallet from seed.",
       textAlign: TextAlign.center,
-      style: isDesktop ? STextStyles.desktopSubtitleH2 : STextStyles.subtitle,
+      style: isDesktop
+          ? STextStyles.desktopSubtitleH2(context)
+          : STextStyles.subtitle(context),
     );
   }
 }

@@ -5,7 +5,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -34,7 +34,7 @@ class _StartupWalletSelectionViewState
     }
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -45,7 +45,7 @@ class _StartupWalletSelectionViewState
           fit: BoxFit.scaleDown,
           child: Text(
             "Select startup wallet",
-            style: STextStyles.navBarTitle,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
       ),
@@ -72,7 +72,7 @@ class _StartupWalletSelectionViewState
                       ),
                       Text(
                         "Select a wallet to load into immediately on startup",
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       const SizedBox(
                         height: 12,
@@ -90,7 +90,8 @@ class _StartupWalletSelectionViewState
                                   children: [
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: StackTheme.instance
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
                                             .colorForCoin(manager.coin)
                                             .withOpacity(0.5),
                                         borderRadius: BorderRadius.circular(
@@ -118,7 +119,8 @@ class _StartupWalletSelectionViewState
                                       children: [
                                         Text(
                                           manager.walletName,
-                                          style: STextStyles.titleBold12,
+                                          style:
+                                              STextStyles.titleBold12(context),
                                         ),
                                         // const SizedBox(
                                         //   height: 2,
@@ -139,7 +141,7 @@ class _StartupWalletSelectionViewState
                                         //                       value.locale)),
                                         //           decimalPlaces: 8,
                                         //         )} ${manager.coin.ticker}",
-                                        //         style: STextStyles.itemSubtitle,
+                                        //         style: STextStyles.itemSubtitle(context),
                                         //       );
                                         //     } else {
                                         //       return AnimatedText(
@@ -149,7 +151,7 @@ class _StartupWalletSelectionViewState
                                         //           "Loading balance..",
                                         //           "Loading balance..."
                                         //         ],
-                                        //         style: STextStyles.itemSubtitle,
+                                        //         style: STextStyles.itemSubtitle(context),
                                         //       );
                                         //     }
                                         //   },
@@ -161,7 +163,8 @@ class _StartupWalletSelectionViewState
                                       height: 20,
                                       width: 20,
                                       child: Radio(
-                                        activeColor: StackTheme.instance.color
+                                        activeColor: Theme.of(context)
+                                            .extension<StackColors>()!
                                             .radioButtonIconEnabled,
                                         value: manager.walletId,
                                         groupValue: ref.watch(

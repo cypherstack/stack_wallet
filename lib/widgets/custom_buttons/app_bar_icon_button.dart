@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 class AppBarIconButton extends StatelessWidget {
@@ -30,11 +29,11 @@ class AppBarIconButton extends StatelessWidget {
       width: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(1000),
-        color: color ?? StackTheme.instance.color.background,
+        color: color ?? Theme.of(context).extension<StackColors>()!.background,
         boxShadow: shadows,
       ),
       child: MaterialButton(
-        splashColor: StackTheme.instance.color.highlight,
+        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         padding: EdgeInsets.zero,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
@@ -65,14 +64,14 @@ class AppBarBackButton extends StatelessWidget {
       child: AppBarIconButton(
         size: isDesktop ? 56 : 32,
         color: isDesktop
-            ? StackTheme.instance.color.textFieldDefaultBG
-            : StackTheme.instance.color.background,
+            ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+            : Theme.of(context).extension<StackColors>()!.background,
         shadows: const [],
         icon: SvgPicture.asset(
           Assets.svg.arrowLeft,
           width: 24,
           height: 24,
-          color: StackTheme.instance.color.topNavIconPrimary,
+          color: Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
         ),
         onPressed: onPressed ?? Navigator.of(context).pop,
       ),

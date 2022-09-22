@@ -9,7 +9,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -26,7 +26,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
         .watch(walletsChangeNotifierProvider.select((value) => value.managers));
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -37,7 +37,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             "Sync only selected wallets at startup",
-            style: STextStyles.navBarTitle,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
       ),
@@ -64,7 +64,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                       ),
                       Text(
                         "Choose the wallets to sync automatically at startup",
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       const SizedBox(
                         height: 12,
@@ -82,7 +82,8 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                   children: [
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: StackTheme.instance
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
                                             .colorForCoin(manager.coin)
                                             .withOpacity(0.5),
                                         borderRadius: BorderRadius.circular(
@@ -110,7 +111,8 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                       children: [
                                         Text(
                                           manager.walletName,
-                                          style: STextStyles.titleBold12,
+                                          style:
+                                              STextStyles.titleBold12(context),
                                         ),
                                         const SizedBox(
                                           height: 2,
@@ -131,7 +133,8 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                                               value.locale)),
                                                   decimalPlaces: 8,
                                                 )} ${manager.coin.ticker}",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             } else {
                                               return AnimatedText(
@@ -141,7 +144,8 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                                   "Loading balance..",
                                                   "Loading balance..."
                                                 ],
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             }
                                           },

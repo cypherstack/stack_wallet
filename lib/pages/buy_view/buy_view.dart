@@ -20,7 +20,7 @@ class _BuyViewState extends State<BuyView> {
               Center(
                 child: Text(
                   "Coming soon",
-                  style: STextStyles.pageTitleH1,
+                  style: STextStyles.pageTitleH1(context),
                 ),
               ),
             ],

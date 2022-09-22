@@ -22,7 +22,7 @@ class WalletSheetCard extends ConsumerWidget {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
-        // splashColor: StackTheme.instance.color.highlight,
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         key: Key("walletsSheetItemButtonKey_$walletId"),
         padding: const EdgeInsets.all(5),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 enum ExchangeRateType { estimated, fixed }
 
@@ -16,7 +16,7 @@ class ExchangeRateSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
-        color: StackTheme.instance.color.popupBG,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
@@ -35,7 +35,8 @@ class ExchangeRateSheet extends ConsumerWidget {
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: StackTheme.instance.color.textSubtitle4,
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle4,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -49,7 +50,7 @@ class ExchangeRateSheet extends ConsumerWidget {
             ),
             Text(
               "Exchange rate",
-              style: STextStyles.pageTitleH2,
+              style: STextStyles.pageTitleH2(context),
               textAlign: TextAlign.left,
             ),
             const SizedBox(
@@ -76,8 +77,9 @@ class ExchangeRateSheet extends ConsumerWidget {
                           width: 20,
                           height: 20,
                           child: Radio(
-                            activeColor: StackTheme
-                                .instance.color.radioButtonIconEnabled,
+                            activeColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .radioButtonIconEnabled,
                             value: ExchangeRateType.estimated,
                             groupValue: ref.watch(prefsChangeNotifierProvider
                                 .select((value) => value.exchangeRateType)),
@@ -103,7 +105,7 @@ class ExchangeRateSheet extends ConsumerWidget {
                         children: [
                           Text(
                             "Estimated rate",
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),
                           const SizedBox(
@@ -111,8 +113,10 @@ class ExchangeRateSheet extends ConsumerWidget {
                           ),
                           Text(
                             "ChangeNOW will pick the best rate for you during the moment of the exchange.",
-                            style: STextStyles.itemSubtitle.copyWith(
-                              color: StackTheme.instance.color.textSubtitle1,
+                            style: STextStyles.itemSubtitle(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                             ),
                             textAlign: TextAlign.left,
                           ),
@@ -147,8 +151,9 @@ class ExchangeRateSheet extends ConsumerWidget {
                           width: 20,
                           height: 20,
                           child: Radio(
-                            activeColor: StackTheme
-                                .instance.color.radioButtonIconEnabled,
+                            activeColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .radioButtonIconEnabled,
                             value: ExchangeRateType.fixed,
                             groupValue: ref.watch(prefsChangeNotifierProvider
                                 .select((value) => value.exchangeRateType)),
@@ -171,7 +176,7 @@ class ExchangeRateSheet extends ConsumerWidget {
                         children: [
                           Text(
                             "Fixed rate",
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),
                           const SizedBox(
@@ -179,8 +184,10 @@ class ExchangeRateSheet extends ConsumerWidget {
                           ),
                           Text(
                             "You will get the exact exchange amount displayed - ChangeNOW takes all the rate risks.",
-                            style: STextStyles.itemSubtitle.copyWith(
-                              color: StackTheme.instance.color.textSubtitle1,
+                            style: STextStyles.itemSubtitle(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                             ),
                             textAlign: TextAlign.left,
                           )

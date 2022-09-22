@@ -5,7 +5,7 @@ import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_co
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class MobileMnemonicLengthSelector extends ConsumerWidget {
   const MobileMnemonicLengthSelector({
@@ -29,7 +29,7 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
             horizontal: 12,
           ),
           child: RawMaterialButton(
-            splashColor: StackTheme.instance.color.highlight,
+            splashColor: Theme.of(context).extension<StackColors>()!.highlight,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -41,13 +41,14 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
               children: [
                 Text(
                   "${ref.watch(mnemonicWordCountStateProvider.state).state} words",
-                  style: STextStyles.itemSubtitle12,
+                  style: STextStyles.itemSubtitle12(context),
                 ),
                 SvgPicture.asset(
                   Assets.svg.chevronDown,
                   width: 8,
                   height: 4,
-                  color: StackTheme.instance.color.textSubtitle2,
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle2,
                 ),
               ],
             ),

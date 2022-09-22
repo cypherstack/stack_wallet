@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 
@@ -55,7 +55,9 @@ class TableViewRow extends StatelessWidget {
               body: Column(
                 children: [
                   Container(
-                    color: StackTheme.instance.color.buttonBackSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonBackSecondary,
                     width: double.infinity,
                     height: 1,
                   ),

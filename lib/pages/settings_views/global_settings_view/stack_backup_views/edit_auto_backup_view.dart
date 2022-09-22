@@ -20,7 +20,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -104,7 +104,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -113,7 +113,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
         ),
         title: Text(
           "Edit Auto Backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -130,7 +130,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                   children: [
                     Text(
                       "Create your backup",
-                      style: STextStyles.smallMed12,
+                      style: STextStyles.smallMed12(context),
                     ),
                     const SizedBox(
                       height: 10,
@@ -155,7 +155,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         }
                       },
                       controller: fileLocationController,
-                      style: STextStyles.field,
+                      style: STextStyles.field(context),
                       decoration: InputDecoration(
                         hintText: "Save to...",
                         suffixIcon: UnconstrainedBox(
@@ -166,7 +166,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                               ),
                               SvgPicture.asset(
                                 Assets.svg.folder,
-                                color: StackTheme.instance.color.textDark3,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                                 width: 16,
                                 height: 16,
                               ),
@@ -199,13 +201,14 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         key: const Key("createBackupPasswordFieldKey1"),
                         focusNode: passwordFocusNode,
                         controller: passwordController,
-                        style: STextStyles.field,
+                        style: STextStyles.field(context),
                         obscureText: hidePassword,
                         enableSuggestions: false,
                         autocorrect: false,
                         decoration: standardInputDecoration(
                           "Create passphrase",
                           passwordFocusNode,
+                          context,
                         ).copyWith(
                           suffixIcon: UnconstrainedBox(
                             child: Row(
@@ -225,7 +228,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: StackTheme.instance.color.textDark3,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -286,7 +291,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         child: passwordFeedback.isNotEmpty
                             ? Text(
                                 passwordFeedback,
-                                style: STextStyles.infoSmall,
+                                style: STextStyles.infoSmall(context),
                               )
                             : null,
                       ),
@@ -304,12 +309,19 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                           width: MediaQuery.of(context).size.width - 32 - 24,
                           height: 5,
                           fillColor: passwordStrength < 0.51
-                              ? StackTheme.instance.color.accentColorRed
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
                               : passwordStrength < 1
-                                  ? StackTheme.instance.color.accentColorYellow
-                                  : StackTheme.instance.color.accentColorGreen,
-                          backgroundColor:
-                              StackTheme.instance.color.buttonBackSecondary,
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorYellow
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorGreen,
+                          backgroundColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary,
                           percent:
                               passwordStrength < 0.25 ? 0.03 : passwordStrength,
                         ),
@@ -325,13 +337,14 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         key: const Key("createBackupPasswordFieldKey2"),
                         focusNode: passwordRepeatFocusNode,
                         controller: passwordRepeatController,
-                        style: STextStyles.field,
+                        style: STextStyles.field(context),
                         obscureText: hidePassword,
                         enableSuggestions: false,
                         autocorrect: false,
                         decoration: standardInputDecoration(
                           "Confirm passphrase",
                           passwordRepeatFocusNode,
+                          context,
                         ).copyWith(
                           suffixIcon: UnconstrainedBox(
                             child: Row(
@@ -351,7 +364,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: StackTheme.instance.color.textDark3,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -374,7 +389,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                     ),
                     Text(
                       "Auto Backup frequency",
-                      style: STextStyles.smallMed12,
+                      style: STextStyles.smallMed12(context),
                     ),
                     const SizedBox(
                       height: 10,
@@ -387,7 +402,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         ),
                         Positioned.fill(
                           child: RawMaterialButton(
-                            splashColor: StackTheme.instance.color.highlight,
+                            splashColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .highlight,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -418,14 +435,15 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                                         prefsChangeNotifierProvider.select(
                                             (value) =>
                                                 value.backupFrequencyType))),
-                                    style: STextStyles.itemSubtitle12,
+                                    style: STextStyles.itemSubtitle12(context),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(right: 4.0),
                                     child: SvgPicture.asset(
                                       Assets.svg.chevronDown,
-                                      color: StackTheme
-                                          .instance.color.textSubtitle2,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle2,
                                       width: 12,
                                       height: 6,
                                     ),
@@ -443,9 +461,11 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                     ),
                     TextButton(
                       style: shouldEnableCreate
-                          ? StackTheme.instance
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
                               .getPrimaryEnabledButtonColor(context)
-                          : StackTheme.instance
+                          : Theme.of(context)
+                              .extension<StackColors>()!
                               .getPrimaryDisabledButtonColor(context),
                       onPressed: !shouldEnableCreate
                           ? null
@@ -597,7 +617,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                             },
                       child: Text(
                         "Save",
-                        style: STextStyles.button,
+                        style: STextStyles.button(context),
                       ),
                     )
                   ],

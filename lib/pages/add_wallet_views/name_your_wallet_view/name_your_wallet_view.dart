@@ -9,14 +9,13 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/name_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -126,7 +125,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           ),
         ),
         body: Container(
-          color: StackTheme.instance.color.background,
+          color: Theme.of(context).extension<StackColors>()!.background,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: LayoutBuilder(
@@ -169,7 +168,9 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           Text(
             "Name your ${coin.prettyName} wallet",
             textAlign: TextAlign.center,
-            style: isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
+            style: isDesktop
+                ? STextStyles.desktopH2(context)
+                : STextStyles.pageTitleH1(context),
           ),
           SizedBox(
             height: isDesktop ? 16 : 8,
@@ -178,8 +179,8 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
             "Enter a label for your wallet (e.g. Savings)",
             textAlign: TextAlign.center,
             style: isDesktop
-                ? STextStyles.desktopSubtitleH2
-                : STextStyles.subtitle,
+                ? STextStyles.desktopSubtitleH2(context)
+                : STextStyles.subtitle(context),
           ),
           SizedBox(
             height: isDesktop ? 40 : 16,
@@ -209,13 +210,14 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               focusNode: textFieldFocusNode,
               controller: textEditingController,
               style: isDesktop
-                  ? STextStyles.desktopTextMedium.copyWith(
+                  ? STextStyles.desktopTextMedium(context).copyWith(
                       height: 2,
                     )
-                  : STextStyles.field,
+                  : STextStyles.field(context),
               decoration: standardInputDecoration(
                 "Enter wallet name",
                 textFieldFocusNode,
+                context,
               ).copyWith(
                 suffixIcon: Padding(
                   padding: EdgeInsets.only(right: isDesktop ? 6 : 0),
@@ -265,10 +267,12 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               child: Text(
                 "Roll the dice to pick a random name.",
                 style: isDesktop
-                    ? STextStyles.desktopTextExtraSmall.copyWith(
-                        color: StackTheme.instance.color.textSubtitle1,
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle1,
                       )
-                    : STextStyles.itemSubtitle,
+                    : STextStyles.itemSubtitle(context),
               ),
             ),
           ),
@@ -338,15 +342,19 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                     }
                   : null,
               style: _nextEnabled
-                  ? StackTheme.instance.getPrimaryEnabledButtonColor(context)
-                  : StackTheme.instance.getPrimaryDisabledButtonColor(context),
+                  ? Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonColor(context)
+                  : Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryDisabledButtonColor(context),
               child: Text(
                 "Next",
                 style: isDesktop
                     ? _nextEnabled
-                        ? STextStyles.desktopButtonEnabled
-                        : STextStyles.desktopButtonDisabled
-                    : STextStyles.button,
+                        ? STextStyles.desktopButtonEnabled(context)
+                        : STextStyles.desktopButtonDisabled(context)
+                    : STextStyles.button(context),
               ),
             ),
           ),

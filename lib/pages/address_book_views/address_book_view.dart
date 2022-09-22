@@ -12,7 +12,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -102,7 +102,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
         addressBookServiceProvider.select((value) => value.addressBookEntries));
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -111,7 +111,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
         ),
         title: Text(
           "Address book",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -126,10 +126,12 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                 key: const Key("addressBookFilterViewButton"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.filter,
-                  color: StackTheme.instance.color.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -153,10 +155,12 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                 key: const Key("addressBookAddNewContactViewButton"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.plus,
-                  color: StackTheme.instance.color.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -201,10 +205,11 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                                 _searchTerm = value;
                               });
                             },
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             decoration: standardInputDecoration(
                               "Search",
                               _searchFocusNode,
+                              context,
                             ).copyWith(
                               prefixIcon: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -244,7 +249,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                         ),
                         Text(
                           "Favorites",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(
                           height: 12,
@@ -297,7 +302,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                                   child: Center(
                                     child: Text(
                                       "Your favorite contacts will appear here",
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   ),
                                 );
@@ -310,7 +315,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                         ),
                         Text(
                           "All contacts",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(
                           height: 12,
@@ -360,7 +365,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                                   child: Center(
                                     child: Text(
                                       "Your contacts will appear here",
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   ),
                                 );
