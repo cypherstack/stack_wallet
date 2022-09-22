@@ -123,7 +123,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get stepIndicatorIconNumber => const Color(0xFF0056D2);
   @override
-  Color get stepIndicatorIconInactive => const Color(0xFFD9E2FF);
+  Color get stepIndicatorIconInactive => const Color(0xFFF7F7F7);
 
   // checkbox
   @override
@@ -237,7 +237,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get radioButtonBorderEnabled => const Color(0xFF0056D2);
   @override
-  Color get radioButtonBorderDisabled => const Color(0xFFCDCDCD);
+  Color get radioButtonBorderDisabled => const Color(0xFF8F909A);
   @override
   Color get radioButtonIconCircle => const Color(0xFF0056D2);
   @override
@@ -267,7 +267,7 @@ class LightColors extends StackColorTheme {
 
   // currency list
   @override
-  Color get currencyListItemBG => const Color(0xFFD9E2FF);
+  Color get currencyListItemBG => const Color(0xFFF9F9FC);
 
   // bottom nav
   @override
@@ -292,4 +292,6 @@ class LightColors extends StackColorTheme {
   Color get warningForeground => textDark;
   @override
   Color get warningBackground => const Color(0xFFFFDAD3);
+  @override
+  Color get loadingOverlayTextColor => const Color(0xFFF7F7F7);
 }

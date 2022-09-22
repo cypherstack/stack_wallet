@@ -419,10 +419,14 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                                 if (coin != Coin.firo &&
                                     coin != Coin.firoTestNet)
-                                  Text(
-                                    ref.watch(provider
-                                        .select((value) => value.walletName)),
-                                    style: STextStyles.titleBold12,
+                                  Expanded(
+                                    child: Text(
+                                      ref.watch(provider
+                                          .select((value) => value.walletName)),
+                                      style: STextStyles.titleBold12,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
                                   ),
                                 if (coin == Coin.firo ||
                                     coin == Coin.firoTestNet)
@@ -446,7 +450,14 @@ class _SendViewState extends ConsumerState<SendView> {
                                       ),
                                     ],
                                   ),
-                                const Spacer(),
+                                if (coin != Coin.firo &&
+                                    coin != Coin.firoTestNet)
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                if (coin == Coin.firo ||
+                                    coin == Coin.firoTestNet)
+                                  const Spacer(),
                                 FutureBuilder(
                                   future: (coin != Coin.firo &&
                                           coin != Coin.firoTestNet)

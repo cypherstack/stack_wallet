@@ -170,6 +170,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                             children: [
                               SettingsListButton(
                                 iconAssetName: Assets.svg.addressBook,
+                                iconSize: 16,
                                 title: "Address book",
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(
@@ -183,6 +184,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                               ),
                               SettingsListButton(
                                 iconAssetName: Assets.svg.node,
+                                iconSize: 16,
                                 title: "Network",
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(
@@ -202,6 +204,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                 builder: (_, ref, __) {
                                   return SettingsListButton(
                                     iconAssetName: Assets.svg.lock,
+                                    iconSize: 16,
                                     title: "Wallet backup",
                                     onPressed: () async {
                                       final mnemonic = await ref
@@ -245,6 +248,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                               SettingsListButton(
                                 iconAssetName: Assets.svg.downloadFolder,
                                 title: "Wallet settings",
+                                iconSize: 16,
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(
                                     WalletSettingsWalletSettingsView.routeName,

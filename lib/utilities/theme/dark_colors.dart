@@ -292,4 +292,6 @@ class DarkColors extends StackColorTheme {
   Color get warningForeground => snackBarTextError;
   @override
   Color get warningBackground => const Color(0xFFFFB4A9);
+  @override
+  Color get loadingOverlayTextColor => const Color(0xFFF7F7F7);
 }

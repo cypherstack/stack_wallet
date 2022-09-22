@@ -360,7 +360,13 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                                       "Share",
                                                       textAlign:
                                                           TextAlign.center,
-                                                      style: STextStyles.button,
+                                                      style: STextStyles.button
+                                                          .copyWith(
+                                                        color: StackTheme
+                                                            .instance
+                                                            .color
+                                                            .buttonTextSecondary,
+                                                      ),
                                                     ),
                                                     const SizedBox(
                                                       height: 2,

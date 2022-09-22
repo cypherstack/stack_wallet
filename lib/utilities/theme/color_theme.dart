@@ -168,6 +168,8 @@ abstract class StackColorTheme {
   Color get highlight;
   Color get warningForeground;
   Color get warningBackground;
+
+  Color get loadingOverlayTextColor;
 }
 
 class CoinThemeColor {

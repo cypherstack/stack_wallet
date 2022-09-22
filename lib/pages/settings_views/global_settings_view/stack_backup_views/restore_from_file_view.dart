@@ -222,9 +222,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                         style: passwordController.text.isEmpty ||
                                 fileLocationController.text.isEmpty
                             ? StackTheme.instance
-                                .getPrimaryEnabledButtonColor(context)
+                                .getPrimaryDisabledButtonColor(context)
                             : StackTheme.instance
-                                .getPrimaryDisabledButtonColor(context),
+                                .getPrimaryEnabledButtonColor(context),
                         onPressed: passwordController.text.isEmpty ||
                                 fileLocationController.text.isEmpty
                             ? null

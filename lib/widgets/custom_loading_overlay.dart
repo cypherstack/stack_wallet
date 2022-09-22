@@ -57,7 +57,7 @@ class _CustomLoadingOverlayState extends ConsumerState<CustomLoadingOverlay> {
                 Text(
                   widget.message,
                   style: STextStyles.pageTitleH2.copyWith(
-                    color: StackTheme.instance.color.accentColorOrange,
+                    color: StackTheme.instance.color.loadingOverlayTextColor,
                   ),
                 ),
                 if (widget.eventBus != null)
@@ -68,7 +68,7 @@ class _CustomLoadingOverlayState extends ConsumerState<CustomLoadingOverlay> {
                   Text(
                     "${(_percent * 100).toStringAsFixed(2)}%",
                     style: STextStyles.pageTitleH2.copyWith(
-                      color: StackTheme.instance.color.accentColorOrange,
+                      color: StackTheme.instance.color.loadingOverlayTextColor,
                     ),
                   ),
               ],

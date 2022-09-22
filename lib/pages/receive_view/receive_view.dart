@@ -51,9 +51,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         builder: (_) {
           return WillPopScope(
             onWillPop: () async => shouldPop,
-            child: const CustomLoadingOverlay(
-              message: "Generating address",
-              eventBus: null,
+            child: Container(
+              color: StackTheme.instance.color.overlay.withOpacity(0.5),
+              child: const CustomLoadingOverlay(
+                message: "Generating address",
+                eventBus: null,
+              ),
             ),
           );
         },

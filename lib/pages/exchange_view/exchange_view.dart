@@ -66,7 +66,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
         builder: (_) => WillPopScope(
           onWillPop: () async => false,
           child: Container(
-            color: StackTheme.instance.color.overlay.withOpacity(0.8),
+            color: StackTheme.instance.color.overlay.withOpacity(0.6),
             child: const CustomLoadingOverlay(
               message: "Updating exchange rate",
               eventBus: null,
@@ -659,20 +659,30 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                             ),
                           ),
                           Center(
-                            child: GestureDetector(
-                              onTap: () async {
-                                await _swap();
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: SvgPicture.asset(
-                                  Assets.svg.swap,
-                                  width: 20,
-                                  height: 20,
-                                  color:
-                                      StackTheme.instance.color.accentColorDark,
+                            child: Column(
+                              children: [
+                                const SizedBox(
+                                  height: 6,
                                 ),
-                              ),
+                                GestureDetector(
+                                  onTap: () async {
+                                    await _swap();
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(4),
+                                    child: SvgPicture.asset(
+                                      Assets.svg.swap,
+                                      width: 20,
+                                      height: 20,
+                                      color: StackTheme
+                                          .instance.color.accentColorDark,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 6,
+                                ),
+                              ],
                             ),
                           ),
                           Positioned.fill(

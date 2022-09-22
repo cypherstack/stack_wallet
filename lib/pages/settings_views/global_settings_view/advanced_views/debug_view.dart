@@ -167,6 +167,9 @@ class _DebugViewState extends ConsumerState<DebugView> {
                           await ref
                               .read(debugServiceProvider)
                               .deleteAllMessages();
+                          await ref
+                              .read(debugServiceProvider)
+                              .updateRecentLogs();
 
                           shouldPop = true;
 
@@ -391,18 +394,18 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                           fontSize: 8,
                                           color: (log.logLevel == LogLevel.Info
                                               ? StackTheme.instance.color
-                                                  .accentColorGreen
+                                                  .topNavIconGreen
                                               : (log.logLevel ==
                                                       LogLevel.Warning
                                                   ? StackTheme.instance.color
-                                                      .accentColorYellow
+                                                      .topNavIconYellow
                                                   : (log.logLevel ==
                                                           LogLevel.Error
                                                       ? Colors.orange
                                                       : StackTheme
                                                           .instance
                                                           .color
-                                                          .accentColorRed))),
+                                                          .topNavIconRed))),
                                         ),
                                       ),
                                       Text(
