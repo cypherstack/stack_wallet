@@ -1,11 +1,12 @@
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 abstract class Assets {
   static const svg = _SVG();
   static const png = _PNG();
   static const lottie = _ANIMATIONS();
   static const socials = _SOCIALS();
+  static ThemeType? theme;
 }
 
 class _SOCIALS {
@@ -23,10 +24,8 @@ class _SVG {
   String get plus => "assets/svg/plus.svg";
   String get gear => "assets/svg/gear.svg";
   String get bell => "assets/svg/bell.svg";
-  String get bellNew =>
-      "assets/svg/${StackTheme.instance.theme.name}/bell-new.svg";
-  String get stackIcon =>
-      "assets/svg/${StackTheme.instance.theme.name}/stack-icon1.svg";
+  String get bellNew => "assets/svg/${Assets.theme!.name}/bell-new.svg";
+  String get stackIcon => "assets/svg/${Assets.theme!.name}/stack-icon1.svg";
   String get arrowLeft => "assets/svg/arrow-left-fa.svg";
   String get star => "assets/svg/star.svg";
   String get copy => "assets/svg/copy-fa.svg";
@@ -38,10 +37,8 @@ class _SVG {
   String get bars => "assets/svg/bars.svg";
   String get filter => "assets/svg/filter.svg";
   String get pending => "assets/svg/pending.svg";
-  String get exchange =>
-      "assets/svg/${StackTheme.instance.theme.name}/exchange-2.svg";
-  String get buy =>
-      "assets/svg/${StackTheme.instance.theme.name}/buy-coins-icon.svg";
+  String get exchange => "assets/svg/${Assets.theme!.name}/exchange-2.svg";
+  String get buy => "assets/svg/${Assets.theme!.name}/buy-coins-icon.svg";
   String get radio => "assets/svg/signal-stream.svg";
   String get arrowRotate => "assets/svg/arrow-rotate.svg";
   String get arrowRotate2 => "assets/svg/arrow-rotate2.svg";
@@ -95,29 +92,27 @@ class _SVG {
   String get anonymizePending => "assets/svg/tx-icon-anonymize-pending.svg";
   String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
 
-  String get receive =>
-      "assets/svg/${StackTheme.instance.theme.name}/tx-icon-receive.svg";
+  String get receive => "assets/svg/${Assets.theme!.name}/tx-icon-receive.svg";
   String get receivePending =>
-      "assets/svg/${StackTheme.instance.theme.name}/tx-icon-receive-pending.svg";
+      "assets/svg/${Assets.theme!.name}/tx-icon-receive-pending.svg";
   String get receiveCancelled =>
-      "assets/svg/${StackTheme.instance.theme.name}/tx-icon-receive-failed.svg";
+      "assets/svg/${Assets.theme!.name}/tx-icon-receive-failed.svg";
 
-  String get send =>
-      "assets/svg/${StackTheme.instance.theme.name}/tx-icon-send.svg";
+  String get send => "assets/svg/${Assets.theme!.name}/tx-icon-send.svg";
   String get sendPending =>
-      "assets/svg/${StackTheme.instance.theme.name}/tx-icon-send-pending.svg";
+      "assets/svg/${Assets.theme!.name}/tx-icon-send-pending.svg";
   String get sendCancelled =>
-      "assets/svg/${StackTheme.instance.theme.name}/tx-icon-send-failed.svg";
+      "assets/svg/${Assets.theme!.name}/tx-icon-send-failed.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
 
   String get txExchange =>
-      "assets/svg/${StackTheme.instance.theme.name}/tx-exchange-icon.svg";
+      "assets/svg/${Assets.theme!.name}/tx-exchange-icon.svg";
   String get txExchangePending =>
-      "assets/svg/${StackTheme.instance.theme.name}/tx-exchange-icon-pending.svg";
+      "assets/svg/${Assets.theme!.name}/tx-exchange-icon-pending.svg";
   String get txExchangeFailed =>
-      "assets/svg/${StackTheme.instance.theme.name}/tx-exchange-icon-failed.svg";
+      "assets/svg/${Assets.theme!.name}/tx-exchange-icon-failed.svg";
 
   String get bitcoin => "assets/svg/coin_icons/Bitcoin.svg";
   String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";

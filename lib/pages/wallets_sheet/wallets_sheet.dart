@@ -4,7 +4,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/wallet_card.dart';
 
 class WalletsSheet extends ConsumerWidget {
@@ -24,7 +24,7 @@ class WalletsSheet extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: StackTheme.instance.color.popupBG,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
@@ -45,7 +45,9 @@ class WalletsSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),

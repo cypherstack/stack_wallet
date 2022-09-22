@@ -51,13 +51,16 @@ import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
 
@@ -147,11 +150,11 @@ void main() async {
 
   switch (colorScheme) {
     case "dark":
-      StackTheme.instance.setTheme(ThemeType.dark);
+      Assets.theme = ThemeType.dark;
       break;
     case "light":
     default:
-      StackTheme.instance.setTheme(ThemeType.light);
+      Assets.theme = ThemeType.light;
   }
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
@@ -367,8 +370,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     _prefs = ref.read(prefsChangeNotifierProvider);
     _wallets = ref.read(walletsChangeNotifierProvider);
 
-    if (Platform.isAndroid) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      ref.read(colorThemeProvider.state).state =
+          StackColors.fromStackColorTheme(
+              Assets.theme! == ThemeType.dark ? DarkColors() : LightColors());
+
+      if (Platform.isAndroid) {
         // fetch open file if it exists
         await getOpenFile();
 
@@ -382,8 +389,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ref.read(openedFromSWBFileStringStateProvider.state).state = null;
         }
         // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
-      });
-    }
+      }
+    });
 
     super.initState();
   }

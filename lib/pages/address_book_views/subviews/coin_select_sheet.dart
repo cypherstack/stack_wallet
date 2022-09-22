@@ -6,7 +6,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class CoinSelectSheet extends StatelessWidget {
   const CoinSelectSheet({Key? key}) : super(key: key);
@@ -18,7 +18,7 @@ class CoinSelectSheet extends StatelessWidget {
     coins_.remove(Coin.firoTestNet);
     return Container(
       decoration: BoxDecoration(
-        color: StackTheme.instance.color.popupBG,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
@@ -39,7 +39,9 @@ class CoinSelectSheet extends StatelessWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -77,7 +79,7 @@ class CoinSelectSheet extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: RawMaterialButton(
-                            // splashColor: StackTheme.instance.color.highlight,
+                            // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                             onPressed: () {
                               Navigator.of(context).pop(coin);
                             },

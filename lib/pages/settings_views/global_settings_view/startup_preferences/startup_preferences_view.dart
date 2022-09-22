@@ -4,7 +4,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/startup_pr
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -23,7 +23,7 @@ class _StartupPreferencesViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -56,7 +56,7 @@ class _StartupPreferencesViewState
                             Padding(
                               padding: const EdgeInsets.all(4.0),
                               child: RawMaterialButton(
-                                // splashColor: StackTheme.instance.color.highlight,
+                                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
                                 shape: RoundedRectangleBorder(
@@ -81,8 +81,9 @@ class _StartupPreferencesViewState
                                           width: 20,
                                           height: 20,
                                           child: Radio(
-                                            activeColor: StackTheme.instance
-                                                .color.radioButtonIconEnabled,
+                                            activeColor: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .radioButtonIconEnabled,
                                             value: false,
                                             groupValue: ref.watch(
                                               prefsChangeNotifierProvider
@@ -131,7 +132,7 @@ class _StartupPreferencesViewState
                             Padding(
                               padding: const EdgeInsets.all(4),
                               child: RawMaterialButton(
-                                // splashColor: StackTheme.instance.color.highlight,
+                                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
                                 shape: RoundedRectangleBorder(
@@ -156,8 +157,9 @@ class _StartupPreferencesViewState
                                           width: 20,
                                           height: 20,
                                           child: Radio(
-                                            activeColor: StackTheme.instance
-                                                .color.radioButtonIconEnabled,
+                                            activeColor: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .radioButtonIconEnabled,
                                             value: true,
                                             groupValue: ref.watch(
                                               prefsChangeNotifierProvider
@@ -228,7 +230,7 @@ class _StartupPreferencesViewState
                                       ),
                                       Flexible(
                                         child: RawMaterialButton(
-                                          // splashColor: StackTheme.instance.color.highlight,
+                                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
                                           shape: RoundedRectangleBorder(

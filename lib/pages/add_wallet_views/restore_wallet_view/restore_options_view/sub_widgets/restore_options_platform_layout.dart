@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class RestoreOptionsPlatformLayout extends StatelessWidget {
   const RestoreOptionsPlatformLayout({
@@ -17,7 +17,7 @@ class RestoreOptionsPlatformLayout extends StatelessWidget {
       return child;
     } else {
       return Container(
-        color: StackTheme.instance.color.background,
+        color: Theme.of(context).extension<StackColors>()!.background,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: LayoutBuilder(

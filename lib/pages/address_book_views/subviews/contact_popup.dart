@@ -14,7 +14,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
@@ -71,7 +71,8 @@ class ContactPopUp extends ConsumerWidget {
                   ),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: StackTheme.instance.color.popupBG,
+                      color:
+                          Theme.of(context).extension<StackColors>()!.popupBG,
                       borderRadius: BorderRadius.circular(
                         20,
                       ),
@@ -98,8 +99,9 @@ class ContactPopUp extends ConsumerWidget {
                                       width: 32,
                                       height: 32,
                                       decoration: BoxDecoration(
-                                        color: StackTheme
-                                            .instance.color.textFieldDefaultBG,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textFieldDefaultBG,
                                         borderRadius: BorderRadius.circular(32),
                                       ),
                                       child: contact.id == "default"
@@ -140,7 +142,8 @@ class ContactPopUp extends ConsumerWidget {
                                             arguments: contact.id,
                                           );
                                         },
-                                        style: StackTheme.instance
+                                        style: Theme.of(context)
+                                            .extension<StackColors>()!
                                             .getSecondaryEnabledButtonColor(
                                                 context)!
                                             .copyWith(
@@ -164,7 +167,9 @@ class ContactPopUp extends ConsumerWidget {
                               ),
                               Container(
                                 height: 1,
-                                color: StackTheme.instance.color.background,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                               ),
                               if (addresses.isEmpty)
                                 Padding(
@@ -260,15 +265,17 @@ class ContactPopUp extends ConsumerWidget {
                                               );
                                             },
                                             child: RoundedContainer(
-                                              color: StackTheme.instance.color
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
                                                   .textFieldDefaultBG,
                                               padding: const EdgeInsets.all(4),
                                               child: SvgPicture.asset(
                                                   Assets.svg.copy,
                                                   width: 12,
                                                   height: 12,
-                                                  color: StackTheme.instance
-                                                      .color.accentColorDark),
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .accentColorDark),
                                             ),
                                           ),
                                         ],
@@ -311,7 +318,8 @@ class ContactPopUp extends ConsumerWidget {
                                                 }
                                               },
                                               child: RoundedContainer(
-                                                color: StackTheme.instance.color
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
                                                     .textFieldDefaultBG,
                                                 padding:
                                                     const EdgeInsets.all(4),
@@ -320,8 +328,10 @@ class ContactPopUp extends ConsumerWidget {
                                                         .svg.circleArrowUpRight,
                                                     width: 12,
                                                     height: 12,
-                                                    color: StackTheme.instance
-                                                        .color.accentColorDark),
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .accentColorDark),
                                               ),
                                             ),
                                           ],

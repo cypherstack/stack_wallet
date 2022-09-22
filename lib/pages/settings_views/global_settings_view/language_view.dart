@@ -6,7 +6,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -99,7 +99,7 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
     }
     listWithoutSelected = _filtered();
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -202,7 +202,9 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                       (context, index) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: StackTheme.instance.color.popupBG,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .popupBG,
                             borderRadius: _borderRadius(index),
                           ),
                           child: Padding(
@@ -212,8 +214,12 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
                               color: index == 0
-                                  ? StackTheme.instance.color.currencyListItemBG
-                                  : StackTheme.instance.color.popupBG,
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .currencyListItemBG
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
                               child: RawMaterialButton(
                                 onPressed: () async {
                                   onTap(index);
@@ -233,7 +239,8 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                                         width: 20,
                                         height: 20,
                                         child: Radio(
-                                          activeColor: StackTheme.instance.color
+                                          activeColor: Theme.of(context)
+                                              .extension<StackColors>()!
                                               .radioButtonIconEnabled,
                                           value: true,
                                           groupValue: index == 0,

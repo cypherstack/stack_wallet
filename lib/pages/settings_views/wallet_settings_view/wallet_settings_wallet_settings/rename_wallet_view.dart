@@ -5,7 +5,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -52,7 +52,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -107,7 +107,9 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
             ),
             const Spacer(),
             TextButton(
-              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonColor(context),
               onPressed: () async {
                 final newName = _controller.text;
                 final success = await ref

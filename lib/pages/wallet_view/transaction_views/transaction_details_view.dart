@@ -22,7 +22,7 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -179,12 +179,16 @@ class _TransactionDetailsViewState
           },
           child: Text(
             "Cancel",
-            style: STextStyles.button(context)
-                .copyWith(color: StackTheme.instance.color.accentColorDark),
+            style: STextStyles.button(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark),
           ),
         ),
         rightButton: TextButton(
-          style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getPrimaryEnabledButtonColor(context),
           onPressed: () {
             Navigator.of(context).pop(true);
           },
@@ -201,9 +205,9 @@ class _TransactionDetailsViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
-        backgroundColor: StackTheme.instance.color.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             // if (FocusScope.of(context).hasFocus) {
@@ -375,8 +379,9 @@ class _TransactionDetailsViewState
                                   Assets.svg.pencil,
                                   width: 10,
                                   height: 10,
-                                  color:
-                                      StackTheme.instance.color.infoItemIcons,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons,
                                 ),
                                 const SizedBox(
                                   width: 4,
@@ -718,7 +723,7 @@ class _TransactionDetailsViewState
               child: TextButton(
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                    StackTheme.instance.color.textError,
+                    Theme.of(context).extension<StackColors>()!.textError,
                   ),
                 ),
                 onPressed: () async {

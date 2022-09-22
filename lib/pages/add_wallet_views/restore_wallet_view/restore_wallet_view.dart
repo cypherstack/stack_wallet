@@ -33,7 +33,7 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
@@ -354,27 +354,35 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     Widget? suffixIcon;
     switch (status) {
       case FormInputStatus.empty:
-        color = StackTheme.instance.color.textFieldDefaultBG;
-        prefixColor = StackTheme.instance.color.textSubtitle2;
+        color = Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
+        prefixColor = Theme.of(context).extension<StackColors>()!.textSubtitle2;
         break;
       case FormInputStatus.invalid:
-        color = StackTheme.instance.color.textFieldErrorBG;
-        prefixColor = StackTheme.instance.color.textFieldErrorSearchIconLeft;
+        color = Theme.of(context).extension<StackColors>()!.textFieldErrorBG;
+        prefixColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldErrorSearchIconLeft;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
           height: 16,
-          color: StackTheme.instance.color.textFieldErrorSearchIconRight,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldErrorSearchIconRight,
         );
         break;
       case FormInputStatus.valid:
-        color = StackTheme.instance.color.textFieldSuccessBG;
-        prefixColor = StackTheme.instance.color.textFieldSuccessSearchIconLeft;
+        color = Theme.of(context).extension<StackColors>()!.textFieldSuccessBG;
+        prefixColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldSuccessSearchIconLeft;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
           height: 16,
-          color: StackTheme.instance.color.textFieldSuccessSearchIconRight,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldSuccessSearchIconRight,
         );
         break;
     }
@@ -547,11 +555,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 key: const Key("restoreWalletViewQrCodeButton"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: QrCodeIcon(
                   width: 20,
                   height: 20,
-                  color: StackTheme.instance.color.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                 ),
                 onPressed: scanMnemonicQr,
               ),
@@ -569,11 +579,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 key: const Key("restoreWalletPasteButton"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: ClipboardIcon(
                   width: 20,
                   height: 20,
-                  color: StackTheme.instance.color.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                 ),
                 onPressed: pasteMnemonic,
               ),
@@ -582,7 +594,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         ],
       ),
       body: Container(
-        color: StackTheme.instance.color.background,
+        color: Theme.of(context).extension<StackColors>()!.background,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
@@ -654,7 +666,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     },
                                     controller: _controllers[i - 1],
                                     style: STextStyles.field(context).copyWith(
-                                      color: StackTheme.instance.color.overlay,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .overlay,
                                     ),
                                   ),
                                 ),
@@ -672,8 +686,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                         textAlign: TextAlign.left,
                                         style:
                                             STextStyles.label(context).copyWith(
-                                          color: StackTheme
-                                              .instance.color.textError,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textError,
                                         ),
                                       ),
                                     ),
@@ -685,7 +700,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                               top: 8.0,
                             ),
                             child: TextButton(
-                              style: StackTheme.instance
+                              style: Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getPrimaryEnabledButtonColor(context),
                               onPressed: requestRestore,
                               child: Text(

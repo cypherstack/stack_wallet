@@ -7,7 +7,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 
 class RecoverPhraseView extends StatelessWidget {
@@ -28,7 +28,7 @@ class RecoverPhraseView extends StatelessWidget {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -41,7 +41,7 @@ class RecoverPhraseView extends StatelessWidget {
             child: AspectRatio(
               aspectRatio: 1,
               child: AppBarIconButton(
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.copy,

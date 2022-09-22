@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class ConfirmRecoveryDialog extends StatelessWidget {
@@ -20,7 +20,9 @@ class ConfirmRecoveryDialog extends StatelessWidget {
         message:
             "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",
         leftButton: TextButton(
-          style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getSecondaryEnabledButtonColor(context),
           child: Text(
             "Cancel",
             style: STextStyles.itemSubtitle12(context),
@@ -30,7 +32,9 @@ class ConfirmRecoveryDialog extends StatelessWidget {
           },
         ),
         rightButton: TextButton(
-          style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getPrimaryEnabledButtonColor(context),
           child: Text(
             "Restore",
             style: STextStyles.button(context),

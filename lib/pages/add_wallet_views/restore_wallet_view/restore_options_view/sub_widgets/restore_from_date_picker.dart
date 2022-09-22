@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class RestoreFromDatePicker extends StatefulWidget {
   const RestoreFromDatePicker({Key? key, required this.onTap})
@@ -50,7 +50,7 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
                 ),
                 SvgPicture.asset(
                   Assets.svg.calendar,
-                  color: StackTheme.instance.color.textDark3,
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
                   width: 16,
                   height: 16,
                 ),

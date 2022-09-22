@@ -15,7 +15,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/name_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -125,7 +125,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           ),
         ),
         body: Container(
-          color: StackTheme.instance.color.background,
+          color: Theme.of(context).extension<StackColors>()!.background,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: LayoutBuilder(
@@ -268,7 +268,9 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                 "Roll the dice to pick a random name.",
                 style: isDesktop
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: StackTheme.instance.color.textSubtitle1,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle1,
                       )
                     : STextStyles.itemSubtitle(context),
               ),
@@ -340,8 +342,12 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                     }
                   : null,
               style: _nextEnabled
-                  ? StackTheme.instance.getPrimaryEnabledButtonColor(context)
-                  : StackTheme.instance.getPrimaryDisabledButtonColor(context),
+                  ? Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonColor(context)
+                  : Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryDisabledButtonColor(context),
               child: Text(
                 "Next",
                 style: isDesktop

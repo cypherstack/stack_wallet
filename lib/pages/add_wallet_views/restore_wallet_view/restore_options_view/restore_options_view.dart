@@ -10,13 +10,14 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_o
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_platform_layout.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -50,9 +51,11 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   final bool _nextEnabled = true;
   DateTime _restoreFromDate = DateTime.fromMillisecondsSinceEpoch(0);
+  late final Color baseColor;
 
   @override
   void initState() {
+    baseColor = ref.read(colorThemeProvider.state).state.textSubtitle2;
     walletName = widget.walletName;
     coin = widget.coin;
     isDesktop = Util.isDesktop;
@@ -70,43 +73,44 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     super.dispose();
   }
 
-  final _datePickerTextStyleBase = GoogleFonts.inter(
-    color: StackTheme.instance.color.textSubtitle2,
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.5,
-  );
+  TextStyle get _datePickerTextStyleBase => GoogleFonts.inter(
+        color: baseColor,
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
+      );
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
       paddingMonthHeader: const EdgeInsets.only(top: 11),
-      colorArrowNext: StackTheme.instance.color.textSubtitle1,
-      colorArrowPrevious: StackTheme.instance.color.textSubtitle1,
+      colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+      colorArrowPrevious:
+          Theme.of(context).extension<StackColors>()!.textSubtitle1,
       textStyleButtonNegative: _datePickerTextStyleBase.copyWith(
           fontSize: 16, fontWeight: FontWeight.w600),
       textStyleButtonPositive: _datePickerTextStyleBase.copyWith(
           fontSize: 16, fontWeight: FontWeight.w600),
       textStyleCurrentDayOnCalendar: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.accentColorDark,
+        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
       ),
       textStyleDayHeader: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.accentColorDark,
+        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
       textStyleDayOnCalendar: _datePickerTextStyleBase,
       textStyleDayOnCalendarDisabled: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.textSubtitle3,
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
       ),
       textStyleDayOnCalendarSelected: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.popupBG,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
       ),
       textStyleMonthYearHeader: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.textSubtitle1,
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
       textStyleYearButton: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.textWhite,
+        color: Theme.of(context).extension<StackColors>()!.textWhite,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
@@ -117,12 +121,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
       textStyleYear: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.textSubtitle2,
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
         fontWeight: FontWeight.w600,
         fontSize: 16,
       ),
       textStyleYearSelected: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.accentColorDark,
+        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
         fontWeight: FontWeight.w600,
         fontSize: 18,
       ),
@@ -164,8 +168,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       initialDate: DateTime.now(),
       height: height * 0.5,
       theme: ThemeData(
-        primarySwatch:
-            Util.createMaterialColor(StackTheme.instance.color.accentColorDark),
+        primarySwatch: Util.createMaterialColor(
+            Theme.of(context).extension<StackColors>()!.accentColorDark),
       ),
       //TODO pick a better initial date
       // 2007 chosen as that is just before bitcoin launched
@@ -264,7 +268,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   "Choose start date",
                   style: isDesktop
                       ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: StackTheme.instance.color.textDark3,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark3,
                         )
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
@@ -293,7 +299,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       "Choose the date you made the wallet (approximate is fine)",
                       style: isDesktop
                           ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                              color: StackTheme.instance.color.textSubtitle1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                             )
                           : STextStyles.smallMed12(context).copyWith(
                               fontSize: 10,
@@ -309,7 +317,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 "Choose recovery phrase length",
                 style: isDesktop
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: StackTheme.instance.color.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       )
                     : STextStyles.smallMed12(context),
                 textAlign: TextAlign.left,
@@ -344,21 +354,26 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       Assets.svg.chevronDown,
                       width: 12,
                       height: 6,
-                      color: StackTheme
-                          .instance.color.textFieldActiveSearchIconRight,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveSearchIconRight,
                     ),
                     buttonPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
                     ),
                     buttonDecoration: BoxDecoration(
-                      color: StackTheme.instance.color.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
                     ),
                     dropdownDecoration: BoxDecoration(
-                      color: StackTheme.instance.color.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),

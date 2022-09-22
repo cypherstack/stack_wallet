@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:tuple/tuple.dart';
@@ -21,7 +21,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -51,32 +51,40 @@ class DeleteWalletWarningView extends ConsumerWidget {
               height: 16,
             ),
             RoundedContainer(
-              color: StackTheme.instance.color.warningBackground,
+              color:
+                  Theme.of(context).extension<StackColors>()!.warningBackground,
               child: Text(
                 "You are going to permanently delete you wallet.\n\nIf you delete your wallet, the only way you can have access to your funds is by using your backup key.\n\nStack Wallet does not keep nor is able to restore your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
                 style: STextStyles.baseXS(context).copyWith(
-                  color: StackTheme.instance.color.warningForeground,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .warningForeground,
                 ),
               ),
             ),
             const Spacer(),
             TextButton(
-              style:
-                  StackTheme.instance.getSecondaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonColor(context),
               onPressed: () {
                 Navigator.pop(context);
               },
               child: Text(
                 "Cancel",
-                style: STextStyles.button(context)
-                    .copyWith(color: StackTheme.instance.color.accentColorDark),
+                style: STextStyles.button(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark),
               ),
             ),
             const SizedBox(
               height: 12,
             ),
             TextButton(
-              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonColor(context),
               onPressed: () async {
                 final manager = ref
                     .read(walletsChangeNotifierProvider)

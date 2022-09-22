@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 InputDecoration standardInputDecoration(
@@ -10,8 +10,8 @@ InputDecoration standardInputDecoration(
   return InputDecoration(
     labelText: labelText,
     fillColor: textFieldFocusNode.hasFocus
-        ? StackTheme.instance.color.textFieldActiveBG
-        : StackTheme.instance.color.textFieldDefaultBG,
+        ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
+        : Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
     labelStyle: isDesktop
         ? STextStyles.desktopTextFieldLabel(context)
         : STextStyles.fieldLabel(context),

@@ -16,7 +16,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -60,7 +60,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -161,7 +161,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
-        splashColor: StackTheme.instance.color.highlight,
+        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         key: Key("walletsSheetItemButtonKey_$walletId"),
         padding: const EdgeInsets.all(5),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -242,12 +242,15 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   title: "Transaction failed",
                   message: e.toString(),
                   rightButton: TextButton(
-                    style: StackTheme.instance
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
                         .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "Ok",
                       style: STextStyles.button(context).copyWith(
-                        color: StackTheme.instance.color.buttonTextSecondary,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonTextSecondary,
                       ),
                     ),
                     onPressed: () {
@@ -264,7 +267,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: StackTheme.instance
+                color: Theme.of(context)
+                    .extension<StackColors>()!
                     .colorForCoin(manager.coin)
                     .withOpacity(0.5),
                 borderRadius: BorderRadius.circular(

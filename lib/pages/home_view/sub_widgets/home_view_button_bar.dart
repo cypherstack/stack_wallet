@@ -12,7 +12,7 @@ import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class HomeViewButtonBar extends ConsumerStatefulWidget {
@@ -148,13 +148,15 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
         Expanded(
           child: TextButton(
             style: selectedIndex == 0
-                ? StackTheme.instance
+                ? Theme.of(context)
+                    .extension<StackColors>()!
                     .getPrimaryEnabledButtonColor(context)!
                     .copyWith(
                       minimumSize:
                           MaterialStateProperty.all<Size>(const Size(46, 36)),
                     )
-                : StackTheme.instance
+                : Theme.of(context)
+                    .extension<StackColors>()!
                     .getSecondaryEnabledButtonColor(context)!
                     .copyWith(
                       minimumSize:
@@ -171,8 +173,10 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               style: STextStyles.button(context).copyWith(
                 fontSize: 14,
                 color: selectedIndex == 0
-                    ? StackTheme.instance.color.buttonTextPrimary
-                    : StackTheme.instance.color.textDark,
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextPrimary
+                    : Theme.of(context).extension<StackColors>()!.textDark,
               ),
             ),
           ),
@@ -183,13 +187,15 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
         Expanded(
           child: TextButton(
             style: selectedIndex == 1
-                ? StackTheme.instance
+                ? Theme.of(context)
+                    .extension<StackColors>()!
                     .getPrimaryEnabledButtonColor(context)!
                     .copyWith(
                       minimumSize:
                           MaterialStateProperty.all<Size>(const Size(46, 36)),
                     )
-                : StackTheme.instance
+                : Theme.of(context)
+                    .extension<StackColors>()!
                     .getSecondaryEnabledButtonColor(context)!
                     .copyWith(
                       minimumSize:
@@ -229,8 +235,10 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               style: STextStyles.button(context).copyWith(
                 fontSize: 14,
                 color: selectedIndex == 1
-                    ? StackTheme.instance.color.buttonTextPrimary
-                    : StackTheme.instance.color.textDark,
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextPrimary
+                    : Theme.of(context).extension<StackColors>()!.textDark,
               ),
             ),
           ),
@@ -261,7 +269,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
         //       style: STextStyles.button(context).copyWith(
         //         fontSize: 14,
         //         color:
-        //             selectedIndex == 2 ? CFColors.light1 : StackTheme.instance.color.accentColorDark
+        //             selectedIndex == 2 ? CFColors.light1 : Theme.of(context).extension<StackColors>()!.accentColorDark
         //       ),
         //     ),
         //   ),

@@ -10,7 +10,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -196,8 +196,9 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                           hidePassword
                                               ? Assets.svg.eye
                                               : Assets.svg.eyeSlash,
-                                          color: StackTheme
-                                              .instance.color.textDark3,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark3,
                                           width: 24,
                                           height: 19,
                                         ),
@@ -262,8 +263,9 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                 style:
                                     STextStyles.desktopTextExtraSmall(context)
                                         .copyWith(
-                                  color:
-                                      StackTheme.instance.color.textSubtitle1,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
                                 ),
                               )
                             : null,
@@ -280,12 +282,19 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                           width: 458,
                           height: 8,
                           fillColor: passwordStrength < 0.51
-                              ? StackTheme.instance.color.accentColorRed
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
                               : passwordStrength < 1
-                                  ? StackTheme.instance.color.accentColorYellow
-                                  : StackTheme.instance.color.accentColorGreen,
-                          backgroundColor:
-                              StackTheme.instance.color.buttonBackSecondary,
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorYellow
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorGreen,
+                          backgroundColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary,
                           percent:
                               passwordStrength < 0.25 ? 0.03 : passwordStrength,
                         ),
@@ -342,10 +351,12 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                                   : Assets.svg.eyeSlash,
                                           color: fieldsMatch &&
                                                   passwordStrength == 1
-                                              ? StackTheme.instance.color
+                                              ? Theme.of(context)
+                                                  .extension<StackColors>()!
                                                   .accentColorGreen
-                                              : StackTheme
-                                                  .instance.color.textDark3,
+                                              : Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark3,
                                           width: 24,
                                           height: 19,
                                         ),
@@ -373,9 +384,11 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                       height: 70,
                       child: TextButton(
                         style: nextEnabled
-                            ? StackTheme.instance
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
                                 .getPrimaryEnabledButtonColor(context)
-                            : StackTheme.instance
+                            : Theme.of(context)
+                                .extension<StackColors>()!
                                 .getPrimaryDisabledButtonColor(context),
                         onPressed: nextEnabled ? onNextPressed : null,
                         child: Text(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class StackDialogBase extends StatelessWidget {
   const StackDialogBase({
@@ -25,7 +25,7 @@ class StackDialogBase extends StatelessWidget {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: StackTheme.instance.color.popupBG,
+                color: Theme.of(context).extension<StackColors>()!.popupBG,
                 borderRadius: BorderRadius.circular(
                   20,
                 ),
@@ -183,8 +183,9 @@ class StackOkDialog extends StatelessWidget {
                     Navigator.of(context).pop();
                     onOkPressed?.call("OK");
                   },
-                  style:
-                      StackTheme.instance.getPrimaryEnabledButtonColor(context),
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonColor(context),
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context),

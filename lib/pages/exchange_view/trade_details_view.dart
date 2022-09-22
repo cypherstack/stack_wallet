@@ -22,7 +22,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -140,9 +140,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
         Decimal.parse("-1");
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
-        backgroundColor: StackTheme.instance.color.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             Navigator.of(context).pop();
@@ -221,9 +221,12 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         trade.statusObject?.status.name ?? trade.statusString,
                         style: STextStyles.itemSubtitle(context).copyWith(
                           color: trade.statusObject != null
-                              ? StackTheme.instance
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
                                   .colorForStatus(trade.statusObject!.status)
-                              : StackTheme.instance.color.accentColorDark,
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
                         ),
                       ),
                       //   ),
@@ -237,7 +240,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   ),
                 if (!sentFromStack && !hasTx)
                   RoundedContainer(
-                    color: StackTheme.instance.color.warningBackground,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .warningBackground,
                     child: RichText(
                       text: TextSpan(
                           text:
@@ -245,7 +250,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8,
                           )} ${trade.fromCurrency.toUpperCase()}. ",
                           style: STextStyles.label(context).copyWith(
-                            color: StackTheme.instance.color.warningForeground,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .warningForeground,
                             fontWeight: FontWeight.w700,
                           ),
                           children: [
@@ -257,8 +264,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     : 8,
                               )} ${trade.fromCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
                               style: STextStyles.label(context).copyWith(
-                                color:
-                                    StackTheme.instance.color.warningForeground,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .warningForeground,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -386,11 +394,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                             child: QrImage(
                                                 data: trade.payinAddress,
                                                 size: width,
-                                                backgroundColor: StackTheme
-                                                    .instance.color.popupBG,
-                                                foregroundColor: StackTheme
-                                                    .instance
-                                                    .color
+                                                backgroundColor: Theme.of(
+                                                        context)
+                                                    .extension<StackColors>()!
+                                                    .popupBG,
+                                                foregroundColor: Theme.of(
+                                                        context)
+                                                    .extension<StackColors>()!
                                                     .accentColorDark),
                                           ),
                                         ),
@@ -406,16 +416,17 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                               // await _capturePng(true);
                                               Navigator.of(context).pop();
                                             },
-                                            style: StackTheme.instance
+                                            style: Theme.of(context)
+                                                .extension<StackColors>()!
                                                 .getSecondaryEnabledButtonColor(
                                                     context),
                                             child: Text(
                                               "Cancel",
                                               style: STextStyles.button(context)
                                                   .copyWith(
-                                                      color: StackTheme
-                                                          .instance
-                                                          .color
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
                                                           .accentColorDark),
                                             ),
                                           ),
@@ -433,7 +444,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 Assets.svg.qrcode,
                                 width: 12,
                                 height: 12,
-                                color: StackTheme.instance.color.infoItemIcons,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .infoItemIcons,
                               ),
                               const SizedBox(
                                 width: 4,
@@ -480,8 +493,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                   Assets.svg.pencil,
                                   width: 10,
                                   height: 10,
-                                  color:
-                                      StackTheme.instance.color.infoItemIcons,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons,
                                 ),
                                 const SizedBox(
                                   width: 4,
@@ -539,8 +553,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     Assets.svg.pencil,
                                     width: 10,
                                     height: 10,
-                                    color:
-                                        StackTheme.instance.color.infoItemIcons,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .infoItemIcons,
                                   ),
                                   const SizedBox(
                                     width: 4,
@@ -659,7 +674,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             },
                             child: SvgPicture.asset(
                               Assets.svg.copy,
-                              color: StackTheme.instance.color.infoItemIcons,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemIcons,
                               width: 12,
                             ),
                           )

@@ -4,7 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_balance_future.dart';
 import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
@@ -40,7 +40,9 @@ class WalletInfoRow extends ConsumerWidget {
                       manager.walletName,
                       style:
                           STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: StackTheme.instance.color.textDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
                     ),
                   ],
@@ -61,7 +63,9 @@ class WalletInfoRow extends ConsumerWidget {
                       Assets.svg.chevronRight,
                       width: 20,
                       height: 20,
-                      color: StackTheme.instance.color.textSubtitle1,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
                     )
                   ],
                 ),

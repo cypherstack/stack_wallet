@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class QrCodeIcon extends StatelessWidget {
   const QrCodeIcon({
@@ -21,7 +21,7 @@ class QrCodeIcon extends StatelessWidget {
       Assets.svg.qrcode,
       width: width,
       height: height,
-      color: color ?? StackTheme.instance.color.textDark3,
+      color: color ?? Theme.of(context).extension<StackColors>()!.textDark3,
     );
   }
 }

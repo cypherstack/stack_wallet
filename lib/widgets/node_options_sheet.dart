@@ -18,7 +18,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -160,7 +160,7 @@ class NodeOptionsSheet extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: StackTheme.instance.color.popupBG,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
@@ -182,7 +182,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                 Center(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: StackTheme.instance.color.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
@@ -208,8 +210,12 @@ class NodeOptionsSheet extends ConsumerWidget {
                         height: 32,
                         decoration: BoxDecoration(
                           color: node.name == DefaultNodes.defaultName
-                              ? StackTheme.instance.color.textSubtitle4
-                              : StackTheme.instance.color.infoItemIcons
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle4
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemIcons
                                   .withOpacity(0.2),
                           borderRadius: BorderRadius.circular(100),
                         ),
@@ -219,8 +225,12 @@ class NodeOptionsSheet extends ConsumerWidget {
                             height: 15,
                             width: 19,
                             color: node.name == DefaultNodes.defaultName
-                                ? StackTheme.instance.color.accentColorDark
-                                : StackTheme.instance.color.infoItemIcons,
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .infoItemIcons,
                           ),
                         ),
                       ),
@@ -247,8 +257,12 @@ class NodeOptionsSheet extends ConsumerWidget {
                       SvgPicture.asset(
                         Assets.svg.network,
                         color: status == "Connected"
-                            ? StackTheme.instance.color.accentColorGreen
-                            : StackTheme.instance.color.buttonBackSecondary,
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorGreen
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonBackSecondary,
                         width: 18,
                       ),
                     ],
@@ -259,7 +273,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                     // if (!node.id.startsWith("default"))
                     Expanded(
                       child: TextButton(
-                        style: StackTheme.instance
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
                             .getSecondaryEnabledButtonColor(context),
                         onPressed: () {
                           Navigator.pop(context);
@@ -275,7 +290,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                         child: Text(
                           "Details",
                           style: STextStyles.button(context).copyWith(
-                              color: StackTheme.instance.color.accentColorDark),
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark),
                         ),
                       ),
                     ),
@@ -286,9 +303,11 @@ class NodeOptionsSheet extends ConsumerWidget {
                     Expanded(
                       child: TextButton(
                         style: status == "Connected"
-                            ? StackTheme.instance
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
                                 .getPrimaryEnabledButtonColor(context)
-                            : StackTheme.instance
+                            : Theme.of(context)
+                                .extension<StackColors>()!
                                 .getPrimaryDisabledButtonColor(context),
                         onPressed: status == "Connected"
                             ? null

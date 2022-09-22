@@ -13,7 +13,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -80,7 +80,8 @@ class _NewContactAddressEntryFormState
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: RawMaterialButton(
-                  splashColor: StackTheme.instance.color.highlight,
+                  splashColor:
+                      Theme.of(context).extension<StackColors>()!.highlight,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
@@ -134,7 +135,9 @@ class _NewContactAddressEntryFormState
                         Assets.svg.chevronDown,
                         width: 8,
                         height: 4,
-                        color: StackTheme.instance.color.textSubtitle2,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle2,
                       ),
                     ],
                   ),
@@ -354,7 +357,8 @@ class _NewContactAddressEntryFormState
                     "Invalid address",
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
-                      color: StackTheme.instance.color.textError,
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textError,
                     ),
                   ),
                 ],

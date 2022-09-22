@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class ExitToMyStackButton extends StatelessWidget {
   const ExitToMyStackButton({
@@ -20,8 +20,9 @@ class ExitToMyStackButton extends StatelessWidget {
       child: SizedBox(
         height: 56,
         child: TextButton(
-          style:
-              StackTheme.instance.getSmallSecondaryEnabledButtonColor(context),
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getSmallSecondaryEnabledButtonColor(context),
           onPressed: onPressed ??
               () {
                 Navigator.of(context).popUntil(

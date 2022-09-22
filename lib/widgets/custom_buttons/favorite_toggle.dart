@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class FavoriteToggle extends StatefulWidget {
   const FavoriteToggle({
@@ -35,8 +35,10 @@ class _FavoriteToggleState extends State<FavoriteToggle> {
 
   @override
   void initState() {
-    on = widget.on ?? StackTheme.instance.color.favoriteStarActive;
-    off = widget.off ?? StackTheme.instance.color.favoriteStarInactive;
+    on = widget.on ??
+        Theme.of(context).extension<StackColors>()!.favoriteStarActive;
+    off = widget.off ??
+        Theme.of(context).extension<StackColors>()!.favoriteStarInactive;
     _isActive = widget.initialState;
     _color = _isActive ? on : off;
     _onChanged = widget.onChanged;
@@ -51,7 +53,7 @@ class _FavoriteToggleState extends State<FavoriteToggle> {
         borderRadius: widget.borderRadius,
       ),
       child: MaterialButton(
-        splashColor: StackTheme.instance.color.highlight,
+        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         minWidth: 0,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(

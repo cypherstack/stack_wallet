@@ -19,7 +19,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -192,7 +192,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             : null;
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -223,10 +223,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   key: const Key("deleteNodeAppBarButtonKey"),
                   size: 36,
                   shadows: const [],
-                  color: StackTheme.instance.color.background,
+                  color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.trash,
-                    color: StackTheme.instance.color.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -293,23 +295,30 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                   await _testConnection();
                                 }
                               : null,
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getSecondaryEnabledButtonColor(context),
                           child: Text(
                             "Test connection",
                             style: STextStyles.button(context).copyWith(
                               color: testConnectionEnabled
-                                  ? StackTheme.instance.color.textDark
-                                  : StackTheme.instance.color.textWhite,
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textWhite,
                             ),
                           ),
                         ),
                         const SizedBox(height: 16),
                         TextButton(
                           style: saveEnabled
-                              ? StackTheme.instance
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getPrimaryEnabledButtonColor(context)
-                              : StackTheme.instance
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getPrimaryDisabledButtonColor(context),
                           onPressed: saveEnabled
                               ? () async {
@@ -335,15 +344,18 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                             "Cancel",
                                             style: STextStyles.button(context)
                                                 .copyWith(
-                                                    color: StackTheme.instance
-                                                        .color.accentColorDark),
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .accentColorDark),
                                           ),
                                         ),
                                         rightButton: TextButton(
                                           onPressed: () async {
                                             Navigator.of(context).pop(true);
                                           },
-                                          style: StackTheme.instance
+                                          style: Theme.of(context)
+                                              .extension<StackColors>()!
                                               .getPrimaryEnabledButtonColor(
                                                   context),
                                           child: Text(
@@ -889,8 +901,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         height: 20,
                         child: Checkbox(
                           fillColor: widget.readOnly
-                              ? MaterialStateProperty.all(
-                                  StackTheme.instance.color.checkboxBGDisabled)
+                              ? MaterialStateProperty.all(Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .checkboxBGDisabled)
                               : null,
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,

@@ -24,7 +24,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -114,7 +114,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     final bool isWalletCoin =
         _isWalletCoinAndHasWallet(model.trade!.fromCurrency, ref);
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -171,14 +171,17 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                           height: 12,
                         ),
                         RoundedContainer(
-                          color: StackTheme.instance.color.warningBackground,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .warningBackground,
                           child: RichText(
                             text: TextSpan(
                               text:
                                   "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
                               style: STextStyles.label(context).copyWith(
-                                color:
-                                    StackTheme.instance.color.warningForeground,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .warningForeground,
                                 fontWeight: FontWeight.w700,
                               ),
                               children: [
@@ -186,8 +189,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                   text:
                                       "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
                                   style: STextStyles.label(context).copyWith(
-                                    color: StackTheme
-                                        .instance.color.warningForeground,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .warningForeground,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -225,8 +229,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       children: [
                                         SvgPicture.asset(
                                           Assets.svg.copy,
-                                          color: StackTheme
-                                              .instance.color.infoItemIcons,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .infoItemIcons,
                                           width: 10,
                                         ),
                                         const SizedBox(
@@ -281,8 +286,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       children: [
                                         SvgPicture.asset(
                                           Assets.svg.copy,
-                                          color: StackTheme
-                                              .instance.color.infoItemIcons,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .infoItemIcons,
                                           width: 10,
                                         ),
                                         const SizedBox(
@@ -340,8 +346,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     },
                                     child: SvgPicture.asset(
                                       Assets.svg.copy,
-                                      color: StackTheme
-                                          .instance.color.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                       width: 12,
                                     ),
                                   )
@@ -365,7 +372,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 _statusString,
                                 style:
                                     STextStyles.itemSubtitle(context).copyWith(
-                                  color: StackTheme.instance
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
                                       .colorForStatus(_status),
                                 ),
                               ),
@@ -407,8 +415,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                   .size
                                                   .width /
                                               2,
-                                          foregroundColor: StackTheme
-                                              .instance.color.accentColorDark,
+                                          foregroundColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
                                         ),
                                       ),
                                       const SizedBox(
@@ -421,7 +430,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             child: TextButton(
                                               onPressed: () =>
                                                   Navigator.of(context).pop(),
-                                              style: StackTheme.instance
+                                              style: Theme.of(context)
+                                                  .extension<StackColors>()!
                                                   .getSecondaryEnabledButtonColor(
                                                       context),
                                               child: Text(
@@ -429,9 +439,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                 style:
                                                     STextStyles.button(context)
                                                         .copyWith(
-                                                  color: StackTheme
-                                                      .instance
-                                                      .color
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
                                                       .buttonTextSecondary,
                                                 ),
                                               ),
@@ -445,7 +454,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               },
                             );
                           },
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getPrimaryEnabledButtonColor(context),
                           child: Text(
                             "Show QR Code",
@@ -567,7 +577,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                 title: "Transaction failed",
                                                 message: e.toString(),
                                                 rightButton: TextButton(
-                                                  style: StackTheme.instance
+                                                  style: Theme.of(context)
+                                                      .extension<StackColors>()!
                                                       .getSecondaryEnabledButtonColor(
                                                           context),
                                                   child: Text(
@@ -575,9 +586,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                     style: STextStyles.button(
                                                             context)
                                                         .copyWith(
-                                                      color: StackTheme
-                                                          .instance
-                                                          .color
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
                                                           .buttonTextSecondary,
                                                     ),
                                                   ),
@@ -615,13 +626,15 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                           ),
                                         );
                                       },
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   buttonTitle,
                                   style: STextStyles.button(context).copyWith(
-                                    color: StackTheme
-                                        .instance.color.buttonTextSecondary,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
                                   ),
                                 ),
                               );

@@ -18,7 +18,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -101,7 +101,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -246,7 +246,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           height: 8,
                         ),
                         TextButton(
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getPrimaryEnabledButtonColor(context),
                           onPressed: () {
                             final amountString = amountController.text;
@@ -318,11 +319,13 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                             child: QrImage(
                                                 data: uriString,
                                                 size: width,
-                                                backgroundColor: StackTheme
-                                                    .instance.color.popupBG,
-                                                foregroundColor: StackTheme
-                                                    .instance
-                                                    .color
+                                                backgroundColor: Theme.of(
+                                                        context)
+                                                    .extension<StackColors>()!
+                                                    .popupBG,
+                                                foregroundColor: Theme.of(
+                                                        context)
+                                                    .extension<StackColors>()!
                                                     .accentColorDark),
                                           ),
                                         ),
@@ -338,7 +341,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                               // TODO: add save button as well
                                               await _capturePng(true);
                                             },
-                                            style: StackTheme.instance
+                                            style: Theme.of(context)
+                                                .extension<StackColors>()!
                                                 .getSecondaryEnabledButtonColor(
                                                     context),
                                             child: Row(
@@ -366,9 +370,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                                       style: STextStyles.button(
                                                               context)
                                                           .copyWith(
-                                                        color: StackTheme
-                                                            .instance
-                                                            .color
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
                                                             .buttonTextSecondary,
                                                       ),
                                                     ),

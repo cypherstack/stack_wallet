@@ -7,7 +7,7 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 class FiroBalanceSelectionSheet extends ConsumerStatefulWidget {
@@ -50,7 +50,7 @@ class _FiroBalanceSelectionSheetState
 
     return Container(
       decoration: BoxDecoration(
-        color: StackTheme.instance.color.popupBG,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
@@ -69,7 +69,9 @@ class _FiroBalanceSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: StackTheme.instance.color.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -114,8 +116,9 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor: StackTheme
-                                    .instance.color.radioButtonIconEnabled,
+                                activeColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .radioButtonIconEnabled,
                                 value: "Private",
                                 groupValue: ref
                                     .watch(
@@ -204,8 +207,9 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor: StackTheme
-                                    .instance.color.radioButtonIconEnabled,
+                                activeColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .radioButtonIconEnabled,
                                 value: "Public",
                                 groupValue: ref
                                     .watch(

@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 enum StepIndicatorStatus { current, completed, incomplete }
 
@@ -19,18 +19,22 @@ class StepIndicator extends StatelessWidget {
 
   final double size;
 
-  Color get background {
+  Color background(BuildContext context) {
     switch (status) {
       case StepIndicatorStatus.current:
-        return StackTheme.instance.color.stepIndicatorBGNumber;
+        return Theme.of(context)
+            .extension<StackColors>()!
+            .stepIndicatorBGNumber;
       case StepIndicatorStatus.completed:
-        return StackTheme.instance.color.stepIndicatorBGCheck;
+        return Theme.of(context).extension<StackColors>()!.stepIndicatorBGCheck;
       case StepIndicatorStatus.incomplete:
-        return StackTheme.instance.color.stepIndicatorBGInactive;
+        return Theme.of(context)
+            .extension<StackColors>()!
+            .stepIndicatorBGInactive;
     }
   }
 
-  Widget get centered {
+  Widget centered(BuildContext context) {
     switch (status) {
       case StepIndicatorStatus.current:
         return Text(
@@ -38,13 +42,16 @@ class StepIndicator extends StatelessWidget {
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.w600,
             fontSize: 8,
-            color: StackTheme.instance.color.stepIndicatorIconNumber,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .stepIndicatorIconNumber,
           ),
         );
       case StepIndicatorStatus.completed:
         return SvgPicture.asset(
           Assets.svg.check,
-          color: StackTheme.instance.color.stepIndicatorIconText,
+          color:
+              Theme.of(context).extension<StackColors>()!.stepIndicatorIconText,
           width: 10,
         );
       case StepIndicatorStatus.incomplete:
@@ -53,7 +60,9 @@ class StepIndicator extends StatelessWidget {
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.w600,
             fontSize: 8,
-            color: StackTheme.instance.color.stepIndicatorIconInactive,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .stepIndicatorIconInactive,
           ),
         );
     }
@@ -66,10 +75,10 @@ class StepIndicator extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(size / 2),
-        color: background,
+        color: background(context),
       ),
       child: Center(
-        child: centered,
+        child: centered(context),
       ),
     );
   }

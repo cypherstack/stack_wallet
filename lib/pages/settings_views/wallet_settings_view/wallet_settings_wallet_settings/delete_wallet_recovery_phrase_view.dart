@@ -12,7 +12,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -55,7 +55,7 @@ class _DeleteWalletRecoveryPhraseViewState
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -68,13 +68,15 @@ class _DeleteWalletRecoveryPhraseViewState
             child: AspectRatio(
               aspectRatio: 1,
               child: AppBarIconButton(
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.copy,
                   width: 20,
                   height: 20,
-                  color: StackTheme.instance.color.topNavIconPrimary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
                 ),
                 onPressed: () async {
                   final words = await _manager.mnemonic;
@@ -120,7 +122,7 @@ class _DeleteWalletRecoveryPhraseViewState
             ),
             Container(
               decoration: BoxDecoration(
-                color: StackTheme.instance.color.popupBG,
+                color: Theme.of(context).extension<StackColors>()!.popupBG,
                 borderRadius:
                     BorderRadius.circular(Constants.size.circularBorderRadius),
               ),
@@ -129,7 +131,9 @@ class _DeleteWalletRecoveryPhraseViewState
                 child: Text(
                   "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
                   style: STextStyles.label(context).copyWith(
-                      color: StackTheme.instance.color.accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
                 ),
               ),
             ),
@@ -148,7 +152,9 @@ class _DeleteWalletRecoveryPhraseViewState
               height: 16,
             ),
             TextButton(
-              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonColor(context),
               onPressed: () {
                 showDialog<dynamic>(
                   barrierDismissible: true,
@@ -156,7 +162,8 @@ class _DeleteWalletRecoveryPhraseViewState
                   builder: (_) => StackDialog(
                     title: "Thanks! Your wallet will be deleted.",
                     leftButton: TextButton(
-                      style: StackTheme.instance
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
                           .getSecondaryEnabledButtonColor(context),
                       onPressed: () {
                         Navigator.pop(context);
@@ -164,11 +171,14 @@ class _DeleteWalletRecoveryPhraseViewState
                       child: Text(
                         "Cancel",
                         style: STextStyles.button(context).copyWith(
-                            color: StackTheme.instance.color.accentColorDark),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark),
                       ),
                     ),
                     rightButton: TextButton(
-                      style: StackTheme.instance
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
                           .getPrimaryEnabledButtonColor(context),
                       onPressed: () async {
                         final walletId = _manager.walletId;

@@ -5,7 +5,7 @@ import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -29,7 +29,7 @@ class _IntroViewState extends State<IntroView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       body: Center(
         child: !isDesktop
             ? Column(
@@ -236,7 +236,9 @@ class GetStartedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return !isDesktop
         ? TextButton(
-            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonColor(context),
             onPressed: () {
               Navigator.of(context).pushNamed(CreatePinView.routeName);
             },
@@ -249,7 +251,9 @@ class GetStartedButton extends StatelessWidget {
             width: 328,
             height: 70,
             child: TextButton(
-              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonColor(context),
               onPressed: () {
                 Navigator.of(context).pushNamed(CreatePasswordView.routeName);
               },

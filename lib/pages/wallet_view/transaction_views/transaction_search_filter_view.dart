@@ -7,13 +7,14 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -50,8 +51,11 @@ class _TransactionSearchViewState
   final keywordTextFieldFocusNode = FocusNode();
   final amountTextFieldFocusNode = FocusNode();
 
+  late Color baseColor;
+
   @override
   initState() {
+    baseColor = ref.read(colorThemeProvider.state).state.textSubtitle2;
     final filterState = ref.read(transactionFilterProvider.state).state;
     if (filterState != null) {
       _isActiveReceivedCheckbox = filterState.received;
@@ -91,8 +95,8 @@ class _TransactionSearchViewState
       isDateSelected ? "From..." : _fromDateString,
       style: STextStyles.fieldLabel(context).copyWith(
           color: isDateSelected
-              ? StackTheme.instance.color.textSubtitle2
-              : StackTheme.instance.color.accentColorDark),
+              ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+              : Theme.of(context).extension<StackColors>()!.accentColorDark),
     );
   }
 
@@ -102,53 +106,54 @@ class _TransactionSearchViewState
       isDateSelected ? "To..." : _toDateString,
       style: STextStyles.fieldLabel(context).copyWith(
           color: isDateSelected
-              ? StackTheme.instance.color.textSubtitle2
-              : StackTheme.instance.color.accentColorDark),
+              ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+              : Theme.of(context).extension<StackColors>()!.accentColorDark),
     );
   }
 
   var _selectedFromDate = DateTime(2007);
   var _selectedToDate = DateTime.now();
 
-  final _datePickerTextStyleBase = GoogleFonts.inter(
-    color: StackTheme.instance.color.textSubtitle2,
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.5,
-  );
+  TextStyle get _datePickerTextStyleBase => GoogleFonts.inter(
+        color: baseColor,
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
+      );
 
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
-      backgroundPicker: StackTheme.instance.color.popupBG,
-      // backgroundHeader: StackTheme.instance.color.textSubtitle2,
+      backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
+      // backgroundHeader: Theme.of(context).extension<StackColors>()!.textSubtitle2,
       paddingMonthHeader: const EdgeInsets.only(top: 11),
-      colorArrowNext: StackTheme.instance.color.textSubtitle1,
-      colorArrowPrevious: StackTheme.instance.color.textSubtitle1,
+      colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+      colorArrowPrevious:
+          Theme.of(context).extension<StackColors>()!.textSubtitle1,
       textStyleButtonNegative: _datePickerTextStyleBase.copyWith(
           fontSize: 16, fontWeight: FontWeight.w600),
       textStyleButtonPositive: _datePickerTextStyleBase.copyWith(
           fontSize: 16, fontWeight: FontWeight.w600),
       textStyleCurrentDayOnCalendar: _datePickerTextStyleBase.copyWith(
-          color: StackTheme.instance.color.accentColorDark),
+          color: Theme.of(context).extension<StackColors>()!.accentColorDark),
       textStyleDayHeader: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.accentColorDark,
+        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
       textStyleDayOnCalendar: _datePickerTextStyleBase,
       textStyleDayOnCalendarDisabled: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.textSubtitle3,
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
       ),
       textStyleDayOnCalendarSelected: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.textWhite,
+        color: Theme.of(context).extension<StackColors>()!.textWhite,
       ),
       textStyleMonthYearHeader: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.textSubtitle1,
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
       textStyleYearButton: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.textWhite,
+        color: Theme.of(context).extension<StackColors>()!.textWhite,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
@@ -158,14 +163,14 @@ class _TransactionSearchViewState
 
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
-      backgroundPicker: StackTheme.instance.color.popupBG,
+      backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
       textStyleYear: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.textSubtitle2,
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
         fontWeight: FontWeight.w600,
         fontSize: 16,
       ),
       textStyleYearSelected: _datePickerTextStyleBase.copyWith(
-        color: StackTheme.instance.color.accentColorDark,
+        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
         fontWeight: FontWeight.w600,
         fontSize: 18,
       ),
@@ -187,6 +192,8 @@ class _TransactionSearchViewState
         GestureDetector(
           key: const Key("transactionSearchViewFromDatePickerKey"),
           onTap: () async {
+            final color =
+                Theme.of(context).extension<StackColors>()!.accentColorDark;
             final height = MediaQuery.of(context).size.height;
             // check and hide keyboard
             if (FocusScope.of(context).hasFocus) {
@@ -202,7 +209,7 @@ class _TransactionSearchViewState
               height: height * 0.5,
               theme: ThemeData(
                 primarySwatch: Util.createMaterialColor(
-                  StackTheme.instance.color.accentColorDark,
+                  color,
                 ),
               ),
               //TODO pick a better initial date
@@ -237,11 +244,15 @@ class _TransactionSearchViewState
           child: Container(
             width: width,
             decoration: BoxDecoration(
-              color: StackTheme.instance.color.textFieldDefaultBG,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultBG,
               borderRadius:
                   BorderRadius.circular(Constants.size.circularBorderRadius),
               border: Border.all(
-                color: StackTheme.instance.color.textFieldDefaultBG,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
                 width: 1,
               ),
             ),
@@ -253,7 +264,9 @@ class _TransactionSearchViewState
                     Assets.svg.calendar,
                     height: 20,
                     width: 20,
-                    color: StackTheme.instance.color.textSubtitle2,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle2,
                   ),
                   const SizedBox(
                     width: 10,
@@ -281,6 +294,8 @@ class _TransactionSearchViewState
         GestureDetector(
           key: const Key("transactionSearchViewToDatePickerKey"),
           onTap: () async {
+            final color =
+                Theme.of(context).extension<StackColors>()!.accentColorDark;
             final height = MediaQuery.of(context).size.height;
             // check and hide keyboard
             if (FocusScope.of(context).hasFocus) {
@@ -295,7 +310,7 @@ class _TransactionSearchViewState
               height: height * 0.5,
               theme: ThemeData(
                 primarySwatch: Util.createMaterialColor(
-                  StackTheme.instance.color.accentColorDark,
+                  color,
                 ),
               ),
               //TODO pick a better initial date
@@ -331,11 +346,15 @@ class _TransactionSearchViewState
           child: Container(
             width: width,
             decoration: BoxDecoration(
-              color: StackTheme.instance.color.textFieldDefaultBG,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultBG,
               borderRadius:
                   BorderRadius.circular(Constants.size.circularBorderRadius),
               border: Border.all(
-                color: StackTheme.instance.color.textFieldDefaultBG,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
                 width: 1,
               ),
             ),
@@ -347,7 +366,9 @@ class _TransactionSearchViewState
                     Assets.svg.calendar,
                     height: 20,
                     width: 20,
-                    color: StackTheme.instance.color.textSubtitle2,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle2,
                   ),
                   const SizedBox(
                     width: 10,
@@ -370,9 +391,9 @@ class _TransactionSearchViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
-        backgroundColor: StackTheme.instance.color.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             if (FocusScope.of(context).hasFocus) {
@@ -684,13 +705,15 @@ class _TransactionSearchViewState
                                     Navigator.of(context).pop();
                                   }
                                 },
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
                                   style: STextStyles.button(context).copyWith(
-                                      color: StackTheme
-                                          .instance.color.accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                 ),
                               ),
                             ),
@@ -702,7 +725,8 @@ class _TransactionSearchViewState
                             child: SizedBox(
                               height: 48,
                               child: TextButton(
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getPrimaryEnabledButtonColor(context),
                                 onPressed: () async {
                                   _onApplyPressed();

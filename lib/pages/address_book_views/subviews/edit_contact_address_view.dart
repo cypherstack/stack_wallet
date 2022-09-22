@@ -11,7 +11,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 
 class EditContactAddressView extends ConsumerStatefulWidget {
@@ -60,7 +60,7 @@ class _EditContactAddressViewState
         .select((value) => value.getContactById(contactId)));
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -103,8 +103,9 @@ class _EditContactAddressViewState
                               width: 48,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(24),
-                                color:
-                                    StackTheme.instance.color.textFieldActiveBG,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveBG,
                               ),
                               child: Center(
                                 child: contact.emojiChar == null
@@ -180,13 +181,15 @@ class _EditContactAddressViewState
                           children: [
                             Expanded(
                               child: TextButton(
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
                                   style: STextStyles.button(context).copyWith(
-                                      color: StackTheme
-                                          .instance.color.accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                 ),
                                 onPressed: () async {
                                   if (FocusScope.of(context).hasFocus) {
@@ -211,10 +214,12 @@ class _EditContactAddressViewState
 
                                   return TextButton(
                                     style: shouldEnableSave
-                                        ? StackTheme.instance
+                                        ? Theme.of(context)
+                                            .extension<StackColors>()!
                                             .getPrimaryEnabledButtonColor(
                                                 context)
-                                        : StackTheme.instance
+                                        : Theme.of(context)
+                                            .extension<StackColors>()!
                                             .getPrimaryDisabledButtonColor(
                                                 context),
                                     onPressed: shouldEnableSave

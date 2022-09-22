@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
@@ -163,6 +165,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color warningForeground;
   final Color warningBackground;
   final Color loadingOverlayTextColor;
+  final Color myStackContactIconBG;
 
   StackColors({
     required this.background,
@@ -291,6 +294,7 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.warningForeground,
     required this.warningBackground,
     required this.loadingOverlayTextColor,
+    required this.myStackContactIconBG,
   });
 
   factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
@@ -423,6 +427,7 @@ class StackColors extends ThemeExtension<StackColors> {
       warningForeground: colorTheme.warningForeground,
       warningBackground: colorTheme.warningBackground,
       loadingOverlayTextColor: colorTheme.loadingOverlayTextColor,
+      myStackContactIconBG: colorTheme.myStackContactIconBG,
     );
   }
 
@@ -554,6 +559,7 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? warningForeground,
     Color? warningBackground,
     Color? loadingOverlayTextColor,
+    Color? myStackContactIconBG,
   }) {
     return StackColors(
       background: background ?? this.background,
@@ -717,6 +723,7 @@ class StackColors extends ThemeExtension<StackColors> {
       warningBackground: warningBackground ?? this.warningBackground,
       loadingOverlayTextColor:
           loadingOverlayTextColor ?? this.loadingOverlayTextColor,
+      myStackContactIconBG: myStackContactIconBG ?? this.myStackContactIconBG,
     );
   }
 
@@ -1358,6 +1365,104 @@ class StackColors extends ThemeExtension<StackColors> {
         other.loadingOverlayTextColor,
         t,
       )!,
+      myStackContactIconBG: Color.lerp(
+        myStackContactIconBG,
+        other.myStackContactIconBG,
+        t,
+      )!,
     );
   }
+
+  Color colorForCoin(Coin coin) {
+    switch (coin) {
+      case Coin.bitcoin:
+      case Coin.bitcoinTestNet:
+        return _coin.bitcoin;
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+        return _coin.bitcoincash;
+      case Coin.dogecoin:
+      case Coin.dogecoinTestNet:
+        return _coin.dogecoin;
+      case Coin.epicCash:
+        return _coin.epicCash;
+      case Coin.firo:
+      case Coin.firoTestNet:
+        return _coin.firo;
+      case Coin.monero:
+        return _coin.monero;
+      case Coin.namecoin:
+        return _coin.namecoin;
+      // case Coin.wownero:
+      //   return wownero;
+    }
+  }
+
+  static const _coin = CoinThemeColor();
+
+  BoxShadow get standardBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
+
+  Color colorForStatus(ChangeNowTransactionStatus status) {
+    switch (status) {
+      case ChangeNowTransactionStatus.New:
+      case ChangeNowTransactionStatus.Waiting:
+      case ChangeNowTransactionStatus.Confirming:
+      case ChangeNowTransactionStatus.Exchanging:
+      case ChangeNowTransactionStatus.Sending:
+      case ChangeNowTransactionStatus.Verifying:
+        return const Color(0xFFD3A90F);
+      case ChangeNowTransactionStatus.Finished:
+        return accentColorGreen;
+      case ChangeNowTransactionStatus.Failed:
+        return accentColorRed;
+      case ChangeNowTransactionStatus.Refunded:
+        return textSubtitle2;
+    }
+  }
+
+  ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              buttonBackPrimary,
+            ),
+          );
+
+  ButtonStyle? getPrimaryDisabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              buttonBackPrimaryDisabled,
+            ),
+          );
+
+  ButtonStyle? getSecondaryEnabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              buttonBackSecondary,
+            ),
+          );
+
+  ButtonStyle? getSmallSecondaryEnabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              textFieldDefaultBG,
+            ),
+          );
+
+  ButtonStyle? getDesktopMenuButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              popupBG,
+            ),
+          );
+
+  ButtonStyle? getDesktopMenuButtonColorSelected(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              textFieldDefaultBG,
+            ),
+          );
 }

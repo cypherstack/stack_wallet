@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class NumberKey extends StatefulWidget {
   const NumberKey({
@@ -22,7 +22,7 @@ class _NumberKeyState extends State<NumberKey> {
   late final String number;
   late final ValueSetter<String> onPressed;
 
-  Color _color = StackTheme.instance.color.numberBackDefault;
+  Color? _color;
 
   @override
   void initState() {
@@ -34,6 +34,8 @@ class _NumberKeyState extends State<NumberKey> {
 
   @override
   Widget build(BuildContext context) {
+    _color ??= Theme.of(context).extension<StackColors>()!.numberBackDefault;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
@@ -45,20 +47,24 @@ class _NumberKeyState extends State<NumberKey> {
         shadows: const [],
       ),
       child: MaterialButton(
-        // splashColor: StackTheme.instance.color.highlight,
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () async {
           onPressed.call(number);
           setState(() {
-            _color =
-                StackTheme.instance.color.numberBackDefault.withOpacity(0.8);
+            _color = Theme.of(context)
+                .extension<StackColors>()!
+                .numberBackDefault
+                .withOpacity(0.8);
           });
 
           Future<void>.delayed(const Duration(milliseconds: 200), () {
             if (mounted) {
               setState(() {
-                _color = StackTheme.instance.color.numberBackDefault;
+                _color = Theme.of(context)
+                    .extension<StackColors>()!
+                    .numberBackDefault;
               });
             }
           });
@@ -67,7 +73,8 @@ class _NumberKeyState extends State<NumberKey> {
           child: Text(
             number,
             style: GoogleFonts.roboto(
-              color: StackTheme.instance.color.numberTextDefault,
+              color:
+                  Theme.of(context).extension<StackColors>()!.numberTextDefault,
               fontWeight: FontWeight.w400,
               fontSize: 26,
             ),
@@ -93,7 +100,7 @@ class BackspaceKey extends StatefulWidget {
 class _BackspaceKeyState extends State<BackspaceKey> {
   late final VoidCallback onPressed;
 
-  Color _color = StackTheme.instance.color.numpadBackDefault;
+  Color? _color;
 
   @override
   void initState() {
@@ -103,6 +110,7 @@ class _BackspaceKeyState extends State<BackspaceKey> {
 
   @override
   Widget build(BuildContext context) {
+    _color ??= Theme.of(context).extension<StackColors>()!.numpadBackDefault;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
@@ -114,20 +122,24 @@ class _BackspaceKeyState extends State<BackspaceKey> {
         shadows: const [],
       ),
       child: MaterialButton(
-        // splashColor: StackTheme.instance.color.highlight,
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () {
           onPressed.call();
           setState(() {
-            _color =
-                StackTheme.instance.color.numpadBackDefault.withOpacity(0.8);
+            _color = Theme.of(context)
+                .extension<StackColors>()!
+                .numpadBackDefault
+                .withOpacity(0.8);
           });
 
           Future<void>.delayed(const Duration(milliseconds: 200), () {
             if (mounted) {
               setState(() {
-                _color = StackTheme.instance.color.numpadBackDefault;
+                _color = Theme.of(context)
+                    .extension<StackColors>()!
+                    .numpadBackDefault;
               });
             }
           });
@@ -137,7 +149,8 @@ class _BackspaceKeyState extends State<BackspaceKey> {
             Assets.svg.delete,
             width: 20,
             height: 20,
-            color: StackTheme.instance.color.numpadTextDefault,
+            color:
+                Theme.of(context).extension<StackColors>()!.numpadTextDefault,
           ),
         ),
       ),
@@ -160,11 +173,11 @@ class SubmitKey extends StatelessWidget {
       width: 72,
       decoration: ShapeDecoration(
         shape: const StadiumBorder(),
-        color: StackTheme.instance.color.numpadBackDefault,
+        color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
         shadows: const [],
       ),
       child: MaterialButton(
-        // splashColor: StackTheme.instance.color.highlight,
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () {
@@ -175,7 +188,8 @@ class SubmitKey extends StatelessWidget {
             Assets.svg.arrowRight,
             width: 20,
             height: 20,
-            color: StackTheme.instance.color.numpadTextDefault,
+            color:
+                Theme.of(context).extension<StackColors>()!.numpadTextDefault,
           ),
         ),
       ),

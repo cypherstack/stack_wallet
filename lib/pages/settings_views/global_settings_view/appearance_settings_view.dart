@@ -9,7 +9,6 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -22,7 +21,7 @@ class AppearanceSettingsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -51,7 +50,9 @@ class AppearanceSettingsView extends ConsumerWidget {
                         child: Consumer(
                           builder: (_, ref, __) {
                             return RawMaterialButton(
-                              splashColor: StackTheme.instance.color.highlight,
+                              splashColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .highlight,
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               shape: RoundedRectangleBorder(
@@ -102,7 +103,9 @@ class AppearanceSettingsView extends ConsumerWidget {
                         child: Consumer(
                           builder: (_, ref, __) {
                             return RawMaterialButton(
-                              splashColor: StackTheme.instance.color.highlight,
+                              splashColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .highlight,
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               shape: RoundedRectangleBorder(
@@ -113,28 +116,15 @@ class AppearanceSettingsView extends ConsumerWidget {
                               onPressed: null,
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 2),
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Enabled dark mode",
-                                          style:
-                                              STextStyles.titleBold12(context),
-                                          textAlign: TextAlign.left,
-                                        ),
-                                        Text(
-                                          "Requires restart",
-                                          style:
-                                              STextStyles.itemSubtitle(context),
-                                          textAlign: TextAlign.left,
-                                        ),
-                                      ],
+                                    Text(
+                                      "Enable dark mode",
+                                      style: STextStyles.titleBold12(context),
+                                      textAlign: TextAlign.left,
                                     ),
                                     SizedBox(
                                       height: 20,

@@ -18,7 +18,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -141,13 +141,17 @@ class _NewWalletRecoveryPhraseViewState
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          color: StackTheme.instance.color.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           shadows: const [],
                           icon: SvgPicture.asset(
                             Assets.svg.copy,
                             width: 24,
                             height: 24,
-                            color: StackTheme.instance.color.topNavIconPrimary,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .topNavIconPrimary,
                           ),
                           onPressed: () async {
                             await _copy();
@@ -158,7 +162,7 @@ class _NewWalletRecoveryPhraseViewState
                   ],
                 ),
           body: Container(
-            color: StackTheme.instance.color.background,
+            color: Theme.of(context).extension<StackColors>()!.background,
             width: isDesktop ? 600 : null,
             child: Padding(
               padding: isDesktop
@@ -195,8 +199,10 @@ class _NewWalletRecoveryPhraseViewState
                   Container(
                     decoration: BoxDecoration(
                       color: isDesktop
-                          ? StackTheme.instance.color.background
-                          : StackTheme.instance.color.popupBG,
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .background
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
                       borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius),
                     ),
@@ -210,8 +216,9 @@ class _NewWalletRecoveryPhraseViewState
                         style: isDesktop
                             ? STextStyles.desktopSubtitleH2(context)
                             : STextStyles.label(context).copyWith(
-                                color:
-                                    StackTheme.instance.color.accentColorDark),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark),
                       ),
                     ),
                   ),
@@ -286,7 +293,8 @@ class _NewWalletRecoveryPhraseViewState
                           arguments: Tuple2(_manager, _mnemonic),
                         ));
                       },
-                      style: StackTheme.instance
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
                           .getPrimaryEnabledButtonColor(context),
                       child: Text(
                         "I saved my recovery phrase",

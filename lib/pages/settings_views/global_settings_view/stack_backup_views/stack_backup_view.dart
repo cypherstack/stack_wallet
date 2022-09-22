@@ -6,7 +6,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -22,7 +22,7 @@ class StackBackupView extends StatelessWidget {
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -42,7 +42,7 @@ class StackBackupView extends StatelessWidget {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: StackTheme.instance.color.highlight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -83,7 +83,7 @@ class StackBackupView extends StatelessWidget {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: StackTheme.instance.color.highlight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -125,7 +125,7 @@ class StackBackupView extends StatelessWidget {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: StackTheme.instance.color.highlight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(

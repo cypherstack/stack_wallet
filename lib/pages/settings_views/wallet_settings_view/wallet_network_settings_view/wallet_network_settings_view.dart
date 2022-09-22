@@ -21,7 +21,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -107,8 +107,9 @@ class _WalletNetworkSettingsViewState
           builder: (context) => StackDialog(
             title: "Rescan completed",
             rightButton: TextButton(
-              style:
-                  StackTheme.instance.getSecondaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
                 style: STextStyles.itemSubtitle12(context),
@@ -136,8 +137,9 @@ class _WalletNetworkSettingsViewState
             title: "Rescan failed",
             message: e.toString(),
             rightButton: TextButton(
-              style:
-                  StackTheme.instance.getSecondaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
                 style: STextStyles.itemSubtitle12(context),
@@ -281,7 +283,7 @@ class _WalletNetworkSettingsViewState
     }
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -305,10 +307,12 @@ class _WalletNetworkSettingsViewState
                 key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.verticalEllipsis,
-                  color: StackTheme.instance.color.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -325,7 +329,9 @@ class _WalletNetworkSettingsViewState
                             right: 10,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: StackTheme.instance.color.popupBG,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .popupBG,
                                 borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius),
                                 // boxShadow: [CFColors.standardBoxShadow],
@@ -418,7 +424,9 @@ class _WalletNetworkSettingsViewState
                             width: _iconSize,
                             height: _iconSize,
                             decoration: BoxDecoration(
-                              color: StackTheme.instance.color.accentColorGreen
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorGreen
                                   .withOpacity(0.2),
                               borderRadius: BorderRadius.circular(_iconSize),
                             ),
@@ -427,8 +435,9 @@ class _WalletNetworkSettingsViewState
                                 Assets.svg.radio,
                                 height: 14,
                                 width: 14,
-                                color:
-                                    StackTheme.instance.color.accentColorGreen,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorGreen,
                               ),
                             ),
                           ),
@@ -451,8 +460,9 @@ class _WalletNetworkSettingsViewState
                                       "100%",
                                       style: STextStyles.syncPercent(context)
                                           .copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorGreen,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorGreen,
                                       ),
                                     ),
                                   ],
@@ -464,10 +474,12 @@ class _WalletNetworkSettingsViewState
                               ProgressBar(
                                 width: progressLength,
                                 height: 5,
-                                fillColor:
-                                    StackTheme.instance.color.accentColorGreen,
-                                backgroundColor: StackTheme
-                                    .instance.color.textFieldDefaultBG,
+                                fillColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorGreen,
+                                backgroundColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultBG,
                                 percent: 1,
                               ),
                             ],
@@ -483,7 +495,9 @@ class _WalletNetworkSettingsViewState
                             width: _iconSize,
                             height: _iconSize,
                             decoration: BoxDecoration(
-                              color: StackTheme.instance.color.accentColorYellow
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorYellow
                                   .withOpacity(0.2),
                               borderRadius: BorderRadius.circular(_iconSize),
                             ),
@@ -492,8 +506,9 @@ class _WalletNetworkSettingsViewState
                                 Assets.svg.radioSyncing,
                                 height: 14,
                                 width: 14,
-                                color:
-                                    StackTheme.instance.color.accentColorYellow,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorYellow,
                               ),
                             ),
                           ),
@@ -524,7 +539,8 @@ class _WalletNetworkSettingsViewState
                                           style:
                                               STextStyles.syncPercent(context)
                                                   .copyWith(
-                                            color: StackTheme.instance.color
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
                                                 .accentColorYellow,
                                           ),
                                         ),
@@ -535,7 +551,8 @@ class _WalletNetworkSettingsViewState
                                             style:
                                                 STextStyles.syncPercent(context)
                                                     .copyWith(
-                                              color: StackTheme.instance.color
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
                                                   .accentColorYellow,
                                             ),
                                           ),
@@ -550,10 +567,12 @@ class _WalletNetworkSettingsViewState
                               ProgressBar(
                                 width: progressLength,
                                 height: 5,
-                                fillColor:
-                                    StackTheme.instance.color.accentColorYellow,
-                                backgroundColor: StackTheme
-                                    .instance.color.textFieldDefaultBG,
+                                fillColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorYellow,
+                                backgroundColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultBG,
                                 percent: _percent,
                               ),
                             ],
@@ -569,7 +588,9 @@ class _WalletNetworkSettingsViewState
                             width: _iconSize,
                             height: _iconSize,
                             decoration: BoxDecoration(
-                              color: StackTheme.instance.color.accentColorRed
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
                                   .withOpacity(0.2),
                               borderRadius: BorderRadius.circular(_iconSize),
                             ),
@@ -578,7 +599,9 @@ class _WalletNetworkSettingsViewState
                                 Assets.svg.radioProblem,
                                 height: 14,
                                 width: 14,
-                                color: StackTheme.instance.color.accentColorRed,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed,
                               ),
                             ),
                           ),
@@ -597,16 +620,18 @@ class _WalletNetworkSettingsViewState
                                       "Unable to synchronize",
                                       style:
                                           STextStyles.w600_10(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorRed,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed,
                                       ),
                                     ),
                                     Text(
                                       "0%",
                                       style: STextStyles.syncPercent(context)
                                           .copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorRed,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed,
                                       ),
                                     ),
                                   ],
@@ -618,10 +643,12 @@ class _WalletNetworkSettingsViewState
                               ProgressBar(
                                 width: progressLength,
                                 height: 5,
-                                fillColor:
-                                    StackTheme.instance.color.accentColorRed,
-                                backgroundColor: StackTheme
-                                    .instance.color.textFieldDefaultBG,
+                                fillColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed,
+                                backgroundColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultBG,
                                 percent: 0,
                               ),
                             ],
@@ -635,11 +662,15 @@ class _WalletNetworkSettingsViewState
                         top: 12,
                       ),
                       child: RoundedContainer(
-                        color: StackTheme.instance.color.warningBackground,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningBackground,
                         child: Text(
                           "Please check your internet connection and make sure your current node is not having issues.",
                           style: STextStyles.baseXS(context).copyWith(
-                            color: StackTheme.instance.color.warningForeground,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .warningForeground,
                           ),
                         ),
                       ),

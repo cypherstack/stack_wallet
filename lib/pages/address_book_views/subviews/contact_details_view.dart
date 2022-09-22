@@ -17,7 +17,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -105,7 +105,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
         .select((value) => value.getContactById(_contactId)));
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -129,12 +129,16 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 key: const Key("contactDetails"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.star,
                   color: _contact.isFavorite
-                      ? StackTheme.instance.color.favoriteStarActive
-                      : StackTheme.instance.color.favoriteStarInactive,
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .favoriteStarActive
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .favoriteStarInactive,
                   width: 20,
                   height: 20,
                 ),
@@ -160,10 +164,12 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 key: const Key("contactDetailsViewDeleteContactButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.trash,
-                  color: StackTheme.instance.color.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -176,7 +182,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       title: "Delete ${_contact.name}?",
                       message: "Contact will be deleted permanently!",
                       leftButton: TextButton(
-                        style: StackTheme.instance
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
                             .getSecondaryEnabledButtonColor(context),
                         child: Text(
                           "Cancel",
@@ -187,7 +194,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         },
                       ),
                       rightButton: TextButton(
-                        style: StackTheme.instance
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
                             .getPrimaryEnabledButtonColor(context),
                         child: Text(
                           "Delete",
@@ -234,7 +242,9 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       width: 48,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        color: StackTheme.instance.color.textFieldActiveBG,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldActiveBG,
                       ),
                       child: Center(
                         child: _contact.emojiChar == null
@@ -268,7 +278,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                           arguments: _contact.id,
                         );
                       },
-                      style: StackTheme.instance
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
                           .getSecondaryEnabledButtonColor(context)!
                           .copyWith(
                             minimumSize: MaterialStateProperty.all<Size>(
@@ -281,8 +292,9 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                             SvgPicture.asset(Assets.svg.pencil,
                                 width: 10,
                                 height: 10,
-                                color:
-                                    StackTheme.instance.color.accentColorDark),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark),
                             const SizedBox(
                               width: 4,
                             ),
@@ -378,14 +390,16 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   );
                                 },
                                 child: RoundedContainer(
-                                  color: StackTheme
-                                      .instance.color.textFieldDefaultBG,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
                                   padding: const EdgeInsets.all(4),
                                   child: SvgPicture.asset(Assets.svg.pencil,
                                       width: 12,
                                       height: 12,
-                                      color: StackTheme
-                                          .instance.color.accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                 ),
                               ),
                               const SizedBox(
@@ -404,14 +418,16 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   );
                                 },
                                 child: RoundedContainer(
-                                  color: StackTheme
-                                      .instance.color.textFieldDefaultBG,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
                                   padding: const EdgeInsets.all(4),
                                   child: SvgPicture.asset(Assets.svg.copy,
                                       width: 12,
                                       height: 12,
-                                      color: StackTheme
-                                          .instance.color.accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                 ),
                               ),
                             ],

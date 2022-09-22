@@ -16,7 +16,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/shake/shake.dart';
@@ -151,9 +151,10 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: StackTheme.instance.color.textSubtitle2,
-      border:
-          Border.all(width: 1, color: StackTheme.instance.color.textSubtitle2),
+      color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
+      border: Border.all(
+          width: 1,
+          color: Theme.of(context).extension<StackColors>()!.textSubtitle2),
       borderRadius: BorderRadius.circular(6),
     );
   }
@@ -165,7 +166,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   late Biometrics biometrics;
 
   Scaffold get _body => Scaffold(
-        backgroundColor: StackTheme.instance.color.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: widget.showBackButton
               ? AppBarBackButton(
@@ -221,14 +222,20 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           disabledBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           focusedErrorBorder: InputBorder.none,
-                          fillColor: StackTheme.instance.color.background,
+                          fillColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           counterText: "",
                         ),
                         submittedFieldDecoration: _pinPutDecoration.copyWith(
-                          color: StackTheme.instance.color.infoItemIcons,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .infoItemIcons,
                           border: Border.all(
                             width: 1,
-                            color: StackTheme.instance.color.infoItemIcons,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                           ),
                         ),
                         selectedFieldDecoration: _pinPutDecoration,

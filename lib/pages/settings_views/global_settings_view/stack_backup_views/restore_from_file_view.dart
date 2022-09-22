@@ -14,7 +14,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -64,7 +64,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -138,7 +138,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                 ),
                                 SvgPicture.asset(
                                   Assets.svg.folder,
-                                  color: StackTheme.instance.color.textDark3,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
                                   width: 16,
                                   height: 16,
                                 ),
@@ -197,8 +199,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                       hidePassword
                                           ? Assets.svg.eye
                                           : Assets.svg.eyeSlash,
-                                      color:
-                                          StackTheme.instance.color.textDark3,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                       width: 16,
                                       height: 16,
                                     ),
@@ -222,9 +225,11 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                       TextButton(
                         style: passwordController.text.isEmpty ||
                                 fileLocationController.text.isEmpty
-                            ? StackTheme.instance
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
                                 .getPrimaryDisabledButtonColor(context)
-                            : StackTheme.instance
+                            : Theme.of(context)
+                                .extension<StackColors>()!
                                 .getPrimaryEnabledButtonColor(context),
                         onPressed: passwordController.text.isEmpty ||
                                 fileLocationController.text.isEmpty
@@ -272,8 +277,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                               style: STextStyles.pageTitleH2(
                                                       context)
                                                   .copyWith(
-                                                color: StackTheme
-                                                    .instance.color.textWhite,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textWhite,
                                               ),
                                             ),
                                           ),

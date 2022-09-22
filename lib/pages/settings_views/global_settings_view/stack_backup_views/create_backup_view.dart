@@ -13,7 +13,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -82,7 +82,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -164,8 +164,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     ),
                                     SvgPicture.asset(
                                       Assets.svg.folder,
-                                      color:
-                                          StackTheme.instance.color.textDark3,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                       width: 16,
                                       height: 16,
                                     ),
@@ -229,8 +230,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                       hidePassword
                                           ? Assets.svg.eye
                                           : Assets.svg.eyeSlash,
-                                      color:
-                                          StackTheme.instance.color.textDark3,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                       width: 16,
                                       height: 16,
                                     ),
@@ -309,14 +311,15 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                             width: MediaQuery.of(context).size.width - 32 - 24,
                             height: 5,
                             fillColor: passwordStrength < 0.51
-                                ? StackTheme.instance.color.accentColorRed
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed
                                 : passwordStrength < 1
-                                    ? StackTheme
-                                        .instance.color.accentColorYellow
-                                    : StackTheme
-                                        .instance.color.accentColorGreen,
-                            backgroundColor:
-                                StackTheme.instance.color.buttonBackSecondary,
+                                    ? Theme.of(context).extension<StackColors>()!.accentColorYellow
+                                    : Theme.of(context).extension<StackColors>()!.accentColorGreen,
+                            backgroundColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonBackSecondary,
                             percent: passwordStrength < 0.25
                                 ? 0.03
                                 : passwordStrength,
@@ -360,8 +363,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                       hidePassword
                                           ? Assets.svg.eye
                                           : Assets.svg.eyeSlash,
-                                      color:
-                                          StackTheme.instance.color.textDark3,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                       width: 16,
                                       height: 16,
                                     ),
@@ -385,10 +389,8 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                       const Spacer(),
                       TextButton(
                         style: shouldEnableCreate
-                            ? StackTheme.instance
-                                .getPrimaryEnabledButtonColor(context)
-                            : StackTheme.instance
-                                .getPrimaryDisabledButtonColor(context),
+                            ? Theme.of(context) .extension<StackColors>()!.getPrimaryEnabledButtonColor(context)
+                            : Theme.of(context) .extension<StackColors>()!.getPrimaryDisabledButtonColor(context),
                         onPressed: !shouldEnableCreate
                             ? null
                             : () async {

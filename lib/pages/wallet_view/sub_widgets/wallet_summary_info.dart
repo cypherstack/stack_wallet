@@ -14,7 +14,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 class WalletSummaryInfo extends StatefulWidget {
@@ -130,8 +130,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                                   "${_showAvailable ? "Private" : "Public"} Balance",
                                   style: STextStyles.subtitle(context).copyWith(
                                     fontWeight: FontWeight.w500,
-                                    color: StackTheme
-                                        .instance.color.textFavoriteCard,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFavoriteCard,
                                   ),
                                 ),
                               if (coin != Coin.firo && coin != Coin.firoTestNet)
@@ -139,8 +140,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                                   "${_showAvailable ? "Available" : "Full"} Balance",
                                   style: STextStyles.subtitle(context).copyWith(
                                     fontWeight: FontWeight.w500,
-                                    color: StackTheme
-                                        .instance.color.textFavoriteCard,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFavoriteCard,
                                   ),
                                 ),
                               const SizedBox(
@@ -148,8 +150,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               ),
                               SvgPicture.asset(
                                 Assets.svg.chevronDown,
-                                color:
-                                    StackTheme.instance.color.textFavoriteCard,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFavoriteCard,
                                 width: 8,
                                 height: 4,
                               ),
@@ -167,7 +170,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                             )} ${coin.ticker}",
                             style: STextStyles.pageTitleH1(context).copyWith(
                               fontSize: 24,
-                              color: StackTheme.instance.color.textFavoriteCard,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFavoriteCard,
                             ),
                           ),
                         ),
@@ -179,7 +184,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                           )} $baseCurrency",
                           style: STextStyles.subtitle(context).copyWith(
                             fontWeight: FontWeight.w500,
-                            color: StackTheme.instance.color.textFavoriteCard,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFavoriteCard,
                           ),
                         ),
                       ],
@@ -197,8 +204,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                                   "${_showAvailable ? "Private" : "Public"} Balance",
                                   style: STextStyles.subtitle(context).copyWith(
                                     fontWeight: FontWeight.w500,
-                                    color: StackTheme
-                                        .instance.color.textFavoriteCard,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFavoriteCard,
                                   ),
                                 ),
                               if (coin != Coin.firo && coin != Coin.firoTestNet)
@@ -206,8 +214,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                                   "${_showAvailable ? "Available" : "Full"} Balance",
                                   style: STextStyles.subtitle(context).copyWith(
                                     fontWeight: FontWeight.w500,
-                                    color: StackTheme
-                                        .instance.color.textFavoriteCard,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFavoriteCard,
                                   ),
                                 ),
                               const SizedBox(
@@ -217,8 +226,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                                 Assets.svg.chevronDown,
                                 width: 8,
                                 height: 4,
-                                color:
-                                    StackTheme.instance.color.textFavoriteCard,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFavoriteCard,
                               ),
                             ],
                           ),
@@ -233,7 +243,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                           ],
                           style: STextStyles.pageTitleH1(context).copyWith(
                             fontSize: 24,
-                            color: StackTheme.instance.color.textFavoriteCard,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFavoriteCard,
                           ),
                         ),
                         AnimatedText(
@@ -245,7 +257,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                           ],
                           style: STextStyles.subtitle(context).copyWith(
                             fontWeight: FontWeight.w500,
-                            color: StackTheme.instance.color.textFavoriteCard,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFavoriteCard,
                           ),
                         ),
                       ],

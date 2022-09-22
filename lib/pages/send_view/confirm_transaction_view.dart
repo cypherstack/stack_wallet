@@ -15,7 +15,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -111,12 +111,15 @@ class _ConfirmTransactionViewState
             title: "Broadcast transaction failed",
             message: e.toString(),
             rightButton: TextButton(
-              style:
-                  StackTheme.instance.getSecondaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.button(context)
-                    .copyWith(color: StackTheme.instance.color.accentColorDark),
+                style: STextStyles.button(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -142,7 +145,7 @@ class _ConfirmTransactionViewState
         .select((value) => value.getManagerProvider(walletId)));
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: StackTheme.instance.color.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             // if (FocusScope.of(context).hasFocus) {
@@ -283,7 +286,9 @@ class _ConfirmTransactionViewState
                           height: 12,
                         ),
                         RoundedContainer(
-                          color: StackTheme.instance.color.snackBarBackSuccess,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .snackBarBackSuccess,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -313,7 +318,8 @@ class _ConfirmTransactionViewState
                           height: 16,
                         ),
                         TextButton(
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getPrimaryEnabledButtonColor(context),
                           onPressed: () async {
                             final unlocked = await Navigator.push(

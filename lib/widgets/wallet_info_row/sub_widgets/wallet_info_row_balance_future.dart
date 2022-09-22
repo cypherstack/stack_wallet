@@ -5,7 +5,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
@@ -40,7 +40,9 @@ class WalletInfoRowBalanceFuture extends ConsumerWidget {
             )} ${manager.coin.ticker}",
             style: Util.isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: StackTheme.instance.color.textSubtitle1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   )
                 : STextStyles.itemSubtitle(context),
           );
@@ -54,7 +56,9 @@ class WalletInfoRowBalanceFuture extends ConsumerWidget {
             ],
             style: Util.isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: StackTheme.instance.color.textSubtitle1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   )
                 : STextStyles.itemSubtitle(context),
           );

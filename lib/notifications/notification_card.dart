@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -42,7 +42,9 @@ class NotificationCard extends StatelessWidget {
                       ),
                       child: SvgPicture.asset(
                         notification.iconAssetName,
-                        color: StackTheme.instance.color.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                         width: 24,
                         height: 24,
                       ),
@@ -83,7 +85,10 @@ class NotificationCard extends StatelessWidget {
         if (notification.read)
           Positioned.fill(
             child: RoundedContainer(
-              color: StackTheme.instance.color.background.withOpacity(0.5),
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .background
+                  .withOpacity(0.5),
             ),
           ),
       ],

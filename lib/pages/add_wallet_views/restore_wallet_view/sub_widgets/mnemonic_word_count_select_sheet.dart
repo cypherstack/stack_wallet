@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class MnemonicWordCountSelectSheet extends ConsumerWidget {
   const MnemonicWordCountSelectSheet({
@@ -23,7 +23,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: StackTheme.instance.color.popupBG,
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(20),
           ),
@@ -42,7 +42,9 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -96,8 +98,9 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: StackTheme
-                                        .instance.color.radioButtonIconEnabled,
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                     value: lengthOptions[i],
                                     groupValue: ref
                                         .watch(mnemonicWordCountStateProvider

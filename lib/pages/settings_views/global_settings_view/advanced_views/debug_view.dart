@@ -15,7 +15,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -90,7 +90,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -114,10 +114,12 @@ class _DebugViewState extends ConsumerState<DebugView> {
                 key: const Key("deleteLogsAppBarButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.trash,
-                  color: StackTheme.instance.color.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -129,7 +131,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                       message:
                           "You are about to delete all logs permanently. Are you sure?",
                       leftButton: TextButton(
-                        style: StackTheme.instance
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
                             .getSecondaryEnabledButtonColor(context),
                         child: Text(
                           "Cancel",
@@ -140,7 +143,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         },
                       ),
                       rightButton: TextButton(
-                        style: StackTheme.instance
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
                             .getPrimaryEnabledButtonColor(context),
                         child: Text(
                           "Delete logs",
@@ -376,14 +380,18 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         return Container(
                           key: Key("log_${log.id}_${log.timestampInMillisUTC}"),
                           decoration: BoxDecoration(
-                            color: StackTheme.instance.color.popupBG,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .popupBG,
                             borderRadius: _borderRadius(index, logs.length),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(4),
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color: StackTheme.instance.color.popupBG,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -395,18 +403,20 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                             .copyWith(
                                           fontSize: 8,
                                           color: (log.logLevel == LogLevel.Info
-                                              ? StackTheme.instance.color
+                                              ? Theme.of(context)
+                                                  .extension<StackColors>()!
                                                   .topNavIconGreen
                                               : (log.logLevel ==
                                                       LogLevel.Warning
-                                                  ? StackTheme.instance.color
+                                                  ? Theme.of(context)
+                                                      .extension<StackColors>()!
                                                       .topNavIconYellow
                                                   : (log.logLevel ==
                                                           LogLevel.Error
                                                       ? Colors.orange
-                                                      : StackTheme
-                                                          .instance
-                                                          .color
+                                                      : Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
                                                           .topNavIconRed))),
                                         ),
                                       ),
@@ -415,8 +425,9 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         style: STextStyles.baseXS(context)
                                             .copyWith(
                                           fontSize: 8,
-                                          color: StackTheme
-                                              .instance.color.textDark3,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark3,
                                         ),
                                       ),
                                     ],

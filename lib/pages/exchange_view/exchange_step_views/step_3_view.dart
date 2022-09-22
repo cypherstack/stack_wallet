@@ -14,7 +14,7 @@ import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -50,7 +50,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -203,13 +203,15 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Back",
                                   style: STextStyles.button(context).copyWith(
-                                    color: StackTheme
-                                        .instance.color.buttonTextSecondary,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
                                   ),
                                 ),
                               ),
@@ -306,7 +308,8 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     ));
                                   }
                                 },
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getPrimaryEnabledButtonColor(context),
                                 child: Text(
                                   "Next",

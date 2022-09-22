@@ -15,7 +15,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
@@ -95,7 +95,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -537,13 +537,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Back",
                                   style: STextStyles.button(context).copyWith(
-                                    color: StackTheme
-                                        .instance.color.buttonTextSecondary,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
                                   ),
                                 ),
                               ),
@@ -561,7 +563,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                       Step3View.routeName,
                                       arguments: model);
                                 },
-                                style: StackTheme.instance
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
                                     .getPrimaryEnabledButtonColor(context),
                                 child: Text(
                                   "Next",

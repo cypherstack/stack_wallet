@@ -11,7 +11,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -63,7 +63,7 @@ class _RestoreFromEncryptedStringViewState
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: StackTheme.instance.color.background,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
             onPressed: () async {
@@ -129,8 +129,9 @@ class _RestoreFromEncryptedStringViewState
                                         hidePassword
                                             ? Assets.svg.eye
                                             : Assets.svg.eyeSlash,
-                                        color:
-                                            StackTheme.instance.color.textDark3,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
                                         width: 16,
                                         height: 16,
                                       ),
@@ -153,9 +154,11 @@ class _RestoreFromEncryptedStringViewState
                         const Spacer(),
                         TextButton(
                           style: passwordController.text.isEmpty
-                              ? StackTheme.instance
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getPrimaryEnabledButtonColor(context)
-                              : StackTheme.instance
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getPrimaryDisabledButtonColor(context),
                           onPressed: passwordController.text.isEmpty
                               ? null
@@ -191,8 +194,9 @@ class _RestoreFromEncryptedStringViewState
                                                 style: STextStyles.pageTitleH2(
                                                         context)
                                                     .copyWith(
-                                                  color: StackTheme
-                                                      .instance.color.textWhite,
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textWhite,
                                                 ),
                                               ),
                                             ),

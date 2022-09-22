@@ -10,7 +10,7 @@ import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -118,7 +118,7 @@ class AboutView extends ConsumerWidget {
     Future commitMoneroFuture = Future.wait(futureMoneroList);
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -269,20 +269,23 @@ class AboutView extends ConsumerWidget {
                               case CommitStatus.isHead:
                                 indicationStyle =
                                     STextStyles.itemSubtitle(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorGreen);
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorGreen);
                                 break;
                               case CommitStatus.isOldCommit:
                                 indicationStyle =
                                     STextStyles.itemSubtitle(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorYellow);
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorYellow);
                                 break;
                               case CommitStatus.notACommit:
                                 indicationStyle =
                                     STextStyles.itemSubtitle(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorRed);
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed);
                                 break;
                               default:
                                 break;
@@ -335,20 +338,23 @@ class AboutView extends ConsumerWidget {
                               case CommitStatus.isHead:
                                 indicationStyle =
                                     STextStyles.itemSubtitle(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorGreen);
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorGreen);
                                 break;
                               case CommitStatus.isOldCommit:
                                 indicationStyle =
                                     STextStyles.itemSubtitle(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorYellow);
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorYellow);
                                 break;
                               case CommitStatus.notACommit:
                                 indicationStyle =
                                     STextStyles.itemSubtitle(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorRed);
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed);
                                 break;
                               default:
                                 break;
@@ -401,20 +407,23 @@ class AboutView extends ConsumerWidget {
                               case CommitStatus.isHead:
                                 indicationStyle =
                                     STextStyles.itemSubtitle(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorGreen);
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorGreen);
                                 break;
                               case CommitStatus.isOldCommit:
                                 indicationStyle =
                                     STextStyles.itemSubtitle(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorYellow);
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorYellow);
                                 break;
                               case CommitStatus.notACommit:
                                 indicationStyle =
                                     STextStyles.itemSubtitle(context).copyWith(
-                                        color: StackTheme
-                                            .instance.color.accentColorRed);
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed);
                                 break;
                               default:
                                 break;

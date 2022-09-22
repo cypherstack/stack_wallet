@@ -10,7 +10,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -81,11 +81,14 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           title: "Enable Auto Backup",
           message: "To enable Auto Backup, you need to create a backup file.",
           leftButton: TextButton(
-            style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonColor(context),
             child: Text(
               "Back",
               style: STextStyles.button(context).copyWith(
-                color: StackTheme.instance.color.accentColorDark,
+                color:
+                    Theme.of(context).extension<StackColors>()!.accentColorDark,
               ),
             ),
             onPressed: () {
@@ -93,7 +96,9 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             },
           ),
           rightButton: TextButton(
-            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonColor(context),
             child: Text(
               "Continue",
               style: STextStyles.button(context),
@@ -133,11 +138,14 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           message:
               "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
           leftButton: TextButton(
-            style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonColor(context),
             child: Text(
               "Back",
               style: STextStyles.button(context).copyWith(
-                color: StackTheme.instance.color.accentColorDark,
+                color:
+                    Theme.of(context).extension<StackColors>()!.accentColorDark,
               ),
             ),
             onPressed: () {
@@ -145,7 +153,9 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             },
           ),
           rightButton: TextButton(
-            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonColor(context),
             child: Text(
               "Disable",
               style: STextStyles.button(context),
@@ -214,7 +224,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
     });
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -234,7 +244,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: StackTheme.instance.color.highlight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -347,8 +357,10 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       controller: fileLocationController,
                       enabled: false,
                       style: STextStyles.field(context).copyWith(
-                        color:
-                            StackTheme.instance.color.textDark.withOpacity(0.5),
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark
+                            .withOpacity(0.5),
                       ),
                       readOnly: true,
                       enableSuggestions: false,
@@ -379,8 +391,10 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       controller: passwordController,
                       enabled: false,
                       style: STextStyles.field(context).copyWith(
-                        color:
-                            StackTheme.instance.color.textDark.withOpacity(0.5),
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark
+                            .withOpacity(0.5),
                       ),
                       obscureText: true,
                       enableSuggestions: false,
@@ -413,8 +427,10 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                     controller: frequencyController,
                     enabled: false,
                     style: STextStyles.field(context).copyWith(
-                      color:
-                          StackTheme.instance.color.textDark.withOpacity(0.5),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark
+                          .withOpacity(0.5),
                     ),
                     toolbarOptions: const ToolbarOptions(
                       copy: true,

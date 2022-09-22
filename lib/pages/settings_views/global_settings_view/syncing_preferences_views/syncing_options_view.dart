@@ -5,7 +5,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -17,7 +17,7 @@ class SyncingOptionsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -49,7 +49,7 @@ class SyncingOptionsView extends ConsumerWidget {
                             Padding(
                               padding: const EdgeInsets.all(4),
                               child: RawMaterialButton(
-                                // splashColor: StackTheme.instance.color.highlight,
+                                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
                                 shape: RoundedRectangleBorder(
@@ -90,8 +90,9 @@ class SyncingOptionsView extends ConsumerWidget {
                                           width: 20,
                                           height: 20,
                                           child: Radio(
-                                            activeColor: StackTheme.instance
-                                                .color.radioButtonIconEnabled,
+                                            activeColor: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .radioButtonIconEnabled,
                                             value:
                                                 SyncingType.currentWalletOnly,
                                             groupValue: ref.watch(
@@ -141,7 +142,7 @@ class SyncingOptionsView extends ConsumerWidget {
                             Padding(
                               padding: const EdgeInsets.all(4.0),
                               child: RawMaterialButton(
-                                // splashColor: StackTheme.instance.color.highlight,
+                                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
                                 shape: RoundedRectangleBorder(
@@ -180,8 +181,9 @@ class SyncingOptionsView extends ConsumerWidget {
                                           width: 20,
                                           height: 20,
                                           child: Radio(
-                                            activeColor: StackTheme.instance
-                                                .color.radioButtonIconEnabled,
+                                            activeColor: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .radioButtonIconEnabled,
                                             value:
                                                 SyncingType.allWalletsOnStartup,
                                             groupValue: ref.watch(
@@ -231,7 +233,7 @@ class SyncingOptionsView extends ConsumerWidget {
                             Padding(
                               padding: const EdgeInsets.all(4),
                               child: RawMaterialButton(
-                                // splashColor: StackTheme.instance.color.highlight,
+                                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
                                 shape: RoundedRectangleBorder(
@@ -274,8 +276,9 @@ class SyncingOptionsView extends ConsumerWidget {
                                           width: 20,
                                           height: 20,
                                           child: Radio(
-                                            activeColor: StackTheme.instance
-                                                .color.radioButtonIconEnabled,
+                                            activeColor: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .radioButtonIconEnabled,
                                             value: SyncingType
                                                 .selectedWalletsAtStartup,
                                             groupValue: ref.watch(
@@ -349,7 +352,7 @@ class SyncingOptionsView extends ConsumerWidget {
                                       ),
                                       Flexible(
                                         child: RawMaterialButton(
-                                          // splashColor: StackTheme.instance.color.highlight,
+                                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
                                           shape: RoundedRectangleBorder(

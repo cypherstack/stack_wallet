@@ -14,7 +14,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -52,7 +52,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
           return WillPopScope(
             onWillPop: () async => shouldPop,
             child: Container(
-              color: StackTheme.instance.color.overlay.withOpacity(0.5),
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(0.5),
               child: const CustomLoadingOverlay(
                 message: "Generating address",
                 eventBus: null,
@@ -113,7 +116,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     });
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -161,8 +164,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                   Assets.svg.copy,
                                   width: 10,
                                   height: 10,
-                                  color:
-                                      StackTheme.instance.color.infoItemIcons,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons,
                                 ),
                                 const SizedBox(
                                   width: 4,
@@ -199,12 +203,15 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                 if (coin != Coin.epicCash)
                   TextButton(
                     onPressed: generateNewAddress,
-                    style: StackTheme.instance
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
                         .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "Generate new address",
                       style: STextStyles.button(context).copyWith(
-                          color: StackTheme.instance.color.accentColorDark),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark),
                     ),
                   ),
                 const SizedBox(
@@ -219,8 +226,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           QrImage(
                               data: "${coin.uriScheme}:$receivingAddress",
                               size: MediaQuery.of(context).size.width / 2,
-                              foregroundColor:
-                                  StackTheme.instance.color.accentColorDark),
+                              foregroundColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark),
                           const SizedBox(
                             height: 20,
                           ),

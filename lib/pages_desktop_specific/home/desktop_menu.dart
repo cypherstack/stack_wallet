@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu_item.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class DesktopMenu extends ConsumerStatefulWidget {
   const DesktopMenu({
@@ -41,7 +41,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: StackTheme.instance.color.popupBG,
+      color: Theme.of(context).extension<StackColors>()!.popupBG,
       child: SizedBox(
         width: _width,
         child: Column(
