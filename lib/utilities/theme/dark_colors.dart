@@ -6,12 +6,6 @@ class DarkColors extends StackColorTheme {
   Color get background => const Color(0xFF2A2D34);
   @override
   Color get overlay => const Color(0xFF111215);
-  @override
-  Color get warningBackground => const Color(0xFFFFB4A9);
-  @override
-  Color get splash => const Color(0x358E9192);
-  @override
-  Color get highlight => const Color(0x44A9ACAC);
 
   @override
   Color get accentColorBlue => const Color(0xFF4C86E9);
@@ -289,4 +283,13 @@ class DarkColors extends StackColorTheme {
   Color get favoriteStarActive => accentColorYellow;
   @override
   Color get favoriteStarInactive => textSubtitle2;
+
+  @override
+  Color get splash => const Color(0x358E9192);
+  @override
+  Color get highlight => const Color(0x44A9ACAC);
+  @override
+  Color get warningForeground => snackBarTextError;
+  @override
+  Color get warningBackground => const Color(0xFFFFB4A9);
 }

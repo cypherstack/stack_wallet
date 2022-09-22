@@ -6,12 +6,6 @@ class LightColors extends StackColorTheme {
   Color get background => const Color(0xFFF7F7F7);
   @override
   Color get overlay => const Color(0xFF111215);
-  @override
-  Color get warningBackground => const Color(0xFFFFDAD3);
-  @override
-  Color get splash => const Color(0x358E9192);
-  @override
-  Color get highlight => const Color(0x44A9ACAC);
 
   @override
   Color get accentColorBlue => const Color(0xFF4C86E9);
@@ -289,4 +283,13 @@ class LightColors extends StackColorTheme {
   Color get favoriteStarActive => infoItemIcons;
   @override
   Color get favoriteStarInactive => textSubtitle3;
+
+  @override
+  Color get splash => const Color(0x358E9192);
+  @override
+  Color get highlight => const Color(0x44A9ACAC);
+  @override
+  Color get warningForeground => textDark;
+  @override
+  Color get warningBackground => const Color(0xFFFFDAD3);
 }

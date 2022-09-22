@@ -633,7 +633,9 @@ class _WalletNetworkSettingsViewState
                         color: StackTheme.instance.color.warningBackground,
                         child: Text(
                           "Please check your internet connection and make sure your current node is not having issues.",
-                          style: STextStyles.baseXS,
+                          style: STextStyles.baseXS.copyWith(
+                            color: StackTheme.instance.color.warningForeground,
+                          ),
                         ),
                       ),
                     ),

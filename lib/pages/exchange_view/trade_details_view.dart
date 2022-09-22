@@ -245,7 +245,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8,
                           )} ${trade.fromCurrency.toUpperCase()}. ",
                           style: STextStyles.label.copyWith(
-                            color: StackTheme.instance.color.accentColorDark,
+                            color: StackTheme.instance.color.warningForeground,
                             fontWeight: FontWeight.w700,
                           ),
                           children: [
@@ -258,7 +258,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               )} ${trade.fromCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
                               style: STextStyles.label.copyWith(
                                 color:
-                                    StackTheme.instance.color.accentColorDark,
+                                    StackTheme.instance.color.warningForeground,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),

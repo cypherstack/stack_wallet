@@ -177,7 +177,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               text:
                                   "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
                               style: STextStyles.label.copyWith(
-                                color: StackTheme.instance.color.textDark,
+                                color:
+                                    StackTheme.instance.color.warningForeground,
                                 fontWeight: FontWeight.w700,
                               ),
                               children: [
@@ -185,7 +186,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                   text:
                                       "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
                                   style: STextStyles.label.copyWith(
-                                    color: StackTheme.instance.color.textDark,
+                                    color: StackTheme
+                                        .instance.color.warningForeground,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
