@@ -74,6 +74,7 @@ class SupportView extends StatelessWidget {
                         Assets.socials.telegram,
                         width: iconSize,
                         height: iconSize,
+                        color: StackTheme.instance.color.accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
@@ -118,6 +119,7 @@ class SupportView extends StatelessWidget {
                         Assets.socials.discord,
                         width: iconSize,
                         height: iconSize,
+                        color: StackTheme.instance.color.accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
@@ -162,6 +164,7 @@ class SupportView extends StatelessWidget {
                         Assets.socials.reddit,
                         width: iconSize,
                         height: iconSize,
+                        color: StackTheme.instance.color.accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
@@ -206,6 +209,7 @@ class SupportView extends StatelessWidget {
                         Assets.socials.twitter,
                         width: iconSize,
                         height: iconSize,
+                        color: StackTheme.instance.color.accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
@@ -250,6 +254,7 @@ class SupportView extends StatelessWidget {
                         Assets.svg.envelope,
                         width: iconSize,
                         height: iconSize,
+                        color: StackTheme.instance.color.accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
