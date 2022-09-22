@@ -369,7 +369,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     children: [
                                       Center(
                                         child: Text(
-                                          "Recovery phrase QR code",
+                                          "Send ${trade.fromCurrency.toUpperCase()} to this address",
                                           style: STextStyles.pageTitleH2,
                                         ),
                                       ),
@@ -429,16 +429,16 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           child: Row(
                             children: [
                               SvgPicture.asset(
-                                Assets.svg.pencil,
-                                width: 10,
-                                height: 10,
+                                Assets.svg.qrcode,
+                                width: 12,
+                                height: 12,
                                 color: StackTheme.instance.color.infoItemIcons,
                               ),
                               const SizedBox(
                                 width: 4,
                               ),
                               Text(
-                                "Edit",
+                                "Show QR code",
                                 style: STextStyles.link2,
                               ),
                             ],
