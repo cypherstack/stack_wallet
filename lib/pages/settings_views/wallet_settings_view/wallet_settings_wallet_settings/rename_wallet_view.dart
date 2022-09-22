@@ -61,7 +61,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
         ),
         title: Text(
           "Rename wallet",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -76,11 +76,12 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
               child: TextField(
                 controller: _controller,
                 focusNode: _focusNode,
-                style: STextStyles.field,
+                style: STextStyles.field(context),
                 onChanged: (_) => setState(() {}),
                 decoration: standardInputDecoration(
                   "Wallet name",
                   _focusNode,
+                  context,
                 ).copyWith(
                   suffixIcon: _controller.text.isNotEmpty
                       ? Padding(
@@ -138,7 +139,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
               },
               child: Text(
                 "Save",
-                style: STextStyles.button,
+                style: STextStyles.button(context),
               ),
             ),
           ],

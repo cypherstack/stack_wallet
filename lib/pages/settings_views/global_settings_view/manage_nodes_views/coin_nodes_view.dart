@@ -47,7 +47,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
         ),
         title: Text(
           "${widget.coin.prettyName} nodes",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(

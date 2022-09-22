@@ -156,8 +156,8 @@ class AppNameText extends StatelessWidget {
       "Stack Wallet",
       textAlign: TextAlign.center,
       style: !isDesktop
-          ? STextStyles.pageTitleH1
-          : STextStyles.pageTitleH1.copyWith(
+          ? STextStyles.pageTitleH1(context)
+          : STextStyles.pageTitleH1(context).copyWith(
               fontSize: 40,
             ),
     );
@@ -175,8 +175,8 @@ class IntroAboutText extends StatelessWidget {
       "An open-source, multicoin wallet for everyone",
       textAlign: TextAlign.center,
       style: !isDesktop
-          ? STextStyles.subtitle
-          : STextStyles.subtitle.copyWith(
+          ? STextStyles.subtitle(context)
+          : STextStyles.subtitle(context).copyWith(
               fontSize: 24,
             ),
     );
@@ -195,12 +195,12 @@ class PrivacyAndTOSText extends StatelessWidget {
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        style: STextStyles.label.copyWith(fontSize: fontSize),
+        style: STextStyles.label(context).copyWith(fontSize: fontSize),
         children: [
           const TextSpan(text: "By using Stack Wallet, you agree to the "),
           TextSpan(
             text: "Terms of service",
-            style: STextStyles.richLink.copyWith(fontSize: fontSize),
+            style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
                 launchUrl(
@@ -212,7 +212,7 @@ class PrivacyAndTOSText extends StatelessWidget {
           const TextSpan(text: " and "),
           TextSpan(
             text: "Privacy policy",
-            style: STextStyles.richLink.copyWith(fontSize: fontSize),
+            style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
                 launchUrl(
@@ -242,7 +242,7 @@ class GetStartedButton extends StatelessWidget {
             },
             child: Text(
               "Get started",
-              style: STextStyles.button,
+              style: STextStyles.button(context),
             ),
           )
         : SizedBox(
@@ -255,7 +255,7 @@ class GetStartedButton extends StatelessWidget {
               },
               child: Text(
                 "Get started",
-                style: STextStyles.button.copyWith(fontSize: 20),
+                style: STextStyles.button(context).copyWith(fontSize: 20),
               ),
             ),
           );

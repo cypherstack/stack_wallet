@@ -116,7 +116,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
         ),
         title: Text(
           "Currency",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -145,10 +145,11 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                         onChanged: (newString) {
                           setState(() => filter = newString);
                         },
-                        style: STextStyles.field,
+                        style: STextStyles.field(context),
                         decoration: standardInputDecoration(
                           "Search",
                           _searchFocusNode,
+                          context,
                         ).copyWith(
                           prefixIcon: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -262,7 +263,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                                 ? const Key(
                                                     "selectedCurrencySettingsCurrencyText")
                                                 : null,
-                                            style: STextStyles.largeMedium14,
+                                            style: STextStyles.largeMedium14(
+                                                context),
                                           ),
                                           const SizedBox(
                                             height: 2,
@@ -280,7 +282,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                                 ? const Key(
                                                     "selectedCurrencySettingsCurrencyTextDescription")
                                                 : null,
-                                            style: STextStyles.itemSubtitle,
+                                            style: STextStyles.itemSubtitle(
+                                                context),
                                           ),
                                         ],
                                       ),

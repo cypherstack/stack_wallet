@@ -31,7 +31,7 @@ class StackBackupView extends StatelessWidget {
         ),
         title: Text(
           "Stack backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -69,7 +69,7 @@ class StackBackupView extends StatelessWidget {
                       ),
                       Text(
                         "Auto Backup",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -111,7 +111,7 @@ class StackBackupView extends StatelessWidget {
                       ),
                       Text(
                         "Create manual backup",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -153,7 +153,7 @@ class StackBackupView extends StatelessWidget {
                       ),
                       Text(
                         "Restore backup",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],

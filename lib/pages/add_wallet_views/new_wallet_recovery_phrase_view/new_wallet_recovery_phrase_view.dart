@@ -14,7 +14,6 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -176,7 +175,7 @@ class _NewWalletRecoveryPhraseViewState
                     Text(
                       _manager.walletName,
                       textAlign: TextAlign.center,
-                      style: STextStyles.label.copyWith(
+                      style: STextStyles.label(context).copyWith(
                         fontSize: 12,
                       ),
                     ),
@@ -187,8 +186,8 @@ class _NewWalletRecoveryPhraseViewState
                     "Recovery Phrase",
                     textAlign: TextAlign.center,
                     style: isDesktop
-                        ? STextStyles.desktopH2
-                        : STextStyles.pageTitleH1,
+                        ? STextStyles.desktopH2(context)
+                        : STextStyles.pageTitleH1(context),
                   ),
                   const SizedBox(
                     height: 16,
@@ -209,8 +208,8 @@ class _NewWalletRecoveryPhraseViewState
                         "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
                         textAlign: TextAlign.center,
                         style: isDesktop
-                            ? STextStyles.desktopSubtitleH2
-                            : STextStyles.label.copyWith(
+                            ? STextStyles.desktopSubtitleH2(context)
+                            : STextStyles.label(context).copyWith(
                                 color:
                                     StackTheme.instance.color.accentColorDark),
                       ),
@@ -256,7 +255,8 @@ class _NewWalletRecoveryPhraseViewState
                             ),
                             Text(
                               "Copy to clipboard",
-                              style: STextStyles.desktopButtonSecondaryEnabled,
+                              style: STextStyles.desktopButtonSecondaryEnabled(
+                                  context),
                             )
                           ],
                         ),
@@ -291,8 +291,8 @@ class _NewWalletRecoveryPhraseViewState
                       child: Text(
                         "I saved my recovery phrase",
                         style: isDesktop
-                            ? STextStyles.desktopButtonEnabled
-                            : STextStyles.button,
+                            ? STextStyles.desktopButtonEnabled(context)
+                            : STextStyles.button(context),
                       ),
                     ),
                   ),

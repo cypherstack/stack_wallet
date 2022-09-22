@@ -71,7 +71,7 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
           style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
           child: Text(
             "Cancel",
-            style: STextStyles.itemSubtitle12,
+            style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () {
             Navigator.of(context).pop();

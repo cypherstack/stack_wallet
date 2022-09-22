@@ -155,7 +155,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
         ),
         title: Text(
           "Node details",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           if (!nodeId.startsWith("default"))
@@ -230,7 +230,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                           },
                           child: Text(
                             "Test connection",
-                            style: STextStyles.button.copyWith(
+                            style: STextStyles.button(context).copyWith(
                                 color:
                                     StackTheme.instance.color.accentColorDark),
                           ),

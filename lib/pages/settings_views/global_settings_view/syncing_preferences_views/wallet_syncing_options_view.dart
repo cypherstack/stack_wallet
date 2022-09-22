@@ -37,7 +37,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             "Sync only selected wallets at startup",
-            style: STextStyles.navBarTitle,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
       ),
@@ -64,7 +64,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                       ),
                       Text(
                         "Choose the wallets to sync automatically at startup",
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       const SizedBox(
                         height: 12,
@@ -110,7 +110,8 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                       children: [
                                         Text(
                                           manager.walletName,
-                                          style: STextStyles.titleBold12,
+                                          style:
+                                              STextStyles.titleBold12(context),
                                         ),
                                         const SizedBox(
                                           height: 2,
@@ -131,7 +132,8 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                                               value.locale)),
                                                   decimalPlaces: 8,
                                                 )} ${manager.coin.ticker}",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             } else {
                                               return AnimatedText(
@@ -141,7 +143,8 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                                   "Loading balance..",
                                                   "Loading balance..."
                                                 ],
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             }
                                           },

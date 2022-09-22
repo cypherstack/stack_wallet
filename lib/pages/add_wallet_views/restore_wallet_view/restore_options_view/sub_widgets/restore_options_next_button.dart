@@ -25,7 +25,7 @@ class RestoreOptionsNextButton extends StatelessWidget {
             : StackTheme.instance.getPrimaryDisabledButtonColor(context),
         child: Text(
           "Next",
-          style: STextStyles.button,
+          style: STextStyles.button(context),
         ),
       ),
     );

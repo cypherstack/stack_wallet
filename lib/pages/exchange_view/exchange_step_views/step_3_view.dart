@@ -65,7 +65,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
         ),
         title: Text(
           "Exchange",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -94,7 +94,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                         ),
                         Text(
                           "Confirm exchange details",
-                          style: STextStyles.pageTitleH1,
+                          style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(
                           height: 24,
@@ -104,12 +104,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             children: [
                               Text(
                                 "You send",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const Spacer(),
                               Text(
                                 "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -122,12 +122,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             children: [
                               Text(
                                 "You receive",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const Spacer(),
                               Text(
                                 "${model.receiveAmount.toString()} ${model.receiveTicker.toUpperCase()}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -140,12 +140,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             children: [
                               Text(
                                 "Estimated rate",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const Spacer(),
                               Text(
                                 model.rateInfo,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -159,14 +159,14 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             children: [
                               Text(
                                 "Recipient ${model.receiveTicker.toUpperCase()} address",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const SizedBox(
                                 height: 4,
                               ),
                               Text(
                                 model.recipientAddress!,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -180,14 +180,14 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             children: [
                               Text(
                                 "Refund ${model.sendTicker.toUpperCase()} address",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const SizedBox(
                                 height: 4,
                               ),
                               Text(
                                 model.refundAddress!,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -207,7 +207,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Back",
-                                  style: STextStyles.button.copyWith(
+                                  style: STextStyles.button(context).copyWith(
                                     color: StackTheme
                                         .instance.color.buttonTextSecondary,
                                   ),
@@ -310,7 +310,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     .getPrimaryEnabledButtonColor(context),
                                 child: Text(
                                   "Next",
-                                  style: STextStyles.button,
+                                  style: STextStyles.button(context),
                                 ),
                               ),
                             ),

@@ -45,7 +45,7 @@ class _StartupWalletSelectionViewState
           fit: BoxFit.scaleDown,
           child: Text(
             "Select startup wallet",
-            style: STextStyles.navBarTitle,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
       ),
@@ -72,7 +72,7 @@ class _StartupWalletSelectionViewState
                       ),
                       Text(
                         "Select a wallet to load into immediately on startup",
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       const SizedBox(
                         height: 12,
@@ -118,7 +118,8 @@ class _StartupWalletSelectionViewState
                                       children: [
                                         Text(
                                           manager.walletName,
-                                          style: STextStyles.titleBold12,
+                                          style:
+                                              STextStyles.titleBold12(context),
                                         ),
                                         // const SizedBox(
                                         //   height: 2,
@@ -139,7 +140,7 @@ class _StartupWalletSelectionViewState
                                         //                       value.locale)),
                                         //           decimalPlaces: 8,
                                         //         )} ${manager.coin.ticker}",
-                                        //         style: STextStyles.itemSubtitle,
+                                        //         style: STextStyles.itemSubtitle(context),
                                         //       );
                                         //     } else {
                                         //       return AnimatedText(
@@ -149,7 +150,7 @@ class _StartupWalletSelectionViewState
                                         //           "Loading balance..",
                                         //           "Loading balance..."
                                         //         ],
-                                        //         style: STextStyles.itemSubtitle,
+                                        //         style: STextStyles.itemSubtitle(context),
                                         //       );
                                         //     }
                                         //   },

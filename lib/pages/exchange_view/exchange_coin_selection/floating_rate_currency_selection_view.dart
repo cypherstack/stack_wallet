@@ -90,7 +90,7 @@ class _FloatingRateCurrencySelectionViewState
         ),
         title: Text(
           "Choose a coin to exchange",
-          style: STextStyles.pageTitleH2,
+          style: STextStyles.pageTitleH2(context),
         ),
       ),
       body: Padding(
@@ -111,10 +111,11 @@ class _FloatingRateCurrencySelectionViewState
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 onChanged: filter,
-                style: STextStyles.field,
+                style: STextStyles.field(context),
                 decoration: standardInputDecoration(
                   "Search",
                   _searchFocusNode,
+                  context,
                 ).copyWith(
                   prefixIcon: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -155,7 +156,7 @@ class _FloatingRateCurrencySelectionViewState
             ),
             Text(
               "Popular coins",
-              style: STextStyles.smallMed12,
+              style: STextStyles.smallMed12(context),
             ),
             const SizedBox(
               height: 12,
@@ -203,14 +204,15 @@ class _FloatingRateCurrencySelectionViewState
                                   children: [
                                     Text(
                                       items[index].name,
-                                      style: STextStyles.largeMedium14,
+                                      style: STextStyles.largeMedium14(context),
                                     ),
                                     const SizedBox(
                                       height: 2,
                                     ),
                                     Text(
                                       items[index].ticker.toUpperCase(),
-                                      style: STextStyles.smallMed12.copyWith(
+                                      style: STextStyles.smallMed12(context)
+                                          .copyWith(
                                         color: StackTheme
                                             .instance.color.textSubtitle1,
                                       ),
@@ -232,7 +234,7 @@ class _FloatingRateCurrencySelectionViewState
             ),
             Text(
               "All coins",
-              style: STextStyles.smallMed12,
+              style: STextStyles.smallMed12(context),
             ),
             const SizedBox(
               height: 12,
@@ -273,14 +275,15 @@ class _FloatingRateCurrencySelectionViewState
                                   children: [
                                     Text(
                                       _currencies[index].name,
-                                      style: STextStyles.largeMedium14,
+                                      style: STextStyles.largeMedium14(context),
                                     ),
                                     const SizedBox(
                                       height: 2,
                                     ),
                                     Text(
                                       _currencies[index].ticker.toUpperCase(),
-                                      style: STextStyles.smallMed12.copyWith(
+                                      style: STextStyles.smallMed12(context)
+                                          .copyWith(
                                         color: StackTheme
                                             .instance.color.textSubtitle1,
                                       ),

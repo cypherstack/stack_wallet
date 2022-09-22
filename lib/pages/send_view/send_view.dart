@@ -375,7 +375,7 @@ class _SendViewState extends ConsumerState<SendView> {
         ),
         title: Text(
           "Send ${coin.ticker}",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -423,7 +423,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                     child: Text(
                                       ref.watch(provider
                                           .select((value) => value.walletName)),
-                                      style: STextStyles.titleBold12,
+                                      style: STextStyles.titleBold12(context),
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
@@ -437,7 +437,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                       Text(
                                         ref.watch(provider.select(
                                             (value) => value.walletName)),
-                                        style: STextStyles.titleBold12
+                                        style: STextStyles.titleBold12(context)
                                             .copyWith(fontSize: 14),
                                       ),
                                       // const SizedBox(
@@ -445,7 +445,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                       // ),
                                       Text(
                                         "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
-                                        style: STextStyles.label
+                                        style: STextStyles.label(context)
                                             .copyWith(fontSize: 10),
                                       ),
                                     ],
@@ -502,7 +502,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   locale: locale,
                                                   decimalPlaces: 8,
                                                 )} ${coin.ticker}",
-                                                style: STextStyles.titleBold12
+                                                style: STextStyles.titleBold12(
+                                                        context)
                                                     .copyWith(
                                                   fontSize: 10,
                                                 ),
@@ -521,7 +522,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   locale: locale,
                                                   decimalPlaces: 2,
                                                 )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                style: STextStyles.titleBold12
+                                                style: STextStyles.titleBold12(
+                                                        context)
                                                     .copyWith(
                                                   fontSize: 8,
                                                   fontWeight: FontWeight.w400,
@@ -544,7 +546,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                               "Loading balance.. ",
                                               "Loading balance...",
                                             ],
-                                            style: STextStyles.itemSubtitle
+                                            style: STextStyles.itemSubtitle(
+                                                    context)
                                                 .copyWith(
                                               fontSize: 10,
                                             ),
@@ -559,7 +562,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                               "Loading balance.. ",
                                               "Loading balance...",
                                             ],
-                                            style: STextStyles.itemSubtitle
+                                            style: STextStyles.itemSubtitle(
+                                                    context)
                                                 .copyWith(
                                               fontSize: 8,
                                             ),
@@ -578,7 +582,7 @@ class _SendViewState extends ConsumerState<SendView> {
                         ),
                         Text(
                           "Send to",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                           textAlign: TextAlign.left,
                         ),
                         const SizedBox(
@@ -614,10 +618,11 @@ class _SendViewState extends ConsumerState<SendView> {
                               });
                             },
                             focusNode: _addressFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             decoration: standardInputDecoration(
                               "Enter ${coin.ticker} address",
                               _addressFocusNode,
+                              context,
                             ).copyWith(
                               contentPadding: const EdgeInsets.only(
                                 left: 16,
@@ -850,7 +855,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   child: Text(
                                     error,
                                     textAlign: TextAlign.left,
-                                    style: STextStyles.label.copyWith(
+                                    style: STextStyles.label(context).copyWith(
                                       color:
                                           StackTheme.instance.color.textError,
                                     ),
@@ -867,7 +872,7 @@ class _SendViewState extends ConsumerState<SendView> {
                         if (coin == Coin.firo)
                           Text(
                             "Send from",
-                            style: STextStyles.smallMed12,
+                            style: STextStyles.smallMed12(context),
                             textAlign: TextAlign.left,
                           ),
                         if (coin == Coin.firo)
@@ -915,7 +920,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                         children: [
                                           Text(
                                             "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
-                                            style: STextStyles.itemSubtitle12,
+                                            style: STextStyles.itemSubtitle12(
+                                                context),
                                           ),
                                           const SizedBox(
                                             width: 10,
@@ -953,7 +959,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 return Text(
                                                   "$_privateBalanceString ${coin.ticker}",
                                                   style:
-                                                      STextStyles.itemSubtitle,
+                                                      STextStyles.itemSubtitle(
+                                                          context),
                                                 );
                                               } else if (ref
                                                           .read(
@@ -966,7 +973,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 return Text(
                                                   "$_publicBalanceString ${coin.ticker}",
                                                   style:
-                                                      STextStyles.itemSubtitle,
+                                                      STextStyles.itemSubtitle(
+                                                          context),
                                                 );
                                               } else {
                                                 return AnimatedText(
@@ -977,7 +985,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     "Loading balance...",
                                                   ],
                                                   style:
-                                                      STextStyles.itemSubtitle,
+                                                      STextStyles.itemSubtitle(
+                                                          context),
                                                 );
                                               }
                                             },
@@ -1005,7 +1014,7 @@ class _SendViewState extends ConsumerState<SendView> {
                           children: [
                             Text(
                               "Amount",
-                              style: STextStyles.smallMed12,
+                              style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
                             BlueTextButton(
@@ -1070,7 +1079,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               right: 12,
                             ),
                             hintText: "0",
-                            hintStyle: STextStyles.fieldLabel.copyWith(
+                            hintStyle: STextStyles.fieldLabel(context).copyWith(
                               fontSize: 14,
                             ),
                             prefixIcon: FittedBox(
@@ -1079,9 +1088,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                 padding: const EdgeInsets.all(12),
                                 child: Text(
                                   coin.ticker,
-                                  style: STextStyles.smallMed14.copyWith(
-                                      color: StackTheme
-                                          .instance.color.accentColorDark),
+                                  style: STextStyles.smallMed14(context)
+                                      .copyWith(
+                                          color: StackTheme
+                                              .instance.color.accentColorDark),
                                 ),
                               ),
                             ),
@@ -1171,7 +1181,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               right: 12,
                             ),
                             hintText: "0",
-                            hintStyle: STextStyles.fieldLabel.copyWith(
+                            hintStyle: STextStyles.fieldLabel(context).copyWith(
                               fontSize: 14,
                             ),
                             prefixIcon: FittedBox(
@@ -1181,9 +1191,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                 child: Text(
                                   ref.watch(prefsChangeNotifierProvider
                                       .select((value) => value.currency)),
-                                  style: STextStyles.smallMed14.copyWith(
-                                      color: StackTheme
-                                          .instance.color.accentColorDark),
+                                  style: STextStyles.smallMed14(context)
+                                      .copyWith(
+                                          color: StackTheme
+                                              .instance.color.accentColorDark),
                                 ),
                               ),
                             ),
@@ -1194,7 +1205,7 @@ class _SendViewState extends ConsumerState<SendView> {
                         ),
                         Text(
                           "Note (optional)",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                           textAlign: TextAlign.left,
                         ),
                         const SizedBox(
@@ -1207,11 +1218,12 @@ class _SendViewState extends ConsumerState<SendView> {
                           child: TextField(
                             controller: noteController,
                             focusNode: _noteFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             onChanged: (_) => setState(() {}),
                             decoration: standardInputDecoration(
                               "Type something...",
                               _noteFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: noteController.text.isNotEmpty
                                   ? Padding(
@@ -1240,7 +1252,7 @@ class _SendViewState extends ConsumerState<SendView> {
                         ),
                         Text(
                           "Transaction fee (estimated)",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                           textAlign: TextAlign.left,
                         ),
                         const SizedBox(
@@ -1312,7 +1324,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 return Text(
                                                   "~${snapshot.data! as String} ${coin.ticker}",
                                                   style:
-                                                      STextStyles.itemSubtitle,
+                                                      STextStyles.itemSubtitle(
+                                                          context),
                                                 );
                                               } else {
                                                 return AnimatedText(
@@ -1323,7 +1336,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     "Calculating...",
                                                   ],
                                                   style:
-                                                      STextStyles.itemSubtitle,
+                                                      STextStyles.itemSubtitle(
+                                                          context),
                                                 );
                                               }
                                             },
@@ -1344,7 +1358,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     .state
                                                     .prettyName,
                                                 style:
-                                                    STextStyles.itemSubtitle12,
+                                                    STextStyles.itemSubtitle12(
+                                                        context),
                                               ),
                                               const SizedBox(
                                                 width: 10,
@@ -1359,7 +1374,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     return Text(
                                                       "~${snapshot.data! as String} ${coin.ticker}",
                                                       style: STextStyles
-                                                          .itemSubtitle,
+                                                          .itemSubtitle(
+                                                              context),
                                                     );
                                                   } else {
                                                     return AnimatedText(
@@ -1370,7 +1386,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         "Calculating...",
                                                       ],
                                                       style: STextStyles
-                                                          .itemSubtitle,
+                                                          .itemSubtitle(
+                                                              context),
                                                     );
                                                   }
                                                 },
@@ -1427,7 +1444,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     context),
                                             child: Text(
                                               "Ok",
-                                              style: STextStyles.button
+                                              style: STextStyles.button(context)
                                                   .copyWith(
                                                       color: StackTheme
                                                           .instance
@@ -1491,7 +1508,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     context),
                                             child: Text(
                                               "Cancel",
-                                              style: STextStyles.button
+                                              style: STextStyles.button(context)
                                                   .copyWith(
                                                       color: StackTheme
                                                           .instance
@@ -1508,7 +1525,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     context),
                                             child: Text(
                                               "Yes",
-                                              style: STextStyles.button,
+                                              style:
+                                                  STextStyles.button(context),
                                             ),
                                             onPressed: () {
                                               Navigator.of(context).pop(true);
@@ -1615,7 +1633,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       context),
                                               child: Text(
                                                 "Ok",
-                                                style: STextStyles.button
+                                                style: STextStyles.button(
+                                                        context)
                                                     .copyWith(
                                                         color: StackTheme
                                                             .instance
@@ -1642,7 +1661,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   .getPrimaryDisabledButtonColor(context),
                           child: Text(
                             "Preview",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                         const SizedBox(

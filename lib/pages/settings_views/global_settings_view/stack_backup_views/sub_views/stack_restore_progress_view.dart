@@ -57,7 +57,7 @@ class _StackRestoreProgressViewState
               child: Center(
                 child: Text(
                   "Cancelling restore. Please wait.",
-                  style: STextStyles.pageTitleH2.copyWith(
+                  style: STextStyles.pageTitleH2(context).copyWith(
                     color: StackTheme.instance.color.textWhite,
                   ),
                 ),
@@ -202,7 +202,7 @@ class _StackRestoreProgressViewState
           ),
           title: Text(
             "Restoring Stack wallet",
-            style: STextStyles.navBarTitle,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
         body: Padding(
@@ -224,7 +224,7 @@ class _StackRestoreProgressViewState
                 children: [
                   Text(
                     "Settings",
-                    style: STextStyles.itemSubtitle,
+                    style: STextStyles.itemSubtitle(context),
                   ),
                   const SizedBox(
                     height: 12,
@@ -261,7 +261,7 @@ class _StackRestoreProgressViewState
                         subTitle: state == StackRestoringStatus.failed
                             ? Text(
                                 "Something went wrong",
-                                style: STextStyles.errorSmall,
+                                style: STextStyles.errorSmall(context),
                               )
                             : null,
                       );
@@ -301,7 +301,7 @@ class _StackRestoreProgressViewState
                         subTitle: state == StackRestoringStatus.failed
                             ? Text(
                                 "Something went wrong",
-                                style: STextStyles.errorSmall,
+                                style: STextStyles.errorSmall(context),
                               )
                             : null,
                       );
@@ -342,7 +342,7 @@ class _StackRestoreProgressViewState
                         subTitle: state == StackRestoringStatus.failed
                             ? Text(
                                 "Something went wrong",
-                                style: STextStyles.errorSmall,
+                                style: STextStyles.errorSmall(context),
                               )
                             : null,
                       );
@@ -383,7 +383,7 @@ class _StackRestoreProgressViewState
                         subTitle: state == StackRestoringStatus.failed
                             ? Text(
                                 "Something went wrong",
-                                style: STextStyles.errorSmall,
+                                style: STextStyles.errorSmall(context),
                               )
                             : null,
                       );
@@ -394,7 +394,7 @@ class _StackRestoreProgressViewState
                   ),
                   Text(
                     "Wallets",
-                    style: STextStyles.itemSubtitle,
+                    style: STextStyles.itemSubtitle(context),
                   ),
                   const SizedBox(
                     height: 8,
@@ -436,7 +436,7 @@ class _StackRestoreProgressViewState
             style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
             child: Text(
               _success ? "OK" : "Cancel restore process",
-              style: STextStyles.button.copyWith(
+              style: STextStyles.button(context).copyWith(
                 color: StackTheme.instance.color.buttonTextPrimary,
               ),
             ),

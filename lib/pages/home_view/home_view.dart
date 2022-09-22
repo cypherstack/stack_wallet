@@ -153,7 +153,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ),
               Text(
                 "My Stack",
-                style: STextStyles.navBarTitle,
+                style: STextStyles.navBarTitle(context),
               )
             ],
           ),

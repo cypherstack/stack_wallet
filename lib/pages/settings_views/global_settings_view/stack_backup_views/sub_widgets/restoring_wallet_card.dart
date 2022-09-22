@@ -143,12 +143,12 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
       subTitle: restoringStatus == StackRestoringStatus.failed
           ? Text(
               "Unable to restore. Tap icon to retry.",
-              style: STextStyles.errorSmall,
+              style: STextStyles.errorSmall(context),
             )
           : ref.watch(provider.select((value) => value.address)) != null
               ? Text(
                   ref.watch(provider.select((value) => value.address))!,
-                  style: STextStyles.infoSmall,
+                  style: STextStyles.infoSmall(context),
                 )
               : null,
       button: restoringStatus == StackRestoringStatus.failed
@@ -186,7 +186,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Text(
                     "Show recovery phrase",
-                    style: STextStyles.infoSmall.copyWith(
+                    style: STextStyles.infoSmall(context).copyWith(
                         color: StackTheme.instance.color.accentColorDark),
                   ),
                 ),

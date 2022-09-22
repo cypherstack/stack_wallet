@@ -40,9 +40,9 @@ class AddWalletNextButton extends ConsumerWidget {
         "Next",
         style: isDesktop
             ? enabled
-                ? STextStyles.desktopButtonEnabled
-                : STextStyles.desktopButtonDisabled
-            : STextStyles.button,
+                ? STextStyles.desktopButtonEnabled(context)
+                : STextStyles.desktopButtonDisabled(context)
+            : STextStyles.button(context),
       ),
     );
   }

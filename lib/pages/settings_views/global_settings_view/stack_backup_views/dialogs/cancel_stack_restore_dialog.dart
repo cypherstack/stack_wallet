@@ -22,7 +22,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
           style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
           child: Text(
             "Back",
-            style: STextStyles.itemSubtitle12,
+            style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () {
             Navigator.of(context).pop(false);
@@ -32,7 +32,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
           style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
           child: Text(
             "Yes, cancel",
-            style: STextStyles.itemSubtitle12.copyWith(
+            style: STextStyles.itemSubtitle12(context).copyWith(
               color: StackTheme.instance.color.buttonTextPrimary,
             ),
           ),

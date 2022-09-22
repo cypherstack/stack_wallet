@@ -142,7 +142,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
         ),
         title: Text(
           "Settings",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -305,7 +305,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                   .getSecondaryEnabledButtonColor(context),
                               child: Text(
                                 "Log out",
-                                style: STextStyles.button.copyWith(
+                                style: STextStyles.button(context).copyWith(
                                     color: StackTheme
                                         .instance.color.accentColorDark),
                               ),
@@ -409,7 +409,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             },
             child: Text(
               "Save",
-              style: STextStyles.button
+              style: STextStyles.button(context)
                   .copyWith(color: StackTheme.instance.color.accentColorDark),
             ),
           ),

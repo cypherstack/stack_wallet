@@ -87,7 +87,7 @@ class _ExchangeLoadingOverlayViewState
                         .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "OK",
-                      style: STextStyles.button.copyWith(
+                      style: STextStyles.button(context).copyWith(
                         color: StackTheme.instance.color.buttonTextSecondary,
                       ),
                     ),

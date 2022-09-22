@@ -38,7 +38,8 @@ class WalletInfoRow extends ConsumerWidget {
                     ),
                     Text(
                       manager.walletName,
-                      style: STextStyles.desktopTextExtraSmall.copyWith(
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: StackTheme.instance.color.textDark,
                       ),
                     ),
@@ -78,7 +79,7 @@ class WalletInfoRow extends ConsumerWidget {
                   children: [
                     Text(
                       manager.walletName,
-                      style: STextStyles.titleBold12,
+                      style: STextStyles.titleBold12(context),
                     ),
                     const SizedBox(
                       height: 2,

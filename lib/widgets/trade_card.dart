@@ -79,11 +79,11 @@ class TradeCard extends ConsumerWidget {
                     children: [
                       Text(
                         "${trade.fromCurrency.toUpperCase()} → ${trade.toCurrency.toUpperCase()}",
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       Text(
                         "${Decimal.tryParse(trade.statusObject?.amountSendDecimal ?? "") ?? "..."} ${trade.fromCurrency.toUpperCase()}",
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                     ],
                   ),
@@ -95,12 +95,12 @@ class TradeCard extends ConsumerWidget {
                     children: [
                       Text(
                         "ChangeNOW",
-                        style: STextStyles.label,
+                        style: STextStyles.label(context),
                       ),
                       Text(
                         Format.extractDateFrom(
                             trade.date.millisecondsSinceEpoch ~/ 1000),
-                        style: STextStyles.label,
+                        style: STextStyles.label(context),
                       ),
                     ],
                   ),

@@ -84,7 +84,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
             child: Text(
               "Back",
-              style: STextStyles.button.copyWith(
+              style: STextStyles.button(context).copyWith(
                 color: StackTheme.instance.color.accentColorDark,
               ),
             ),
@@ -96,7 +96,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
             child: Text(
               "Continue",
-              style: STextStyles.button,
+              style: STextStyles.button(context),
             ),
             onPressed: () {
               Navigator.of(context).pop(true);
@@ -136,7 +136,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
             child: Text(
               "Back",
-              style: STextStyles.button.copyWith(
+              style: STextStyles.button(context).copyWith(
                 color: StackTheme.instance.color.accentColorDark,
               ),
             ),
@@ -148,7 +148,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
             child: Text(
               "Disable",
-              style: STextStyles.button,
+              style: STextStyles.button(context),
             ),
             onPressed: () {
               Navigator.of(context).pop(true);
@@ -223,7 +223,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
         ),
         title: Text(
           "Auto Backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -252,7 +252,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                     children: [
                       Text(
                         "Auto Backup",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                       SizedBox(
@@ -286,14 +286,14 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                 child: RichText(
                   textAlign: TextAlign.left,
                   text: TextSpan(
-                    style: STextStyles.label,
+                    style: STextStyles.label(context),
                     children: [
                       const TextSpan(
                           text:
                               "Auto Backup is a custom Stack Wallet feature that offers a convenient backup of your data.\n\nTo ensure maximum security, we recommend using a unique password that you haven't used anywhere else on the internet before. Your password is not stored.\n\nFor more information, please see our website "),
                       TextSpan(
                         text: "stackwallet.com.",
-                        style: STextStyles.richLink,
+                        style: STextStyles.richLink(context),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             launchUrl(
@@ -322,7 +322,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                         ),
                         Text(
                           "Backed up ${prettySinceLastBackupString(ref.watch(prefsChangeNotifierProvider.select((value) => value.lastAutoBackup)))}",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         )
                       ],
                     ),
@@ -332,7 +332,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                   ),
                   Text(
                     "Auto Backup file",
-                    style: STextStyles.smallMed12,
+                    style: STextStyles.smallMed12(context),
                   ),
                   const SizedBox(
                     height: 10,
@@ -346,7 +346,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       focusNode: fileLocationFocusNode,
                       controller: fileLocationController,
                       enabled: false,
-                      style: STextStyles.field.copyWith(
+                      style: STextStyles.field(context).copyWith(
                         color:
                             StackTheme.instance.color.textDark.withOpacity(0.5),
                       ),
@@ -362,6 +362,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       decoration: standardInputDecoration(
                         "Saved to",
                         fileLocationFocusNode,
+                        context,
                       ),
                     ),
                   ),
@@ -377,7 +378,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       focusNode: passwordFocusNode,
                       controller: passwordController,
                       enabled: false,
-                      style: STextStyles.field.copyWith(
+                      style: STextStyles.field(context).copyWith(
                         color:
                             StackTheme.instance.color.textDark.withOpacity(0.5),
                       ),
@@ -393,6 +394,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       decoration: standardInputDecoration(
                         "Passphrase",
                         passwordFocusNode,
+                        context,
                       ),
                     ),
                   ),
@@ -401,7 +403,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                   ),
                   Text(
                     "Auto Backup frequency",
-                    style: STextStyles.smallMed12,
+                    style: STextStyles.smallMed12(context),
                   ),
                   const SizedBox(
                     height: 10,
@@ -410,7 +412,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                     key: const Key("backupFrequencyFieldKey"),
                     controller: frequencyController,
                     enabled: false,
-                    style: STextStyles.field.copyWith(
+                    style: STextStyles.field(context).copyWith(
                       color:
                           StackTheme.instance.color.textDark.withOpacity(0.5),
                     ),

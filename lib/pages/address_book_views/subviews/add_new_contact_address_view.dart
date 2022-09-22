@@ -71,7 +71,7 @@ class _AddNewContactAddressViewState
         ),
         title: Text(
           "Add new address",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -111,7 +111,7 @@ class _AddNewContactAddressViewState
                                       )
                                     : Text(
                                         contact.emojiChar!,
-                                        style: STextStyles.pageTitleH1,
+                                        style: STextStyles.pageTitleH1(context),
                                       ),
                               ),
                             ),
@@ -123,7 +123,7 @@ class _AddNewContactAddressViewState
                                 fit: BoxFit.scaleDown,
                                 child: Text(
                                   contact.name,
-                                  style: STextStyles.pageTitleH2,
+                                  style: STextStyles.pageTitleH2(context),
                                 ),
                               ),
                             ),
@@ -149,7 +149,7 @@ class _AddNewContactAddressViewState
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
-                                  style: STextStyles.button.copyWith(
+                                  style: STextStyles.button(context).copyWith(
                                       color: StackTheme
                                           .instance.color.accentColorDark),
                                 ),
@@ -218,7 +218,7 @@ class _AddNewContactAddressViewState
                                         : null,
                                     child: Text(
                                       "Save",
-                                      style: STextStyles.button,
+                                      style: STextStyles.button(context),
                                     ),
                                   );
                                 },

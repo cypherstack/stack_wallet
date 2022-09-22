@@ -94,12 +94,12 @@ class WalletListItem extends ConsumerWidget {
                         children: [
                           Text(
                             coin.prettyName,
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
                           Text(
                             "$priceString $currency/${coin.ticker}",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ],
                       ),
@@ -110,12 +110,12 @@ class WalletListItem extends ConsumerWidget {
                         children: [
                           Text(
                             walletCountString,
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                           const Spacer(),
                           Text(
                             "${percentChange.toStringAsFixed(2)}%",
-                            style: STextStyles.itemSubtitle.copyWith(
+                            style: STextStyles.itemSubtitle(context).copyWith(
                               color: percentChangedColor,
                             ),
                           ),

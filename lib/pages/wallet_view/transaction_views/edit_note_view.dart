@@ -64,7 +64,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
           ),
           title: Text(
             "Edit note",
-            style: STextStyles.navBarTitle,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
         body: Padding(
@@ -87,11 +87,12 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                           ),
                           child: TextField(
                             controller: _noteController,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             focusNode: noteFieldFocusNode,
                             decoration: standardInputDecoration(
                               "Note",
                               noteFieldFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: _noteController.text.isNotEmpty
                                   ? Padding(
@@ -133,7 +134,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                               .getPrimaryEnabledButtonColor(context),
                           child: Text(
                             "Save",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         )
                       ],

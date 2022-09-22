@@ -111,14 +111,14 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                 children: [
                   Text(
                     contact.name,
-                    style: STextStyles.itemSubtitle12,
+                    style: STextStyles.itemSubtitle12(context),
                   ),
                   const SizedBox(
                     height: 4,
                   ),
                   Text(
                     coinsString,
-                    style: STextStyles.label,
+                    style: STextStyles.label(context),
                   ),
                 ],
               )

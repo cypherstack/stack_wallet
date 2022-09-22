@@ -49,7 +49,7 @@ class ExchangeRateSheet extends ConsumerWidget {
             ),
             Text(
               "Exchange rate",
-              style: STextStyles.pageTitleH2,
+              style: STextStyles.pageTitleH2(context),
               textAlign: TextAlign.left,
             ),
             const SizedBox(
@@ -103,7 +103,7 @@ class ExchangeRateSheet extends ConsumerWidget {
                         children: [
                           Text(
                             "Estimated rate",
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),
                           const SizedBox(
@@ -111,7 +111,7 @@ class ExchangeRateSheet extends ConsumerWidget {
                           ),
                           Text(
                             "ChangeNOW will pick the best rate for you during the moment of the exchange.",
-                            style: STextStyles.itemSubtitle.copyWith(
+                            style: STextStyles.itemSubtitle(context).copyWith(
                               color: StackTheme.instance.color.textSubtitle1,
                             ),
                             textAlign: TextAlign.left,
@@ -171,7 +171,7 @@ class ExchangeRateSheet extends ConsumerWidget {
                         children: [
                           Text(
                             "Fixed rate",
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),
                           const SizedBox(
@@ -179,7 +179,7 @@ class ExchangeRateSheet extends ConsumerWidget {
                           ),
                           Text(
                             "You will get the exact exchange amount displayed - ChangeNOW takes all the rate risks.",
-                            style: STextStyles.itemSubtitle.copyWith(
+                            style: STextStyles.itemSubtitle(context).copyWith(
                               color: StackTheme.instance.color.textSubtitle1,
                             ),
                             textAlign: TextAlign.left,

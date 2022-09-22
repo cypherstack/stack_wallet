@@ -168,7 +168,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             },
             child: Text(
               "Wallets",
-              style: STextStyles.button.copyWith(
+              style: STextStyles.button(context).copyWith(
                 fontSize: 14,
                 color: selectedIndex == 0
                     ? StackTheme.instance.color.buttonTextPrimary
@@ -226,7 +226,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             },
             child: Text(
               "Exchange",
-              style: STextStyles.button.copyWith(
+              style: STextStyles.button(context).copyWith(
                 fontSize: 14,
                 color: selectedIndex == 1
                     ? StackTheme.instance.color.buttonTextPrimary
@@ -258,7 +258,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
         //     },
         //     child: Text(
         //       "Buy",
-        //       style: STextStyles.button.copyWith(
+        //       style: STextStyles.button(context).copyWith(
         //         fontSize: 14,
         //         color:
         //             selectedIndex == 2 ? CFColors.light1 : StackTheme.instance.color.accentColorDark

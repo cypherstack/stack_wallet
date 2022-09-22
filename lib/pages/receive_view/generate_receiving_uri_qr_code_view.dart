@@ -116,7 +116,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
         ),
         title: Text(
           "Generate QR code",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -141,7 +141,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         RoundedWhiteContainer(
                           child: Text(
                             "The new QR code with your address, amount and note will appear in the pop up window.",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ),
                         const SizedBox(
@@ -149,7 +149,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         ),
                         Text(
                           "Amount (Optional)",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                           textAlign: TextAlign.left,
                         ),
                         const SizedBox(
@@ -162,13 +162,14 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           child: TextField(
                             controller: amountController,
                             focusNode: _amountFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
                             onChanged: (_) => setState(() {}),
                             decoration: standardInputDecoration(
                               "Amount",
                               _amountFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: amountController.text.isNotEmpty
                                   ? Padding(
@@ -197,7 +198,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         ),
                         Text(
                           "Note (Optional)",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                           textAlign: TextAlign.left,
                         ),
                         const SizedBox(
@@ -210,11 +211,12 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           child: TextField(
                             controller: noteController,
                             focusNode: _noteFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             onChanged: (_) => setState(() {}),
                             decoration: standardInputDecoration(
                               "Note",
                               _noteFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: noteController.text.isNotEmpty
                                   ? Padding(
@@ -300,7 +302,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                       Center(
                                         child: Text(
                                           "New QR code",
-                                          style: STextStyles.pageTitleH2,
+                                          style:
+                                              STextStyles.pageTitleH2(context),
                                         ),
                                       ),
                                       const SizedBox(
@@ -360,7 +363,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                                       "Share",
                                                       textAlign:
                                                           TextAlign.center,
-                                                      style: STextStyles.button
+                                                      style: STextStyles.button(
+                                                              context)
                                                           .copyWith(
                                                         color: StackTheme
                                                             .instance
@@ -386,7 +390,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           },
                           child: Text(
                             "Generate QR Code",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],

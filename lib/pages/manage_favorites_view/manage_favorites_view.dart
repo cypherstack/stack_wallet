@@ -19,7 +19,7 @@ class ManageFavoritesView extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           "Favorite wallets",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         leading: AppBarBackButton(
           onPressed: () {
@@ -51,7 +51,7 @@ class ManageFavoritesView extends StatelessWidget {
                     padding: const EdgeInsets.all(12.0),
                     child: Text(
                       "Drag to change wallet order.",
-                      style: STextStyles.label,
+                      style: STextStyles.label(context),
                     ),
                   ),
                 ),
@@ -116,7 +116,7 @@ class ManageFavoritesView extends StatelessWidget {
                 ),
                 child: Text(
                   "Add to favorites",
-                  style: STextStyles.itemSubtitle12.copyWith(
+                  style: STextStyles.itemSubtitle12(context).copyWith(
                     color: StackTheme.instance.color.textDark3,
                   ),
                 ),

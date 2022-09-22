@@ -9,7 +9,6 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -169,7 +168,9 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           Text(
             "Name your ${coin.prettyName} wallet",
             textAlign: TextAlign.center,
-            style: isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
+            style: isDesktop
+                ? STextStyles.desktopH2(context)
+                : STextStyles.pageTitleH1(context),
           ),
           SizedBox(
             height: isDesktop ? 16 : 8,
@@ -178,8 +179,8 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
             "Enter a label for your wallet (e.g. Savings)",
             textAlign: TextAlign.center,
             style: isDesktop
-                ? STextStyles.desktopSubtitleH2
-                : STextStyles.subtitle,
+                ? STextStyles.desktopSubtitleH2(context)
+                : STextStyles.subtitle(context),
           ),
           SizedBox(
             height: isDesktop ? 40 : 16,
@@ -209,13 +210,14 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               focusNode: textFieldFocusNode,
               controller: textEditingController,
               style: isDesktop
-                  ? STextStyles.desktopTextMedium.copyWith(
+                  ? STextStyles.desktopTextMedium(context).copyWith(
                       height: 2,
                     )
-                  : STextStyles.field,
+                  : STextStyles.field(context),
               decoration: standardInputDecoration(
                 "Enter wallet name",
                 textFieldFocusNode,
+                context,
               ).copyWith(
                 suffixIcon: Padding(
                   padding: EdgeInsets.only(right: isDesktop ? 6 : 0),
@@ -265,10 +267,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               child: Text(
                 "Roll the dice to pick a random name.",
                 style: isDesktop
-                    ? STextStyles.desktopTextExtraSmall.copyWith(
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: StackTheme.instance.color.textSubtitle1,
                       )
-                    : STextStyles.itemSubtitle,
+                    : STextStyles.itemSubtitle(context),
               ),
             ),
           ),
@@ -344,9 +346,9 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                 "Next",
                 style: isDesktop
                     ? _nextEnabled
-                        ? STextStyles.desktopButtonEnabled
-                        : STextStyles.desktopButtonDisabled
-                    : STextStyles.button,
+                        ? STextStyles.desktopButtonEnabled(context)
+                        : STextStyles.desktopButtonDisabled(context)
+                    : STextStyles.button(context),
               ),
             ),
           ),

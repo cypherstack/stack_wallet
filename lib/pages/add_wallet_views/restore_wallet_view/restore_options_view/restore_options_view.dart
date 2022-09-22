@@ -252,8 +252,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               Text(
                 "Restore options",
                 textAlign: TextAlign.center,
-                style:
-                    isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
+                style: isDesktop
+                    ? STextStyles.desktopH2(context)
+                    : STextStyles.pageTitleH1(context),
               ),
               SizedBox(
                 height: isDesktop ? 40 : 24,
@@ -262,10 +263,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 Text(
                   "Choose start date",
                   style: isDesktop
-                      ? STextStyles.desktopTextExtraSmall.copyWith(
+                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
                           color: StackTheme.instance.color.textDark3,
                         )
-                      : STextStyles.smallMed12,
+                      : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
               if (coin == Coin.monero || coin == Coin.epicCash)
@@ -291,10 +292,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     child: Text(
                       "Choose the date you made the wallet (approximate is fine)",
                       style: isDesktop
-                          ? STextStyles.desktopTextExtraSmall.copyWith(
+                          ? STextStyles.desktopTextExtraSmall(context).copyWith(
                               color: StackTheme.instance.color.textSubtitle1,
                             )
-                          : STextStyles.smallMed12.copyWith(
+                          : STextStyles.smallMed12(context).copyWith(
                               fontSize: 10,
                             ),
                     ),
@@ -307,10 +308,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               Text(
                 "Choose recovery phrase length",
                 style: isDesktop
-                    ? STextStyles.desktopTextExtraSmall.copyWith(
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: StackTheme.instance.color.textDark3,
                       )
-                    : STextStyles.smallMed12,
+                    : STextStyles.smallMed12(context),
                 textAlign: TextAlign.left,
               ),
               SizedBox(
@@ -327,7 +328,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                           value: e,
                           child: Text(
                             "$e words",
-                            style: STextStyles.desktopTextMedium,
+                            style: STextStyles.desktopTextMedium(context),
                           ),
                         ),
                       ),

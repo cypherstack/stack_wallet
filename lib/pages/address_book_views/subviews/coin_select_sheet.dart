@@ -53,7 +53,7 @@ class CoinSelectSheet extends StatelessWidget {
               ),
               Text(
                 "Select address cryptocurrency",
-                style: STextStyles.pageTitleH2,
+                style: STextStyles.pageTitleH2(context),
                 textAlign: TextAlign.left,
               ),
               const SizedBox(
@@ -95,7 +95,7 @@ class CoinSelectSheet extends StatelessWidget {
                                   ),
                                   Text(
                                     coin.prettyName,
-                                    style: STextStyles.itemSubtitle12,
+                                    style: STextStyles.itemSubtitle12(context),
                                   ),
                                 ],
                               ),

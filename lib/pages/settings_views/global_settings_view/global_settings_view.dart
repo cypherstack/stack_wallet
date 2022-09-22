@@ -40,7 +40,7 @@ class GlobalSettingsView extends StatelessWidget {
         ),
         title: Text(
           "Settings",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -236,7 +236,7 @@ class GlobalSettingsView extends StatelessWidget {
                               //       ),
                               //   child: Text(
                               //     "fire test notification",
-                              //     style: STextStyles.button,
+                              //     style: STextStyles.button(context),
                               //   ),
                               //   onPressed: () async {
                               //     NotificationApi.showNotification2(

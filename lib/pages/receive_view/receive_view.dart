@@ -122,7 +122,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         ),
         title: Text(
           "Receive ${coin.ticker}",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -152,7 +152,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           children: [
                             Text(
                               "Your ${coin.ticker} address",
-                              style: STextStyles.itemSubtitle,
+                              style: STextStyles.itemSubtitle(context),
                             ),
                             const Spacer(),
                             Row(
@@ -169,7 +169,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                 ),
                                 Text(
                                   "Copy",
-                                  style: STextStyles.link2,
+                                  style: STextStyles.link2(context),
                                 ),
                               ],
                             ),
@@ -183,7 +183,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                             Expanded(
                               child: Text(
                                 receivingAddress,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ),
                           ],
@@ -203,7 +203,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                         .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "Generate new address",
-                      style: STextStyles.button.copyWith(
+                      style: STextStyles.button(context).copyWith(
                           color: StackTheme.instance.color.accentColorDark),
                     ),
                   ),

@@ -68,7 +68,7 @@ class _RestoringDialogState extends State<RestoringDialog>
           style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
           child: Text(
             "Cancel",
-            style: STextStyles.itemSubtitle12,
+            style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () async {
             await onCancel.call();

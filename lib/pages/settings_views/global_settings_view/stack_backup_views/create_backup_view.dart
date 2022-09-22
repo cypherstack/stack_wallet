@@ -97,7 +97,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
         ),
         title: Text(
           "Create backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -153,7 +153,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                               }
                             },
                             controller: fileLocationController,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             decoration: InputDecoration(
                               hintText: "Save to...",
                               suffixIcon: UnconstrainedBox(
@@ -202,13 +202,14 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                           key: const Key("createBackupPasswordFieldKey1"),
                           focusNode: passwordFocusNode,
                           controller: passwordController,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           obscureText: hidePassword,
                           enableSuggestions: false,
                           autocorrect: false,
                           decoration: standardInputDecoration(
                             "Create passphrase",
                             passwordFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: UnconstrainedBox(
                               child: Row(
@@ -290,7 +291,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                           child: passwordFeedback.isNotEmpty
                               ? Text(
                                   passwordFeedback,
-                                  style: STextStyles.infoSmall,
+                                  style: STextStyles.infoSmall(context),
                                 )
                               : null,
                         ),
@@ -332,13 +333,14 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                           key: const Key("createBackupPasswordFieldKey2"),
                           focusNode: passwordRepeatFocusNode,
                           controller: passwordRepeatController,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           obscureText: hidePassword,
                           enableSuggestions: false,
                           autocorrect: false,
                           decoration: standardInputDecoration(
                             "Confirm passphrase",
                             passwordRepeatFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: UnconstrainedBox(
                               child: Row(
@@ -482,7 +484,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                               },
                         child: Text(
                           "Create backup",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                       ),
                     ],

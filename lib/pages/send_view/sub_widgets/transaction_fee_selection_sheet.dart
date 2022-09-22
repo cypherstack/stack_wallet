@@ -207,7 +207,7 @@ class _TransactionFeeSelectionSheetState
                   children: [
                     Text(
                       "Fee rate",
-                      style: STextStyles.pageTitleH2,
+                      style: STextStyles.pageTitleH2(context),
                       textAlign: TextAlign.left,
                     ),
                     const SizedBox(
@@ -263,7 +263,7 @@ class _TransactionFeeSelectionSheetState
                                     children: [
                                       Text(
                                         FeeRateType.fast.prettyName,
-                                        style: STextStyles.titleBold12,
+                                        style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(
@@ -273,7 +273,8 @@ class _TransactionFeeSelectionSheetState
                                         AnimatedText(
                                           stringsToLoopThrough:
                                               stringsToLoopThrough,
-                                          style: STextStyles.itemSubtitle,
+                                          style:
+                                              STextStyles.itemSubtitle(context),
                                         ),
                                       if (feeObject != null)
                                         FutureBuilder(
@@ -295,14 +296,16 @@ class _TransactionFeeSelectionSheetState
                                                 snapshot.hasData) {
                                               return Text(
                                                 "(~${snapshot.data!} ${manager.coin.ticker})",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               );
                                             } else {
                                               return AnimatedText(
                                                 stringsToLoopThrough:
                                                     stringsToLoopThrough,
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             }
                                           },
@@ -316,7 +319,7 @@ class _TransactionFeeSelectionSheetState
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   if (feeObject != null)
                                     Text(
@@ -325,7 +328,7 @@ class _TransactionFeeSelectionSheetState
                                             manager.coin),
                                         feeObject!.numberOfBlocksFast,
                                       ),
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     ),
                                 ],
@@ -386,7 +389,7 @@ class _TransactionFeeSelectionSheetState
                                     children: [
                                       Text(
                                         FeeRateType.average.prettyName,
-                                        style: STextStyles.titleBold12,
+                                        style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(
@@ -396,7 +399,8 @@ class _TransactionFeeSelectionSheetState
                                         AnimatedText(
                                           stringsToLoopThrough:
                                               stringsToLoopThrough,
-                                          style: STextStyles.itemSubtitle,
+                                          style:
+                                              STextStyles.itemSubtitle(context),
                                         ),
                                       if (feeObject != null)
                                         FutureBuilder(
@@ -418,14 +422,16 @@ class _TransactionFeeSelectionSheetState
                                                 snapshot.hasData) {
                                               return Text(
                                                 "(~${snapshot.data!} ${manager.coin.ticker})",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               );
                                             } else {
                                               return AnimatedText(
                                                 stringsToLoopThrough:
                                                     stringsToLoopThrough,
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             }
                                           },
@@ -439,7 +445,7 @@ class _TransactionFeeSelectionSheetState
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   if (feeObject != null)
                                     Text(
@@ -448,7 +454,7 @@ class _TransactionFeeSelectionSheetState
                                             manager.coin),
                                         feeObject!.numberOfBlocksAverage,
                                       ),
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     ),
                                 ],
@@ -510,7 +516,7 @@ class _TransactionFeeSelectionSheetState
                                     children: [
                                       Text(
                                         FeeRateType.slow.prettyName,
-                                        style: STextStyles.titleBold12,
+                                        style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(
@@ -520,7 +526,8 @@ class _TransactionFeeSelectionSheetState
                                         AnimatedText(
                                           stringsToLoopThrough:
                                               stringsToLoopThrough,
-                                          style: STextStyles.itemSubtitle,
+                                          style:
+                                              STextStyles.itemSubtitle(context),
                                         ),
                                       if (feeObject != null)
                                         FutureBuilder(
@@ -542,14 +549,16 @@ class _TransactionFeeSelectionSheetState
                                                 snapshot.hasData) {
                                               return Text(
                                                 "(~${snapshot.data!} ${manager.coin.ticker})",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               );
                                             } else {
                                               return AnimatedText(
                                                 stringsToLoopThrough:
                                                     stringsToLoopThrough,
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             }
                                           },
@@ -563,7 +572,7 @@ class _TransactionFeeSelectionSheetState
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   if (feeObject != null)
                                     Text(
@@ -572,7 +581,7 @@ class _TransactionFeeSelectionSheetState
                                             manager.coin),
                                         feeObject!.numberOfBlocksSlow,
                                       ),
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     ),
                                 ],

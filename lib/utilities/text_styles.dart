@@ -1,244 +1,259 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class STextStyles {
-  static final TextStyle pageTitleH1 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w600,
-    fontSize: 20,
-  );
+  static TextStyle pageTitleH1(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w600,
+        fontSize: 20,
+      );
 
-  static final TextStyle pageTitleH2 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w600,
-    fontSize: 18,
-  );
+  static TextStyle pageTitleH2(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w600,
+        fontSize: 18,
+      );
 
-  static final TextStyle navBarTitle = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w600,
-    fontSize: 16,
-  );
+  static TextStyle navBarTitle(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+      );
 
-  static final TextStyle titleBold12 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w600,
-    fontSize: 16,
-  );
+  static TextStyle titleBold12(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+      );
 
-  static final TextStyle subtitle = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w400,
-    fontSize: 16,
-  );
+  static TextStyle subtitle(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w400,
+        fontSize: 16,
+      );
 
-  static final TextStyle button = GoogleFonts.inter(
-    color: StackTheme.instance.color.buttonTextPrimary,
-    fontWeight: FontWeight.w500,
-    fontSize: 16,
-  );
+  static TextStyle button(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.buttonTextPrimary,
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+      );
 
-  static final TextStyle largeMedium14 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w500,
-    fontSize: 16,
-  );
+  static TextStyle largeMedium14(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+      );
 
-  static final TextStyle smallMed14 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark3,
-    fontWeight: FontWeight.w500,
-    fontSize: 16,
-  );
+  static TextStyle smallMed14(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark3,
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+      );
 
-  static final TextStyle smallMed12 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark3,
-    fontWeight: FontWeight.w500,
-    fontSize: 14,
-  );
+  static TextStyle smallMed12(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark3,
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+      );
 
-  static final TextStyle label = GoogleFonts.inter(
-    color: StackTheme.instance.color.textSubtitle1,
-    fontWeight: FontWeight.w500,
-    fontSize: 12,
-  );
+  static TextStyle label(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+        fontWeight: FontWeight.w500,
+        fontSize: 12,
+      );
 
-  static final TextStyle itemSubtitle = GoogleFonts.inter(
-    color: StackTheme.instance.color.infoItemLabel,
-    fontWeight: FontWeight.w500,
-    fontSize: 14,
-  );
+  static TextStyle itemSubtitle(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.infoItemLabel,
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+      );
 
-  static final TextStyle itemSubtitle12 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w500,
-    fontSize: 14,
-  );
+  static TextStyle itemSubtitle12(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+      );
 
-  static final TextStyle fieldLabel = GoogleFonts.inter(
-    color: StackTheme.instance.color.textSubtitle2,
-    fontWeight: FontWeight.w500,
-    fontSize: 14,
-    height: 1.5,
-  );
+  static TextStyle fieldLabel(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+        height: 1.5,
+      );
 
-  static final TextStyle field = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w500,
-    fontSize: 14,
-    height: 1.5,
-  );
+  static TextStyle field(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+        height: 1.5,
+      );
 
-  static final TextStyle baseXS = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w400,
-    fontSize: 14,
-  );
+  static TextStyle baseXS(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w400,
+        fontSize: 14,
+      );
 
-  static final TextStyle link = GoogleFonts.inter(
-    color: StackTheme.instance.color.accentColorRed,
-    fontWeight: FontWeight.w500,
-    fontSize: 14,
-  );
+  static TextStyle link(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.accentColorRed,
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+      );
 
-  static final TextStyle link2 = GoogleFonts.inter(
-    color: StackTheme.instance.color.infoItemIcons,
-    fontWeight: FontWeight.w500,
-    fontSize: 14,
-  );
+  static TextStyle link2(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+      );
 
-  static final TextStyle richLink = GoogleFonts.inter(
-    color: StackTheme.instance.color.accentColorBlue,
-    fontWeight: FontWeight.w500,
-    fontSize: 12,
-  );
+  static TextStyle richLink(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.accentColorBlue,
+        fontWeight: FontWeight.w500,
+        fontSize: 12,
+      );
 
-  static final TextStyle w600_10 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w600,
-    fontSize: 12,
-  );
+  static TextStyle w600_10(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w600,
+        fontSize: 12,
+      );
 
-  static final TextStyle syncPercent = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w500,
-    fontSize: 12,
-  );
+  static TextStyle syncPercent(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w500,
+        fontSize: 12,
+      );
 
-  static final TextStyle buttonSmall = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w500,
-    fontSize: 12,
-  );
+  static TextStyle buttonSmall(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w500,
+        fontSize: 12,
+      );
 
-  static final TextStyle errorSmall = GoogleFonts.inter(
-    color: StackTheme.instance.color.textError,
-    fontWeight: FontWeight.w500,
-    fontSize: 10,
-  );
+  static TextStyle errorSmall(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textError,
+        fontWeight: FontWeight.w500,
+        fontSize: 10,
+      );
 
-  static final TextStyle infoSmall = GoogleFonts.inter(
-    color: StackTheme.instance.color.textSubtitle1,
-    fontWeight: FontWeight.w500,
-    fontSize: 10,
-  );
+  static TextStyle infoSmall(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+        fontWeight: FontWeight.w500,
+        fontSize: 10,
+      );
 
 // Desktop
 
-  static final TextStyle desktopH2 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w600,
-    fontSize: 32,
-    height: 32 / 32,
-  );
+  static TextStyle desktopH2(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w600,
+        fontSize: 32,
+        height: 32 / 32,
+      );
 
-  static final TextStyle desktopH3 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w600,
-    fontSize: 24,
-    height: 24 / 24,
-  );
+  static TextStyle desktopH3(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w600,
+        fontSize: 24,
+        height: 24 / 24,
+      );
 
-  static final TextStyle desktopTextMedium = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w500,
-    fontSize: 20,
-    height: 30 / 20,
-  );
+  static TextStyle desktopTextMedium(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w500,
+        fontSize: 20,
+        height: 30 / 20,
+      );
 
-  static final TextStyle desktopTextMediumRegular = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w400,
-    fontSize: 20,
-    height: 30 / 20,
-  );
+  static TextStyle desktopTextMediumRegular(BuildContext context) =>
+      GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w400,
+        fontSize: 20,
+        height: 30 / 20,
+      );
 
-  static final TextStyle desktopSubtitleH2 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w400,
-    fontSize: 20,
-    height: 28 / 20,
-  );
+  static TextStyle desktopSubtitleH2(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w400,
+        fontSize: 20,
+        height: 28 / 20,
+      );
 
-  static final TextStyle desktopSubtitleH1 = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w400,
-    fontSize: 24,
-    height: 33 / 24,
-  );
+  static TextStyle desktopSubtitleH1(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w400,
+        fontSize: 24,
+        height: 33 / 24,
+      );
 
-  static final TextStyle desktopButtonEnabled = GoogleFonts.inter(
-    color: StackTheme.instance.color.buttonTextPrimary,
-    fontWeight: FontWeight.w500,
-    fontSize: 20,
-    height: 26 / 20,
-  );
+  static TextStyle desktopButtonEnabled(BuildContext context) =>
+      GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.buttonTextPrimary,
+        fontWeight: FontWeight.w500,
+        fontSize: 20,
+        height: 26 / 20,
+      );
 
-  static final TextStyle desktopButtonDisabled = GoogleFonts.inter(
-    color: StackTheme.instance.color.buttonTextPrimaryDisabled,
-    fontWeight: FontWeight.w500,
-    fontSize: 20,
-    height: 26 / 20,
-  );
+  static TextStyle desktopButtonDisabled(BuildContext context) =>
+      GoogleFonts.inter(
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .buttonTextPrimaryDisabled,
+        fontWeight: FontWeight.w500,
+        fontSize: 20,
+        height: 26 / 20,
+      );
 
-  static final TextStyle desktopButtonSecondaryEnabled = GoogleFonts.inter(
-    color: StackTheme.instance.color.buttonTextSecondary,
-    fontWeight: FontWeight.w500,
-    fontSize: 20,
-    height: 26 / 20,
-  );
+  static TextStyle desktopButtonSecondaryEnabled(BuildContext context) =>
+      GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
+        fontWeight: FontWeight.w500,
+        fontSize: 20,
+        height: 26 / 20,
+      );
 
-  static final TextStyle desktopTextExtraSmall = GoogleFonts.inter(
-    color: StackTheme.instance.color.buttonTextPrimaryDisabled,
-    fontWeight: FontWeight.w500,
-    fontSize: 16,
-    height: 24 / 16,
-  );
+  static TextStyle desktopTextExtraSmall(BuildContext context) =>
+      GoogleFonts.inter(
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .buttonTextPrimaryDisabled,
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+        height: 24 / 16,
+      );
 
-  static final TextStyle desktopButtonSmallSecondaryEnabled = GoogleFonts.inter(
-    color: StackTheme.instance.color.buttonTextSecondary,
-    fontWeight: FontWeight.w500,
-    fontSize: 16,
-    height: 24 / 16,
-  );
+  static TextStyle desktopButtonSmallSecondaryEnabled(BuildContext context) =>
+      GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+        height: 24 / 16,
+      );
 
-  static final TextStyle desktopTextFieldLabel = GoogleFonts.inter(
-    color: StackTheme.instance.color.textSubtitle2,
-    fontWeight: FontWeight.w500,
-    fontSize: 20,
-    height: 30 / 20,
-  );
+  static TextStyle desktopTextFieldLabel(BuildContext context) =>
+      GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
+        fontWeight: FontWeight.w500,
+        fontSize: 20,
+        height: 30 / 20,
+      );
 
-  static final TextStyle desktopMenuItem = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark.withOpacity(0.8),
-    fontWeight: FontWeight.w500,
-    fontSize: 16,
-    height: 20.8 / 16,
-  );
-  static final TextStyle desktopMenuItemSelected = GoogleFonts.inter(
-    color: StackTheme.instance.color.textDark,
-    fontWeight: FontWeight.w500,
-    fontSize: 16,
-    height: 20.8 / 16,
-  );
+  static TextStyle desktopMenuItem(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .textDark
+            .withOpacity(0.8),
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+        height: 20.8 / 16,
+      );
+  static TextStyle desktopMenuItemSelected(BuildContext context) =>
+      GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+        height: 20.8 / 16,
+      );
 }

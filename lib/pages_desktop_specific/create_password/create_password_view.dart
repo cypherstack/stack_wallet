@@ -139,14 +139,14 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                   children: [
                     Text(
                       "Create a password",
-                      style: STextStyles.desktopH2,
+                      style: STextStyles.desktopH2(context),
                     ),
                     const SizedBox(
                       height: 16,
                     ),
                     Text(
                       "Protect your funds with a strong password",
-                      style: STextStyles.desktopSubtitleH2,
+                      style: STextStyles.desktopSubtitleH2(context),
                     ),
                     const SizedBox(
                       height: 40,
@@ -159,7 +159,7 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                         key: const Key("createBackupPasswordFieldKey1"),
                         focusNode: passwordFocusNode,
                         controller: passwordController,
-                        style: STextStyles.desktopTextMedium.copyWith(
+                        style: STextStyles.desktopTextMedium(context).copyWith(
                           height: 2,
                         ),
                         obscureText: hidePassword,
@@ -168,6 +168,7 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                         decoration: standardInputDecoration(
                           "Create password",
                           passwordFocusNode,
+                          context,
                         ).copyWith(
                           suffixIcon: UnconstrainedBox(
                             child: SizedBox(
@@ -259,7 +260,8 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                             ? Text(
                                 passwordFeedback,
                                 style:
-                                    STextStyles.desktopTextExtraSmall.copyWith(
+                                    STextStyles.desktopTextExtraSmall(context)
+                                        .copyWith(
                                   color:
                                       StackTheme.instance.color.textSubtitle1,
                                 ),
@@ -299,7 +301,7 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                         key: const Key("createDesktopPasswordFieldKey2"),
                         focusNode: passwordRepeatFocusNode,
                         controller: passwordRepeatController,
-                        style: STextStyles.desktopTextMedium.copyWith(
+                        style: STextStyles.desktopTextMedium(context).copyWith(
                           height: 2,
                         ),
                         obscureText: hidePassword,
@@ -308,6 +310,7 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                         decoration: standardInputDecoration(
                           "Confirm password",
                           passwordRepeatFocusNode,
+                          context,
                         ).copyWith(
                           suffixIcon: UnconstrainedBox(
                             child: SizedBox(
@@ -378,8 +381,8 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                         child: Text(
                           "Next",
                           style: nextEnabled
-                              ? STextStyles.desktopButtonEnabled
-                              : STextStyles.desktopButtonDisabled,
+                              ? STextStyles.desktopButtonEnabled(context)
+                              : STextStyles.desktopButtonDisabled(context),
                         ),
                       ),
                     ),

@@ -30,7 +30,7 @@ class SupportView extends StatelessWidget {
         ),
         title: Text(
           "Support",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -41,7 +41,7 @@ class SupportView extends StatelessWidget {
             RoundedWhiteContainer(
               child: Text(
                 "If you need support or want to report a bug, reach out to us on any of our socials!",
-                style: STextStyles.smallMed12,
+                style: STextStyles.smallMed12(context),
               ),
             ),
             const SizedBox(
@@ -81,7 +81,7 @@ class SupportView extends StatelessWidget {
                       ),
                       Text(
                         "Telegram",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -126,7 +126,7 @@ class SupportView extends StatelessWidget {
                       ),
                       Text(
                         "Discord",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -171,7 +171,7 @@ class SupportView extends StatelessWidget {
                       ),
                       Text(
                         "Reddit",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -216,7 +216,7 @@ class SupportView extends StatelessWidget {
                       ),
                       Text(
                         "Twitter",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -261,7 +261,7 @@ class SupportView extends StatelessWidget {
                       ),
                       Text(
                         "Email",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],

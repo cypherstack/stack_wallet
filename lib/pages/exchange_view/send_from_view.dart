@@ -69,7 +69,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
         ),
         title: Text(
           "Send ",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -79,14 +79,14 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
           children: [
             Text(
               "Choose your ${coin.ticker} wallet",
-              style: STextStyles.pageTitleH1,
+              style: STextStyles.pageTitleH1(context),
             ),
             const SizedBox(
               height: 8,
             ),
             Text(
               "You need to send ${amount.toStringAsFixed(coin == Coin.monero ? 12 : 8)} ${coin.ticker}",
-              style: STextStyles.itemSubtitle,
+              style: STextStyles.itemSubtitle(context),
             ),
             const SizedBox(
               height: 16,
@@ -246,7 +246,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                         .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "Ok",
-                      style: STextStyles.button.copyWith(
+                      style: STextStyles.button(context).copyWith(
                         color: StackTheme.instance.color.buttonTextSecondary,
                       ),
                     ),
@@ -289,7 +289,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               children: [
                 Text(
                   manager.walletName,
-                  style: STextStyles.titleBold12,
+                  style: STextStyles.titleBold12(context),
                 ),
                 const SizedBox(
                   height: 2,
@@ -305,7 +305,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                           locale: locale,
                           decimalPlaces: coin == Coin.monero ? 12 : 8,
                         )} ${coin.ticker}",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       );
                     } else {
                       return AnimatedText(
@@ -315,7 +315,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                           "Loading balance..",
                           "Loading balance..."
                         ],
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       );
                     }
                   },

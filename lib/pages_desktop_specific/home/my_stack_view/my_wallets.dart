@@ -22,7 +22,7 @@ class _MyWalletsState extends State<MyWallets> {
         children: [
           Text(
             "Favorite wallets",
-            style: STextStyles.desktopTextExtraSmall.copyWith(
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color: StackTheme.instance.color.textFieldActiveSearchIconRight,
             ),
           ),
@@ -43,7 +43,7 @@ class _MyWalletsState extends State<MyWallets> {
             children: [
               Text(
                 "All wallets",
-                style: STextStyles.desktopTextExtraSmall.copyWith(
+                style: STextStyles.desktopTextExtraSmall(context).copyWith(
                   color:
                       StackTheme.instance.color.textFieldActiveSearchIconRight,
                 ),

@@ -128,7 +128,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               if (coin == Coin.firo || coin == Coin.firoTestNet)
                                 Text(
                                   "${_showAvailable ? "Private" : "Public"} Balance",
-                                  style: STextStyles.subtitle.copyWith(
+                                  style: STextStyles.subtitle(context).copyWith(
                                     fontWeight: FontWeight.w500,
                                     color: StackTheme
                                         .instance.color.textFavoriteCard,
@@ -137,7 +137,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               if (coin != Coin.firo && coin != Coin.firoTestNet)
                                 Text(
                                   "${_showAvailable ? "Available" : "Full"} Balance",
-                                  style: STextStyles.subtitle.copyWith(
+                                  style: STextStyles.subtitle(context).copyWith(
                                     fontWeight: FontWeight.w500,
                                     color: StackTheme
                                         .instance.color.textFavoriteCard,
@@ -165,7 +165,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               locale: locale,
                               decimalPlaces: 8,
                             )} ${coin.ticker}",
-                            style: STextStyles.pageTitleH1.copyWith(
+                            style: STextStyles.pageTitleH1(context).copyWith(
                               fontSize: 24,
                               color: StackTheme.instance.color.textFavoriteCard,
                             ),
@@ -177,7 +177,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                             locale: locale,
                             decimalPlaces: 2,
                           )} $baseCurrency",
-                          style: STextStyles.subtitle.copyWith(
+                          style: STextStyles.subtitle(context).copyWith(
                             fontWeight: FontWeight.w500,
                             color: StackTheme.instance.color.textFavoriteCard,
                           ),
@@ -195,7 +195,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               if (coin == Coin.firo || coin == Coin.firoTestNet)
                                 Text(
                                   "${_showAvailable ? "Private" : "Public"} Balance",
-                                  style: STextStyles.subtitle.copyWith(
+                                  style: STextStyles.subtitle(context).copyWith(
                                     fontWeight: FontWeight.w500,
                                     color: StackTheme
                                         .instance.color.textFavoriteCard,
@@ -204,7 +204,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               if (coin != Coin.firo && coin != Coin.firoTestNet)
                                 Text(
                                   "${_showAvailable ? "Available" : "Full"} Balance",
-                                  style: STextStyles.subtitle.copyWith(
+                                  style: STextStyles.subtitle(context).copyWith(
                                     fontWeight: FontWeight.w500,
                                     color: StackTheme
                                         .instance.color.textFavoriteCard,
@@ -231,7 +231,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                             "Loading balance..",
                             "Loading balance..."
                           ],
-                          style: STextStyles.pageTitleH1.copyWith(
+                          style: STextStyles.pageTitleH1(context).copyWith(
                             fontSize: 24,
                             color: StackTheme.instance.color.textFavoriteCard,
                           ),
@@ -243,7 +243,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                             "Loading balance..",
                             "Loading balance..."
                           ],
-                          style: STextStyles.subtitle.copyWith(
+                          style: STextStyles.subtitle(context).copyWith(
                             fontWeight: FontWeight.w500,
                             color: StackTheme.instance.color.textFavoriteCard,
                           ),

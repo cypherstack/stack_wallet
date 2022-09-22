@@ -181,7 +181,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         ),
         title: Text(
           "Transactions",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -239,10 +239,11 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                       _searchString = value;
                     });
                   },
-                  style: STextStyles.field,
+                  style: STextStyles.field(context),
                   decoration: standardInputDecoration(
                     "Search",
                     searchFieldFocusNode,
+                    context,
                   ).copyWith(
                     prefixIcon: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -324,7 +325,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                                     ),
                                   Text(
                                     month.item1,
-                                    style: STextStyles.smallMed12,
+                                    style: STextStyles.smallMed12(context),
                                   ),
                                   const SizedBox(
                                     height: 12,

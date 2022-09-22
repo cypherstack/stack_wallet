@@ -48,7 +48,7 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
           style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
           child: Text(
             "Ok",
-            style: STextStyles.itemSubtitle12,
+            style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () async {
             ref

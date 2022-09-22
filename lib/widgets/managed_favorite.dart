@@ -90,7 +90,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                   children: [
                     Text(
                       manager.walletName,
-                      style: STextStyles.titleBold12,
+                      style: STextStyles.titleBold12(context),
                     ),
                     const SizedBox(
                       height: 2,
@@ -102,7 +102,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                             .select((value) => value.locale)),
                         decimalPlaces: 8,
                       )} ${manager.coin.ticker}",
-                      style: STextStyles.itemSubtitle,
+                      style: STextStyles.itemSubtitle(context),
                     ),
                   ],
                 ),

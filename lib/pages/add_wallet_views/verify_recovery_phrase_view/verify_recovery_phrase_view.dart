@@ -12,7 +12,6 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -244,8 +243,8 @@ class _VerifyRecoveryPhraseViewState
                   "Verify recovery phrase",
                   textAlign: TextAlign.center,
                   style: isDesktop
-                      ? STextStyles.desktopH2
-                      : STextStyles.label.copyWith(
+                      ? STextStyles.desktopH2(context)
+                      : STextStyles.label(context).copyWith(
                           fontSize: 12,
                         ),
                 ),
@@ -256,8 +255,8 @@ class _VerifyRecoveryPhraseViewState
                   isDesktop ? "Select word number" : "Tap word number ",
                   textAlign: TextAlign.center,
                   style: isDesktop
-                      ? STextStyles.desktopSubtitleH1
-                      : STextStyles.pageTitleH1,
+                      ? STextStyles.desktopSubtitleH1(context)
+                      : STextStyles.pageTitleH1(context),
                 ),
                 SizedBox(
                   height: isDesktop ? 16 : 12,
@@ -276,7 +275,7 @@ class _VerifyRecoveryPhraseViewState
                     child: Text(
                       "${correctIndex + 1}",
                       textAlign: TextAlign.center,
-                      style: STextStyles.subtitle.copyWith(
+                      style: STextStyles.subtitle(context).copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 32,
                         letterSpacing: 0.25,
@@ -331,12 +330,14 @@ class _VerifyRecoveryPhraseViewState
                                   ? Text(
                                       "Verify",
                                       style: selectedWord.isNotEmpty
-                                          ? STextStyles.desktopButtonEnabled
-                                          : STextStyles.desktopButtonDisabled,
+                                          ? STextStyles.desktopButtonEnabled(
+                                              context)
+                                          : STextStyles.desktopButtonDisabled(
+                                              context),
                                     )
                                   : Text(
                                       "Continue",
-                                      style: STextStyles.button,
+                                      style: STextStyles.button(context),
                                     ),
                             ),
                           );

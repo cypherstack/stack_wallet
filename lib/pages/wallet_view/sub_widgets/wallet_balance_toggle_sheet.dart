@@ -62,7 +62,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 padding: const EdgeInsets.only(left: 8.0),
                 child: Text(
                   "Wallet balance",
-                  style: STextStyles.pageTitleH2,
+                  style: STextStyles.pageTitleH2(context),
                   textAlign: TextAlign.left,
                 ),
               ),
@@ -117,14 +117,15 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                           children: [
                             Text(
                               "Available balance",
-                              style: STextStyles.titleBold12,
+                              style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(
                               height: 2,
                             ),
                             Text(
                               "Current spendable (unlocked) balance",
-                              style: STextStyles.itemSubtitle12.copyWith(
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
                                 color: StackTheme.instance.color.textSubtitle1,
                               ),
                             ),
@@ -136,14 +137,15 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                           children: [
                             Text(
                               "Private balance",
-                              style: STextStyles.titleBold12,
+                              style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(
                               height: 2,
                             ),
                             Text(
                               "Current private spendable (unlocked) balance",
-                              style: STextStyles.itemSubtitle12.copyWith(
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
                                 color: StackTheme.instance.color.textSubtitle1,
                               ),
                             ),
@@ -204,14 +206,15 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                           children: [
                             Text(
                               "Full balance",
-                              style: STextStyles.titleBold12,
+                              style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(
                               height: 2,
                             ),
                             Text(
                               "Total wallet balance",
-                              style: STextStyles.itemSubtitle12.copyWith(
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
                                 color: StackTheme.instance.color.textSubtitle1,
                               ),
                             ),
@@ -223,14 +226,15 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                           children: [
                             Text(
                               "Public balance",
-                              style: STextStyles.titleBold12,
+                              style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(
                               height: 2,
                             ),
                             Text(
                               "Current public spendable (unlocked) balance",
-                              style: STextStyles.itemSubtitle12.copyWith(
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
                                 color: StackTheme.instance.color.textSubtitle1,
                               ),
                             ),

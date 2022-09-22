@@ -394,7 +394,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           ),
           child: Text(
             prefix,
-            style: STextStyles.fieldLabel.copyWith(
+            style: STextStyles.fieldLabel(context).copyWith(
               color: prefixColor,
             ),
           ),
@@ -589,21 +589,21 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             children: [
               Text(
                 widget.walletName,
-                style: STextStyles.itemSubtitle,
+                style: STextStyles.itemSubtitle(context),
               ),
               const SizedBox(
                 height: 4,
               ),
               Text(
                 "Recovery phrase",
-                style: STextStyles.pageTitleH1,
+                style: STextStyles.pageTitleH1(context),
               ),
               const SizedBox(
                 height: 8,
               ),
               Text(
                 "Enter your $_seedWordCount-word recovery phrase.",
-                style: STextStyles.subtitle,
+                style: STextStyles.subtitle(context),
               ),
               const SizedBox(
                 height: 10,
@@ -653,7 +653,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                       }
                                     },
                                     controller: _controllers[i - 1],
-                                    style: STextStyles.field.copyWith(
+                                    style: STextStyles.field(context).copyWith(
                                       color: StackTheme.instance.color.overlay,
                                     ),
                                   ),
@@ -670,7 +670,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                       child: Text(
                                         "Please check spelling",
                                         textAlign: TextAlign.left,
-                                        style: STextStyles.label.copyWith(
+                                        style:
+                                            STextStyles.label(context).copyWith(
                                           color: StackTheme
                                               .instance.color.textError,
                                         ),
@@ -689,7 +690,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                               onPressed: requestRestore,
                               child: Text(
                                 "Restore",
-                                style: STextStyles.button,
+                                style: STextStyles.button(context),
                               ),
                             ),
                           ),

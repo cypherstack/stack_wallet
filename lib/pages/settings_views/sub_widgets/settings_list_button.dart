@@ -65,7 +65,7 @@ class SettingsListButton extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: STextStyles.smallMed14.copyWith(
+                style: STextStyles.smallMed14(context).copyWith(
                   color: StackTheme.instance.color.accentColorDark,
                 ),
               ),

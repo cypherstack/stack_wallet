@@ -196,7 +196,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                 ),
                 Text(
                   "Node options",
-                  style: STextStyles.pageTitleH2,
+                  style: STextStyles.pageTitleH2(context),
                   textAlign: TextAlign.left,
                 ),
                 RoundedWhiteContainer(
@@ -232,14 +232,14 @@ class NodeOptionsSheet extends ConsumerWidget {
                         children: [
                           Text(
                             node.name,
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                           ),
                           const SizedBox(
                             height: 2,
                           ),
                           Text(
                             status,
-                            style: STextStyles.label,
+                            style: STextStyles.label(context),
                           ),
                         ],
                       ),
@@ -274,7 +274,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                         },
                         child: Text(
                           "Details",
-                          style: STextStyles.button.copyWith(
+                          style: STextStyles.button(context).copyWith(
                               color: StackTheme.instance.color.accentColorDark),
                         ),
                       ),
@@ -312,7 +312,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                         child: Text(
                           // status == "Connected" ? "Disconnect" : "Connect",
                           "Connect",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                       ),
                     ),

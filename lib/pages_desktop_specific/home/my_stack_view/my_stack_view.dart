@@ -48,7 +48,7 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
               ),
               Text(
                 "My Stack",
-                style: STextStyles.desktopH3,
+                style: STextStyles.desktopH3(context),
               )
             ],
           ),

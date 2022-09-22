@@ -42,6 +42,7 @@ import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/debug_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
@@ -55,7 +56,6 @@ import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -515,23 +515,25 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     //       addToDebugMessagesDB: false);
     // });
 
+    final colorScheme = ref.watch(colorThemeProvider.state).state;
+
     return MaterialApp(
       key: GlobalKey(),
       navigatorKey: navigatorKey,
       title: 'Stack Wallet',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
-        highlightColor: StackTheme.instance.color.highlight,
+        extensions: [colorScheme],
+        highlightColor: colorScheme.highlight,
         brightness: Brightness.light,
         fontFamily: GoogleFonts.inter().fontFamily,
-        unselectedWidgetColor:
-            StackTheme.instance.color.radioButtonBorderDisabled,
-        textTheme: GoogleFonts.interTextTheme().copyWith(
-          button: STextStyles.button,
-          subtitle1: STextStyles.field.copyWith(
-            color: StackTheme.instance.color.textDark,
-          ),
-        ),
+        unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
+        // textTheme: GoogleFonts.interTextTheme().copyWith(
+        //   button: STextStyles.button(context),
+        //   subtitle1: STextStyles.field(context).copyWith(
+        //     color: colorScheme.textDark,
+        //   ),
+        // ),
         radioTheme: const RadioThemeData(
           splashRadius: 0,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -539,19 +541,19 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         // splashFactory: NoSplash.splashFactory,
         splashColor: Colors.transparent,
         buttonTheme: ButtonThemeData(
-          splashColor: StackTheme.instance.color.splash,
+          splashColor: colorScheme.splash,
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
             // splashFactory: NoSplash.splashFactory,
-            overlayColor:
-                MaterialStateProperty.all(StackTheme.instance.color.splash),
+            overlayColor: MaterialStateProperty.all(colorScheme.splash),
             minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
-            textStyle: MaterialStateProperty.all<TextStyle>(STextStyles.button),
-            foregroundColor: MaterialStateProperty.all(
-                StackTheme.instance.color.buttonTextSecondary),
+            // textStyle: MaterialStateProperty.all<TextStyle>(
+            //     STextStyles.button(context)),
+            foregroundColor:
+                MaterialStateProperty.all(colorScheme.buttonTextSecondary),
             backgroundColor: MaterialStateProperty.all<Color>(
-                StackTheme.instance.color.buttonBackSecondary),
+                colorScheme.buttonBackSecondary),
             shape: MaterialStateProperty.all<OutlinedBorder>(
               RoundedRectangleBorder(
                 // 1000 to be relatively sure it keeps its pill shape
@@ -560,9 +562,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             ),
           ),
         ),
-        primaryColor: StackTheme.instance.color.accentColorDark,
-        primarySwatch:
-            Util.createMaterialColor(StackTheme.instance.color.accentColorDark),
+        primaryColor: colorScheme.accentColorDark,
+        primarySwatch: Util.createMaterialColor(colorScheme.accentColorDark),
         checkboxTheme: CheckboxThemeData(
           splashRadius: 0,
           shape: RoundedRectangleBorder(
@@ -572,45 +573,44 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           checkColor: MaterialStateColor.resolveWith(
             (state) {
               if (state.contains(MaterialState.selected)) {
-                return StackTheme.instance.color.checkboxIconChecked;
+                return colorScheme.checkboxIconChecked;
               }
-              return StackTheme.instance.color.checkboxBGChecked;
+              return colorScheme.checkboxBGChecked;
             },
           ),
           fillColor: MaterialStateColor.resolveWith(
             (states) {
               if (states.contains(MaterialState.selected)) {
-                return StackTheme.instance.color.checkboxBGChecked;
+                return colorScheme.checkboxBGChecked;
               }
-              return StackTheme.instance.color.checkboxBorderEmpty;
+              return colorScheme.checkboxBorderEmpty;
             },
           ),
         ),
         appBarTheme: AppBarTheme(
           centerTitle: false,
-          color: StackTheme.instance.color.background,
+          color: colorScheme.background,
           elevation: 0,
         ),
         inputDecorationTheme: InputDecorationTheme(
-          focusColor: StackTheme.instance.color.textFieldDefaultBG,
-          fillColor: StackTheme.instance.color.textFieldDefaultBG,
+          focusColor: colorScheme.textFieldDefaultBG,
+          fillColor: colorScheme.textFieldDefaultBG,
           filled: true,
           contentPadding: const EdgeInsets.symmetric(
             vertical: 6,
             horizontal: 12,
           ),
-          labelStyle: STextStyles.fieldLabel,
-          hintStyle: STextStyles.fieldLabel,
-          enabledBorder: _buildOutlineInputBorder(
-              StackTheme.instance.color.textFieldDefaultBG),
-          focusedBorder: _buildOutlineInputBorder(
-              StackTheme.instance.color.textFieldDefaultBG),
-          errorBorder: _buildOutlineInputBorder(
-              StackTheme.instance.color.textFieldDefaultBG),
-          disabledBorder: _buildOutlineInputBorder(
-              StackTheme.instance.color.textFieldDefaultBG),
-          focusedErrorBorder: _buildOutlineInputBorder(
-              StackTheme.instance.color.textFieldDefaultBG),
+          // labelStyle: STextStyles.fieldLabel(context),
+          // hintStyle: STextStyles.fieldLabel(context),
+          enabledBorder:
+              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          focusedBorder:
+              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          errorBorder: _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          disabledBorder:
+              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          focusedErrorBorder:
+              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
         ),
       ),
       home: FutureBuilder(

@@ -39,7 +39,7 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
       child: TextField(
         onTap: onTap,
         controller: _dateController,
-        style: STextStyles.field,
+        style: STextStyles.field(context),
         decoration: InputDecoration(
           hintText: "Restore from...",
           suffixIcon: UnconstrainedBox(

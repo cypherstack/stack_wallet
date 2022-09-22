@@ -83,7 +83,7 @@ class _EditContactNameEmojiViewState
         ),
         title: Text(
           "Edit contact",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -151,7 +151,8 @@ class _EditContactNameEmojiViewState
                                           )
                                         : Text(
                                             _selectedEmoji!.char,
-                                            style: STextStyles.pageTitleH1,
+                                            style: STextStyles.pageTitleH1(
+                                                context),
                                           ),
                                   ),
                                 ),
@@ -197,11 +198,12 @@ class _EditContactNameEmojiViewState
                           child: TextField(
                             controller: nameController,
                             focusNode: nameFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             onChanged: (_) => setState(() {}),
                             decoration: standardInputDecoration(
                               "Enter contact name",
                               nameFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: nameController.text.isNotEmpty
                                   ? Padding(
@@ -237,7 +239,7 @@ class _EditContactNameEmojiViewState
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
-                                  style: STextStyles.button.copyWith(
+                                  style: STextStyles.button(context).copyWith(
                                       color: StackTheme
                                           .instance.color.accentColorDark),
                                 ),
@@ -301,7 +303,7 @@ class _EditContactNameEmojiViewState
                                         : null,
                                     child: Text(
                                       "Save",
-                                      style: STextStyles.button,
+                                      style: STextStyles.button(context),
                                     ),
                                   );
                                 },

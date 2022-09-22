@@ -207,7 +207,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         ),
         title: Text(
           viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           if (viewType == AddEditNodeViewType.edit)
@@ -297,7 +297,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                               .getSecondaryEnabledButtonColor(context),
                           child: Text(
                             "Test connection",
-                            style: STextStyles.button.copyWith(
+                            style: STextStyles.button(context).copyWith(
                               color: testConnectionEnabled
                                   ? StackTheme.instance.color.textDark
                                   : StackTheme.instance.color.textWhite,
@@ -333,9 +333,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                           },
                                           child: Text(
                                             "Cancel",
-                                            style: STextStyles.button.copyWith(
-                                                color: StackTheme.instance.color
-                                                    .accentColorDark),
+                                            style: STextStyles.button(context)
+                                                .copyWith(
+                                                    color: StackTheme.instance
+                                                        .color.accentColorDark),
                                           ),
                                         ),
                                         rightButton: TextButton(
@@ -347,7 +348,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                                   context),
                                           child: Text(
                                             "Save",
-                                            style: STextStyles.button,
+                                            style: STextStyles.button(context),
                                           ),
                                         ),
                                       ),
@@ -440,7 +441,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                               : null,
                           child: Text(
                             "Save",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],
@@ -637,10 +638,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             enabled: enableField(_nameController),
             controller: _nameController,
             focusNode: _nameFocusNode,
-            style: STextStyles.field,
+            style: STextStyles.field(context),
             decoration: standardInputDecoration(
               "Node name",
               _nameFocusNode,
+              context,
             ).copyWith(
               suffixIcon: !widget.readOnly && _nameController.text.isNotEmpty
                   ? Padding(
@@ -683,12 +685,13 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   enabled: enableField(_hostController),
                   controller: _hostController,
                   focusNode: _hostFocusNode,
-                  style: STextStyles.field,
+                  style: STextStyles.field(context),
                   decoration: standardInputDecoration(
                     (widget.coin != Coin.monero && widget.coin != Coin.epicCash)
                         ? "IP address"
                         : "Url",
                     _hostFocusNode,
+                    context,
                   ).copyWith(
                     suffixIcon:
                         !widget.readOnly && _hostController.text.isNotEmpty
@@ -733,10 +736,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   focusNode: _portFocusNode,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   keyboardType: TextInputType.number,
-                  style: STextStyles.field,
+                  style: STextStyles.field(context),
                   decoration: standardInputDecoration(
                     "Port",
                     _portFocusNode,
+                    context,
                   ).copyWith(
                     suffixIcon:
                         !widget.readOnly && _portController.text.isNotEmpty
@@ -781,10 +785,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               enabled: enableField(_usernameController),
               keyboardType: TextInputType.number,
               focusNode: _usernameFocusNode,
-              style: STextStyles.field,
+              style: STextStyles.field(context),
               decoration: standardInputDecoration(
                 "Login (optional)",
                 _usernameFocusNode,
+                context,
               ).copyWith(
                 suffixIcon:
                     !widget.readOnly && _usernameController.text.isNotEmpty
@@ -827,10 +832,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               enabled: enableField(_passwordController),
               keyboardType: TextInputType.number,
               focusNode: _passwordFocusNode,
-              style: STextStyles.field,
+              style: STextStyles.field(context),
               decoration: standardInputDecoration(
                 "Password (optional)",
                 _passwordFocusNode,
+                context,
               ).copyWith(
                 suffixIcon:
                     !widget.readOnly && _passwordController.text.isNotEmpty
@@ -904,7 +910,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       ),
                       Text(
                         "Use SSL",
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       )
                     ],
                   ),
@@ -967,7 +973,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       ),
                       Text(
                         "Use as failover",
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       )
                     ],
                   ),

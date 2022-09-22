@@ -97,12 +97,14 @@ class _AddWalletViewState extends State<AddWalletView> {
                                 _searchTerm = value;
                               });
                             },
-                            style: STextStyles.desktopTextMedium.copyWith(
+                            style:
+                                STextStyles.desktopTextMedium(context).copyWith(
                               height: 2,
                             ),
                             decoration: standardInputDecoration(
                               "Search",
                               _searchFocusNode,
+                              context,
                             ).copyWith(
                               contentPadding: const EdgeInsets.symmetric(
                                 vertical: 10,

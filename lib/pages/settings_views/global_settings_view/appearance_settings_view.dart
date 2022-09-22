@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
+import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -27,7 +31,7 @@ class AppearanceSettingsView extends ConsumerWidget {
         ),
         title: Text(
           "Appearance",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -65,7 +69,7 @@ class AppearanceSettingsView extends ConsumerWidget {
                                   children: [
                                     Text(
                                       "Display favorite wallets",
-                                      style: STextStyles.titleBold12,
+                                      style: STextStyles.titleBold12(context),
                                       textAlign: TextAlign.left,
                                     ),
                                     SizedBox(
@@ -120,12 +124,14 @@ class AppearanceSettingsView extends ConsumerWidget {
                                       children: [
                                         Text(
                                           "Enabled dark mode",
-                                          style: STextStyles.titleBold12,
+                                          style:
+                                              STextStyles.titleBold12(context),
                                           textAlign: TextAlign.left,
                                         ),
                                         Text(
                                           "Requires restart",
-                                          style: STextStyles.itemSubtitle,
+                                          style:
+                                              STextStyles.itemSubtitle(context),
                                           textAlign: TextAlign.left,
                                         ),
                                       ],
@@ -148,6 +154,13 @@ class AppearanceSettingsView extends ConsumerWidget {
                                                     : ThemeType.light)
                                                 .name,
                                           );
+                                          ref
+                                                  .read(colorThemeProvider.state)
+                                                  .state =
+                                              StackColors.fromStackColorTheme(
+                                                  newValue
+                                                      ? DarkColors()
+                                                      : LightColors());
                                         },
                                       ),
                                     )

@@ -28,10 +28,10 @@ class MnemonicTableItem extends StatelessWidget {
           Text(
             number.toString(),
             style: isDesktop
-                ? STextStyles.desktopTextExtraSmall.copyWith(
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: StackTheme.instance.color.textSubtitle2,
                   )
-                : STextStyles.baseXS.copyWith(
+                : STextStyles.baseXS(context).copyWith(
                     color: StackTheme.instance.color.textSubtitle2,
                     fontSize: 10,
                   ),
@@ -42,10 +42,10 @@ class MnemonicTableItem extends StatelessWidget {
           Text(
             word,
             style: isDesktop
-                ? STextStyles.desktopTextExtraSmall.copyWith(
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: StackTheme.instance.color.textDark,
                   )
-                : STextStyles.baseXS,
+                : STextStyles.baseXS(context),
           ),
         ],
       ),

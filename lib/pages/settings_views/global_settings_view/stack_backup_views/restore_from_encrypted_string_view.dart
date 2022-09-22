@@ -78,7 +78,7 @@ class _RestoreFromEncryptedStringViewState
           ),
           title: Text(
             "Restore from file",
-            style: STextStyles.navBarTitle,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
         body: Padding(
@@ -102,13 +102,14 @@ class _RestoreFromEncryptedStringViewState
                             key: const Key("restoreFromFilePasswordFieldKey"),
                             focusNode: passwordFocusNode,
                             controller: passwordController,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             obscureText: hidePassword,
                             enableSuggestions: false,
                             autocorrect: false,
                             decoration: standardInputDecoration(
                               "Enter password",
                               passwordFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: UnconstrainedBox(
                                 child: Row(
@@ -187,7 +188,8 @@ class _RestoreFromEncryptedStringViewState
                                             child: Center(
                                               child: Text(
                                                 "Decrypting Stack backup file",
-                                                style: STextStyles.pageTitleH2
+                                                style: STextStyles.pageTitleH2(
+                                                        context)
                                                     .copyWith(
                                                   color: StackTheme
                                                       .instance.color.textWhite,
@@ -245,7 +247,7 @@ class _RestoreFromEncryptedStringViewState
                                 },
                           child: Text(
                             "Restore",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],

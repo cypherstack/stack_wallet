@@ -47,8 +47,8 @@ class DesktopMenuItem<T> extends StatelessWidget {
               Text(
                 label,
                 style: value == group
-                    ? STextStyles.desktopMenuItemSelected
-                    : STextStyles.desktopMenuItem,
+                    ? STextStyles.desktopMenuItemSelected(context)
+                    : STextStyles.desktopMenuItem(context),
               ),
           ],
         ),

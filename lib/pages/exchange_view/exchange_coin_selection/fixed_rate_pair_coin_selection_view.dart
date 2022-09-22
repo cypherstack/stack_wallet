@@ -134,7 +134,7 @@ class _FixedRateMarketPairCoinSelectionViewState
         ),
         title: Text(
           "Choose a coin to exchange",
-          style: STextStyles.pageTitleH2,
+          style: STextStyles.pageTitleH2(context),
         ),
       ),
       body: Padding(
@@ -155,10 +155,11 @@ class _FixedRateMarketPairCoinSelectionViewState
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 onChanged: filter,
-                style: STextStyles.field,
+                style: STextStyles.field(context),
                 decoration: standardInputDecoration(
                   "Search",
                   _searchFocusNode,
+                  context,
                 ).copyWith(
                   prefixIcon: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -198,7 +199,7 @@ class _FixedRateMarketPairCoinSelectionViewState
             ),
             Text(
               "Popular coins",
-              style: STextStyles.smallMed12,
+              style: STextStyles.smallMed12(context),
             ),
             const SizedBox(
               height: 12,
@@ -251,14 +252,15 @@ class _FixedRateMarketPairCoinSelectionViewState
                                   children: [
                                     Text(
                                       tuple.item2,
-                                      style: STextStyles.largeMedium14,
+                                      style: STextStyles.largeMedium14(context),
                                     ),
                                     const SizedBox(
                                       height: 2,
                                     ),
                                     Text(
                                       ticker.toUpperCase(),
-                                      style: STextStyles.smallMed12.copyWith(
+                                      style: STextStyles.smallMed12(context)
+                                          .copyWith(
                                         color: StackTheme
                                             .instance.color.textSubtitle1,
                                       ),
@@ -280,7 +282,7 @@ class _FixedRateMarketPairCoinSelectionViewState
             ),
             Text(
               "All coins",
-              style: STextStyles.smallMed12,
+              style: STextStyles.smallMed12(context),
             ),
             const SizedBox(
               height: 12,
@@ -325,14 +327,15 @@ class _FixedRateMarketPairCoinSelectionViewState
                                   children: [
                                     Text(
                                       tuple.item2,
-                                      style: STextStyles.largeMedium14,
+                                      style: STextStyles.largeMedium14(context),
                                     ),
                                     const SizedBox(
                                       height: 2,
                                     ),
                                     Text(
                                       ticker.toUpperCase(),
-                                      style: STextStyles.smallMed12.copyWith(
+                                      style: STextStyles.smallMed12(context)
+                                          .copyWith(
                                         color: StackTheme
                                             .instance.color.textSubtitle1,
                                       ),

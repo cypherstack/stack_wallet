@@ -82,7 +82,7 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
             children: [
               Text(
                 "Favorite Wallets",
-                style: STextStyles.itemSubtitle.copyWith(
+                style: STextStyles.itemSubtitle(context).copyWith(
                   color: StackTheme.instance.color.textDark3,
                 ),
               ),
@@ -151,7 +151,7 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                         ),
                         Text(
                           "Add a favorite",
-                          style: STextStyles.itemSubtitle.copyWith(
+                          style: STextStyles.itemSubtitle(context).copyWith(
                             fontSize: 10,
                           ),
                         ),

@@ -368,7 +368,7 @@ class _WalletInitiatedExchangeViewState
         ),
         title: Text(
           "Exchange",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -397,21 +397,21 @@ class _WalletInitiatedExchangeViewState
                         ),
                         Text(
                           "Exchange amount",
-                          style: STextStyles.pageTitleH1,
+                          style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(
                           height: 8,
                         ),
                         Text(
                           "Network fees and other exchange charges are included in the rate.",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 24,
                         ),
                         Text(
                           "You will send",
-                          style: STextStyles.itemSubtitle.copyWith(
+                          style: STextStyles.itemSubtitle(context).copyWith(
                             color: StackTheme.instance.color.textDark3,
                           ),
                         ),
@@ -481,7 +481,7 @@ class _WalletInitiatedExchangeViewState
                               right: 12,
                             ),
                             hintText: "0",
-                            hintStyle: STextStyles.fieldLabel.copyWith(
+                            hintStyle: STextStyles.fieldLabel(context).copyWith(
                               fontSize: 14,
                             ),
                             prefixIcon: FittedBox(
@@ -682,7 +682,7 @@ class _WalletInitiatedExchangeViewState
                                                               .market?.from
                                                               .toUpperCase())) ??
                                                   "-",
-                                          style: STextStyles.smallMed14
+                                          style: STextStyles.smallMed14(context)
                                               .copyWith(
                                                   color: StackTheme.instance
                                                       .color.accentColorDark),
@@ -733,7 +733,8 @@ class _WalletInitiatedExchangeViewState
                                 alignment: Alignment.bottomLeft,
                                 child: Text(
                                   "You will receive",
-                                  style: STextStyles.itemSubtitle.copyWith(
+                                  style: STextStyles.itemSubtitle(context)
+                                      .copyWith(
                                     color: StackTheme.instance.color.textDark3,
                                   ),
                                 ),
@@ -766,7 +767,7 @@ class _WalletInitiatedExchangeViewState
                                       : ref.watch(fixedRateExchangeFormProvider
                                           .select((value) =>
                                               value.sendAmountWarning)),
-                                  style: STextStyles.errorSmall,
+                                  style: STextStyles.errorSmall(context),
                                 ),
                               ),
                             ),
@@ -842,7 +843,7 @@ class _WalletInitiatedExchangeViewState
                               right: 12,
                             ),
                             hintText: "0",
-                            hintStyle: STextStyles.fieldLabel.copyWith(
+                            hintStyle: STextStyles.fieldLabel(context).copyWith(
                               fontSize: 14,
                             ),
                             prefixIcon: FittedBox(
@@ -1043,7 +1044,7 @@ class _WalletInitiatedExchangeViewState
                                                               .market?.to
                                                               .toUpperCase())) ??
                                                   "-",
-                                          style: STextStyles.smallMed14
+                                          style: STextStyles.smallMed14(context)
                                               .copyWith(
                                                   color: StackTheme.instance
                                                       .color.accentColorDark),
@@ -1102,7 +1103,7 @@ class _WalletInitiatedExchangeViewState
                         //       Text(
                         //         ref.watch(exchangeFormSateProvider.select(
                         //             (value) => value.minimumReceiveWarning)),
-                        //         style: STextStyles.errorSmall,
+                        //         style: STextStyles.errorSmall(context),
                         //       ),
                         //     ],
                         //   ),
@@ -1475,7 +1476,8 @@ class _WalletInitiatedExchangeViewState
                                                     context),
                                             child: Text(
                                               "Cancel",
-                                              style: STextStyles.itemSubtitle12,
+                                              style: STextStyles.itemSubtitle12(
+                                                  context),
                                             ),
                                             onPressed: () {
                                               // notify return to cancel
@@ -1488,7 +1490,8 @@ class _WalletInitiatedExchangeViewState
                                                     context),
                                             child: Text(
                                               "Attempt",
-                                              style: STextStyles.button,
+                                              style:
+                                                  STextStyles.button(context),
                                             ),
                                             onPressed: () {
                                               // continue and try to attempt trade
@@ -1532,7 +1535,7 @@ class _WalletInitiatedExchangeViewState
                               : null,
                           child: Text(
                             "Next",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],

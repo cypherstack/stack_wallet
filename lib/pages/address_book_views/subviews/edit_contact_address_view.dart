@@ -75,7 +75,7 @@ class _EditContactAddressViewState
         ),
         title: Text(
           "Edit address",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -115,7 +115,7 @@ class _EditContactAddressViewState
                                       )
                                     : Text(
                                         contact.emojiChar!,
-                                        style: STextStyles.pageTitleH1,
+                                        style: STextStyles.pageTitleH1(context),
                                       ),
                               ),
                             ),
@@ -127,7 +127,7 @@ class _EditContactAddressViewState
                                 fit: BoxFit.scaleDown,
                                 child: Text(
                                   contact.name,
-                                  style: STextStyles.pageTitleH2,
+                                  style: STextStyles.pageTitleH2(context),
                                 ),
                               ),
                             ),
@@ -169,7 +169,7 @@ class _EditContactAddressViewState
                           },
                           child: Text(
                             "Delete address",
-                            style: STextStyles.link,
+                            style: STextStyles.link(context),
                           ),
                         ),
                         const Spacer(),
@@ -184,7 +184,7 @@ class _EditContactAddressViewState
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
-                                  style: STextStyles.button.copyWith(
+                                  style: STextStyles.button(context).copyWith(
                                       color: StackTheme
                                           .instance.color.accentColorDark),
                                 ),
@@ -268,7 +268,7 @@ class _EditContactAddressViewState
                                         : null,
                                     child: Text(
                                       "Save",
-                                      style: STextStyles.button,
+                                      style: STextStyles.button(context),
                                     ),
                                   );
                                 },

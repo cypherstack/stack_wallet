@@ -62,7 +62,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                 children: [
                   Text(
                     "Phrase length",
-                    style: STextStyles.pageTitleH2,
+                    style: STextStyles.pageTitleH2(context),
                     textAlign: TextAlign.left,
                   ),
                   const SizedBox(
@@ -119,7 +119,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                 ),
                                 Text(
                                   "${lengthOptions[i]} words",
-                                  style: STextStyles.titleBold12,
+                                  style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
                               ],

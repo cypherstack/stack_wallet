@@ -169,7 +169,7 @@ class _TransactionDetailsViewState
             }),
             Text(
               "Never show again",
-              style: STextStyles.smallMed14,
+              style: STextStyles.smallMed14(context),
             )
           ],
         ),
@@ -179,7 +179,7 @@ class _TransactionDetailsViewState
           },
           child: Text(
             "Cancel",
-            style: STextStyles.button
+            style: STextStyles.button(context)
                 .copyWith(color: StackTheme.instance.color.accentColorDark),
           ),
         ),
@@ -190,7 +190,7 @@ class _TransactionDetailsViewState
           },
           child: Text(
             "Continue",
-            style: STextStyles.button,
+            style: STextStyles.button(context),
           ),
         ),
       ),
@@ -215,7 +215,7 @@ class _TransactionDetailsViewState
         ),
         title: Text(
           "Transaction details",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -244,7 +244,7 @@ class _TransactionDetailsViewState
                               ),
                               decimalPlaces: Constants.decimalPlaces,
                             )} ${coin.ticker}",
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                           ),
                           const SizedBox(
                             height: 2,
@@ -258,7 +258,7 @@ class _TransactionDetailsViewState
                                 (value) => value.currency,
                               ),
                             )}",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ],
                       ),
@@ -277,7 +277,7 @@ class _TransactionDetailsViewState
                     children: [
                       Text(
                         "Status",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -287,7 +287,7 @@ class _TransactionDetailsViewState
                         _transaction.isCancelled
                             ? "Cancelled"
                             : whatIsIt(_transaction.txType),
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -313,7 +313,7 @@ class _TransactionDetailsViewState
                           _transaction.txType.toLowerCase() == "sent"
                               ? "Sent to"
                               : "Received on",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 8,
@@ -333,13 +333,13 @@ class _TransactionDetailsViewState
                                   }
                                   return SelectableText(
                                     addressOrContactName,
-                                    style: STextStyles.itemSubtitle12,
+                                    style: STextStyles.itemSubtitle12(context),
                                   );
                                 },
                               )
                             : SelectableText(
                                 _transaction.address,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                       ],
                     ),
@@ -356,7 +356,7 @@ class _TransactionDetailsViewState
                         children: [
                           Text(
                             "Note",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                           GestureDetector(
                             onTap: () {
@@ -383,7 +383,7 @@ class _TransactionDetailsViewState
                                 ),
                                 Text(
                                   "Edit",
-                                  style: STextStyles.link2,
+                                  style: STextStyles.link2(context),
                                 ),
                               ],
                             ),
@@ -407,7 +407,7 @@ class _TransactionDetailsViewState
                           }
                           return SelectableText(
                             _note,
-                            style: STextStyles.itemSubtitle12,
+                            style: STextStyles.itemSubtitle12(context),
                           );
                         },
                       ),
@@ -423,7 +423,7 @@ class _TransactionDetailsViewState
                     children: [
                       Text(
                         "Date",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -431,7 +431,7 @@ class _TransactionDetailsViewState
                       //     child:
                       SelectableText(
                         Format.extractDateFrom(_transaction.timestamp),
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -447,7 +447,7 @@ class _TransactionDetailsViewState
                     children: [
                       Text(
                         "Transaction fee",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -473,7 +473,7 @@ class _TransactionDetailsViewState
                                     localeServiceChangeNotifierProvider
                                         .select((value) => value.locale)),
                                 decimalPlaces: Constants.decimalPlaces),
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -489,7 +489,7 @@ class _TransactionDetailsViewState
                     children: [
                       Text(
                         "Block height",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -502,7 +502,7 @@ class _TransactionDetailsViewState
                             : _transaction.confirmations > 0
                                 ? "${_transaction.height}"
                                 : "Pending",
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -521,7 +521,7 @@ class _TransactionDetailsViewState
                         children: [
                           Text(
                             "Transaction ID",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ],
                       ),
@@ -534,7 +534,7 @@ class _TransactionDetailsViewState
                       //     child:
                       SelectableText(
                         _transaction.txid,
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       if (coin != Coin.epicCash)
                         const SizedBox(
@@ -613,7 +613,7 @@ class _TransactionDetailsViewState
                 //           children: [
                 //             Text(
                 //               "Mint Transaction ID",
-                //               style: STextStyles.itemSubtitle,
+                //               style: STextStyles.itemSubtitle(context),
                 //             ),
                 //           ],
                 //         ),
@@ -626,7 +626,7 @@ class _TransactionDetailsViewState
                 //         //     child:
                 //         SelectableText(
                 //           _transaction.otherData ?? "Unknown",
-                //           style: STextStyles.itemSubtitle12,
+                //           style: STextStyles.itemSubtitle12(context),
                 //         ),
                 //         //   ),
                 //         // ),
@@ -685,7 +685,7 @@ class _TransactionDetailsViewState
                       children: [
                         Text(
                           "Slate ID",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         // Flexible(
                         //   child: FittedBox(
@@ -693,7 +693,7 @@ class _TransactionDetailsViewState
                         //     child:
                         SelectableText(
                           _transaction.slateId ?? "Unknown",
-                          style: STextStyles.itemSubtitle12,
+                          style: STextStyles.itemSubtitle12(context),
                         ),
                         //   ),
                         // ),
@@ -783,7 +783,7 @@ class _TransactionDetailsViewState
                 },
                 child: Text(
                   "Cancel Transaction",
-                  style: STextStyles.button,
+                  style: STextStyles.button(context),
                 ),
               ),
             )

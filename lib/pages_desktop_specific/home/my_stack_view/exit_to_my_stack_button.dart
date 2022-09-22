@@ -34,7 +34,7 @@ class ExitToMyStackButton extends StatelessWidget {
             ),
             child: Text(
               "Exit to My Stack",
-              style: STextStyles.desktopButtonSmallSecondaryEnabled,
+              style: STextStyles.desktopButtonSmallSecondaryEnabled(context),
             ),
           ),
         ),

@@ -2,167 +2,167 @@ import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
-  final Color? background;
-  final Color? overlay;
+  final Color background;
+  final Color overlay;
 
-  final Color? accentColorBlue;
-  final Color? accentColorGreen;
-  final Color? accentColorYellow;
-  final Color? accentColorRed;
-  final Color? accentColorOrange;
-  final Color? accentColorDark;
+  final Color accentColorBlue;
+  final Color accentColorGreen;
+  final Color accentColorYellow;
+  final Color accentColorRed;
+  final Color accentColorOrange;
+  final Color accentColorDark;
 
-  final Color? shadow;
+  final Color shadow;
 
-  final Color? textDark;
-  final Color? textDark2;
-  final Color? textDark3;
-  final Color? textSubtitle1;
-  final Color? textSubtitle2;
-  final Color? textSubtitle3;
-  final Color? textSubtitle4;
-  final Color? textSubtitle5;
-  final Color? textSubtitle6;
-  final Color? textWhite;
-  final Color? textFavoriteCard;
-  final Color? textError;
+  final Color textDark;
+  final Color textDark2;
+  final Color textDark3;
+  final Color textSubtitle1;
+  final Color textSubtitle2;
+  final Color textSubtitle3;
+  final Color textSubtitle4;
+  final Color textSubtitle5;
+  final Color textSubtitle6;
+  final Color textWhite;
+  final Color textFavoriteCard;
+  final Color textError;
 
 // button background
-  final Color? buttonBackPrimary;
-  final Color? buttonBackSecondary;
-  final Color? buttonBackPrimaryDisabled;
-  final Color? buttonBackSecondaryDisabled;
-  final Color? buttonBackBorder;
-  final Color? buttonBackBorderDisabled;
-  final Color? numberBackDefault;
-  final Color? numpadBackDefault;
-  final Color? bottomNavBack;
+  final Color buttonBackPrimary;
+  final Color buttonBackSecondary;
+  final Color buttonBackPrimaryDisabled;
+  final Color buttonBackSecondaryDisabled;
+  final Color buttonBackBorder;
+  final Color buttonBackBorderDisabled;
+  final Color numberBackDefault;
+  final Color numpadBackDefault;
+  final Color bottomNavBack;
 
 // button text/element
-  final Color? buttonTextPrimary;
-  final Color? buttonTextSecondary;
-  final Color? buttonTextPrimaryDisabled;
-  final Color? buttonTextSecondaryDisabled;
-  final Color? buttonTextBorder;
-  final Color? buttonTextDisabled;
-  final Color? buttonTextBorderless;
-  final Color? buttonTextBorderlessDisabled;
-  final Color? numberTextDefault;
-  final Color? numpadTextDefault;
-  final Color? bottomNavText;
+  final Color buttonTextPrimary;
+  final Color buttonTextSecondary;
+  final Color buttonTextPrimaryDisabled;
+  final Color buttonTextSecondaryDisabled;
+  final Color buttonTextBorder;
+  final Color buttonTextDisabled;
+  final Color buttonTextBorderless;
+  final Color buttonTextBorderlessDisabled;
+  final Color numberTextDefault;
+  final Color numpadTextDefault;
+  final Color bottomNavText;
 
 // switch background
-  final Color? switchBGOn;
-  final Color? switchBGOff;
-  final Color? switchBGDisabled;
+  final Color switchBGOn;
+  final Color switchBGOff;
+  final Color switchBGDisabled;
 
 // switch circle
-  final Color? switchCircleOn;
-  final Color? switchCircleOff;
-  final Color? switchCircleDisabled;
+  final Color switchCircleOn;
+  final Color switchCircleOff;
+  final Color switchCircleDisabled;
 
 // step indicator background
-  final Color? stepIndicatorBGCheck;
-  final Color? stepIndicatorBGNumber;
-  final Color? stepIndicatorBGInactive;
-  final Color? stepIndicatorBGLines;
-  final Color? stepIndicatorBGLinesInactive;
-  final Color? stepIndicatorIconText;
-  final Color? stepIndicatorIconNumber;
-  final Color? stepIndicatorIconInactive;
+  final Color stepIndicatorBGCheck;
+  final Color stepIndicatorBGNumber;
+  final Color stepIndicatorBGInactive;
+  final Color stepIndicatorBGLines;
+  final Color stepIndicatorBGLinesInactive;
+  final Color stepIndicatorIconText;
+  final Color stepIndicatorIconNumber;
+  final Color stepIndicatorIconInactive;
 
 // checkbox
-  final Color? checkboxBGChecked;
-  final Color? checkboxBorderEmpty;
-  final Color? checkboxBGDisabled;
-  final Color? checkboxIconChecked;
-  final Color? checkboxIconDisabled;
-  final Color? checkboxTextLabel;
+  final Color checkboxBGChecked;
+  final Color checkboxBorderEmpty;
+  final Color checkboxBGDisabled;
+  final Color checkboxIconChecked;
+  final Color checkboxIconDisabled;
+  final Color checkboxTextLabel;
 
 // snack bar
-  final Color? snackBarBackSuccess;
-  final Color? snackBarBackError;
-  final Color? snackBarBackInfo;
-  final Color? snackBarTextSuccess;
-  final Color? snackBarTextError;
-  final Color? snackBarTextInfo;
+  final Color snackBarBackSuccess;
+  final Color snackBarBackError;
+  final Color snackBarBackInfo;
+  final Color snackBarTextSuccess;
+  final Color snackBarTextError;
+  final Color snackBarTextInfo;
 
 // icons
-  final Color? bottomNavIconBack;
-  final Color? bottomNavIconIcon;
-  final Color? topNavIconPrimary;
-  final Color? topNavIconGreen;
-  final Color? topNavIconYellow;
-  final Color? topNavIconRed;
-  final Color? settingsIconBack;
-  final Color? settingsIconIcon;
-  final Color? settingsIconBack2;
-  final Color? settingsIconElement;
+  final Color bottomNavIconBack;
+  final Color bottomNavIconIcon;
+  final Color topNavIconPrimary;
+  final Color topNavIconGreen;
+  final Color topNavIconYellow;
+  final Color topNavIconRed;
+  final Color settingsIconBack;
+  final Color settingsIconIcon;
+  final Color settingsIconBack2;
+  final Color settingsIconElement;
 
 // text field
-  final Color? textFieldActiveBG;
-  final Color? textFieldDefaultBG;
-  final Color? textFieldErrorBG;
-  final Color? textFieldSuccessBG;
-  final Color? textFieldActiveSearchIconLeft;
-  final Color? textFieldDefaultSearchIconLeft;
-  final Color? textFieldErrorSearchIconLeft;
-  final Color? textFieldSuccessSearchIconLeft;
-  final Color? textFieldActiveText;
-  final Color? textFieldDefaultText;
-  final Color? textFieldErrorText;
-  final Color? textFieldSuccessText;
-  final Color? textFieldActiveLabel;
-  final Color? textFieldErrorLabel;
-  final Color? textFieldSuccessLabel;
-  final Color? textFieldActiveSearchIconRight;
-  final Color? textFieldDefaultSearchIconRight;
-  final Color? textFieldErrorSearchIconRight;
-  final Color? textFieldSuccessSearchIconRight;
+  final Color textFieldActiveBG;
+  final Color textFieldDefaultBG;
+  final Color textFieldErrorBG;
+  final Color textFieldSuccessBG;
+  final Color textFieldActiveSearchIconLeft;
+  final Color textFieldDefaultSearchIconLeft;
+  final Color textFieldErrorSearchIconLeft;
+  final Color textFieldSuccessSearchIconLeft;
+  final Color textFieldActiveText;
+  final Color textFieldDefaultText;
+  final Color textFieldErrorText;
+  final Color textFieldSuccessText;
+  final Color textFieldActiveLabel;
+  final Color textFieldErrorLabel;
+  final Color textFieldSuccessLabel;
+  final Color textFieldActiveSearchIconRight;
+  final Color textFieldDefaultSearchIconRight;
+  final Color textFieldErrorSearchIconRight;
+  final Color textFieldSuccessSearchIconRight;
 
 // settings item level2
-  final Color? settingsItem2ActiveBG;
-  final Color? settingsItem2ActiveText;
-  final Color? settingsItem2ActiveSub;
+  final Color settingsItem2ActiveBG;
+  final Color settingsItem2ActiveText;
+  final Color settingsItem2ActiveSub;
 
 // radio buttons
-  final Color? radioButtonIconBorder;
-  final Color? radioButtonIconBorderDisabled;
-  final Color? radioButtonBorderEnabled;
-  final Color? radioButtonBorderDisabled;
-  final Color? radioButtonIconCircle;
-  final Color? radioButtonIconEnabled;
-  final Color? radioButtonTextEnabled;
-  final Color? radioButtonTextDisabled;
-  final Color? radioButtonLabelEnabled;
-  final Color? radioButtonLabelDisabled;
+  final Color radioButtonIconBorder;
+  final Color radioButtonIconBorderDisabled;
+  final Color radioButtonBorderEnabled;
+  final Color radioButtonBorderDisabled;
+  final Color radioButtonIconCircle;
+  final Color radioButtonIconEnabled;
+  final Color radioButtonTextEnabled;
+  final Color radioButtonTextDisabled;
+  final Color radioButtonLabelEnabled;
+  final Color radioButtonLabelDisabled;
 
 // info text
-  final Color? infoItemBG;
-  final Color? infoItemLabel;
-  final Color? infoItemText;
-  final Color? infoItemIcons;
+  final Color infoItemBG;
+  final Color infoItemLabel;
+  final Color infoItemText;
+  final Color infoItemIcons;
 
 // popup
-  final Color? popupBG;
+  final Color popupBG;
 
 // currency list
-  final Color? currencyListItemBG;
+  final Color currencyListItemBG;
 
 // bottom nav
-  final Color? stackWalletBG;
-  final Color? stackWalletMid;
-  final Color? stackWalletBottom;
-  final Color? bottomNavShadow;
+  final Color stackWalletBG;
+  final Color stackWalletMid;
+  final Color stackWalletBottom;
+  final Color bottomNavShadow;
 
-  final Color? favoriteStarActive;
-  final Color? favoriteStarInactive;
+  final Color favoriteStarActive;
+  final Color favoriteStarInactive;
 
-  final Color? splash;
-  final Color? highlight;
-  final Color? warningForeground;
-  final Color? warningBackground;
-  final Color? loadingOverlayTextColor;
+  final Color splash;
+  final Color highlight;
+  final Color warningForeground;
+  final Color warningBackground;
+  final Color loadingOverlayTextColor;
 
   StackColors({
     required this.background,
@@ -667,10 +667,12 @@ class StackColors extends ThemeExtension<StackColors> {
           textFieldSuccessLabel ?? this.textFieldSuccessLabel,
       textFieldActiveSearchIconRight:
           textFieldActiveSearchIconRight ?? this.textFieldActiveSearchIconRight,
-      textFieldDefaultSearchIconRight: textFieldDefaultSearchIconRight,
+      textFieldDefaultSearchIconRight: textFieldDefaultSearchIconRight ??
+          this.textFieldDefaultSearchIconRight,
       textFieldErrorSearchIconRight:
           textFieldErrorSearchIconRight ?? this.textFieldErrorSearchIconRight,
-      textFieldSuccessSearchIconRight: textFieldSuccessSearchIconRight,
+      textFieldSuccessSearchIconRight: textFieldSuccessSearchIconRight ??
+          this.textFieldSuccessSearchIconRight,
       settingsItem2ActiveBG:
           settingsItem2ActiveBG ?? this.settingsItem2ActiveBG,
       settingsItem2ActiveText:
@@ -732,630 +734,630 @@ class StackColors extends ThemeExtension<StackColors> {
         background,
         other.background,
         t,
-      ),
+      )!,
       overlay: Color.lerp(
         overlay,
         other.overlay,
         t,
-      ),
+      )!,
       accentColorBlue: Color.lerp(
         accentColorBlue,
         other.accentColorBlue,
         t,
-      ),
+      )!,
       accentColorGreen: Color.lerp(
         accentColorGreen,
         other.accentColorGreen,
         t,
-      ),
+      )!,
       accentColorYellow: Color.lerp(
         accentColorYellow,
         other.accentColorYellow,
         t,
-      ),
+      )!,
       accentColorRed: Color.lerp(
         accentColorRed,
         other.accentColorRed,
         t,
-      ),
+      )!,
       accentColorOrange: Color.lerp(
         accentColorOrange,
         other.accentColorOrange,
         t,
-      ),
+      )!,
       accentColorDark: Color.lerp(
         accentColorDark,
         other.accentColorDark,
         t,
-      ),
+      )!,
       shadow: Color.lerp(
         shadow,
         other.shadow,
         t,
-      ),
+      )!,
       textDark: Color.lerp(
         textDark,
         other.textDark,
         t,
-      ),
+      )!,
       textDark2: Color.lerp(
         textDark2,
         other.textDark2,
         t,
-      ),
+      )!,
       textDark3: Color.lerp(
         textDark3,
         other.textDark3,
         t,
-      ),
+      )!,
       textSubtitle1: Color.lerp(
         textSubtitle1,
         other.textSubtitle1,
         t,
-      ),
+      )!,
       textSubtitle2: Color.lerp(
         textSubtitle2,
         other.textSubtitle2,
         t,
-      ),
+      )!,
       textSubtitle3: Color.lerp(
         textSubtitle3,
         other.textSubtitle3,
         t,
-      ),
+      )!,
       textSubtitle4: Color.lerp(
         textSubtitle4,
         other.textSubtitle4,
         t,
-      ),
+      )!,
       textSubtitle5: Color.lerp(
         textSubtitle5,
         other.textSubtitle5,
         t,
-      ),
+      )!,
       textSubtitle6: Color.lerp(
         textSubtitle6,
         other.textSubtitle6,
         t,
-      ),
+      )!,
       textWhite: Color.lerp(
         textWhite,
         other.textWhite,
         t,
-      ),
+      )!,
       textFavoriteCard: Color.lerp(
         textFavoriteCard,
         other.textFavoriteCard,
         t,
-      ),
+      )!,
       textError: Color.lerp(
         textError,
         other.textError,
         t,
-      ),
+      )!,
       buttonBackPrimary: Color.lerp(
         buttonBackPrimary,
         other.buttonBackPrimary,
         t,
-      ),
+      )!,
       buttonBackSecondary: Color.lerp(
         buttonBackSecondary,
         other.buttonBackSecondary,
         t,
-      ),
+      )!,
       buttonBackPrimaryDisabled: Color.lerp(
         buttonBackPrimaryDisabled,
         other.buttonBackPrimaryDisabled,
         t,
-      ),
+      )!,
       buttonBackSecondaryDisabled: Color.lerp(
         buttonBackSecondaryDisabled,
         other.buttonBackSecondaryDisabled,
         t,
-      ),
+      )!,
       buttonBackBorder: Color.lerp(
         buttonBackBorder,
         other.buttonBackBorder,
         t,
-      ),
+      )!,
       buttonBackBorderDisabled: Color.lerp(
         buttonBackBorderDisabled,
         other.buttonBackBorderDisabled,
         t,
-      ),
+      )!,
       numberBackDefault: Color.lerp(
         numberBackDefault,
         other.numberBackDefault,
         t,
-      ),
+      )!,
       numpadBackDefault: Color.lerp(
         numpadBackDefault,
         other.numpadBackDefault,
         t,
-      ),
+      )!,
       bottomNavBack: Color.lerp(
         bottomNavBack,
         other.bottomNavBack,
         t,
-      ),
+      )!,
       buttonTextPrimary: Color.lerp(
         buttonTextPrimary,
         other.buttonTextPrimary,
         t,
-      ),
+      )!,
       buttonTextSecondary: Color.lerp(
         buttonTextSecondary,
         other.buttonTextSecondary,
         t,
-      ),
+      )!,
       buttonTextPrimaryDisabled: Color.lerp(
         buttonTextPrimaryDisabled,
         other.buttonTextPrimaryDisabled,
         t,
-      ),
+      )!,
       buttonTextSecondaryDisabled: Color.lerp(
         buttonTextSecondaryDisabled,
         other.buttonTextSecondaryDisabled,
         t,
-      ),
+      )!,
       buttonTextBorder: Color.lerp(
         buttonTextBorder,
         other.buttonTextBorder,
         t,
-      ),
+      )!,
       buttonTextDisabled: Color.lerp(
         buttonTextDisabled,
         other.buttonTextDisabled,
         t,
-      ),
+      )!,
       buttonTextBorderless: Color.lerp(
         buttonTextBorderless,
         other.buttonTextBorderless,
         t,
-      ),
+      )!,
       buttonTextBorderlessDisabled: Color.lerp(
         buttonTextBorderlessDisabled,
         other.buttonTextBorderlessDisabled,
         t,
-      ),
+      )!,
       numberTextDefault: Color.lerp(
         numberTextDefault,
         other.numberTextDefault,
         t,
-      ),
+      )!,
       numpadTextDefault: Color.lerp(
         numpadTextDefault,
         other.numpadTextDefault,
         t,
-      ),
+      )!,
       bottomNavText: Color.lerp(
         bottomNavText,
         other.bottomNavText,
         t,
-      ),
+      )!,
       switchBGOn: Color.lerp(
         switchBGOn,
         other.switchBGOn,
         t,
-      ),
+      )!,
       switchBGOff: Color.lerp(
         switchBGOff,
         other.switchBGOff,
         t,
-      ),
+      )!,
       switchBGDisabled: Color.lerp(
         switchBGDisabled,
         other.switchBGDisabled,
         t,
-      ),
+      )!,
       switchCircleOn: Color.lerp(
         switchCircleOn,
         other.switchCircleOn,
         t,
-      ),
+      )!,
       switchCircleOff: Color.lerp(
         switchCircleOff,
         other.switchCircleOff,
         t,
-      ),
+      )!,
       switchCircleDisabled: Color.lerp(
         switchCircleDisabled,
         other.switchCircleDisabled,
         t,
-      ),
+      )!,
       stepIndicatorBGCheck: Color.lerp(
         stepIndicatorBGCheck,
         other.stepIndicatorBGCheck,
         t,
-      ),
+      )!,
       stepIndicatorBGNumber: Color.lerp(
         stepIndicatorBGNumber,
         other.stepIndicatorBGNumber,
         t,
-      ),
+      )!,
       stepIndicatorBGInactive: Color.lerp(
         stepIndicatorBGInactive,
         other.stepIndicatorBGInactive,
         t,
-      ),
+      )!,
       stepIndicatorBGLines: Color.lerp(
         stepIndicatorBGLines,
         other.stepIndicatorBGLines,
         t,
-      ),
+      )!,
       stepIndicatorBGLinesInactive: Color.lerp(
         stepIndicatorBGLinesInactive,
         other.stepIndicatorBGLinesInactive,
         t,
-      ),
+      )!,
       stepIndicatorIconText: Color.lerp(
         stepIndicatorIconText,
         other.stepIndicatorIconText,
         t,
-      ),
+      )!,
       stepIndicatorIconNumber: Color.lerp(
         stepIndicatorIconNumber,
         other.stepIndicatorIconNumber,
         t,
-      ),
+      )!,
       stepIndicatorIconInactive: Color.lerp(
         stepIndicatorIconInactive,
         other.stepIndicatorIconInactive,
         t,
-      ),
+      )!,
       checkboxBGChecked: Color.lerp(
         checkboxBGChecked,
         other.checkboxBGChecked,
         t,
-      ),
+      )!,
       checkboxBorderEmpty: Color.lerp(
         checkboxBorderEmpty,
         other.checkboxBorderEmpty,
         t,
-      ),
+      )!,
       checkboxBGDisabled: Color.lerp(
         checkboxBGDisabled,
         other.checkboxBGDisabled,
         t,
-      ),
+      )!,
       checkboxIconChecked: Color.lerp(
         checkboxIconChecked,
         other.checkboxIconChecked,
         t,
-      ),
+      )!,
       checkboxIconDisabled: Color.lerp(
         checkboxIconDisabled,
         other.checkboxIconDisabled,
         t,
-      ),
+      )!,
       checkboxTextLabel: Color.lerp(
         checkboxTextLabel,
         other.checkboxTextLabel,
         t,
-      ),
+      )!,
       snackBarBackSuccess: Color.lerp(
         snackBarBackSuccess,
         other.snackBarBackSuccess,
         t,
-      ),
+      )!,
       snackBarBackError: Color.lerp(
         snackBarBackError,
         other.snackBarBackError,
         t,
-      ),
+      )!,
       snackBarBackInfo: Color.lerp(
         snackBarBackInfo,
         other.snackBarBackInfo,
         t,
-      ),
+      )!,
       snackBarTextSuccess: Color.lerp(
         snackBarTextSuccess,
         other.snackBarTextSuccess,
         t,
-      ),
+      )!,
       snackBarTextError: Color.lerp(
         snackBarTextError,
         other.snackBarTextError,
         t,
-      ),
+      )!,
       snackBarTextInfo: Color.lerp(
         snackBarTextInfo,
         other.snackBarTextInfo,
         t,
-      ),
+      )!,
       bottomNavIconBack: Color.lerp(
         bottomNavIconBack,
         other.bottomNavIconBack,
         t,
-      ),
+      )!,
       bottomNavIconIcon: Color.lerp(
         bottomNavIconIcon,
         other.bottomNavIconIcon,
         t,
-      ),
+      )!,
       topNavIconPrimary: Color.lerp(
         topNavIconPrimary,
         other.topNavIconPrimary,
         t,
-      ),
+      )!,
       topNavIconGreen: Color.lerp(
         topNavIconGreen,
         other.topNavIconGreen,
         t,
-      ),
+      )!,
       topNavIconYellow: Color.lerp(
         topNavIconYellow,
         other.topNavIconYellow,
         t,
-      ),
+      )!,
       topNavIconRed: Color.lerp(
         topNavIconRed,
         other.topNavIconRed,
         t,
-      ),
+      )!,
       settingsIconBack: Color.lerp(
         settingsIconBack,
         other.settingsIconBack,
         t,
-      ),
+      )!,
       settingsIconIcon: Color.lerp(
         settingsIconIcon,
         other.settingsIconIcon,
         t,
-      ),
+      )!,
       settingsIconBack2: Color.lerp(
         settingsIconBack2,
         other.settingsIconBack2,
         t,
-      ),
+      )!,
       settingsIconElement: Color.lerp(
         settingsIconElement,
         other.settingsIconElement,
         t,
-      ),
+      )!,
       textFieldActiveBG: Color.lerp(
         textFieldActiveBG,
         other.textFieldActiveBG,
         t,
-      ),
+      )!,
       textFieldDefaultBG: Color.lerp(
         textFieldDefaultBG,
         other.textFieldDefaultBG,
         t,
-      ),
+      )!,
       textFieldErrorBG: Color.lerp(
         textFieldErrorBG,
         other.textFieldErrorBG,
         t,
-      ),
+      )!,
       textFieldSuccessBG: Color.lerp(
         textFieldSuccessBG,
         other.textFieldSuccessBG,
         t,
-      ),
+      )!,
       textFieldActiveSearchIconLeft: Color.lerp(
         textFieldActiveSearchIconLeft,
         other.textFieldActiveSearchIconLeft,
         t,
-      ),
+      )!,
       textFieldDefaultSearchIconLeft: Color.lerp(
         textFieldDefaultSearchIconLeft,
         other.textFieldDefaultSearchIconLeft,
         t,
-      ),
+      )!,
       textFieldErrorSearchIconLeft: Color.lerp(
         textFieldErrorSearchIconLeft,
         other.textFieldErrorSearchIconLeft,
         t,
-      ),
+      )!,
       textFieldSuccessSearchIconLeft: Color.lerp(
         textFieldSuccessSearchIconLeft,
         other.textFieldSuccessSearchIconLeft,
         t,
-      ),
+      )!,
       textFieldActiveText: Color.lerp(
         textFieldActiveText,
         other.textFieldActiveText,
         t,
-      ),
+      )!,
       textFieldDefaultText: Color.lerp(
         textFieldDefaultText,
         other.textFieldDefaultText,
         t,
-      ),
+      )!,
       textFieldErrorText: Color.lerp(
         textFieldErrorText,
         other.textFieldErrorText,
         t,
-      ),
+      )!,
       textFieldSuccessText: Color.lerp(
         textFieldSuccessText,
         other.textFieldSuccessText,
         t,
-      ),
+      )!,
       textFieldActiveLabel: Color.lerp(
         textFieldActiveLabel,
         other.textFieldActiveLabel,
         t,
-      ),
+      )!,
       textFieldErrorLabel: Color.lerp(
         textFieldErrorLabel,
         other.textFieldErrorLabel,
         t,
-      ),
+      )!,
       textFieldSuccessLabel: Color.lerp(
         textFieldSuccessLabel,
         other.textFieldSuccessLabel,
         t,
-      ),
+      )!,
       textFieldActiveSearchIconRight: Color.lerp(
         textFieldActiveSearchIconRight,
         other.textFieldActiveSearchIconRight,
         t,
-      ),
+      )!,
       textFieldDefaultSearchIconRight: Color.lerp(
           textFieldDefaultSearchIconRight,
           other.textFieldDefaultSearchIconRight,
-          t),
+          t)!,
       textFieldErrorSearchIconRight: Color.lerp(
         textFieldErrorSearchIconRight,
         other.textFieldErrorSearchIconRight,
         t,
-      ),
+      )!,
       textFieldSuccessSearchIconRight: Color.lerp(
           textFieldSuccessSearchIconRight,
           other.textFieldSuccessSearchIconRight,
-          t),
+          t)!,
       settingsItem2ActiveBG: Color.lerp(
         settingsItem2ActiveBG,
         other.settingsItem2ActiveBG,
         t,
-      ),
+      )!,
       settingsItem2ActiveText: Color.lerp(
         settingsItem2ActiveText,
         other.settingsItem2ActiveText,
         t,
-      ),
+      )!,
       settingsItem2ActiveSub: Color.lerp(
         settingsItem2ActiveSub,
         other.settingsItem2ActiveSub,
         t,
-      ),
+      )!,
       radioButtonIconBorder: Color.lerp(
         radioButtonIconBorder,
         other.radioButtonIconBorder,
         t,
-      ),
+      )!,
       radioButtonIconBorderDisabled: Color.lerp(
         radioButtonIconBorderDisabled,
         other.radioButtonIconBorderDisabled,
         t,
-      ),
+      )!,
       radioButtonBorderEnabled: Color.lerp(
         radioButtonBorderEnabled,
         other.radioButtonBorderEnabled,
         t,
-      ),
+      )!,
       radioButtonBorderDisabled: Color.lerp(
         radioButtonBorderDisabled,
         other.radioButtonBorderDisabled,
         t,
-      ),
+      )!,
       radioButtonIconCircle: Color.lerp(
         radioButtonIconCircle,
         other.radioButtonIconCircle,
         t,
-      ),
+      )!,
       radioButtonIconEnabled: Color.lerp(
         radioButtonIconEnabled,
         other.radioButtonIconEnabled,
         t,
-      ),
+      )!,
       radioButtonTextEnabled: Color.lerp(
         radioButtonTextEnabled,
         other.radioButtonTextEnabled,
         t,
-      ),
+      )!,
       radioButtonTextDisabled: Color.lerp(
         radioButtonTextDisabled,
         other.radioButtonTextDisabled,
         t,
-      ),
+      )!,
       radioButtonLabelEnabled: Color.lerp(
         radioButtonLabelEnabled,
         other.radioButtonLabelEnabled,
         t,
-      ),
+      )!,
       radioButtonLabelDisabled: Color.lerp(
         radioButtonLabelDisabled,
         other.radioButtonLabelDisabled,
         t,
-      ),
+      )!,
       infoItemBG: Color.lerp(
         infoItemBG,
         other.infoItemBG,
         t,
-      ),
+      )!,
       infoItemLabel: Color.lerp(
         infoItemLabel,
         other.infoItemLabel,
         t,
-      ),
+      )!,
       infoItemText: Color.lerp(
         infoItemText,
         other.infoItemText,
         t,
-      ),
+      )!,
       infoItemIcons: Color.lerp(
         infoItemIcons,
         other.infoItemIcons,
         t,
-      ),
+      )!,
       popupBG: Color.lerp(
         popupBG,
         other.popupBG,
         t,
-      ),
+      )!,
       currencyListItemBG: Color.lerp(
         currencyListItemBG,
         other.currencyListItemBG,
         t,
-      ),
+      )!,
       stackWalletBG: Color.lerp(
         stackWalletBG,
         other.stackWalletBG,
         t,
-      ),
+      )!,
       stackWalletMid: Color.lerp(
         stackWalletMid,
         other.stackWalletMid,
         t,
-      ),
+      )!,
       stackWalletBottom: Color.lerp(
         stackWalletBottom,
         other.stackWalletBottom,
         t,
-      ),
+      )!,
       bottomNavShadow: Color.lerp(
         bottomNavShadow,
         other.bottomNavShadow,
         t,
-      ),
+      )!,
       favoriteStarActive: Color.lerp(
         favoriteStarActive,
         other.favoriteStarActive,
         t,
-      ),
+      )!,
       favoriteStarInactive: Color.lerp(
         favoriteStarInactive,
         other.favoriteStarInactive,
         t,
-      ),
+      )!,
       splash: Color.lerp(
         splash,
         other.splash,
         t,
-      ),
+      )!,
       highlight: Color.lerp(
         highlight,
         other.highlight,
         t,
-      ),
+      )!,
       warningForeground: Color.lerp(
         warningForeground,
         other.warningForeground,
         t,
-      ),
+      )!,
       warningBackground: Color.lerp(
         warningBackground,
         other.warningBackground,
         t,
-      ),
+      )!,
       loadingOverlayTextColor: Color.lerp(
         loadingOverlayTextColor,
         other.loadingOverlayTextColor,
         t,
-      ),
+      )!,
     );
   }
 }

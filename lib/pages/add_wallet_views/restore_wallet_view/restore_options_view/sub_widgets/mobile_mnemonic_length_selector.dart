@@ -41,7 +41,7 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
               children: [
                 Text(
                   "${ref.watch(mnemonicWordCountStateProvider.state).state} words",
-                  style: STextStyles.itemSubtitle12,
+                  style: STextStyles.itemSubtitle12(context),
                 ),
                 SvgPicture.asset(
                   Assets.svg.chevronDown,

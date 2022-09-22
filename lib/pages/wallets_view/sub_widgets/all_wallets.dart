@@ -20,7 +20,7 @@ class AllWallets extends StatelessWidget {
           children: [
             Text(
               "All wallets",
-              style: STextStyles.itemSubtitle.copyWith(
+              style: STextStyles.itemSubtitle(context).copyWith(
                 color: StackTheme.instance.color.textDark,
               ),
             ),

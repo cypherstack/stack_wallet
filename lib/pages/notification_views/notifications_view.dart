@@ -48,7 +48,7 @@ class _NotificationsViewState extends ConsumerState<NotificationsView> {
       appBar: AppBar(
         title: Text(
           "Notifications",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         leading: AppBarBackButton(
           onPressed: () async {
@@ -95,7 +95,7 @@ class _NotificationsViewState extends ConsumerState<NotificationsView> {
                           fit: BoxFit.scaleDown,
                           child: Text(
                             "Notifications will appear here",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ),
                       ),

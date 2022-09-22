@@ -108,7 +108,7 @@ class _AddAddressBookEntryViewState
         ),
         title: Text(
           "New contact",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -212,7 +212,8 @@ class _AddAddressBookEntryViewState
                                         )
                                       : Text(
                                           _selectedEmoji!.char,
-                                          style: STextStyles.pageTitleH1,
+                                          style:
+                                              STextStyles.pageTitleH1(context),
                                         ),
                                 ),
                               ),
@@ -258,10 +259,11 @@ class _AddAddressBookEntryViewState
                         child: TextField(
                           controller: nameController,
                           focusNode: nameFocusNode,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           decoration: standardInputDecoration(
                             "Enter contact name",
                             nameFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: ref
                                     .read(contactNameIsNotEmptyStateProvider
@@ -308,7 +310,7 @@ class _AddAddressBookEntryViewState
                               ),
                               Text(
                                 "Address ${i + 1}",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               const SizedBox(
                                 height: 8,
@@ -330,7 +332,7 @@ class _AddAddressBookEntryViewState
                         },
                         child: Text(
                           "+ Add another address",
-                          style: STextStyles.largeMedium14,
+                          style: STextStyles.largeMedium14(context),
                         ),
                       ),
                       const SizedBox(
@@ -345,7 +347,7 @@ class _AddAddressBookEntryViewState
                                   .getSecondaryEnabledButtonColor(context),
                               child: Text(
                                 "Cancel",
-                                style: STextStyles.button.copyWith(
+                                style: STextStyles.button(context).copyWith(
                                     color: StackTheme
                                         .instance.color.accentColorDark),
                               ),
@@ -424,7 +426,7 @@ class _AddAddressBookEntryViewState
                                       : null,
                                   child: Text(
                                     "Save",
-                                    style: STextStyles.button,
+                                    style: STextStyles.button(context),
                                   ),
                                 );
                               },

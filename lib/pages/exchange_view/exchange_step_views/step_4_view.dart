@@ -129,7 +129,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         ),
         title: Text(
           "Exchange",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -158,14 +158,14 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                         ),
                         Text(
                           "Send ${model.sendTicker.toUpperCase()} to the address below",
-                          style: STextStyles.pageTitleH1,
+                          style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(
                           height: 8,
                         ),
                         Text(
                           "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ChangeNOW will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 12,
@@ -176,7 +176,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             text: TextSpan(
                               text:
                                   "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
-                              style: STextStyles.label.copyWith(
+                              style: STextStyles.label(context).copyWith(
                                 color:
                                     StackTheme.instance.color.warningForeground,
                                 fontWeight: FontWeight.w700,
@@ -185,7 +185,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 TextSpan(
                                   text:
                                       "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
-                                  style: STextStyles.label.copyWith(
+                                  style: STextStyles.label(context).copyWith(
                                     color: StackTheme
                                         .instance.color.warningForeground,
                                     fontWeight: FontWeight.w500,
@@ -208,7 +208,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 children: [
                                   Text(
                                     "Amount",
-                                    style: STextStyles.itemSubtitle,
+                                    style: STextStyles.itemSubtitle(context),
                                   ),
                                   GestureDetector(
                                     onTap: () async {
@@ -234,7 +234,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                         ),
                                         Text(
                                           "Copy",
-                                          style: STextStyles.link2,
+                                          style: STextStyles.link2(context),
                                         ),
                                       ],
                                     ),
@@ -246,7 +246,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               ),
                               Text(
                                 "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
                           ),
@@ -264,7 +264,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 children: [
                                   Text(
                                     "Send ${model.sendTicker.toUpperCase()} to this address",
-                                    style: STextStyles.itemSubtitle,
+                                    style: STextStyles.itemSubtitle(context),
                                   ),
                                   GestureDetector(
                                     onTap: () async {
@@ -290,7 +290,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                         ),
                                         Text(
                                           "Copy",
-                                          style: STextStyles.link2,
+                                          style: STextStyles.link2(context),
                                         ),
                                       ],
                                     ),
@@ -302,7 +302,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               ),
                               Text(
                                 model.trade!.payinAddress,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
                           ),
@@ -315,14 +315,14 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             children: [
                               Text(
                                 "Trade ID",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const Spacer(),
                               Row(
                                 children: [
                                   Text(
                                     model.trade!.id,
-                                    style: STextStyles.itemSubtitle12,
+                                    style: STextStyles.itemSubtitle12(context),
                                   ),
                                   const SizedBox(
                                     width: 10,
@@ -359,11 +359,12 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             children: [
                               Text(
                                 "Status",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               Text(
                                 _statusString,
-                                style: STextStyles.itemSubtitle.copyWith(
+                                style:
+                                    STextStyles.itemSubtitle(context).copyWith(
                                   color: StackTheme.instance
                                       .colorForStatus(_status),
                                 ),
@@ -390,7 +391,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       Center(
                                         child: Text(
                                           "Send ${model.sendTicker} to this address",
-                                          style: STextStyles.pageTitleH2,
+                                          style:
+                                              STextStyles.pageTitleH2(context),
                                         ),
                                       ),
                                       const SizedBox(
@@ -425,7 +427,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                               child: Text(
                                                 "Cancel",
                                                 style:
-                                                    STextStyles.button.copyWith(
+                                                    STextStyles.button(context)
+                                                        .copyWith(
                                                   color: StackTheme
                                                       .instance
                                                       .color
@@ -446,7 +449,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               .getPrimaryEnabledButtonColor(context),
                           child: Text(
                             "Show QR Code",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                         if (isWalletCoin)
@@ -569,7 +572,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                           context),
                                                   child: Text(
                                                     "Ok",
-                                                    style: STextStyles.button
+                                                    style: STextStyles.button(
+                                                            context)
                                                         .copyWith(
                                                       color: StackTheme
                                                           .instance
@@ -615,7 +619,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   buttonTitle,
-                                  style: STextStyles.button.copyWith(
+                                  style: STextStyles.button(context).copyWith(
                                     color: StackTheme
                                         .instance.color.buttonTextSecondary,
                                   ),

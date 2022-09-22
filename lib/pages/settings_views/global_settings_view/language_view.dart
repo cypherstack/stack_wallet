@@ -114,7 +114,7 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
         ),
         title: Text(
           "Language",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -143,10 +143,11 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                         onChanged: (newString) {
                           setState(() => filter = newString);
                         },
-                        style: STextStyles.field,
+                        style: STextStyles.field(context),
                         decoration: standardInputDecoration(
                           "Search",
                           _searchFocusNode,
+                          context,
                         ).copyWith(
                           prefixIcon: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -254,7 +255,8 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                                                 ? const Key(
                                                     "selectedLanguageSettingsLanguageText")
                                                 : null,
-                                            style: STextStyles.largeMedium14,
+                                            style: STextStyles.largeMedium14(
+                                                context),
                                           ),
                                           const SizedBox(
                                             height: 2,
@@ -265,7 +267,8 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                                                 ? const Key(
                                                     "selectedLanguageSettingsLanguageTextDescription")
                                                 : null,
-                                            style: STextStyles.itemSubtitle,
+                                            style: STextStyles.itemSubtitle(
+                                                context),
                                           ),
                                         ],
                                       ),

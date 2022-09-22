@@ -32,7 +32,7 @@ class SecurityView extends StatelessWidget {
         ),
         title: Text(
           "Security",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -77,7 +77,7 @@ class SecurityView extends StatelessWidget {
                     children: [
                       Text(
                         "Change PIN",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -118,7 +118,7 @@ class SecurityView extends StatelessWidget {
                         children: [
                           Text(
                             "Enable biometric authentication",
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),
                           SizedBox(

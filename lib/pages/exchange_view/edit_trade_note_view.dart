@@ -62,7 +62,7 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
         ),
         title: Text(
           "Edit trade note",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -86,12 +86,13 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                           ),
                           child: TextField(
                             controller: _noteController,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             focusNode: noteFieldFocusNode,
                             onChanged: (_) => setState(() {}),
                             decoration: standardInputDecoration(
                               "Note",
                               noteFieldFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: _noteController.text.isNotEmpty
                                   ? Padding(
@@ -130,7 +131,7 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                               .getPrimaryEnabledButtonColor(context),
                           child: Text(
                             "Save",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         )
                       ],

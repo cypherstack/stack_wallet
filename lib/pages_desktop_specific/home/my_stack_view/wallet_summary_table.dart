@@ -4,7 +4,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/coin_wallets_table.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -62,7 +61,8 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                     ),
                     Text(
                       providersByCoin[i].key.prettyName,
-                      style: STextStyles.desktopTextExtraSmall.copyWith(
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: StackTheme.instance.color.textDark,
                       ),
                     )
@@ -75,7 +75,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                   providersByCoin[i].value.length == 1
                       ? "${providersByCoin[i].value.length} wallet"
                       : "${providersByCoin[i].value.length} wallets",
-                  style: STextStyles.desktopTextExtraSmall.copyWith(
+                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: StackTheme.instance.color.textSubtitle1,
                   ),
                 ),
@@ -145,13 +145,13 @@ class TablePriceInfo extends ConsumerWidget {
       children: [
         Text(
           "$priceString $currency/${coin.ticker}",
-          style: STextStyles.desktopTextExtraSmall.copyWith(
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
             color: StackTheme.instance.color.textSubtitle1,
           ),
         ),
         Text(
           "${percentChange.toStringAsFixed(2)}%",
-          style: STextStyles.desktopTextExtraSmall.copyWith(
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
             color: percentChangedColor,
           ),
         ),

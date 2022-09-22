@@ -366,7 +366,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                       ),
                       Text(
                         "You will send",
-                        style: STextStyles.itemSubtitle.copyWith(
+                        style: STextStyles.itemSubtitle(context).copyWith(
                           color: StackTheme.instance.color.textDark3,
                         ),
                       ),
@@ -436,7 +436,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                             right: 12,
                           ),
                           hintText: "0",
-                          hintStyle: STextStyles.fieldLabel.copyWith(
+                          hintStyle: STextStyles.fieldLabel(context).copyWith(
                             fontSize: 14,
                           ),
                           prefixIcon: FittedBox(
@@ -619,7 +619,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                             .market?.from
                                                             .toUpperCase())) ??
                                                 "-",
-                                        style: STextStyles.smallMed14.copyWith(
+                                        style: STextStyles.smallMed14(context)
+                                            .copyWith(
                                           color: StackTheme
                                               .instance.color.textDark,
                                         ),
@@ -652,7 +653,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                               alignment: Alignment.bottomLeft,
                               child: Text(
                                 "You will receive",
-                                style: STextStyles.itemSubtitle.copyWith(
+                                style:
+                                    STextStyles.itemSubtitle(context).copyWith(
                                   color: StackTheme.instance.color.textDark3,
                                 ),
                               ),
@@ -697,7 +699,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                     : ref.watch(fixedRateExchangeFormProvider
                                         .select((value) =>
                                             value.sendAmountWarning)),
-                                style: STextStyles.errorSmall,
+                                style: STextStyles.errorSmall(context),
                               ),
                             ),
                           ),
@@ -773,7 +775,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                             right: 12,
                           ),
                           hintText: "0",
-                          hintStyle: STextStyles.fieldLabel.copyWith(
+                          hintStyle: STextStyles.fieldLabel(context).copyWith(
                             fontSize: 14,
                           ),
                           prefixIcon: FittedBox(
@@ -949,7 +951,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                             .market?.to
                                                             .toUpperCase())) ??
                                                 "-",
-                                        style: STextStyles.smallMed14.copyWith(
+                                        style: STextStyles.smallMed14(context)
+                                            .copyWith(
                                           color: StackTheme
                                               .instance.color.textDark,
                                         ),
@@ -990,7 +993,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                       //       Text(
                       //         ref.watch(exchangeFormSateProvider.select(
                       //             (value) => value.minimumReceiveWarning)),
-                      //         style: STextStyles.errorSmall,
+                      //         style: STextStyles.errorSmall(context),
                       //       ),
                       //     ],
                       //   ),
@@ -1322,7 +1325,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                   context),
                                           child: Text(
                                             "Cancel",
-                                            style: STextStyles.itemSubtitle12,
+                                            style: STextStyles.itemSubtitle12(
+                                                context),
                                           ),
                                           onPressed: () {
                                             // notify return to cancel
@@ -1335,7 +1339,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                                   context),
                                           child: Text(
                                             "Attempt",
-                                            style: STextStyles.button,
+                                            style: STextStyles.button(context),
                                           ),
                                           onPressed: () {
                                             // continue and try to attempt trade
@@ -1379,7 +1383,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                             : null,
                         child: Text(
                           "Exchange",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                       ),
                       const SizedBox(
@@ -1387,7 +1391,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                       ),
                       // Text(
                       //   "Trades",
-                      //   style: STextStyles.itemSubtitle.copyWith(
+                      //   style: STextStyles.itemSubtitle(context).copyWith(
                       //     color: StackTheme.instance.color.textDark3,
                       //   ),
                       // ),
@@ -1427,7 +1431,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                           ),
                           Text(
                             "Trades",
-                            style: STextStyles.itemSubtitle.copyWith(
+                            style: STextStyles.itemSubtitle(context).copyWith(
                               color: StackTheme.instance.color.textDark3,
                             ),
                           ),
@@ -1511,7 +1515,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                             child: Text(
                               "Trades will appear here",
                               textAlign: TextAlign.center,
-                              style: STextStyles.itemSubtitle,
+                              style: STextStyles.itemSubtitle(context),
                             ),
                           ),
                         ),
@@ -1621,7 +1625,7 @@ class RateInfo extends ConsumerWidget {
                 children: [
                   Text(
                     isEstimated ? "Estimated rate" : "Fixed rate",
-                    style: STextStyles.itemSubtitle,
+                    style: STextStyles.itemSubtitle(context),
                   ),
                   const SizedBox(
                     width: 6,
@@ -1648,7 +1652,7 @@ class RateInfo extends ConsumerWidget {
                           .select((value) => value.rateDisplayString))
                       : ref.watch(fixedRateExchangeFormProvider
                           .select((value) => value.rateDisplayString)),
-                  style: STextStyles.itemSubtitle12,
+                  style: STextStyles.itemSubtitle12(context),
                 ),
               ),
             ),

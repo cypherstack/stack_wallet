@@ -86,7 +86,7 @@ class _FiroBalanceSelectionSheetState
               children: [
                 Text(
                   "Select balance",
-                  style: STextStyles.pageTitleH2,
+                  style: STextStyles.pageTitleH2(context),
                   textAlign: TextAlign.left,
                 ),
                 const SizedBox(
@@ -144,7 +144,7 @@ class _FiroBalanceSelectionSheetState
                               //   children: [
                               Text(
                                 "Private balance",
-                                style: STextStyles.titleBold12,
+                                style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
                               const SizedBox(
@@ -159,14 +159,14 @@ class _FiroBalanceSelectionSheetState
                                       snapshot.hasData) {
                                     return Text(
                                       "${snapshot.data!} ${manager.coin.ticker}",
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     );
                                   } else {
                                     return AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     );
                                   }
                                 },
@@ -233,7 +233,7 @@ class _FiroBalanceSelectionSheetState
                               //   children: [
                               Text(
                                 "Public balance",
-                                style: STextStyles.titleBold12,
+                                style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
                               const SizedBox(
@@ -248,14 +248,14 @@ class _FiroBalanceSelectionSheetState
                                       snapshot.hasData) {
                                     return Text(
                                       "${snapshot.data!} ${manager.coin.ticker}",
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     );
                                   } else {
                                     return AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     );
                                   }
                                 },

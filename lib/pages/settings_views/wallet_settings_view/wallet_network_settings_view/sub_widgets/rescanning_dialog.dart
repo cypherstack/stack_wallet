@@ -73,7 +73,7 @@ class _RescanningDialogState extends State<RescanningDialog>
         //   ),
         //   child: Text(
         //     "Cancel",
-        //     style: STextStyles.itemSubtitle12,
+        //     style: STextStyles.itemSubtitle12(context),
         //   ),
         //   onPressed: () {
         //     Navigator.of(context).pop();

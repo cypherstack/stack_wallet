@@ -72,7 +72,7 @@ class StackDialog extends StatelessWidget {
               Flexible(
                 child: Text(
                   title,
-                  style: STextStyles.pageTitleH2,
+                  style: STextStyles.pageTitleH2(context),
                 ),
               ),
               icon != null ? icon! : Container(),
@@ -88,7 +88,7 @@ class StackDialog extends StatelessWidget {
               children: [
                 Text(
                   message!,
-                  style: STextStyles.smallMed14,
+                  style: STextStyles.smallMed14(context),
                 ),
               ],
             ),
@@ -146,7 +146,7 @@ class StackOkDialog extends StatelessWidget {
               Flexible(
                 child: Text(
                   title,
-                  style: STextStyles.pageTitleH2,
+                  style: STextStyles.pageTitleH2(context),
                 ),
               ),
               icon != null ? icon! : Container(),
@@ -162,7 +162,7 @@ class StackOkDialog extends StatelessWidget {
               children: [
                 Text(
                   message!,
-                  style: STextStyles.smallMed14,
+                  style: STextStyles.smallMed14(context),
                 ),
               ],
             ),
@@ -187,7 +187,7 @@ class StackOkDialog extends StatelessWidget {
                       StackTheme.instance.getPrimaryEnabledButtonColor(context),
                   child: Text(
                     "Ok",
-                    style: STextStyles.button,
+                    style: STextStyles.button(context),
                   ),
                 ),
               ),

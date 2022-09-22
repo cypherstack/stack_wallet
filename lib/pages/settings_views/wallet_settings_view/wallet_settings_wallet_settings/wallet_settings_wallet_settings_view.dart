@@ -34,7 +34,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
         ),
         title: Text(
           "Wallet settings",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -72,7 +72,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                       children: [
                         Text(
                           "Rename wallet",
-                          style: STextStyles.titleBold12,
+                          style: STextStyles.titleBold12(context),
                         ),
                       ],
                     ),
@@ -108,7 +108,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                           },
                           child: Text(
                             "Cancel",
-                            style: STextStyles.button.copyWith(
+                            style: STextStyles.button(context).copyWith(
                                 color:
                                     StackTheme.instance.color.accentColorDark),
                           ),
@@ -141,7 +141,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                           },
                           child: Text(
                             "Delete",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ),
@@ -156,7 +156,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                       children: [
                         Text(
                           "Delete wallet",
-                          style: STextStyles.titleBold12,
+                          style: STextStyles.titleBold12(context),
                         ),
                       ],
                     ),

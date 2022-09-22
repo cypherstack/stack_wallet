@@ -103,7 +103,7 @@ class _DeleteWalletRecoveryPhraseViewState
             Text(
               _manager.walletName,
               textAlign: TextAlign.center,
-              style: STextStyles.label.copyWith(
+              style: STextStyles.label(context).copyWith(
                 fontSize: 12,
               ),
             ),
@@ -113,7 +113,7 @@ class _DeleteWalletRecoveryPhraseViewState
             Text(
               "Recovery Phrase",
               textAlign: TextAlign.center,
-              style: STextStyles.pageTitleH1,
+              style: STextStyles.pageTitleH1(context),
             ),
             const SizedBox(
               height: 16,
@@ -128,7 +128,7 @@ class _DeleteWalletRecoveryPhraseViewState
                 padding: const EdgeInsets.all(12),
                 child: Text(
                   "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
-                  style: STextStyles.label.copyWith(
+                  style: STextStyles.label(context).copyWith(
                       color: StackTheme.instance.color.accentColorDark),
                 ),
               ),
@@ -163,7 +163,7 @@ class _DeleteWalletRecoveryPhraseViewState
                       },
                       child: Text(
                         "Cancel",
-                        style: STextStyles.button.copyWith(
+                        style: STextStyles.button(context).copyWith(
                             color: StackTheme.instance.color.accentColorDark),
                       ),
                     ),
@@ -189,7 +189,7 @@ class _DeleteWalletRecoveryPhraseViewState
                       },
                       child: Text(
                         "Ok",
-                        style: STextStyles.button,
+                        style: STextStyles.button(context),
                       ),
                     ),
                   ),
@@ -197,7 +197,7 @@ class _DeleteWalletRecoveryPhraseViewState
               },
               child: Text(
                 "Continue",
-                style: STextStyles.button,
+                style: STextStyles.button(context),
               ),
             ),
           ],

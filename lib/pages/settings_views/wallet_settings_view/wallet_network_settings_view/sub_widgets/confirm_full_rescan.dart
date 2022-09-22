@@ -23,7 +23,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
           style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
           child: Text(
             "Cancel",
-            style: STextStyles.itemSubtitle12,
+            style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () {
             Navigator.of(context).pop();
@@ -33,7 +33,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
           style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
           child: Text(
             "Rescan",
-            style: STextStyles.button,
+            style: STextStyles.button(context),
           ),
           onPressed: () {
             Navigator.of(context).pop();

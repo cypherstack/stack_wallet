@@ -61,7 +61,7 @@ class EmojiSelectSheet extends ConsumerWidget {
               ),
               Text(
                 "Select emoji",
-                style: STextStyles.pageTitleH2,
+                style: STextStyles.pageTitleH2(context),
                 textAlign: TextAlign.left,
               ),
               const SizedBox(

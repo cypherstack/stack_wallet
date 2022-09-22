@@ -56,7 +56,7 @@ class NotificationCard extends StatelessWidget {
                   children: [
                     Text(
                       notification.title,
-                      style: STextStyles.titleBold12,
+                      style: STextStyles.titleBold12(context),
                     ),
                     const SizedBox(
                       height: 2,
@@ -66,11 +66,11 @@ class NotificationCard extends StatelessWidget {
                       children: [
                         Text(
                           notification.description,
-                          style: STextStyles.label,
+                          style: STextStyles.label(context),
                         ),
                         Text(
                           extractPrettyDateString(notification.date),
-                          style: STextStyles.label,
+                          style: STextStyles.label(context),
                         ),
                       ],
                     ),

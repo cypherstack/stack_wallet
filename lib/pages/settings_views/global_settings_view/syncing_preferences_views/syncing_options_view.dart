@@ -26,7 +26,7 @@ class SyncingOptionsView extends ConsumerWidget {
         ),
         title: Text(
           "Syncing",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -119,12 +119,14 @@ class SyncingOptionsView extends ConsumerWidget {
                                             children: [
                                               Text(
                                                 "Sync only currently open wallet",
-                                                style: STextStyles.titleBold12,
+                                                style: STextStyles.titleBold12(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                               Text(
                                                 "Sync only the wallet that you are using",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                             ],
@@ -207,12 +209,14 @@ class SyncingOptionsView extends ConsumerWidget {
                                             children: [
                                               Text(
                                                 "Sync all wallets at startup",
-                                                style: STextStyles.titleBold12,
+                                                style: STextStyles.titleBold12(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                               Text(
                                                 "All of your wallets will start syncing when you open the app",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                             ],
@@ -299,12 +303,14 @@ class SyncingOptionsView extends ConsumerWidget {
                                             children: [
                                               Text(
                                                 "Sync only selected wallets at startup",
-                                                style: STextStyles.titleBold12,
+                                                style: STextStyles.titleBold12(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                               Text(
                                                 "Only the wallets you select will start syncing when you open the app",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                             ],
@@ -363,7 +369,8 @@ class SyncingOptionsView extends ConsumerWidget {
                                             children: [
                                               Text(
                                                 "Select wallets...",
-                                                style: STextStyles.link2,
+                                                style:
+                                                    STextStyles.link2(context),
                                                 textAlign: TextAlign.left,
                                               ),
                                             ],

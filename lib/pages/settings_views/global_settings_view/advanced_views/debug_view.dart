@@ -99,7 +99,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
         ),
         title: Text(
           "Debug",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -133,7 +133,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             .getSecondaryEnabledButtonColor(context),
                         child: Text(
                           "Cancel",
-                          style: STextStyles.itemSubtitle12,
+                          style: STextStyles.itemSubtitle12(context),
                         ),
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -144,7 +144,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             .getPrimaryEnabledButtonColor(context),
                         child: Text(
                           "Delete logs",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                         onPressed: () async {
                           Navigator.of(context).pop();
@@ -218,10 +218,11 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             onChanged: (newString) {
                               setState(() => _searchTerm = newString);
                             },
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             decoration: standardInputDecoration(
                               "Search",
                               _searchFocusNode,
+                              context,
                             ).copyWith(
                               prefixIcon: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -390,7 +391,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                     children: [
                                       Text(
                                         " [${log.logLevel.name}]",
-                                        style: STextStyles.baseXS.copyWith(
+                                        style: STextStyles.baseXS(context)
+                                            .copyWith(
                                           fontSize: 8,
                                           color: (log.logLevel == LogLevel.Info
                                               ? StackTheme.instance.color
@@ -410,7 +412,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                       ),
                                       Text(
                                         "[${DateTime.fromMillisecondsSinceEpoch(log.timestampInMillisUTC, isUtc: true)}]: ",
-                                        style: STextStyles.baseXS.copyWith(
+                                        style: STextStyles.baseXS(context)
+                                            .copyWith(
                                           fontSize: 8,
                                           color: StackTheme
                                               .instance.color.textDark3,
@@ -432,7 +435,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                           children: [
                                             SelectableText(
                                               log.message,
-                                              style: STextStyles.baseXS
+                                              style: STextStyles.baseXS(context)
                                                   .copyWith(fontSize: 8),
                                             ),
                                           ],

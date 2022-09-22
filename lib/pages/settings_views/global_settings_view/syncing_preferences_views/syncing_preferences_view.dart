@@ -38,7 +38,7 @@ class SyncingPreferencesView extends ConsumerWidget {
         ),
         title: Text(
           "Syncing preferences",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -79,14 +79,14 @@ class SyncingPreferencesView extends ConsumerWidget {
                                   children: [
                                     Text(
                                       "Syncing",
-                                      style: STextStyles.titleBold12,
+                                      style: STextStyles.titleBold12(context),
                                       textAlign: TextAlign.left,
                                     ),
                                     Text(
                                       _currentTypeDescription(ref.watch(
                                           prefsChangeNotifierProvider.select(
                                               (value) => value.syncType))),
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     )
                                   ],
@@ -122,7 +122,7 @@ class SyncingPreferencesView extends ConsumerWidget {
                                   children: [
                                     Text(
                                       "AutoSync only on Wi-Fi",
-                                      style: STextStyles.titleBold12,
+                                      style: STextStyles.titleBold12(context),
                                       textAlign: TextAlign.left,
                                     ),
                                     SizedBox(

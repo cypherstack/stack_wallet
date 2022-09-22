@@ -45,7 +45,7 @@ class WalletBackupView extends ConsumerWidget {
         ),
         title: Text(
           "Wallet backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -90,7 +90,7 @@ class WalletBackupView extends ConsumerWidget {
                       .select((value) => value.getManager(walletId)))
                   .walletName,
               textAlign: TextAlign.center,
-              style: STextStyles.label.copyWith(
+              style: STextStyles.label(context).copyWith(
                 fontSize: 12,
               ),
             ),
@@ -100,7 +100,7 @@ class WalletBackupView extends ConsumerWidget {
             Text(
               "Recovery Phrase",
               textAlign: TextAlign.center,
-              style: STextStyles.pageTitleH1,
+              style: STextStyles.pageTitleH1(context),
             ),
             const SizedBox(
               height: 16,
@@ -115,7 +115,7 @@ class WalletBackupView extends ConsumerWidget {
                 padding: const EdgeInsets.all(12),
                 child: Text(
                   "Please write down your backup key. Keep it safe and never share it with anyone. Your backup key is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your backup key. Only you have access to your wallet.",
-                  style: STextStyles.label,
+                  style: STextStyles.label(context),
                 ),
               ),
             ),
@@ -151,7 +151,7 @@ class WalletBackupView extends ConsumerWidget {
                           Center(
                             child: Text(
                               "Recovery phrase QR code",
-                              style: STextStyles.pageTitleH2,
+                              style: STextStyles.pageTitleH2(context),
                             ),
                           ),
                           const SizedBox(
@@ -188,7 +188,7 @@ class WalletBackupView extends ConsumerWidget {
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
-                                  style: STextStyles.button.copyWith(
+                                  style: STextStyles.button(context).copyWith(
                                       color: StackTheme
                                           .instance.color.accentColorDark),
                                 ),
@@ -203,7 +203,7 @@ class WalletBackupView extends ConsumerWidget {
               },
               child: Text(
                 "Show QR Code",
-                style: STextStyles.button,
+                style: STextStyles.button(context),
               ),
             ),
           ],

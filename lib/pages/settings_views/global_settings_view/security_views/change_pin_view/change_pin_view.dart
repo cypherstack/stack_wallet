@@ -96,7 +96,7 @@ class _ChangePinViewState extends State<ChangePinView> {
                 Center(
                   child: Text(
                     "Create new PIN",
-                    style: STextStyles.pageTitleH1,
+                    style: STextStyles.pageTitleH1(context),
                   ),
                 ),
                 const SizedBox(
@@ -106,7 +106,7 @@ class _ChangePinViewState extends State<ChangePinView> {
                   fieldsCount: Constants.pinLength,
                   eachFieldHeight: 12,
                   eachFieldWidth: 12,
-                  textStyle: STextStyles.label.copyWith(
+                  textStyle: STextStyles.label(context).copyWith(
                     fontSize: 1,
                   ),
                   focusNode: _pinPutFocusNode1,
@@ -152,7 +152,7 @@ class _ChangePinViewState extends State<ChangePinView> {
                 Center(
                   child: Text(
                     "Confirm new PIN",
-                    style: STextStyles.pageTitleH1,
+                    style: STextStyles.pageTitleH1(context),
                   ),
                 ),
                 const SizedBox(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -43,10 +42,10 @@ class EmptyWallets extends StatelessWidget {
                 "You do not have any wallets yet. Start building your crypto Stack!",
                 textAlign: TextAlign.center,
                 style: isDesktop
-                    ? STextStyles.desktopSubtitleH2.copyWith(
+                    ? STextStyles.desktopSubtitleH2(context).copyWith(
                         color: StackTheme.instance.color.textSubtitle1,
                       )
-                    : STextStyles.subtitle.copyWith(
+                    : STextStyles.subtitle(context).copyWith(
                         color: StackTheme.instance.color.textSubtitle1,
                       ),
               ),
@@ -112,8 +111,8 @@ class AddWalletButton extends StatelessWidget {
               Text(
                 "Add Wallet",
                 style: isDesktop
-                    ? STextStyles.desktopButtonEnabled
-                    : STextStyles.button,
+                    ? STextStyles.desktopButtonEnabled(context)
+                    : STextStyles.button(context),
               ),
             ],
           ),

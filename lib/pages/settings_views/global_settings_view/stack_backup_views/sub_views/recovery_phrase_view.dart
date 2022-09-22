@@ -74,7 +74,7 @@ class RecoverPhraseView extends StatelessWidget {
             Text(
               walletName,
               textAlign: TextAlign.center,
-              style: STextStyles.label.copyWith(
+              style: STextStyles.label(context).copyWith(
                 fontSize: 12,
               ),
             ),
@@ -84,7 +84,7 @@ class RecoverPhraseView extends StatelessWidget {
             Text(
               "Recovery Phrase",
               textAlign: TextAlign.center,
-              style: STextStyles.pageTitleH1,
+              style: STextStyles.pageTitleH1(context),
             ),
             const SizedBox(
               height: 12,

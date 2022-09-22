@@ -44,7 +44,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
             Center(
               child: Text(
                 "Attention!",
-                style: STextStyles.pageTitleH1,
+                style: STextStyles.pageTitleH1(context),
               ),
             ),
             const SizedBox(
@@ -54,7 +54,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
               color: StackTheme.instance.color.warningBackground,
               child: Text(
                 "You are going to permanently delete you wallet.\n\nIf you delete your wallet, the only way you can have access to your funds is by using your backup key.\n\nStack Wallet does not keep nor is able to restore your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
-                style: STextStyles.baseXS.copyWith(
+                style: STextStyles.baseXS(context).copyWith(
                   color: StackTheme.instance.color.warningForeground,
                 ),
               ),
@@ -68,7 +68,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
               },
               child: Text(
                 "Cancel",
-                style: STextStyles.button
+                style: STextStyles.button(context)
                     .copyWith(color: StackTheme.instance.color.accentColorDark),
               ),
             ),
@@ -92,7 +92,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
               },
               child: Text(
                 "View Backup Key",
-                style: STextStyles.button,
+                style: STextStyles.button(context),
               ),
             ),
             const SizedBox(

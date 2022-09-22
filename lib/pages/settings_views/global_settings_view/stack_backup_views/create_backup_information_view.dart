@@ -26,7 +26,7 @@ class CreateBackupInfoView extends StatelessWidget {
         ),
         title: Text(
           "Create backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -45,7 +45,7 @@ class CreateBackupInfoView extends StatelessWidget {
                       Center(
                         child: Text(
                           "Info",
-                          style: STextStyles.pageTitleH2,
+                          style: STextStyles.pageTitleH2(context),
                         ),
                       ),
                       const SizedBox(
@@ -55,7 +55,7 @@ class CreateBackupInfoView extends StatelessWidget {
                         child: Text(
                           // TODO: need info
                           "{lorem ipsum}",
-                          style: STextStyles.baseXS,
+                          style: STextStyles.baseXS(context),
                         ),
                       ),
                       const SizedBox(
@@ -71,7 +71,7 @@ class CreateBackupInfoView extends StatelessWidget {
                         },
                         child: Text(
                           "Next",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                       ),
                     ],

@@ -158,7 +158,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                 _transaction.isCancelled
                                     ? "Cancelled"
                                     : whatIsIt(_transaction.txType, coin),
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ),
                           ),
@@ -175,7 +175,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                       : _transaction.amount;
                                   return Text(
                                     "${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
-                                    style: STextStyles.itemSubtitle12.copyWith(
+                                    style: STextStyles.itemSubtitle12(context)
+                                        .copyWith(
                                       fontWeight: FontWeight.w600,
                                     ),
                                   );
@@ -197,7 +198,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 Format.extractDateFrom(_transaction.timestamp),
-                                style: STextStyles.label,
+                                style: STextStyles.label(context),
                               ),
                             ),
                           ),
@@ -222,7 +223,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                       locale: locale,
                                       decimalPlaces: 2,
                                     )} $baseCurrency",
-                                    style: STextStyles.label,
+                                    style: STextStyles.label(context),
                                   );
                                 },
                               ),

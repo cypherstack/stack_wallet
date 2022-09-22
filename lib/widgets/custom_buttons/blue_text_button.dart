@@ -53,7 +53,7 @@ class _BlueTextButtonState extends State<BlueTextButton>
       textAlign: TextAlign.center,
       text: TextSpan(
         text: widget.text,
-        style: STextStyles.link2.copyWith(color: color),
+        style: STextStyles.link2(context).copyWith(color: color),
         recognizer: TapGestureRecognizer()
           ..onTap = () {
             widget.onTap?.call();

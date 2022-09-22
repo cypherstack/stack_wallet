@@ -137,7 +137,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                         child: Text(
                           ref.watch(managerProvider
                               .select((value) => value.walletName)),
-                          style: STextStyles.itemSubtitle12.copyWith(
+                          style: STextStyles.itemSubtitle12(context).copyWith(
                             color: StackTheme.instance.color.textFavoriteCard,
                           ),
                           overflow: TextOverflow.fade,
@@ -183,7 +183,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                                     .select((value) => value.locale),
                               ),
                             )} ${coin.ticker}",
-                            style: STextStyles.titleBold12.copyWith(
+                            style: STextStyles.titleBold12(context).copyWith(
                               fontSize: 16,
                               color: StackTheme.instance.color.textFavoriteCard,
                             ),
@@ -204,7 +204,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             prefsChangeNotifierProvider
                                 .select((value) => value.currency),
                           )}",
-                          style: STextStyles.itemSubtitle12.copyWith(
+                          style: STextStyles.itemSubtitle12(context).copyWith(
                             fontSize: 10,
                             color: StackTheme.instance.color.textFavoriteCard,
                           ),

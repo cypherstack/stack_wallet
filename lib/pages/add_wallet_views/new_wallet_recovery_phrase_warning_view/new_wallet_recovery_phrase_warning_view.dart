@@ -86,7 +86,7 @@ class _NewWalletRecoveryPhraseWarningViewState
               Text(
                 walletName,
                 textAlign: TextAlign.center,
-                style: STextStyles.label.copyWith(
+                style: STextStyles.label(context).copyWith(
                   fontSize: 12,
                 ),
               ),
@@ -96,8 +96,9 @@ class _NewWalletRecoveryPhraseWarningViewState
             Text(
               "Recovery Phrase",
               textAlign: TextAlign.center,
-              style:
-                  isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
+              style: isDesktop
+                  ? STextStyles.desktopH2(context)
+                  : STextStyles.pageTitleH1(context),
             ),
             SizedBox(
               height: isDesktop ? 32 : 16,
@@ -110,8 +111,8 @@ class _NewWalletRecoveryPhraseWarningViewState
               child: Text(
                 "On the next screen you will see $_numberOfPhraseWords words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
                 style: isDesktop
-                    ? STextStyles.desktopTextMediumRegular
-                    : STextStyles.subtitle.copyWith(
+                    ? STextStyles.desktopTextMediumRegular(context)
+                    : STextStyles.subtitle(context).copyWith(
                         fontSize: 12,
                       ),
               ),
@@ -161,8 +162,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 child: Text(
                                   "I understand that if I lose my recovery phrase, I will not be able to access my funds.",
                                   style: isDesktop
-                                      ? STextStyles.desktopTextMedium
-                                      : STextStyles.baseXS,
+                                      ? STextStyles.desktopTextMedium(context)
+                                      : STextStyles.baseXS(context),
                                 ),
                               ),
                             ],
@@ -277,9 +278,9 @@ class _NewWalletRecoveryPhraseWarningViewState
                             "View recovery phrase",
                             style: isDesktop
                                 ? ref.read(checkBoxStateProvider.state).state
-                                    ? STextStyles.desktopButtonEnabled
-                                    : STextStyles.desktopButtonDisabled
-                                : STextStyles.button,
+                                    ? STextStyles.desktopButtonEnabled(context)
+                                    : STextStyles.desktopButtonDisabled(context)
+                                : STextStyles.button(context),
                           ),
                         ),
                       ),

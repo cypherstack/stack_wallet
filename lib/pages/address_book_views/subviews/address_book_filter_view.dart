@@ -52,7 +52,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
         ),
         title: Text(
           "Filter addresses",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -72,7 +72,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                       RoundedWhiteContainer(
                         child: Text(
                           "Only selected cryptocurrency addresses will be displayed.",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                       ),
                       const SizedBox(
@@ -80,7 +80,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                       ),
                       Text(
                         "Select cryptocurrency",
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       const SizedBox(
                         height: 12,
@@ -154,7 +154,8 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                                 Text(
                                                   coin.prettyName,
                                                   style:
-                                                      STextStyles.largeMedium14,
+                                                      STextStyles.largeMedium14(
+                                                          context),
                                                 ),
                                                 const SizedBox(
                                                   height: 2,
@@ -162,7 +163,8 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                                 Text(
                                                   coin.ticker,
                                                   style:
-                                                      STextStyles.itemSubtitle,
+                                                      STextStyles.itemSubtitle(
+                                                          context),
                                                 ),
                                               ],
                                             )

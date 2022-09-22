@@ -127,7 +127,8 @@ class ContactPopUp extends ConsumerWidget {
                                     Expanded(
                                       child: Text(
                                         contact.name,
-                                        style: STextStyles.itemSubtitle12,
+                                        style:
+                                            STextStyles.itemSubtitle12(context),
                                       ),
                                     ),
                                     if (contact.id != "default")
@@ -151,7 +152,8 @@ class ContactPopUp extends ConsumerWidget {
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 18),
                                           child: Text("Details",
-                                              style: STextStyles.buttonSmall),
+                                              style: STextStyles.buttonSmall(
+                                                  context)),
                                         ),
                                       ),
                                   ],
@@ -172,7 +174,8 @@ class ContactPopUp extends ConsumerWidget {
                                     child: Center(
                                       child: Text(
                                         "No ${active[0].coin.prettyName} addresses found",
-                                        style: STextStyles.itemSubtitle,
+                                        style:
+                                            STextStyles.itemSubtitle(context),
                                       ),
                                     ),
                                   ),
@@ -212,20 +215,23 @@ class ContactPopUp extends ConsumerWidget {
                                               Text(
                                                 e.other!,
                                                 style:
-                                                    STextStyles.itemSubtitle12,
+                                                    STextStyles.itemSubtitle12(
+                                                        context),
                                               ),
                                             if (contact.id != "default")
                                               Text(
                                                 "${e.label} (${e.coin.ticker})",
                                                 style:
-                                                    STextStyles.itemSubtitle12,
+                                                    STextStyles.itemSubtitle12(
+                                                        context),
                                               ),
                                             const SizedBox(
                                               height: 2,
                                             ),
                                             Text(
                                               e.address,
-                                              style: STextStyles.itemSubtitle
+                                              style: STextStyles.itemSubtitle(
+                                                      context)
                                                   .copyWith(
                                                 fontSize: 8,
                                               ),

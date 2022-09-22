@@ -111,7 +111,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
         ),
         title: Text(
           "Address book",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -201,10 +201,11 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                                 _searchTerm = value;
                               });
                             },
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             decoration: standardInputDecoration(
                               "Search",
                               _searchFocusNode,
+                              context,
                             ).copyWith(
                               prefixIcon: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -244,7 +245,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                         ),
                         Text(
                           "Favorites",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(
                           height: 12,
@@ -297,7 +298,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                                   child: Center(
                                     child: Text(
                                       "Your favorite contacts will appear here",
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   ),
                                 );
@@ -310,7 +311,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                         ),
                         Text(
                           "All contacts",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(
                           height: 12,
@@ -360,7 +361,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                                   child: Center(
                                     child: Text(
                                       "Your contacts will appear here",
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   ),
                                 );

@@ -111,7 +111,7 @@ class _WalletNetworkSettingsViewState
                   StackTheme.instance.getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.itemSubtitle12,
+                style: STextStyles.itemSubtitle12(context),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -140,7 +140,7 @@ class _WalletNetworkSettingsViewState
                   StackTheme.instance.getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.itemSubtitle12,
+                style: STextStyles.itemSubtitle12(context),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -290,7 +290,7 @@ class _WalletNetworkSettingsViewState
         ),
         title: Text(
           "Network",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -353,7 +353,7 @@ class _WalletNetworkSettingsViewState
                                         color: Colors.transparent,
                                         child: Text(
                                           "Rescan blockchain",
-                                          style: STextStyles.baseXS,
+                                          style: STextStyles.baseXS(context),
                                         ),
                                       ),
                                     ),
@@ -391,7 +391,7 @@ class _WalletNetworkSettingsViewState
                       Text(
                         "Blockchain status",
                         textAlign: TextAlign.left,
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -402,7 +402,7 @@ class _WalletNetworkSettingsViewState
                         },
                         child: Text(
                           "Resync",
-                          style: STextStyles.link2,
+                          style: STextStyles.link2(context),
                         ),
                       ),
                     ],
@@ -445,11 +445,12 @@ class _WalletNetworkSettingsViewState
                                   children: [
                                     Text(
                                       "Synchronized",
-                                      style: STextStyles.w600_10,
+                                      style: STextStyles.w600_10(context),
                                     ),
                                     Text(
                                       "100%",
-                                      style: STextStyles.syncPercent.copyWith(
+                                      style: STextStyles.syncPercent(context)
+                                          .copyWith(
                                         color: StackTheme
                                             .instance.color.accentColorGreen,
                                       ),
@@ -508,7 +509,7 @@ class _WalletNetworkSettingsViewState
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     AnimatedText(
-                                      style: STextStyles.w600_10,
+                                      style: STextStyles.w600_10(context),
                                       stringsToLoopThrough: const [
                                         "Synchronizing",
                                         "Synchronizing.",
@@ -521,7 +522,8 @@ class _WalletNetworkSettingsViewState
                                         Text(
                                           _percentString(_percent),
                                           style:
-                                              STextStyles.syncPercent.copyWith(
+                                              STextStyles.syncPercent(context)
+                                                  .copyWith(
                                             color: StackTheme.instance.color
                                                 .accentColorYellow,
                                           ),
@@ -530,8 +532,9 @@ class _WalletNetworkSettingsViewState
                                             coin == Coin.epicCash)
                                           Text(
                                             " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
-                                            style: STextStyles.syncPercent
-                                                .copyWith(
+                                            style:
+                                                STextStyles.syncPercent(context)
+                                                    .copyWith(
                                               color: StackTheme.instance.color
                                                   .accentColorYellow,
                                             ),
@@ -592,14 +595,16 @@ class _WalletNetworkSettingsViewState
                                   children: [
                                     Text(
                                       "Unable to synchronize",
-                                      style: STextStyles.w600_10.copyWith(
+                                      style:
+                                          STextStyles.w600_10(context).copyWith(
                                         color: StackTheme
                                             .instance.color.accentColorRed,
                                       ),
                                     ),
                                     Text(
                                       "0%",
-                                      style: STextStyles.syncPercent.copyWith(
+                                      style: STextStyles.syncPercent(context)
+                                          .copyWith(
                                         color: StackTheme
                                             .instance.color.accentColorRed,
                                       ),
@@ -633,7 +638,7 @@ class _WalletNetworkSettingsViewState
                         color: StackTheme.instance.color.warningBackground,
                         child: Text(
                           "Please check your internet connection and make sure your current node is not having issues.",
-                          style: STextStyles.baseXS.copyWith(
+                          style: STextStyles.baseXS(context).copyWith(
                             color: StackTheme.instance.color.warningForeground,
                           ),
                         ),
@@ -648,7 +653,7 @@ class _WalletNetworkSettingsViewState
                       Text(
                         "${ref.watch(walletsChangeNotifierProvider.select((value) => value.getManager(widget.walletId).coin)).prettyName} nodes",
                         textAlign: TextAlign.left,
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       BlueTextButton(
                         text: "Add new node",

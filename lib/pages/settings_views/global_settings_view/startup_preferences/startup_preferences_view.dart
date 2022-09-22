@@ -32,7 +32,7 @@ class _StartupPreferencesViewState
         ),
         title: Text(
           "Startup preferences",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -109,12 +109,14 @@ class _StartupPreferencesViewState
                                             children: [
                                               Text(
                                                 "Home screen",
-                                                style: STextStyles.titleBold12,
+                                                style: STextStyles.titleBold12(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                               Text(
                                                 "Stack Wallet home screen",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                             ],
@@ -182,12 +184,14 @@ class _StartupPreferencesViewState
                                             children: [
                                               Text(
                                                 "Specific wallet",
-                                                style: STextStyles.titleBold12,
+                                                style: STextStyles.titleBold12(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                               Text(
                                                 "Select a specific wallet to load into on startup",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               ),
                                             ],
@@ -244,7 +248,8 @@ class _StartupPreferencesViewState
                                             children: [
                                               Text(
                                                 "Select wallet...",
-                                                style: STextStyles.link2,
+                                                style:
+                                                    STextStyles.link2(context),
                                                 textAlign: TextAlign.left,
                                               ),
                                             ],

@@ -386,7 +386,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 child: Text(
                   ref.watch(
                       managerProvider.select((value) => value.walletName)),
-                  style: STextStyles.navBarTitle,
+                  style: STextStyles.navBarTitle(context),
                   overflow: TextOverflow.ellipsis,
                 ),
               )
@@ -563,7 +563,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     },
                                     child: Text(
                                       "Cancel",
-                                      style: STextStyles.button.copyWith(
+                                      style:
+                                          STextStyles.button(context).copyWith(
                                         color: StackTheme
                                             .instance.color.accentColorDark,
                                       ),
@@ -579,7 +580,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                         .getPrimaryEnabledButtonColor(context),
                                     child: Text(
                                       "Continue",
-                                      style: STextStyles.button,
+                                      style: STextStyles.button(context),
                                     ),
                                   ),
                                 ),
@@ -587,7 +588,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             },
                             child: Text(
                               "Anonymize funds",
-                              style: STextStyles.button.copyWith(
+                              style: STextStyles.button(context).copyWith(
                                 color: StackTheme
                                     .instance.color.buttonTextSecondary,
                               ),
@@ -607,7 +608,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     children: [
                       Text(
                         "Transactions",
-                        style: STextStyles.itemSubtitle.copyWith(
+                        style: STextStyles.itemSubtitle(context).copyWith(
                           color: StackTheme.instance.color.textDark3,
                         ),
                       ),

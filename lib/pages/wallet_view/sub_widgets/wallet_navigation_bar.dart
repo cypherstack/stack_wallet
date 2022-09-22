@@ -86,7 +86,7 @@ class WalletNavigationBar extends StatelessWidget {
                       ),
                       Text(
                         "Receive",
-                        style: STextStyles.buttonSmall,
+                        style: STextStyles.buttonSmall(context),
                       ),
                       const Spacer(),
                     ],
@@ -136,7 +136,7 @@ class WalletNavigationBar extends StatelessWidget {
                       ),
                       Text(
                         "Send",
-                        style: STextStyles.buttonSmall,
+                        style: STextStyles.buttonSmall(context),
                       ),
                       const Spacer(),
                     ],
@@ -174,7 +174,7 @@ class WalletNavigationBar extends StatelessWidget {
                         ),
                         Text(
                           "Exchange",
-                          style: STextStyles.buttonSmall,
+                          style: STextStyles.buttonSmall(context),
                         ),
                         const Spacer(),
                       ],
@@ -210,7 +210,7 @@ class WalletNavigationBar extends StatelessWidget {
             //           ),
             //           Text(
             //             "Buy",
-            //             style: STextStyles.buttonSmall,
+            //             style: STextStyles.buttonSmall(context),
             //           ),
             //           Spacer(),
             //         ],
@@ -259,7 +259,7 @@ class WalletNavigationBar extends StatelessWidget {
 //               ),
 //               Text(
 //                 text,
-//                 style: STextStyles.itemSubtitle12.copyWith(
+//                 style: STextStyles.itemSubtitle12(context).copyWith(
 //                   fontSize: 10,
 //                 ),
 //               ),

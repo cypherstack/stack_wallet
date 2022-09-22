@@ -62,7 +62,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
             ),
             Text(
               _width == expandedWidth ? "Stack Wallet" : "",
-              style: STextStyles.desktopH2.copyWith(
+              style: STextStyles.desktopH2(context).copyWith(
                 fontSize: 18,
                 height: 23.4 / 18,
               ),

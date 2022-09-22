@@ -79,7 +79,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
         ),
         title: Text(
           "Restore from file",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -127,7 +127,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                           }
                         },
                         controller: fileLocationController,
-                        style: STextStyles.field,
+                        style: STextStyles.field(context),
                         decoration: InputDecoration(
                           hintText: "Choose file...",
                           suffixIcon: UnconstrainedBox(
@@ -170,13 +170,14 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                           key: const Key("restoreFromFilePasswordFieldKey"),
                           focusNode: passwordFocusNode,
                           controller: passwordController,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           obscureText: hidePassword,
                           enableSuggestions: false,
                           autocorrect: false,
                           decoration: standardInputDecoration(
                             "Enter password",
                             passwordFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: UnconstrainedBox(
                               child: Row(
@@ -268,7 +269,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                           child: Center(
                                             child: Text(
                                               "Decrypting Stack backup file",
-                                              style: STextStyles.pageTitleH2
+                                              style: STextStyles.pageTitleH2(
+                                                      context)
                                                   .copyWith(
                                                 color: StackTheme
                                                     .instance.color.textWhite,
@@ -322,7 +324,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               },
                         child: Text(
                           "Restore",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                       ),
                     ],

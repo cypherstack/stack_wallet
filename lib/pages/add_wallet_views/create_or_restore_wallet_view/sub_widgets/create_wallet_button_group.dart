@@ -41,8 +41,8 @@ class CreateWalletButtonGroup extends StatelessWidget {
             child: Text(
               "Create new wallet",
               style: isDesktop
-                  ? STextStyles.desktopButtonEnabled
-                  : STextStyles.button,
+                  ? STextStyles.desktopButtonEnabled(context)
+                  : STextStyles.button(context),
             ),
           ),
         ),
@@ -68,8 +68,8 @@ class CreateWalletButtonGroup extends StatelessWidget {
             child: Text(
               "Restore wallet",
               style: isDesktop
-                  ? STextStyles.desktopButtonSecondaryEnabled
-                  : STextStyles.button.copyWith(
+                  ? STextStyles.desktopButtonSecondaryEnabled(context)
+                  : STextStyles.button(context).copyWith(
                       color: StackTheme.instance.color.accentColorDark),
             ),
           ),

@@ -106,14 +106,14 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
               children: [
                 Text(
                   "Create a PIN",
-                  style: STextStyles.pageTitleH1,
+                  style: STextStyles.pageTitleH1(context),
                 ),
                 const SizedBox(
                   height: 8,
                 ),
                 Text(
                   "This PIN protects access to your wallet.",
-                  style: STextStyles.subtitle,
+                  style: STextStyles.subtitle(context),
                 ),
                 const SizedBox(
                   height: 36,
@@ -122,7 +122,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                   fieldsCount: Constants.pinLength,
                   eachFieldHeight: 12,
                   eachFieldWidth: 12,
-                  textStyle: STextStyles.label.copyWith(
+                  textStyle: STextStyles.label(context).copyWith(
                     fontSize: 1,
                   ),
                   focusNode: _pinPutFocusNode1,
@@ -166,14 +166,14 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
               children: [
                 Text(
                   "Confirm PIN",
-                  style: STextStyles.pageTitleH1,
+                  style: STextStyles.pageTitleH1(context),
                 ),
                 const SizedBox(
                   height: 8,
                 ),
                 Text(
                   "This PIN protects access to your wallet.",
-                  style: STextStyles.subtitle,
+                  style: STextStyles.subtitle(context),
                 ),
                 const SizedBox(
                   height: 36,

@@ -23,7 +23,7 @@ class HiddenSettings extends StatelessWidget {
         leading: Container(),
         title: Text(
           "Not so secret anymore",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -63,7 +63,7 @@ class HiddenSettings extends StatelessWidget {
                           child: RoundedWhiteContainer(
                             child: Text(
                               "Delete notifications",
-                              style: STextStyles.button.copyWith(
+                              style: STextStyles.button(context).copyWith(
                                   color: StackTheme
                                       .instance.color.accentColorDark),
                             ),
@@ -91,7 +91,7 @@ class HiddenSettings extends StatelessWidget {
                       //     child: RoundedWhiteContainer(
                       //       child: Text(
                       //         "Delete trade history",
-                      //         style: STextStyles.button.copyWith(
+                      //         style: STextStyles.button(context).copyWith(
                       //           color: StackTheme.instance.color.accentColorDark
                       //         ),
                       //       ),
@@ -117,7 +117,7 @@ class HiddenSettings extends StatelessWidget {
                           child: RoundedWhiteContainer(
                             child: Text(
                               "Delete Debug Logs",
-                              style: STextStyles.button.copyWith(
+                              style: STextStyles.button(context).copyWith(
                                   color: StackTheme
                                       .instance.color.accentColorDark),
                             ),
@@ -146,7 +146,7 @@ class HiddenSettings extends StatelessWidget {
                       //   child: RoundedWhiteContainer(
                       //     child: Text(
                       //       "Lottie test",
-                      //       style: STextStyles.button.copyWith(
+                      //       style: STextStyles.button(context).copyWith(
                       //         color: StackTheme.instance.color.accentColorDark
                       //       ),
                       //     ),

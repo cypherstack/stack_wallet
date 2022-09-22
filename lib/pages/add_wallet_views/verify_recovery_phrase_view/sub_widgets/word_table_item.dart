@@ -55,10 +55,10 @@ class WordTableItem extends ConsumerWidget {
               word,
               textAlign: TextAlign.center,
               style: isDesktop
-                  ? STextStyles.desktopTextExtraSmall.copyWith(
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
                       color: StackTheme.instance.color.textDark,
                     )
-                  : STextStyles.baseXS,
+                  : STextStyles.baseXS(context),
             ),
           ],
         ),

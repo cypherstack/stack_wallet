@@ -68,7 +68,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                 children: [
                   Text(
                     "Auto Backup frequency",
-                    style: STextStyles.pageTitleH2,
+                    style: STextStyles.pageTitleH2(context),
                     textAlign: TextAlign.left,
                   ),
                   const SizedBox(
@@ -125,7 +125,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                       Text(
                                         prettyFrequencyType(
                                             BackupFrequencyType.values[i]),
-                                        style: STextStyles.titleBold12,
+                                        style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
                                     ],

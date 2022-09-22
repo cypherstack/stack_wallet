@@ -114,7 +114,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
         ),
         title: Text(
           "Contact details",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -180,7 +180,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                             .getSecondaryEnabledButtonColor(context),
                         child: Text(
                           "Cancel",
-                          style: STextStyles.itemSubtitle12,
+                          style: STextStyles.itemSubtitle12(context),
                         ),
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -191,7 +191,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                             .getPrimaryEnabledButtonColor(context),
                         child: Text(
                           "Delete",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                         onPressed: () {
                           ref
@@ -245,7 +245,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                               )
                             : Text(
                                 _contact.emojiChar!,
-                                style: STextStyles.pageTitleH1,
+                                style: STextStyles.pageTitleH1(context),
                               ),
                       ),
                     ),
@@ -257,7 +257,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       child: Text(
                         _contact.name,
                         textAlign: TextAlign.left,
-                        style: STextStyles.pageTitleH2,
+                        style: STextStyles.pageTitleH2(context),
                       ),
                     ),
                     const Spacer(),
@@ -288,7 +288,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                             ),
                             Text(
                               "Edit",
-                              style: STextStyles.buttonSmall,
+                              style: STextStyles.buttonSmall(context),
                             ),
                           ],
                         ),
@@ -304,7 +304,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                   children: [
                     Text(
                       "Addresses",
-                      style: STextStyles.itemSubtitle,
+                      style: STextStyles.itemSubtitle(context),
                     ),
                     BlueTextButton(
                       text: "Add new",
@@ -342,7 +342,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   children: [
                                     Text(
                                       "${e.label} (${e.coin.ticker})",
-                                      style: STextStyles.itemSubtitle12,
+                                      style:
+                                          STextStyles.itemSubtitle12(context),
                                     ),
                                     const SizedBox(
                                       height: 2,
@@ -351,8 +352,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                       fit: BoxFit.scaleDown,
                                       child: Text(
                                         e.address,
-                                        style:
-                                            STextStyles.itemSubtitle.copyWith(
+                                        style: STextStyles.itemSubtitle(context)
+                                            .copyWith(
                                           fontSize: 8,
                                         ),
                                       ),
@@ -425,7 +426,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 ),
                 Text(
                   "Transaction history",
-                  style: STextStyles.itemSubtitle,
+                  style: STextStyles.itemSubtitle(context),
                 ),
                 const SizedBox(
                   height: 12,
@@ -461,7 +462,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                           child: Center(
                             child: Text(
                               "No transactions found",
-                              style: STextStyles.itemSubtitle,
+                              style: STextStyles.itemSubtitle(context),
                             ),
                           ),
                         );

@@ -89,7 +89,7 @@ class _TransactionSearchViewState
     final isDateSelected = _fromDateString.isEmpty;
     return Text(
       isDateSelected ? "From..." : _fromDateString,
-      style: STextStyles.fieldLabel.copyWith(
+      style: STextStyles.fieldLabel(context).copyWith(
           color: isDateSelected
               ? StackTheme.instance.color.textSubtitle2
               : StackTheme.instance.color.accentColorDark),
@@ -100,7 +100,7 @@ class _TransactionSearchViewState
     final isDateSelected = _toDateString.isEmpty;
     return Text(
       isDateSelected ? "To..." : _toDateString,
-      style: STextStyles.fieldLabel.copyWith(
+      style: STextStyles.fieldLabel(context).copyWith(
           color: isDateSelected
               ? StackTheme.instance.color.textSubtitle2
               : StackTheme.instance.color.accentColorDark),
@@ -386,7 +386,7 @@ class _TransactionSearchViewState
         ),
         title: Text(
           "Transactions filter",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -409,7 +409,7 @@ class _TransactionSearchViewState
                         child: FittedBox(
                           child: Text(
                             "Transactions",
-                            style: STextStyles.smallMed12,
+                            style: STextStyles.smallMed12(context),
                           ),
                         ),
                       ),
@@ -459,7 +459,8 @@ class _TransactionSearchViewState
                                           child: FittedBox(
                                             child: Text(
                                               "Sent",
-                                              style: STextStyles.itemSubtitle12,
+                                              style: STextStyles.itemSubtitle12(
+                                                  context),
                                             ),
                                           ),
                                         )
@@ -511,7 +512,8 @@ class _TransactionSearchViewState
                                           child: FittedBox(
                                             child: Text(
                                               "Received",
-                                              style: STextStyles.itemSubtitle12,
+                                              style: STextStyles.itemSubtitle12(
+                                                  context),
                                             ),
                                           ),
                                         )
@@ -532,7 +534,7 @@ class _TransactionSearchViewState
                         child: FittedBox(
                           child: Text(
                             "Date",
-                            style: STextStyles.smallMed12,
+                            style: STextStyles.smallMed12(context),
                           ),
                         ),
                       ),
@@ -548,7 +550,7 @@ class _TransactionSearchViewState
                         child: FittedBox(
                           child: Text(
                             "Amount",
-                            style: STextStyles.smallMed12,
+                            style: STextStyles.smallMed12(context),
                           ),
                         ),
                       ),
@@ -577,10 +579,11 @@ class _TransactionSearchViewState
                                     ? newValue
                                     : oldValue),
                           ],
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           decoration: standardInputDecoration(
                             "Enter ${widget.coin.ticker} amount...",
                             keywordTextFieldFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: _amountTextEditingController
                                     .text.isNotEmpty
@@ -614,7 +617,7 @@ class _TransactionSearchViewState
                         child: FittedBox(
                           child: Text(
                             "Keyword",
-                            style: STextStyles.smallMed12,
+                            style: STextStyles.smallMed12(context),
                           ),
                         ),
                       ),
@@ -630,11 +633,12 @@ class _TransactionSearchViewState
                               const Key("transactionSearchViewKeywordFieldKey"),
                           controller: _keywordTextEditingController,
                           focusNode: keywordTextFieldFocusNode,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           onChanged: (_) => setState(() {}),
                           decoration: standardInputDecoration(
                             "Type keyword...",
                             keywordTextFieldFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: _keywordTextEditingController
                                     .text.isNotEmpty
@@ -684,7 +688,7 @@ class _TransactionSearchViewState
                                     .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
-                                  style: STextStyles.button.copyWith(
+                                  style: STextStyles.button(context).copyWith(
                                       color: StackTheme
                                           .instance.color.accentColorDark),
                                 ),
@@ -705,7 +709,7 @@ class _TransactionSearchViewState
                                 },
                                 child: Text(
                                   "Save",
-                                  style: STextStyles.button,
+                                  style: STextStyles.button(context),
                                 ),
                               ),
                             ),

@@ -197,7 +197,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                       Center(
                         child: Text(
                           "Enter PIN",
-                          style: STextStyles.pageTitleH1,
+                          style: STextStyles.pageTitleH1(context),
                         ),
                       ),
                       const SizedBox(
@@ -207,7 +207,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                         fieldsCount: Constants.pinLength,
                         eachFieldHeight: 12,
                         eachFieldWidth: 12,
-                        textStyle: STextStyles.label.copyWith(
+                        textStyle: STextStyles.label(context).copyWith(
                           fontSize: 1,
                         ),
                         focusNode: _pinFocusNode,
