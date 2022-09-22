@@ -142,8 +142,8 @@ void main() async {
   monero.onStartup();
 
   await Hive.openBox<dynamic>(DB.boxNameTheme);
-  final colorScheme =
-      DB.instance.get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
+  final colorScheme = DB.instance
+      .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
 
   switch (colorScheme) {
     case "dark":

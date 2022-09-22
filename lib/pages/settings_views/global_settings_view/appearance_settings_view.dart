@@ -4,6 +4,7 @@ import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -139,14 +140,13 @@ class AppearanceSettingsView extends ConsumerWidget {
                                                 as String?) ==
                                             "dark",
                                         onValueChanged: (newValue) {
-                                          // StackTheme.instance.setTheme(newValue
-                                          //     ? ThemeType.dark
-                                          //     : ThemeType.light);
                                           DB.instance.put<dynamic>(
                                             boxName: DB.boxNameTheme,
                                             key: "colorScheme",
-                                            value:
-                                                StackTheme.instance.theme.name,
+                                            value: (newValue
+                                                    ? ThemeType.dark
+                                                    : ThemeType.light)
+                                                .name,
                                           );
                                         },
                                       ),

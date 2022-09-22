@@ -58,18 +58,18 @@ class LightColors extends StackColorTheme {
   @override
   Color get buttonBackPrimary => const Color(0xFF232323);
   @override
-  Color get buttonBackSecondary => const Color(0xFF444E5C);
+  Color get buttonBackSecondary => const Color(0xFFE0E3E3);
   @override
-  Color get buttonBackPrimaryDisabled => const Color(0xFF38517C);
+  Color get buttonBackPrimaryDisabled => const Color(0xFFD7D7D7);
   @override
-  Color get buttonBackSecondaryDisabled => const Color(0xFF3B3F46);
+  Color get buttonBackSecondaryDisabled => const Color(0xFFF0F1F1);
   @override
   Color get buttonBackBorder => const Color(0xFF232323);
   @override
-  Color get buttonBackBorderDisabled => const Color(0xFF314265);
+  Color get buttonBackBorderDisabled => const Color(0xFFB6B6B6);
 
   @override
-  Color get numberBackDefault => const Color(0xFF484B51);
+  Color get numberBackDefault => const Color(0xFFFFFFFF);
   @override
   Color get numpadBackDefault => const Color(0xFF232323);
   @override
@@ -79,25 +79,25 @@ class LightColors extends StackColorTheme {
   @override
   Color get buttonTextPrimary => const Color(0xFFFFFFFF);
   @override
-  Color get buttonTextSecondary => const Color(0xFFFFFFFF);
+  Color get buttonTextSecondary => const Color(0xFF232323);
   @override
-  Color get buttonTextPrimaryDisabled => const Color(0xFFFFFFFF);
+  Color get buttonTextPrimaryDisabled => const Color(0xFFF8F8F8);
   @override
-  Color get buttonTextSecondaryDisabled => const Color(0xFF6A6C71);
+  Color get buttonTextSecondaryDisabled => const Color(0xFFB7B7B7);
   @override
-  Color get buttonTextBorder => const Color(0xFF4C86E9);
+  Color get buttonTextBorder => const Color(0xFF232323);
   @override
-  Color get buttonTextDisabled => const Color(0xFF314265);
+  Color get buttonTextDisabled => const Color(0xFFB6B6B6);
   @override
-  Color get buttonTextBorderless => const Color(0xFF4C86E9);
+  Color get buttonTextBorderless => const Color(0xFF232323);
   @override
   Color get buttonTextBorderlessDisabled => const Color(0xFFB6B6B6);
   @override
-  Color get numberTextDefault => const Color(0xFFFFFFFF);
+  Color get numberTextDefault => const Color(0xFF232323);
   @override
   Color get numpadTextDefault => const Color(0xFFFFFFFF);
   @override
-  Color get bottomNavText => const Color(0xFFFFFFFF);
+  Color get bottomNavText => const Color(0xFF232323);
 
   // switch
   @override
@@ -147,32 +147,32 @@ class LightColors extends StackColorTheme {
 
   // snack bar
   @override
-  Color get snackBarBackSuccess => const Color(0xFF8EF5C3);
+  Color get snackBarBackSuccess => const Color(0xFFB9E9D4);
   @override
-  Color get snackBarBackError => const Color(0xFFFFB4A9);
+  Color get snackBarBackError => const Color(0xFFFFDAD4);
   @override
-  Color get snackBarBackInfo => const Color(0xFFB4C4FF);
+  Color get snackBarBackInfo => const Color(0xFFDAE2FF);
   @override
-  Color get snackBarTextSuccess => const Color(0xFF003921);
+  Color get snackBarTextSuccess => const Color(0xFF006C4D);
   @override
-  Color get snackBarTextError => const Color(0xFF690001);
+  Color get snackBarTextError => const Color(0xFF930006);
   @override
-  Color get snackBarTextInfo => const Color(0xFF00297A);
+  Color get snackBarTextInfo => const Color(0xFF002A78);
 
   // icons
   @override
-  Color get bottomNavIconBack => const Color(0xFF7F8185);
+  Color get bottomNavIconBack => const Color(0xFFA2A2A2);
   @override
-  Color get bottomNavIconIcon => const Color(0xFFFFFFFF);
+  Color get bottomNavIconIcon => const Color(0xFF232323);
 
   @override
-  Color get topNavIconPrimary => const Color(0xFFFFFFFF);
+  Color get topNavIconPrimary => const Color(0xFF232323);
   @override
-  Color get topNavIconGreen => const Color(0xFF4CC0A0);
+  Color get topNavIconGreen => const Color(0xFF00A578);
   @override
-  Color get topNavIconYellow => const Color(0xFFF7D65D);
+  Color get topNavIconYellow => const Color(0xFFF4C517);
   @override
-  Color get topNavIconRed => const Color(0xFFD34E50);
+  Color get topNavIconRed => const Color(0xFFC00205);
 
   @override
   Color get settingsIconBack => const Color(0xFFE0E3E3);
@@ -185,11 +185,11 @@ class LightColors extends StackColorTheme {
 
   // text field
   @override
-  Color get textFieldActiveBG => const Color(0xFFE9EAEC);
+  Color get textFieldActiveBG => const Color(0xFFEEEFF1);
   @override
   Color get textFieldDefaultBG => const Color(0xFFEEEFF1);
   @override
-  Color get textFieldErrorBG => const Color(0xFFFFB4A9);
+  Color get textFieldErrorBG => const Color(0xFFFFDAD4);
   @override
   Color get textFieldSuccessBG => const Color(0xFFB9E9D4);
 
@@ -198,12 +198,12 @@ class LightColors extends StackColorTheme {
   @override
   Color get textFieldDefaultSearchIconLeft => const Color(0xFFA9ACAC);
   @override
-  Color get textFieldErrorSearchIconLeft => const Color(0xFF690001);
+  Color get textFieldErrorSearchIconLeft => const Color(0xFF930006);
   @override
-  Color get textFieldSuccessSearchIconLeft => const Color(0xFF003921);
+  Color get textFieldSuccessSearchIconLeft => const Color(0xFF006C4D);
 
   @override
-  Color get textFieldActiveText => const Color(0xFFFFFFFF);
+  Color get textFieldActiveText => const Color(0xFF232323);
   @override
   Color get textFieldDefaultText => const Color(0xFFA9ACAC);
   @override
@@ -214,40 +214,40 @@ class LightColors extends StackColorTheme {
   @override
   Color get textFieldActiveLabel => const Color(0xFFA9ACAC);
   @override
-  Color get textFieldErrorLabel => const Color(0xFF690001);
+  Color get textFieldErrorLabel => const Color(0xFF930006);
   @override
-  Color get textFieldSuccessLabel => const Color(0xFF003921);
+  Color get textFieldSuccessLabel => const Color(0xFF006C4D);
 
   @override
-  Color get textFieldActiveSearchIconRight => const Color(0xFFC4C7C7);
+  Color get textFieldActiveSearchIconRight => const Color(0xFF747778);
   @override
   Color get textFieldDefaultSearchIconRight => const Color(0xFF747778);
   @override
-  Color get textFieldErrorSearchIconRight => const Color(0xFF690001);
+  Color get textFieldErrorSearchIconRight => const Color(0xFF930006);
   @override
-  Color get textFieldSuccessSearchIconRight => const Color(0xFF003921);
+  Color get textFieldSuccessSearchIconRight => const Color(0xFF006C4D);
 
   // settings item level2
   @override
-  Color get settingsItem2ActiveBG => const Color(0xFF484B51);
+  Color get settingsItem2ActiveBG => const Color(0xFFFFFFFF);
   @override
-  Color get settingsItem2ActiveText => const Color(0xFFFFFFFF);
+  Color get settingsItem2ActiveText => const Color(0xFF232323);
   @override
-  Color get settingsItem2ActiveSub => const Color(0xFF9E9E9E);
+  Color get settingsItem2ActiveSub => const Color(0xFF8E9192);
 
   // radio buttons
   @override
-  Color get radioButtonIconBorder => const Color(0xFF4C86E9);
+  Color get radioButtonIconBorder => const Color(0xFF0056D2);
   @override
-  Color get radioButtonIconBorderDisabled => const Color(0xFF9E9E9E);
+  Color get radioButtonIconBorderDisabled => const Color(0xFF8F909A);
   @override
-  Color get radioButtonBorderEnabled => const Color(0xFF4C86E9);
+  Color get radioButtonBorderEnabled => const Color(0xFF0056D2);
   @override
   Color get radioButtonBorderDisabled => const Color(0xFFCDCDCD);
   @override
-  Color get radioButtonIconCircle => const Color(0xFF9E9E9E);
+  Color get radioButtonIconCircle => const Color(0xFF0056D2);
   @override
-  Color get radioButtonIconEnabled => const Color(0xFF4C86E9);
+  Color get radioButtonIconEnabled => const Color(0xFF0056D2);
   @override
   Color get radioButtonTextEnabled => const Color(0xFF44464E);
   @override
@@ -259,29 +259,29 @@ class LightColors extends StackColorTheme {
 
   // info text
   @override
-  Color get infoItemBG => const Color(0xFF333942);
+  Color get infoItemBG => const Color(0xFFFFFFFF);
   @override
-  Color get infoItemLabel => const Color(0xFF9E9E9E);
+  Color get infoItemLabel => const Color(0xFF8E9192);
   @override
-  Color get infoItemText => const Color(0xFFFFFFFF);
+  Color get infoItemText => const Color(0xFF232323);
   @override
-  Color get infoItemIcons => const Color(0xFF4C86E9);
+  Color get infoItemIcons => const Color(0xFF0056D2);
 
   // popup
   @override
-  Color get popupBG => const Color(0xFF333942);
+  Color get popupBG => const Color(0xFFFFFFFF);
 
   // currency list
   @override
-  Color get currencyListItemBG => const Color(0xFF35383D);
+  Color get currencyListItemBG => const Color(0xFFD9E2FF);
 
   // bottom nav
   @override
-  Color get stackWalletBG => const Color(0xFF35383D);
+  Color get stackWalletBG => const Color(0xFFFFFFFF);
   @override
-  Color get stackWalletMid => const Color(0xFF292D34);
+  Color get stackWalletMid => const Color(0xFFFFFFFF);
   @override
-  Color get stackWalletBottom => const Color(0xFFFFFFFF);
+  Color get stackWalletBottom => const Color(0xFF232323);
   @override
   Color get bottomNavShadow => const Color(0xFF282E33);
 }
