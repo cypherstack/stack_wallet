@@ -7,20 +7,19 @@ import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-
-import '../../providers/wallet/public_private_balance_state_provider.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
   const ConfirmTransactionView({
@@ -112,16 +111,12 @@ class _ConfirmTransactionViewState
             title: "Broadcast transaction failed",
             message: e.toString(),
             rightButton: TextButton(
-              style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.buttonGray,
-                    ),
-                  ),
+              style:
+                  StackTheme.instance.getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.button.copyWith(
-                  color: CFColors.stackAccent,
-                ),
+                style: STextStyles.button
+                    .copyWith(color: StackTheme.instance.color.accentColorDark),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -147,7 +142,7 @@ class _ConfirmTransactionViewState
         .select((value) => value.getManagerProvider(walletId)));
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: StackTheme.instance.color.background,
         leading: AppBarBackButton(
           onPressed: () async {
             // if (FocusScope.of(context).hasFocus) {
@@ -288,7 +283,7 @@ class _ConfirmTransactionViewState
                           height: 12,
                         ),
                         RoundedContainer(
-                          color: CFColors.stackGreen15,
+                          color: StackTheme.instance.color.snackBarBackSuccess,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -318,13 +313,7 @@ class _ConfirmTransactionViewState
                           height: 16,
                         ),
                         TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
+                          style:  StackTheme.instance.getPrimaryEnabledButtonColor(context),
                           onPressed: () async {
                             final unlocked = await Navigator.push(
                               context,

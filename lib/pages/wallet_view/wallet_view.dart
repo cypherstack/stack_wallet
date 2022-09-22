@@ -33,13 +33,13 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -208,21 +208,21 @@ class _WalletViewState extends ConsumerState<WalletView> {
       case WalletSyncStatus.unableToSync:
         return SvgPicture.asset(
           Assets.svg.radioProblem,
-          color: CFColors.link,
+          color: StackTheme.instance.color.accentColorRed,
           width: 20,
           height: 20,
         );
       case WalletSyncStatus.synced:
         return SvgPicture.asset(
           Assets.svg.radio,
-          color: CFColors.stackGreen,
+          color: StackTheme.instance.color.accentColorGreen,
           width: 20,
           height: 20,
         );
       case WalletSyncStatus.syncing:
         return SvgPicture.asset(
           Assets.svg.radioSyncing,
-          color: CFColors.stackYellow,
+          color: StackTheme.instance.color.accentColorYellow,
           width: 20,
           height: 20,
         );
@@ -375,7 +375,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
             children: [
               SvgPicture.asset(
                 Assets.svg.iconFor(coin: coin),
-                // color: CFColors.stackAccent,
+                // color: StackTheme.instance.color.accentColorDark
                 width: 24,
                 height: 24,
               ),
@@ -405,7 +405,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   key: const Key("walletViewRadioButton"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: _buildNetworkIcon(_currentSyncStatus),
                   onPressed: () {
                     Navigator.of(context).pushNamed(
@@ -432,7 +432,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   key: const Key("walletViewAlertsButton"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     ref.watch(notificationsProvider.select((value) =>
                             value.hasUnreadNotificationsFor(walletId)))
@@ -440,6 +440,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         : Assets.svg.bell,
                     width: 20,
                     height: 20,
+                    color: ref.watch(notificationsProvider.select((value) =>
+                            value.hasUnreadNotificationsFor(walletId)))
+                        ? null
+                        : StackTheme.instance.color.topNavIconPrimary,
                   ),
                   onPressed: () {
                     // reset unread state
@@ -488,10 +492,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   key: const Key("walletViewSettingsButton"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: StackTheme.instance.color.background,
                   icon: SvgPicture.asset(
                     Assets.svg.bars,
-                    color: CFColors.stackAccent,
+                    color: StackTheme.instance.color.accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -514,7 +518,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
         body: SafeArea(
           child: Container(
-            color: CFColors.almostWhite,
+            color: StackTheme.instance.color.background,
             child: Column(
               children: [
                 const SizedBox(
@@ -544,6 +548,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       children: [
                         Expanded(
                           child: TextButton(
+                            style: StackTheme.instance
+                                .getSecondaryEnabledButtonColor(context),
                             onPressed: () async {
                               await showDialog<void>(
                                 context: context,
@@ -558,7 +564,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     child: Text(
                                       "Cancel",
                                       style: STextStyles.button.copyWith(
-                                        color: CFColors.stackAccent,
+                                        color: StackTheme
+                                            .instance.color.accentColorDark,
                                       ),
                                     ),
                                   ),
@@ -568,15 +575,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
                                       unawaited(attemptAnonymize());
                                     },
-                                    style: Theme.of(context)
-                                        .textButtonTheme
-                                        .style
-                                        ?.copyWith(
-                                          backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                            CFColors.stackAccent,
-                                          ),
-                                        ),
+                                    style: StackTheme.instance
+                                        .getPrimaryEnabledButtonColor(context),
                                     child: Text(
                                       "Continue",
                                       style: STextStyles.button,
@@ -588,7 +588,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             child: Text(
                               "Anonymize funds",
                               style: STextStyles.button.copyWith(
-                                color: CFColors.stackAccent,
+                                color: StackTheme
+                                    .instance.color.buttonTextSecondary,
                               ),
                             ),
                           ),
@@ -607,7 +608,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       Text(
                         "Transactions",
                         style: STextStyles.itemSubtitle.copyWith(
-                          color: CFColors.neutral50,
+                          color: StackTheme.instance.color.textDark3,
                         ),
                       ),
                       BlueTextButton(

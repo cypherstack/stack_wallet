@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -29,7 +29,7 @@ class SyncingPreferencesView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -57,7 +57,7 @@ class SyncingPreferencesView extends ConsumerWidget {
                       RoundedWhiteContainer(
                         padding: const EdgeInsets.all(0),
                         child: RawMaterialButton(
-                          // splashColor: CFColors.splashLight,
+                          // splashColor: StackTheme.instance.color.highlight,
                           padding: const EdgeInsets.all(0),
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
@@ -104,7 +104,7 @@ class SyncingPreferencesView extends ConsumerWidget {
                         child: Consumer(
                           builder: (_, ref, __) {
                             return RawMaterialButton(
-                              // splashColor: CFColors.splashLight,
+                              // splashColor: StackTheme.instance.color.highlight,
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               shape: RoundedRectangleBorder(

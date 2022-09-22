@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
@@ -10,11 +11,11 @@ import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -89,7 +90,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -113,29 +114,23 @@ class _DebugViewState extends ConsumerState<DebugView> {
                 key: const Key("deleteLogsAppBarButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.trash,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                   width: 20,
                   height: 20,
                 ),
                 onPressed: () async {
-                  showDialog<void>(
+                  await showDialog<void>(
                     context: context,
                     builder: (_) => StackDialog(
                       title: "Delete logs?",
                       message:
                           "You are about to delete all logs permanently. Are you sure?",
                       leftButton: TextButton(
-                        style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.buttonGray,
-                              ),
-                            ),
+                        style: StackTheme.instance
+                            .getSecondaryEnabledButtonColor(context),
                         child: Text(
                           "Cancel",
                           style: STextStyles.itemSubtitle12,
@@ -145,14 +140,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         },
                       ),
                       rightButton: TextButton(
-                        style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.stackAccent,
-                              ),
-                            ),
+                        style: StackTheme.instance
+                            .getPrimaryEnabledButtonColor(context),
                         child: Text(
                           "Delete logs",
                           style: STextStyles.button,
@@ -161,7 +150,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                           Navigator.of(context).pop();
 
                           bool shouldPop = false;
-                          showDialog<dynamic>(
+                          unawaited(showDialog<dynamic>(
                             barrierDismissible: false,
                             context: context,
                             builder: (_) => WillPopScope(
@@ -169,11 +158,11 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 return shouldPop;
                               },
                               child: const CustomLoadingOverlay(
-                                message: "Generating Stack logs file",
+                                message: "Deleting logs...",
                                 eventBus: null,
                               ),
                             ),
-                          );
+                          ));
 
                           await ref
                               .read(debugServiceProvider)
@@ -183,10 +172,10 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                           if (mounted) {
                             Navigator.pop(context);
-                            showFloatingFlushBar(
+                            unawaited(showFloatingFlushBar(
                                 type: FlushBarType.info,
                                 context: context,
-                                message: 'Logs cleared!');
+                                message: 'Logs cleared!'));
                           }
                         },
                       ),
@@ -317,7 +306,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 if (path != null) {
                                   final eventBus = EventBus();
                                   bool shouldPop = false;
-                                  showDialog<dynamic>(
+                                  unawaited(showDialog<dynamic>(
                                     barrierDismissible: false,
                                     context: context,
                                     builder: (_) => WillPopScope(
@@ -329,7 +318,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         eventBus: eventBus,
                                       ),
                                     ),
-                                  );
+                                  ));
 
                                   await ref
                                       .read(debugServiceProvider)
@@ -339,10 +328,10 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                                   if (mounted) {
                                     Navigator.pop(context);
-                                    showFloatingFlushBar(
+                                    unawaited(showFloatingFlushBar(
                                         type: FlushBarType.info,
                                         context: context,
-                                        message: 'Logs file saved');
+                                        message: 'Logs file saved'));
                                   }
                                 }
                               },
@@ -383,14 +372,14 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         return Container(
                           key: Key("log_${log.id}_${log.timestampInMillisUTC}"),
                           decoration: BoxDecoration(
-                            color: CFColors.white,
+                            color: StackTheme.instance.color.popupBG,
                             borderRadius: _borderRadius(index, logs.length),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(4),
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color: CFColors.white,
+                              color: StackTheme.instance.color.popupBG,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -401,21 +390,27 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         style: STextStyles.baseXS.copyWith(
                                           fontSize: 8,
                                           color: (log.logLevel == LogLevel.Info
-                                              ? CFColors.stackGreen
+                                              ? StackTheme.instance.color
+                                                  .accentColorGreen
                                               : (log.logLevel ==
                                                       LogLevel.Warning
-                                                  ? CFColors.stackYellow
+                                                  ? StackTheme.instance.color
+                                                      .accentColorYellow
                                                   : (log.logLevel ==
                                                           LogLevel.Error
                                                       ? Colors.orange
-                                                      : CFColors.stackRed))),
+                                                      : StackTheme
+                                                          .instance
+                                                          .color
+                                                          .accentColorRed))),
                                         ),
                                       ),
                                       Text(
                                         "[${DateTime.fromMillisecondsSinceEpoch(log.timestampInMillisUTC, isUtc: true)}]: ",
                                         style: STextStyles.baseXS.copyWith(
                                           fontSize: 8,
-                                          color: CFColors.neutral50,
+                                          color: StackTheme
+                                              .instance.color.textDark3,
                                         ),
                                       ),
                                     ],

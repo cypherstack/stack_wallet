@@ -10,11 +10,11 @@ import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_vi
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -110,7 +110,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     });
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -158,7 +158,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                   Assets.svg.copy,
                                   width: 10,
                                   height: 10,
-                                  color: CFColors.link2,
+                                  color:
+                                      StackTheme.instance.color.infoItemIcons,
                                 ),
                                 const SizedBox(
                                   width: 4,
@@ -195,16 +196,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                 if (coin != Coin.epicCash)
                   TextButton(
                     onPressed: generateNewAddress,
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        CFColors.buttonGray,
-                      ),
-                    ),
+                    style: StackTheme.instance
+                        .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "Generate new address",
                       style: STextStyles.button.copyWith(
-                        color: CFColors.stackAccent,
-                      ),
+                          color: StackTheme.instance.color.accentColorDark),
                     ),
                   ),
                 const SizedBox(
@@ -217,10 +214,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       child: Column(
                         children: [
                           QrImage(
-                            data: "${coin.uriScheme}:$receivingAddress",
-                            size: MediaQuery.of(context).size.width / 2,
-                            foregroundColor: CFColors.stackAccent,
-                          ),
+                              data: "${coin.uriScheme}:$receivingAddress",
+                              size: MediaQuery.of(context).size.width / 2,
+                              foregroundColor:
+                                  StackTheme.instance.color.accentColorDark),
                           const SizedBox(
                             height: 20,
                           ),

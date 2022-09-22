@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -65,7 +65,7 @@ class _ExchangeLoadingOverlayViewState
         if (_statusEst == ChangeNowLoadStatus.loading ||
             (_statusFixed == ChangeNowLoadStatus.loading && userReloaded))
           Container(
-            color: CFColors.stackAccent.withOpacity(0.7),
+            color: StackTheme.instance.color.overlay.withOpacity(0.7),
             child: const CustomLoadingOverlay(
                 message: "Loading ChangeNOW data", eventBus: null),
           ),
@@ -74,7 +74,7 @@ class _ExchangeLoadingOverlayViewState
             _statusEst != ChangeNowLoadStatus.loading &&
             _statusFixed != ChangeNowLoadStatus.loading)
           Container(
-            color: CFColors.stackAccent.withOpacity(0.7),
+            color: StackTheme.instance.color.overlay.withOpacity(0.7),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -83,10 +83,13 @@ class _ExchangeLoadingOverlayViewState
                   message:
                       "ChangeNOW requires a working internet connection. Tap OK to try fetching again.",
                   rightButton: TextButton(
+                    style: StackTheme.instance
+                        .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "OK",
-                      style: STextStyles.button
-                          .copyWith(color: CFColors.stackAccent),
+                      style: STextStyles.button.copyWith(
+                        color: StackTheme.instance.color.buttonTextSecondary,
+                      ),
                     ),
                     onPressed: () {
                       userReloaded = true;

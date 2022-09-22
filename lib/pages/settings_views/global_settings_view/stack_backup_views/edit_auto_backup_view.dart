@@ -14,13 +14,13 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/backup_frequency_type_select_sheet.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -104,7 +104,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -166,7 +166,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                               ),
                               SvgPicture.asset(
                                 Assets.svg.folder,
-                                color: CFColors.neutral50,
+                                color: StackTheme.instance.color.textDark3,
                                 width: 16,
                                 height: 16,
                               ),
@@ -225,7 +225,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: CFColors.neutral50,
+                                    color: StackTheme.instance.color.textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -304,11 +304,12 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                           width: MediaQuery.of(context).size.width - 32 - 24,
                           height: 5,
                           fillColor: passwordStrength < 0.51
-                              ? CFColors.stackRed
+                              ? StackTheme.instance.color.accentColorRed
                               : passwordStrength < 1
-                                  ? CFColors.stackYellow
-                                  : CFColors.stackGreen,
-                          backgroundColor: CFColors.buttonGray,
+                                  ? StackTheme.instance.color.accentColorYellow
+                                  : StackTheme.instance.color.accentColorGreen,
+                          backgroundColor:
+                              StackTheme.instance.color.buttonBackSecondary,
                           percent:
                               passwordStrength < 0.25 ? 0.03 : passwordStrength,
                         ),
@@ -350,7 +351,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: CFColors.neutral50,
+                                    color: StackTheme.instance.color.textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -386,7 +387,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         ),
                         Positioned.fill(
                           child: RawMaterialButton(
-                            splashColor: CFColors.splashLight,
+                            splashColor: StackTheme.instance.color.highlight,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -423,7 +424,8 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                                     padding: const EdgeInsets.only(right: 4.0),
                                     child: SvgPicture.asset(
                                       Assets.svg.chevronDown,
-                                      color: CFColors.gray3,
+                                      color: StackTheme
+                                          .instance.color.textSubtitle2,
                                       width: 12,
                                       height: 6,
                                     ),
@@ -440,13 +442,11 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                       height: 10,
                     ),
                     TextButton(
-                      style: Theme.of(context).textButtonTheme.style?.copyWith(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                              shouldEnableCreate
-                                  ? CFColors.stackAccent
-                                  : CFColors.disabledButton,
-                            ),
-                          ),
+                      style: shouldEnableCreate
+                          ? StackTheme.instance
+                              .getPrimaryEnabledButtonColor(context)
+                          : StackTheme.instance
+                              .getPrimaryDisabledButtonColor(context),
                       onPressed: !shouldEnableCreate
                           ? null
                           : () async {

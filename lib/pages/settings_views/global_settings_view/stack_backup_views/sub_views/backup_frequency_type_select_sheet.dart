@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
   const BackupFrequencyTypeSelectSheet({
@@ -31,9 +31,9 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
         return false;
       },
       child: Container(
-        decoration: const BoxDecoration(
-          color: CFColors.white,
-          borderRadius: BorderRadius.vertical(
+        decoration: BoxDecoration(
+          color: StackTheme.instance.color.popupBG,
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(20),
           ),
         ),
@@ -51,7 +51,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CFColors.fieldGray,
+                    color: StackTheme.instance.color.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -94,13 +94,14 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                           child: Container(
                             color: Colors.transparent,
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: StackTheme
+                                        .instance.color.radioButtonIconEnabled,
                                     value: BackupFrequencyType.values[i],
                                     groupValue: ref.watch(
                                         prefsChangeNotifierProvider.select(
@@ -118,17 +119,17 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                 const SizedBox(
                                   width: 12,
                                 ),
-                                Column(
-                                  children: [
-                                    Text(
-                                      prettyFrequencyType(
-                                          BackupFrequencyType.values[i]),
-                                      style: STextStyles.titleBold12.copyWith(
-                                        color: const Color(0xFF44464E),
+                                Flexible(
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        prettyFrequencyType(
+                                            BackupFrequencyType.values[i]),
+                                        style: STextStyles.titleBold12,
+                                        textAlign: TextAlign.left,
                                       ),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),

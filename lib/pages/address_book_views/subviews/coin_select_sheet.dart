@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class CoinSelectSheet extends StatelessWidget {
   const CoinSelectSheet({Key? key}) : super(key: key);
@@ -17,9 +17,9 @@ class CoinSelectSheet extends StatelessWidget {
     var coins_ = [...Coin.values];
     coins_.remove(Coin.firoTestNet);
     return Container(
-      decoration: const BoxDecoration(
-        color: CFColors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: StackTheme.instance.color.popupBG,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
       ),
@@ -39,7 +39,7 @@ class CoinSelectSheet extends StatelessWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CFColors.fieldGray,
+                    color: StackTheme.instance.color.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -77,7 +77,7 @@ class CoinSelectSheet extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: RawMaterialButton(
-                            // splashColor: CFColors.splashLight,
+                            // splashColor: StackTheme.instance.color.highlight,
                             onPressed: () {
                               Navigator.of(context).pop(coin);
                             },

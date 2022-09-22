@@ -7,10 +7,10 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
@@ -35,23 +35,23 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: CFColors.buttonGray,
+          color: StackTheme.instance.color.buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return const LoadingIndicator();
       // return SvgPicture.asset(
       //   Assets.svg.loader,
-      //   color: CFColors.stackGreen,
+      //   color: StackTheme.instance.color.accentColorGreen,
       // );
       case StackRestoringStatus.success:
         return SvgPicture.asset(
           Assets.svg.checkCircle,
-          color: CFColors.stackGreen,
+          color: StackTheme.instance.color.accentColorGreen,
         );
       case StackRestoringStatus.failed:
         return SvgPicture.asset(
           Assets.svg.circleAlert,
-          color: CFColors.error,
+          color: StackTheme.instance.color.textError,
         );
     }
   }
@@ -73,7 +73,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
         height: 32,
         child: RoundedContainer(
           padding: const EdgeInsets.all(0),
-          color: CFColors.coin.forCoin(coin),
+          color: StackTheme.instance.colorForCoin(coin),
           child: Center(
             child: SvgPicture.asset(
               Assets.svg.iconFor(
@@ -155,14 +155,14 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
           ? Container(
               height: 20,
               decoration: BoxDecoration(
-                color: CFColors.buttonGray,
+                color: StackTheme.instance.color.buttonBackSecondary,
                 borderRadius: BorderRadius.circular(
                   1000,
                 ),
               ),
               child: RawMaterialButton(
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                splashColor: CFColors.splashLight,
+                splashColor: StackTheme.instance.color.highlight,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     1000,
@@ -187,8 +187,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                   child: Text(
                     "Show recovery phrase",
                     style: STextStyles.infoSmall.copyWith(
-                      color: CFColors.stackAccent,
-                    ),
+                        color: StackTheme.instance.color.accentColorDark),
                   ),
                 ),
               ),

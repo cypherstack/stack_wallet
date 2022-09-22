@@ -12,9 +12,9 @@ import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -50,7 +50,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -108,7 +108,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                               ),
                               const Spacer(),
                               Text(
-                                "${model.sendAmount.toString()} ${model.sendTicker}",
+                                "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
                                 style: STextStyles.itemSubtitle12,
                               )
                             ],
@@ -126,7 +126,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                               ),
                               const Spacer(),
                               Text(
-                                "${model.receiveAmount.toString()} ${model.receiveTicker}",
+                                "${model.receiveAmount.toString()} ${model.receiveTicker.toUpperCase()}",
                                 style: STextStyles.itemSubtitle12,
                               )
                             ],
@@ -158,7 +158,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Recipient ${model.receiveTicker} address",
+                                "Recipient ${model.receiveTicker.toUpperCase()} address",
                                 style: STextStyles.itemSubtitle,
                               ),
                               const SizedBox(
@@ -179,7 +179,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Refund ${model.sendTicker} address",
+                                "Refund ${model.sendTicker.toUpperCase()} address",
                                 style: STextStyles.itemSubtitle,
                               ),
                               const SizedBox(
@@ -203,10 +203,13 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
+                                style: StackTheme.instance
+                                    .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Back",
                                   style: STextStyles.button.copyWith(
-                                    color: CFColors.stackAccent,
+                                    color: StackTheme
+                                        .instance.color.buttonTextSecondary,
                                   ),
                                 ),
                               ),
@@ -303,15 +306,8 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     ));
                                   }
                                 },
-                                style: Theme.of(context)
-                                    .textButtonTheme
-                                    .style
-                                    ?.copyWith(
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                        CFColors.stackAccent,
-                                      ),
-                                    ),
+                                style: StackTheme.instance
+                                    .getPrimaryEnabledButtonColor(context),
                                 child: Text(
                                   "Next",
                                   style: STextStyles.button,

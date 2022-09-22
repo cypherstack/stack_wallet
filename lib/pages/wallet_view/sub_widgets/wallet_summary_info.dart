@@ -10,11 +10,11 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 class WalletSummaryInfo extends StatefulWidget {
@@ -130,6 +130,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                                   "${_showAvailable ? "Private" : "Public"} Balance",
                                   style: STextStyles.subtitle.copyWith(
                                     fontWeight: FontWeight.w500,
+                                    color: StackTheme
+                                        .instance.color.textFavoriteCard,
                                   ),
                                 ),
                               if (coin != Coin.firo && coin != Coin.firoTestNet)
@@ -137,6 +139,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                                   "${_showAvailable ? "Available" : "Full"} Balance",
                                   style: STextStyles.subtitle.copyWith(
                                     fontWeight: FontWeight.w500,
+                                    color: StackTheme
+                                        .instance.color.textFavoriteCard,
                                   ),
                                 ),
                               const SizedBox(
@@ -144,7 +148,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               ),
                               SvgPicture.asset(
                                 Assets.svg.chevronDown,
-                                color: CFColors.stackAccent,
+                                color:
+                                    StackTheme.instance.color.textFavoriteCard,
                                 width: 8,
                                 height: 4,
                               ),
@@ -162,6 +167,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                             )} ${coin.ticker}",
                             style: STextStyles.pageTitleH1.copyWith(
                               fontSize: 24,
+                              color: StackTheme.instance.color.textFavoriteCard,
                             ),
                           ),
                         ),
@@ -173,6 +179,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                           )} $baseCurrency",
                           style: STextStyles.subtitle.copyWith(
                             fontWeight: FontWeight.w500,
+                            color: StackTheme.instance.color.textFavoriteCard,
                           ),
                         ),
                       ],
@@ -190,6 +197,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                                   "${_showAvailable ? "Private" : "Public"} Balance",
                                   style: STextStyles.subtitle.copyWith(
                                     fontWeight: FontWeight.w500,
+                                    color: StackTheme
+                                        .instance.color.textFavoriteCard,
                                   ),
                                 ),
                               if (coin != Coin.firo && coin != Coin.firoTestNet)
@@ -197,6 +206,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                                   "${_showAvailable ? "Available" : "Full"} Balance",
                                   style: STextStyles.subtitle.copyWith(
                                     fontWeight: FontWeight.w500,
+                                    color: StackTheme
+                                        .instance.color.textFavoriteCard,
                                   ),
                                 ),
                               const SizedBox(
@@ -204,9 +215,10 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               ),
                               SvgPicture.asset(
                                 Assets.svg.chevronDown,
-                                color: CFColors.stackAccent,
                                 width: 8,
                                 height: 4,
+                                color:
+                                    StackTheme.instance.color.textFavoriteCard,
                               ),
                             ],
                           ),
@@ -221,6 +233,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                           ],
                           style: STextStyles.pageTitleH1.copyWith(
                             fontSize: 24,
+                            color: StackTheme.instance.color.textFavoriteCard,
                           ),
                         ),
                         AnimatedText(
@@ -232,6 +245,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                           ],
                           style: STextStyles.subtitle.copyWith(
                             fontWeight: FontWeight.w500,
+                            color: StackTheme.instance.color.textFavoriteCard,
                           ),
                         ),
                       ],

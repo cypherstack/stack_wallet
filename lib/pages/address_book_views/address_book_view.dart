@@ -9,10 +9,10 @@ import 'package:stackwallet/providers/global/address_book_service_provider.dart'
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -102,7 +102,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
         addressBookServiceProvider.select((value) => value.addressBookEntries));
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -126,10 +126,10 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                 key: const Key("addressBookFilterViewButton"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.filter,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -153,10 +153,10 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                 key: const Key("addressBookAddNewContactViewButton"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.plus,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                   width: 20,
                   height: 20,
                 ),

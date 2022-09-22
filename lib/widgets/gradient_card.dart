@@ -1,7 +1,5 @@
 // import 'package:flutter/material.dart';
 // import 'package:stackwallet/utilities/cfcolors.dart';
-//
-// class GradientCard extends StatelessWidget {
 //   const GradientCard(
 //       {Key key,
 //       this.child,

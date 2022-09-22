@@ -10,9 +10,9 @@ import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provi
 import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class HomeViewButtonBar extends ConsumerStatefulWidget {
@@ -147,14 +147,19 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
       children: [
         Expanded(
           child: TextButton(
-            style: ButtonStyle(
-              minimumSize: MaterialStateProperty.all<Size>(const Size(46, 36)),
-              backgroundColor: MaterialStateProperty.all<Color>(
-                selectedIndex == 0
-                    ? CFColors.stackAccent
-                    : CFColors.disabledButton,
-              ),
-            ),
+            style: selectedIndex == 0
+                ? StackTheme.instance
+                    .getPrimaryEnabledButtonColor(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    )
+                : StackTheme.instance
+                    .getSecondaryEnabledButtonColor(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    ),
             onPressed: () {
               FocusScope.of(context).unfocus();
               if (selectedIndex != 0) {
@@ -165,8 +170,9 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               "Wallets",
               style: STextStyles.button.copyWith(
                 fontSize: 14,
-                color:
-                    selectedIndex == 0 ? CFColors.light1 : CFColors.stackAccent,
+                color: selectedIndex == 0
+                    ? StackTheme.instance.color.buttonTextPrimary
+                    : StackTheme.instance.color.textDark,
               ),
             ),
           ),
@@ -176,14 +182,19 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
         ),
         Expanded(
           child: TextButton(
-            style: ButtonStyle(
-              minimumSize: MaterialStateProperty.all<Size>(const Size(46, 36)),
-              backgroundColor: MaterialStateProperty.all<Color>(
-                selectedIndex == 1
-                    ? CFColors.stackAccent
-                    : CFColors.disabledButton,
-              ),
-            ),
+            style: selectedIndex == 1
+                ? StackTheme.instance
+                    .getPrimaryEnabledButtonColor(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    )
+                : StackTheme.instance
+                    .getSecondaryEnabledButtonColor(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    ),
             onPressed: () async {
               FocusScope.of(context).unfocus();
               if (selectedIndex != 1) {
@@ -217,8 +228,9 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               "Exchange",
               style: STextStyles.button.copyWith(
                 fontSize: 14,
-                color:
-                    selectedIndex == 1 ? CFColors.light1 : CFColors.stackAccent,
+                color: selectedIndex == 1
+                    ? StackTheme.instance.color.buttonTextPrimary
+                    : StackTheme.instance.color.textDark,
               ),
             ),
           ),
@@ -249,7 +261,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
         //       style: STextStyles.button.copyWith(
         //         fontSize: 14,
         //         color:
-        //             selectedIndex == 2 ? CFColors.light1 : CFColors.stackAccent,
+        //             selectedIndex == 2 ? CFColors.light1 : StackTheme.instance.color.accentColorDark
         //       ),
         //     ),
         //   ),

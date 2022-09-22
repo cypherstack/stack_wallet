@@ -5,9 +5,9 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -25,7 +25,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -50,7 +50,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
               RoundedWhiteContainer(
                 padding: const EdgeInsets.all(0),
                 child: RawMaterialButton(
-                  // splashColor: CFColors.splashLight,
+                  // splashColor: StackTheme.instance.color.highlight,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
@@ -85,7 +85,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
               RoundedWhiteContainer(
                 padding: const EdgeInsets.all(0),
                 child: RawMaterialButton(
-                  // splashColor: CFColors.splashLight,
+                  // splashColor: StackTheme.instance.color.highlight,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
@@ -101,29 +101,21 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         title:
                             "Do you want to delete ${ref.read(walletsChangeNotifierProvider).getManager(walletId).walletName}?",
                         leftButton: TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
-                              CFColors.buttonGray,
-                            ),
-                          ),
+                          style: StackTheme.instance
+                              .getSecondaryEnabledButtonColor(context),
                           onPressed: () {
                             Navigator.pop(context);
                           },
                           child: Text(
                             "Cancel",
                             style: STextStyles.button.copyWith(
-                              color: CFColors.stackAccent,
-                            ),
+                                color:
+                                    StackTheme.instance.color.accentColorDark),
                           ),
                         ),
                         rightButton: TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
+                          style: StackTheme.instance
+                              .getPrimaryEnabledButtonColor(context),
                           onPressed: () {
                             Navigator.pop(context);
                             Navigator.push(

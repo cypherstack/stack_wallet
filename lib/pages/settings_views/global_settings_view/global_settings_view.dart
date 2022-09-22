@@ -15,8 +15,8 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_pr
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -31,7 +31,7 @@ class GlobalSettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -231,7 +231,7 @@ class GlobalSettingsView extends StatelessWidget {
                               //       ?.copyWith(
                               //         backgroundColor:
                               //             MaterialStateProperty.all<Color>(
-                              //           CFColors.stackAccent,
+                              //           StackTheme.instance.color.accentColorDark
                               //         ),
                               //       ),
                               //   child: Text(

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -52,7 +52,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -77,7 +77,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                 controller: _controller,
                 focusNode: _focusNode,
                 style: STextStyles.field,
-                onChanged: (_) => setState((){}),
+                onChanged: (_) => setState(() {}),
                 decoration: standardInputDecoration(
                   "Wallet name",
                   _focusNode,
@@ -106,11 +106,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
             ),
             const Spacer(),
             TextButton(
-              style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.stackAccent,
-                    ),
-                  ),
+              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
               onPressed: () async {
                 final newName = _controller.text;
                 final success = await ref

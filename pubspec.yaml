@@ -64,6 +64,11 @@ dependencies:
   zxcvbn: ^1.0.0
   dart_numerics: ^0.0.6
 
+  window_size:
+    git:
+      url: https://github.com/google/flutter-desktop-embedding.git
+      path: plugins/window_size
+
   # Bitcoin plugins
   bip39:
     git:
@@ -123,6 +128,7 @@ dependencies:
 #  document_file_save_plus: ^1.0.5
   isar: 3.0.0-dev.10
   isar_flutter_libs: 3.0.0-dev.10 # contains the binaries
+  dropdown_button2: 1.7.2
 
 dev_dependencies:
   flutter_test:
@@ -193,7 +199,8 @@ flutter:
     - assets/svg/plus.svg
     - assets/svg/gear.svg
     - assets/svg/bell.svg
-    - assets/svg/bell-new.svg
+    - assets/svg/light/bell-new.svg
+    - assets/svg/dark/bell-new.svg
     - assets/svg/stack-icon1.svg
     - assets/svg/arrow-left-fa.svg
     - assets/svg/copy-fa.svg
@@ -207,7 +214,8 @@ flutter:
     - assets/svg/bars.svg
     - assets/svg/filter.svg
     - assets/svg/pending.svg
-    - assets/svg/exchange-2.svg
+    - assets/svg/dark/exchange-2.svg
+    - assets/svg/light/exchange-2.svg
     - assets/svg/signal-stream.svg
     - assets/svg/buy-coins-icon.svg
     - assets/svg/Ellipse-43.svg
@@ -223,6 +231,7 @@ flutter:
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
     - assets/svg/address-book.svg
+    - assets/svg/address-book2.svg
     - assets/svg/arrow-right.svg
     - assets/svg/delete.svg
     - assets/svg/dollar-sign.svg
@@ -248,16 +257,25 @@ flutter:
     - assets/svg/ellipsis-vertical1.svg
     - assets/svg/dice-alt.svg
     - assets/svg/circle-arrow-up-right2.svg
-    - assets/svg/tx-exchange-icon.svg
-    - assets/svg/tx-exchange-icon-pending.svg
-    - assets/svg/tx-exchange-icon-failed.svg
+    - assets/svg/dark/tx-exchange-icon.svg
+    - assets/svg/light/tx-exchange-icon.svg
+    - assets/svg/dark/tx-exchange-icon-pending.svg
+    - assets/svg/light/tx-exchange-icon-pending.svg
+    - assets/svg/dark/tx-exchange-icon-failed.svg
+    - assets/svg/light/tx-exchange-icon-failed.svg
     - assets/svg/loader.svg
-    - assets/svg/tx-icon-send.svg
-    - assets/svg/tx-icon-send-pending.svg
-    - assets/svg/tx-icon-send-failed.svg
-    - assets/svg/tx-icon-receive.svg
-    - assets/svg/tx-icon-receive-pending.svg
-    - assets/svg/tx-icon-receive-failed.svg
+    - assets/svg/dark/tx-icon-send.svg
+    - assets/svg/light/tx-icon-send.svg
+    - assets/svg/dark/tx-icon-send-pending.svg
+    - assets/svg/light/tx-icon-send-pending.svg
+    - assets/svg/dark/tx-icon-send-failed.svg
+    - assets/svg/light/tx-icon-send-failed.svg
+    - assets/svg/dark/tx-icon-receive.svg
+    - assets/svg/light/tx-icon-receive.svg
+    - assets/svg/dark/tx-icon-receive-pending.svg
+    - assets/svg/light/tx-icon-receive-pending.svg
+    - assets/svg/dark/tx-icon-receive-failed.svg
+    - assets/svg/light/tx-icon-receive-failed.svg
     - assets/svg/add-backup.svg
     - assets/svg/auto-backup.svg
     - assets/svg/restore-backup.svg
@@ -284,6 +302,11 @@ flutter:
     - assets/svg/socials/reddit-alien-brands.svg
     - assets/svg/socials/twitter-brands.svg
     - assets/svg/socials/telegram-brands.svg
+    - assets/svg/chevron-right.svg
+    - assets/svg/minimize.svg
+    - assets/svg/wallet-fa.svg
+    - assets/svg/exchange-3.svg
+    - assets/svg/message-question-1.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

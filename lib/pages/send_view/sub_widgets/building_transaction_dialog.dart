@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class BuildingTransactionDialog extends StatefulWidget {
@@ -62,17 +62,13 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
           turns: _spinAnimation,
           child: SvgPicture.asset(
             Assets.svg.arrowRotate,
-            color: CFColors.stackAccent,
+            color: StackTheme.instance.color.accentColorDark,
             width: 24,
             height: 24,
           ),
         ),
         rightButton: TextButton(
-          style: Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.buttonGray,
-                ),
-              ),
+          style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
           child: Text(
             "Cancel",
             style: STextStyles.itemSubtitle12,

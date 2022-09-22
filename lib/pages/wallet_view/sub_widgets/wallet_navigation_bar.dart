@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
 class WalletNavigationBar extends StatelessWidget {
   const WalletNavigationBar({
@@ -27,8 +27,8 @@ class WalletNavigationBar extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: CFColors.white,
-        boxShadow: const [CFColors.standardBoxShadow],
+        color: StackTheme.instance.color.popupBG,
+        boxShadow: [StackTheme.instance.standardBoxShadow],
         borderRadius: BorderRadius.circular(
           height / 2.0,
         ),
@@ -49,7 +49,7 @@ class WalletNavigationBar extends StatelessWidget {
                 minWidth: 66,
               ),
               onPressed: onReceivePressed,
-              splashColor: CFColors.splashLight,
+              splashColor: StackTheme.instance.color.highlight,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(
                   height / 2.0,
@@ -65,7 +65,8 @@ class WalletNavigationBar extends StatelessWidget {
                       const Spacer(),
                       Container(
                         decoration: BoxDecoration(
-                          color: CFColors.stackAccent.withOpacity(0.4),
+                          color: StackTheme.instance.color.accentColorDark
+                              .withOpacity(0.4),
                           borderRadius: BorderRadius.circular(
                             24,
                           ),
@@ -76,7 +77,7 @@ class WalletNavigationBar extends StatelessWidget {
                             Assets.svg.arrowDownLeft,
                             width: 12,
                             height: 12,
-                            color: CFColors.stackAccent,
+                            color: StackTheme.instance.color.accentColorDark,
                           ),
                         ),
                       ),
@@ -98,7 +99,7 @@ class WalletNavigationBar extends StatelessWidget {
                 minWidth: 66,
               ),
               onPressed: onSendPressed,
-              splashColor: CFColors.splashLight,
+              splashColor: StackTheme.instance.color.highlight,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(
                   height / 2.0,
@@ -114,7 +115,8 @@ class WalletNavigationBar extends StatelessWidget {
                       const Spacer(),
                       Container(
                         decoration: BoxDecoration(
-                          color: CFColors.stackAccent.withOpacity(0.4),
+                          color: StackTheme.instance.color.accentColorDark
+                              .withOpacity(0.4),
                           borderRadius: BorderRadius.circular(
                             24,
                           ),
@@ -125,7 +127,7 @@ class WalletNavigationBar extends StatelessWidget {
                             Assets.svg.arrowUpRight,
                             width: 12,
                             height: 12,
-                            color: CFColors.stackAccent,
+                            color: StackTheme.instance.color.accentColorDark,
                           ),
                         ),
                       ),
@@ -148,7 +150,7 @@ class WalletNavigationBar extends StatelessWidget {
                   minWidth: 66,
                 ),
                 onPressed: onExchangePressed,
-                splashColor: CFColors.splashLight,
+                splashColor: StackTheme.instance.color.highlight,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     height / 2.0,
@@ -236,7 +238,7 @@ class WalletNavigationBar extends StatelessWidget {
 //   Widget build(BuildContext context) {
 //     return Container(
 //       child: MaterialButton(
-//         splashColor: CFColors.splashLight,
+//         splashColor: StackTheme.instance.color.highlight,
 //         padding: const EdgeInsets.all(0),
 //         minWidth: 45,
 //         shape: RoundedRectangleBorder(

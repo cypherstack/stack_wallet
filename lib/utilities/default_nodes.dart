@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
@@ -97,7 +96,7 @@ abstract class DefaultNodes {
 
   static NodeModel get namecoin => NodeModel(
         host: "namecoin.stackwallet.com",
-        port: 8336,
+        port: 57002,
         name: defaultName,
         id: _nodeId(Coin.namecoin),
         useSSL: true,

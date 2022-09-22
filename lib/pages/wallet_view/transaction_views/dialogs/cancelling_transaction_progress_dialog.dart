@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class CancellingTransactionProgressDialog extends StatefulWidget {
@@ -57,7 +57,7 @@ class _CancellingTransactionProgressDialogState
             Assets.svg.arrowRotate3,
             width: 24,
             height: 24,
-            color: CFColors.stackAccent,
+            color: StackTheme.instance.color.accentColorDark,
           ),
         ),
         // rightButton: TextButton(

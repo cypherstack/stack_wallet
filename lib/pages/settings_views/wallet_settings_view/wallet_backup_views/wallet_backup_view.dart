@@ -8,11 +8,11 @@ import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_vi
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -34,7 +34,7 @@ class WalletBackupView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -51,7 +51,7 @@ class WalletBackupView extends ConsumerWidget {
             child: AspectRatio(
               aspectRatio: 1,
               child: AppBarIconButton(
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.copy,
@@ -104,7 +104,7 @@ class WalletBackupView extends ConsumerWidget {
             ),
             Container(
               decoration: BoxDecoration(
-                color: CFColors.white,
+                color: StackTheme.instance.color.popupBG,
                 borderRadius:
                     BorderRadius.circular(Constants.size.circularBorderRadius),
               ),
@@ -123,6 +123,7 @@ class WalletBackupView extends ConsumerWidget {
               child: SingleChildScrollView(
                 child: MnemonicTable(
                   words: mnemonic,
+                  isDesktop: false,
                 ),
               ),
             ),
@@ -130,11 +131,7 @@ class WalletBackupView extends ConsumerWidget {
               height: 12,
             ),
             TextButton(
-              style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.stackAccent,
-                    ),
-                  ),
+              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
               onPressed: () {
                 String data = AddressUtils.encodeQRSeedData(mnemonic);
 
@@ -164,11 +161,12 @@ class WalletBackupView extends ConsumerWidget {
                                 width: width + 20,
                                 height: width + 20,
                                 child: QrImage(
-                                  data: data,
-                                  size: width,
-                                  backgroundColor: CFColors.white,
-                                  foregroundColor: CFColors.stackAccent,
-                                ),
+                                    data: data,
+                                    size: width,
+                                    backgroundColor:
+                                        StackTheme.instance.color.popupBG,
+                                    foregroundColor: StackTheme
+                                        .instance.color.accentColorDark),
                               ),
                             ),
                           ),
@@ -183,17 +181,13 @@ class WalletBackupView extends ConsumerWidget {
                                   // await _capturePng(true);
                                   Navigator.of(context).pop();
                                 },
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                    CFColors.buttonGray,
-                                  ),
-                                ),
+                                style: StackTheme.instance
+                                    .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Cancel",
                                   style: STextStyles.button.copyWith(
-                                    color: CFColors.stackAccent,
-                                  ),
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                               ),
                             ),

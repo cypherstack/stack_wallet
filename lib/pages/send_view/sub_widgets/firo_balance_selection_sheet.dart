@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 class FiroBalanceSelectionSheet extends ConsumerStatefulWidget {
@@ -49,9 +49,9 @@ class _FiroBalanceSelectionSheetState
     final firoWallet = manager.wallet as FiroWallet;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: CFColors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: StackTheme.instance.color.popupBG,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
       ),
@@ -69,7 +69,7 @@ class _FiroBalanceSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: CFColors.fieldGray,
+                  color: StackTheme.instance.color.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -114,7 +114,8 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor: CFColors.link2,
+                                activeColor: StackTheme
+                                    .instance.color.radioButtonIconEnabled,
                                 value: "Private",
                                 groupValue: ref
                                     .watch(
@@ -143,9 +144,7 @@ class _FiroBalanceSelectionSheetState
                               //   children: [
                               Text(
                                 "Private balance",
-                                style: STextStyles.titleBold12.copyWith(
-                                  color: const Color(0xFF44464E),
-                                ),
+                                style: STextStyles.titleBold12,
                                 textAlign: TextAlign.left,
                               ),
                               const SizedBox(
@@ -205,7 +204,8 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor: CFColors.link2,
+                                activeColor: StackTheme
+                                    .instance.color.radioButtonIconEnabled,
                                 value: "Public",
                                 groupValue: ref
                                     .watch(
@@ -233,9 +233,7 @@ class _FiroBalanceSelectionSheetState
                               //   children: [
                               Text(
                                 "Public balance",
-                                style: STextStyles.titleBold12.copyWith(
-                                  color: const Color(0xFF44464E),
-                                ),
+                                style: STextStyles.titleBold12,
                                 textAlign: TextAlign.left,
                               ),
                               const SizedBox(

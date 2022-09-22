@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -78,8 +78,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                 height: 24,
                 decoration: BoxDecoration(
                   color: _node.name == DefaultNodes.defaultName
-                      ? CFColors.buttonGray
-                      : CFColors.link2.withOpacity(0.2),
+                      ? StackTheme.instance.color.buttonBackSecondary
+                      : StackTheme.instance.color.infoItemIcons
+                          .withOpacity(0.2),
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Center(
@@ -88,8 +89,8 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     height: 11,
                     width: 14,
                     color: _node.name == DefaultNodes.defaultName
-                        ? CFColors.stackAccent
-                        : CFColors.link2,
+                        ? StackTheme.instance.color.accentColorDark
+                        : StackTheme.instance.color.infoItemIcons,
                   ),
                 ),
               ),
@@ -116,8 +117,8 @@ class _NodeCardState extends ConsumerState<NodeCard> {
               SvgPicture.asset(
                 Assets.svg.network,
                 color: _status == "Connected"
-                    ? CFColors.stackGreen
-                    : CFColors.buttonGray,
+                    ? StackTheme.instance.color.accentColorGreen
+                    : StackTheme.instance.color.buttonBackSecondary,
                 width: 20,
                 height: 20,
               ),

@@ -12,11 +12,11 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/shake/shake.dart';
@@ -151,8 +151,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: CFColors.gray3,
-      border: Border.all(width: 1, color: CFColors.gray3),
+      color: StackTheme.instance.color.textSubtitle2,
+      border:
+          Border.all(width: 1, color: StackTheme.instance.color.textSubtitle2),
       borderRadius: BorderRadius.circular(6),
     );
   }
@@ -164,7 +165,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   late Biometrics biometrics;
 
   Scaffold get _body => Scaffold(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: StackTheme.instance.color.background,
         appBar: AppBar(
           leading: widget.showBackButton
               ? AppBarBackButton(
@@ -213,21 +214,21 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                         controller: _pinTextController,
                         useNativeKeyboard: false,
                         obscureText: "",
-                        inputDecoration: const InputDecoration(
+                        inputDecoration: InputDecoration(
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           disabledBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           focusedErrorBorder: InputBorder.none,
-                          fillColor: CFColors.almostWhite,
+                          fillColor: StackTheme.instance.color.background,
                           counterText: "",
                         ),
                         submittedFieldDecoration: _pinPutDecoration.copyWith(
-                          color: CFColors.link2,
+                          color: StackTheme.instance.color.infoItemIcons,
                           border: Border.all(
                             width: 1,
-                            color: CFColors.link2,
+                            color: StackTheme.instance.color.infoItemIcons,
                           ),
                         ),
                         selectedFieldDecoration: _pinPutDecoration,

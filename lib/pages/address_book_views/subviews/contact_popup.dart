@@ -10,11 +10,11 @@ import 'package:stackwallet/providers/exchange/exchange_flow_is_active_state_pro
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
@@ -71,7 +71,7 @@ class ContactPopUp extends ConsumerWidget {
                   ),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: CFColors.white,
+                      color: StackTheme.instance.color.popupBG,
                       borderRadius: BorderRadius.circular(
                         20,
                       ),
@@ -98,7 +98,8 @@ class ContactPopUp extends ConsumerWidget {
                                       width: 32,
                                       height: 32,
                                       decoration: BoxDecoration(
-                                        color: CFColors.contactIconBackground,
+                                        color: StackTheme
+                                            .instance.color.textFieldDefaultBG,
                                         borderRadius: BorderRadius.circular(32),
                                       ),
                                       child: contact.id == "default"
@@ -138,15 +139,14 @@ class ContactPopUp extends ConsumerWidget {
                                             arguments: contact.id,
                                           );
                                         },
-                                        style: ButtonStyle(
-                                          minimumSize:
-                                              MaterialStateProperty.all<Size>(
-                                                  const Size(46, 32)),
-                                          backgroundColor:
-                                              MaterialStateProperty.all(
-                                            CFColors.buttonGray,
-                                          ),
-                                        ),
+                                        style: StackTheme.instance
+                                            .getSecondaryEnabledButtonColor(
+                                                context)!
+                                            .copyWith(
+                                              minimumSize:
+                                                  MaterialStateProperty.all<
+                                                      Size>(const Size(46, 32)),
+                                            ),
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 18),
@@ -162,7 +162,7 @@ class ContactPopUp extends ConsumerWidget {
                               ),
                               Container(
                                 height: 1,
-                                color: CFColors.almostWhite,
+                                color: StackTheme.instance.color.background,
                               ),
                               if (addresses.isEmpty)
                                 Padding(
@@ -254,14 +254,15 @@ class ContactPopUp extends ConsumerWidget {
                                               );
                                             },
                                             child: RoundedContainer(
-                                              color: CFColors.fieldGray,
+                                              color: StackTheme.instance.color
+                                                  .textFieldDefaultBG,
                                               padding: const EdgeInsets.all(4),
                                               child: SvgPicture.asset(
-                                                Assets.svg.copy,
-                                                width: 12,
-                                                height: 12,
-                                                color: CFColors.stackAccent,
-                                              ),
+                                                  Assets.svg.copy,
+                                                  width: 12,
+                                                  height: 12,
+                                                  color: StackTheme.instance
+                                                      .color.accentColorDark),
                                             ),
                                           ),
                                         ],
@@ -304,15 +305,17 @@ class ContactPopUp extends ConsumerWidget {
                                                 }
                                               },
                                               child: RoundedContainer(
-                                                color: CFColors.fieldGray,
+                                                color: StackTheme.instance.color
+                                                    .textFieldDefaultBG,
                                                 padding:
                                                     const EdgeInsets.all(4),
                                                 child: SvgPicture.asset(
-                                                  Assets.svg.circleArrowUpRight,
-                                                  width: 12,
-                                                  height: 12,
-                                                  color: CFColors.stackAccent,
-                                                ),
+                                                    Assets
+                                                        .svg.circleArrowUpRight,
+                                                    width: 12,
+                                                    height: 12,
+                                                    color: StackTheme.instance
+                                                        .color.accentColorDark),
                                               ),
                                             ),
                                           ],

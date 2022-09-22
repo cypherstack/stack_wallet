@@ -1,9 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class IntroView extends StatefulWidget {
@@ -14,8 +17,11 @@ class IntroView extends StatefulWidget {
 }
 
 class _IntroViewState extends State<IntroView> {
+  late final bool isDesktop;
+
   @override
   void initState() {
+    isDesktop = Util.isDesktop;
     super.initState();
   }
 
@@ -23,28 +29,22 @@ class _IntroViewState extends State<IntroView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
     return Scaffold(
-      body: Container(
-        color: CFColors.almostWhite,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 47,
-                  right: 47,
-                  top: 67,
-                  bottom: 4,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Spacer(
-                      flex: 2,
+      backgroundColor: StackTheme.instance.color.background,
+      body: Center(
+        child: !isDesktop
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Spacer(
+                    flex: 2,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
                     ),
-                    ConstrainedBox(
+                    child: ConstrainedBox(
                       constraints: const BoxConstraints(
-                        maxWidth: 400,
+                        maxWidth: 300,
                       ),
                       child: Image(
                         image: AssetImage(
@@ -52,91 +52,212 @@ class _IntroViewState extends State<IntroView> {
                         ),
                       ),
                     ),
-                    const Spacer(
-                      flex: 1,
+                  ),
+                  const Spacer(
+                    flex: 1,
+                  ),
+                  AppNameText(
+                    isDesktop: isDesktop,
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 48,
                     ),
-                    Text(
-                      "Stack Wallet",
-                      textAlign: TextAlign.center,
-                      style: STextStyles.pageTitleH1,
+                    child: IntroAboutText(
+                      isDesktop: isDesktop,
                     ),
-                    const SizedBox(
-                      height: 8,
+                  ),
+                  const Spacer(
+                    flex: 4,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
                     ),
-                    Text(
-                      "An open-source, multicoin wallet for everyone",
-                      textAlign: TextAlign.center,
-                      style: STextStyles.subtitle,
+                    child: PrivacyAndTOSText(
+                      isDesktop: isDesktop,
                     ),
-                    // Center(child: Text("for everyone")),
-                    const Spacer(
-                      flex: 4,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
                     ),
-                    RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        style: STextStyles.label,
-                        children: [
-                          const TextSpan(
-                              text: "By using Stack Wallet, you agree to the "),
-                          TextSpan(
-                            text: "Terms of service",
-                            style: STextStyles.richLink,
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                launchUrl(
-                                  Uri.parse(
-                                      "https://stackwallet.com/terms-of-service.html"),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              },
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GetStartedButton(
+                            isDesktop: isDesktop,
                           ),
-                          const TextSpan(text: " and "),
-                          TextSpan(
-                            text: "Privacy policy",
-                            style: STextStyles.richLink,
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                launchUrl(
-                                  Uri.parse(
-                                      "https://stackwallet.com/privacy-policy.html"),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              },
-                          ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            : SizedBox(
+                width: 350,
+                height: 540,
+                child: Column(
+                  children: [
+                    const Spacer(
+                      flex: 2,
+                    ),
+                    SizedBox(
+                      width: 130,
+                      height: 130,
+                      child: SvgPicture.asset(
+                        Assets.svg.stackIcon,
                       ),
+                    ),
+                    const Spacer(
+                      flex: 42,
+                    ),
+                    AppNameText(
+                      isDesktop: isDesktop,
+                    ),
+                    const Spacer(
+                      flex: 24,
+                    ),
+                    IntroAboutText(
+                      isDesktop: isDesktop,
+                    ),
+                    const Spacer(
+                      flex: 42,
+                    ),
+                    GetStartedButton(
+                      isDesktop: isDesktop,
+                    ),
+                    const Spacer(
+                      flex: 65,
+                    ),
+                    PrivacyAndTOSText(
+                      isDesktop: isDesktop,
                     ),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              child: TextButton(
-                style: Theme.of(context).textButtonTheme.style?.copyWith(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        CFColors.stackAccent,
-                      ),
-                    ),
-                onPressed: () {
-                  // // TODO do global password/pin creation
-                  // Navigator.of(context).pushNamed(HomeView.routeName);
-
-                  Navigator.of(context).pushNamed(CreatePinView.routeName);
-                },
-                child: Text(
-                  "Get started",
-                  style: STextStyles.button,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
+  }
+}
+
+class AppNameText extends StatelessWidget {
+  const AppNameText({Key? key, required this.isDesktop}) : super(key: key);
+
+  final bool isDesktop;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      "Stack Wallet",
+      textAlign: TextAlign.center,
+      style: !isDesktop
+          ? STextStyles.pageTitleH1
+          : STextStyles.pageTitleH1.copyWith(
+              fontSize: 40,
+            ),
+    );
+  }
+}
+
+class IntroAboutText extends StatelessWidget {
+  const IntroAboutText({Key? key, required this.isDesktop}) : super(key: key);
+
+  final bool isDesktop;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      "An open-source, multicoin wallet for everyone",
+      textAlign: TextAlign.center,
+      style: !isDesktop
+          ? STextStyles.subtitle
+          : STextStyles.subtitle.copyWith(
+              fontSize: 24,
+            ),
+    );
+  }
+}
+
+class PrivacyAndTOSText extends StatelessWidget {
+  const PrivacyAndTOSText({Key? key, required this.isDesktop})
+      : super(key: key);
+
+  final bool isDesktop;
+
+  @override
+  Widget build(BuildContext context) {
+    final fontSize = isDesktop ? 18.0 : 12.0;
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: STextStyles.label.copyWith(fontSize: fontSize),
+        children: [
+          const TextSpan(text: "By using Stack Wallet, you agree to the "),
+          TextSpan(
+            text: "Terms of service",
+            style: STextStyles.richLink.copyWith(fontSize: fontSize),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                launchUrl(
+                  Uri.parse("https://stackwallet.com/terms-of-service.html"),
+                  mode: LaunchMode.externalApplication,
+                );
+              },
+          ),
+          const TextSpan(text: " and "),
+          TextSpan(
+            text: "Privacy policy",
+            style: STextStyles.richLink.copyWith(fontSize: fontSize),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                launchUrl(
+                  Uri.parse("https://stackwallet.com/privacy-policy.html"),
+                  mode: LaunchMode.externalApplication,
+                );
+              },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GetStartedButton extends StatelessWidget {
+  const GetStartedButton({Key? key, required this.isDesktop}) : super(key: key);
+
+  final bool isDesktop;
+
+  @override
+  Widget build(BuildContext context) {
+    return !isDesktop
+        ? TextButton(
+            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+            onPressed: () {
+              Navigator.of(context).pushNamed(CreatePinView.routeName);
+            },
+            child: Text(
+              "Get started",
+              style: STextStyles.button,
+            ),
+          )
+        : SizedBox(
+            width: 328,
+            height: 70,
+            child: TextButton(
+              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+              onPressed: () {
+                Navigator.of(context).pushNamed(CreatePasswordView.routeName);
+              },
+              child: Text(
+                "Get started",
+                style: STextStyles.button.copyWith(fontSize: 20),
+              ),
+            ),
+          );
   }
 }

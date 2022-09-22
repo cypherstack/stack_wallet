@@ -20,7 +20,6 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -28,6 +27,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -360,7 +360,7 @@ class _SendViewState extends ConsumerState<SendView> {
     }
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -400,7 +400,7 @@ class _SendViewState extends ConsumerState<SendView> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: CFColors.white,
+                            color: StackTheme.instance.color.popupBG,
                             borderRadius: BorderRadius.circular(
                               Constants.size.circularBorderRadius,
                             ),
@@ -840,7 +840,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                     error,
                                     textAlign: TextAlign.left,
                                     style: STextStyles.label.copyWith(
-                                      color: CFColors.notificationRedForeground,
+                                      color:
+                                          StackTheme.instance.color.textError,
                                     ),
                                   ),
                                 ),
@@ -874,7 +875,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                   horizontal: 12,
                                 ),
                                 child: RawMaterialButton(
-                                  splashColor: CFColors.splashLight,
+                                  splashColor:
+                                      StackTheme.instance.color.highlight,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(
                                       Constants.size.circularBorderRadius,
@@ -975,7 +977,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                         Assets.svg.chevronDown,
                                         width: 8,
                                         height: 4,
-                                        color: CFColors.gray3,
+                                        color: StackTheme
+                                            .instance.color.textSubtitle2,
                                       ),
                                     ],
                                   ),
@@ -1066,8 +1069,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                 child: Text(
                                   coin.ticker,
                                   style: STextStyles.smallMed14.copyWith(
-                                    color: CFColors.stackAccent,
-                                  ),
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                               ),
                             ),
@@ -1168,8 +1171,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ref.watch(prefsChangeNotifierProvider
                                       .select((value) => value.currency)),
                                   style: STextStyles.smallMed14.copyWith(
-                                    color: CFColors.stackAccent,
-                                  ),
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                               ),
                             ),
@@ -1244,7 +1247,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                 horizontal: 12,
                               ),
                               child: RawMaterialButton(
-                                splashColor: CFColors.splashLight,
+                                splashColor:
+                                    StackTheme.instance.color.highlight,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
@@ -1366,7 +1370,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                             Assets.svg.chevronDown,
                                             width: 8,
                                             height: 4,
-                                            color: CFColors.gray3,
+                                            color: StackTheme
+                                                .instance.color.textSubtitle2,
                                           ),
                                         ],
                                       ),
@@ -1406,22 +1411,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                           message:
                                               "Sending to self is currently disabled",
                                           rightButton: TextButton(
-                                            style: Theme.of(context)
-                                                .textButtonTheme
-                                                .style
-                                                ?.copyWith(
-                                                  backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(
-                                                    CFColors.buttonGray,
-                                                  ),
-                                                ),
+                                            style: StackTheme.instance
+                                                .getSecondaryEnabledButtonColor(
+                                                    context),
                                             child: Text(
                                               "Ok",
-                                              style:
-                                                  STextStyles.button.copyWith(
-                                                color: CFColors.stackAccent,
-                                              ),
+                                              style: STextStyles.button
+                                                  .copyWith(
+                                                      color: StackTheme
+                                                          .instance
+                                                          .color
+                                                          .accentColorDark),
                                             ),
                                             onPressed: () {
                                               Navigator.of(context).pop();
@@ -1475,38 +1475,26 @@ class _SendViewState extends ConsumerState<SendView> {
                                           message:
                                               "You are about to send your entire balance. Would you like to continue?",
                                           leftButton: TextButton(
-                                            style: Theme.of(context)
-                                                .textButtonTheme
-                                                .style
-                                                ?.copyWith(
-                                                  backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(
-                                                    CFColors.buttonGray,
-                                                  ),
-                                                ),
+                                            style: StackTheme.instance
+                                                .getSecondaryEnabledButtonColor(
+                                                    context),
                                             child: Text(
                                               "Cancel",
-                                              style:
-                                                  STextStyles.button.copyWith(
-                                                color: CFColors.stackAccent,
-                                              ),
+                                              style: STextStyles.button
+                                                  .copyWith(
+                                                      color: StackTheme
+                                                          .instance
+                                                          .color
+                                                          .accentColorDark),
                                             ),
                                             onPressed: () {
                                               Navigator.of(context).pop(false);
                                             },
                                           ),
                                           rightButton: TextButton(
-                                            style: Theme.of(context)
-                                                .textButtonTheme
-                                                .style
-                                                ?.copyWith(
-                                                  backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(
-                                                    CFColors.stackAccent,
-                                                  ),
-                                                ),
+                                            style: StackTheme.instance
+                                                .getPrimaryEnabledButtonColor(
+                                                    context),
                                             child: Text(
                                               "Yes",
                                               style: STextStyles.button,
@@ -1611,22 +1599,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                             title: "Transaction failed",
                                             message: e.toString(),
                                             rightButton: TextButton(
-                                              style: Theme.of(context)
-                                                  .textButtonTheme
-                                                  .style
-                                                  ?.copyWith(
-                                                    backgroundColor:
-                                                        MaterialStateProperty
-                                                            .all<Color>(
-                                                      CFColors.buttonGray,
-                                                    ),
-                                                  ),
+                                              style: StackTheme.instance
+                                                  .getSecondaryEnabledButtonColor(
+                                                      context),
                                               child: Text(
                                                 "Ok",
-                                                style:
-                                                    STextStyles.button.copyWith(
-                                                  color: CFColors.stackAccent,
-                                                ),
+                                                style: STextStyles.button
+                                                    .copyWith(
+                                                        color: StackTheme
+                                                            .instance
+                                                            .color
+                                                            .accentColorDark),
                                               ),
                                               onPressed: () {
                                                 Navigator.of(context).pop();
@@ -1642,26 +1625,10 @@ class _SendViewState extends ConsumerState<SendView> {
                           style: ref
                                   .watch(previewTxButtonStateProvider.state)
                                   .state
-                              ? Theme.of(context)
-                                  .textButtonTheme
-                                  .style
-                                  ?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  )
-                              : Theme.of(context)
-                                  .textButtonTheme
-                                  .style
-                                  ?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent.withOpacity(
-                                        0.25,
-                                      ),
-                                    ),
-                                  ),
+                              ? StackTheme.instance
+                                  .getPrimaryEnabledButtonColor(context)
+                              : StackTheme.instance
+                                  .getPrimaryDisabledButtonColor(context),
                           child: Text(
                             "Preview",
                             style: STextStyles.button,

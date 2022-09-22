@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -34,7 +34,7 @@ class _StartupWalletSelectionViewState
     }
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -90,8 +90,8 @@ class _StartupWalletSelectionViewState
                                   children: [
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: CFColors.coin
-                                            .forCoin(manager.coin)
+                                        color: StackTheme.instance
+                                            .colorForCoin(manager.coin)
                                             .withOpacity(0.5),
                                         borderRadius: BorderRadius.circular(
                                           Constants.size.circularBorderRadius,
@@ -161,7 +161,8 @@ class _StartupWalletSelectionViewState
                                       height: 20,
                                       width: 20,
                                       child: Radio(
-                                        activeColor: CFColors.link2,
+                                        activeColor: StackTheme.instance.color
+                                            .radioButtonIconEnabled,
                                         value: manager.walletId,
                                         groupValue: ref.watch(
                                           prefsChangeNotifierProvider.select(

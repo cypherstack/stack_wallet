@@ -10,6 +10,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   isar_flutter_libs
   stack_wallet_backup
   url_launcher_linux
+  window_size
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

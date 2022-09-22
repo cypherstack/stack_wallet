@@ -26,10 +26,10 @@ import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -81,7 +81,7 @@ class _WalletInitiatedExchangeViewState
         builder: (_) => WillPopScope(
           onWillPop: () async => false,
           child: Container(
-            color: CFColors.stackAccent.withOpacity(0.8),
+            color: StackTheme.instance.color.accentColorDark.withOpacity(0.8),
             child: const CustomLoadingOverlay(
               message: "Updating exchange rate",
               eventBus: null,
@@ -353,7 +353,7 @@ class _WalletInitiatedExchangeViewState
     });
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -412,7 +412,7 @@ class _WalletInitiatedExchangeViewState
                         Text(
                           "You will send",
                           style: STextStyles.itemSubtitle.copyWith(
-                            color: CFColors.neutral50,
+                            color: StackTheme.instance.color.textDark3,
                           ),
                         ),
                         const SizedBox(
@@ -621,7 +621,10 @@ class _WalletInitiatedExchangeViewState
                                                       width: 18,
                                                       height: 18,
                                                       decoration: BoxDecoration(
-                                                        color: CFColors.gray3,
+                                                        color: StackTheme
+                                                            .instance
+                                                            .color
+                                                            .textSubtitle2,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(
@@ -645,7 +648,7 @@ class _WalletInitiatedExchangeViewState
                                                   width: 18,
                                                   height: 18,
                                                   decoration: BoxDecoration(
-                                                    // color: CFColors.stackAccent,
+                                                    // color: StackTheme.instance.color.accentColorDark
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             18),
@@ -654,7 +657,8 @@ class _WalletInitiatedExchangeViewState
                                                     Assets.svg.circleQuestion,
                                                     width: 18,
                                                     height: 18,
-                                                    color: CFColors.gray3,
+                                                    color: StackTheme.instance
+                                                        .color.textSubtitle2,
                                                   ),
                                                 );
                                               }
@@ -678,10 +682,10 @@ class _WalletInitiatedExchangeViewState
                                                               .market?.from
                                                               .toUpperCase())) ??
                                                   "-",
-                                          style:
-                                              STextStyles.smallMed14.copyWith(
-                                            color: CFColors.stackAccent,
-                                          ),
+                                          style: STextStyles.smallMed14
+                                              .copyWith(
+                                                  color: StackTheme.instance
+                                                      .color.accentColorDark),
                                         ),
                                         const SizedBox(
                                           width: 6,
@@ -705,11 +709,11 @@ class _WalletInitiatedExchangeViewState
                                             return Container();
                                           }
                                           return SvgPicture.asset(
-                                            Assets.svg.chevronDown,
-                                            width: 5,
-                                            height: 2.5,
-                                            color: CFColors.stackAccent,
-                                          );
+                                              Assets.svg.chevronDown,
+                                              width: 5,
+                                              height: 2.5,
+                                              color: StackTheme.instance.color
+                                                  .accentColorDark);
                                         }),
                                       ],
                                     ),
@@ -730,7 +734,7 @@ class _WalletInitiatedExchangeViewState
                                 child: Text(
                                   "You will receive",
                                   style: STextStyles.itemSubtitle.copyWith(
-                                    color: CFColors.neutral50,
+                                    color: StackTheme.instance.color.textDark3,
                                   ),
                                 ),
                               ),
@@ -980,7 +984,10 @@ class _WalletInitiatedExchangeViewState
                                                       width: 18,
                                                       height: 18,
                                                       decoration: BoxDecoration(
-                                                        color: CFColors.gray3,
+                                                        color: StackTheme
+                                                            .instance
+                                                            .color
+                                                            .textSubtitle2,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(18),
@@ -1002,7 +1009,7 @@ class _WalletInitiatedExchangeViewState
                                                   width: 18,
                                                   height: 18,
                                                   decoration: BoxDecoration(
-                                                    // color: CFColors.stackAccent,
+                                                    // color: StackTheme.instance.color.accentColorDark
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             18),
@@ -1011,7 +1018,8 @@ class _WalletInitiatedExchangeViewState
                                                     Assets.svg.circleQuestion,
                                                     width: 18,
                                                     height: 18,
-                                                    color: CFColors.gray3,
+                                                    color: StackTheme.instance
+                                                        .color.textSubtitle2,
                                                   ),
                                                 );
                                               }
@@ -1035,10 +1043,10 @@ class _WalletInitiatedExchangeViewState
                                                               .market?.to
                                                               .toUpperCase())) ??
                                                   "-",
-                                          style:
-                                              STextStyles.smallMed14.copyWith(
-                                            color: CFColors.stackAccent,
-                                          ),
+                                          style: STextStyles.smallMed14
+                                              .copyWith(
+                                                  color: StackTheme.instance
+                                                      .color.accentColorDark),
                                         ),
                                         const SizedBox(
                                           width: 6,
@@ -1062,11 +1070,11 @@ class _WalletInitiatedExchangeViewState
                                             return Container();
                                           }
                                           return SvgPicture.asset(
-                                            Assets.svg.chevronDown,
-                                            width: 5,
-                                            height: 2.5,
-                                            color: CFColors.stackAccent,
-                                          );
+                                              Assets.svg.chevronDown,
+                                              width: 5,
+                                              height: 2.5,
+                                              color: StackTheme.instance.color
+                                                  .accentColorDark);
                                         }),
                                       ],
                                     ),
@@ -1215,27 +1223,18 @@ class _WalletInitiatedExchangeViewState
                         ),
                         const Spacer(),
                         TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      ((ref
-                                                      .read(
-                                                          prefsChangeNotifierProvider)
-                                                      .exchangeRateType ==
-                                                  ExchangeRateType.estimated)
-                                              ? ref.watch(
-                                                  estimatedRateExchangeFormProvider
-                                                      .select((value) =>
-                                                          value.canExchange))
-                                              : ref.watch(
-                                                  fixedRateExchangeFormProvider
-                                                      .select((value) =>
-                                                          value.canExchange)))
-                                          ? CFColors.stackAccent
-                                          : CFColors.buttonGray,
-                                    ),
-                                  ),
+                          style: ((ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .exchangeRateType ==
+                                      ExchangeRateType.estimated)
+                                  ? ref.watch(estimatedRateExchangeFormProvider
+                                      .select((value) => value.canExchange))
+                                  : ref.watch(fixedRateExchangeFormProvider
+                                      .select((value) => value.canExchange)))
+                              ? StackTheme.instance
+                                  .getPrimaryEnabledButtonColor(context)
+                              : StackTheme.instance
+                                  .getSecondaryEnabledButtonColor(context),
                           onPressed: ((ref
                                           .read(prefsChangeNotifierProvider)
                                           .exchangeRateType ==
@@ -1471,16 +1470,9 @@ class _WalletInitiatedExchangeViewState
                                           message:
                                               "${response.value!.warningMessage!}\n\nDo you want to attempt trade anyways?",
                                           leftButton: TextButton(
-                                            style: Theme.of(context)
-                                                .textButtonTheme
-                                                .style
-                                                ?.copyWith(
-                                                  backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(
-                                                    CFColors.buttonGray,
-                                                  ),
-                                                ),
+                                            style: StackTheme.instance
+                                                .getSecondaryEnabledButtonColor(
+                                                    context),
                                             child: Text(
                                               "Cancel",
                                               style: STextStyles.itemSubtitle12,
@@ -1491,16 +1483,9 @@ class _WalletInitiatedExchangeViewState
                                             },
                                           ),
                                           rightButton: TextButton(
-                                            style: Theme.of(context)
-                                                .textButtonTheme
-                                                .style
-                                                ?.copyWith(
-                                                  backgroundColor:
-                                                      MaterialStateProperty.all<
-                                                          Color>(
-                                                    CFColors.stackAccent,
-                                                  ),
-                                                ),
+                                            style: StackTheme.instance
+                                                .getPrimaryEnabledButtonColor(
+                                                    context),
                                             child: Text(
                                               "Attempt",
                                               style: STextStyles.button,

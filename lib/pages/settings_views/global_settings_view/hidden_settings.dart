@@ -5,9 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class HiddenSettings extends StatelessWidget {
@@ -18,7 +18,7 @@ class HiddenSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: Container(),
         title: Text(
@@ -64,8 +64,8 @@ class HiddenSettings extends StatelessWidget {
                             child: Text(
                               "Delete notifications",
                               style: STextStyles.button.copyWith(
-                                color: CFColors.stackAccent,
-                              ),
+                                  color: StackTheme
+                                      .instance.color.accentColorDark),
                             ),
                           ),
                         );
@@ -92,7 +92,7 @@ class HiddenSettings extends StatelessWidget {
                       //       child: Text(
                       //         "Delete trade history",
                       //         style: STextStyles.button.copyWith(
-                      //           color: CFColors.stackAccent,
+                      //           color: StackTheme.instance.color.accentColorDark
                       //         ),
                       //       ),
                       //     ),
@@ -118,8 +118,8 @@ class HiddenSettings extends StatelessWidget {
                             child: Text(
                               "Delete Debug Logs",
                               style: STextStyles.button.copyWith(
-                                color: CFColors.stackAccent,
-                              ),
+                                  color: StackTheme
+                                      .instance.color.accentColorDark),
                             ),
                           ),
                         );
@@ -147,7 +147,7 @@ class HiddenSettings extends StatelessWidget {
                       //     child: Text(
                       //       "Lottie test",
                       //       style: STextStyles.button.copyWith(
-                      //         color: CFColors.stackAccent,
+                      //         color: StackTheme.instance.color.accentColorDark
                       //       ),
                       //     ),
                       //   ),

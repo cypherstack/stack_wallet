@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,12 +11,12 @@ import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dia
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -58,7 +60,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -159,7 +161,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
-        splashColor: CFColors.splashLight,
+        splashColor: StackTheme.instance.color.highlight,
         key: Key("walletsSheetItemButtonKey_$walletId"),
         padding: const EdgeInsets.all(5),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -174,7 +176,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           try {
             bool wasCancelled = false;
 
-            showDialog<dynamic>(
+            unawaited(showDialog<dynamic>(
               context: context,
               useSafeArea: false,
               barrierDismissible: false,
@@ -187,7 +189,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   },
                 );
               },
-            );
+            ));
 
             final txData = await manager.prepareSend(
               address: address,
@@ -210,7 +212,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               txData["address"] = address;
 
               if (mounted) {
-                Navigator.of(context).push(
+                await Navigator.of(context).push(
                   RouteGenerator.getRoute(
                     shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
                     builder: (_) => ConfirmChangeNowSendView(
@@ -231,7 +233,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             // pop building dialog
             Navigator.of(context).pop();
 
-            showDialog<dynamic>(
+            await showDialog<dynamic>(
               context: context,
               useSafeArea: false,
               barrierDismissible: true,
@@ -240,15 +242,12 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   title: "Transaction failed",
                   message: e.toString(),
                   rightButton: TextButton(
-                    style: Theme.of(context).textButtonTheme.style?.copyWith(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            CFColors.buttonGray,
-                          ),
-                        ),
+                    style: StackTheme.instance
+                        .getSecondaryEnabledButtonColor(context),
                     child: Text(
                       "Ok",
                       style: STextStyles.button.copyWith(
-                        color: CFColors.stackAccent,
+                        color: StackTheme.instance.color.buttonTextSecondary,
                       ),
                     ),
                     onPressed: () {
@@ -265,7 +264,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: CFColors.coin.forCoin(manager.coin).withOpacity(0.5),
+                color: StackTheme.instance
+                    .colorForCoin(manager.coin)
+                    .withOpacity(0.5),
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
                 ),

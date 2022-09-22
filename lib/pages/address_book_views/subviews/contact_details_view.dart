@@ -13,11 +13,11 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -105,7 +105,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
         .select((value) => value.getContactById(_contactId)));
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: StackTheme.instance.color.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -129,12 +129,12 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 key: const Key("contactDetails"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.star,
                   color: _contact.isFavorite
-                      ? CFColors.link2
-                      : CFColors.buttonGray,
+                      ? StackTheme.instance.color.infoItemIcons
+                      : StackTheme.instance.color.buttonBackSecondary,
                   width: 20,
                   height: 20,
                 ),
@@ -160,10 +160,10 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 key: const Key("contactDetailsViewDeleteContactButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: StackTheme.instance.color.background,
                 icon: SvgPicture.asset(
                   Assets.svg.trash,
-                  color: CFColors.stackAccent,
+                  color: StackTheme.instance.color.accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -176,14 +176,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       title: "Delete ${_contact.name}?",
                       message: "Contact will be deleted permanently!",
                       leftButton: TextButton(
-                        style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.buttonGray,
-                              ),
-                            ),
+                        style: StackTheme.instance
+                            .getSecondaryEnabledButtonColor(context),
                         child: Text(
                           "Cancel",
                           style: STextStyles.itemSubtitle12,
@@ -193,14 +187,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         },
                       ),
                       rightButton: TextButton(
-                        style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.stackAccent,
-                              ),
-                            ),
+                        style: StackTheme.instance
+                            .getPrimaryEnabledButtonColor(context),
                         child: Text(
                           "Delete",
                           style: STextStyles.button,
@@ -246,7 +234,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       width: 48,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        color: CFColors.textFieldActive,
+                        color: StackTheme.instance.color.textFieldActiveBG,
                       ),
                       child: Center(
                         child: _contact.emojiChar == null
@@ -280,23 +268,21 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                           arguments: _contact.id,
                         );
                       },
-                      style: ButtonStyle(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 32)),
-                        backgroundColor: MaterialStateProperty.all(
-                          CFColors.buttonGray,
-                        ),
-                      ),
+                      style: StackTheme.instance
+                          .getSecondaryEnabledButtonColor(context)!
+                          .copyWith(
+                            minimumSize: MaterialStateProperty.all<Size>(
+                                const Size(46, 32)),
+                          ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Row(
                           children: [
-                            SvgPicture.asset(
-                              Assets.svg.pencil,
-                              width: 10,
-                              height: 10,
-                              color: CFColors.stackAccent,
-                            ),
+                            SvgPicture.asset(Assets.svg.pencil,
+                                width: 10,
+                                height: 10,
+                                color:
+                                    StackTheme.instance.color.accentColorDark),
                             const SizedBox(
                               width: 4,
                             ),
@@ -391,14 +377,14 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   );
                                 },
                                 child: RoundedContainer(
-                                  color: CFColors.fieldGray,
+                                  color: StackTheme
+                                      .instance.color.textFieldDefaultBG,
                                   padding: const EdgeInsets.all(4),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.pencil,
-                                    width: 12,
-                                    height: 12,
-                                    color: CFColors.stackAccent,
-                                  ),
+                                  child: SvgPicture.asset(Assets.svg.pencil,
+                                      width: 12,
+                                      height: 12,
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                               ),
                               const SizedBox(
@@ -417,14 +403,14 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   );
                                 },
                                 child: RoundedContainer(
-                                  color: CFColors.fieldGray,
+                                  color: StackTheme
+                                      .instance.color.textFieldDefaultBG,
                                   padding: const EdgeInsets.all(4),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.copy,
-                                    width: 12,
-                                    height: 12,
-                                    color: CFColors.stackAccent,
-                                  ),
+                                  child: SvgPicture.asset(Assets.svg.copy,
+                                      width: 12,
+                                      height: 12,
+                                      color: StackTheme
+                                          .instance.color.accentColorDark),
                                 ),
                               ),
                             ],
