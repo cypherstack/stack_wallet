@@ -553,8 +553,8 @@ class _TransactionDetailsViewState
                                     .read(prefsChangeNotifierProvider)
                                     .hideBlockExplorerWarning ==
                                 false) {
-                              final shouldContinue =
-                                  await showExplorerWarning(uri.host);
+                              final shouldContinue = await showExplorerWarning(
+                                  "${uri.scheme}://${uri.host}");
 
                               if (!shouldContinue) {
                                 return;

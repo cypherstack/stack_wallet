@@ -653,7 +653,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                       }
                                     },
                                     controller: _controllers[i - 1],
-                                    style: STextStyles.field,
+                                    style: STextStyles.field.copyWith(
+                                      color: StackTheme.instance.color.overlay,
+                                    ),
                                   ),
                                 ),
                                 if (_inputStatuses[i - 1] ==

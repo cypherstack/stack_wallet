@@ -83,7 +83,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get buttonTextDisabled => const Color(0xFFB6B6B6);
   @override
-  Color get buttonTextBorderless => const Color(0xFF232323);
+  Color get buttonTextBorderless => const Color(0xFF0052DF);
   @override
   Color get buttonTextBorderlessDisabled => const Color(0xFFB6B6B6);
   @override
@@ -294,4 +294,6 @@ class LightColors extends StackColorTheme {
   Color get warningBackground => const Color(0xFFFFDAD3);
   @override
   Color get loadingOverlayTextColor => const Color(0xFFF7F7F7);
+  @override
+  Color get myStackContactIconBG => textFieldDefaultBG;
 }

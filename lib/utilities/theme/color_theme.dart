@@ -170,6 +170,7 @@ abstract class StackColorTheme {
   Color get warningBackground;
 
   Color get loadingOverlayTextColor;
+  Color get myStackContactIconBG;
 }
 
 class CoinThemeColor {

@@ -74,6 +74,7 @@ class _DeleteWalletRecoveryPhraseViewState
                   Assets.svg.copy,
                   width: 20,
                   height: 20,
+                  color: StackTheme.instance.color.topNavIconPrimary,
                 ),
                 onPressed: () async {
                   final words = await _manager.mnemonic;

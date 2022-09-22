@@ -80,7 +80,9 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: StackTheme.instance.color.textFieldDefaultBG,
+                  color: contact.id == "default"
+                      ? StackTheme.instance.color.myStackContactIconBG
+                      : StackTheme.instance.color.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(32),
                 ),
                 child: contact.id == "default"

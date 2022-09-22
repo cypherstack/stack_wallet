@@ -185,7 +185,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get textFieldErrorBG => const Color(0xFFFFB4A9);
   @override
-  Color get textFieldSuccessBG => const Color(0xFFB9E9D4);
+  Color get textFieldSuccessBG => const Color(0xFF8EF5C3);
 
   @override
   Color get textFieldActiveSearchIconLeft => const Color(0xFFA9ACAC);
@@ -294,4 +294,6 @@ class DarkColors extends StackColorTheme {
   Color get warningBackground => const Color(0xFFFFB4A9);
   @override
   Color get loadingOverlayTextColor => const Color(0xFFF7F7F7);
+  @override
+  Color get myStackContactIconBG => const Color(0x88747778);
 }

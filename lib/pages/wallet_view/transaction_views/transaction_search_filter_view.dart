@@ -119,6 +119,8 @@ class _TransactionSearchViewState
 
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
+      backgroundPicker: StackTheme.instance.color.popupBG,
+      // backgroundHeader: StackTheme.instance.color.textSubtitle2,
       paddingMonthHeader: const EdgeInsets.only(top: 11),
       colorArrowNext: StackTheme.instance.color.textSubtitle1,
       colorArrowPrevious: StackTheme.instance.color.textSubtitle1,
@@ -156,6 +158,7 @@ class _TransactionSearchViewState
 
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
+      backgroundPicker: StackTheme.instance.color.popupBG,
       textStyleYear: _datePickerTextStyleBase.copyWith(
         color: StackTheme.instance.color.textSubtitle2,
         fontWeight: FontWeight.w600,
