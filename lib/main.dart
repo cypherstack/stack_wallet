@@ -51,7 +51,6 @@ import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -145,17 +144,6 @@ void main() async {
   monero.onStartup();
 
   await Hive.openBox<dynamic>(DB.boxNameTheme);
-  final colorScheme = DB.instance
-      .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
-
-  switch (colorScheme) {
-    case "dark":
-      Assets.theme = ThemeType.dark;
-      break;
-    case "light":
-    default:
-      Assets.theme = ThemeType.light;
-  }
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
@@ -360,6 +348,18 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
+    final colorScheme = DB.instance
+        .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
+
+    ThemeType themeType;
+    switch (colorScheme) {
+      case "dark":
+        themeType = ThemeType.dark;
+        break;
+      case "light":
+      default:
+        themeType = ThemeType.light;
+    }
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
     // load locale and prefs
@@ -373,7 +373,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(colorThemeProvider.state).state =
           StackColors.fromStackColorTheme(
-              Assets.theme! == ThemeType.dark ? DarkColors() : LightColors());
+              themeType == ThemeType.dark ? DarkColors() : LightColors());
 
       if (Platform.isAndroid) {
         // fetch open file if it exists

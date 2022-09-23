@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
+  final ThemeType themeType;
+
   final Color background;
   final Color overlay;
 
@@ -168,6 +170,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color myStackContactIconBG;
 
   StackColors({
+    required this.themeType,
     required this.background,
     required this.overlay,
     required this.accentColorBlue,
@@ -299,6 +302,7 @@ class StackColors extends ThemeExtension<StackColors> {
 
   factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
     return StackColors(
+      themeType: colorTheme.themeType,
       background: colorTheme.background,
       overlay: colorTheme.overlay,
       accentColorBlue: colorTheme.accentColorBlue,
@@ -433,6 +437,7 @@ class StackColors extends ThemeExtension<StackColors> {
 
   @override
   ThemeExtension<StackColors> copyWith({
+    ThemeType? themeType,
     Color? background,
     Color? overlay,
     Color? accentColorBlue,
@@ -562,6 +567,7 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? myStackContactIconBG,
   }) {
     return StackColors(
+      themeType: themeType ?? this.themeType,
       background: background ?? this.background,
       overlay: overlay ?? this.overlay,
       accentColorBlue: accentColorBlue ?? this.accentColorBlue,
@@ -737,6 +743,7 @@ class StackColors extends ThemeExtension<StackColors> {
     }
 
     return StackColors(
+      themeType: other.themeType,
       background: Color.lerp(
         background,
         other.background,

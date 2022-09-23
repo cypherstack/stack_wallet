@@ -178,7 +178,7 @@ class WalletNavigationBar extends StatelessWidget {
                       children: [
                         const Spacer(),
                         SvgPicture.asset(
-                          Assets.svg.exchange,
+                          Assets.svg.exchange(context),
                           width: 24,
                           height: 24,
                         ),

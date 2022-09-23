@@ -108,11 +108,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       case ChangeNowTransactionStatus.Sending:
       case ChangeNowTransactionStatus.Refunded:
       case ChangeNowTransactionStatus.Verifying:
-        return Assets.svg.txExchangePending;
+        return Assets.svg.txExchangePending(context);
       case ChangeNowTransactionStatus.Finished:
-        return Assets.svg.txExchange;
+        return Assets.svg.txExchange(context);
       case ChangeNowTransactionStatus.Failed:
-        return Assets.svg.txExchangeFailed;
+        return Assets.svg.txExchangeFailed(context);
     }
   }
 

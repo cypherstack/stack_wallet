@@ -143,7 +143,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
               GestureDetector(
                 onTap: _hiddenOptions,
                 child: SvgPicture.asset(
-                  Assets.svg.stackIcon,
+                  Assets.svg.stackIcon(context),
                   width: 24,
                   height: 24,
                 ),
@@ -174,7 +174,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   icon: SvgPicture.asset(
                     ref.watch(notificationsProvider
                             .select((value) => value.hasUnreadNotifications))
-                        ? Assets.svg.bellNew
+                        ? Assets.svg.bellNew(context)
                         : Assets.svg.bell,
                     width: 20,
                     height: 20,

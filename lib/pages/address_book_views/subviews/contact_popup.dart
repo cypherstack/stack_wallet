@@ -107,7 +107,7 @@ class ContactPopUp extends ConsumerWidget {
                                       child: contact.id == "default"
                                           ? Center(
                                               child: SvgPicture.asset(
-                                                Assets.svg.stackIcon,
+                                                Assets.svg.stackIcon(context),
                                                 width: 20,
                                               ),
                                             )

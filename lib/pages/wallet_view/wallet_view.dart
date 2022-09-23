@@ -436,7 +436,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   icon: SvgPicture.asset(
                     ref.watch(notificationsProvider.select((value) =>
                             value.hasUnreadNotificationsFor(walletId)))
-                        ? Assets.svg.bellNew
+                        ? Assets.svg.bellNew(context)
                         : Assets.svg.bell,
                     width: 20,
                     height: 20,
