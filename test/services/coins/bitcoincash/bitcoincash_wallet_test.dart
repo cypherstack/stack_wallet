@@ -43,8 +43,9 @@ void main() {
   });
 
   test("bitcoincash DerivePathType enum", () {
-    expect(DerivePathType.values.length, 1);
-    expect(DerivePathType.values.toString(), "[DerivePathType.bip44]");
+    expect(DerivePathType.values.length, 2);
+    expect(DerivePathType.values.toString(),
+        "[DerivePathType.bip44, DerivePathType.bip49]");
   });
 
   group("bip32 node/root", () {
