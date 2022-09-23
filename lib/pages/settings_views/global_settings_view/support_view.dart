@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,7 +21,7 @@ class SupportView extends StatelessWidget {
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -30,7 +30,7 @@ class SupportView extends StatelessWidget {
         ),
         title: Text(
           "Support",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -41,7 +41,7 @@ class SupportView extends StatelessWidget {
             RoundedWhiteContainer(
               child: Text(
                 "If you need support or want to report a bug, reach out to us on any of our socials!",
-                style: STextStyles.smallMed12,
+                style: STextStyles.smallMed12(context),
               ),
             ),
             const SizedBox(
@@ -50,7 +50,7 @@ class SupportView extends StatelessWidget {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: CFColors.splashLight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -74,13 +74,16 @@ class SupportView extends StatelessWidget {
                         Assets.socials.telegram,
                         width: iconSize,
                         height: iconSize,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
                       ),
                       Text(
                         "Telegram",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -94,7 +97,7 @@ class SupportView extends StatelessWidget {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: CFColors.splashLight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -118,13 +121,16 @@ class SupportView extends StatelessWidget {
                         Assets.socials.discord,
                         width: iconSize,
                         height: iconSize,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
                       ),
                       Text(
                         "Discord",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -138,7 +144,7 @@ class SupportView extends StatelessWidget {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: CFColors.splashLight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -162,13 +168,16 @@ class SupportView extends StatelessWidget {
                         Assets.socials.reddit,
                         width: iconSize,
                         height: iconSize,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
                       ),
                       Text(
                         "Reddit",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -182,7 +191,7 @@ class SupportView extends StatelessWidget {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: CFColors.splashLight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -206,13 +215,16 @@ class SupportView extends StatelessWidget {
                         Assets.socials.twitter,
                         width: iconSize,
                         height: iconSize,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
                       ),
                       Text(
                         "Twitter",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -226,7 +238,7 @@ class SupportView extends StatelessWidget {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: CFColors.splashLight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -250,13 +262,16 @@ class SupportView extends StatelessWidget {
                         Assets.svg.envelope,
                         width: iconSize,
                         height: iconSize,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       const SizedBox(
                         width: 12,
                       ),
                       Text(
                         "Email",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],

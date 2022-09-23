@@ -2,19 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class AddWalletNextButton extends ConsumerWidget {
-  const AddWalletNextButton({Key? key}) : super(key: key);
+  const AddWalletNextButton({
+    Key? key,
+    required this.isDesktop,
+  }) : super(key: key);
+
+  final bool isDesktop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: NextButton");
     final selectedCoin =
         ref.watch(addWalletSelectedCoinStateProvider.state).state;
+
+    final enabled = selectedCoin != null;
+
     return TextButton(
-      onPressed: selectedCoin == null
+      onPressed: !enabled
           ? null
           : () {
               final selectedCoin =
@@ -25,22 +33,20 @@ class AddWalletNextButton extends ConsumerWidget {
                 arguments: selectedCoin,
               );
             },
-      style: selectedCoin == null
-          ? Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.stackAccent.withOpacity(
-                    0.25,
-                  ),
-                ),
-              )
-          : Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.stackAccent,
-                ),
-              ),
+      style: enabled
+          ? Theme.of(context)
+              .extension<StackColors>()!
+              .getPrimaryEnabledButtonColor(context)
+          : Theme.of(context)
+              .extension<StackColors>()!
+              .getPrimaryDisabledButtonColor(context),
       child: Text(
         "Next",
-        style: STextStyles.button,
+        style: isDesktop
+            ? enabled
+                ? STextStyles.desktopButtonEnabled(context)
+                : STextStyles.desktopButtonDisabled(context)
+            : STextStyles.button(context),
       ),
     );
   }

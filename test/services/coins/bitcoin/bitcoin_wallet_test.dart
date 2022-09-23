@@ -2423,16 +2423,36 @@ void main() {
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoin))
           .thenAnswer((realInvocation) async {});
 
-      List<dynamic> dynamicArgValues = [];
-
-      when(client?.getBatchHistory(args: anyNamed("args")))
-          .thenAnswer((realInvocation) async {
-        if (realInvocation.namedArguments.values.first.length == 1) {
-          dynamicArgValues.add(realInvocation.namedArguments.values.first);
-        }
-
-        return historyBatchResponse;
-      });
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "bf5a6c56814e80eed11e1e459801515f8c2b83da812568aa9dc26e6356f6965b"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "26f92666caebb9a17b14f5b573b385348cdc80065472b8961091f3226d2f650f"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "06593b2d896751e8dda288bb6587b6bb6a1dee71d82a85457f5654f781e37b12"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "11663d093cb17dfbed4a96d148b22d3e094b31d23c639c2814beb79f2ab0ca75"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "2f18558e5d3015cb6578aee1c3e4b645725fa4e1d26ce22cb31c9949f3b4957c"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "a328ae88ebce63c0010709ae900c199df2b585cdebce53a6291886dfdcc28c63"
+        ]
+      })).thenAnswer((_) async => {"0": []});
 
       final wallet = await Hive.openBox<dynamic>(testWalletId);
 
@@ -2573,13 +2593,36 @@ void main() {
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoin))
           .called(1);
 
-      for (final arg in dynamicArgValues) {
-        final map = Map<String, List<dynamic>>.from(arg as Map);
-
-        verify(client?.getBatchHistory(args: map)).called(1);
-        expect(activeScriptHashes.contains(map.values.first.first as String),
-            true);
-      }
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "bf5a6c56814e80eed11e1e459801515f8c2b83da812568aa9dc26e6356f6965b"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "26f92666caebb9a17b14f5b573b385348cdc80065472b8961091f3226d2f650f"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "06593b2d896751e8dda288bb6587b6bb6a1dee71d82a85457f5654f781e37b12"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "11663d093cb17dfbed4a96d148b22d3e094b31d23c639c2814beb79f2ab0ca75"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "2f18558e5d3015cb6578aee1c3e4b645725fa4e1d26ce22cb31c9949f3b4957c"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "a328ae88ebce63c0010709ae900c199df2b585cdebce53a6291886dfdcc28c63"
+        ]
+      })).called(2);
 
       expect(secureStore?.writes, 25);
       expect(secureStore?.reads, 32);
@@ -2617,16 +2660,36 @@ void main() {
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoin))
           .thenAnswer((realInvocation) async {});
 
-      List<dynamic> dynamicArgValues = [];
-
-      when(client?.getBatchHistory(args: anyNamed("args")))
-          .thenAnswer((realInvocation) async {
-        if (realInvocation.namedArguments.values.first.length == 1) {
-          dynamicArgValues.add(realInvocation.namedArguments.values.first);
-        }
-
-        return historyBatchResponse;
-      });
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "bf5a6c56814e80eed11e1e459801515f8c2b83da812568aa9dc26e6356f6965b"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "26f92666caebb9a17b14f5b573b385348cdc80065472b8961091f3226d2f650f"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "06593b2d896751e8dda288bb6587b6bb6a1dee71d82a85457f5654f781e37b12"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "11663d093cb17dfbed4a96d148b22d3e094b31d23c639c2814beb79f2ab0ca75"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "2f18558e5d3015cb6578aee1c3e4b645725fa4e1d26ce22cb31c9949f3b4957c"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "a328ae88ebce63c0010709ae900c199df2b585cdebce53a6291886dfdcc28c63"
+        ]
+      })).thenAnswer((_) async => {"0": []});
 
       final wallet = await Hive.openBox<dynamic>(testWalletId);
 
@@ -2738,13 +2801,36 @@ void main() {
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoin))
           .called(1);
 
-      for (final arg in dynamicArgValues) {
-        final map = Map<String, List<dynamic>>.from(arg as Map);
-
-        verify(client?.getBatchHistory(args: map)).called(1);
-        expect(activeScriptHashes.contains(map.values.first.first as String),
-            true);
-      }
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "bf5a6c56814e80eed11e1e459801515f8c2b83da812568aa9dc26e6356f6965b"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "26f92666caebb9a17b14f5b573b385348cdc80065472b8961091f3226d2f650f"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "06593b2d896751e8dda288bb6587b6bb6a1dee71d82a85457f5654f781e37b12"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "11663d093cb17dfbed4a96d148b22d3e094b31d23c639c2814beb79f2ab0ca75"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "2f18558e5d3015cb6578aee1c3e4b645725fa4e1d26ce22cb31c9949f3b4957c"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "a328ae88ebce63c0010709ae900c199df2b585cdebce53a6291886dfdcc28c63"
+        ]
+      })).called(1);
 
       expect(secureStore?.writes, 19);
       expect(secureStore?.reads, 32);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
@@ -10,11 +11,11 @@ import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -89,7 +90,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -98,7 +99,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
         ),
         title: Text(
           "Debug",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -113,15 +114,17 @@ class _DebugViewState extends ConsumerState<DebugView> {
                 key: const Key("deleteLogsAppBarButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.trash,
-                  color: CFColors.stackAccent,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),
                 onPressed: () async {
-                  showDialog<void>(
+                  await showDialog<void>(
                     context: context,
                     builder: (_) => StackDialog(
                       title: "Delete logs?",
@@ -129,16 +132,11 @@ class _DebugViewState extends ConsumerState<DebugView> {
                           "You are about to delete all logs permanently. Are you sure?",
                       leftButton: TextButton(
                         style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.buttonGray,
-                              ),
-                            ),
+                            .extension<StackColors>()!
+                            .getSecondaryEnabledButtonColor(context),
                         child: Text(
                           "Cancel",
-                          style: STextStyles.itemSubtitle12,
+                          style: STextStyles.itemSubtitle12(context),
                         ),
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -146,22 +144,17 @@ class _DebugViewState extends ConsumerState<DebugView> {
                       ),
                       rightButton: TextButton(
                         style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.stackAccent,
-                              ),
-                            ),
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonColor(context),
                         child: Text(
                           "Delete logs",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                         onPressed: () async {
                           Navigator.of(context).pop();
 
                           bool shouldPop = false;
-                          showDialog<dynamic>(
+                          unawaited(showDialog<dynamic>(
                             barrierDismissible: false,
                             context: context,
                             builder: (_) => WillPopScope(
@@ -169,24 +162,27 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 return shouldPop;
                               },
                               child: const CustomLoadingOverlay(
-                                message: "Generating Stack logs file",
+                                message: "Deleting logs...",
                                 eventBus: null,
                               ),
                             ),
-                          );
+                          ));
 
                           await ref
                               .read(debugServiceProvider)
                               .deleteAllMessages();
+                          await ref
+                              .read(debugServiceProvider)
+                              .updateRecentLogs();
 
                           shouldPop = true;
 
                           if (mounted) {
                             Navigator.pop(context);
-                            showFloatingFlushBar(
+                            unawaited(showFloatingFlushBar(
                                 type: FlushBarType.info,
                                 context: context,
-                                message: 'Logs cleared!');
+                                message: 'Logs cleared!'));
                           }
                         },
                       ),
@@ -226,10 +222,11 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             onChanged: (newString) {
                               setState(() => _searchTerm = newString);
                             },
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             decoration: standardInputDecoration(
                               "Search",
                               _searchFocusNode,
+                              context,
                             ).copyWith(
                               prefixIcon: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -317,7 +314,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 if (path != null) {
                                   final eventBus = EventBus();
                                   bool shouldPop = false;
-                                  showDialog<dynamic>(
+                                  unawaited(showDialog<dynamic>(
                                     barrierDismissible: false,
                                     context: context,
                                     builder: (_) => WillPopScope(
@@ -329,7 +326,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         eventBus: eventBus,
                                       ),
                                     ),
-                                  );
+                                  ));
 
                                   await ref
                                       .read(debugServiceProvider)
@@ -339,10 +336,10 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                                   if (mounted) {
                                     Navigator.pop(context);
-                                    showFloatingFlushBar(
+                                    unawaited(showFloatingFlushBar(
                                         type: FlushBarType.info,
                                         context: context,
-                                        message: 'Logs file saved');
+                                        message: 'Logs file saved'));
                                   }
                                 }
                               },
@@ -383,14 +380,18 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         return Container(
                           key: Key("log_${log.id}_${log.timestampInMillisUTC}"),
                           decoration: BoxDecoration(
-                            color: CFColors.white,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .popupBG,
                             borderRadius: _borderRadius(index, logs.length),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(4),
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color: CFColors.white,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -398,24 +399,35 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                     children: [
                                       Text(
                                         " [${log.logLevel.name}]",
-                                        style: STextStyles.baseXS.copyWith(
+                                        style: STextStyles.baseXS(context)
+                                            .copyWith(
                                           fontSize: 8,
                                           color: (log.logLevel == LogLevel.Info
-                                              ? CFColors.stackGreen
+                                              ? Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .topNavIconGreen
                                               : (log.logLevel ==
                                                       LogLevel.Warning
-                                                  ? CFColors.stackYellow
+                                                  ? Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .topNavIconYellow
                                                   : (log.logLevel ==
                                                           LogLevel.Error
                                                       ? Colors.orange
-                                                      : CFColors.stackRed))),
+                                                      : Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .topNavIconRed))),
                                         ),
                                       ),
                                       Text(
                                         "[${DateTime.fromMillisecondsSinceEpoch(log.timestampInMillisUTC, isUtc: true)}]: ",
-                                        style: STextStyles.baseXS.copyWith(
+                                        style: STextStyles.baseXS(context)
+                                            .copyWith(
                                           fontSize: 8,
-                                          color: CFColors.neutral50,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark3,
                                         ),
                                       ),
                                     ],
@@ -434,7 +446,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                           children: [
                                             SelectableText(
                                               log.message,
-                                              style: STextStyles.baseXS
+                                              style: STextStyles.baseXS(context)
                                                   .copyWith(fontSize: 8),
                                             ),
                                           ],

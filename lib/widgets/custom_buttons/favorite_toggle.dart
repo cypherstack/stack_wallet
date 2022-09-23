@@ -1,39 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
-class FavoriteToggle extends StatefulWidget {
+class FavoriteToggle extends ConsumerStatefulWidget {
   const FavoriteToggle({
     Key? key,
     this.backGround,
     this.borderRadius = BorderRadius.zero,
     this.initialState = false,
-    this.on = CFColors.link2,
-    this.off = CFColors.buttonGray,
+    this.on,
+    this.off,
     required this.onChanged,
   }) : super(key: key);
 
   final Color? backGround;
-  final Color on;
-  final Color off;
+  final Color? on;
+  final Color? off;
   final BorderRadiusGeometry borderRadius;
   final bool initialState;
   final void Function(bool)? onChanged;
 
   @override
-  State<FavoriteToggle> createState() => _FavoriteToggleState();
+  ConsumerState<FavoriteToggle> createState() => _FavoriteToggleState();
 }
 
-class _FavoriteToggleState extends State<FavoriteToggle> {
+class _FavoriteToggleState extends ConsumerState<FavoriteToggle> {
   late bool _isActive;
   late Color _color;
   late void Function(bool)? _onChanged;
 
+  late final Color on;
+  late final Color off;
+
   @override
   void initState() {
+    on = widget.on ??
+        ref.read(colorThemeProvider.state).state.favoriteStarActive;
+    off = widget.off ??
+        ref.read(colorThemeProvider.state).state.favoriteStarInactive;
     _isActive = widget.initialState;
-    _color = _isActive ? widget.on : widget.off;
+    _color = _isActive ? on : off;
     _onChanged = widget.onChanged;
     super.initState();
   }
@@ -46,7 +55,7 @@ class _FavoriteToggleState extends State<FavoriteToggle> {
         borderRadius: widget.borderRadius,
       ),
       child: MaterialButton(
-        splashColor: CFColors.splashLight,
+        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         minWidth: 0,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
@@ -56,7 +65,7 @@ class _FavoriteToggleState extends State<FavoriteToggle> {
             ? () {
                 _isActive = !_isActive;
                 setState(() {
-                  _color = _isActive ? widget.on : widget.off;
+                  _color = _isActive ? on : off;
                 });
                 _onChanged!.call(_isActive);
               }

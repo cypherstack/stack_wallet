@@ -9,9 +9,9 @@ import 'package:stackwallet/providers/global/address_book_service_provider.dart'
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -165,9 +165,9 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             if (FocusScope.of(context).hasFocus) {
@@ -181,7 +181,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         ),
         title: Text(
           "Transactions",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -196,10 +196,12 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                 key: const Key("transactionSearchFilterViewButton"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.filter,
-                  color: CFColors.stackAccent,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -239,10 +241,11 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                       _searchString = value;
                     });
                   },
-                  style: STextStyles.field,
+                  style: STextStyles.field(context),
                   decoration: standardInputDecoration(
                     "Search",
                     searchFieldFocusNode,
+                    context,
                   ).copyWith(
                     prefixIcon: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -324,7 +327,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                                     ),
                                   Text(
                                     month.item1,
-                                    style: STextStyles.smallMed12,
+                                    style: STextStyles.smallMed12(context),
                                   ),
                                   const SizedBox(
                                     height: 12,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class SendingTransactionDialog extends StatefulWidget {
@@ -55,7 +55,7 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
           turns: _spinAnimation,
           child: SvgPicture.asset(
             Assets.svg.arrowRotate,
-            color: CFColors.stackAccent,
+            color: Theme.of(context).extension<StackColors>()!.accentColorDark,
             width: 24,
             height: 24,
           ),

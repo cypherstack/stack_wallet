@@ -4,10 +4,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/exchange/change_now/currency.dart';
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -119,7 +119,7 @@ class _FixedRateMarketPairCoinSelectionViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -134,7 +134,7 @@ class _FixedRateMarketPairCoinSelectionViewState
         ),
         title: Text(
           "Choose a coin to exchange",
-          style: STextStyles.pageTitleH2,
+          style: STextStyles.pageTitleH2(context),
         ),
       ),
       body: Padding(
@@ -155,10 +155,11 @@ class _FixedRateMarketPairCoinSelectionViewState
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 onChanged: filter,
-                style: STextStyles.field,
+                style: STextStyles.field(context),
                 decoration: standardInputDecoration(
                   "Search",
                   _searchFocusNode,
+                  context,
                 ).copyWith(
                   prefixIcon: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -198,7 +199,7 @@ class _FixedRateMarketPairCoinSelectionViewState
             ),
             Text(
               "Popular coins",
-              style: STextStyles.smallMed12,
+              style: STextStyles.smallMed12(context),
             ),
             const SizedBox(
               height: 12,
@@ -232,12 +233,12 @@ class _FixedRateMarketPairCoinSelectionViewState
                           child: Row(
                             children: [
                               SizedBox(
-                                width: 20,
-                                height: 20,
+                                width: 24,
+                                height: 24,
                                 child: SvgPicture.network(
                                   tuple.item1,
-                                  width: 20,
-                                  height: 20,
+                                  width: 24,
+                                  height: 24,
                                   placeholderBuilder: (_) =>
                                       const LoadingIndicator(),
                                 ),
@@ -245,9 +246,28 @@ class _FixedRateMarketPairCoinSelectionViewState
                               const SizedBox(
                                 width: 10,
                               ),
-                              Text(
-                                "${tuple.item2} / ${ticker.toUpperCase()}",
-                                style: STextStyles.titleBold12,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tuple.item2,
+                                      style: STextStyles.largeMedium14(context),
+                                    ),
+                                    const SizedBox(
+                                      height: 2,
+                                    ),
+                                    Text(
+                                      ticker.toUpperCase(),
+                                      style: STextStyles.smallMed12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -263,7 +283,7 @@ class _FixedRateMarketPairCoinSelectionViewState
             ),
             Text(
               "All coins",
-              style: STextStyles.smallMed12,
+              style: STextStyles.smallMed12(context),
             ),
             const SizedBox(
               height: 12,
@@ -289,12 +309,12 @@ class _FixedRateMarketPairCoinSelectionViewState
                           child: Row(
                             children: [
                               SizedBox(
-                                width: 20,
-                                height: 20,
+                                width: 24,
+                                height: 24,
                                 child: SvgPicture.network(
                                   tuple.item1,
-                                  width: 20,
-                                  height: 20,
+                                  width: 24,
+                                  height: 24,
                                   placeholderBuilder: (_) =>
                                       const LoadingIndicator(),
                                 ),
@@ -302,9 +322,28 @@ class _FixedRateMarketPairCoinSelectionViewState
                               const SizedBox(
                                 width: 10,
                               ),
-                              Text(
-                                "${tuple.item2} / ${ticker.toUpperCase()}",
-                                style: STextStyles.titleBold12,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tuple.item2,
+                                      style: STextStyles.largeMedium14(context),
+                                    ),
+                                    const SizedBox(
+                                      height: 2,
+                                    ),
+                                    Text(
+                                      ticker.toUpperCase(),
+                                      style: STextStyles.smallMed12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),

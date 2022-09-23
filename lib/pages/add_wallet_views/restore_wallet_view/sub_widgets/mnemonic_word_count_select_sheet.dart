@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class MnemonicWordCountSelectSheet extends ConsumerWidget {
   const MnemonicWordCountSelectSheet({
@@ -22,9 +22,9 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
         return false;
       },
       child: Container(
-        decoration: const BoxDecoration(
-          color: CFColors.white,
-          borderRadius: BorderRadius.vertical(
+        decoration: BoxDecoration(
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(20),
           ),
         ),
@@ -42,7 +42,9 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CFColors.fieldGray,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -62,7 +64,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                 children: [
                   Text(
                     "Phrase length",
-                    style: STextStyles.pageTitleH2,
+                    style: STextStyles.pageTitleH2(context),
                     textAlign: TextAlign.left,
                   ),
                   const SizedBox(
@@ -96,7 +98,9 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                     value: lengthOptions[i],
                                     groupValue: ref
                                         .watch(mnemonicWordCountStateProvider
@@ -118,9 +122,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                 ),
                                 Text(
                                   "${lengthOptions[i]} words",
-                                  style: STextStyles.titleBold12.copyWith(
-                                    color: const Color(0xFF44464E),
-                                  ),
+                                  style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
                               ],

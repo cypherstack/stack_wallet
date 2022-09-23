@@ -8,10 +8,10 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -63,7 +63,7 @@ class _RestoreFromEncryptedStringViewState
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
             onPressed: () async {
@@ -78,7 +78,7 @@ class _RestoreFromEncryptedStringViewState
           ),
           title: Text(
             "Restore from file",
-            style: STextStyles.navBarTitle,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
         body: Padding(
@@ -102,13 +102,14 @@ class _RestoreFromEncryptedStringViewState
                             key: const Key("restoreFromFilePasswordFieldKey"),
                             focusNode: passwordFocusNode,
                             controller: passwordController,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             obscureText: hidePassword,
                             enableSuggestions: false,
                             autocorrect: false,
                             decoration: standardInputDecoration(
                               "Enter password",
                               passwordFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: UnconstrainedBox(
                                 child: Row(
@@ -128,7 +129,9 @@ class _RestoreFromEncryptedStringViewState
                                         hidePassword
                                             ? Assets.svg.eye
                                             : Assets.svg.eyeSlash,
-                                        color: CFColors.neutral50,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
                                         width: 16,
                                         height: 16,
                                       ),
@@ -150,15 +153,13 @@ class _RestoreFromEncryptedStringViewState
                         ),
                         const Spacer(),
                         TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      passwordController.text.isEmpty
-                                          ? CFColors.disabledButton
-                                          : CFColors.stackAccent,
-                                    ),
-                                  ),
+                          style: passwordController.text.isEmpty
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .getPrimaryEnabledButtonColor(context)
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .getPrimaryDisabledButtonColor(context),
                           onPressed: passwordController.text.isEmpty
                               ? null
                               : () async {
@@ -190,9 +191,12 @@ class _RestoreFromEncryptedStringViewState
                                             child: Center(
                                               child: Text(
                                                 "Decrypting Stack backup file",
-                                                style: STextStyles.pageTitleH2
+                                                style: STextStyles.pageTitleH2(
+                                                        context)
                                                     .copyWith(
-                                                  color: CFColors.white,
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textWhite,
                                                 ),
                                               ),
                                             ),
@@ -247,7 +251,7 @@ class _RestoreFromEncryptedStringViewState
                                 },
                           child: Text(
                             "Restore",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],

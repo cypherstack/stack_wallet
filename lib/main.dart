@@ -29,6 +29,7 @@ import 'package:stackwallet/pages/loading_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
 import 'package:stackwallet/providers/exchange/change_now_provider.dart';
@@ -41,6 +42,7 @@ import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/debug_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
@@ -49,13 +51,17 @@ import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
+import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
@@ -65,6 +71,13 @@ final openedFromSWBFileStringStateProvider =
 // miscellaneous box for later use
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  if (Util.isDesktop) {
+    setWindowTitle('Stack Wallet');
+    setWindowMinSize(const Size(1200, 900));
+    setWindowMaxSize(Size.infinite);
+  }
+
   Directory appDirectory = (await getApplicationDocumentsDirectory());
   if (Platform.isIOS) {
     appDirectory = (await getLibraryDirectory());
@@ -129,6 +142,8 @@ void main() async {
   }
 
   monero.onStartup();
+
+  await Hive.openBox<dynamic>(DB.boxNameTheme);
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
@@ -333,6 +348,18 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
+    final colorScheme = DB.instance
+        .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
+
+    ThemeType themeType;
+    switch (colorScheme) {
+      case "dark":
+        themeType = ThemeType.dark;
+        break;
+      case "light":
+      default:
+        themeType = ThemeType.light;
+    }
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
     // load locale and prefs
@@ -343,8 +370,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     _prefs = ref.read(prefsChangeNotifierProvider);
     _wallets = ref.read(walletsChangeNotifierProvider);
 
-    if (Platform.isAndroid) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      ref.read(colorThemeProvider.state).state =
+          StackColors.fromStackColorTheme(
+              themeType == ThemeType.dark ? DarkColors() : LightColors());
+
+      if (Platform.isAndroid) {
         // fetch open file if it exists
         await getOpenFile();
 
@@ -358,8 +389,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ref.read(openedFromSWBFileStringStateProvider.state).state = null;
         }
         // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
-      });
-    }
+      }
+    });
 
     super.initState();
   }
@@ -491,36 +522,45 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     //       addToDebugMessagesDB: false);
     // });
 
+    final colorScheme = ref.watch(colorThemeProvider.state).state;
+
     return MaterialApp(
       key: GlobalKey(),
       navigatorKey: navigatorKey,
       title: 'Stack Wallet',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
-        highlightColor: CFColors.splashLight,
+        extensions: [colorScheme],
+        highlightColor: colorScheme.highlight,
         brightness: Brightness.light,
         fontFamily: GoogleFonts.inter().fontFamily,
-        textTheme: GoogleFonts.interTextTheme().copyWith(
-          button: STextStyles.button,
-        ),
+        unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
+        // textTheme: GoogleFonts.interTextTheme().copyWith(
+        //   button: STextStyles.button(context),
+        //   subtitle1: STextStyles.field(context).copyWith(
+        //     color: colorScheme.textDark,
+        //   ),
+        // ),
         radioTheme: const RadioThemeData(
           splashRadius: 0,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         // splashFactory: NoSplash.splashFactory,
         splashColor: Colors.transparent,
-        buttonTheme: const ButtonThemeData(
-          splashColor: CFColors.splashMed,
+        buttonTheme: ButtonThemeData(
+          splashColor: colorScheme.splash,
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
             // splashFactory: NoSplash.splashFactory,
-            overlayColor: MaterialStateProperty.all(CFColors.splashMed),
+            overlayColor: MaterialStateProperty.all(colorScheme.splash),
             minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
-            textStyle: MaterialStateProperty.all<TextStyle>(STextStyles.button),
-            foregroundColor: MaterialStateProperty.all(CFColors.white),
-            backgroundColor:
-                MaterialStateProperty.all<Color>(CFColors.buttonGray),
+            // textStyle: MaterialStateProperty.all<TextStyle>(
+            //     STextStyles.button(context)),
+            foregroundColor:
+                MaterialStateProperty.all(colorScheme.buttonTextSecondary),
+            backgroundColor: MaterialStateProperty.all<Color>(
+                colorScheme.buttonBackSecondary),
             shape: MaterialStateProperty.all<OutlinedBorder>(
               RoundedRectangleBorder(
                 // 1000 to be relatively sure it keeps its pill shape
@@ -529,8 +569,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             ),
           ),
         ),
-        primaryColor: CFColors.stackAccent,
-        primarySwatch: CFColors.createMaterialColor(CFColors.stackAccent),
+        primaryColor: colorScheme.accentColorDark,
+        primarySwatch: Util.createMaterialColor(colorScheme.accentColorDark),
         checkboxTheme: CheckboxThemeData(
           splashRadius: 0,
           shape: RoundedRectangleBorder(
@@ -540,40 +580,44 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           checkColor: MaterialStateColor.resolveWith(
             (state) {
               if (state.contains(MaterialState.selected)) {
-                return CFColors.white;
+                return colorScheme.checkboxIconChecked;
               }
-              return CFColors.link2;
+              return colorScheme.checkboxBGChecked;
             },
           ),
           fillColor: MaterialStateColor.resolveWith(
             (states) {
               if (states.contains(MaterialState.selected)) {
-                return CFColors.link2;
+                return colorScheme.checkboxBGChecked;
               }
-              return CFColors.disabledButton;
+              return colorScheme.checkboxBorderEmpty;
             },
           ),
         ),
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           centerTitle: false,
-          color: CFColors.almostWhite,
+          color: colorScheme.background,
           elevation: 0,
         ),
         inputDecorationTheme: InputDecorationTheme(
-          focusColor: CFColors.fieldGray,
-          fillColor: CFColors.fieldGray,
+          focusColor: colorScheme.textFieldDefaultBG,
+          fillColor: colorScheme.textFieldDefaultBG,
           filled: true,
           contentPadding: const EdgeInsets.symmetric(
             vertical: 6,
             horizontal: 12,
           ),
-          labelStyle: STextStyles.fieldLabel,
-          hintStyle: STextStyles.fieldLabel,
-          enabledBorder: _buildOutlineInputBorder(CFColors.fieldGray),
-          focusedBorder: _buildOutlineInputBorder(CFColors.fieldGray),
-          errorBorder: _buildOutlineInputBorder(CFColors.fieldGray),
-          disabledBorder: _buildOutlineInputBorder(CFColors.fieldGray),
-          focusedErrorBorder: _buildOutlineInputBorder(CFColors.fieldGray),
+          // labelStyle: STextStyles.fieldLabel(context),
+          // hintStyle: STextStyles.fieldLabel(context),
+          enabledBorder:
+              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          focusedBorder:
+              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          errorBorder: _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          disabledBorder:
+              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          focusedErrorBorder:
+              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
         ),
       ),
       home: FutureBuilder(
@@ -593,6 +637,14 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
                 startupWalletId =
                     ref.read(prefsChangeNotifierProvider).startupWalletId;
+              }
+
+              // TODO proper desktop auth view
+              if (Util.isDesktop) {
+                Future<void>.delayed(Duration.zero).then((value) =>
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                        DesktopHomeView.routeName, (route) => false));
+                return Container();
               }
 
               return LockscreenView(

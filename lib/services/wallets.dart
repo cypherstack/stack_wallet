@@ -51,6 +51,16 @@ class Wallets extends ChangeNotifier {
       _managerProviderMap.values.toList(growable: false);
   List<Manager> get managers => _managerMap.values.toList(growable: false);
 
+  List<String> getWalletIdsFor({required Coin coin}) {
+    final List<String> result = [];
+    for (final manager in _managerMap.values) {
+      if (manager.coin == coin) {
+        result.add(manager.walletId);
+      }
+    }
+    return result;
+  }
+
   Map<Coin, List<ChangeNotifierProvider<Manager>>> getManagerProvidersByCoin() {
     Map<Coin, List<ChangeNotifierProvider<Manager>>> result = {};
     for (final manager in _managerMap.values) {

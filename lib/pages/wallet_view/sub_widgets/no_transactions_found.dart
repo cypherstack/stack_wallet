@@ -15,7 +15,7 @@ class NoTransActionsFound extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               "Transactions will appear here",
-              style: STextStyles.itemSubtitle,
+              style: STextStyles.itemSubtitle(context),
             ),
           ),
         ),

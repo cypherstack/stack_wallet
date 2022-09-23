@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_indicator.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class StepRow extends StatelessWidget {
   const StepRow({
@@ -18,15 +18,17 @@ class StepRow extends StatelessWidget {
   final double indicatorSize;
   final double minSpacing;
 
-  Color getColor(int index) {
+  Color getColor(int index, BuildContext context) {
     if (current >= count - 1) {
-      return CFColors.stackAccent;
+      return Theme.of(context).extension<StackColors>()!.accentColorDark;
     }
 
     if (current <= index) {
-      return CFColors.stackAccent.withOpacity(0.2);
+      return Theme.of(context)
+          .extension<StackColors>()!
+          .stepIndicatorBGLinesInactive;
     } else {
-      return CFColors.link2;
+      return Theme.of(context).extension<StackColors>()!.stepIndicatorBGLines;
     }
   }
 
@@ -40,7 +42,7 @@ class StepRow extends StatelessWidget {
     }
   }
 
-  List<Widget> _buildList(double spacerWidth) {
+  List<Widget> _buildList(double spacerWidth, BuildContext context) {
     List<Widget> list = [];
     for (int i = 0; i < count - 1; i++) {
       list.add(StepIndicator(
@@ -51,7 +53,7 @@ class StepRow extends StatelessWidget {
         width: spacerWidth,
         dotSize: 1.5,
         spacing: 4,
-        color: getColor(i),
+        color: getColor(i, context),
       ));
     }
     list.add(StepIndicator(
@@ -68,7 +70,7 @@ class StepRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        ..._buildList(spacerWidth),
+        ..._buildList(spacerWidth, context),
       ],
     );
   }

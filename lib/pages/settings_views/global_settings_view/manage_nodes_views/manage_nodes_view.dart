@@ -4,10 +4,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -45,10 +45,10 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
 
     List<Coin> coins = showTestNet
         ? _coins
-        : _coins.sublist(0, Coin.values.length - kTestNetCoinCount);
+        : _coins.sublist(0, _coins.length - kTestNetCoinCount);
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -57,7 +57,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
         ),
         title: Text(
           "Manage nodes",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -82,7 +82,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                     child: RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
                       child: RawMaterialButton(
-                        // splashColor: CFColors.splashLight,
+                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,
@@ -112,11 +112,11 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                                 children: [
                                   Text(
                                     "${coin.prettyName} nodes",
-                                    style: STextStyles.titleBold12,
+                                    style: STextStyles.titleBold12(context),
                                   ),
                                   Text(
                                     count > 1 ? "$count nodes" : "Default",
-                                    style: STextStyles.label,
+                                    style: STextStyles.label(context),
                                   ),
                                 ],
                               )

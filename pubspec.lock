@@ -74,9 +74,11 @@ packages:
   bech32:
     dependency: "direct main"
     description:
-      name: bech32
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: "22279d4bb24ed541b431acd269a1bc50af0f36a0"
+      resolved-ref: "22279d4bb24ed541b431acd269a1bc50af0f36a0"
+      url: "https://github.com/cypherstack/bech32.git"
+    source: git
     version: "0.2.1"
   bip32:
     dependency: "direct main"
@@ -94,12 +96,21 @@ packages:
       url: "https://github.com/cypherstack/stack-bip39.git"
     source: git
     version: "1.0.6"
+  bitbox:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
+      resolved-ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
+      url: "https://github.com/Quppy/bitbox-flutter.git"
+    source: git
+    version: "1.0.1"
   bitcoindart:
     dependency: "direct main"
     description:
       path: "."
-      ref: a35968c2d2d900e77baa9f8b28c89b722c074039
-      resolved-ref: a35968c2d2d900e77baa9f8b28c89b722c074039
+      ref: "65eb920719c8f7895c5402a07497647e7fc4b346"
+      resolved-ref: "65eb920719c8f7895c5402a07497647e7fc4b346"
       url: "https://github.com/cypherstack/bitcoindart.git"
     source: git
     version: "3.0.1"
@@ -355,6 +366,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.5.2"
+  dropdown_button2:
+    dependency: "direct main"
+    description:
+      name: dropdown_button2
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.7.2"
   emojis:
     dependency: "direct main"
     description:
@@ -1596,6 +1614,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.7.0"
+  window_size:
+    dependency: "direct main"
+    description:
+      path: "plugins/window_size"
+      ref: HEAD
+      resolved-ref: "17d4710c17f4913137e7ec931f6e71eaef443363"
+      url: "https://github.com/google/flutter-desktop-embedding.git"
+    source: git
+    version: "0.1.0"
   xdg_directories:
     dependency: transitive
     description:

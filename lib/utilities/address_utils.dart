@@ -40,6 +40,8 @@ class AddressUtils {
     switch (coin) {
       case Coin.bitcoin:
         return Address.validateAddress(address, bitcoin);
+      // case Coin.bitcoincash:
+      //   return Address.validateAddress(address, bitcoincash);
       case Coin.dogecoin:
         return Address.validateAddress(address, dogecoin);
       case Coin.epicCash:
@@ -49,8 +51,12 @@ class AddressUtils {
       case Coin.monero:
         return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
             RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
+      // case Coin.namecoin:
+      //   return Address.validateAddress(address, namecoin);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
+      // case Coin.bitcoincashTestnet:
+      //   return Address.validateAddress(address, bitcoincashtestnet);
       case Coin.firoTestNet:
         return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:
