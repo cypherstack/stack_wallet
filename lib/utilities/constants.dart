@@ -39,14 +39,15 @@ abstract class Constants {
     final List<int> values = [];
     switch (coin) {
       case Coin.bitcoin:
-      case Coin.bitcoincash:
+      // case Coin.bitcoincash:
+      // case Coin.bitcoincashTestnet:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.bitcoinTestNet:
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
-      case Coin.namecoin:
+        // case Coin.namecoin:
         values.addAll([24, 21, 18, 15, 12]);
         break;
 
@@ -64,9 +65,9 @@ abstract class Constants {
       case Coin.bitcoinTestNet:
         return 600;
 
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return 600;
+      // case Coin.bitcoincash:
+      // case Coin.bitcoincashTestnet:
+      //   return 600;
 
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
@@ -82,8 +83,8 @@ abstract class Constants {
       case Coin.monero:
         return 120;
 
-      case Coin.namecoin:
-        return 600;
+      // case Coin.namecoin:
+      //   return 600;
     }
   }
 

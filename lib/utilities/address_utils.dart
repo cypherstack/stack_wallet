@@ -5,8 +5,6 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -42,8 +40,8 @@ class AddressUtils {
     switch (coin) {
       case Coin.bitcoin:
         return Address.validateAddress(address, bitcoin);
-      case Coin.bitcoincash:
-        return Address.validateAddress(address, bitcoincash);
+      // case Coin.bitcoincash:
+      //   return Address.validateAddress(address, bitcoincash);
       case Coin.dogecoin:
         return Address.validateAddress(address, dogecoin);
       case Coin.epicCash:
@@ -53,12 +51,12 @@ class AddressUtils {
       case Coin.monero:
         return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
             RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
-      case Coin.namecoin:
-        return Address.validateAddress(address, namecoin);
+      // case Coin.namecoin:
+      //   return Address.validateAddress(address, namecoin);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
-      case Coin.bitcoincashTestnet:
-        return Address.validateAddress(address, bitcoincashtestnet);
+      // case Coin.bitcoincashTestnet:
+      //   return Address.validateAddress(address, bitcoincashtestnet);
       case Coin.firoTestNet:
         return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:

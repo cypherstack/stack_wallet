@@ -190,9 +190,9 @@ class CoinThemeColor {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return bitcoincash;
+      // case Coin.bitcoincash:
+      // case Coin.bitcoincashTestnet:
+      //   return bitcoincash;
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
         return dogecoin;
@@ -203,8 +203,8 @@ class CoinThemeColor {
         return firo;
       case Coin.monero:
         return monero;
-      case Coin.namecoin:
-        return namecoin;
+      // case Coin.namecoin:
+      //   return namecoin;
       // case Coin.wownero:
       //   return wownero;
     }

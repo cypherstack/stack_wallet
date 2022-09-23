@@ -106,9 +106,9 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.namecoin:
-      case Coin.bitcoincashTestnet:
+        // case Coin.bitcoincash:
+        // case Coin.namecoin:
+        // case Coin.bitcoincashTestnet:
         final client = ElectrumX(
           host: node.host,
           port: node.port,

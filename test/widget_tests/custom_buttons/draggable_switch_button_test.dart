@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 
 void main() {
-  StackTheme.instance.setTheme(ThemeType.light);
   testWidgets("DraggableSwitchButton tapped", (tester) async {
     bool? isButtonOn = false;
     final button = DraggableSwitchButton(
