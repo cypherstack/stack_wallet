@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
-class FavoriteToggle extends StatefulWidget {
+class FavoriteToggle extends ConsumerStatefulWidget {
   const FavoriteToggle({
     Key? key,
     this.backGround,
@@ -22,10 +24,10 @@ class FavoriteToggle extends StatefulWidget {
   final void Function(bool)? onChanged;
 
   @override
-  State<FavoriteToggle> createState() => _FavoriteToggleState();
+  ConsumerState<FavoriteToggle> createState() => _FavoriteToggleState();
 }
 
-class _FavoriteToggleState extends State<FavoriteToggle> {
+class _FavoriteToggleState extends ConsumerState<FavoriteToggle> {
   late bool _isActive;
   late Color _color;
   late void Function(bool)? _onChanged;
@@ -36,9 +38,9 @@ class _FavoriteToggleState extends State<FavoriteToggle> {
   @override
   void initState() {
     on = widget.on ??
-        Theme.of(context).extension<StackColors>()!.favoriteStarActive;
+        ref.read(colorThemeProvider.state).state.favoriteStarActive;
     off = widget.off ??
-        Theme.of(context).extension<StackColors>()!.favoriteStarInactive;
+        ref.read(colorThemeProvider.state).state.favoriteStarInactive;
     _isActive = widget.initialState;
     _color = _isActive ? on : off;
     _onChanged = widget.onChanged;
