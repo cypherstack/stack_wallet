@@ -9,7 +9,8 @@ class TxIcon extends StatelessWidget {
 
   static const Size size = Size(32, 32);
 
-  String _getAssetName(bool isCancelled, bool isReceived, bool isPending) {
+  String _getAssetName(
+      bool isCancelled, bool isReceived, bool isPending, BuildContext context) {
     if (!isReceived && transaction.subType == "mint") {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
@@ -22,20 +23,20 @@ class TxIcon extends StatelessWidget {
 
     if (isReceived) {
       if (isCancelled) {
-        return Assets.svg.receiveCancelled;
+        return Assets.svg.receiveCancelled(context);
       }
       if (isPending) {
-        return Assets.svg.receivePending;
+        return Assets.svg.receivePending(context);
       }
-      return Assets.svg.receive;
+      return Assets.svg.receive(context);
     } else {
       if (isCancelled) {
-        return Assets.svg.sendCancelled;
+        return Assets.svg.sendCancelled(context);
       }
       if (isPending) {
-        return Assets.svg.sendPending;
+        return Assets.svg.sendPending(context);
       }
-      return Assets.svg.send;
+      return Assets.svg.send(context);
     }
   }
 
@@ -52,6 +53,7 @@ class TxIcon extends StatelessWidget {
             transaction.isCancelled,
             txIsReceived,
             !transaction.confirmedStatus,
+            context,
           ),
           width: size.width,
           height: size.height,

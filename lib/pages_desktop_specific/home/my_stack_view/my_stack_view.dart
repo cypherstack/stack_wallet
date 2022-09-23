@@ -40,7 +40,7 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
                 width: 32,
                 height: 32,
                 child: SvgPicture.asset(
-                  Assets.svg.stackIcon,
+                  Assets.svg.stackIcon(context),
                 ),
               ),
               const SizedBox(

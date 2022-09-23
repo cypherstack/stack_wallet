@@ -54,7 +54,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               width: _width == expandedWidth ? 70 : 32,
               height: _width == expandedWidth ? 70 : 32,
               child: SvgPicture.asset(
-                Assets.svg.stackIcon,
+                Assets.svg.stackIcon(context),
               ),
             ),
             const SizedBox(

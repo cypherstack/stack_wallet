@@ -3,6 +3,9 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class LightColors extends StackColorTheme {
   @override
+  ThemeType get themeType => ThemeType.light;
+
+  @override
   Color get background => const Color(0xFFF7F7F7);
   @override
   Color get overlay => const Color(0xFF111215);

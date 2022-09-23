@@ -8,6 +8,8 @@ enum ThemeType {
 }
 
 abstract class StackColorTheme {
+  ThemeType get themeType;
+
   Color get background;
   Color get overlay;
 
