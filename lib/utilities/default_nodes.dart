@@ -14,7 +14,7 @@ abstract class DefaultNodes {
         monero,
         epicCash,
         // bitcoincash,
-        // namecoin,
+        namecoin,
         bitcoinTestnet,
         // bitcoincashTestnet,
         dogecoinTestnet,
@@ -95,17 +95,17 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
-  // static NodeModel get namecoin => NodeModel(
-  //       host: "namecoin.stackwallet.com",
-  //       port: 57002,
-  //       name: defaultName,
-  //       id: _nodeId(Coin.namecoin),
-  //       useSSL: true,
-  //       enabled: true,
-  //       coinName: Coin.namecoin.name,
-  //       isFailover: true,
-  //       isDown: false,
-  //     );
+  static NodeModel get namecoin => NodeModel(
+        host: "namecoin.stackwallet.com",
+        port: 57002,
+        name: defaultName,
+        id: _nodeId(Coin.namecoin),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.namecoin.name,
+        isFailover: true,
+        isDown: false,
+      );
 
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "electrumx-testnet.cypherstack.com",
@@ -175,8 +175,8 @@ abstract class DefaultNodes {
       case Coin.monero:
         return monero;
 
-      // case Coin.namecoin:
-      //   return namecoin;
+      case Coin.namecoin:
+        return namecoin;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
