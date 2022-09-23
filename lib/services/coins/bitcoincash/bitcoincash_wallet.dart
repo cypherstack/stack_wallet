@@ -1520,6 +1520,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
         arrayKey += "P2SH";
         break;
     }
+
+    print("Array key is ${jsonEncode(arrayKey)}");
     final internalChainArray =
         DB.instance.get<dynamic>(boxName: walletId, key: arrayKey);
     return internalChainArray.last as String;
@@ -3072,6 +3074,38 @@ class BitcoinCashWallet extends CoinServiceAPI {
     await DB.instance
         .delete<dynamic>(key: 'changeIndexP2PKH_BACKUP', boxName: walletId);
 
+    // p2Sh
+    final tempReceivingAddressesP2SH = DB.instance
+        .get<dynamic>(boxName: walletId, key: 'receivingAddressesP2SH_BACKUP');
+    final tempChangeAddressesP2SH = DB.instance
+        .get<dynamic>(boxName: walletId, key: 'changeAddressesP2SH_BACKUP');
+    final tempReceivingIndexP2SH = DB.instance
+        .get<dynamic>(boxName: walletId, key: 'receivingIndexP2SH_BACKUP');
+    final tempChangeIndexP2SH = DB.instance
+        .get<dynamic>(boxName: walletId, key: 'changeIndexP2SH_BACKUP');
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'receivingAddressesP2SH',
+        value: tempReceivingAddressesP2SH);
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'changeAddressesP2SH',
+        value: tempChangeAddressesP2SH);
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'receivingIndexP2SH',
+        value: tempReceivingIndexP2SH);
+    await DB.instance.put<dynamic>(
+        boxName: walletId, key: 'changeIndexP2SH', value: tempChangeIndexP2SH);
+    await DB.instance.delete<dynamic>(
+        key: 'receivingAddressesP2SH_BACKUP', boxName: walletId);
+    await DB.instance
+        .delete<dynamic>(key: 'changeAddressesP2SH_BACKUP', boxName: walletId);
+    await DB.instance
+        .delete<dynamic>(key: 'receivingIndexP2SH_BACKUP', boxName: walletId);
+    await DB.instance
+        .delete<dynamic>(key: 'changeIndexP2SH_BACKUP', boxName: walletId);
+
     // P2PKH derivations
     final p2pkhReceiveDerivationsString = await _secureStore.read(
         key: "${walletId}_receiveDerivationsP2PKH_BACKUP");
@@ -3088,6 +3122,22 @@ class BitcoinCashWallet extends CoinServiceAPI {
     await _secureStore.delete(
         key: "${walletId}_receiveDerivationsP2PKH_BACKUP");
     await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH_BACKUP");
+
+    // P2SH derivations
+    final p2shReceiveDerivationsString = await _secureStore.read(
+        key: "${walletId}_receiveDerivationsP2SH_BACKUP");
+    final p2shChangeDerivationsString = await _secureStore.read(
+        key: "${walletId}_changeDerivationsP2SH_BACKUP");
+
+    await _secureStore.write(
+        key: "${walletId}_receiveDerivationsP2SH",
+        value: p2shReceiveDerivationsString);
+    await _secureStore.write(
+        key: "${walletId}_changeDerivationsP2SH",
+        value: p2shChangeDerivationsString);
+
+    await _secureStore.delete(key: "${walletId}_receiveDerivationsP2SH_BACKUP");
+    await _secureStore.delete(key: "${walletId}_changeDerivationsP2SH_BACKUP");
 
     // UTXOs
     final utxoData = DB.instance
@@ -3141,6 +3191,43 @@ class BitcoinCashWallet extends CoinServiceAPI {
     await DB.instance
         .delete<dynamic>(key: 'changeIndexP2PKH', boxName: walletId);
 
+    // p2sh
+    final tempReceivingAddressesP2SH = DB.instance
+        .get<dynamic>(boxName: walletId, key: 'receivingAddressesP2SH');
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'receivingAddressesP2SH_BACKUP',
+        value: tempReceivingAddressesP2SH);
+    await DB.instance
+        .delete<dynamic>(key: 'receivingAddressesP2SH', boxName: walletId);
+
+    final tempChangeAddressesP2SH =
+        DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddressesP2SH');
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'changeAddressesP2SH_BACKUP',
+        value: tempChangeAddressesP2SH);
+    await DB.instance
+        .delete<dynamic>(key: 'changeAddressesP2SH', boxName: walletId);
+
+    final tempReceivingIndexP2SH =
+        DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndexP2SH');
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'receivingIndexP2SH_BACKUP',
+        value: tempReceivingIndexP2SH);
+    await DB.instance
+        .delete<dynamic>(key: 'receivingIndexP2SH', boxName: walletId);
+
+    final tempChangeIndexP2SH =
+        DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndexP2SH');
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'changeIndexP2SH_BACKUP',
+        value: tempChangeIndexP2SH);
+    await DB.instance
+        .delete<dynamic>(key: 'changeIndexP2SH', boxName: walletId);
+
     // P2PKH derivations
     final p2pkhReceiveDerivationsString =
         await _secureStore.read(key: "${walletId}_receiveDerivationsP2PKH");
@@ -3156,6 +3243,22 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
     await _secureStore.delete(key: "${walletId}_receiveDerivationsP2PKH");
     await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH");
+
+    // P2SH derivations
+    final p2shReceiveDerivationsString =
+        await _secureStore.read(key: "${walletId}_receiveDerivationsP2SH");
+    final p2shChangeDerivationsString =
+        await _secureStore.read(key: "${walletId}_changeDerivationsP2SH");
+
+    await _secureStore.write(
+        key: "${walletId}_receiveDerivationsP2SH_BACKUP",
+        value: p2shReceiveDerivationsString);
+    await _secureStore.write(
+        key: "${walletId}_changeDerivationsP2SH_BACKUP",
+        value: p2shChangeDerivationsString);
+
+    await _secureStore.delete(key: "${walletId}_receiveDerivationsP2SH");
+    await _secureStore.delete(key: "${walletId}_changeDerivationsP2SH");
 
     // UTXOs
     final utxoData =

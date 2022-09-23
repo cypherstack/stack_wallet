@@ -1271,13 +1271,13 @@ void main() {
       }
       expect(didThrow, false);
 
-      verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
+      verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(2);
       verify(client?.getServerFeatures()).called(1);
       verifyNever(client?.ping()).called(0);
 
-      expect(secureStore?.interactions, 11);
-      expect(secureStore?.reads, 7);
-      expect(secureStore?.writes, 4);
+      expect(secureStore?.interactions, 20);
+      expect(secureStore?.reads, 13);
+      expect(secureStore?.writes, 7);
       expect(secureStore?.deletes, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -1317,9 +1317,9 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verifyNever(client?.ping()).called(0);
 
-      expect(secureStore?.interactions, 8);
-      expect(secureStore?.reads, 5);
-      expect(secureStore?.writes, 3);
+      expect(secureStore?.interactions, 14);
+      expect(secureStore?.reads, 9);
+      expect(secureStore?.writes, 5);
       expect(secureStore?.deletes, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -1366,13 +1366,13 @@ void main() {
       }
       expect(didThrow, false);
 
-      verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
+      verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(2);
       verify(client?.getServerFeatures()).called(1);
       verifyNever(client?.ping()).called(0);
 
-      expect(secureStore?.interactions, 11);
-      expect(secureStore?.reads, 7);
-      expect(secureStore?.writes, 4);
+      expect(secureStore?.interactions, 20);
+      expect(secureStore?.reads, 13);
+      expect(secureStore?.writes, 7);
       expect(secureStore?.deletes, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -1413,9 +1413,9 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verifyNever(client?.ping()).called(0);
 
-      expect(secureStore?.interactions, 8);
-      expect(secureStore?.reads, 5);
-      expect(secureStore?.writes, 3);
+      expect(secureStore?.interactions, 14);
+      expect(secureStore?.reads, 9);
+      expect(secureStore?.writes, 5);
       expect(secureStore?.deletes, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -2047,11 +2047,23 @@ void main() {
       final preChangeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
       final preReceivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
       final preChangeIndexP2PKH = await wallet.get('changeIndexP2PKH');
+
+      final preReceivingAddressesP2SH =
+          await wallet.get('receivingAddressesP2SH');
+      final preChangeAddressesP2SH = await wallet.get('changeAddressesP2SH');
+      final preReceivingIndexP2SH = await wallet.get('receivingIndexP2PKH');
+      final preChangeIndexP2SH = await wallet.get('changeIndexP2SH');
+
       final preUtxoData = await wallet.get('latest_utxo_model');
       final preReceiveDerivationsStringP2PKH = await secureStore?.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
       final preChangeDerivationsStringP2PKH = await secureStore?.read(
           key: "${testWalletId}_changeDerivationsP2PKH");
+
+      final preReceiveDerivationsStringP2SH = await secureStore?.read(
+          key: "${testWalletId}_receiveDerivationsP2SH");
+      final preChangeDerivationsStringP2SH =
+          await secureStore?.read(key: "${testWalletId}_changeDerivationsP2SH");
 
       // destroy the data that the rescan will fix
       await wallet.put(
@@ -2059,12 +2071,26 @@ void main() {
       await wallet
           .put('changeAddressesP2PKH', ["some address", "some other address"]);
 
+      await wallet.put(
+          'receivingAddressesP2SH', ["some address", "some other address"]);
+      await wallet
+          .put('changeAddressesP2SH', ["some address", "some other address"]);
+
       await wallet.put('receivingIndexP2PKH', 123);
       await wallet.put('changeIndexP2PKH', 123);
+
+      await wallet.put('receivingIndexP2SH', 123);
+      await wallet.put('changeIndexP2SH', 123);
+
       await secureStore?.write(
           key: "${testWalletId}_receiveDerivationsP2PKH", value: "{}");
       await secureStore?.write(
           key: "${testWalletId}_changeDerivationsP2PKH", value: "{}");
+
+      await secureStore?.write(
+          key: "${testWalletId}_receiveDerivationsP2SH", value: "{}");
+      await secureStore?.write(
+          key: "${testWalletId}_changeDerivationsP2SH", value: "{}");
 
       bool hasThrown = false;
       try {
@@ -2080,19 +2106,40 @@ void main() {
       final changeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
       final receivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
       final changeIndexP2PKH = await wallet.get('changeIndexP2PKH');
+
+      final receivingAddressesP2SH = await wallet.get('receivingAddressesP2SH');
+      final changeAddressesP2SH = await wallet.get('changeAddressesP2SH');
+      final receivingIndexP2SH = await wallet.get('receivingIndexP2SH');
+      final changeIndexP2SH = await wallet.get('changeIndexP2SH');
+
       final utxoData = await wallet.get('latest_utxo_model');
       final receiveDerivationsStringP2PKH = await secureStore?.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
       final changeDerivationsStringP2PKH = await secureStore?.read(
           key: "${testWalletId}_changeDerivationsP2PKH");
 
+      final receiveDerivationsStringP2SH = await secureStore?.read(
+          key: "${testWalletId}_receiveDerivationsP2SH");
+      final changeDerivationsStringP2SH =
+          await secureStore?.read(key: "${testWalletId}_changeDerivationsP2SH");
+
       expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
       expect(preChangeAddressesP2PKH, changeAddressesP2PKH);
       expect(preReceivingIndexP2PKH, receivingIndexP2PKH);
       expect(preChangeIndexP2PKH, changeIndexP2PKH);
+
+      expect(preReceivingAddressesP2SH, receivingAddressesP2SH);
+      expect(preChangeAddressesP2SH, changeAddressesP2SH);
+      expect(preReceivingIndexP2SH, receivingIndexP2SH);
+      expect(preChangeIndexP2SH, changeIndexP2SH);
+
       expect(preUtxoData, utxoData);
+
       expect(preReceiveDerivationsStringP2PKH, receiveDerivationsStringP2PKH);
       expect(preChangeDerivationsStringP2PKH, changeDerivationsStringP2PKH);
+
+      expect(preReceiveDerivationsStringP2SH, receiveDerivationsStringP2SH);
+      expect(preChangeDerivationsStringP2SH, changeDerivationsStringP2SH);
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
