@@ -23,7 +23,7 @@
 //
 // @GenerateMocks(
 //     [ElectrumX, CachedElectrumX, PriceAPI, TransactionNotificationTracker])
-// void main() {
+void main() {}
 //   group("bitcoincash constants", () {
 //     test("bitcoincash minimum confirmations", () async {
 //       expect(MINIMUM_CONFIRMATIONS, 3);

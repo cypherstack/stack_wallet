@@ -28,7 +28,7 @@
 //
 // @GenerateMocks(
 //     [ElectrumX, CachedElectrumX, PriceAPI, TransactionNotificationTracker])
-// void main() {
+void main() {}
 //   group("namecoin constants", () {
 //     test("namecoin minimum confirmations", () async {
 //       expect(MINIMUM_CONFIRMATIONS, 2);
