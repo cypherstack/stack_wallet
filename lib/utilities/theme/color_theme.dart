@@ -205,8 +205,8 @@ class CoinThemeColor {
         return firo;
       case Coin.monero:
         return monero;
-      // case Coin.namecoin:
-      //   return namecoin;
+      case Coin.namecoin:
+        return namecoin;
       // case Coin.wownero:
       //   return wownero;
     }

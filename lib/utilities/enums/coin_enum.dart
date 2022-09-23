@@ -5,6 +5,8 @@ import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
+import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
+    as nmc;
 
 enum Coin {
   bitcoin,
@@ -13,7 +15,7 @@ enum Coin {
   epicCash,
   firo,
   monero,
-  // namecoin,
+  namecoin,
 
   ///
   ///
@@ -43,8 +45,8 @@ extension CoinExt on Coin {
         return "Firo";
       case Coin.monero:
         return "Monero";
-      // case Coin.namecoin:
-      //   return "Namecoin";
+      case Coin.namecoin:
+        return "Namecoin";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
       // case Coin.bitcoincashTestnet:
@@ -70,8 +72,8 @@ extension CoinExt on Coin {
         return "FIRO";
       case Coin.monero:
         return "XMR";
-      // case Coin.namecoin:
-      //   return "NMC";
+      case Coin.namecoin:
+        return "NMC";
       case Coin.bitcoinTestNet:
         return "tBTC";
       // case Coin.bitcoincashTestnet:
@@ -98,8 +100,8 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.monero:
         return "monero";
-      // case Coin.namecoin:
-      //   return "namecoin";
+      case Coin.namecoin:
+        return "namecoin";
       case Coin.bitcoinTestNet:
         return "bitcoin";
       // case Coin.bitcoincashTestnet:
@@ -117,7 +119,7 @@ extension CoinExt on Coin {
       // case Coin.bitcoincash:
       case Coin.dogecoin:
       case Coin.firo:
-      // case Coin.namecoin:
+      case Coin.namecoin:
       case Coin.bitcoinTestNet:
       // case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
@@ -153,8 +155,8 @@ extension CoinExt on Coin {
 
       case Coin.monero:
         return xmr.MINIMUM_CONFIRMATIONS;
-      // case Coin.namecoin:
-      //   return nmc.MINIMUM_CONFIRMATIONS;
+      case Coin.namecoin:
+        return nmc.MINIMUM_CONFIRMATIONS;
     }
   }
 }
@@ -180,9 +182,9 @@ Coin coinFromPrettyName(String name) {
     case "Monero":
     case "monero":
       return Coin.monero;
-    // case "Namecoin":
-    // case "namecoin":
-    //   return Coin.namecoin;
+    case "Namecoin":
+    case "namecoin":
+      return Coin.namecoin;
     case "Bitcoin Testnet":
     case "tBitcoin":
     case "bitcoinTestNet":
@@ -220,8 +222,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.firo;
     case "xmr":
       return Coin.monero;
-    // case "nmc":
-    //   return Coin.namecoin;
+    case "nmc":
+      return Coin.namecoin;
     case "tbtc":
       return Coin.bitcoinTestNet;
     // case "tbch":

@@ -155,8 +155,8 @@ class _SVG {
         return firo;
       case Coin.monero:
         return monero;
-      // case Coin.namecoin:
-      //   return namecoin;
+      case Coin.namecoin:
+        return namecoin;
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
       // case Coin.bitcoincashTestnet:
@@ -202,8 +202,8 @@ class _PNG {
         return firo;
       case Coin.monero:
         return monero;
-      // case Coin.namecoin:
-      //   return namecoin;
+      case Coin.namecoin:
+        return namecoin;
     }
   }
 }
