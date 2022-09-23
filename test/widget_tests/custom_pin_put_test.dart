@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
 
 void main() {
-  StackTheme.instance.setTheme(ThemeType.light);
   group("CustomPinPut tests", () {
     testWidgets("CustomPinPut with 4 fields builds correctly", (tester) async {
       const pinPut = CustomPinPut(fieldsCount: 4);
 
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Material(
+        MaterialApp(
+          theme: ThemeData(
+            extensions: [
+              StackColors.fromStackColorTheme(LightColors()),
+            ],
+          ),
+          home: const Material(
             child: pinPut,
           ),
         ),
@@ -37,6 +41,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(
+            extensions: [
+              StackColors.fromStackColorTheme(LightColors()),
+            ],
+          ),
           home: Material(
             child: pinPut,
           ),
@@ -74,6 +83,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(
+            extensions: [
+              StackColors.fromStackColorTheme(LightColors()),
+            ],
+          ),
           home: Material(
             child: pinPut,
           ),
@@ -100,6 +114,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(
+            extensions: [
+              StackColors.fromStackColorTheme(LightColors()),
+            ],
+          ),
           home: Material(
             child: pinPut,
           ),
@@ -126,6 +145,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(
+            extensions: [
+              StackColors.fromStackColorTheme(LightColors()),
+            ],
+          ),
           home: Material(
             child: pinPut,
           ),
@@ -152,6 +176,11 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(
+          extensions: [
+            StackColors.fromStackColorTheme(LightColors()),
+          ],
+        ),
         home: Material(
           child: keyboard,
         ),
