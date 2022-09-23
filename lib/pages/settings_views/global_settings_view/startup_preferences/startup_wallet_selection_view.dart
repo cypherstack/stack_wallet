@@ -111,54 +111,55 @@ class _StartupWalletSelectionViewState
                                     const SizedBox(
                                       width: 12,
                                     ),
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          manager.walletName,
-                                          style:
-                                              STextStyles.titleBold12(context),
-                                        ),
-                                        // const SizedBox(
-                                        //   height: 2,
-                                        // ),
-                                        // FutureBuilder(
-                                        //   future: manager.totalBalance,
-                                        //   builder: (builderContext,
-                                        //       AsyncSnapshot<Decimal> snapshot) {
-                                        //     if (snapshot.connectionState ==
-                                        //             ConnectionState.done &&
-                                        //         snapshot.hasData) {
-                                        //       return Text(
-                                        //         "${Format.localizedStringAsFixed(
-                                        //           value: snapshot.data!,
-                                        //           locale: ref.watch(
-                                        //               localeServiceChangeNotifierProvider
-                                        //                   .select((value) =>
-                                        //                       value.locale)),
-                                        //           decimalPlaces: 8,
-                                        //         )} ${manager.coin.ticker}",
-                                        //         style: STextStyles.itemSubtitle(context),
-                                        //       );
-                                        //     } else {
-                                        //       return AnimatedText(
-                                        //         stringsToLoopThrough: const [
-                                        //           "Loading balance",
-                                        //           "Loading balance.",
-                                        //           "Loading balance..",
-                                        //           "Loading balance..."
-                                        //         ],
-                                        //         style: STextStyles.itemSubtitle(context),
-                                        //       );
-                                        //     }
-                                        //   },
-                                        // ),
-                                      ],
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            manager.walletName,
+                                            style: STextStyles.titleBold12(
+                                                context),
+                                          ),
+                                          // const SizedBox(
+                                          //   height: 2,
+                                          // ),
+                                          // FutureBuilder(
+                                          //   future: manager.totalBalance,
+                                          //   builder: (builderContext,
+                                          //       AsyncSnapshot<Decimal> snapshot) {
+                                          //     if (snapshot.connectionState ==
+                                          //             ConnectionState.done &&
+                                          //         snapshot.hasData) {
+                                          //       return Text(
+                                          //         "${Format.localizedStringAsFixed(
+                                          //           value: snapshot.data!,
+                                          //           locale: ref.watch(
+                                          //               localeServiceChangeNotifierProvider
+                                          //                   .select((value) =>
+                                          //                       value.locale)),
+                                          //           decimalPlaces: 8,
+                                          //         )} ${manager.coin.ticker}",
+                                          //         style: STextStyles.itemSubtitle(context),
+                                          //       );
+                                          //     } else {
+                                          //       return AnimatedText(
+                                          //         stringsToLoopThrough: const [
+                                          //           "Loading balance",
+                                          //           "Loading balance.",
+                                          //           "Loading balance..",
+                                          //           "Loading balance..."
+                                          //         ],
+                                          //         style: STextStyles.itemSubtitle(context),
+                                          //       );
+                                          //     }
+                                          //   },
+                                          // ),
+                                        ],
+                                      ),
                                     ),
-                                    const Spacer(),
                                     SizedBox(
                                       height: 20,
                                       width: 20,
