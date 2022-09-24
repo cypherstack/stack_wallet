@@ -185,7 +185,6 @@ flutter:
     - assets/images/splash.png
     - assets/icon/icon.png
     - google_fonts/
-    - google_fonts/static/
     - assets/svg/circle-check.svg
     - assets/svg/clipboard.svg
     - assets/images/stack.png
