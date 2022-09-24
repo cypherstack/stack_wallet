@@ -1060,6 +1060,11 @@ class _SendViewState extends ConsumerState<SendView> {
                           height: 8,
                         ),
                         TextField(
+                          style: STextStyles.smallMed14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                           key: const Key("amountInputFieldCryptoTextFieldKey"),
                           controller: cryptoAmountController,
                           focusNode: _cryptoFocus,
@@ -1106,6 +1111,11 @@ class _SendViewState extends ConsumerState<SendView> {
                           height: 8,
                         ),
                         TextField(
+                          style: STextStyles.smallMed14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                           key: const Key("amountInputFieldFiatTextFieldKey"),
                           controller: baseAmountController,
                           focusNode: _baseFocus,

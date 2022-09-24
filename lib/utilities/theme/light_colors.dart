@@ -70,7 +70,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get numpadBackDefault => const Color(0xFF232323);
   @override
-  Color get bottomNavBack => const Color(0xFFA2A2A2);
+  Color get bottomNavBack => const Color(0xFFFFFFFF);
 
   // button text/element
   @override
@@ -299,4 +299,6 @@ class LightColors extends StackColorTheme {
   Color get loadingOverlayTextColor => const Color(0xFFF7F7F7);
   @override
   Color get myStackContactIconBG => textFieldDefaultBG;
+  @override
+  Color get textConfirmTotalAmount => const Color(0xFF232323);
 }
