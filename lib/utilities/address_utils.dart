@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
+// import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
