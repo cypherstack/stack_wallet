@@ -299,4 +299,6 @@ class DarkColors extends StackColorTheme {
   Color get loadingOverlayTextColor => const Color(0xFFF7F7F7);
   @override
   Color get myStackContactIconBG => const Color(0x88747778);
+  @override
+  Color get textConfirmTotalAmount => const Color(0xFF003921);
 }

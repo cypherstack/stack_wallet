@@ -299,4 +299,6 @@ class LightColors extends StackColorTheme {
   Color get loadingOverlayTextColor => const Color(0xFFF7F7F7);
   @override
   Color get myStackContactIconBG => textFieldDefaultBG;
+  @override
+  Color get textConfirmTotalAmount => const Color(0xFF232323);
 }
