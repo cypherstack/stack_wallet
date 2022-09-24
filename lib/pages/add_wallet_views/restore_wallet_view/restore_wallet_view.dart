@@ -16,6 +16,7 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widge
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
@@ -23,7 +24,6 @@ import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/custom_text_selection_controls.dart';
@@ -33,6 +33,8 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -66,6 +68,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
 class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   final _formKey = GlobalKey<FormState>();
   late final int _seedWordCount;
+  late final bool isDesktop;
 
   final HashSet<String> _wordListHashSet = HashSet.from(bip39wordlist.WORDLIST);
   final ScrollController controller = ScrollController();
@@ -85,13 +88,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
     final text = data!.text!.trim();
     if (text.isEmpty || _controllers.isEmpty) {
-      delegate.pasteText(SelectionChangedCause.toolbar);
+      unawaited(delegate.pasteText(SelectionChangedCause.toolbar));
       return;
     }
 
     final words = text.split(" ");
     if (words.isEmpty) {
-      delegate.pasteText(SelectionChangedCause.toolbar);
+      unawaited(delegate.pasteText(SelectionChangedCause.toolbar));
       return;
     }
 
@@ -115,6 +118,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   @override
   void initState() {
     _seedWordCount = widget.seedWordsLength;
+    isDesktop = Util.isDesktop;
 
     textSelectionControls = Platform.isIOS
         ? CustomCupertinoTextSelectionControls(onPaste: onControlsPaste)
@@ -190,13 +194,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       // TODO: do actual check to make sure it is a valid mnemonic for monero
       if (bip39.validateMnemonic(mnemonic) == false &&
           !(widget.coin == Coin.monero)) {
-        showFloatingFlushBar(
+        unawaited(showFloatingFlushBar(
           type: FlushBarType.warning,
           message: "Invalid seed phrase!",
           context: context,
-        );
+        ));
       } else {
-        if (!Platform.isLinux) Wakelock.enable();
+        if (!Platform.isLinux) await Wakelock.enable();
         final walletsService = ref.read(walletsServiceChangeNotifierProvider);
 
         final walletId = await walletsService.addNewWallet(
@@ -206,7 +210,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         );
         bool isRestoring = true;
         // show restoring in progress
-        showDialog<dynamic>(
+        unawaited(showDialog<dynamic>(
           context: context,
           useSafeArea: false,
           barrierDismissible: false,
@@ -225,7 +229,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               },
             );
           },
-        );
+        ));
 
         var node = ref
             .read(nodeServiceChangeNotifierProvider)
@@ -233,7 +237,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
         if (node == null) {
           node = DefaultNodes.getNodeFor(widget.coin);
-          ref.read(nodeServiceChangeNotifierProvider).setPrimaryNodeFor(
+          await ref.read(nodeServiceChangeNotifierProvider).setPrimaryNodeFor(
                 coin: widget.coin,
                 node: node,
               );
@@ -282,26 +286,31 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 .addWallet(walletId: manager.walletId, manager: manager);
 
             if (mounted) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                  HomeView.routeName, (route) => false);
+              if (isDesktop) {
+                Navigator.of(context)
+                    .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+              } else {
+                unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
+                    HomeView.routeName, (route) => false));
+              }
             }
 
-            showDialog<dynamic>(
+            await showDialog<dynamic>(
               context: context,
               useSafeArea: false,
               barrierDismissible: true,
               builder: (context) {
                 return const RestoreSucceededDialog();
               },
-            ).then(
-              (_) {
-                if (!Platform.isLinux) Wakelock.disable();
-                // timer.cancel();
-              },
             );
+            if (!Platform.isLinux && !isDesktop) {
+              await Wakelock.disable();
+            }
           }
         } catch (e) {
-          if (!Platform.isLinux) Wakelock.disable();
+          if (!Platform.isLinux && !isDesktop) {
+            await Wakelock.disable();
+          }
 
           // if (e is HiveError &&
           //     e.message == "Box has already been closed.") {
@@ -316,7 +325,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             Navigator.pop(context);
 
             // show restoring wallet failed dialog
-            showDialog<dynamic>(
+            await showDialog<dynamic>(
               context: context,
               useSafeArea: false,
               barrierDismissible: true,
@@ -331,7 +340,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           }
         }
 
-        if (!Platform.isLinux) Wakelock.disable();
+        if (!Platform.isLinux && !isDesktop) {
+          await Wakelock.disable();
+        }
       }
     }
   }
@@ -343,27 +354,35 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     Widget? suffixIcon;
     switch (status) {
       case FormInputStatus.empty:
-        color = CFColors.fieldGray;
-        prefixColor = CFColors.gray3;
+        color = Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
+        prefixColor = Theme.of(context).extension<StackColors>()!.textSubtitle2;
         break;
       case FormInputStatus.invalid:
-        color = CFColors.notificationRedBackground;
-        prefixColor = CFColors.notificationRedForeground;
+        color = Theme.of(context).extension<StackColors>()!.textFieldErrorBG;
+        prefixColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldErrorSearchIconLeft;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
           height: 16,
-          color: CFColors.notificationRedForeground,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldErrorSearchIconRight,
         );
         break;
       case FormInputStatus.valid:
-        color = CFColors.notificationGreenBackground;
-        prefixColor = CFColors.notificationGreenForeground;
+        color = Theme.of(context).extension<StackColors>()!.textFieldSuccessBG;
+        prefixColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldSuccessSearchIconLeft;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
           height: 16,
-          color: CFColors.notificationGreenForeground,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldSuccessSearchIconRight,
         );
         break;
     }
@@ -383,7 +402,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           ),
           child: Text(
             prefix,
-            style: STextStyles.fieldLabel.copyWith(
+            style: STextStyles.fieldLabel(context).copyWith(
               color: prefixColor,
             ),
           ),
@@ -441,8 +460,71 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       });
     }
 
-    controller.animateTo(controller.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300), curve: Curves.decelerate);
+    if (!isDesktop) {
+      controller.animateTo(
+        controller.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.decelerate,
+      );
+    }
+  }
+
+  Future<void> scanMnemonicQr() async {
+    try {
+      final qrResult = await scanner.scan();
+
+      final results = AddressUtils.decodeQRSeedData(qrResult.rawContent);
+
+      Logging.instance.log("scan parsed: $results", level: LogLevel.Info);
+
+      if (results["mnemonic"] != null) {
+        final list = (results["mnemonic"] as List)
+            .map((value) => value as String)
+            .toList(growable: false);
+        if (list.isNotEmpty) {
+          _clearAndPopulateMnemonic(list);
+          Logging.instance.log("mnemonic populated", level: LogLevel.Info);
+        } else {
+          Logging.instance
+              .log("mnemonic failed to populate", level: LogLevel.Info);
+        }
+      }
+    } on PlatformException catch (e) {
+      // likely failed to get camera permissions
+      Logging.instance
+          .log("Restore wallet qr scan failed: $e", level: LogLevel.Warning);
+    }
+  }
+
+  Future<void> pasteMnemonic() async {
+    debugPrint("restoreWalletPasteButton tapped");
+    final ClipboardData? data =
+        await widget.clipboard.getData(Clipboard.kTextPlain);
+
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      final content = data.text!.trim();
+      final list = content.split(" ");
+      _clearAndPopulateMnemonic(list);
+    }
+  }
+
+  Future<void> requestRestore() async {
+    // wait for keyboard to disappear
+    FocusScope.of(context).unfocus();
+    await Future<void>.delayed(
+      const Duration(milliseconds: 100),
+    );
+
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) {
+        return ConfirmRecoveryDialog(
+          onConfirm: attemptRestore,
+        );
+      },
+    );
   }
 
   @override
@@ -473,41 +555,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 key: const Key("restoreWalletViewQrCodeButton"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
-                icon: const QrCodeIcon(
+                color: Theme.of(context).extension<StackColors>()!.background,
+                icon: QrCodeIcon(
                   width: 20,
                   height: 20,
-                  color: CFColors.stackAccent,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                 ),
-                onPressed: () async {
-                  try {
-                    final qrResult = await scanner.scan();
-
-                    final results =
-                        AddressUtils.decodeQRSeedData(qrResult.rawContent);
-
-                    Logging.instance
-                        .log("scan parsed: $results", level: LogLevel.Info);
-
-                    if (results["mnemonic"] != null) {
-                      final list = (results["mnemonic"] as List)
-                          .map((value) => value as String)
-                          .toList(growable: false);
-                      if (list.isNotEmpty) {
-                        _clearAndPopulateMnemonic(list);
-                        Logging.instance
-                            .log("mnemonic populated", level: LogLevel.Info);
-                      } else {
-                        Logging.instance.log("mnemonic failed to populate",
-                            level: LogLevel.Info);
-                      }
-                    }
-                  } on PlatformException catch (e) {
-                    // likely failed to get camera permissions
-                    Logging.instance.log("Restore wallet qr scan failed: $e",
-                        level: LogLevel.Warning);
-                  }
-                },
+                onPressed: scanMnemonicQr,
               ),
             ),
           ),
@@ -523,51 +579,43 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 key: const Key("restoreWalletPasteButton"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
-                icon: const ClipboardIcon(
+                color: Theme.of(context).extension<StackColors>()!.background,
+                icon: ClipboardIcon(
                   width: 20,
                   height: 20,
-                  color: CFColors.stackAccent,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                 ),
-                onPressed: () async {
-                  debugPrint("restoreWalletPasteButton tapped");
-                  final ClipboardData? data =
-                      await widget.clipboard.getData(Clipboard.kTextPlain);
-
-                  if (data?.text != null && data!.text!.isNotEmpty) {
-                    final content = data.text!.trim();
-                    final list = content.split(" ");
-                    _clearAndPopulateMnemonic(list);
-                  }
-                },
+                onPressed: pasteMnemonic,
               ),
             ),
           ),
         ],
       ),
       body: Container(
-        color: CFColors.almostWhite,
+        color: Theme.of(context).extension<StackColors>()!.background,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
               Text(
                 widget.walletName,
-                style: STextStyles.itemSubtitle,
+                style: STextStyles.itemSubtitle(context),
               ),
               const SizedBox(
                 height: 4,
               ),
               Text(
                 "Recovery phrase",
-                style: STextStyles.pageTitleH1,
+                style: STextStyles.pageTitleH1(context),
               ),
               const SizedBox(
                 height: 8,
               ),
               Text(
                 "Enter your $_seedWordCount-word recovery phrase.",
-                style: STextStyles.subtitle,
+                style: STextStyles.subtitle(context),
               ),
               const SizedBox(
                 height: 10,
@@ -617,7 +665,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                       }
                                     },
                                     controller: _controllers[i - 1],
-                                    style: STextStyles.field,
+                                    style: STextStyles.field(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .overlay,
+                                    ),
                                   ),
                                 ),
                                 if (_inputStatuses[i - 1] ==
@@ -632,78 +684,29 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                       child: Text(
                                         "Please check spelling",
                                         textAlign: TextAlign.left,
-                                        style: STextStyles.label.copyWith(
-                                          color: CFColors
-                                              .notificationRedForeground,
+                                        style:
+                                            STextStyles.label(context).copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textError,
                                         ),
                                       ),
                                     ),
                                   )
                               ],
                             ),
-                          // if (widget.coin == Coin.monero ||
-                          //     widget.coin == Coin.epicCash)
-                          //   Padding(
-                          //     padding: const EdgeInsets.only(
-                          //       top: 8.0,
-                          //     ),
-                          //     child: ClipRRect(
-                          //       borderRadius: BorderRadius.circular(
-                          //         Constants.size.circularBorderRadius,
-                          //       ),
-                          //       child: TextField(
-                          //         key: Key("restoreMnemonicFormField_height"),
-                          //         inputFormatters: <TextInputFormatter>[
-                          //           FilteringTextInputFormatter.allow(
-                          //               RegExp("[0-9]*")),
-                          //         ],
-                          //         keyboardType:
-                          //             TextInputType.numberWithOptions(),
-                          //         controller: _heightController,
-                          //         focusNode: _heightFocusNode,
-                          //         style: STextStyles.field,
-                          //         decoration: standardInputDecoration(
-                          //           "Height",
-                          //           _heightFocusNode,
-                          //         ),
-                          //       ),
-                          //     ),
-                          //   ),
                           Padding(
                             padding: const EdgeInsets.only(
                               top: 8.0,
                             ),
                             child: TextButton(
                               style: Theme.of(context)
-                                  .textButtonTheme
-                                  .style
-                                  ?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
-                              onPressed: () async {
-                                // wait for keyboard to disappear
-                                FocusScope.of(context).unfocus();
-                                await Future<void>.delayed(
-                                  const Duration(milliseconds: 100),
-                                );
-
-                                showDialog<dynamic>(
-                                  context: context,
-                                  useSafeArea: false,
-                                  barrierDismissible: true,
-                                  builder: (context) {
-                                    return ConfirmRecoveryDialog(
-                                      onConfirm: attemptRestore,
-                                    );
-                                  },
-                                );
-                              },
+                                  .extension<StackColors>()!
+                                  .getPrimaryEnabledButtonColor(context),
+                              onPressed: requestRestore,
                               child: Text(
                                 "Restore",
-                                style: STextStyles.button,
+                                style: STextStyles.button(context),
                               ),
                             ),
                           ),

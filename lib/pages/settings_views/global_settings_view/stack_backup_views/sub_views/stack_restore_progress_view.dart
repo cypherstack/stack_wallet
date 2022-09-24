@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -11,10 +13,10 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -39,7 +41,7 @@ class _StackRestoreProgressViewState
     extends ConsumerState<StackRestoreProgressView> {
   Future<void> _cancel() async {
     bool shouldPop = false;
-    showDialog<void>(
+    unawaited(showDialog<void>(
       barrierDismissible: false,
       context: context,
       builder: (_) => WillPopScope(
@@ -55,8 +57,9 @@ class _StackRestoreProgressViewState
               child: Center(
                 child: Text(
                   "Cancelling restore. Please wait.",
-                  style: STextStyles.pageTitleH2.copyWith(
-                    color: CFColors.white,
+                  style: STextStyles.pageTitleH2(context).copyWith(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textWhite,
                   ),
                 ),
               ),
@@ -72,7 +75,7 @@ class _StackRestoreProgressViewState
           ],
         ),
       ),
-    );
+    ));
 
     await SWB.cancelRestore();
     shouldPop = true;
@@ -138,22 +141,23 @@ class _StackRestoreProgressViewState
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: CFColors.buttonGray,
+          color:
+              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: CFColors.stackGreen,
+          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
         );
       case StackRestoringStatus.success:
         return SvgPicture.asset(
           Assets.svg.checkCircle,
-          color: CFColors.stackGreen,
+          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
         );
       case StackRestoringStatus.failed:
         return SvgPicture.asset(
           Assets.svg.circleAlert,
-          color: CFColors.error,
+          color: Theme.of(context).extension<StackColors>()!.textError,
         );
     }
   }
@@ -178,7 +182,7 @@ class _StackRestoreProgressViewState
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
             onPressed: () async {
@@ -200,7 +204,7 @@ class _StackRestoreProgressViewState
           ),
           title: Text(
             "Restoring Stack wallet",
-            style: STextStyles.navBarTitle,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
         body: Padding(
@@ -222,7 +226,7 @@ class _StackRestoreProgressViewState
                 children: [
                   Text(
                     "Settings",
-                    style: STextStyles.itemSubtitle,
+                    style: STextStyles.itemSubtitle(context),
                   ),
                   const SizedBox(
                     height: 12,
@@ -237,13 +241,17 @@ class _StackRestoreProgressViewState
                           height: 32,
                           child: RoundedContainer(
                             padding: const EdgeInsets.all(0),
-                            color: CFColors.buttonGray,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonBackSecondary,
                             child: Center(
                               child: SvgPicture.asset(
                                 Assets.svg.gear,
                                 width: 16,
                                 height: 16,
-                                color: CFColors.stackAccent,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
                               ),
                             ),
                           ),
@@ -257,7 +265,7 @@ class _StackRestoreProgressViewState
                         subTitle: state == StackRestoringStatus.failed
                             ? Text(
                                 "Something went wrong",
-                                style: STextStyles.errorSmall,
+                                style: STextStyles.errorSmall(context),
                               )
                             : null,
                       );
@@ -271,17 +279,21 @@ class _StackRestoreProgressViewState
                       final state = ref.watch(stackRestoringUIStateProvider
                           .select((value) => value.addressBook));
                       return RestoringItemCard(
-                        left: const SizedBox(
+                        left: SizedBox(
                           width: 32,
                           height: 32,
                           child: RoundedContainer(
-                            padding: EdgeInsets.all(0),
-                            color: CFColors.buttonGray,
+                            padding: const EdgeInsets.all(0),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonBackSecondary,
                             child: Center(
                               child: AddressBookIcon(
                                 width: 16,
                                 height: 16,
-                                color: CFColors.stackAccent,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
                               ),
                             ),
                           ),
@@ -295,7 +307,7 @@ class _StackRestoreProgressViewState
                         subTitle: state == StackRestoringStatus.failed
                             ? Text(
                                 "Something went wrong",
-                                style: STextStyles.errorSmall,
+                                style: STextStyles.errorSmall(context),
                               )
                             : null,
                       );
@@ -314,13 +326,17 @@ class _StackRestoreProgressViewState
                           height: 32,
                           child: RoundedContainer(
                             padding: const EdgeInsets.all(0),
-                            color: CFColors.buttonGray,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonBackSecondary,
                             child: Center(
                               child: SvgPicture.asset(
                                 Assets.svg.node,
                                 width: 16,
                                 height: 16,
-                                color: CFColors.stackAccent,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
                               ),
                             ),
                           ),
@@ -334,7 +350,7 @@ class _StackRestoreProgressViewState
                         subTitle: state == StackRestoringStatus.failed
                             ? Text(
                                 "Something went wrong",
-                                style: STextStyles.errorSmall,
+                                style: STextStyles.errorSmall(context),
                               )
                             : null,
                       );
@@ -353,13 +369,17 @@ class _StackRestoreProgressViewState
                           height: 32,
                           child: RoundedContainer(
                             padding: const EdgeInsets.all(0),
-                            color: CFColors.buttonGray,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonBackSecondary,
                             child: Center(
                               child: SvgPicture.asset(
                                 Assets.svg.arrowRotate2,
                                 width: 16,
                                 height: 16,
-                                color: CFColors.stackAccent,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
                               ),
                             ),
                           ),
@@ -373,7 +393,7 @@ class _StackRestoreProgressViewState
                         subTitle: state == StackRestoringStatus.failed
                             ? Text(
                                 "Something went wrong",
-                                style: STextStyles.errorSmall,
+                                style: STextStyles.errorSmall(context),
                               )
                             : null,
                       );
@@ -384,7 +404,7 @@ class _StackRestoreProgressViewState
                   ),
                   Text(
                     "Wallets",
-                    style: STextStyles.itemSubtitle,
+                    style: STextStyles.itemSubtitle(context),
                   ),
                   const SizedBox(
                     height: 8,
@@ -423,10 +443,15 @@ class _StackRestoreProgressViewState
                 }
               }
             },
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonColor(context),
             child: Text(
               _success ? "OK" : "Cancel restore process",
-              style: STextStyles.button.copyWith(
-                color: CFColors.stackAccent,
+              style: STextStyles.button(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonTextPrimary,
               ),
             ),
           ),

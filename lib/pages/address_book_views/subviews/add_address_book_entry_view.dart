@@ -11,10 +11,10 @@ import 'package:stackwallet/providers/ui/address_book_providers/contact_name_is_
 import 'package:stackwallet/providers/ui/address_book_providers/valid_contact_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/emoji_select_sheet.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -93,7 +93,7 @@ class _AddAddressBookEntryViewState
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -108,7 +108,7 @@ class _AddAddressBookEntryViewState
         ),
         title: Text(
           "New contact",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -123,10 +123,16 @@ class _AddAddressBookEntryViewState
                 key: const Key("addAddressBookEntryFavoriteButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.star,
-                  color: _isFavorite ? CFColors.link2 : CFColors.buttonGray,
+                  color: _isFavorite
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .favoriteStarActive
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .favoriteStarInactive,
                   width: 20,
                   height: 20,
                 ),
@@ -198,7 +204,9 @@ class _AddAddressBookEntryViewState
                                 width: 48,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(24),
-                                  color: CFColors.textFieldActive,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveBG,
                                 ),
                                 child: Center(
                                   child: _selectedEmoji == null
@@ -209,7 +217,8 @@ class _AddAddressBookEntryViewState
                                         )
                                       : Text(
                                           _selectedEmoji!.char,
-                                          style: STextStyles.pageTitleH1,
+                                          style:
+                                              STextStyles.pageTitleH1(context),
                                         ),
                                 ),
                               ),
@@ -219,20 +228,25 @@ class _AddAddressBookEntryViewState
                                   height: 14,
                                   width: 14,
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(14),
-                                    color: CFColors.stackAccent,
-                                  ),
+                                      borderRadius: BorderRadius.circular(14),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                   child: Center(
                                     child: _selectedEmoji == null
                                         ? SvgPicture.asset(
                                             Assets.svg.plus,
-                                            color: CFColors.white,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textWhite,
                                             width: 12,
                                             height: 12,
                                           )
                                         : SvgPicture.asset(
                                             Assets.svg.thickX,
-                                            color: CFColors.white,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textWhite,
                                             width: 8,
                                             height: 8,
                                           ),
@@ -253,10 +267,11 @@ class _AddAddressBookEntryViewState
                         child: TextField(
                           controller: nameController,
                           focusNode: nameFocusNode,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           decoration: standardInputDecoration(
                             "Enter contact name",
                             nameFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: ref
                                     .read(contactNameIsNotEmptyStateProvider
@@ -303,7 +318,7 @@ class _AddAddressBookEntryViewState
                               ),
                               Text(
                                 "Address ${i + 1}",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               const SizedBox(
                                 height: 8,
@@ -325,7 +340,7 @@ class _AddAddressBookEntryViewState
                         },
                         child: Text(
                           "+ Add another address",
-                          style: STextStyles.largeMedium14,
+                          style: STextStyles.largeMedium14(context),
                         ),
                       ),
                       const SizedBox(
@@ -336,17 +351,15 @@ class _AddAddressBookEntryViewState
                         children: [
                           Expanded(
                             child: TextButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                  CFColors.buttonGray,
-                                ),
-                              ),
+                              style: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .getSecondaryEnabledButtonColor(context),
                               child: Text(
                                 "Cancel",
-                                style: STextStyles.button.copyWith(
-                                  color: CFColors.stackAccent,
-                                ),
+                                style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark),
                               ),
                               onPressed: () async {
                                 if (FocusScope.of(context).hasFocus) {
@@ -380,13 +393,14 @@ class _AddAddressBookEntryViewState
                                     validForms && nameExists;
 
                                 return TextButton(
-                                  style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                    shouldEnableSave
-                                        ? CFColors.stackAccent
-                                        : CFColors.disabledButton,
-                                  )),
+                                  style: shouldEnableSave
+                                      ? Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .getPrimaryEnabledButtonColor(context)
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .getPrimaryDisabledButtonColor(
+                                              context),
                                   onPressed: shouldEnableSave
                                       ? () async {
                                           if (FocusScope.of(context).hasFocus) {
@@ -424,7 +438,7 @@ class _AddAddressBookEntryViewState
                                       : null,
                                   child: Text(
                                     "Save",
-                                    style: STextStyles.button,
+                                    style: STextStyles.button(context),
                                   ),
                                 );
                               },

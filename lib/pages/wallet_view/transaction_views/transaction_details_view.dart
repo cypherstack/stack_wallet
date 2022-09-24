@@ -16,13 +16,13 @@ import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/block_explorers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -169,7 +169,7 @@ class _TransactionDetailsViewState
             }),
             Text(
               "Never show again",
-              style: STextStyles.smallMed14,
+              style: STextStyles.smallMed14(context),
             )
           ],
         ),
@@ -179,23 +179,22 @@ class _TransactionDetailsViewState
           },
           child: Text(
             "Cancel",
-            style: STextStyles.button.copyWith(
-              color: CFColors.stackAccent,
-            ),
+            style: STextStyles.button(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark),
           ),
         ),
         rightButton: TextButton(
-          style: Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.stackAccent,
-                ),
-              ),
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getPrimaryEnabledButtonColor(context),
           onPressed: () {
             Navigator.of(context).pop(true);
           },
           child: Text(
             "Continue",
-            style: STextStyles.button,
+            style: STextStyles.button(context),
           ),
         ),
       ),
@@ -206,9 +205,9 @@ class _TransactionDetailsViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             // if (FocusScope.of(context).hasFocus) {
@@ -220,7 +219,7 @@ class _TransactionDetailsViewState
         ),
         title: Text(
           "Transaction details",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -249,7 +248,7 @@ class _TransactionDetailsViewState
                               ),
                               decimalPlaces: Constants.decimalPlaces,
                             )} ${coin.ticker}",
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                           ),
                           const SizedBox(
                             height: 2,
@@ -263,7 +262,7 @@ class _TransactionDetailsViewState
                                 (value) => value.currency,
                               ),
                             )}",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ],
                       ),
@@ -282,7 +281,7 @@ class _TransactionDetailsViewState
                     children: [
                       Text(
                         "Status",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -292,7 +291,7 @@ class _TransactionDetailsViewState
                         _transaction.isCancelled
                             ? "Cancelled"
                             : whatIsIt(_transaction.txType),
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -318,7 +317,7 @@ class _TransactionDetailsViewState
                           _transaction.txType.toLowerCase() == "sent"
                               ? "Sent to"
                               : "Received on",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 8,
@@ -338,13 +337,13 @@ class _TransactionDetailsViewState
                                   }
                                   return SelectableText(
                                     addressOrContactName,
-                                    style: STextStyles.itemSubtitle12,
+                                    style: STextStyles.itemSubtitle12(context),
                                   );
                                 },
                               )
                             : SelectableText(
                                 _transaction.address,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                       ],
                     ),
@@ -361,7 +360,7 @@ class _TransactionDetailsViewState
                         children: [
                           Text(
                             "Note",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                           GestureDetector(
                             onTap: () {
@@ -380,14 +379,16 @@ class _TransactionDetailsViewState
                                   Assets.svg.pencil,
                                   width: 10,
                                   height: 10,
-                                  color: CFColors.link2,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons,
                                 ),
                                 const SizedBox(
                                   width: 4,
                                 ),
                                 Text(
                                   "Edit",
-                                  style: STextStyles.link2,
+                                  style: STextStyles.link2(context),
                                 ),
                               ],
                             ),
@@ -411,7 +412,7 @@ class _TransactionDetailsViewState
                           }
                           return SelectableText(
                             _note,
-                            style: STextStyles.itemSubtitle12,
+                            style: STextStyles.itemSubtitle12(context),
                           );
                         },
                       ),
@@ -427,7 +428,7 @@ class _TransactionDetailsViewState
                     children: [
                       Text(
                         "Date",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -435,7 +436,7 @@ class _TransactionDetailsViewState
                       //     child:
                       SelectableText(
                         Format.extractDateFrom(_transaction.timestamp),
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -451,7 +452,7 @@ class _TransactionDetailsViewState
                     children: [
                       Text(
                         "Transaction fee",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -477,7 +478,7 @@ class _TransactionDetailsViewState
                                     localeServiceChangeNotifierProvider
                                         .select((value) => value.locale)),
                                 decimalPlaces: Constants.decimalPlaces),
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -493,7 +494,7 @@ class _TransactionDetailsViewState
                     children: [
                       Text(
                         "Block height",
-                        style: STextStyles.itemSubtitle,
+                        style: STextStyles.itemSubtitle(context),
                       ),
                       // Flexible(
                       //   child: FittedBox(
@@ -506,7 +507,7 @@ class _TransactionDetailsViewState
                             : _transaction.confirmations > 0
                                 ? "${_transaction.height}"
                                 : "Pending",
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
                       // ),
@@ -525,7 +526,7 @@ class _TransactionDetailsViewState
                         children: [
                           Text(
                             "Transaction ID",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ],
                       ),
@@ -538,7 +539,7 @@ class _TransactionDetailsViewState
                       //     child:
                       SelectableText(
                         _transaction.txid,
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       ),
                       if (coin != Coin.epicCash)
                         const SizedBox(
@@ -557,8 +558,8 @@ class _TransactionDetailsViewState
                                     .read(prefsChangeNotifierProvider)
                                     .hideBlockExplorerWarning ==
                                 false) {
-                              final shouldContinue =
-                                  await showExplorerWarning(uri.host);
+                              final shouldContinue = await showExplorerWarning(
+                                  "${uri.scheme}://${uri.host}");
 
                               if (!shouldContinue) {
                                 return;
@@ -617,7 +618,7 @@ class _TransactionDetailsViewState
                 //           children: [
                 //             Text(
                 //               "Mint Transaction ID",
-                //               style: STextStyles.itemSubtitle,
+                //               style: STextStyles.itemSubtitle(context),
                 //             ),
                 //           ],
                 //         ),
@@ -630,7 +631,7 @@ class _TransactionDetailsViewState
                 //         //     child:
                 //         SelectableText(
                 //           _transaction.otherData ?? "Unknown",
-                //           style: STextStyles.itemSubtitle12,
+                //           style: STextStyles.itemSubtitle12(context),
                 //         ),
                 //         //   ),
                 //         // ),
@@ -689,7 +690,7 @@ class _TransactionDetailsViewState
                       children: [
                         Text(
                           "Slate ID",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         // Flexible(
                         //   child: FittedBox(
@@ -697,7 +698,7 @@ class _TransactionDetailsViewState
                         //     child:
                         SelectableText(
                           _transaction.slateId ?? "Unknown",
-                          style: STextStyles.itemSubtitle12,
+                          style: STextStyles.itemSubtitle12(context),
                         ),
                         //   ),
                         // ),
@@ -722,7 +723,7 @@ class _TransactionDetailsViewState
               child: TextButton(
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                    CFColors.error,
+                    Theme.of(context).extension<StackColors>()!.textError,
                   ),
                 ),
                 onPressed: () async {
@@ -787,7 +788,7 @@ class _TransactionDetailsViewState
                 },
                 child: Text(
                   "Cancel Transaction",
-                  style: STextStyles.button,
+                  style: STextStyles.button(context),
                 ),
               ),
             )

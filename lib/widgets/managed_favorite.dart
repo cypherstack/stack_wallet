@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/favorite_toggle.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -33,7 +33,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(4.0),
       child: RawMaterialButton(
-        onPressed: () async {
+        onPressed: () {
           final provider = ref
               .read(walletsChangeNotifierProvider)
               .getManagerProvider(manager.walletId);
@@ -64,7 +64,10 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: CFColors.coin.forCoin(manager.coin).withOpacity(0.5),
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .colorForCoin(manager.coin)
+                      .withOpacity(0.5),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -81,29 +84,30 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
               const SizedBox(
                 width: 12,
               ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    manager.walletName,
-                    style: STextStyles.titleBold12,
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  Text(
-                    "${Format.localizedStringAsFixed(
-                      value: manager.cachedTotalBalance,
-                      locale: ref.watch(localeServiceChangeNotifierProvider
-                          .select((value) => value.locale)),
-                      decimalPlaces: 8,
-                    )} ${manager.coin.ticker}",
-                    style: STextStyles.itemSubtitle,
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      manager.walletName,
+                      style: STextStyles.titleBold12(context),
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
+                    Text(
+                      "${Format.localizedStringAsFixed(
+                        value: manager.cachedTotalBalance,
+                        locale: ref.watch(localeServiceChangeNotifierProvider
+                            .select((value) => value.locale)),
+                        decimalPlaces: 8,
+                      )} ${manager.coin.ticker}",
+                      style: STextStyles.itemSubtitle(context),
+                    ),
+                  ],
+                ),
               ),
-              const Spacer(),
               FavoriteToggle(
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,

@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 abstract class Assets {
   static const svg = _SVG();
@@ -19,11 +21,39 @@ class _SOCIALS {
 class _SVG {
   const _SVG();
 
+  String bellNew(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/bell-new.svg";
+  String stackIcon(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/stack-icon1.svg";
+  String exchange(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/exchange-2.svg";
+  String buy(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/buy-coins-icon.svg";
+
+  String receive(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-icon-receive.svg";
+  String receivePending(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-icon-receive-pending.svg";
+  String receiveCancelled(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-icon-receive-failed.svg";
+
+  String send(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-icon-send.svg";
+  String sendPending(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-icon-send-pending.svg";
+  String sendCancelled(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-icon-send-failed.svg";
+
+  String txExchange(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon.svg";
+  String txExchangePending(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-pending.svg";
+  String txExchangeFailed(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
+
   String get plus => "assets/svg/plus.svg";
   String get gear => "assets/svg/gear.svg";
   String get bell => "assets/svg/bell.svg";
-  String get bellNew => "assets/svg/bell-new.svg";
-  String get stackIcon => "assets/svg/stack-icon1.svg";
   String get arrowLeft => "assets/svg/arrow-left-fa.svg";
   String get star => "assets/svg/star.svg";
   String get copy => "assets/svg/copy-fa.svg";
@@ -35,8 +65,6 @@ class _SVG {
   String get bars => "assets/svg/bars.svg";
   String get filter => "assets/svg/filter.svg";
   String get pending => "assets/svg/pending.svg";
-  String get exchange => "assets/svg/exchange-2.svg";
-  String get buy => "assets/svg/buy-coins-icon.svg";
   String get radio => "assets/svg/signal-stream.svg";
   String get arrowRotate => "assets/svg/arrow-rotate.svg";
   String get arrowRotate2 => "assets/svg/arrow-rotate2.svg";
@@ -51,6 +79,7 @@ class _SVG {
   String get lock => "assets/svg/lock-keyhole.svg";
   String get network => "assets/svg/network-wired.svg";
   String get addressBook => "assets/svg/address-book.svg";
+  String get addressBook2 => "assets/svg/address-book2.svg";
   String get arrowRotate3 => "assets/svg/rotate-exclamation.svg";
   String get delete => "assets/svg/delete.svg";
   String get arrowRight => "assets/svg/arrow-right.svg";
@@ -89,29 +118,26 @@ class _SVG {
   String get anonymizePending => "assets/svg/tx-icon-anonymize-pending.svg";
   String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
 
-  String get receive => "assets/svg/tx-icon-receive.svg";
-  String get receivePending => "assets/svg/tx-icon-receive-pending.svg";
-  String get receiveCancelled => "assets/svg/tx-icon-receive-failed.svg";
-
-  String get send => "assets/svg/tx-icon-send.svg";
-  String get sendPending => "assets/svg/tx-icon-send-pending.svg";
-  String get sendCancelled => "assets/svg/tx-icon-send-failed.svg";
-
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
 
-  String get txExchange => "assets/svg/tx-exchange-icon.svg";
-  String get txExchangePending => "assets/svg/tx-exchange-icon-pending.svg";
-  String get txExchangeFailed => "assets/svg/tx-exchange-icon-failed.svg";
-
   String get bitcoin => "assets/svg/coin_icons/Bitcoin.svg";
+  String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
   String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
   String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";
+  String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
+
+  String get chevronRight => "assets/svg/chevron-right.svg";
+  String get minimize => "assets/svg/minimize.svg";
+  String get walletFa => "assets/svg/wallet-fa.svg";
+  String get exchange3 => "assets/svg/exchange-3.svg";
+  String get messageQuestion => "assets/svg/message-question-1.svg";
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
+  String get bitcoincashTestnet => "assets/svg/coin_icons/Bitcoincash.svg";
   String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
   String get dogecoinTestnet => "assets/svg/coin_icons/Dogecoin.svg";
 
@@ -119,6 +145,8 @@ class _SVG {
     switch (coin) {
       case Coin.bitcoin:
         return bitcoin;
+      // case Coin.bitcoincash:
+      //   return bitcoincash;
       case Coin.dogecoin:
         return dogecoin;
       case Coin.epicCash:
@@ -127,8 +155,12 @@ class _SVG {
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.namecoin:
+        return namecoin;
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
+      // case Coin.bitcoincashTestnet:
+      //   return bitcoincashTestnet;
       case Coin.firoTestNet:
         return firoTestnet;
       case Coin.dogecoinTestNet:
@@ -148,22 +180,30 @@ class _PNG {
   String get dogecoin => "assets/images/doge.png";
   String get bitcoin => "assets/images/bitcoin.png";
   String get epicCash => "assets/images/epic-cash.png";
+  String get bitcoincash => "assets/images/bitcoincash.png";
+  String get namecoin => "assets/images/namecoin.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
+      // case Coin.bitcoincash:
+      // case Coin.bitcoincashTestnet:
+      //   return bitcoincash;
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
       case Coin.firo:
+        return firo;
       case Coin.firoTestNet:
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.namecoin:
+        return namecoin;
     }
   }
 }

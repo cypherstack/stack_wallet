@@ -4,9 +4,9 @@ import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -23,7 +23,7 @@ class SecurityView extends StatelessWidget {
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -32,7 +32,7 @@ class SecurityView extends StatelessWidget {
         ),
         title: Text(
           "Security",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -43,7 +43,7 @@ class SecurityView extends StatelessWidget {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: CFColors.splashLight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -77,7 +77,7 @@ class SecurityView extends StatelessWidget {
                     children: [
                       Text(
                         "Change PIN",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -92,7 +92,7 @@ class SecurityView extends StatelessWidget {
               child: Consumer(
                 builder: (_, ref, __) {
                   return RawMaterialButton(
-                    // splashColor: CFColors.splashLight,
+                    // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
@@ -118,7 +118,7 @@ class SecurityView extends StatelessWidget {
                         children: [
                           Text(
                             "Enable biometric authentication",
-                            style: STextStyles.titleBold12,
+                            style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),
                           SizedBox(

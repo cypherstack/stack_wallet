@@ -14,13 +14,13 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/backup_frequency_type_select_sheet.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -102,7 +102,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -111,7 +111,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
         ),
         title: Text(
           "Create Auto Backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -128,7 +128,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                   children: [
                     Text(
                       "Create your backup file",
-                      style: STextStyles.smallMed12,
+                      style: STextStyles.smallMed12(context),
                     ),
                     const SizedBox(
                       height: 10,
@@ -153,7 +153,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                         }
                       },
                       controller: fileLocationController,
-                      style: STextStyles.field,
+                      style: STextStyles.field(context),
                       decoration: InputDecoration(
                         hintText: "Save to...",
                         suffixIcon: UnconstrainedBox(
@@ -164,7 +164,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                               ),
                               SvgPicture.asset(
                                 Assets.svg.folder,
-                                color: CFColors.neutral50,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                                 width: 16,
                                 height: 16,
                               ),
@@ -197,13 +199,14 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                         key: const Key("createBackupPasswordFieldKey1"),
                         focusNode: passwordFocusNode,
                         controller: passwordController,
-                        style: STextStyles.field,
+                        style: STextStyles.field(context),
                         obscureText: hidePassword,
                         enableSuggestions: false,
                         autocorrect: false,
                         decoration: standardInputDecoration(
                           "Create passphrase",
                           passwordFocusNode,
+                          context,
                         ).copyWith(
                           suffixIcon: UnconstrainedBox(
                             child: Row(
@@ -223,7 +226,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: CFColors.neutral50,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -284,7 +289,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                         child: passwordFeedback.isNotEmpty
                             ? Text(
                                 passwordFeedback,
-                                style: STextStyles.infoSmall,
+                                style: STextStyles.infoSmall(context),
                               )
                             : null,
                       ),
@@ -302,11 +307,19 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                           width: MediaQuery.of(context).size.width - 32 - 24,
                           height: 5,
                           fillColor: passwordStrength < 0.51
-                              ? CFColors.stackRed
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
                               : passwordStrength < 1
-                                  ? CFColors.stackYellow
-                                  : CFColors.stackGreen,
-                          backgroundColor: CFColors.buttonGray,
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorYellow
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorGreen,
+                          backgroundColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary,
                           percent:
                               passwordStrength < 0.25 ? 0.03 : passwordStrength,
                         ),
@@ -322,13 +335,14 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                         key: const Key("createBackupPasswordFieldKey2"),
                         focusNode: passwordRepeatFocusNode,
                         controller: passwordRepeatController,
-                        style: STextStyles.field,
+                        style: STextStyles.field(context),
                         obscureText: hidePassword,
                         enableSuggestions: false,
                         autocorrect: false,
                         decoration: standardInputDecoration(
                           "Confirm passphrase",
                           passwordRepeatFocusNode,
+                          context,
                         ).copyWith(
                           suffixIcon: UnconstrainedBox(
                             child: Row(
@@ -348,7 +362,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: CFColors.neutral50,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -371,7 +387,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                     ),
                     Text(
                       "Auto Backup frequency",
-                      style: STextStyles.smallMed12,
+                      style: STextStyles.smallMed12(context),
                     ),
                     const SizedBox(
                       height: 10,
@@ -384,7 +400,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                         ),
                         Positioned.fill(
                           child: RawMaterialButton(
-                            splashColor: CFColors.splashLight,
+                            splashColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .highlight,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -415,13 +433,15 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                         prefsChangeNotifierProvider.select(
                                             (value) =>
                                                 value.backupFrequencyType))),
-                                    style: STextStyles.itemSubtitle12,
+                                    style: STextStyles.itemSubtitle12(context),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(right: 4.0),
                                     child: SvgPicture.asset(
                                       Assets.svg.chevronDown,
-                                      color: CFColors.gray3,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle2,
                                       width: 12,
                                       height: 6,
                                     ),
@@ -438,13 +458,13 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                       height: 10,
                     ),
                     TextButton(
-                      style: Theme.of(context).textButtonTheme.style?.copyWith(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                              shouldEnableCreate
-                                  ? CFColors.stackAccent
-                                  : CFColors.disabledButton,
-                            ),
-                          ),
+                      style: shouldEnableCreate
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonColor(context)
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryDisabledButtonColor(context),
                       onPressed: !shouldEnableCreate
                           ? null
                           : () async {
@@ -596,7 +616,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                             },
                       child: Text(
                         "Enable Auto Backup",
-                        style: STextStyles.button,
+                        style: STextStyles.button(context),
                       ),
                     ),
                   ],

@@ -12,13 +12,13 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -101,7 +101,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -116,7 +116,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
         ),
         title: Text(
           "Generate QR code",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -141,7 +141,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         RoundedWhiteContainer(
                           child: Text(
                             "The new QR code with your address, amount and note will appear in the pop up window.",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ),
                         const SizedBox(
@@ -149,7 +149,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         ),
                         Text(
                           "Amount (Optional)",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                           textAlign: TextAlign.left,
                         ),
                         const SizedBox(
@@ -162,13 +162,14 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           child: TextField(
                             controller: amountController,
                             focusNode: _amountFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
                             onChanged: (_) => setState(() {}),
                             decoration: standardInputDecoration(
                               "Amount",
                               _amountFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: amountController.text.isNotEmpty
                                   ? Padding(
@@ -197,7 +198,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         ),
                         Text(
                           "Note (Optional)",
-                          style: STextStyles.smallMed12,
+                          style: STextStyles.smallMed12(context),
                           textAlign: TextAlign.left,
                         ),
                         const SizedBox(
@@ -210,11 +211,12 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           child: TextField(
                             controller: noteController,
                             focusNode: _noteFocusNode,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             onChanged: (_) => setState(() {}),
                             decoration: standardInputDecoration(
                               "Note",
                               _noteFocusNode,
+                              context,
                             ).copyWith(
                               suffixIcon: noteController.text.isNotEmpty
                                   ? Padding(
@@ -244,13 +246,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           height: 8,
                         ),
                         TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonColor(context),
                           onPressed: () {
                             final amountString = amountController.text;
                             final noteString = noteController.text;
@@ -305,7 +303,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                       Center(
                                         child: Text(
                                           "New QR code",
-                                          style: STextStyles.pageTitleH2,
+                                          style:
+                                              STextStyles.pageTitleH2(context),
                                         ),
                                       ),
                                       const SizedBox(
@@ -318,12 +317,16 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                             width: width + 20,
                                             height: width + 20,
                                             child: QrImage(
-                                              data: uriString,
-                                              size: width,
-                                              backgroundColor: CFColors.white,
-                                              foregroundColor:
-                                                  CFColors.stackAccent,
-                                            ),
+                                                data: uriString,
+                                                size: width,
+                                                backgroundColor: Theme.of(
+                                                        context)
+                                                    .extension<StackColors>()!
+                                                    .popupBG,
+                                                foregroundColor: Theme.of(
+                                                        context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorDark),
                                           ),
                                         ),
                                       ),
@@ -338,13 +341,10 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                               // TODO: add save button as well
                                               await _capturePng(true);
                                             },
-                                            style: ButtonStyle(
-                                              backgroundColor:
-                                                  MaterialStateProperty.all<
-                                                      Color>(
-                                                CFColors.buttonGray,
-                                              ),
-                                            ),
+                                            style: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .getSecondaryEnabledButtonColor(
+                                                    context),
                                             child: Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
@@ -367,10 +367,13 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                                       "Share",
                                                       textAlign:
                                                           TextAlign.center,
-                                                      style: STextStyles.button
+                                                      style: STextStyles.button(
+                                                              context)
                                                           .copyWith(
-                                                        color: CFColors
-                                                            .stackAccent,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .buttonTextSecondary,
                                                       ),
                                                     ),
                                                     const SizedBox(
@@ -391,7 +394,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           },
                           child: Text(
                             "Generate QR Code",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],

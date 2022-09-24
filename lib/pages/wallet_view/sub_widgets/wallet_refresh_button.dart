@@ -8,8 +8,8 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 /// [eventBus] should only be set during testing
 class WalletRefreshButton extends ConsumerStatefulWidget {
@@ -96,7 +96,7 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
       height: 36,
       width: 36,
       child: MaterialButton(
-        splashColor: CFColors.splashLight,
+        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         onPressed: () {
           final managerProvider = ref
               .read(walletsChangeNotifierProvider)
@@ -123,7 +123,7 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
             Assets.svg.arrowRotate,
             width: 24,
             height: 24,
-            color: CFColors.stackAccent,
+            color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
           ),
         ),
       ),

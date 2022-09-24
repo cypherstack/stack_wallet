@@ -18,10 +18,10 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -107,14 +107,12 @@ class _WalletNetworkSettingsViewState
           builder: (context) => StackDialog(
             title: "Rescan completed",
             rightButton: TextButton(
-              style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.buttonGray,
-                    ),
-                  ),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.itemSubtitle12,
+                style: STextStyles.itemSubtitle12(context),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -139,14 +137,12 @@ class _WalletNetworkSettingsViewState
             title: "Rescan failed",
             message: e.toString(),
             rightButton: TextButton(
-              style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.buttonGray,
-                    ),
-                  ),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.itemSubtitle12,
+                style: STextStyles.itemSubtitle12(context),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -287,7 +283,7 @@ class _WalletNetworkSettingsViewState
     }
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -296,7 +292,7 @@ class _WalletNetworkSettingsViewState
         ),
         title: Text(
           "Network",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -311,10 +307,12 @@ class _WalletNetworkSettingsViewState
                 key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.verticalEllipsis,
-                  color: CFColors.stackAccent,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -331,7 +329,9 @@ class _WalletNetworkSettingsViewState
                             right: 10,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: CFColors.white,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .popupBG,
                                 borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius),
                                 // boxShadow: [CFColors.standardBoxShadow],
@@ -359,7 +359,7 @@ class _WalletNetworkSettingsViewState
                                         color: Colors.transparent,
                                         child: Text(
                                           "Rescan blockchain",
-                                          style: STextStyles.baseXS,
+                                          style: STextStyles.baseXS(context),
                                         ),
                                       ),
                                     ),
@@ -397,7 +397,7 @@ class _WalletNetworkSettingsViewState
                       Text(
                         "Blockchain status",
                         textAlign: TextAlign.left,
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -408,7 +408,7 @@ class _WalletNetworkSettingsViewState
                         },
                         child: Text(
                           "Resync",
-                          style: STextStyles.link2,
+                          style: STextStyles.link2(context),
                         ),
                       ),
                     ],
@@ -424,7 +424,10 @@ class _WalletNetworkSettingsViewState
                             width: _iconSize,
                             height: _iconSize,
                             decoration: BoxDecoration(
-                              color: CFColors.stackGreen.withOpacity(0.2),
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorGreen
+                                  .withOpacity(0.2),
                               borderRadius: BorderRadius.circular(_iconSize),
                             ),
                             child: Center(
@@ -432,7 +435,9 @@ class _WalletNetworkSettingsViewState
                                 Assets.svg.radio,
                                 height: 14,
                                 width: 14,
-                                color: CFColors.stackGreen,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorGreen,
                               ),
                             ),
                           ),
@@ -449,12 +454,15 @@ class _WalletNetworkSettingsViewState
                                   children: [
                                     Text(
                                       "Synchronized",
-                                      style: STextStyles.w600_10,
+                                      style: STextStyles.w600_10(context),
                                     ),
                                     Text(
                                       "100%",
-                                      style: STextStyles.syncPercent.copyWith(
-                                        color: CFColors.stackGreen,
+                                      style: STextStyles.syncPercent(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorGreen,
                                       ),
                                     ),
                                   ],
@@ -466,8 +474,12 @@ class _WalletNetworkSettingsViewState
                               ProgressBar(
                                 width: progressLength,
                                 height: 5,
-                                fillColor: CFColors.stackGreen,
-                                backgroundColor: CFColors.fieldGray,
+                                fillColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorGreen,
+                                backgroundColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultBG,
                                 percent: 1,
                               ),
                             ],
@@ -483,7 +495,10 @@ class _WalletNetworkSettingsViewState
                             width: _iconSize,
                             height: _iconSize,
                             decoration: BoxDecoration(
-                              color: CFColors.stackYellow.withOpacity(0.2),
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorYellow
+                                  .withOpacity(0.2),
                               borderRadius: BorderRadius.circular(_iconSize),
                             ),
                             child: Center(
@@ -491,7 +506,9 @@ class _WalletNetworkSettingsViewState
                                 Assets.svg.radioSyncing,
                                 height: 14,
                                 width: 14,
-                                color: CFColors.stackYellow,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorYellow,
                               ),
                             ),
                           ),
@@ -507,7 +524,7 @@ class _WalletNetworkSettingsViewState
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     AnimatedText(
-                                      style: STextStyles.w600_10,
+                                      style: STextStyles.w600_10(context),
                                       stringsToLoopThrough: const [
                                         "Synchronizing",
                                         "Synchronizing.",
@@ -520,17 +537,23 @@ class _WalletNetworkSettingsViewState
                                         Text(
                                           _percentString(_percent),
                                           style:
-                                              STextStyles.syncPercent.copyWith(
-                                            color: CFColors.stackYellow,
+                                              STextStyles.syncPercent(context)
+                                                  .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorYellow,
                                           ),
                                         ),
                                         if (coin == Coin.monero ||
                                             coin == Coin.epicCash)
                                           Text(
                                             " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
-                                            style: STextStyles.syncPercent
-                                                .copyWith(
-                                              color: CFColors.stackYellow,
+                                            style:
+                                                STextStyles.syncPercent(context)
+                                                    .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorYellow,
                                             ),
                                           ),
                                       ],
@@ -544,8 +567,12 @@ class _WalletNetworkSettingsViewState
                               ProgressBar(
                                 width: progressLength,
                                 height: 5,
-                                fillColor: CFColors.stackYellow,
-                                backgroundColor: CFColors.fieldGray,
+                                fillColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorYellow,
+                                backgroundColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultBG,
                                 percent: _percent,
                               ),
                             ],
@@ -561,7 +588,10 @@ class _WalletNetworkSettingsViewState
                             width: _iconSize,
                             height: _iconSize,
                             decoration: BoxDecoration(
-                              color: CFColors.link.withOpacity(0.2),
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
+                                  .withOpacity(0.2),
                               borderRadius: BorderRadius.circular(_iconSize),
                             ),
                             child: Center(
@@ -569,7 +599,9 @@ class _WalletNetworkSettingsViewState
                                 Assets.svg.radioProblem,
                                 height: 14,
                                 width: 14,
-                                color: CFColors.link,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed,
                               ),
                             ),
                           ),
@@ -586,14 +618,20 @@ class _WalletNetworkSettingsViewState
                                   children: [
                                     Text(
                                       "Unable to synchronize",
-                                      style: STextStyles.w600_10.copyWith(
-                                        color: CFColors.link,
+                                      style:
+                                          STextStyles.w600_10(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed,
                                       ),
                                     ),
                                     Text(
                                       "0%",
-                                      style: STextStyles.syncPercent.copyWith(
-                                        color: CFColors.link,
+                                      style: STextStyles.syncPercent(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed,
                                       ),
                                     ),
                                   ],
@@ -605,8 +643,12 @@ class _WalletNetworkSettingsViewState
                               ProgressBar(
                                 width: progressLength,
                                 height: 5,
-                                fillColor: CFColors.link,
-                                backgroundColor: CFColors.fieldGray,
+                                fillColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed,
+                                backgroundColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultBG,
                                 percent: 0,
                               ),
                             ],
@@ -620,10 +662,16 @@ class _WalletNetworkSettingsViewState
                         top: 12,
                       ),
                       child: RoundedContainer(
-                        color: CFColors.warningBackground,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningBackground,
                         child: Text(
                           "Please check your internet connection and make sure your current node is not having issues.",
-                          style: STextStyles.baseXS,
+                          style: STextStyles.baseXS(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .warningForeground,
+                          ),
                         ),
                       ),
                     ),
@@ -636,7 +684,7 @@ class _WalletNetworkSettingsViewState
                       Text(
                         "${ref.watch(walletsChangeNotifierProvider.select((value) => value.getManager(widget.walletId).coin)).prettyName} nodes",
                         textAlign: TextAlign.left,
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       BlueTextButton(
                         text: "Add new node",
