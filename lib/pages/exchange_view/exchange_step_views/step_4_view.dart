@@ -178,11 +178,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             text: TextSpan(
                               text:
                                   "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
-                              style: STextStyles.label(context).copyWith(
+                              style: STextStyles.label700(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .warningForeground,
-                                fontWeight: FontWeight.w700,
                               ),
                               children: [
                                 TextSpan(
@@ -192,7 +191,6 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .warningForeground,
-                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],

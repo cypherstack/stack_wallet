@@ -175,10 +175,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                       : _transaction.amount;
                                   return Text(
                                     "${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
-                                    style: STextStyles.itemSubtitle12(context)
-                                        .copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style:
+                                        STextStyles.itemSubtitle12_600(context),
                                   );
                                 },
                               ),
