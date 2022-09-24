@@ -70,7 +70,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get numpadBackDefault => const Color(0xFF232323);
   @override
-  Color get bottomNavBack => const Color(0xFFA2A2A2);
+  Color get bottomNavBack => const Color(0xFFFFFFFF);
 
   // button text/element
   @override

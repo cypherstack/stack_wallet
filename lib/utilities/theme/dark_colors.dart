@@ -70,7 +70,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get numpadBackDefault => const Color(0xFF4C86E9);
   @override
-  Color get bottomNavBack => const Color(0xFFA2A2A2);
+  Color get bottomNavBack => const Color(0xFF3E4148);
 
   // button text/element
   @override
