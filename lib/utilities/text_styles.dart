@@ -33,6 +33,18 @@ class STextStyles {
         fontSize: 16,
       );
 
+  static TextStyle subtitle500(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+      );
+
+  static TextStyle subtitle600(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+      );
+
   static TextStyle button(BuildContext context) => GoogleFonts.inter(
         color: Theme.of(context).extension<StackColors>()!.buttonTextPrimary,
         fontWeight: FontWeight.w500,
