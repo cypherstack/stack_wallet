@@ -249,11 +249,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               "You must send at least ${sendAmount.toStringAsFixed(
                             trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8,
                           )} ${trade.fromCurrency.toUpperCase()}. ",
-                          style: STextStyles.label(context).copyWith(
+                          style: STextStyles.label700(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .warningForeground,
-                            fontWeight: FontWeight.w700,
                           ),
                           children: [
                             TextSpan(
@@ -267,7 +266,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .warningForeground,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ]),

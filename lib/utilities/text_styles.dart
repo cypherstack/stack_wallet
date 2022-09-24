@@ -27,6 +27,12 @@ class STextStyles {
         fontSize: 16,
       );
 
+  static TextStyle titleBold12_400(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w400,
+        fontSize: 16,
+      );
+
   static TextStyle subtitle(BuildContext context) => GoogleFonts.inter(
         color: Theme.of(context).extension<StackColors>()!.textDark,
         fontWeight: FontWeight.w400,
@@ -75,6 +81,12 @@ class STextStyles {
         fontSize: 12,
       );
 
+  static TextStyle label700(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+        fontWeight: FontWeight.w700,
+        fontSize: 12,
+      );
+
   static TextStyle itemSubtitle(BuildContext context) => GoogleFonts.inter(
         color: Theme.of(context).extension<StackColors>()!.infoItemLabel,
         fontWeight: FontWeight.w500,
@@ -82,6 +94,13 @@ class STextStyles {
       );
 
   static TextStyle itemSubtitle12(BuildContext context) => GoogleFonts.inter(
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+      );
+
+  static TextStyle itemSubtitle12_600(BuildContext context) =>
+      GoogleFonts.inter(
         color: Theme.of(context).extension<StackColors>()!.textDark,
         fontWeight: FontWeight.w500,
         fontSize: 14,
