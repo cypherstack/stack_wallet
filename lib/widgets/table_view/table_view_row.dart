@@ -11,6 +11,7 @@ class TableViewRow extends StatelessWidget {
     this.decoration,
     this.onExpandChanged,
     this.padding = const EdgeInsets.all(0),
+    this.spacing = 0.0,
   }) : super(key: key);
 
   final List<TableViewCell> cells;
@@ -18,6 +19,7 @@ class TableViewRow extends StatelessWidget {
   final Decoration? decoration;
   final void Function(ExpandableState)? onExpandChanged;
   final EdgeInsetsGeometry padding;
+  final double spacing;
 
   @override
   Widget build(BuildContext context) {
@@ -28,12 +30,16 @@ class TableViewRow extends StatelessWidget {
               padding: padding,
               child: Row(
                 children: [
-                  ...cells.map(
-                    (e) => Expanded(
-                      flex: e.flex,
-                      child: e,
+                  for (int i = 0; i < cells.length; i++) ...[
+                    if (i != 0 || i != cells.length)
+                      SizedBox(
+                        width: spacing,
+                      ),
+                    Expanded(
+                      flex: cells[i].flex,
+                      child: cells[i],
                     ),
-                  ),
+                  ],
                 ],
               ),
             )
@@ -43,12 +49,16 @@ class TableViewRow extends StatelessWidget {
                 padding: padding,
                 child: Row(
                   children: [
-                    ...cells.map(
-                      (e) => Expanded(
-                        flex: e.flex,
-                        child: e,
+                    for (int i = 0; i < cells.length; i++) ...[
+                      if (i != 0 || i != cells.length)
+                        SizedBox(
+                          width: spacing,
+                        ),
+                      Expanded(
+                        flex: cells[i].flex,
+                        child: cells[i],
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
