@@ -301,4 +301,6 @@ class DarkColors extends StackColorTheme {
   Color get myStackContactIconBG => const Color(0x88747778);
   @override
   Color get textConfirmTotalAmount => const Color(0xFF003921);
+  @override
+  Color get textSelectedWordTableItem => const Color(0xFF00297A);
 }

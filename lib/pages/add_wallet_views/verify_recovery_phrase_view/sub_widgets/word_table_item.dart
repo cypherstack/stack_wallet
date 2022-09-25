@@ -56,10 +56,23 @@ class WordTableItem extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark,
+                      color: selectedWord == word
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSelectedWordTableItem
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
                     )
-                  : STextStyles.baseXS(context),
+                  : STextStyles.baseXS(context).copyWith(
+                      color: selectedWord == word
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSelectedWordTableItem
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
+                    ),
             ),
           ],
         ),
