@@ -277,8 +277,7 @@ class _VerifyRecoveryPhraseViewState
                     child: Text(
                       "${correctIndex + 1}",
                       textAlign: TextAlign.center,
-                      style: STextStyles.subtitle(context).copyWith(
-                        fontWeight: FontWeight.w600,
+                      style: STextStyles.subtitle600(context).copyWith(
                         fontSize: 32,
                         letterSpacing: 0.25,
                       ),

@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/emoji_select_sheet.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -73,10 +74,23 @@ class _AddAddressBookEntryViewState
   }
 
   List<NewContactAddressEntryForm> forms = [];
-  int _formCount = 0;
+  final Set<int> _formIds = {};
+
+  void _removeForm(int id) {
+    forms.retainWhere((e) => e.id != id);
+    _formIds.remove(id);
+    ref.refresh(addressEntryDataProvider(id));
+    setState(() {});
+  }
 
   void _addForm() {
-    int id = ++_formCount;
+    int id = 0;
+    // ensure unique form id while allowing reuse of removed form ids
+    while (_formIds.contains(id)) {
+      id++;
+    }
+    _formIds.add(id);
+
     forms.add(
       NewContactAddressEntryForm(
         key: Key("contactAddressEntryForm_$id"),
@@ -303,22 +317,34 @@ class _AddAddressBookEntryViewState
                           },
                         ),
                       ),
-                      if (_formCount <= 1)
+                      if (forms.length <= 1)
                         const SizedBox(
                           height: 8,
                         ),
-                      if (_formCount <= 1) forms[0],
-                      if (_formCount > 1)
-                        for (int i = 0; i < _formCount; i++)
+                      if (forms.length <= 1) forms[0],
+                      if (forms.length > 1)
+                        for (int i = 0; i < forms.length; i++)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(
                                 height: 12,
                               ),
-                              Text(
-                                "Address ${i + 1}",
-                                style: STextStyles.smallMed12(context),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Address ${i + 1}",
+                                    style: STextStyles.smallMed12(context),
+                                  ),
+                                  BlueTextButton(
+                                    onTap: () {
+                                      _removeForm(forms[i].id);
+                                    },
+                                    text: "Remove",
+                                  ),
+                                ],
                               ),
                               const SizedBox(
                                 height: 8,
@@ -329,7 +355,7 @@ class _AddAddressBookEntryViewState
                       const SizedBox(
                         height: 16,
                       ),
-                      GestureDetector(
+                      BlueTextButton(
                         onTap: () {
                           _addForm();
                           scrollController.animateTo(
@@ -338,11 +364,15 @@ class _AddAddressBookEntryViewState
                             curve: Curves.easeInOut,
                           );
                         },
-                        child: Text(
-                          "+ Add another address",
-                          style: STextStyles.largeMedium14(context),
-                        ),
+                        text: "+ Add another address",
                       ),
+                      // GestureDetector(
+                      //
+                      //   child: Text(
+                      //     "+ Add another address",
+                      //     style: STextStyles.largeMedium14(context),
+                      //   ),
+                      // ),
                       const SizedBox(
                         height: 16,
                       ),
@@ -411,10 +441,12 @@ class _AddAddressBookEntryViewState
                                           }
                                           List<ContactAddressEntry> entries =
                                               [];
-                                          for (int i = 0; i < _formCount; i++) {
+                                          for (int i = 0;
+                                              i < forms.length;
+                                              i++) {
                                             entries.add(ref
                                                 .read(addressEntryDataProvider(
-                                                    i + 1))
+                                                    forms[i].id))
                                                 .buildAddressEntry());
                                           }
                                           Contact contact = Contact(
@@ -438,7 +470,15 @@ class _AddAddressBookEntryViewState
                                       : null,
                                   child: Text(
                                     "Save",
-                                    style: STextStyles.button(context),
+                                    style: STextStyles.button(context).copyWith(
+                                      color: shouldEnableSave
+                                          ? Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .buttonTextPrimary
+                                          : Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .buttonTextPrimaryDisabled,
+                                    ),
                                   ),
                                 );
                               },

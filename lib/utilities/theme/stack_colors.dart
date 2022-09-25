@@ -168,6 +168,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color warningBackground;
   final Color loadingOverlayTextColor;
   final Color myStackContactIconBG;
+  final Color textConfirmTotalAmount;
 
   StackColors({
     required this.themeType,
@@ -298,6 +299,7 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.warningBackground,
     required this.loadingOverlayTextColor,
     required this.myStackContactIconBG,
+    required this.textConfirmTotalAmount,
   });
 
   factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
@@ -432,6 +434,7 @@ class StackColors extends ThemeExtension<StackColors> {
       warningBackground: colorTheme.warningBackground,
       loadingOverlayTextColor: colorTheme.loadingOverlayTextColor,
       myStackContactIconBG: colorTheme.myStackContactIconBG,
+      textConfirmTotalAmount: colorTheme.textConfirmTotalAmount,
     );
   }
 
@@ -565,6 +568,7 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? warningBackground,
     Color? loadingOverlayTextColor,
     Color? myStackContactIconBG,
+    Color? textConfirmTotalAmount,
   }) {
     return StackColors(
       themeType: themeType ?? this.themeType,
@@ -730,6 +734,8 @@ class StackColors extends ThemeExtension<StackColors> {
       loadingOverlayTextColor:
           loadingOverlayTextColor ?? this.loadingOverlayTextColor,
       myStackContactIconBG: myStackContactIconBG ?? this.myStackContactIconBG,
+      textConfirmTotalAmount:
+          textConfirmTotalAmount ?? this.textConfirmTotalAmount,
     );
   }
 
@@ -1375,6 +1381,11 @@ class StackColors extends ThemeExtension<StackColors> {
       myStackContactIconBG: Color.lerp(
         myStackContactIconBG,
         other.myStackContactIconBG,
+        t,
+      )!,
+      textConfirmTotalAmount: Color.lerp(
+        textConfirmTotalAmount,
+        other.textConfirmTotalAmount,
         t,
       )!,
     );

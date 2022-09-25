@@ -62,8 +62,7 @@ class CoinSelectItem extends ConsumerWidget {
                 coin.prettyName,
                 style: isDesktop
                     ? STextStyles.desktopTextMedium(context)
-                    : STextStyles.subtitle(context).copyWith(
-                        fontWeight: FontWeight.w600,
+                    : STextStyles.subtitle600(context).copyWith(
                         fontSize: 14,
                       ),
               ),

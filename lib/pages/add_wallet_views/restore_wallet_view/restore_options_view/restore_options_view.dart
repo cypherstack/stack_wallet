@@ -73,43 +73,62 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     super.dispose();
   }
 
-  TextStyle get _datePickerTextStyleBase => GoogleFonts.inter(
-        color: baseColor,
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.5,
-      );
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
       paddingMonthHeader: const EdgeInsets.only(top: 11),
       colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
       colorArrowPrevious:
           Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      textStyleButtonNegative: _datePickerTextStyleBase.copyWith(
-          fontSize: 16, fontWeight: FontWeight.w600),
-      textStyleButtonPositive: _datePickerTextStyleBase.copyWith(
-          fontSize: 16, fontWeight: FontWeight.w600),
-      textStyleCurrentDayOnCalendar: _datePickerTextStyleBase.copyWith(
+      textStyleButtonNegative: GoogleFonts.inter(
+        color: baseColor,
+        letterSpacing: 0.5,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+      ),
+      textStyleButtonPositive: GoogleFonts.inter(
+        color: baseColor,
+        letterSpacing: 0.5,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+      ),
+      textStyleCurrentDayOnCalendar: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.accentColorDark,
       ),
-      textStyleDayHeader: _datePickerTextStyleBase.copyWith(
+      textStyleDayHeader: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.accentColorDark,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
-      textStyleDayOnCalendar: _datePickerTextStyleBase,
-      textStyleDayOnCalendarDisabled: _datePickerTextStyleBase.copyWith(
+      textStyleDayOnCalendar: GoogleFonts.inter(
+        color: baseColor,
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
+      ),
+      textStyleDayOnCalendarDisabled: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
       ),
-      textStyleDayOnCalendarSelected: _datePickerTextStyleBase.copyWith(
+      textStyleDayOnCalendarSelected: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.popupBG,
       ),
-      textStyleMonthYearHeader: _datePickerTextStyleBase.copyWith(
+      textStyleMonthYearHeader: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
-      textStyleYearButton: _datePickerTextStyleBase.copyWith(
+      textStyleYearButton: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.textWhite,
         fontSize: 16,
         fontWeight: FontWeight.w600,
@@ -120,12 +139,14 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
-      textStyleYear: _datePickerTextStyleBase.copyWith(
+      textStyleYear: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
         fontWeight: FontWeight.w600,
         fontSize: 16,
       ),
-      textStyleYearSelected: _datePickerTextStyleBase.copyWith(
+      textStyleYearSelected: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.accentColorDark,
         fontWeight: FontWeight.w600,
         fontSize: 18,

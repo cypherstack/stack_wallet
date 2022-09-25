@@ -114,13 +114,6 @@ class _TransactionSearchViewState
   var _selectedFromDate = DateTime(2007);
   var _selectedToDate = DateTime.now();
 
-  TextStyle get _datePickerTextStyleBase => GoogleFonts.inter(
-        color: baseColor,
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.5,
-      );
-
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
       backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -129,30 +122,56 @@ class _TransactionSearchViewState
       colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
       colorArrowPrevious:
           Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      textStyleButtonNegative: _datePickerTextStyleBase.copyWith(
-          fontSize: 16, fontWeight: FontWeight.w600),
-      textStyleButtonPositive: _datePickerTextStyleBase.copyWith(
-          fontSize: 16, fontWeight: FontWeight.w600),
-      textStyleCurrentDayOnCalendar: _datePickerTextStyleBase.copyWith(
-          color: Theme.of(context).extension<StackColors>()!.accentColorDark),
-      textStyleDayHeader: _datePickerTextStyleBase.copyWith(
+      textStyleButtonNegative: GoogleFonts.inter(
+        letterSpacing: 0.5,
+        color: baseColor,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+      ),
+      textStyleButtonPositive: GoogleFonts.inter(
+        letterSpacing: 0.5,
+        color: baseColor,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+      ),
+      textStyleCurrentDayOnCalendar: GoogleFonts.inter(
+        letterSpacing: 0.5,
+        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
+        fontWeight: FontWeight.w400,
+        fontSize: 12,
+      ),
+      textStyleDayHeader: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.accentColorDark,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
-      textStyleDayOnCalendar: _datePickerTextStyleBase,
-      textStyleDayOnCalendarDisabled: _datePickerTextStyleBase.copyWith(
+      textStyleDayOnCalendar: GoogleFonts.inter(
+        letterSpacing: 0.5,
+        color: baseColor,
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+      ),
+      textStyleDayOnCalendarDisabled: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+        fontWeight: FontWeight.w400,
+        fontSize: 12,
       ),
-      textStyleDayOnCalendarSelected: _datePickerTextStyleBase.copyWith(
+      textStyleDayOnCalendarSelected: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.textWhite,
+        fontWeight: FontWeight.w400,
+        fontSize: 12,
       ),
-      textStyleMonthYearHeader: _datePickerTextStyleBase.copyWith(
+      textStyleMonthYearHeader: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
-      textStyleYearButton: _datePickerTextStyleBase.copyWith(
+      textStyleYearButton: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.textWhite,
         fontSize: 16,
         fontWeight: FontWeight.w600,
@@ -164,12 +183,14 @@ class _TransactionSearchViewState
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
       backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
-      textStyleYear: _datePickerTextStyleBase.copyWith(
+      textStyleYear: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
         fontWeight: FontWeight.w600,
         fontSize: 16,
       ),
-      textStyleYearSelected: _datePickerTextStyleBase.copyWith(
+      textStyleYearSelected: GoogleFonts.inter(
+        letterSpacing: 0.5,
         color: Theme.of(context).extension<StackColors>()!.accentColorDark,
         fontWeight: FontWeight.w600,
         fontSize: 18,

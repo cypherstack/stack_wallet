@@ -523,11 +523,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   locale: locale,
                                                   decimalPlaces: 2,
                                                 )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                style: STextStyles.titleBold12(
-                                                        context)
-                                                    .copyWith(
+                                                style:
+                                                    STextStyles.titleBold12_400(
+                                                            context)
+                                                        .copyWith(
                                                   fontSize: 8,
-                                                  fontWeight: FontWeight.w400,
                                                 ),
                                                 textAlign: TextAlign.right,
                                               )
@@ -1060,6 +1060,11 @@ class _SendViewState extends ConsumerState<SendView> {
                           height: 8,
                         ),
                         TextField(
+                          style: STextStyles.smallMed14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                           key: const Key("amountInputFieldCryptoTextFieldKey"),
                           controller: cryptoAmountController,
                           focusNode: _cryptoFocus,
@@ -1106,6 +1111,11 @@ class _SendViewState extends ConsumerState<SendView> {
                           height: 8,
                         ),
                         TextField(
+                          style: STextStyles.smallMed14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                           key: const Key("amountInputFieldFiatTextFieldKey"),
                           controller: baseAmountController,
                           focusNode: _baseFocus,

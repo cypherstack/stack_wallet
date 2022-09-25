@@ -27,7 +27,7 @@ class WalletNavigationBar extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        color: Theme.of(context).extension<StackColors>()!.bottomNavBack,
         boxShadow: [
           Theme.of(context).extension<StackColors>()!.standardBoxShadow
         ],
