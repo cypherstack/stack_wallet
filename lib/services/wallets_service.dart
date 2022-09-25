@@ -294,6 +294,10 @@ class WalletsService extends ChangeNotifier {
         key: "${walletId}_mnemonicHasBeenVerified") as bool?;
 
     if (isVerified == null) {
+      Logging.instance.log(
+        "isMnemonicVerified(walletId: $walletId) returned null which should never happen!",
+        level: LogLevel.Error,
+      );
       throw Exception(
           "isMnemonicVerified(walletId: $walletId) returned null which should never happen!");
     } else {
@@ -307,9 +311,17 @@ class WalletsService extends ChangeNotifier {
         key: "${walletId}_mnemonicHasBeenVerified") as bool?;
 
     if (isVerified == null) {
+      Logging.instance.log(
+        "setMnemonicVerified(walletId: $walletId) tried running on non existent wallet!",
+        level: LogLevel.Error,
+      );
       throw Exception(
           "setMnemonicVerified(walletId: $walletId) tried running on non existent wallet!");
     } else if (isVerified) {
+      Logging.instance.log(
+        "setMnemonicVerified(walletId: $walletId) tried running on already verified wallet!",
+        level: LogLevel.Error,
+      );
       throw Exception(
           "setMnemonicVerified(walletId: $walletId) tried running on already verified wallet!");
     } else {
@@ -317,6 +329,10 @@ class WalletsService extends ChangeNotifier {
           boxName: DB.boxNameAllWalletsData,
           key: "${walletId}_mnemonicHasBeenVerified",
           value: true);
+      Logging.instance.log(
+        "setMnemonicVerified(walletId: $walletId) successful",
+        level: LogLevel.Error,
+      );
     }
   }
 
@@ -330,6 +346,11 @@ class WalletsService extends ChangeNotifier {
     if (walletId == null) {
       return 3;
     }
+
+    Logging.instance.log(
+      "deleteWallet called with name=$name and id=$walletId",
+      level: LogLevel.Warning,
+    );
 
     final shell = names.remove(walletId);
 

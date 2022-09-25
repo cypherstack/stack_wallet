@@ -424,6 +424,11 @@ class _WalletInitiatedExchangeViewState
                           height: 4,
                         ),
                         TextFormField(
+                          style: STextStyles.smallMed14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                           focusNode: _sendFocusNode,
                           controller: _sendController,
                           textAlign: TextAlign.right,
@@ -762,6 +767,9 @@ class _WalletInitiatedExchangeViewState
                                     Assets.svg.swap,
                                     width: 20,
                                     height: 20,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
                                   ),
                                 ),
                               ),
@@ -788,6 +796,11 @@ class _WalletInitiatedExchangeViewState
                           height: 4,
                         ),
                         TextFormField(
+                          style: STextStyles.smallMed14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                           focusNode: _receiveFocusNode,
                           controller: _receiveController,
                           readOnly: ref

@@ -71,6 +71,7 @@ final openedFromSWBFileStringStateProvider =
 // miscellaneous box for later use
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   if (Util.isDesktop) {
     setWindowTitle('Stack Wallet');

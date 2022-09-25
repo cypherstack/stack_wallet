@@ -128,8 +128,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               if (coin == Coin.firo || coin == Coin.firoTestNet)
                                 Text(
                                   "${_showAvailable ? "Private" : "Public"} Balance",
-                                  style: STextStyles.subtitle(context).copyWith(
-                                    fontWeight: FontWeight.w500,
+                                  style:
+                                      STextStyles.subtitle500(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .textFavoriteCard,
@@ -138,8 +138,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               if (coin != Coin.firo && coin != Coin.firoTestNet)
                                 Text(
                                   "${_showAvailable ? "Available" : "Full"} Balance",
-                                  style: STextStyles.subtitle(context).copyWith(
-                                    fontWeight: FontWeight.w500,
+                                  style:
+                                      STextStyles.subtitle500(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .textFavoriteCard,
@@ -182,8 +182,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                             locale: locale,
                             decimalPlaces: 2,
                           )} $baseCurrency",
-                          style: STextStyles.subtitle(context).copyWith(
-                            fontWeight: FontWeight.w500,
+                          style: STextStyles.subtitle500(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textFavoriteCard,
@@ -202,8 +201,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               if (coin == Coin.firo || coin == Coin.firoTestNet)
                                 Text(
                                   "${_showAvailable ? "Private" : "Public"} Balance",
-                                  style: STextStyles.subtitle(context).copyWith(
-                                    fontWeight: FontWeight.w500,
+                                  style:
+                                      STextStyles.subtitle500(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .textFavoriteCard,
@@ -212,8 +211,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                               if (coin != Coin.firo && coin != Coin.firoTestNet)
                                 Text(
                                   "${_showAvailable ? "Available" : "Full"} Balance",
-                                  style: STextStyles.subtitle(context).copyWith(
-                                    fontWeight: FontWeight.w500,
+                                  style:
+                                      STextStyles.subtitle500(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .textFavoriteCard,
@@ -255,8 +254,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                             "Loading balance..",
                             "Loading balance..."
                           ],
-                          style: STextStyles.subtitle(context).copyWith(
-                            fontWeight: FontWeight.w500,
+                          style: STextStyles.subtitle500(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textFavoriteCard,
