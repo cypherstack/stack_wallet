@@ -169,6 +169,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color loadingOverlayTextColor;
   final Color myStackContactIconBG;
   final Color textConfirmTotalAmount;
+  final Color textSelectedWordTableItem;
 
   StackColors({
     required this.themeType,
@@ -300,6 +301,7 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.loadingOverlayTextColor,
     required this.myStackContactIconBG,
     required this.textConfirmTotalAmount,
+    required this.textSelectedWordTableItem,
   });
 
   factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
@@ -435,6 +437,7 @@ class StackColors extends ThemeExtension<StackColors> {
       loadingOverlayTextColor: colorTheme.loadingOverlayTextColor,
       myStackContactIconBG: colorTheme.myStackContactIconBG,
       textConfirmTotalAmount: colorTheme.textConfirmTotalAmount,
+      textSelectedWordTableItem: colorTheme.textSelectedWordTableItem,
     );
   }
 
@@ -569,6 +572,7 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? loadingOverlayTextColor,
     Color? myStackContactIconBG,
     Color? textConfirmTotalAmount,
+    Color? textSelectedWordTableItem,
   }) {
     return StackColors(
       themeType: themeType ?? this.themeType,
@@ -736,6 +740,8 @@ class StackColors extends ThemeExtension<StackColors> {
       myStackContactIconBG: myStackContactIconBG ?? this.myStackContactIconBG,
       textConfirmTotalAmount:
           textConfirmTotalAmount ?? this.textConfirmTotalAmount,
+      textSelectedWordTableItem:
+          textSelectedWordTableItem ?? this.textSelectedWordTableItem,
     );
   }
 
@@ -1386,6 +1392,11 @@ class StackColors extends ThemeExtension<StackColors> {
       textConfirmTotalAmount: Color.lerp(
         textConfirmTotalAmount,
         other.textConfirmTotalAmount,
+        t,
+      )!,
+      textSelectedWordTableItem: Color.lerp(
+        textSelectedWordTableItem,
+        other.textSelectedWordTableItem,
         t,
       )!,
     );
