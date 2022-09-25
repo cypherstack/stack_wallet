@@ -263,10 +263,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (!isDesktop)
-                const Spacer(
-                  flex: 1,
-                ),
+              Spacer(
+                flex: isDesktop ? 10 : 1,
+              ),
               if (!isDesktop)
                 Image(
                   image: AssetImage(
@@ -275,7 +274,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   height: 100,
                 ),
               SizedBox(
-                height: isDesktop ? 24 : 16,
+                height: isDesktop ? 0 : 16,
               ),
               Text(
                 "Restore options",
@@ -420,6 +419,11 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 isDesktop: isDesktop,
                 onPressed: _nextEnabled ? nextPressed : null,
               ),
+
+              if (isDesktop)
+                const Spacer(
+                  flex: 15,
+                ),
             ],
           ),
         ),

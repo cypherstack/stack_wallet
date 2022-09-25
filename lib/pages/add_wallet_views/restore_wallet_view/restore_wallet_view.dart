@@ -617,11 +617,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
-            mainAxisAlignment: isDesktop
-                ? MainAxisAlignment.spaceAround
-                : MainAxisAlignment.start,
             children: [
-              if (isDesktop) const Spacer(),
+              if (isDesktop)
+                const Spacer(
+                  flex: 10,
+                ),
               if (!isDesktop)
                 Text(
                   widget.walletName,
@@ -921,7 +921,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                     },
                   ),
                 ),
-              if (isDesktop) const Spacer(),
+              if (isDesktop)
+                const Spacer(
+                  flex: 15,
+                ),
               if (!isDesktop)
                 Expanded(
                   child: SingleChildScrollView(
