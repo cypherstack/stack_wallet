@@ -301,4 +301,6 @@ class LightColors extends StackColorTheme {
   Color get myStackContactIconBG => textFieldDefaultBG;
   @override
   Color get textConfirmTotalAmount => const Color(0xFF232323);
+  @override
+  Color get textSelectedWordTableItem => const Color(0xFF232323);
 }

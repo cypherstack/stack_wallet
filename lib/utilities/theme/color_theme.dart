@@ -174,6 +174,7 @@ abstract class StackColorTheme {
   Color get loadingOverlayTextColor;
   Color get myStackContactIconBG;
   Color get textConfirmTotalAmount;
+  Color get textSelectedWordTableItem;
 }
 
 class CoinThemeColor {
