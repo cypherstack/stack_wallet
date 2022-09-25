@@ -17,6 +17,7 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widge
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
@@ -36,8 +37,13 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
+import 'package:stackwallet/widgets/table_view/table_view.dart';
+import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
+import 'package:stackwallet/widgets/table_view/table_view_row.dart';
 import 'package:wakelock/wakelock.dart';
 
 class RestoreWalletView extends ConsumerStatefulWidget {
@@ -529,193 +535,492 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () async {
-            if (FocusScope.of(context).hasFocus) {
-              FocusScope.of(context).unfocus();
-              await Future<void>.delayed(const Duration(milliseconds: 50));
-            }
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 10,
-              bottom: 10,
-              right: 10,
-            ),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: AppBarIconButton(
-                key: const Key("restoreWalletViewQrCodeButton"),
-                size: 36,
-                shadows: const [],
-                color: Theme.of(context).extension<StackColors>()!.background,
-                icon: QrCodeIcon(
-                  width: 20,
-                  height: 20,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                ),
-                onPressed: scanMnemonicQr,
+    final isDesktop = Util.isDesktop;
+    return MasterScaffold(
+      isDesktop: isDesktop,
+      appBar: isDesktop
+          ? const DesktopAppBar(
+              isCompactHeight: false,
+              leading: AppBarBackButton(),
+              trailing: ExitToMyStackButton(),
+            )
+          : AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 50));
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 10,
-              bottom: 10,
-              right: 10,
-            ),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: AppBarIconButton(
-                key: const Key("restoreWalletPasteButton"),
-                size: 36,
-                shadows: const [],
-                color: Theme.of(context).extension<StackColors>()!.background,
-                icon: ClipboardIcon(
-                  width: 20,
-                  height: 20,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("restoreWalletViewQrCodeButton"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: QrCodeIcon(
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                      ),
+                      onPressed: scanMnemonicQr,
+                    ),
+                  ),
                 ),
-                onPressed: pasteMnemonic,
-              ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("restoreWalletPasteButton"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: ClipboardIcon(
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                      ),
+                      onPressed: pasteMnemonic,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
       body: Container(
         color: Theme.of(context).extension<StackColors>()!.background,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
+            mainAxisAlignment: isDesktop
+                ? MainAxisAlignment.spaceAround
+                : MainAxisAlignment.start,
             children: [
-              Text(
-                widget.walletName,
-                style: STextStyles.itemSubtitle(context),
-              ),
-              const SizedBox(
-                height: 4,
+              if (isDesktop) const Spacer(),
+              if (!isDesktop)
+                Text(
+                  widget.walletName,
+                  style: STextStyles.itemSubtitle(context),
+                ),
+              SizedBox(
+                height: isDesktop ? 0 : 4,
               ),
               Text(
                 "Recovery phrase",
-                style: STextStyles.pageTitleH1(context),
+                style: isDesktop
+                    ? STextStyles.desktopH2(context)
+                    : STextStyles.pageTitleH1(context),
               ),
-              const SizedBox(
-                height: 8,
+              SizedBox(
+                height: isDesktop ? 16 : 8,
               ),
               Text(
                 "Enter your $_seedWordCount-word recovery phrase.",
-                style: STextStyles.subtitle(context),
+                style: isDesktop
+                    ? STextStyles.desktopSubtitleH2(context)
+                    : STextStyles.subtitle(context),
               ),
-              const SizedBox(
-                height: 10,
+              SizedBox(
+                height: isDesktop ? 16 : 10,
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: controller,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+              if (isDesktop)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: pasteMnemonic,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.clipboard,
+                              width: 22,
+                              height: 22,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonTextSecondary,
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              "Paste",
+                              style: STextStyles
+                                  .desktopButtonSmallSecondaryEnabled(context),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              if (isDesktop)
+                const SizedBox(
+                  height: 20,
+                ),
+              if (isDesktop)
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: 1008,
+                  ),
+                  child: Builder(
+                    builder: (BuildContext context) {
+                      const cols = 4;
+                      final int rows = _seedWordCount ~/ cols;
+                      final int remainder = _seedWordCount % cols;
+
+                      return Column(
                         children: [
-                          for (int i = 1; i <= _seedWordCount; i++)
-                            Column(
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 4),
-                                  child: TextFormField(
-                                    textCapitalization: TextCapitalization.none,
-                                    key: Key("restoreMnemonicFormField_$i"),
-                                    decoration: _getInputDecorationFor(
-                                        _inputStatuses[i - 1], "$i"),
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                    selectionControls:
-                                        i == 1 ? textSelectionControls : null,
-                                    onChanged: (value) {
-                                      if (value.isEmpty) {
-                                        setState(() {
-                                          _inputStatuses[i - 1] =
-                                              FormInputStatus.empty;
-                                        });
-                                      } else if (_isValidMnemonicWord(
-                                          value.trim().toLowerCase())) {
-                                        setState(() {
-                                          _inputStatuses[i - 1] =
-                                              FormInputStatus.valid;
-                                        });
-                                      } else {
-                                        setState(() {
-                                          _inputStatuses[i - 1] =
-                                              FormInputStatus.invalid;
-                                        });
-                                      }
-                                    },
-                                    controller: _controllers[i - 1],
-                                    style: STextStyles.field(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .overlay,
-                                    ),
-                                  ),
-                                ),
-                                if (_inputStatuses[i - 1] ==
-                                    FormInputStatus.invalid)
-                                  Align(
-                                    alignment: Alignment.topLeft,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 12.0,
-                                        bottom: 4.0,
-                                      ),
-                                      child: Text(
-                                        "Please check spelling",
-                                        textAlign: TextAlign.left,
-                                        style:
-                                            STextStyles.label(context).copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textError,
+                          Form(
+                            key: _formKey,
+                            child: TableView(
+                              shrinkWrap: true,
+                              rowSpacing: 20,
+                              rows: [
+                                for (int i = 0; i < rows; i++)
+                                  TableViewRow(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    spacing: 16,
+                                    cells: [
+                                      for (int j = 1; j <= cols; j++)
+                                        TableViewCell(
+                                          flex: 1,
+                                          child: Column(
+                                            children: [
+                                              TextFormField(
+                                                textCapitalization:
+                                                    TextCapitalization.none,
+                                                key: Key(
+                                                    "restoreMnemonicFormField_$i"),
+                                                decoration:
+                                                    _getInputDecorationFor(
+                                                        _inputStatuses[
+                                                            i * 4 + j - 1],
+                                                        "${i * 4 + j}"),
+                                                autovalidateMode:
+                                                    AutovalidateMode
+                                                        .onUserInteraction,
+                                                selectionControls:
+                                                    i * 4 + j - 1 == 1
+                                                        ? textSelectionControls
+                                                        : null,
+                                                onChanged: (value) {
+                                                  if (value.isEmpty) {
+                                                    setState(() {
+                                                      _inputStatuses[
+                                                              i * 4 + j - 1] =
+                                                          FormInputStatus.empty;
+                                                    });
+                                                  } else if (_isValidMnemonicWord(
+                                                      value
+                                                          .trim()
+                                                          .toLowerCase())) {
+                                                    setState(() {
+                                                      _inputStatuses[
+                                                              i * 4 + j - 1] =
+                                                          FormInputStatus.valid;
+                                                    });
+                                                  } else {
+                                                    setState(() {
+                                                      _inputStatuses[
+                                                              i * 4 + j - 1] =
+                                                          FormInputStatus
+                                                              .invalid;
+                                                    });
+                                                  }
+                                                },
+                                                controller:
+                                                    _controllers[i * 4 + j - 1],
+                                                style:
+                                                    STextStyles.field(context)
+                                                        .copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .overlay,
+                                                ),
+                                              ),
+                                              if (_inputStatuses[
+                                                      i * 4 + j - 1] ==
+                                                  FormInputStatus.invalid)
+                                                Align(
+                                                  alignment: Alignment.topLeft,
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      left: 12.0,
+                                                      bottom: 4.0,
+                                                    ),
+                                                    child: Text(
+                                                      "Please check spelling",
+                                                      textAlign: TextAlign.left,
+                                                      style: STextStyles.label(
+                                                              context)
+                                                          .copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textError,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  )
+                                    ],
+                                    expandingChild: null,
+                                  ),
+                                if (remainder > 0)
+                                  TableViewRow(
+                                    spacing: 16,
+                                    cells: [
+                                      for (int i = rows * cols;
+                                          i < _seedWordCount;
+                                          i++) ...[
+                                        TableViewCell(
+                                          flex: 1,
+                                          child: Column(
+                                            children: [
+                                              TextFormField(
+                                                textCapitalization:
+                                                    TextCapitalization.none,
+                                                key: Key(
+                                                    "restoreMnemonicFormField_$i"),
+                                                decoration:
+                                                    _getInputDecorationFor(
+                                                        _inputStatuses[i],
+                                                        "${i + 1}"),
+                                                autovalidateMode:
+                                                    AutovalidateMode
+                                                        .onUserInteraction,
+                                                selectionControls: i == 1
+                                                    ? textSelectionControls
+                                                    : null,
+                                                onChanged: (value) {
+                                                  if (value.isEmpty) {
+                                                    setState(() {
+                                                      _inputStatuses[i] =
+                                                          FormInputStatus.empty;
+                                                    });
+                                                  } else if (_isValidMnemonicWord(
+                                                      value
+                                                          .trim()
+                                                          .toLowerCase())) {
+                                                    setState(() {
+                                                      _inputStatuses[i] =
+                                                          FormInputStatus.valid;
+                                                    });
+                                                  } else {
+                                                    setState(() {
+                                                      _inputStatuses[i] =
+                                                          FormInputStatus
+                                                              .invalid;
+                                                    });
+                                                  }
+                                                },
+                                                controller: _controllers[i],
+                                                style:
+                                                    STextStyles.field(context)
+                                                        .copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .overlay,
+                                                ),
+                                              ),
+                                              if (_inputStatuses[i] ==
+                                                  FormInputStatus.invalid)
+                                                Align(
+                                                  alignment: Alignment.topLeft,
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      left: 12.0,
+                                                      bottom: 4.0,
+                                                    ),
+                                                    child: Text(
+                                                      "Please check spelling",
+                                                      textAlign: TextAlign.left,
+                                                      style: STextStyles.label(
+                                                              context)
+                                                          .copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textError,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      for (int i = remainder;
+                                          i < cols;
+                                          i++) ...[
+                                        TableViewCell(
+                                          flex: 1,
+                                          child: Container(),
+                                        ),
+                                      ],
+                                    ],
+                                    expandingChild: null,
+                                  ),
                               ],
                             ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 8.0,
-                            ),
+                          ),
+                          const SizedBox(
+                            height: 32,
+                          ),
+                          SizedBox(
+                            height: 70,
+                            width: 480,
                             child: TextButton(
                               style: Theme.of(context)
                                   .extension<StackColors>()!
                                   .getPrimaryEnabledButtonColor(context),
                               onPressed: requestRestore,
                               child: Text(
-                                "Restore",
+                                "Restore wallet",
                                 style: STextStyles.button(context),
                               ),
                             ),
                           ),
                         ],
+                      );
+                    },
+                  ),
+                ),
+              if (isDesktop) const Spacer(),
+              if (!isDesktop)
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: controller,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (int i = 1; i <= _seedWordCount; i++)
+                              Column(
+                                children: [
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 4),
+                                    child: TextFormField(
+                                      textCapitalization:
+                                          TextCapitalization.none,
+                                      key: Key("restoreMnemonicFormField_$i"),
+                                      decoration: _getInputDecorationFor(
+                                          _inputStatuses[i - 1], "$i"),
+                                      autovalidateMode:
+                                          AutovalidateMode.onUserInteraction,
+                                      selectionControls:
+                                          i == 1 ? textSelectionControls : null,
+                                      onChanged: (value) {
+                                        if (value.isEmpty) {
+                                          setState(() {
+                                            _inputStatuses[i - 1] =
+                                                FormInputStatus.empty;
+                                          });
+                                        } else if (_isValidMnemonicWord(
+                                            value.trim().toLowerCase())) {
+                                          setState(() {
+                                            _inputStatuses[i - 1] =
+                                                FormInputStatus.valid;
+                                          });
+                                        } else {
+                                          setState(() {
+                                            _inputStatuses[i - 1] =
+                                                FormInputStatus.invalid;
+                                          });
+                                        }
+                                      },
+                                      controller: _controllers[i - 1],
+                                      style:
+                                          STextStyles.field(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .overlay,
+                                      ),
+                                    ),
+                                  ),
+                                  if (_inputStatuses[i - 1] ==
+                                      FormInputStatus.invalid)
+                                    Align(
+                                      alignment: Alignment.topLeft,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 12.0,
+                                          bottom: 4.0,
+                                        ),
+                                        child: Text(
+                                          "Please check spelling",
+                                          textAlign: TextAlign.left,
+                                          style: STextStyles.label(context)
+                                              .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textError,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                ],
+                              ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: 8.0,
+                              ),
+                              child: TextButton(
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryEnabledButtonColor(context),
+                                onPressed: requestRestore,
+                                child: Text(
+                                  "Restore",
+                                  style: STextStyles.button(context),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

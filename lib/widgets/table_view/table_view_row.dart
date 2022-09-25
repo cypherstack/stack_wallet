@@ -12,6 +12,7 @@ class TableViewRow extends StatelessWidget {
     this.onExpandChanged,
     this.padding = const EdgeInsets.all(0),
     this.spacing = 0.0,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
   }) : super(key: key);
 
   final List<TableViewCell> cells;
@@ -20,6 +21,7 @@ class TableViewRow extends StatelessWidget {
   final void Function(ExpandableState)? onExpandChanged;
   final EdgeInsetsGeometry padding;
   final double spacing;
+  final CrossAxisAlignment crossAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +31,10 @@ class TableViewRow extends StatelessWidget {
           ? Padding(
               padding: padding,
               child: Row(
+                crossAxisAlignment: crossAxisAlignment,
                 children: [
                   for (int i = 0; i < cells.length; i++) ...[
-                    if (i != 0 || i != cells.length)
+                    if (i != 0 && i != cells.length)
                       SizedBox(
                         width: spacing,
                       ),
@@ -50,7 +53,7 @@ class TableViewRow extends StatelessWidget {
                 child: Row(
                   children: [
                     for (int i = 0; i < cells.length; i++) ...[
-                      if (i != 0 || i != cells.length)
+                      if (i != 0 && i != cells.length)
                         SizedBox(
                           width: spacing,
                         ),
