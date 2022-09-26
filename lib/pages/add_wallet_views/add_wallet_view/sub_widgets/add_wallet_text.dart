@@ -14,7 +14,9 @@ class AddWalletText extends StatelessWidget {
         Text(
           "Add wallet",
           textAlign: TextAlign.center,
-          style: isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
+          style: isDesktop
+              ? STextStyles.desktopH2(context)
+              : STextStyles.pageTitleH1(context),
         ),
         const SizedBox(
           height: 16,
@@ -22,8 +24,9 @@ class AddWalletText extends StatelessWidget {
         Text(
           "Select wallet currency",
           textAlign: TextAlign.center,
-          style:
-              isDesktop ? STextStyles.desktopSubtitleH2 : STextStyles.subtitle,
+          style: isDesktop
+              ? STextStyles.desktopSubtitleH2(context)
+              : STextStyles.subtitle(context),
         ),
       ],
     );

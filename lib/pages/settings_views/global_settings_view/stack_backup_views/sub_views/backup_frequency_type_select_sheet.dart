@@ -4,7 +4,7 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
   const BackupFrequencyTypeSelectSheet({
@@ -32,7 +32,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: StackTheme.instance.color.popupBG,
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(20),
           ),
@@ -51,7 +51,9 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -68,7 +70,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                 children: [
                   Text(
                     "Auto Backup frequency",
-                    style: STextStyles.pageTitleH2,
+                    style: STextStyles.pageTitleH2(context),
                     textAlign: TextAlign.left,
                   ),
                   const SizedBox(
@@ -100,8 +102,9 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: StackTheme
-                                        .instance.color.radioButtonIconEnabled,
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                     value: BackupFrequencyType.values[i],
                                     groupValue: ref.watch(
                                         prefsChangeNotifierProvider.select(
@@ -125,7 +128,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                       Text(
                                         prettyFrequencyType(
                                             BackupFrequencyType.values[i]),
-                                        style: STextStyles.titleBold12,
+                                        style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
                                     ],

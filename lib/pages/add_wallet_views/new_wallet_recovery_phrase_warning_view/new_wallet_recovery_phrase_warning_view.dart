@@ -13,7 +13,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -79,25 +79,32 @@ class _NewWalletRecoveryPhraseWarningViewState
               ? CrossAxisAlignment.center
               : CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(
-              height: 4,
-            ),
+            if (isDesktop)
+              const Spacer(
+                flex: 10,
+              ),
+            if (!isDesktop)
+              const SizedBox(
+                height: 4,
+              ),
             if (!isDesktop)
               Text(
                 walletName,
                 textAlign: TextAlign.center,
-                style: STextStyles.label.copyWith(
+                style: STextStyles.label(context).copyWith(
                   fontSize: 12,
                 ),
               ),
-            const SizedBox(
-              height: 4,
-            ),
+            if (!isDesktop)
+              const SizedBox(
+                height: 4,
+              ),
             Text(
               "Recovery Phrase",
               textAlign: TextAlign.center,
-              style:
-                  isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
+              style: isDesktop
+                  ? STextStyles.desktopH2(context)
+                  : STextStyles.pageTitleH1(context),
             ),
             SizedBox(
               height: isDesktop ? 32 : 16,
@@ -110,8 +117,8 @@ class _NewWalletRecoveryPhraseWarningViewState
               child: Text(
                 "On the next screen you will see $_numberOfPhraseWords words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
                 style: isDesktop
-                    ? STextStyles.desktopTextMediumRegular
-                    : STextStyles.subtitle.copyWith(
+                    ? STextStyles.desktopTextMediumRegular(context)
+                    : STextStyles.subtitle(context).copyWith(
                         fontSize: 12,
                       ),
               ),
@@ -129,6 +136,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                 builder: (_, ref, __) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       GestureDetector(
                         onTap: () {
@@ -161,8 +169,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 child: Text(
                                   "I understand that if I lose my recovery phrase, I will not be able to access my funds.",
                                   style: isDesktop
-                                      ? STextStyles.desktopTextMedium
-                                      : STextStyles.baseXS,
+                                      ? STextStyles.desktopTextMedium(context)
+                                      : STextStyles.baseXS(context),
                                 ),
                               ),
                             ],
@@ -269,17 +277,19 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 }
                               : null,
                           style: ref.read(checkBoxStateProvider.state).state
-                              ? StackTheme.instance
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getPrimaryEnabledButtonColor(context)
-                              : StackTheme.instance
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getPrimaryDisabledButtonColor(context),
                           child: Text(
                             "View recovery phrase",
                             style: isDesktop
                                 ? ref.read(checkBoxStateProvider.state).state
-                                    ? STextStyles.desktopButtonEnabled
-                                    : STextStyles.desktopButtonDisabled
-                                : STextStyles.button,
+                                    ? STextStyles.desktopButtonEnabled(context)
+                                    : STextStyles.desktopButtonDisabled(context)
+                                : STextStyles.button(context),
                           ),
                         ),
                       ),
@@ -288,6 +298,10 @@ class _NewWalletRecoveryPhraseWarningViewState
                 },
               ),
             ),
+            if (isDesktop)
+              const Spacer(
+                flex: 15,
+              ),
           ],
         ),
       ),

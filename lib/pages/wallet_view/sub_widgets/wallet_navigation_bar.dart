@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class WalletNavigationBar extends StatelessWidget {
   const WalletNavigationBar({
@@ -27,8 +27,10 @@ class WalletNavigationBar extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: StackTheme.instance.color.popupBG,
-        boxShadow: [StackTheme.instance.standardBoxShadow],
+        color: Theme.of(context).extension<StackColors>()!.bottomNavBack,
+        boxShadow: [
+          Theme.of(context).extension<StackColors>()!.standardBoxShadow
+        ],
         borderRadius: BorderRadius.circular(
           height / 2.0,
         ),
@@ -49,7 +51,8 @@ class WalletNavigationBar extends StatelessWidget {
                 minWidth: 66,
               ),
               onPressed: onReceivePressed,
-              splashColor: StackTheme.instance.color.highlight,
+              splashColor:
+                  Theme.of(context).extension<StackColors>()!.highlight,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(
                   height / 2.0,
@@ -65,7 +68,9 @@ class WalletNavigationBar extends StatelessWidget {
                       const Spacer(),
                       Container(
                         decoration: BoxDecoration(
-                          color: StackTheme.instance.color.accentColorDark
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark
                               .withOpacity(0.4),
                           borderRadius: BorderRadius.circular(
                             24,
@@ -77,7 +82,9 @@ class WalletNavigationBar extends StatelessWidget {
                             Assets.svg.arrowDownLeft,
                             width: 12,
                             height: 12,
-                            color: StackTheme.instance.color.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                           ),
                         ),
                       ),
@@ -86,7 +93,7 @@ class WalletNavigationBar extends StatelessWidget {
                       ),
                       Text(
                         "Receive",
-                        style: STextStyles.buttonSmall,
+                        style: STextStyles.buttonSmall(context),
                       ),
                       const Spacer(),
                     ],
@@ -99,7 +106,8 @@ class WalletNavigationBar extends StatelessWidget {
                 minWidth: 66,
               ),
               onPressed: onSendPressed,
-              splashColor: StackTheme.instance.color.highlight,
+              splashColor:
+                  Theme.of(context).extension<StackColors>()!.highlight,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(
                   height / 2.0,
@@ -115,7 +123,9 @@ class WalletNavigationBar extends StatelessWidget {
                       const Spacer(),
                       Container(
                         decoration: BoxDecoration(
-                          color: StackTheme.instance.color.accentColorDark
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark
                               .withOpacity(0.4),
                           borderRadius: BorderRadius.circular(
                             24,
@@ -127,7 +137,9 @@ class WalletNavigationBar extends StatelessWidget {
                             Assets.svg.arrowUpRight,
                             width: 12,
                             height: 12,
-                            color: StackTheme.instance.color.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                           ),
                         ),
                       ),
@@ -136,7 +148,7 @@ class WalletNavigationBar extends StatelessWidget {
                       ),
                       Text(
                         "Send",
-                        style: STextStyles.buttonSmall,
+                        style: STextStyles.buttonSmall(context),
                       ),
                       const Spacer(),
                     ],
@@ -150,7 +162,8 @@ class WalletNavigationBar extends StatelessWidget {
                   minWidth: 66,
                 ),
                 onPressed: onExchangePressed,
-                splashColor: StackTheme.instance.color.highlight,
+                splashColor:
+                    Theme.of(context).extension<StackColors>()!.highlight,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     height / 2.0,
@@ -165,7 +178,7 @@ class WalletNavigationBar extends StatelessWidget {
                       children: [
                         const Spacer(),
                         SvgPicture.asset(
-                          Assets.svg.exchange,
+                          Assets.svg.exchange(context),
                           width: 24,
                           height: 24,
                         ),
@@ -174,7 +187,7 @@ class WalletNavigationBar extends StatelessWidget {
                         ),
                         Text(
                           "Exchange",
-                          style: STextStyles.buttonSmall,
+                          style: STextStyles.buttonSmall(context),
                         ),
                         const Spacer(),
                       ],
@@ -210,7 +223,7 @@ class WalletNavigationBar extends StatelessWidget {
             //           ),
             //           Text(
             //             "Buy",
-            //             style: STextStyles.buttonSmall,
+            //             style: STextStyles.buttonSmall(context),
             //           ),
             //           Spacer(),
             //         ],
@@ -238,7 +251,7 @@ class WalletNavigationBar extends StatelessWidget {
 //   Widget build(BuildContext context) {
 //     return Container(
 //       child: MaterialButton(
-//         splashColor: StackTheme.instance.color.highlight,
+//         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
 //         padding: const EdgeInsets.all(0),
 //         minWidth: 45,
 //         shape: RoundedRectangleBorder(
@@ -259,7 +272,7 @@ class WalletNavigationBar extends StatelessWidget {
 //               ),
 //               Text(
 //                 text,
-//                 style: STextStyles.itemSubtitle12.copyWith(
+//                 style: STextStyles.itemSubtitle12(context).copyWith(
 //                   fontSize: 10,
 //                 ),
 //               ),

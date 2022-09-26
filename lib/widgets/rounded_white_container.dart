@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
 class RoundedWhiteContainer extends StatelessWidget {
@@ -21,7 +21,7 @@ class RoundedWhiteContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RoundedContainer(
-      color: StackTheme.instance.color.popupBG,
+      color: Theme.of(context).extension<StackColors>()!.popupBG,
       padding: padding,
       radiusMultiplier: radiusMultiplier,
       width: width,

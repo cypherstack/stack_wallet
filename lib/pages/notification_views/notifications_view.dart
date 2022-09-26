@@ -4,7 +4,7 @@ import 'package:stackwallet/notifications/notification_card.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -44,11 +44,11 @@ class _NotificationsViewState extends ConsumerState<NotificationsView> {
             .toList(growable: false);
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         title: Text(
           "Notifications",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         leading: AppBarBackButton(
           onPressed: () async {
@@ -95,7 +95,7 @@ class _NotificationsViewState extends ConsumerState<NotificationsView> {
                           fit: BoxFit.scaleDown,
                           child: Text(
                             "Notifications will appear here",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ),
                       ),

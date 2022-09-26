@@ -40,7 +40,7 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
                 width: 32,
                 height: 32,
                 child: SvgPicture.asset(
-                  Assets.svg.stackIcon,
+                  Assets.svg.stackIcon(context),
                 ),
               ),
               const SizedBox(
@@ -48,7 +48,7 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
               ),
               Text(
                 "My Stack",
-                style: STextStyles.desktopH3,
+                style: STextStyles.desktopH3(context),
               )
             ],
           ),

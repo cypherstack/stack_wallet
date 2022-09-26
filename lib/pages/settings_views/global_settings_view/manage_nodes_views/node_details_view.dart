@@ -16,7 +16,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:tuple/tuple.dart';
 
@@ -140,7 +140,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -155,7 +155,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
         ),
         title: Text(
           "Node details",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           if (!nodeId.startsWith("default"))
@@ -171,10 +171,12 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                   key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
                   size: 36,
                   shadows: const [],
-                  color: StackTheme.instance.color.background,
+                  color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.pencil,
-                    color: StackTheme.instance.color.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -223,16 +225,18 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         ),
                         const Spacer(),
                         TextButton(
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getSecondaryEnabledButtonColor(context),
                           onPressed: () async {
                             await _testConnection(ref, context);
                           },
                           child: Text(
                             "Test connection",
-                            style: STextStyles.button.copyWith(
-                                color:
-                                    StackTheme.instance.color.accentColorDark),
+                            style: STextStyles.button(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark),
                           ),
                         ),
                         const SizedBox(height: 16),

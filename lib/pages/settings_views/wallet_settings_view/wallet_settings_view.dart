@@ -25,7 +25,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
@@ -133,7 +133,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -142,7 +142,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
         ),
         title: Text(
           "Settings",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -170,6 +170,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                             children: [
                               SettingsListButton(
                                 iconAssetName: Assets.svg.addressBook,
+                                iconSize: 16,
                                 title: "Address book",
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(
@@ -183,6 +184,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                               ),
                               SettingsListButton(
                                 iconAssetName: Assets.svg.node,
+                                iconSize: 16,
                                 title: "Network",
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(
@@ -202,6 +204,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                 builder: (_, ref, __) {
                                   return SettingsListButton(
                                     iconAssetName: Assets.svg.lock,
+                                    iconSize: 16,
                                     title: "Wallet backup",
                                     onPressed: () async {
                                       final mnemonic = await ref
@@ -245,6 +248,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                               SettingsListButton(
                                 iconAssetName: Assets.svg.downloadFolder,
                                 title: "Wallet settings",
+                                iconSize: 16,
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(
                                     WalletSettingsWalletSettingsView.routeName,
@@ -297,13 +301,15 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                   ModalRoute.withName(HomeView.routeName),
                                 );
                               },
-                              style: StackTheme.instance
+                              style: Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getSecondaryEnabledButtonColor(context),
                               child: Text(
                                 "Log out",
-                                style: STextStyles.button.copyWith(
-                                    color: StackTheme
-                                        .instance.color.accentColorDark),
+                                style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark),
                               ),
                             );
                           },
@@ -405,8 +411,10 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             },
             child: Text(
               "Save",
-              style: STextStyles.button
-                  .copyWith(color: StackTheme.instance.color.accentColorDark),
+              style: STextStyles.button(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark),
             ),
           ),
         ],

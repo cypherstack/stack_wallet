@@ -1,9 +1,10 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
 
-class BlueTextButton extends StatefulWidget {
+class BlueTextButton extends ConsumerStatefulWidget {
   const BlueTextButton({Key? key, required this.text, this.onTap})
       : super(key: key);
 
@@ -11,10 +12,10 @@ class BlueTextButton extends StatefulWidget {
   final VoidCallback? onTap;
 
   @override
-  State<BlueTextButton> createState() => _BlueTextButtonState();
+  ConsumerState<BlueTextButton> createState() => _BlueTextButtonState();
 }
 
-class _BlueTextButtonState extends State<BlueTextButton>
+class _BlueTextButtonState extends ConsumerState<BlueTextButton>
     with SingleTickerProviderStateMixin {
   late AnimationController controller;
   late Animation<dynamic> animation;
@@ -22,14 +23,18 @@ class _BlueTextButtonState extends State<BlueTextButton>
 
   @override
   void initState() {
-    color = StackTheme.instance.color.buttonTextBorderless;
+    color = ref.read(colorThemeProvider.state).state.buttonTextBorderless;
     controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
     animation = ColorTween(
-      begin: StackTheme.instance.color.buttonTextBorderless,
-      end: StackTheme.instance.color.buttonTextBorderless.withOpacity(0.4),
+      begin: ref.read(colorThemeProvider.state).state.buttonTextBorderless,
+      end: ref
+          .read(colorThemeProvider.state)
+          .state
+          .buttonTextBorderless
+          .withOpacity(0.4),
     ).animate(controller);
 
     animation.addListener(() {
@@ -53,7 +58,7 @@ class _BlueTextButtonState extends State<BlueTextButton>
       textAlign: TextAlign.center,
       text: TextSpan(
         text: widget.text,
-        style: STextStyles.link2.copyWith(color: color),
+        style: STextStyles.link2(context).copyWith(color: color),
         recognizer: TapGestureRecognizer()
           ..onTap = () {
             widget.onTap?.call();

@@ -4,12 +4,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/coin_wallets_table.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/table_view/table_view.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 import 'package:stackwallet/widgets/table_view/table_view_row.dart';
@@ -42,7 +41,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
               vertical: 16,
             ),
             decoration: BoxDecoration(
-              color: StackTheme.instance.color.popupBG,
+              color: Theme.of(context).extension<StackColors>()!.popupBG,
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),
@@ -62,8 +61,11 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                     ),
                     Text(
                       providersByCoin[i].key.prettyName,
-                      style: STextStyles.desktopTextExtraSmall.copyWith(
-                        color: StackTheme.instance.color.textDark,
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
                     )
                   ],
@@ -75,8 +77,10 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                   providersByCoin[i].value.length == 1
                       ? "${providersByCoin[i].value.length} wallet"
                       : "${providersByCoin[i].value.length} wallets",
-                  style: STextStyles.desktopTextExtraSmall.copyWith(
-                    color: StackTheme.instance.color.textSubtitle1,
+                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   ),
                 ),
               ),
@@ -133,11 +137,14 @@ class TablePriceInfo extends ConsumerWidget {
 
     final double percentChange = tuple.item2;
 
-    var percentChangedColor = StackTheme.instance.color.textDark;
+    var percentChangedColor =
+        Theme.of(context).extension<StackColors>()!.textDark;
     if (percentChange > 0) {
-      percentChangedColor = StackTheme.instance.color.accentColorGreen;
+      percentChangedColor =
+          Theme.of(context).extension<StackColors>()!.accentColorGreen;
     } else if (percentChange < 0) {
-      percentChangedColor = StackTheme.instance.color.accentColorRed;
+      percentChangedColor =
+          Theme.of(context).extension<StackColors>()!.accentColorRed;
     }
 
     return Row(
@@ -145,13 +152,13 @@ class TablePriceInfo extends ConsumerWidget {
       children: [
         Text(
           "$priceString $currency/${coin.ticker}",
-          style: STextStyles.desktopTextExtraSmall.copyWith(
-            color: StackTheme.instance.color.textSubtitle1,
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
           ),
         ),
         Text(
           "${percentChange.toStringAsFixed(2)}%",
-          style: STextStyles.desktopTextExtraSmall.copyWith(
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
             color: percentChangedColor,
           ),
         ),

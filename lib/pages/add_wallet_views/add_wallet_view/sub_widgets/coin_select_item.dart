@@ -6,7 +6,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 class CoinSelectItem extends ConsumerWidget {
@@ -28,13 +28,13 @@ class CoinSelectItem extends ConsumerWidget {
       decoration: BoxDecoration(
         // color: selectedCoin == coin ? CFColors.selection : CFColors.white,
         color: selectedCoin == coin
-            ? StackTheme.instance.color.textFieldActiveBG
-            : StackTheme.instance.color.popupBG,
+            ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
+            : Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius:
             BorderRadius.circular(Constants.size.circularBorderRadius),
       ),
       child: MaterialButton(
-        // splashColor: StackTheme.instance.color.highlight,
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         key: Key("coinSelectItemButtonKey_${coin.name}"),
         padding: isDesktop
             ? const EdgeInsets.only(left: 24)
@@ -61,9 +61,8 @@ class CoinSelectItem extends ConsumerWidget {
               Text(
                 coin.prettyName,
                 style: isDesktop
-                    ? STextStyles.desktopTextMedium
-                    : STextStyles.subtitle.copyWith(
-                        fontWeight: FontWeight.w600,
+                    ? STextStyles.desktopTextMedium(context)
+                    : STextStyles.subtitle600(context).copyWith(
                         fontSize: 14,
                       ),
               ),
@@ -78,7 +77,9 @@ class CoinSelectItem extends ConsumerWidget {
                     height: 24,
                     child: SvgPicture.asset(
                       Assets.svg.check,
-                      color: StackTheme.instance.color.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),

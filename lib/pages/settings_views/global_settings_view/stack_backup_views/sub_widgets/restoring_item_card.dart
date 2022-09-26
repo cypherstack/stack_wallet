@@ -48,7 +48,7 @@ class RestoringItemCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                       ),
                       if (subTitle != null)
                         const SizedBox(

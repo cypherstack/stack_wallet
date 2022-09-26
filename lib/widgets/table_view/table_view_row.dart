@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 
@@ -11,6 +11,8 @@ class TableViewRow extends StatelessWidget {
     this.decoration,
     this.onExpandChanged,
     this.padding = const EdgeInsets.all(0),
+    this.spacing = 0.0,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
   }) : super(key: key);
 
   final List<TableViewCell> cells;
@@ -18,6 +20,8 @@ class TableViewRow extends StatelessWidget {
   final Decoration? decoration;
   final void Function(ExpandableState)? onExpandChanged;
   final EdgeInsetsGeometry padding;
+  final double spacing;
+  final CrossAxisAlignment crossAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +31,18 @@ class TableViewRow extends StatelessWidget {
           ? Padding(
               padding: padding,
               child: Row(
+                crossAxisAlignment: crossAxisAlignment,
                 children: [
-                  ...cells.map(
-                    (e) => Expanded(
-                      flex: e.flex,
-                      child: e,
+                  for (int i = 0; i < cells.length; i++) ...[
+                    if (i != 0 && i != cells.length)
+                      SizedBox(
+                        width: spacing,
+                      ),
+                    Expanded(
+                      flex: cells[i].flex,
+                      child: cells[i],
                     ),
-                  ),
+                  ],
                 ],
               ),
             )
@@ -43,19 +52,25 @@ class TableViewRow extends StatelessWidget {
                 padding: padding,
                 child: Row(
                   children: [
-                    ...cells.map(
-                      (e) => Expanded(
-                        flex: e.flex,
-                        child: e,
+                    for (int i = 0; i < cells.length; i++) ...[
+                      if (i != 0 && i != cells.length)
+                        SizedBox(
+                          width: spacing,
+                        ),
+                      Expanded(
+                        flex: cells[i].flex,
+                        child: cells[i],
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
               body: Column(
                 children: [
                   Container(
-                    color: StackTheme.instance.color.buttonBackSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonBackSecondary,
                     width: double.infinity,
                     height: 1,
                   ),

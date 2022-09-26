@@ -17,7 +17,7 @@ import 'package:stackwallet/services/change_now/change_now_loading_service.dart'
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -143,7 +143,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
               GestureDetector(
                 onTap: _hiddenOptions,
                 child: SvgPicture.asset(
-                  Assets.svg.stackIcon,
+                  Assets.svg.stackIcon(context),
                   width: 24,
                   height: 24,
                 ),
@@ -153,7 +153,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ),
               Text(
                 "My Stack",
-                style: STextStyles.navBarTitle,
+                style: STextStyles.navBarTitle(context),
               )
             ],
           ),
@@ -170,18 +170,20 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   key: const Key("walletsViewAlertsButton"),
                   size: 36,
                   shadows: const [],
-                  color: StackTheme.instance.color.background,
+                  color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     ref.watch(notificationsProvider
                             .select((value) => value.hasUnreadNotifications))
-                        ? Assets.svg.bellNew
+                        ? Assets.svg.bellNew(context)
                         : Assets.svg.bell,
                     width: 20,
                     height: 20,
                     color: ref.watch(notificationsProvider
                             .select((value) => value.hasUnreadNotifications))
                         ? null
-                        : StackTheme.instance.color.topNavIconPrimary,
+                        : Theme.of(context)
+                            .extension<StackColors>()!
+                            .topNavIconPrimary,
                   ),
                   onPressed: () {
                     // reset unread state
@@ -227,10 +229,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   key: const Key("walletsViewSettingsButton"),
                   size: 36,
                   shadows: const [],
-                  color: StackTheme.instance.color.background,
+                  color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.gear,
-                    color: StackTheme.instance.color.topNavIconPrimary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .topNavIconPrimary,
                     width: 20,
                     height: 20,
                   ),
@@ -245,15 +249,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ],
         ),
         body: Container(
-          color: StackTheme.instance.color.background,
+          color: Theme.of(context).extension<StackColors>()!.background,
           child: Column(
             children: [
               if (Constants.enableExchange)
                 Container(
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.background,
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
                     boxShadow: [
-                      StackTheme.instance.standardBoxShadow,
+                      Theme.of(context)
+                          .extension<StackColors>()!
+                          .standardBoxShadow,
                     ],
                   ),
                   child: const Padding(

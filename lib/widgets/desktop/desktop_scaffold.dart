@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class DesktopScaffold extends StatelessWidget {
   const DesktopScaffold({
@@ -16,7 +16,8 @@ class DesktopScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: background ?? StackTheme.instance.color.background,
+      color:
+          background ?? Theme.of(context).extension<StackColors>()!.background,
       child: Column(
         // crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -49,13 +50,15 @@ class MasterScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isDesktop) {
       return DesktopScaffold(
-        background: background ?? StackTheme.instance.color.background,
+        background: background ??
+            Theme.of(context).extension<StackColors>()!.background,
         appBar: appBar,
         body: body,
       );
     } else {
       return Scaffold(
-        backgroundColor: background ?? StackTheme.instance.color.background,
+        backgroundColor: background ??
+            Theme.of(context).extension<StackColors>()!.background,
         appBar: appBar as PreferredSizeWidget?,
         body: body,
       );

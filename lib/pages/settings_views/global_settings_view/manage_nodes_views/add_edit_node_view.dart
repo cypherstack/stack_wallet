@@ -19,7 +19,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -192,7 +192,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             : null;
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -207,7 +207,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         ),
         title: Text(
           viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           if (viewType == AddEditNodeViewType.edit)
@@ -223,10 +223,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   key: const Key("deleteNodeAppBarButtonKey"),
                   size: 36,
                   shadows: const [],
-                  color: StackTheme.instance.color.background,
+                  color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.trash,
-                    color: StackTheme.instance.color.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -293,23 +295,30 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                   await _testConnection();
                                 }
                               : null,
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getSecondaryEnabledButtonColor(context),
                           child: Text(
                             "Test connection",
-                            style: STextStyles.button.copyWith(
+                            style: STextStyles.button(context).copyWith(
                               color: testConnectionEnabled
-                                  ? StackTheme.instance.color.textDark
-                                  : StackTheme.instance.color.textWhite,
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textWhite,
                             ),
                           ),
                         ),
                         const SizedBox(height: 16),
                         TextButton(
                           style: saveEnabled
-                              ? StackTheme.instance
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getPrimaryEnabledButtonColor(context)
-                              : StackTheme.instance
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getPrimaryDisabledButtonColor(context),
                           onPressed: saveEnabled
                               ? () async {
@@ -333,21 +342,25 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                           },
                                           child: Text(
                                             "Cancel",
-                                            style: STextStyles.button.copyWith(
-                                                color: StackTheme.instance.color
-                                                    .accentColorDark),
+                                            style: STextStyles.button(context)
+                                                .copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .accentColorDark),
                                           ),
                                         ),
                                         rightButton: TextButton(
                                           onPressed: () async {
                                             Navigator.of(context).pop(true);
                                           },
-                                          style: StackTheme.instance
+                                          style: Theme.of(context)
+                                              .extension<StackColors>()!
                                               .getPrimaryEnabledButtonColor(
                                                   context),
                                           child: Text(
                                             "Save",
-                                            style: STextStyles.button,
+                                            style: STextStyles.button(context),
                                           ),
                                         ),
                                       ),
@@ -440,7 +453,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                               : null,
                           child: Text(
                             "Save",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],
@@ -637,10 +650,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             enabled: enableField(_nameController),
             controller: _nameController,
             focusNode: _nameFocusNode,
-            style: STextStyles.field,
+            style: STextStyles.field(context),
             decoration: standardInputDecoration(
               "Node name",
               _nameFocusNode,
+              context,
             ).copyWith(
               suffixIcon: !widget.readOnly && _nameController.text.isNotEmpty
                   ? Padding(
@@ -683,12 +697,13 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   enabled: enableField(_hostController),
                   controller: _hostController,
                   focusNode: _hostFocusNode,
-                  style: STextStyles.field,
+                  style: STextStyles.field(context),
                   decoration: standardInputDecoration(
                     (widget.coin != Coin.monero && widget.coin != Coin.epicCash)
                         ? "IP address"
                         : "Url",
                     _hostFocusNode,
+                    context,
                   ).copyWith(
                     suffixIcon:
                         !widget.readOnly && _hostController.text.isNotEmpty
@@ -733,10 +748,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   focusNode: _portFocusNode,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   keyboardType: TextInputType.number,
-                  style: STextStyles.field,
+                  style: STextStyles.field(context),
                   decoration: standardInputDecoration(
                     "Port",
                     _portFocusNode,
+                    context,
                   ).copyWith(
                     suffixIcon:
                         !widget.readOnly && _portController.text.isNotEmpty
@@ -781,10 +797,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               enabled: enableField(_usernameController),
               keyboardType: TextInputType.number,
               focusNode: _usernameFocusNode,
-              style: STextStyles.field,
+              style: STextStyles.field(context),
               decoration: standardInputDecoration(
                 "Login (optional)",
                 _usernameFocusNode,
+                context,
               ).copyWith(
                 suffixIcon:
                     !widget.readOnly && _usernameController.text.isNotEmpty
@@ -827,10 +844,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               enabled: enableField(_passwordController),
               keyboardType: TextInputType.number,
               focusNode: _passwordFocusNode,
-              style: STextStyles.field,
+              style: STextStyles.field(context),
               decoration: standardInputDecoration(
                 "Password (optional)",
                 _passwordFocusNode,
+                context,
               ).copyWith(
                 suffixIcon:
                     !widget.readOnly && _passwordController.text.isNotEmpty
@@ -883,8 +901,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         height: 20,
                         child: Checkbox(
                           fillColor: widget.readOnly
-                              ? MaterialStateProperty.all(
-                                  StackTheme.instance.color.checkboxBGDisabled)
+                              ? MaterialStateProperty.all(Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .checkboxBGDisabled)
                               : null,
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
@@ -904,7 +923,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       ),
                       Text(
                         "Use SSL",
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       )
                     ],
                   ),
@@ -967,7 +986,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       ),
                       Text(
                         "Use as failover",
-                        style: STextStyles.itemSubtitle12,
+                        style: STextStyles.itemSubtitle12(context),
                       )
                     ],
                   ),

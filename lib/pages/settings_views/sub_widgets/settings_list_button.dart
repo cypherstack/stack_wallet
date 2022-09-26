@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class SettingsListButton extends StatelessWidget {
   const SettingsListButton({
@@ -21,7 +21,7 @@ class SettingsListButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RawMaterialButton(
-      // splashColor: StackTheme.instance.color.highlight,
+      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
       constraints: const BoxConstraints(
         minHeight: 32,
         minWidth: 32,
@@ -41,7 +41,9 @@ class SettingsListButton extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: StackTheme.instance.color.buttonBackSecondary,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonBackSecondary,
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Center(
@@ -51,7 +53,9 @@ class SettingsListButton extends StatelessWidget {
                   child: Center(
                     child: SvgPicture.asset(
                       iconAssetName,
-                      color: StackTheme.instance.color.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                       width: iconSize,
                       height: iconSize,
                     ),
@@ -65,8 +69,10 @@ class SettingsListButton extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: STextStyles.smallMed14.copyWith(
-                  color: StackTheme.instance.color.accentColorDark,
+                style: STextStyles.smallMed14(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                 ),
               ),
             ),

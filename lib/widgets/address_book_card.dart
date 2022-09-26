@@ -7,7 +7,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class AddressBookCard extends ConsumerStatefulWidget {
@@ -54,7 +54,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(4),
       child: RawMaterialButton(
-        // splashColor: StackTheme.instance.color.highlight,
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         padding: const EdgeInsets.all(0),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
@@ -80,13 +80,19 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: StackTheme.instance.color.textFieldDefaultBG,
+                  color: contact.id == "default"
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .myStackContactIconBG
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(32),
                 ),
                 child: contact.id == "default"
                     ? Center(
                         child: SvgPicture.asset(
-                          Assets.svg.stackIcon,
+                          Assets.svg.stackIcon(context),
                           width: 20,
                         ),
                       )
@@ -109,14 +115,14 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                 children: [
                   Text(
                     contact.name,
-                    style: STextStyles.itemSubtitle12,
+                    style: STextStyles.itemSubtitle12(context),
                   ),
                   const SizedBox(
                     height: 4,
                   ),
                   Text(
                     coinsString,
-                    style: STextStyles.label,
+                    style: STextStyles.label(context),
                   ),
                 ],
               )

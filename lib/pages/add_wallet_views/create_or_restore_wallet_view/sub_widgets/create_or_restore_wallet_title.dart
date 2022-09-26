@@ -17,7 +17,9 @@ class CreateRestoreWalletTitle extends StatelessWidget {
     return Text(
       "Add ${coin.prettyName} wallet",
       textAlign: TextAlign.center,
-      style: isDesktop ? STextStyles.desktopH2 : STextStyles.pageTitleH1,
+      style: isDesktop
+          ? STextStyles.desktopH2(context)
+          : STextStyles.pageTitleH1(context),
     );
   }
 }

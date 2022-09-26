@@ -8,11 +8,10 @@ enum ThemeType {
 }
 
 abstract class StackColorTheme {
+  ThemeType get themeType;
+
   Color get background;
   Color get overlay;
-  Color get warningBackground;
-  Color get splash;
-  Color get highlight;
 
   Color get accentColorBlue;
   Color get accentColorGreen;
@@ -163,6 +162,19 @@ abstract class StackColorTheme {
   Color get stackWalletMid;
   Color get stackWalletBottom;
   Color get bottomNavShadow;
+
+  Color get favoriteStarActive;
+  Color get favoriteStarInactive;
+
+  Color get splash;
+  Color get highlight;
+  Color get warningForeground;
+  Color get warningBackground;
+
+  Color get loadingOverlayTextColor;
+  Color get myStackContactIconBG;
+  Color get textConfirmTotalAmount;
+  Color get textSelectedWordTableItem;
 }
 
 class CoinThemeColor {

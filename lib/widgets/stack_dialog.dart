@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class StackDialogBase extends StatelessWidget {
   const StackDialogBase({
@@ -25,7 +25,7 @@ class StackDialogBase extends StatelessWidget {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: StackTheme.instance.color.popupBG,
+                color: Theme.of(context).extension<StackColors>()!.popupBG,
                 borderRadius: BorderRadius.circular(
                   20,
                 ),
@@ -72,7 +72,7 @@ class StackDialog extends StatelessWidget {
               Flexible(
                 child: Text(
                   title,
-                  style: STextStyles.pageTitleH2,
+                  style: STextStyles.pageTitleH2(context),
                 ),
               ),
               icon != null ? icon! : Container(),
@@ -88,7 +88,7 @@ class StackDialog extends StatelessWidget {
               children: [
                 Text(
                   message!,
-                  style: STextStyles.smallMed14,
+                  style: STextStyles.smallMed14(context),
                 ),
               ],
             ),
@@ -146,7 +146,7 @@ class StackOkDialog extends StatelessWidget {
               Flexible(
                 child: Text(
                   title,
-                  style: STextStyles.pageTitleH2,
+                  style: STextStyles.pageTitleH2(context),
                 ),
               ),
               icon != null ? icon! : Container(),
@@ -162,7 +162,7 @@ class StackOkDialog extends StatelessWidget {
               children: [
                 Text(
                   message!,
-                  style: STextStyles.smallMed14,
+                  style: STextStyles.smallMed14(context),
                 ),
               ],
             ),
@@ -183,11 +183,12 @@ class StackOkDialog extends StatelessWidget {
                     Navigator.of(context).pop();
                     onOkPressed?.call("OK");
                   },
-                  style:
-                      StackTheme.instance.getPrimaryEnabledButtonColor(context),
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonColor(context),
                   child: Text(
                     "Ok",
-                    style: STextStyles.button,
+                    style: STextStyles.button(context),
                   ),
                 ),
               ),

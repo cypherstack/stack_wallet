@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class MnemonicTableItem extends StatelessWidget {
@@ -28,11 +28,15 @@ class MnemonicTableItem extends StatelessWidget {
           Text(
             number.toString(),
             style: isDesktop
-                ? STextStyles.desktopTextExtraSmall.copyWith(
-                    color: StackTheme.instance.color.textSubtitle2,
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle2,
                   )
-                : STextStyles.baseXS.copyWith(
-                    color: StackTheme.instance.color.textSubtitle2,
+                : STextStyles.baseXS(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle2,
                     fontSize: 10,
                   ),
           ),
@@ -42,10 +46,10 @@ class MnemonicTableItem extends StatelessWidget {
           Text(
             word,
             style: isDesktop
-                ? STextStyles.desktopTextExtraSmall.copyWith(
-                    color: StackTheme.instance.color.textDark,
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(context).extension<StackColors>()!.textDark,
                   )
-                : STextStyles.baseXS,
+                : STextStyles.baseXS(context),
           ),
         ],
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class DesktopMenuItem<T> extends StatelessWidget {
   const DesktopMenuItem({
@@ -24,8 +24,12 @@ class DesktopMenuItem<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       style: value == group
-          ? StackTheme.instance.getDesktopMenuButtonColorSelected(context)
-          : StackTheme.instance.getDesktopMenuButtonColor(context),
+          ? Theme.of(context)
+              .extension<StackColors>()!
+              .getDesktopMenuButtonColorSelected(context)
+          : Theme.of(context)
+              .extension<StackColors>()!
+              .getDesktopMenuButtonColor(context),
       onPressed: () {
         onChanged(value);
       },
@@ -47,8 +51,8 @@ class DesktopMenuItem<T> extends StatelessWidget {
               Text(
                 label,
                 style: value == group
-                    ? STextStyles.desktopMenuItemSelected
-                    : STextStyles.desktopMenuItem,
+                    ? STextStyles.desktopMenuItemSelected(context)
+                    : STextStyles.desktopMenuItem(context),
               ),
           ],
         ),

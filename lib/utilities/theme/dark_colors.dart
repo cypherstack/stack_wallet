@@ -3,15 +3,12 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class DarkColors extends StackColorTheme {
   @override
+  ThemeType get themeType => ThemeType.dark;
+
+  @override
   Color get background => const Color(0xFF2A2D34);
   @override
   Color get overlay => const Color(0xFF111215);
-  @override
-  Color get warningBackground => const Color(0xFFFFB4A9);
-  @override
-  Color get splash => const Color(0x358E9192);
-  @override
-  Color get highlight => const Color(0x44A9ACAC);
 
   @override
   Color get accentColorBlue => const Color(0xFF4C86E9);
@@ -73,7 +70,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get numpadBackDefault => const Color(0xFF4C86E9);
   @override
-  Color get bottomNavBack => const Color(0xFFA2A2A2);
+  Color get bottomNavBack => const Color(0xFF3E4148);
 
   // button text/element
   @override
@@ -191,7 +188,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get textFieldErrorBG => const Color(0xFFFFB4A9);
   @override
-  Color get textFieldSuccessBG => const Color(0xFFB9E9D4);
+  Color get textFieldSuccessBG => const Color(0xFF8EF5C3);
 
   @override
   Color get textFieldActiveSearchIconLeft => const Color(0xFFA9ACAC);
@@ -284,4 +281,26 @@ class DarkColors extends StackColorTheme {
   Color get stackWalletBottom => const Color(0xFFFFFFFF);
   @override
   Color get bottomNavShadow => const Color(0xFF282E33);
+
+  @override
+  Color get favoriteStarActive => accentColorYellow;
+  @override
+  Color get favoriteStarInactive => textSubtitle2;
+
+  @override
+  Color get splash => const Color(0x358E9192);
+  @override
+  Color get highlight => const Color(0x44A9ACAC);
+  @override
+  Color get warningForeground => snackBarTextError;
+  @override
+  Color get warningBackground => const Color(0xFFFFB4A9);
+  @override
+  Color get loadingOverlayTextColor => const Color(0xFFF7F7F7);
+  @override
+  Color get myStackContactIconBG => const Color(0x88747778);
+  @override
+  Color get textConfirmTotalAmount => const Color(0xFF003921);
+  @override
+  Color get textSelectedWordTableItem => const Color(0xFF00297A);
 }

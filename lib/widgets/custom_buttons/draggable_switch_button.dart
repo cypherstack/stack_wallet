@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class DraggableSwitchButton extends StatefulWidget {
   const DraggableSwitchButton({
@@ -37,21 +37,27 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
   Color _colorBG(bool isOn, bool enabled, double alpha) {
     if (enabled) {
       return Color.alphaBlend(
-        StackTheme.instance.color.switchBGOn.withOpacity(alpha),
-        StackTheme.instance.color.switchBGOff,
+        Theme.of(context)
+            .extension<StackColors>()!
+            .switchBGOn
+            .withOpacity(alpha),
+        Theme.of(context).extension<StackColors>()!.switchBGOff,
       );
     }
-    return StackTheme.instance.color.switchBGDisabled;
+    return Theme.of(context).extension<StackColors>()!.switchBGDisabled;
   }
 
   Color _colorFG(bool isOn, bool enabled, double alpha) {
     if (enabled) {
       return Color.alphaBlend(
-        StackTheme.instance.color.switchCircleOn.withOpacity(alpha),
-        StackTheme.instance.color.switchCircleOff,
+        Theme.of(context)
+            .extension<StackColors>()!
+            .switchCircleOn
+            .withOpacity(alpha),
+        Theme.of(context).extension<StackColors>()!.switchCircleOff,
       );
     }
-    return StackTheme.instance.color.switchCircleDisabled;
+    return Theme.of(context).extension<StackColors>()!.switchCircleDisabled;
   }
 
   @override

@@ -8,7 +8,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 
@@ -31,9 +31,10 @@ class ChangePinView extends StatefulWidget {
 class _ChangePinViewState extends State<ChangePinView> {
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: StackTheme.instance.color.textSubtitle2,
-      border:
-          Border.all(width: 1, color: StackTheme.instance.color.textSubtitle2),
+      color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
+      border: Border.all(
+          width: 1,
+          color: Theme.of(context).extension<StackColors>()!.textSubtitle2),
       borderRadius: BorderRadius.circular(6),
     );
   }
@@ -70,7 +71,7 @@ class _ChangePinViewState extends State<ChangePinView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -96,7 +97,7 @@ class _ChangePinViewState extends State<ChangePinView> {
                 Center(
                   child: Text(
                     "Create new PIN",
-                    style: STextStyles.pageTitleH1,
+                    style: STextStyles.pageTitleH1(context),
                   ),
                 ),
                 const SizedBox(
@@ -106,7 +107,7 @@ class _ChangePinViewState extends State<ChangePinView> {
                   fieldsCount: Constants.pinLength,
                   eachFieldHeight: 12,
                   eachFieldWidth: 12,
-                  textStyle: STextStyles.label.copyWith(
+                  textStyle: STextStyles.label(context).copyWith(
                     fontSize: 1,
                   ),
                   focusNode: _pinPutFocusNode1,
@@ -120,14 +121,19 @@ class _ChangePinViewState extends State<ChangePinView> {
                     disabledBorder: InputBorder.none,
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
-                    fillColor: StackTheme.instance.color.background,
+                    fillColor:
+                        Theme.of(context).extension<StackColors>()!.background,
                     counterText: "",
                   ),
                   submittedFieldDecoration: _pinPutDecoration.copyWith(
-                    color: StackTheme.instance.color.infoItemIcons,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .infoItemIcons,
                     border: Border.all(
                       width: 1,
-                      color: StackTheme.instance.color.infoItemIcons,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemIcons,
                     ),
                   ),
                   selectedFieldDecoration: _pinPutDecoration,
@@ -152,7 +158,7 @@ class _ChangePinViewState extends State<ChangePinView> {
                 Center(
                   child: Text(
                     "Confirm new PIN",
-                    style: STextStyles.pageTitleH1,
+                    style: STextStyles.pageTitleH1(context),
                   ),
                 ),
                 const SizedBox(
@@ -176,14 +182,19 @@ class _ChangePinViewState extends State<ChangePinView> {
                     disabledBorder: InputBorder.none,
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
-                    fillColor: StackTheme.instance.color.background,
+                    fillColor:
+                        Theme.of(context).extension<StackColors>()!.background,
                     counterText: "",
                   ),
                   submittedFieldDecoration: _pinPutDecoration.copyWith(
-                    color: StackTheme.instance.color.infoItemIcons,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .infoItemIcons,
                     border: Border.all(
                       width: 1,
-                      color: StackTheme.instance.color.infoItemIcons,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemIcons,
                     ),
                   ),
                   selectedFieldDecoration: _pinPutDecoration,

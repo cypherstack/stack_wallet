@@ -14,8 +14,9 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/emoji_select_sheet.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -73,10 +74,23 @@ class _AddAddressBookEntryViewState
   }
 
   List<NewContactAddressEntryForm> forms = [];
-  int _formCount = 0;
+  final Set<int> _formIds = {};
+
+  void _removeForm(int id) {
+    forms.retainWhere((e) => e.id != id);
+    _formIds.remove(id);
+    ref.refresh(addressEntryDataProvider(id));
+    setState(() {});
+  }
 
   void _addForm() {
-    int id = ++_formCount;
+    int id = 0;
+    // ensure unique form id while allowing reuse of removed form ids
+    while (_formIds.contains(id)) {
+      id++;
+    }
+    _formIds.add(id);
+
     forms.add(
       NewContactAddressEntryForm(
         key: Key("contactAddressEntryForm_$id"),
@@ -93,7 +107,7 @@ class _AddAddressBookEntryViewState
     debugPrint("BUILD: $runtimeType");
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -108,7 +122,7 @@ class _AddAddressBookEntryViewState
         ),
         title: Text(
           "New contact",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -123,12 +137,16 @@ class _AddAddressBookEntryViewState
                 key: const Key("addAddressBookEntryFavoriteButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: StackTheme.instance.color.background,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.star,
                   color: _isFavorite
-                      ? StackTheme.instance.color.accentColorRed
-                      : StackTheme.instance.color.buttonBackSecondary,
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .favoriteStarActive
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .favoriteStarInactive,
                   width: 20,
                   height: 20,
                 ),
@@ -200,8 +218,9 @@ class _AddAddressBookEntryViewState
                                 width: 48,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(24),
-                                  color: StackTheme
-                                      .instance.color.textFieldActiveBG,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveBG,
                                 ),
                                 child: Center(
                                   child: _selectedEmoji == null
@@ -212,7 +231,8 @@ class _AddAddressBookEntryViewState
                                         )
                                       : Text(
                                           _selectedEmoji!.char,
-                                          style: STextStyles.pageTitleH1,
+                                          style:
+                                              STextStyles.pageTitleH1(context),
                                         ),
                                 ),
                               ),
@@ -223,21 +243,24 @@ class _AddAddressBookEntryViewState
                                   width: 14,
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(14),
-                                      color: StackTheme
-                                          .instance.color.accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                   child: Center(
                                     child: _selectedEmoji == null
                                         ? SvgPicture.asset(
                                             Assets.svg.plus,
-                                            color: StackTheme
-                                                .instance.color.textWhite,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textWhite,
                                             width: 12,
                                             height: 12,
                                           )
                                         : SvgPicture.asset(
                                             Assets.svg.thickX,
-                                            color: StackTheme
-                                                .instance.color.textWhite,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textWhite,
                                             width: 8,
                                             height: 8,
                                           ),
@@ -258,10 +281,11 @@ class _AddAddressBookEntryViewState
                         child: TextField(
                           controller: nameController,
                           focusNode: nameFocusNode,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           decoration: standardInputDecoration(
                             "Enter contact name",
                             nameFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: ref
                                     .read(contactNameIsNotEmptyStateProvider
@@ -293,22 +317,34 @@ class _AddAddressBookEntryViewState
                           },
                         ),
                       ),
-                      if (_formCount <= 1)
+                      if (forms.length <= 1)
                         const SizedBox(
                           height: 8,
                         ),
-                      if (_formCount <= 1) forms[0],
-                      if (_formCount > 1)
-                        for (int i = 0; i < _formCount; i++)
+                      if (forms.length <= 1) forms[0],
+                      if (forms.length > 1)
+                        for (int i = 0; i < forms.length; i++)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(
                                 height: 12,
                               ),
-                              Text(
-                                "Address ${i + 1}",
-                                style: STextStyles.smallMed12,
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Address ${i + 1}",
+                                    style: STextStyles.smallMed12(context),
+                                  ),
+                                  BlueTextButton(
+                                    onTap: () {
+                                      _removeForm(forms[i].id);
+                                    },
+                                    text: "Remove",
+                                  ),
+                                ],
                               ),
                               const SizedBox(
                                 height: 8,
@@ -319,7 +355,7 @@ class _AddAddressBookEntryViewState
                       const SizedBox(
                         height: 16,
                       ),
-                      GestureDetector(
+                      BlueTextButton(
                         onTap: () {
                           _addForm();
                           scrollController.animateTo(
@@ -328,11 +364,15 @@ class _AddAddressBookEntryViewState
                             curve: Curves.easeInOut,
                           );
                         },
-                        child: Text(
-                          "+ Add another address",
-                          style: STextStyles.largeMedium14,
-                        ),
+                        text: "+ Add another address",
                       ),
+                      // GestureDetector(
+                      //
+                      //   child: Text(
+                      //     "+ Add another address",
+                      //     style: STextStyles.largeMedium14(context),
+                      //   ),
+                      // ),
                       const SizedBox(
                         height: 16,
                       ),
@@ -341,13 +381,15 @@ class _AddAddressBookEntryViewState
                         children: [
                           Expanded(
                             child: TextButton(
-                              style: StackTheme.instance
+                              style: Theme.of(context)
+                                  .extension<StackColors>()!
                                   .getSecondaryEnabledButtonColor(context),
                               child: Text(
                                 "Cancel",
-                                style: STextStyles.button.copyWith(
-                                    color: StackTheme
-                                        .instance.color.accentColorDark),
+                                style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark),
                               ),
                               onPressed: () async {
                                 if (FocusScope.of(context).hasFocus) {
@@ -382,9 +424,11 @@ class _AddAddressBookEntryViewState
 
                                 return TextButton(
                                   style: shouldEnableSave
-                                      ? StackTheme.instance
+                                      ? Theme.of(context)
+                                          .extension<StackColors>()!
                                           .getPrimaryEnabledButtonColor(context)
-                                      : StackTheme.instance
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
                                           .getPrimaryDisabledButtonColor(
                                               context),
                                   onPressed: shouldEnableSave
@@ -397,10 +441,12 @@ class _AddAddressBookEntryViewState
                                           }
                                           List<ContactAddressEntry> entries =
                                               [];
-                                          for (int i = 0; i < _formCount; i++) {
+                                          for (int i = 0;
+                                              i < forms.length;
+                                              i++) {
                                             entries.add(ref
                                                 .read(addressEntryDataProvider(
-                                                    i + 1))
+                                                    forms[i].id))
                                                 .buildAddressEntry());
                                           }
                                           Contact contact = Contact(
@@ -424,7 +470,15 @@ class _AddAddressBookEntryViewState
                                       : null,
                                   child: Text(
                                     "Save",
-                                    style: STextStyles.button,
+                                    style: STextStyles.button(context).copyWith(
+                                      color: shouldEnableSave
+                                          ? Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .buttonTextPrimary
+                                          : Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .buttonTextPrimaryDisabled,
+                                    ),
                                   ),
                                 );
                               },

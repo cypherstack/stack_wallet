@@ -3,7 +3,7 @@ import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_yo
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:tuple/tuple.dart';
 
 class CreateWalletButtonGroup extends StatelessWidget {
@@ -28,7 +28,9 @@ class CreateWalletButtonGroup extends StatelessWidget {
             minWidth: isDesktop ? 480 : 0,
           ),
           child: TextButton(
-            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonColor(context),
             onPressed: () {
               Navigator.of(context).pushNamed(
                 NameYourWalletView.routeName,
@@ -41,8 +43,8 @@ class CreateWalletButtonGroup extends StatelessWidget {
             child: Text(
               "Create new wallet",
               style: isDesktop
-                  ? STextStyles.desktopButtonEnabled
-                  : STextStyles.button,
+                  ? STextStyles.desktopButtonEnabled(context)
+                  : STextStyles.button(context),
             ),
           ),
         ),
@@ -55,7 +57,9 @@ class CreateWalletButtonGroup extends StatelessWidget {
             minWidth: isDesktop ? 480 : 0,
           ),
           child: TextButton(
-            style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonColor(context),
             onPressed: () {
               Navigator.of(context).pushNamed(
                 NameYourWalletView.routeName,
@@ -68,9 +72,11 @@ class CreateWalletButtonGroup extends StatelessWidget {
             child: Text(
               "Restore wallet",
               style: isDesktop
-                  ? STextStyles.desktopButtonSecondaryEnabled
-                  : STextStyles.button.copyWith(
-                      color: StackTheme.instance.color.accentColorDark),
+                  ? STextStyles.desktopButtonSecondaryEnabled(context)
+                  : STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
             ),
           ),
         ),

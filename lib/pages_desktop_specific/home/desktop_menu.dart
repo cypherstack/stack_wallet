@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu_item.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class DesktopMenu extends ConsumerStatefulWidget {
   const DesktopMenu({
@@ -41,7 +41,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: StackTheme.instance.color.popupBG,
+      color: Theme.of(context).extension<StackColors>()!.popupBG,
       child: SizedBox(
         width: _width,
         child: Column(
@@ -54,7 +54,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               width: _width == expandedWidth ? 70 : 32,
               height: _width == expandedWidth ? 70 : 32,
               child: SvgPicture.asset(
-                Assets.svg.stackIcon,
+                Assets.svg.stackIcon(context),
               ),
             ),
             const SizedBox(
@@ -62,7 +62,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
             ),
             Text(
               _width == expandedWidth ? "Stack Wallet" : "",
-              style: STextStyles.desktopH2.copyWith(
+              style: STextStyles.desktopH2(context).copyWith(
                 fontSize: 18,
                 height: 23.4 / 18,
               ),

@@ -3,15 +3,12 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class LightColors extends StackColorTheme {
   @override
+  ThemeType get themeType => ThemeType.light;
+
+  @override
   Color get background => const Color(0xFFF7F7F7);
   @override
   Color get overlay => const Color(0xFF111215);
-  @override
-  Color get warningBackground => const Color(0xFFFFDAD3);
-  @override
-  Color get splash => const Color(0x358E9192);
-  @override
-  Color get highlight => const Color(0x44A9ACAC);
 
   @override
   Color get accentColorBlue => const Color(0xFF4C86E9);
@@ -73,7 +70,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get numpadBackDefault => const Color(0xFF232323);
   @override
-  Color get bottomNavBack => const Color(0xFFA2A2A2);
+  Color get bottomNavBack => const Color(0xFFFFFFFF);
 
   // button text/element
   @override
@@ -89,7 +86,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get buttonTextDisabled => const Color(0xFFB6B6B6);
   @override
-  Color get buttonTextBorderless => const Color(0xFF232323);
+  Color get buttonTextBorderless => const Color(0xFF0052DF);
   @override
   Color get buttonTextBorderlessDisabled => const Color(0xFFB6B6B6);
   @override
@@ -129,7 +126,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get stepIndicatorIconNumber => const Color(0xFF0056D2);
   @override
-  Color get stepIndicatorIconInactive => const Color(0xFFD9E2FF);
+  Color get stepIndicatorIconInactive => const Color(0xFFF7F7F7);
 
   // checkbox
   @override
@@ -243,7 +240,7 @@ class LightColors extends StackColorTheme {
   @override
   Color get radioButtonBorderEnabled => const Color(0xFF0056D2);
   @override
-  Color get radioButtonBorderDisabled => const Color(0xFFCDCDCD);
+  Color get radioButtonBorderDisabled => const Color(0xFF8F909A);
   @override
   Color get radioButtonIconCircle => const Color(0xFF0056D2);
   @override
@@ -273,7 +270,7 @@ class LightColors extends StackColorTheme {
 
   // currency list
   @override
-  Color get currencyListItemBG => const Color(0xFFD9E2FF);
+  Color get currencyListItemBG => const Color(0xFFF9F9FC);
 
   // bottom nav
   @override
@@ -284,4 +281,26 @@ class LightColors extends StackColorTheme {
   Color get stackWalletBottom => const Color(0xFF232323);
   @override
   Color get bottomNavShadow => const Color(0xFF282E33);
+
+  @override
+  Color get favoriteStarActive => infoItemIcons;
+  @override
+  Color get favoriteStarInactive => textSubtitle3;
+
+  @override
+  Color get splash => const Color(0x358E9192);
+  @override
+  Color get highlight => const Color(0x44A9ACAC);
+  @override
+  Color get warningForeground => textDark;
+  @override
+  Color get warningBackground => const Color(0xFFFFDAD3);
+  @override
+  Color get loadingOverlayTextColor => const Color(0xFFF7F7F7);
+  @override
+  Color get myStackContactIconBG => textFieldDefaultBG;
+  @override
+  Color get textConfirmTotalAmount => const Color(0xFF232323);
+  @override
+  Color get textSelectedWordTableItem => const Color(0xFF232323);
 }

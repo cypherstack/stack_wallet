@@ -10,7 +10,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
@@ -35,23 +35,23 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: StackTheme.instance.color.buttonBackSecondary,
+          color: Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return const LoadingIndicator();
       // return SvgPicture.asset(
       //   Assets.svg.loader,
-      //   color: StackTheme.instance.color.accentColorGreen,
+      //   color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
       // );
       case StackRestoringStatus.success:
         return SvgPicture.asset(
           Assets.svg.checkCircle,
-          color: StackTheme.instance.color.accentColorGreen,
+          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
         );
       case StackRestoringStatus.failed:
         return SvgPicture.asset(
           Assets.svg.circleAlert,
-          color: StackTheme.instance.color.textError,
+          color: Theme.of(context).extension<StackColors>()!.textError,
         );
     }
   }
@@ -73,7 +73,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
         height: 32,
         child: RoundedContainer(
           padding: const EdgeInsets.all(0),
-          color: StackTheme.instance.colorForCoin(coin),
+          color: Theme.of(context).extension<StackColors>()!.colorForCoin(coin),
           child: Center(
             child: SvgPicture.asset(
               Assets.svg.iconFor(
@@ -143,26 +143,26 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
       subTitle: restoringStatus == StackRestoringStatus.failed
           ? Text(
               "Unable to restore. Tap icon to retry.",
-              style: STextStyles.errorSmall,
+              style: STextStyles.errorSmall(context),
             )
           : ref.watch(provider.select((value) => value.address)) != null
               ? Text(
                   ref.watch(provider.select((value) => value.address))!,
-                  style: STextStyles.infoSmall,
+                  style: STextStyles.infoSmall(context),
                 )
               : null,
       button: restoringStatus == StackRestoringStatus.failed
           ? Container(
               height: 20,
               decoration: BoxDecoration(
-                color: StackTheme.instance.color.buttonBackSecondary,
+                color: Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
                 borderRadius: BorderRadius.circular(
                   1000,
                 ),
               ),
               child: RawMaterialButton(
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                splashColor: StackTheme.instance.color.highlight,
+                splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     1000,
@@ -186,8 +186,8 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Text(
                     "Show recovery phrase",
-                    style: STextStyles.infoSmall.copyWith(
-                        color: StackTheme.instance.color.accentColorDark),
+                    style: STextStyles.infoSmall(context).copyWith(
+                        color: Theme.of(context).extension<StackColors>()!.accentColorDark),
                   ),
                 ),
               ),

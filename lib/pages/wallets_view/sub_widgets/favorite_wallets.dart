@@ -10,7 +10,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_page_view/custom_page_view.dart'
     as cpv;
 
@@ -82,8 +82,8 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
             children: [
               Text(
                 "Favorite Wallets",
-                style: STextStyles.itemSubtitle.copyWith(
-                  color: StackTheme.instance.color.textDark3,
+                style: STextStyles.itemSubtitle(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
                 ),
               ),
               const Spacer(),
@@ -91,13 +91,15 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                 TextButton(
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all<Color>(
-                        StackTheme.instance.color.background),
+                        Theme.of(context).extension<StackColors>()!.background),
                   ),
                   child: SvgPicture.asset(
                     Assets.svg.ellipsis,
                     width: 16,
                     height: 16,
-                    color: StackTheme.instance.color.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                   onPressed: () {
                     Navigator.of(context).pushNamed(
@@ -120,12 +122,15 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                   height: cardHeight,
                   width: cardWidth,
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius),
                   ),
                   child: MaterialButton(
-                    splashColor: StackTheme.instance.color.highlight,
+                    splashColor:
+                        Theme.of(context).extension<StackColors>()!.highlight,
                     key: const Key("favoriteWalletsAddFavoriteButtonKey"),
                     padding: const EdgeInsets.all(12),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -144,14 +149,16 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                           Assets.svg.plus,
                           width: 8,
                           height: 8,
-                          color: StackTheme.instance.color.textSubtitle1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
                         ),
                         const SizedBox(
                           width: 4,
                         ),
                         Text(
                           "Add a favorite",
-                          style: STextStyles.itemSubtitle.copyWith(
+                          style: STextStyles.itemSubtitle(context).copyWith(
                             fontSize: 10,
                           ),
                         ),

@@ -9,7 +9,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -97,12 +97,14 @@ class _AddWalletViewState extends State<AddWalletView> {
                                 _searchTerm = value;
                               });
                             },
-                            style: STextStyles.desktopTextMedium.copyWith(
+                            style:
+                                STextStyles.desktopTextMedium(context).copyWith(
                               height: 2,
                             ),
                             decoration: standardInputDecoration(
                               "Search",
                               _searchFocusNode,
+                              context,
                             ).copyWith(
                               contentPadding: const EdgeInsets.symmetric(
                                 vertical: 10,
@@ -116,7 +118,8 @@ class _AddWalletViewState extends State<AddWalletView> {
                                   Assets.svg.search,
                                   width: 24,
                                   height: 24,
-                                  color: StackTheme.instance.color
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
                                       .textFieldDefaultSearchIconLeft,
                                 ),
                               ),
@@ -186,7 +189,7 @@ class _AddWalletViewState extends State<AddWalletView> {
           ),
         ),
         body: Container(
-          color: StackTheme.instance.color.background,
+          color: Theme.of(context).extension<StackColors>()!.background,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(

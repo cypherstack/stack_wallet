@@ -4,7 +4,7 @@ import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_vi
 import 'package:stackwallet/pages/wallets_view/sub_widgets/wallet_list_item.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 
 class AllWallets extends StatelessWidget {
@@ -20,8 +20,8 @@ class AllWallets extends StatelessWidget {
           children: [
             Text(
               "All wallets",
-              style: STextStyles.itemSubtitle.copyWith(
-                color: StackTheme.instance.color.textDark,
+              style: STextStyles.itemSubtitle(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
             ),
             BlueTextButton(

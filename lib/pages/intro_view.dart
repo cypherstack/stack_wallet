@@ -5,7 +5,7 @@ import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -29,7 +29,7 @@ class _IntroViewState extends State<IntroView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       body: Center(
         child: !isDesktop
             ? Column(
@@ -110,7 +110,7 @@ class _IntroViewState extends State<IntroView> {
                       width: 130,
                       height: 130,
                       child: SvgPicture.asset(
-                        Assets.svg.stackIcon,
+                        Assets.svg.stackIcon(context),
                       ),
                     ),
                     const Spacer(
@@ -156,8 +156,8 @@ class AppNameText extends StatelessWidget {
       "Stack Wallet",
       textAlign: TextAlign.center,
       style: !isDesktop
-          ? STextStyles.pageTitleH1
-          : STextStyles.pageTitleH1.copyWith(
+          ? STextStyles.pageTitleH1(context)
+          : STextStyles.pageTitleH1(context).copyWith(
               fontSize: 40,
             ),
     );
@@ -175,8 +175,8 @@ class IntroAboutText extends StatelessWidget {
       "An open-source, multicoin wallet for everyone",
       textAlign: TextAlign.center,
       style: !isDesktop
-          ? STextStyles.subtitle
-          : STextStyles.subtitle.copyWith(
+          ? STextStyles.subtitle(context)
+          : STextStyles.subtitle(context).copyWith(
               fontSize: 24,
             ),
     );
@@ -195,12 +195,12 @@ class PrivacyAndTOSText extends StatelessWidget {
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        style: STextStyles.label.copyWith(fontSize: fontSize),
+        style: STextStyles.label(context).copyWith(fontSize: fontSize),
         children: [
           const TextSpan(text: "By using Stack Wallet, you agree to the "),
           TextSpan(
             text: "Terms of service",
-            style: STextStyles.richLink.copyWith(fontSize: fontSize),
+            style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
                 launchUrl(
@@ -212,7 +212,7 @@ class PrivacyAndTOSText extends StatelessWidget {
           const TextSpan(text: " and "),
           TextSpan(
             text: "Privacy policy",
-            style: STextStyles.richLink.copyWith(fontSize: fontSize),
+            style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
                 launchUrl(
@@ -236,26 +236,30 @@ class GetStartedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return !isDesktop
         ? TextButton(
-            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonColor(context),
             onPressed: () {
               Navigator.of(context).pushNamed(CreatePinView.routeName);
             },
             child: Text(
               "Get started",
-              style: STextStyles.button,
+              style: STextStyles.button(context),
             ),
           )
         : SizedBox(
             width: 328,
             height: 70,
             child: TextButton(
-              style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonColor(context),
               onPressed: () {
                 Navigator.of(context).pushNamed(CreatePasswordView.routeName);
               },
               child: Text(
                 "Get started",
-                style: STextStyles.button.copyWith(fontSize: 20),
+                style: STextStyles.button(context).copyWith(fontSize: 20),
               ),
             ),
           );

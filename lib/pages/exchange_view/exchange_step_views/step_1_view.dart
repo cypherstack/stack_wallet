@@ -5,7 +5,7 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -40,7 +40,7 @@ class _Step1ViewState extends State<Step1View> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -55,7 +55,7 @@ class _Step1ViewState extends State<Step1View> {
         ),
         title: Text(
           "Exchange",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -84,14 +84,14 @@ class _Step1ViewState extends State<Step1View> {
                         ),
                         Text(
                           "Confirm amount",
-                          style: STextStyles.pageTitleH1,
+                          style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(
                           height: 8,
                         ),
                         Text(
                           "Network fees and other exchange charges are included in the rate.",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 24,
@@ -102,15 +102,19 @@ class _Step1ViewState extends State<Step1View> {
                             children: [
                               Text(
                                 "You send",
-                                style: STextStyles.itemSubtitle.copyWith(
-                                    color:
-                                        StackTheme.instance.color.infoItemText),
+                                style: STextStyles.itemSubtitle(context)
+                                    .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .infoItemText),
                               ),
                               Text(
                                 "${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker.toUpperCase()}",
-                                style: STextStyles.itemSubtitle12.copyWith(
-                                    color:
-                                        StackTheme.instance.color.infoItemText),
+                                style: STextStyles.itemSubtitle12(context)
+                                    .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .infoItemText),
                               ),
                             ],
                           ),
@@ -124,15 +128,19 @@ class _Step1ViewState extends State<Step1View> {
                             children: [
                               Text(
                                 "You receive",
-                                style: STextStyles.itemSubtitle.copyWith(
-                                    color:
-                                        StackTheme.instance.color.infoItemText),
+                                style: STextStyles.itemSubtitle(context)
+                                    .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .infoItemText),
                               ),
                               Text(
                                 "~${model.receiveAmount.toStringAsFixed(8)} ${model.receiveTicker.toUpperCase()}",
-                                style: STextStyles.itemSubtitle12.copyWith(
-                                    color:
-                                        StackTheme.instance.color.infoItemText),
+                                style: STextStyles.itemSubtitle12(context)
+                                    .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .infoItemText),
                               ),
                             ],
                           ),
@@ -148,16 +156,20 @@ class _Step1ViewState extends State<Step1View> {
                                 model.rateType == ExchangeRateType.estimated
                                     ? "Estimated rate"
                                     : "Fixed rate",
-                                style: STextStyles.itemSubtitle.copyWith(
-                                  color:
-                                      StackTheme.instance.color.infoItemLabel,
+                                style:
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemLabel,
                                 ),
                               ),
                               Text(
                                 model.rateInfo,
-                                style: STextStyles.itemSubtitle12.copyWith(
-                                    color:
-                                        StackTheme.instance.color.infoItemText),
+                                style: STextStyles.itemSubtitle12(context)
+                                    .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .infoItemText),
                               ),
                             ],
                           ),
@@ -171,11 +183,12 @@ class _Step1ViewState extends State<Step1View> {
                             Navigator.of(context).pushNamed(Step2View.routeName,
                                 arguments: model);
                           },
-                          style: StackTheme.instance
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
                               .getPrimaryEnabledButtonColor(context),
                           child: Text(
                             "Next",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],

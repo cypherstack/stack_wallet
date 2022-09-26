@@ -7,7 +7,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -78,8 +78,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                 height: 24,
                 decoration: BoxDecoration(
                   color: _node.name == DefaultNodes.defaultName
-                      ? StackTheme.instance.color.buttonBackSecondary
-                      : StackTheme.instance.color.infoItemIcons
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonBackSecondary
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemIcons
                           .withOpacity(0.2),
                   borderRadius: BorderRadius.circular(100),
                 ),
@@ -89,8 +93,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     height: 11,
                     width: 14,
                     color: _node.name == DefaultNodes.defaultName
-                        ? StackTheme.instance.color.accentColorDark
-                        : StackTheme.instance.color.infoItemIcons,
+                        ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark
+                        : Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemIcons,
                   ),
                 ),
               ),
@@ -102,14 +110,14 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                 children: [
                   Text(
                     _node.name,
-                    style: STextStyles.titleBold12,
+                    style: STextStyles.titleBold12(context),
                   ),
                   const SizedBox(
                     height: 2,
                   ),
                   Text(
                     _status,
-                    style: STextStyles.label,
+                    style: STextStyles.label(context),
                   ),
                 ],
               ),
@@ -117,8 +125,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
               SvgPicture.asset(
                 Assets.svg.network,
                 color: _status == "Connected"
-                    ? StackTheme.instance.color.accentColorGreen
-                    : StackTheme.instance.color.buttonBackSecondary,
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorGreen
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonBackSecondary,
                 width: 20,
                 height: 20,
               ),

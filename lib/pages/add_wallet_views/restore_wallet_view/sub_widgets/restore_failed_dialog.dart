@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class RestoreFailedDialog extends ConsumerStatefulWidget {
@@ -45,10 +45,12 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
         title: "Restore failed",
         message: errorMessage,
         rightButton: TextButton(
-          style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getSecondaryEnabledButtonColor(context),
           child: Text(
             "Ok",
-            style: STextStyles.itemSubtitle12,
+            style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () async {
             ref

@@ -10,7 +10,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:tuple/tuple.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
@@ -70,7 +70,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                 width: widget.width,
                 height: widget.height,
                 decoration: BoxDecoration(
-                  color: StackTheme.instance.colorForCoin(coin),
+                  color: Theme.of(context).extension<StackColors>()!.colorForCoin(coin),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -137,8 +137,8 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                         child: Text(
                           ref.watch(managerProvider
                               .select((value) => value.walletName)),
-                          style: STextStyles.itemSubtitle12.copyWith(
-                            color: StackTheme.instance.color.textFavoriteCard,
+                          style: STextStyles.itemSubtitle12(context).copyWith(
+                            color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
                           ),
                           overflow: TextOverflow.fade,
                         ),
@@ -183,9 +183,9 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                                     .select((value) => value.locale),
                               ),
                             )} ${coin.ticker}",
-                            style: STextStyles.titleBold12.copyWith(
+                            style: STextStyles.titleBold12(context).copyWith(
                               fontSize: 16,
-                              color: StackTheme.instance.color.textFavoriteCard,
+                              color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
                             ),
                           ),
                         ),
@@ -204,9 +204,9 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             prefsChangeNotifierProvider
                                 .select((value) => value.currency),
                           )}",
-                          style: STextStyles.itemSubtitle12.copyWith(
+                          style: STextStyles.itemSubtitle12(context).copyWith(
                             fontSize: 10,
-                            color: StackTheme.instance.color.textFavoriteCard,
+                            color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
                           ),
                         ),
                       ],

@@ -10,7 +10,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -81,11 +81,14 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           title: "Enable Auto Backup",
           message: "To enable Auto Backup, you need to create a backup file.",
           leftButton: TextButton(
-            style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonColor(context),
             child: Text(
               "Back",
-              style: STextStyles.button.copyWith(
-                color: StackTheme.instance.color.accentColorDark,
+              style: STextStyles.button(context).copyWith(
+                color:
+                    Theme.of(context).extension<StackColors>()!.accentColorDark,
               ),
             ),
             onPressed: () {
@@ -93,10 +96,12 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             },
           ),
           rightButton: TextButton(
-            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonColor(context),
             child: Text(
               "Continue",
-              style: STextStyles.button,
+              style: STextStyles.button(context),
             ),
             onPressed: () {
               Navigator.of(context).pop(true);
@@ -133,11 +138,14 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           message:
               "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
           leftButton: TextButton(
-            style: StackTheme.instance.getSecondaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonColor(context),
             child: Text(
               "Back",
-              style: STextStyles.button.copyWith(
-                color: StackTheme.instance.color.accentColorDark,
+              style: STextStyles.button(context).copyWith(
+                color:
+                    Theme.of(context).extension<StackColors>()!.accentColorDark,
               ),
             ),
             onPressed: () {
@@ -145,10 +153,12 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             },
           ),
           rightButton: TextButton(
-            style: StackTheme.instance.getPrimaryEnabledButtonColor(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonColor(context),
             child: Text(
               "Disable",
-              style: STextStyles.button,
+              style: STextStyles.button(context),
             ),
             onPressed: () {
               Navigator.of(context).pop(true);
@@ -214,7 +224,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
     });
 
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -223,7 +233,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
         ),
         title: Text(
           "Auto Backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -234,7 +244,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
               child: RawMaterialButton(
-                // splashColor: StackTheme.instance.color.highlight,
+                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -252,7 +262,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                     children: [
                       Text(
                         "Auto Backup",
-                        style: STextStyles.titleBold12,
+                        style: STextStyles.titleBold12(context),
                         textAlign: TextAlign.left,
                       ),
                       SizedBox(
@@ -286,14 +296,14 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                 child: RichText(
                   textAlign: TextAlign.left,
                   text: TextSpan(
-                    style: STextStyles.label,
+                    style: STextStyles.label(context),
                     children: [
                       const TextSpan(
                           text:
                               "Auto Backup is a custom Stack Wallet feature that offers a convenient backup of your data.\n\nTo ensure maximum security, we recommend using a unique password that you haven't used anywhere else on the internet before. Your password is not stored.\n\nFor more information, please see our website "),
                       TextSpan(
                         text: "stackwallet.com.",
-                        style: STextStyles.richLink,
+                        style: STextStyles.richLink(context),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             launchUrl(
@@ -322,7 +332,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                         ),
                         Text(
                           "Backed up ${prettySinceLastBackupString(ref.watch(prefsChangeNotifierProvider.select((value) => value.lastAutoBackup)))}",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         )
                       ],
                     ),
@@ -332,7 +342,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                   ),
                   Text(
                     "Auto Backup file",
-                    style: STextStyles.smallMed12,
+                    style: STextStyles.smallMed12(context),
                   ),
                   const SizedBox(
                     height: 10,
@@ -346,9 +356,11 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       focusNode: fileLocationFocusNode,
                       controller: fileLocationController,
                       enabled: false,
-                      style: STextStyles.field.copyWith(
-                        color:
-                            StackTheme.instance.color.textDark.withOpacity(0.5),
+                      style: STextStyles.field(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark
+                            .withOpacity(0.5),
                       ),
                       readOnly: true,
                       enableSuggestions: false,
@@ -362,6 +374,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       decoration: standardInputDecoration(
                         "Saved to",
                         fileLocationFocusNode,
+                        context,
                       ),
                     ),
                   ),
@@ -377,9 +390,11 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       focusNode: passwordFocusNode,
                       controller: passwordController,
                       enabled: false,
-                      style: STextStyles.field.copyWith(
-                        color:
-                            StackTheme.instance.color.textDark.withOpacity(0.5),
+                      style: STextStyles.field(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark
+                            .withOpacity(0.5),
                       ),
                       obscureText: true,
                       enableSuggestions: false,
@@ -393,6 +408,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       decoration: standardInputDecoration(
                         "Passphrase",
                         passwordFocusNode,
+                        context,
                       ),
                     ),
                   ),
@@ -401,7 +417,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                   ),
                   Text(
                     "Auto Backup frequency",
-                    style: STextStyles.smallMed12,
+                    style: STextStyles.smallMed12(context),
                   ),
                   const SizedBox(
                     height: 10,
@@ -410,9 +426,11 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                     key: const Key("backupFrequencyFieldKey"),
                     controller: frequencyController,
                     enabled: false,
-                    style: STextStyles.field.copyWith(
-                      color:
-                          StackTheme.instance.color.textDark.withOpacity(0.5),
+                    style: STextStyles.field(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark
+                          .withOpacity(0.5),
                     ),
                     toolbarOptions: const ToolbarOptions(
                       copy: true,

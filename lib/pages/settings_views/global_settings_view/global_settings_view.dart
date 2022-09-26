@@ -16,7 +16,7 @@ import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_butto
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -31,7 +31,7 @@ class GlobalSettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return Scaffold(
-      backgroundColor: StackTheme.instance.color.background,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -40,7 +40,7 @@ class GlobalSettingsView extends StatelessWidget {
         ),
         title: Text(
           "Settings",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -231,12 +231,12 @@ class GlobalSettingsView extends StatelessWidget {
                               //       ?.copyWith(
                               //         backgroundColor:
                               //             MaterialStateProperty.all<Color>(
-                              //           StackTheme.instance.color.accentColorDark
+                              //           Theme.of(context).extension<StackColors>()!.accentColorDark
                               //         ),
                               //       ),
                               //   child: Text(
                               //     "fire test notification",
-                              //     style: STextStyles.button,
+                              //     style: STextStyles.button(context),
                               //   ),
                               //   onPressed: () async {
                               //     NotificationApi.showNotification2(

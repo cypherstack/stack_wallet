@@ -5,7 +5,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
@@ -39,10 +39,12 @@ class WalletInfoRowBalanceFuture extends ConsumerWidget {
               decimalPlaces: 8,
             )} ${manager.coin.ticker}",
             style: Util.isDesktop
-                ? STextStyles.desktopTextExtraSmall.copyWith(
-                    color: StackTheme.instance.color.textSubtitle1,
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   )
-                : STextStyles.itemSubtitle,
+                : STextStyles.itemSubtitle(context),
           );
         } else {
           return AnimatedText(
@@ -53,10 +55,12 @@ class WalletInfoRowBalanceFuture extends ConsumerWidget {
               "Loading balance..."
             ],
             style: Util.isDesktop
-                ? STextStyles.desktopTextExtraSmall.copyWith(
-                    color: StackTheme.instance.color.textSubtitle1,
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   )
-                : STextStyles.itemSubtitle,
+                : STextStyles.itemSubtitle(context),
           );
         }
       },

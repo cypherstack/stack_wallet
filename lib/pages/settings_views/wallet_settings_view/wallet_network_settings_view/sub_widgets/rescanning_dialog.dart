@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class RescanningDialog extends StatefulWidget {
@@ -62,7 +62,7 @@ class _RescanningDialogState extends State<RescanningDialog>
             Assets.svg.arrowRotate3,
             width: 24,
             height: 24,
-            color: StackTheme.instance.color.accentColorDark,
+            color: Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
         ),
         // rightButton: TextButton(
@@ -73,7 +73,7 @@ class _RescanningDialogState extends State<RescanningDialog>
         //   ),
         //   child: Text(
         //     "Cancel",
-        //     style: STextStyles.itemSubtitle12,
+        //     style: STextStyles.itemSubtitle12(context),
         //   ),
         //   onPressed: () {
         //     Navigator.of(context).pop();

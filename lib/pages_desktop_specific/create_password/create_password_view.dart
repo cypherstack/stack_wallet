@@ -10,7 +10,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -139,14 +139,14 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                   children: [
                     Text(
                       "Create a password",
-                      style: STextStyles.desktopH2,
+                      style: STextStyles.desktopH2(context),
                     ),
                     const SizedBox(
                       height: 16,
                     ),
                     Text(
                       "Protect your funds with a strong password",
-                      style: STextStyles.desktopSubtitleH2,
+                      style: STextStyles.desktopSubtitleH2(context),
                     ),
                     const SizedBox(
                       height: 40,
@@ -159,7 +159,7 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                         key: const Key("createBackupPasswordFieldKey1"),
                         focusNode: passwordFocusNode,
                         controller: passwordController,
-                        style: STextStyles.desktopTextMedium.copyWith(
+                        style: STextStyles.desktopTextMedium(context).copyWith(
                           height: 2,
                         ),
                         obscureText: hidePassword,
@@ -168,6 +168,7 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                         decoration: standardInputDecoration(
                           "Create password",
                           passwordFocusNode,
+                          context,
                         ).copyWith(
                           suffixIcon: UnconstrainedBox(
                             child: SizedBox(
@@ -195,8 +196,9 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                           hidePassword
                                               ? Assets.svg.eye
                                               : Assets.svg.eyeSlash,
-                                          color: StackTheme
-                                              .instance.color.textDark3,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark3,
                                           width: 24,
                                           height: 19,
                                         ),
@@ -259,9 +261,11 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                             ? Text(
                                 passwordFeedback,
                                 style:
-                                    STextStyles.desktopTextExtraSmall.copyWith(
-                                  color:
-                                      StackTheme.instance.color.textSubtitle1,
+                                    STextStyles.desktopTextExtraSmall(context)
+                                        .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
                                 ),
                               )
                             : null,
@@ -278,12 +282,19 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                           width: 458,
                           height: 8,
                           fillColor: passwordStrength < 0.51
-                              ? StackTheme.instance.color.accentColorRed
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
                               : passwordStrength < 1
-                                  ? StackTheme.instance.color.accentColorYellow
-                                  : StackTheme.instance.color.accentColorGreen,
-                          backgroundColor:
-                              StackTheme.instance.color.buttonBackSecondary,
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorYellow
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorGreen,
+                          backgroundColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary,
                           percent:
                               passwordStrength < 0.25 ? 0.03 : passwordStrength,
                         ),
@@ -299,7 +310,7 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                         key: const Key("createDesktopPasswordFieldKey2"),
                         focusNode: passwordRepeatFocusNode,
                         controller: passwordRepeatController,
-                        style: STextStyles.desktopTextMedium.copyWith(
+                        style: STextStyles.desktopTextMedium(context).copyWith(
                           height: 2,
                         ),
                         obscureText: hidePassword,
@@ -308,6 +319,7 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                         decoration: standardInputDecoration(
                           "Confirm password",
                           passwordRepeatFocusNode,
+                          context,
                         ).copyWith(
                           suffixIcon: UnconstrainedBox(
                             child: SizedBox(
@@ -339,10 +351,12 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                                   : Assets.svg.eyeSlash,
                                           color: fieldsMatch &&
                                                   passwordStrength == 1
-                                              ? StackTheme.instance.color
+                                              ? Theme.of(context)
+                                                  .extension<StackColors>()!
                                                   .accentColorGreen
-                                              : StackTheme
-                                                  .instance.color.textDark3,
+                                              : Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark3,
                                           width: 24,
                                           height: 19,
                                         ),
@@ -370,16 +384,18 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                       height: 70,
                       child: TextButton(
                         style: nextEnabled
-                            ? StackTheme.instance
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
                                 .getPrimaryEnabledButtonColor(context)
-                            : StackTheme.instance
+                            : Theme.of(context)
+                                .extension<StackColors>()!
                                 .getPrimaryDisabledButtonColor(context),
                         onPressed: nextEnabled ? onNextPressed : null,
                         child: Text(
                           "Next",
                           style: nextEnabled
-                              ? STextStyles.desktopButtonEnabled
-                              : STextStyles.desktopButtonDisabled,
+                              ? STextStyles.desktopButtonEnabled(context)
+                              : STextStyles.desktopButtonDisabled(context),
                         ),
                       ),
                     ),

@@ -12,11 +12,10 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_theme.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -237,6 +236,10 @@ class _VerifyRecoveryPhraseViewState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                if (isDesktop)
+                  const Spacer(
+                    flex: 10,
+                  ),
                 SizedBox(
                   height: isDesktop ? 24 : 4,
                 ),
@@ -244,8 +247,8 @@ class _VerifyRecoveryPhraseViewState
                   "Verify recovery phrase",
                   textAlign: TextAlign.center,
                   style: isDesktop
-                      ? STextStyles.desktopH2
-                      : STextStyles.label.copyWith(
+                      ? STextStyles.desktopH2(context)
+                      : STextStyles.label(context).copyWith(
                           fontSize: 12,
                         ),
                 ),
@@ -256,15 +259,17 @@ class _VerifyRecoveryPhraseViewState
                   isDesktop ? "Select word number" : "Tap word number ",
                   textAlign: TextAlign.center,
                   style: isDesktop
-                      ? STextStyles.desktopSubtitleH1
-                      : STextStyles.pageTitleH1,
+                      ? STextStyles.desktopSubtitleH1(context)
+                      : STextStyles.pageTitleH1(context),
                 ),
                 SizedBox(
                   height: isDesktop ? 16 : 12,
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: StackTheme.instance.color.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius),
                   ),
@@ -276,8 +281,7 @@ class _VerifyRecoveryPhraseViewState
                     child: Text(
                       "${correctIndex + 1}",
                       textAlign: TextAlign.center,
-                      style: STextStyles.subtitle.copyWith(
-                        fontWeight: FontWeight.w600,
+                      style: STextStyles.subtitle600(context).copyWith(
                         fontSize: 32,
                         letterSpacing: 0.25,
                       ),
@@ -323,20 +327,24 @@ class _VerifyRecoveryPhraseViewState
                                     }
                                   : null,
                               style: selectedWord.isNotEmpty
-                                  ? StackTheme.instance
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
                                       .getPrimaryEnabledButtonColor(context)
-                                  : StackTheme.instance
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
                                       .getPrimaryDisabledButtonColor(context),
                               child: isDesktop
                                   ? Text(
                                       "Verify",
                                       style: selectedWord.isNotEmpty
-                                          ? STextStyles.desktopButtonEnabled
-                                          : STextStyles.desktopButtonDisabled,
+                                          ? STextStyles.desktopButtonEnabled(
+                                              context)
+                                          : STextStyles.desktopButtonDisabled(
+                                              context),
                                     )
                                   : Text(
                                       "Continue",
-                                      style: STextStyles.button,
+                                      style: STextStyles.button(context),
                                     ),
                             ),
                           );
@@ -345,6 +353,10 @@ class _VerifyRecoveryPhraseViewState
                     ),
                   ],
                 ),
+                if (isDesktop)
+                  const Spacer(
+                    flex: 15,
+                  ),
               ],
             ),
           ),
