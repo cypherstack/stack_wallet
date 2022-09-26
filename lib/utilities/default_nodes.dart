@@ -147,10 +147,10 @@ abstract class DefaultNodes {
         host: "testnet.hsmiths.com",
         port: 53012,
         name: defaultName,
-        id: _nodeId(Coin.bitcoincash),
+        id: _nodeId(Coin.bitcoincashTestnet),
         useSSL: true,
         enabled: true,
-        coinName: Coin.bitcoincash.name,
+        coinName: Coin.bitcoincashTestnet.name,
         isFailover: true,
         isDown: false,
       );
