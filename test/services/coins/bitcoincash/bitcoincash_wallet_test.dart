@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1983,7 +1985,10 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
-
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
       final wallet = await Hive.openBox(testWalletId);
 
       bool hasThrown = false;
@@ -2001,10 +2006,12 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
 
-      expect(secureStore?.interactions, 6);
-      expect(secureStore?.writes, 3);
-      expect(secureStore?.reads, 3);
+      expect(secureStore?.interactions, 10);
+      expect(secureStore?.writes, 5);
+      expect(secureStore?.reads, 5);
       expect(secureStore?.deletes, 0);
 
       verifyNoMoreInteractions(client);
