@@ -39,6 +39,7 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/table_view/table_view.dart';
@@ -410,6 +411,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             prefix,
             style: STextStyles.fieldLabel(context).copyWith(
               color: prefixColor,
+              fontSize: Util.isDesktop ? 16 : 14,
             ),
           ),
         ),
@@ -418,7 +420,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         minWidth: 16,
         minHeight: 16,
         maxWidth: 36,
-        maxHeight: 20,
+        maxHeight: 32,
       ),
       suffixIconConstraints: const BoxConstraints(
         minWidth: 16,
@@ -767,6 +769,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
                                                       .overlay,
+                                                  fontSize: isDesktop ? 16 : 14,
                                                 ),
                                               ),
                                               if (_inputStatuses[
@@ -855,6 +858,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
                                                       .overlay,
+                                                  fontSize: isDesktop ? 16 : 14,
                                                 ),
                                               ),
                                               if (_inputStatuses[i] ==
@@ -902,19 +906,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                           const SizedBox(
                             height: 32,
                           ),
-                          SizedBox(
-                            height: 70,
+                          PrimaryButton(
+                            label: "Restore wallet",
                             width: 480,
-                            child: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryEnabledButtonColor(context),
-                              onPressed: requestRestore,
-                              child: Text(
-                                "Restore wallet",
-                                style: STextStyles.button(context),
-                              ),
-                            ),
+                            onPressed: requestRestore,
                           ),
                         ],
                       );
@@ -977,6 +972,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                         color: Theme.of(context)
                                             .extension<StackColors>()!
                                             .overlay,
+                                        fontSize: isDesktop ? 16 : 14,
                                       ),
                                     ),
                                   ),
@@ -1007,15 +1003,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                               padding: const EdgeInsets.only(
                                 top: 8.0,
                               ),
-                              child: TextButton(
-                                style: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .getPrimaryEnabledButtonColor(context),
+                              child: PrimaryButton(
                                 onPressed: requestRestore,
-                                child: Text(
-                                  "Restore",
-                                  style: STextStyles.button(context),
-                                ),
+                                label: "Restore",
                               ),
                             ),
                           ],

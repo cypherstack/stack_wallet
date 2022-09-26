@@ -1474,6 +1474,13 @@ class StackColors extends ThemeExtension<StackColors> {
             ),
           );
 
+  ButtonStyle? getSecondaryDisabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              buttonBackSecondaryDisabled,
+            ),
+          );
+
   ButtonStyle? getSmallSecondaryEnabledButtonColor(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(

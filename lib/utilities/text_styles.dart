@@ -245,6 +245,16 @@ class STextStyles {
         height: 26 / 20,
       );
 
+  static TextStyle desktopButtonSecondaryDisabled(BuildContext context) =>
+      GoogleFonts.inter(
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .buttonTextSecondaryDisabled,
+        fontWeight: FontWeight.w500,
+        fontSize: 20,
+        height: 26 / 20,
+      );
+
   static TextStyle desktopTextExtraSmall(BuildContext context) =>
       GoogleFonts.inter(
         color: Theme.of(context)
