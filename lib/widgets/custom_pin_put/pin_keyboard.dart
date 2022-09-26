@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class NumberKey extends StatefulWidget {
@@ -72,12 +72,7 @@ class _NumberKeyState extends State<NumberKey> {
         child: Center(
           child: Text(
             number,
-            style: GoogleFonts.roboto(
-              color:
-                  Theme.of(context).extension<StackColors>()!.numberTextDefault,
-              fontWeight: FontWeight.w400,
-              fontSize: 26,
-            ),
+            style: STextStyles.numberDefault(context),
           ),
         ),
       ),

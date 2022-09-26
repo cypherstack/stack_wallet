@@ -3,6 +3,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class RestoringDialog extends StatefulWidget {
@@ -50,37 +54,105 @@ class _RestoringDialogState extends State<RestoringDialog>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
-      child: StackDialog(
-        title: "Restoring wallet",
-        message: "This may take a while. Please do not exit this screen.",
-        icon: RotationTransition(
-          turns: _spinAnimation,
-          child: SvgPicture.asset(Assets.svg.arrowRotate3,
-              width: 24,
-              height: 24,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark),
+    if (Util.isDesktop) {
+      return DesktopDialog(
+        child: Column(
+          children: [
+            DesktopDialogCloseButton(
+              onPressedOverride: () async {
+                await onCancel.call();
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            const Spacer(
+              flex: 1,
+            ),
+            RotationTransition(
+              turns: _spinAnimation,
+              child: SvgPicture.asset(Assets.svg.arrowRotate3,
+                  width: 40,
+                  height: 40,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark),
+            ),
+            const Spacer(
+              flex: 2,
+            ),
+            Text(
+              "Restoring wallet...",
+              style: STextStyles.desktopH2(context),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              "Restoring your wallet may take a while.\nPlease do not exit this screen.",
+              style: STextStyles.desktopTextMedium(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const Spacer(
+              flex: 2,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 32,
+                right: 32,
+                bottom: 32,
+              ),
+              child: SecondaryButton(
+                label: "Cancel",
+                width: 272.5,
+                onPressed: () async {
+                  await onCancel.call();
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+            ),
+          ],
         ),
-        rightButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getSecondaryEnabledButtonColor(context),
-          child: Text(
-            "Cancel",
-            style: STextStyles.itemSubtitle12(context),
+      );
+    } else {
+      return WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: StackDialog(
+          title: "Restoring wallet",
+          message: "This may take a while. Please do not exit this screen.",
+          icon: RotationTransition(
+            turns: _spinAnimation,
+            child: SvgPicture.asset(Assets.svg.arrowRotate3,
+                width: 24,
+                height: 24,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark),
           ),
-          onPressed: () async {
-            await onCancel.call();
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          },
+          rightButton: TextButton(
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonColor(context),
+            child: Text(
+              "Cancel",
+              style: STextStyles.itemSubtitle12(context),
+            ),
+            onPressed: () async {
+              await onCancel.call();
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 }

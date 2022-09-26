@@ -151,6 +151,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
         crossAxisAlignment:
             isDesktop ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
         children: [
+          if (isDesktop)
+            const Spacer(
+              flex: 10,
+            ),
           if (!isDesktop)
             const Spacer(
               flex: 1,
@@ -163,7 +167,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               height: 100,
             ),
           SizedBox(
-            height: isDesktop ? 24 : 16,
+            height: isDesktop ? 0 : 16,
           ),
           Text(
             "Name your ${coin.prettyName} wallet",
@@ -358,6 +362,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               ),
             ),
           ),
+          if (isDesktop)
+            const Spacer(
+              flex: 15,
+            ),
         ],
       );
 }
