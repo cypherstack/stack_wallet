@@ -257,6 +257,9 @@ class _NewWalletRecoveryPhraseViewState
                             Assets.svg.copy,
                             width: 20,
                             height: 20,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonTextSecondary,
                           ),
                           const SizedBox(
                             width: 10,
