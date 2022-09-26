@@ -1996,7 +1996,19 @@ void main() {
       when(client?.getBatchHistory(args: historyBatchArgs3))
           .thenAnswer((_) async => historyBatchResponse);
 
-      final wallet = await Hive.openBox(testWalletId);
+      List<dynamic> dynamicArgValues = [];
+
+      when(client?.getBatchHistory(args: anyNamed("args")))
+          .thenAnswer((realInvocation) async {
+        if (realInvocation.namedArguments.values.first.length == 1) {
+          dynamicArgValues.add(realInvocation.namedArguments.values.first);
+        }
+
+        return historyBatchResponse;
+      });
+
+      // final wallet = await Hive.openBox(testWalletId);
+      await Hive.openBox<dynamic>(testWalletId);
 
       bool hasThrown = false;
       try {
@@ -2015,6 +2027,14 @@ void main() {
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+
+      for (final arg in dynamicArgValues) {
+        final map = Map<String, List<dynamic>>.from(arg as Map);
+
+        verify(client?.getBatchHistory(args: map)).called(1);
+        expect(activeScriptHashes.contains(map.values.first.first as String),
+            true);
+      }
 
       expect(secureStore?.interactions, 10);
       expect(secureStore?.writes, 5);
@@ -2832,15 +2852,28 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: {
         "0": [
           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
         ]
       })).thenAnswer((realInvocation) async => {"0": []});
-
       when(client?.getBatchHistory(args: {
         "0": [
           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
         ]
       })).thenAnswer((realInvocation) async => {"0": []});
 
@@ -2859,10 +2892,33 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
 
-      expect(secureStore?.interactions, 6);
-      expect(secureStore?.writes, 3);
-      expect(secureStore?.reads, 3);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+        ]
+      })).called(1);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+        ]
+      })).called(1);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+        ]
+      })).called(1);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+        ]
+      })).called(1);
+
+      expect(secureStore?.interactions, 10);
+      expect(secureStore?.writes, 5);
+      expect(secureStore?.reads, 5);
       expect(secureStore?.deletes, 0);
 
       verifyNoMoreInteractions(client);
@@ -2887,17 +2943,32 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
 
       when(client?.getBatchHistory(args: {
         "0": [
           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
         ]
       })).thenAnswer((realInvocation) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+        ]
+      })).thenAnswer((realInvocation) async => {"0": []});
+
       when(client?.getHistory(scripthash: anyNamed("scripthash")))
           .thenThrow(Exception("some exception"));
 
@@ -2915,12 +2986,36 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+        ]
+      })).called(1);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+        ]
+      })).called(1);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+        ]
+      })).called(1);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+        ]
+      })).called(1);
+
       verify(client?.getBlockHeadTip()).called(1);
       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
 
-      expect(secureStore?.interactions, 6);
-      expect(secureStore?.writes, 3);
-      expect(secureStore?.reads, 3);
+      expect(secureStore?.interactions, 10);
+      expect(secureStore?.writes, 5);
+      expect(secureStore?.reads, 5);
       expect(secureStore?.deletes, 0);
 
       verifyNoMoreInteractions(client);
