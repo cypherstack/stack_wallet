@@ -174,6 +174,7 @@ abstract class StackColorTheme {
   Color get loadingOverlayTextColor;
   Color get myStackContactIconBG;
   Color get textConfirmTotalAmount;
+  Color get textSelectedWordTableItem;
 }
 
 class CoinThemeColor {
@@ -193,9 +194,9 @@ class CoinThemeColor {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
-      // case Coin.bitcoincash:
-      // case Coin.bitcoincashTestnet:
-      //   return bitcoincash;
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+        return bitcoincash;
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
         return dogecoin;

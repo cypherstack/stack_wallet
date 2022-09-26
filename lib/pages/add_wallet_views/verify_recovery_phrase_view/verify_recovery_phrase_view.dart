@@ -236,6 +236,10 @@ class _VerifyRecoveryPhraseViewState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                if (isDesktop)
+                  const Spacer(
+                    flex: 10,
+                  ),
                 SizedBox(
                   height: isDesktop ? 24 : 4,
                 ),
@@ -349,6 +353,10 @@ class _VerifyRecoveryPhraseViewState
                     ),
                   ],
                 ),
+                if (isDesktop)
+                  const Spacer(
+                    flex: 15,
+                  ),
               ],
             ),
           ),

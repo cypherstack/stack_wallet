@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/security_views/security_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -168,7 +167,10 @@ class _ChangePinViewState extends State<ChangePinView> {
                   fieldsCount: Constants.pinLength,
                   eachFieldHeight: 12,
                   eachFieldWidth: 12,
-                  textStyle: GoogleFonts.workSans(
+                  textStyle: STextStyles.infoSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle3,
                     fontSize: 1,
                   ),
                   focusNode: _pinPutFocusNode2,

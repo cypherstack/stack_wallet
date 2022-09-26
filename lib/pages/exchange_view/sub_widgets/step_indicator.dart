@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 enum StepIndicatorStatus { current, completed, incomplete }
@@ -39,9 +39,7 @@ class StepIndicator extends StatelessWidget {
       case StepIndicatorStatus.current:
         return Text(
           step.toString(),
-          style: GoogleFonts.roboto(
-            fontWeight: FontWeight.w600,
-            fontSize: 8,
+          style: STextStyles.stepIndicator(context).copyWith(
             color: Theme.of(context)
                 .extension<StackColors>()!
                 .stepIndicatorIconNumber,
@@ -57,9 +55,7 @@ class StepIndicator extends StatelessWidget {
       case StepIndicatorStatus.incomplete:
         return Text(
           step.toString(),
-          style: GoogleFonts.roboto(
-            fontWeight: FontWeight.w600,
-            fontSize: 8,
+          style: STextStyles.stepIndicator(context).copyWith(
             color: Theme.of(context)
                 .extension<StackColors>()!
                 .stepIndicatorIconInactive,

@@ -2443,7 +2443,11 @@ class NamecoinWallet extends CoinServiceAPI {
 
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["addresses"][0] as String?;
+            String? address = out["scriptPubKey"]["address"] as String?;
+            if (address == null && out["scriptPubKey"]["addresses"] != null) {
+              address = out["scriptPubKey"]["addresses"][0] as String?;
+            }
+
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2454,7 +2458,10 @@ class NamecoinWallet extends CoinServiceAPI {
       Logging.instance.log("sendersArray: $sendersArray", level: LogLevel.Info);
 
       for (final output in txObject["vout"] as List) {
-        final address = output["scriptPubKey"]["addresses"][0] as String?;
+        String? address = output["scriptPubKey"]["address"] as String?;
+        if (address == null && output["scriptPubKey"]["addresses"] != null) {
+          address = output["scriptPubKey"]["addresses"][0] as String?;
+        }
         if (address != null) {
           recipientsArray.add(address);
         }
@@ -2519,7 +2526,10 @@ class NamecoinWallet extends CoinServiceAPI {
 
         // add up received tx value
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["addresses"][0];
+          String? address = output["scriptPubKey"]["address"] as String?;
+          if (address == null && output["scriptPubKey"]["addresses"] != null) {
+            address = output["scriptPubKey"]["addresses"][0] as String?;
+          }
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
                     Decimal.fromInt(Constants.satsPerCoin))
