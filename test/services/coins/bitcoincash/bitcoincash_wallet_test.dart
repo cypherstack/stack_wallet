@@ -1832,6 +1832,10 @@ void main() {
           .thenAnswer((_) async => emptyHistoryBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => emptyHistoryBatchResponse);
 
       final wallet = await Hive.openBox(testWalletId);
 
@@ -1847,6 +1851,8 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -1989,6 +1995,7 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs3))
           .thenAnswer((_) async => historyBatchResponse);
+
       final wallet = await Hive.openBox(testWalletId);
 
       bool hasThrown = false;
@@ -2035,9 +2042,33 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
-
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
           .thenAnswer((realInvocation) async {});
+
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+        ]
+      })).thenAnswer((_) async => {"0": []});
 
       final wallet = await Hive.openBox(testWalletId);
 
@@ -2151,12 +2182,35 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
           .called(1);
 
-      expect(secureStore?.writes, 9);
-      expect(secureStore?.reads, 12);
-      expect(secureStore?.deletes, 2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+        ]
+      })).called(2);
+
+      expect(secureStore?.writes, 17);
+      expect(secureStore?.reads, 22);
+      expect(secureStore?.deletes, 4);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -2180,19 +2234,33 @@ void main() {
           .thenAnswer((_) async => historyBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs2))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(client?.getBatchHistory(args: historyBatchArgs3))
+          .thenAnswer((_) async => historyBatchResponse);
+      when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
+          .thenAnswer((realInvocation) async {});
+
       when(client?.getBatchHistory(args: {
         "0": [
           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
         ]
       })).thenAnswer((realInvocation) async => {"0": []});
-
       when(client?.getBatchHistory(args: {
         "0": [
           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
         ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-      when(cachedClient?.clearSharedTransactionCache(coin: Coin.dogecoin))
-          .thenAnswer((realInvocation) async {});
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+        ]
+      })).thenAnswer((_) async => {"0": []});
+      when(client?.getBatchHistory(args: {
+        "0": [
+          "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+        ]
+      })).thenAnswer((_) async => {"0": []});
 
       final wallet = await Hive.openBox(testWalletId);
 
@@ -2250,13 +2318,36 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
+      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
           .called(1);
 
-      expect(secureStore?.writes, 7);
-      expect(secureStore?.reads, 12);
-      expect(secureStore?.deletes, 4);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+        ]
+      })).called(1);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+        ]
+      })).called(2);
+      verify(client?.getBatchHistory(args: {
+        "0": [
+          "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+        ]
+      })).called(2);
+
+      expect(secureStore?.writes, 13);
+      expect(secureStore?.reads, 18);
+      expect(secureStore?.deletes, 8);
     });
 
     // // test("fetchBuildTxData succeeds", () async {

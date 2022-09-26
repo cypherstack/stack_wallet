@@ -366,8 +366,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
     longMutex = true;
 
     Map<String, Map<String, String>> p2pkhReceiveDerivations = {};
-    Map<String, Map<String, String>> p2pkhChangeDerivations = {};
     Map<String, Map<String, String>> p2shReceiveDerivations = {};
+    Map<String, Map<String, String>> p2pkhChangeDerivations = {};
     Map<String, Map<String, String>> p2shChangeDerivations = {};
 
     final root = await compute(getBip32RootWrapper, Tuple2(mnemonic, _network));
@@ -395,12 +395,13 @@ class BitcoinCashWallet extends CoinServiceAPI {
           .log("checking receiving addresses...", level: LogLevel.Info);
       final resultReceive44 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
+
       final resultReceive49 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 0);
 
       Logging.instance
           .log("checking change addresses...", level: LogLevel.Info);
-
+      // change addresses
       final resultChange44 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
 
@@ -447,7 +448,6 @@ class BitcoinCashWallet extends CoinServiceAPI {
             derivePathType: DerivePathType.bip49,
             derivationsToAdd: p2shReceiveDerivations);
       }
-
       if (p2pkhChangeDerivations.isNotEmpty) {
         await addDerivations(
             chain: 1,
@@ -507,7 +507,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
           boxName: walletId,
           key: 'changeAddressesP2SH',
           value: p2shChangeAddressArray);
-
+      await DB.instance.put<dynamic>(
+          boxName: walletId, key: 'changeIndexP2PKH', value: p2pkhChangeIndex);
       await DB.instance.put<dynamic>(
           boxName: walletId,
           key: 'receivingIndexP2PKH',
@@ -516,12 +517,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
           boxName: walletId,
           key: 'receivingIndexP2SH',
           value: p2shReceiveIndex);
-
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: 'changeIndexP2PKH', value: p2pkhChangeIndex);
       await DB.instance.put<dynamic>(
           boxName: walletId, key: 'changeIndexP2SH', value: p2shChangeIndex);
-
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
       await DB.instance
@@ -607,7 +604,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
       // get address tx counts
       final counts = await _getBatchTxCount(addresses: txCountCallArgs);
-
+      print("Counts $counts");
       // check and add appropriate addresses
       for (int k = 0; k < txCountBatchSize; k++) {
         int count = counts["${_id}_$k"]!;
