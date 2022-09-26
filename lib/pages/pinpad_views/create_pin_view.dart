@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -188,7 +187,10 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                   fieldsCount: Constants.pinLength,
                   eachFieldHeight: 12,
                   eachFieldWidth: 12,
-                  textStyle: GoogleFonts.workSans(
+                  textStyle: STextStyles.infoSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle3,
                     fontSize: 1,
                   ),
                   focusNode: _pinPutFocusNode2,
