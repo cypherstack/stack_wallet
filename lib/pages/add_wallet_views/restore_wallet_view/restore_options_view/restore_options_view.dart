@@ -10,6 +10,7 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_o
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_platform_layout.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -79,59 +80,30 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
       colorArrowPrevious:
           Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      textStyleButtonNegative: GoogleFonts.inter(
+      textStyleButtonNegative: STextStyles.datePicker600(context).copyWith(
         color: baseColor,
-        letterSpacing: 0.5,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
       ),
-      textStyleButtonPositive: GoogleFonts.inter(
+      textStyleButtonPositive: STextStyles.datePicker600(context).copyWith(
         color: baseColor,
-        letterSpacing: 0.5,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
       ),
-      textStyleCurrentDayOnCalendar: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.5,
-        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
-      ),
-      textStyleDayHeader: GoogleFonts.inter(
-        letterSpacing: 0.5,
-        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-      ),
-      textStyleDayOnCalendar: GoogleFonts.inter(
+      textStyleCurrentDayOnCalendar: STextStyles.datePicker400(context),
+      textStyleDayHeader: STextStyles.datePicker600(context),
+      textStyleDayOnCalendar: STextStyles.datePicker400(context).copyWith(
         color: baseColor,
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.5,
       ),
-      textStyleDayOnCalendarDisabled: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.5,
+      textStyleDayOnCalendarDisabled:
+          STextStyles.datePicker400(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
       ),
-      textStyleDayOnCalendarSelected: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.5,
+      textStyleDayOnCalendarSelected:
+          STextStyles.datePicker400(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.popupBG,
       ),
-      textStyleMonthYearHeader: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleMonthYearHeader: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
       ),
-      textStyleYearButton: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleYearButton: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textWhite,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
       ),
       textStyleButtonAction: GoogleFonts.inter(),
     );
@@ -139,16 +111,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
-      textStyleYear: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleYear: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
-        fontWeight: FontWeight.w600,
-        fontSize: 16,
       ),
-      textStyleYearSelected: GoogleFonts.inter(
-        letterSpacing: 0.5,
-        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
-        fontWeight: FontWeight.w600,
+      textStyleYearSelected: STextStyles.datePicker600(context).copyWith(
         fontSize: 18,
       ),
     );
@@ -232,11 +198,13 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
     final lengths = Constants.possibleLengthsForCoin(coin).toList();
 
-    return DesktopScaffold(
+    return MasterScaffold(
+      isDesktop: isDesktop,
       appBar: isDesktop
           ? const DesktopAppBar(
               isCompactHeight: false,
               leading: AppBarBackButton(),
+              trailing: ExitToMyStackButton(),
             )
           : AppBar(
               leading: AppBarBackButton(
@@ -260,10 +228,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (!isDesktop)
-                const Spacer(
-                  flex: 1,
-                ),
+              Spacer(
+                flex: isDesktop ? 10 : 1,
+              ),
               if (!isDesktop)
                 Image(
                   image: AssetImage(
@@ -272,7 +239,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   height: 100,
                 ),
               SizedBox(
-                height: isDesktop ? 24 : 16,
+                height: isDesktop ? 0 : 16,
               ),
               Text(
                 "Restore options",
@@ -417,6 +384,11 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 isDesktop: isDesktop,
                 onPressed: _nextEnabled ? nextPressed : null,
               ),
+
+              if (isDesktop)
+                const Spacer(
+                  flex: 15,
+                ),
             ],
           ),
         ),

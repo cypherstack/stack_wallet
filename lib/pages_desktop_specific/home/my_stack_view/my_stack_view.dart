@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/wallets_view/sub_widgets/empty_wallets.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_wallets.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -23,9 +22,6 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     final hasWallets = ref.watch(walletsChangeNotifierProvider).hasWallets;
-
-    final showFavorites = ref.watch(prefsChangeNotifierProvider
-        .select((value) => value.showFavoriteWallets));
 
     return Column(
       children: [

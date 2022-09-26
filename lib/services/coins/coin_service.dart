@@ -4,6 +4,7 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
+import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
@@ -98,25 +99,25 @@ abstract class CoinServiceAPI {
           tracker: tracker,
         );
 
-      // case Coin.bitcoincash:
-      //   return BitcoinCashWallet(
-      //     walletId: walletId,
-      //     walletName: walletName,
-      //     coin: coin,
-      //     client: client,
-      //     cachedClient: cachedClient,
-      //     tracker: tracker,
-      //   );
-      //
-      // case Coin.bitcoincashTestnet:
-      //   return BitcoinCashWallet(
-      //     walletId: walletId,
-      //     walletName: walletName,
-      //     coin: coin,
-      //     client: client,
-      //     cachedClient: cachedClient,
-      //     tracker: tracker,
-      //   );
+      case Coin.bitcoincash:
+        return BitcoinCashWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
+
+      case Coin.bitcoincashTestnet:
+        return BitcoinCashWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
 
       case Coin.dogecoin:
         return DogecoinWallet(

@@ -8,6 +8,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/favorite_toggle.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -30,8 +31,10 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
         .select((value) => value.getManager(widget.walletId)));
     debugPrint("BUILD: $runtimeType with walletId ${widget.walletId}");
 
+    final isDesktop = Util.isDesktop;
+
     return RoundedWhiteContainer(
-      padding: const EdgeInsets.all(4.0),
+      padding: EdgeInsets.all(isDesktop ? 0 : 4.0),
       child: RawMaterialButton(
         onPressed: () {
           final provider = ref
@@ -59,7 +62,12 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: isDesktop
+              ? const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                )
+              : const EdgeInsets.all(8),
           child: Row(
             children: [
               Container(
@@ -73,7 +81,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(4),
+                  padding: EdgeInsets.all(isDesktop ? 6 : 4),
                   child: SvgPicture.asset(
                     Assets.svg.iconFor(coin: manager.coin),
                     width: 20,
@@ -84,37 +92,79 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
               const SizedBox(
                 width: 12,
               ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      manager.walletName,
-                      style: STextStyles.titleBold12(context),
-                    ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    Text(
-                      "${Format.localizedStringAsFixed(
-                        value: manager.cachedTotalBalance,
-                        locale: ref.watch(localeServiceChangeNotifierProvider
-                            .select((value) => value.locale)),
-                        decimalPlaces: 8,
-                      )} ${manager.coin.ticker}",
-                      style: STextStyles.itemSubtitle(context),
-                    ),
-                  ],
+              if (isDesktop)
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          manager.walletName,
+                          style: STextStyles.titleBold12(context),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          "${Format.localizedStringAsFixed(
+                            value: manager.cachedTotalBalance,
+                            locale: ref.watch(
+                                localeServiceChangeNotifierProvider
+                                    .select((value) => value.locale)),
+                            decimalPlaces: 8,
+                          )} ${manager.coin.ticker}",
+                          style: STextStyles.itemSubtitle(context),
+                        ),
+                      ),
+                      Text(
+                        manager.isFavorite
+                            ? "Remove from favorites"
+                            : "Add to favorites",
+                        style:
+                            STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: manager.isFavorite
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonTextBorderless,
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              FavoriteToggle(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
+              if (!isDesktop)
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        manager.walletName,
+                        style: STextStyles.titleBold12(context),
+                      ),
+                      const SizedBox(
+                        height: 2,
+                      ),
+                      Text(
+                        "${Format.localizedStringAsFixed(
+                          value: manager.cachedTotalBalance,
+                          locale: ref.watch(localeServiceChangeNotifierProvider
+                              .select((value) => value.locale)),
+                          decimalPlaces: 8,
+                        )} ${manager.coin.ticker}",
+                        style: STextStyles.itemSubtitle(context),
+                      ),
+                    ],
+                  ),
                 ),
-                initialState: manager.isFavorite,
-                onChanged: null,
-              ),
+              if (!isDesktop)
+                FavoriteToggle(
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                  initialState: manager.isFavorite,
+                  onChanged: null,
+                ),
             ],
           ),
         ),

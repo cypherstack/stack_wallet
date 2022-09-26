@@ -1407,9 +1407,9 @@ class StackColors extends ThemeExtension<StackColors> {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return _coin.bitcoin;
-      // case Coin.bitcoincash:
-      // case Coin.bitcoincashTestnet:
-      //   return _coin.bitcoincash;
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+        return _coin.bitcoincash;
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
         return _coin.dogecoin;
@@ -1471,6 +1471,13 @@ class StackColors extends ThemeExtension<StackColors> {
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondary,
+            ),
+          );
+
+  ButtonStyle? getSecondaryDisabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              buttonBackSecondaryDisabled,
             ),
           );
 
