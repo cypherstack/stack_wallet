@@ -52,4 +52,8 @@ class ListenableList<T> extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Iterable<E> map<E>(E Function(T) toElement) {
+    return _list.map(toElement);
+  }
 }
