@@ -13,10 +13,10 @@ abstract class DefaultNodes {
         firo,
         monero,
         epicCash,
-        // bitcoincash,
+        bitcoincash,
         namecoin,
         bitcoinTestnet,
-        // bitcoincashTestnet,
+        bitcoincashTestnet,
         dogecoinTestnet,
         firoTestnet,
       ];

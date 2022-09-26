@@ -30,7 +30,7 @@ enum Coin {
 }
 
 // remove firotestnet for now
-const int kTestNetCoinCount = 2;
+const int kTestNetCoinCount = 3;
 
 extension CoinExt on Coin {
   String get prettyName {
