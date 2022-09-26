@@ -39,8 +39,8 @@ abstract class Constants {
     final List<int> values = [];
     switch (coin) {
       case Coin.bitcoin:
-      // case Coin.bitcoincash:
-      // case Coin.bitcoincashTestnet:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.bitcoinTestNet:
@@ -65,9 +65,9 @@ abstract class Constants {
       case Coin.bitcoinTestNet:
         return 600;
 
-      // case Coin.bitcoincash:
-      // case Coin.bitcoincashTestnet:
-      //   return 600;
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+        return 600;
 
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
