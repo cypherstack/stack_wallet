@@ -41,7 +41,10 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
               BlueTextButton(
                 text: "Add new wallet",
                 onTap: () {
-                  Navigator.of(context).pushNamed(AddWalletView.routeName);
+                  Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pushNamed(AddWalletView.routeName);
                 },
               ),
             ],

@@ -56,23 +56,27 @@ class DesktopFavoriteWallets extends ConsumerWidget {
             minHeight: cardHeight,
           ),
           child: hasFavorites
-              ? Wrap(
-                  spacing: 16,
-                  children: [
-                    ...favorites.map((p0) {
-                      final walletId = ref.refresh(p0).walletId;
-                      final managerProvider = ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManagerProvider(walletId);
+              ? SingleChildScrollView(
+                  primary: false,
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      ...favorites.map((p0) {
+                        final walletId = ref.read(p0).walletId;
+                        final managerProvider = ref
+                            .read(walletsChangeNotifierProvider)
+                            .getManagerProvider(walletId);
 
-                      return FavoriteCard(
-                        walletId: walletId,
-                        width: cardWidth,
-                        height: cardHeight,
-                        managerProvider: managerProvider,
-                      );
-                    })
-                  ],
+                        return FavoriteCard(
+                          walletId: walletId,
+                          width: cardWidth,
+                          height: cardHeight,
+                          managerProvider: managerProvider,
+                        );
+                      })
+                    ],
+                  ),
                 )
               : Container(
                   height: cardHeight,
