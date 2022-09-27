@@ -7,9 +7,9 @@ import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
     as nmc;
+import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 
 enum Coin {
   bitcoin,
@@ -217,6 +217,10 @@ Coin coinFromPrettyName(String name) {
     case "tDogecoin":
     case "dogecoinTestNet":
       return Coin.dogecoinTestNet;
+    case "Wownero":
+    case "tWownero":
+    case "wownero":
+      return Coin.wownero;
     default:
       throw ArgumentError.value(
           name, "name", "No Coin enum value with that prettyName");
@@ -247,6 +251,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.firoTestNet;
     case "tdoge":
       return Coin.dogecoinTestNet;
+    case "wow":
+      return Coin.wownero;
     default:
       throw ArgumentError.value(
           ticker, "name", "No Coin enum value with that ticker");
