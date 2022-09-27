@@ -54,12 +54,23 @@ jobs:
           Write-Output "::set-output name=SECRET_FILE_FIRO::$secretFileFiro";
           Write-Output "::set-output name=SECRET_FILE_FIRO_HASH::$($secretFileFiroHash.Hash)";
           Write-Output "Secret file $secretFileFiro has hash $($secretFileFiroHash.Hash)";
+          
+          
+          $secretFileBitcoinCash = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart";
+          $encodedBytes = [System.Convert]::FromBase64String($env:BITCOINCASH_TEST);
+          Set-Content $secretFileBitcoinCash -Value $encodedBytes -AsByteStream;
+          $secretFileBitcoinCashHash = Get-FileHash $secretFileBitcoinCash;
+          Write-Output "::set-output name=SECRET_FILE_BITCOINCASH::$secretFileBitcoinCash";
+          Write-Output "::set-output name=SECRET_FILE_BITCOINCASH_HASH::$($secretFileBitcoinCashHash.Hash)";
+          Write-Output "Secret file $secretFileBitcoinCash has hash $($secretFileBitcoinCashHash.Hash)";
+          
         shell: pwsh
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
           BITCOIN_TEST: ${{ secrets.BITCOIN_TEST }}
           DOGECOIN_TEST: ${{ secrets.DOGECOIN_TEST }}
           FIRO_TEST: ${{ secrets.FIRO_TEST }}
+          BITCOINCASH_TEST: ${{ secrets.BITCOINCASH_TEST }}
 #      - name: Analyze
 #        run: flutter analyze
       - name: Test
@@ -76,6 +87,7 @@ jobs:
           Remove-Item -Path $env:BITCOIN_TEST;
           Remove-Item -Path $env:DOGECOIN_TEST;
           Remove-Item -Path $env:FIRO_TEST;
+          Remove-Item -Path $env:BITCOINCASH_TEST;
         shell: pwsh
         if: always()
         env:
@@ -83,3 +95,4 @@ jobs:
           BITCOIN_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_BITCOIN }}
           DOGECOIN_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_DOGECOIN }}
           FIRO_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_FIRO }}
+          BITCOINCASH_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_BITCOINCASH }}
