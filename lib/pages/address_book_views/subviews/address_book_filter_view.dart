@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -42,9 +42,9 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             Navigator.of(context).pop();
@@ -52,7 +52,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
         ),
         title: Text(
           "Filter addresses",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -72,7 +72,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                       RoundedWhiteContainer(
                         child: Text(
                           "Only selected cryptocurrency addresses will be displayed.",
-                          style: STextStyles.itemSubtitle,
+                          style: STextStyles.itemSubtitle(context),
                         ),
                       ),
                       const SizedBox(
@@ -80,7 +80,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                       ),
                       Text(
                         "Select cryptocurrency",
-                        style: STextStyles.smallMed12,
+                        style: STextStyles.smallMed12(context),
                       ),
                       const SizedBox(
                         height: 12,
@@ -154,7 +154,8 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                                 Text(
                                                   coin.prettyName,
                                                   style:
-                                                      STextStyles.largeMedium14,
+                                                      STextStyles.largeMedium14(
+                                                          context),
                                                 ),
                                                 const SizedBox(
                                                   height: 2,
@@ -162,7 +163,8 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                                 Text(
                                                   coin.ticker,
                                                   style:
-                                                      STextStyles.itemSubtitle,
+                                                      STextStyles.itemSubtitle(
+                                                          context),
                                                 ),
                                               ],
                                             )

@@ -623,6 +623,7 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
     "value": amount,
     "fees": Format.satoshisToAmount(fee).toDouble(),
     "fee": fee,
+    "vSize": extTx.virtualSize(),
     "jmintValue": changeToMint,
     "publicCoin": "jmintData.publicCoin",
     "spendCoinIndexes": spendCoinIndexes,
@@ -1142,6 +1143,17 @@ class FiroWallet extends CoinServiceAPI {
             throw Exception("Error Creating Transaction!");
         }
       } else {
+        final fee = txHexOrError["fee"] as int;
+        final vSize = txHexOrError["vSize"] as int;
+
+        Logging.instance.log("prepared fee: $fee", level: LogLevel.Info);
+        Logging.instance.log("prepared vSize: $vSize", level: LogLevel.Info);
+
+        // fee should never be less than vSize sanity check
+        if (fee < vSize) {
+          throw Exception(
+              "Error in fee calculation: Transaction fee cannot be less than vSize");
+        }
         return txHexOrError as Map<String, dynamic>;
       }
     } catch (e, s) {

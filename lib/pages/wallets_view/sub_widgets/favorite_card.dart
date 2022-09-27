@@ -6,11 +6,11 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:tuple/tuple.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
@@ -70,7 +70,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                 width: widget.width,
                 height: widget.height,
                 decoration: BoxDecoration(
-                  color: CFColors.coin.forCoin(coin),
+                  color: Theme.of(context).extension<StackColors>()!.colorForCoin(coin),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -128,23 +128,29 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      ref.watch(
-                          managerProvider.select((value) => value.walletName)),
-                      style: STextStyles.itemSubtitle12,
-                    ),
-                    const Spacer(),
-                    SvgPicture.asset(
-                      Assets.svg.iconFor(coin: coin),
-                      width: 24,
-                      height: 24,
-                    ),
-                  ],
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          ref.watch(managerProvider
+                              .select((value) => value.walletName)),
+                          style: STextStyles.itemSubtitle12(context).copyWith(
+                            color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
+                          ),
+                          overflow: TextOverflow.fade,
+                        ),
+                      ),
+                      SvgPicture.asset(
+                        Assets.svg.iconFor(coin: coin),
+                        width: 24,
+                        height: 24,
+                      ),
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 FutureBuilder(
                   future: ref.watch(
                       managerProvider.select((value) => value.totalBalance)),
@@ -177,8 +183,9 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                                     .select((value) => value.locale),
                               ),
                             )} ${coin.ticker}",
-                            style: STextStyles.titleBold12.copyWith(
+                            style: STextStyles.titleBold12(context).copyWith(
                               fontSize: 16,
+                              color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
                             ),
                           ),
                         ),
@@ -197,8 +204,9 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             prefsChangeNotifierProvider
                                 .select((value) => value.currency),
                           )}",
-                          style: STextStyles.itemSubtitle12.copyWith(
+                          style: STextStyles.itemSubtitle12(context).copyWith(
                             fontSize: 10,
+                            color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
                           ),
                         ),
                       ],

@@ -1,14 +1,14 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class ClipboardIcon extends StatelessWidget {
   const ClipboardIcon({
     Key? key,
     this.width = 18,
     this.height = 18,
-    this.color = CFColors.neutral50,
+    this.color,
   }) : super(key: key);
 
   final double width;
@@ -21,7 +21,7 @@ class ClipboardIcon extends StatelessWidget {
       Assets.svg.clipboard,
       width: width,
       height: height,
-      color: color,
+      color: color ?? Theme.of(context).extension<StackColors>()!.textDark3,
     );
   }
 }

@@ -1,21 +1,20 @@
 import 'dart:convert';
 
-import 'package:http/http.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart';
+import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
-import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
-import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
-
-import 'package:stackwallet/utilities/logger.dart';
 
 const kGithubAPI = "https://api.github.com";
 const kGithubSearch = "/search/commits";
@@ -119,7 +118,7 @@ class AboutView extends ConsumerWidget {
     Future commitMoneroFuture = Future.wait(futureMoneroList);
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -128,7 +127,7 @@ class AboutView extends ConsumerWidget {
         ),
         title: Text(
           "About",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -168,7 +167,7 @@ class AboutView extends ConsumerWidget {
                               Center(
                                 child: Text(
                                   appName,
-                                  style: STextStyles.pageTitleH2,
+                                  style: STextStyles.pageTitleH2(context),
                                 ),
                               ),
                               const SizedBox(
@@ -181,14 +180,14 @@ class AboutView extends ConsumerWidget {
                                   children: [
                                     Text(
                                       "Version",
-                                      style: STextStyles.titleBold12,
+                                      style: STextStyles.titleBold12(context),
                                     ),
                                     const SizedBox(
                                       height: 4,
                                     ),
                                     SelectableText(
                                       version,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   ],
                                 ),
@@ -203,14 +202,14 @@ class AboutView extends ConsumerWidget {
                                   children: [
                                     Text(
                                       "Build number",
-                                      style: STextStyles.titleBold12,
+                                      style: STextStyles.titleBold12(context),
                                     ),
                                     const SizedBox(
                                       height: 4,
                                     ),
                                     SelectableText(
                                       build,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   ],
                                 ),
@@ -225,14 +224,14 @@ class AboutView extends ConsumerWidget {
                                   children: [
                                     Text(
                                       "Build signature",
-                                      style: STextStyles.titleBold12,
+                                      style: STextStyles.titleBold12(context),
                                     ),
                                     const SizedBox(
                                       height: 4,
                                     ),
                                     SelectableText(
                                       signature,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   ],
                                 ),
@@ -265,19 +264,28 @@ class AboutView extends ConsumerWidget {
                               }
                             }
                             TextStyle indicationStyle =
-                                STextStyles.itemSubtitle;
+                                STextStyles.itemSubtitle(context);
                             switch (stateOfCommit) {
                               case CommitStatus.isHead:
-                                indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackGreen);
+                                indicationStyle =
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorGreen);
                                 break;
                               case CommitStatus.isOldCommit:
-                                indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackYellow);
+                                indicationStyle =
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorYellow);
                                 break;
                               case CommitStatus.notACommit:
-                                indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackRed);
+                                indicationStyle =
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed);
                                 break;
                               default:
                                 break;
@@ -288,7 +296,7 @@ class AboutView extends ConsumerWidget {
                                 children: [
                                   Text(
                                     "Firo Build Commit",
-                                    style: STextStyles.titleBold12,
+                                    style: STextStyles.titleBold12(context),
                                   ),
                                   const SizedBox(
                                     height: 4,
@@ -325,19 +333,28 @@ class AboutView extends ConsumerWidget {
                               }
                             }
                             TextStyle indicationStyle =
-                                STextStyles.itemSubtitle;
+                                STextStyles.itemSubtitle(context);
                             switch (stateOfCommit) {
                               case CommitStatus.isHead:
-                                indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackGreen);
+                                indicationStyle =
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorGreen);
                                 break;
                               case CommitStatus.isOldCommit:
-                                indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackYellow);
+                                indicationStyle =
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorYellow);
                                 break;
                               case CommitStatus.notACommit:
-                                indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackRed);
+                                indicationStyle =
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed);
                                 break;
                               default:
                                 break;
@@ -348,7 +365,7 @@ class AboutView extends ConsumerWidget {
                                 children: [
                                   Text(
                                     "Epic Cash Build Commit",
-                                    style: STextStyles.titleBold12,
+                                    style: STextStyles.titleBold12(context),
                                   ),
                                   const SizedBox(
                                     height: 4,
@@ -385,19 +402,28 @@ class AboutView extends ConsumerWidget {
                               }
                             }
                             TextStyle indicationStyle =
-                                STextStyles.itemSubtitle;
+                                STextStyles.itemSubtitle(context);
                             switch (stateOfCommit) {
                               case CommitStatus.isHead:
-                                indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackGreen);
+                                indicationStyle =
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorGreen);
                                 break;
                               case CommitStatus.isOldCommit:
-                                indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackYellow);
+                                indicationStyle =
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorYellow);
                                 break;
                               case CommitStatus.notACommit:
-                                indicationStyle = STextStyles.itemSubtitle
-                                    .copyWith(color: CFColors.stackRed);
+                                indicationStyle =
+                                    STextStyles.itemSubtitle(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed);
                                 break;
                               default:
                                 break;
@@ -408,7 +434,7 @@ class AboutView extends ConsumerWidget {
                                 children: [
                                   Text(
                                     "Monero Build Commit",
-                                    style: STextStyles.titleBold12,
+                                    style: STextStyles.titleBold12(context),
                                   ),
                                   const SizedBox(
                                     height: 4,
@@ -430,7 +456,7 @@ class AboutView extends ConsumerWidget {
                           children: [
                             Text(
                               "Website",
-                              style: STextStyles.titleBold12,
+                              style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(
                               height: 4,
@@ -454,14 +480,14 @@ class AboutView extends ConsumerWidget {
                       RichText(
                         textAlign: TextAlign.center,
                         text: TextSpan(
-                          style: STextStyles.label,
+                          style: STextStyles.label(context),
                           children: [
                             const TextSpan(
                                 text:
                                     "By using Stack Wallet, you agree to the "),
                             TextSpan(
                               text: "Terms of service",
-                              style: STextStyles.richLink,
+                              style: STextStyles.richLink(context),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   launchUrl(
@@ -474,7 +500,7 @@ class AboutView extends ConsumerWidget {
                             const TextSpan(text: " and "),
                             TextSpan(
                               text: "Privacy policy",
-                              style: STextStyles.richLink,
+                              style: STextStyles.richLink(context),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   launchUrl(

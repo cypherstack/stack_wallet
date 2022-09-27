@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class AppBarIconButton extends StatelessWidget {
   const AppBarIconButton({
@@ -28,11 +29,11 @@ class AppBarIconButton extends StatelessWidget {
       width: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(1000),
-        color: color ?? CFColors.white,
+        color: color ?? Theme.of(context).extension<StackColors>()!.background,
         boxShadow: shadows,
       ),
       child: MaterialButton(
-        splashColor: CFColors.splashLight,
+        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         padding: EdgeInsets.zero,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
@@ -46,23 +47,42 @@ class AppBarIconButton extends StatelessWidget {
 }
 
 class AppBarBackButton extends StatelessWidget {
-  const AppBarBackButton({Key? key, required this.onPressed}) : super(key: key);
+  const AppBarBackButton({
+    Key? key,
+    this.onPressed,
+    this.isCompact = false,
+  }) : super(key: key);
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: isDesktop
+          ? const EdgeInsets.symmetric(
+              vertical: 20,
+              horizontal: 24,
+            )
+          : const EdgeInsets.all(10),
       child: AppBarIconButton(
-        color: CFColors.almostWhite,
+        size: isDesktop
+            ? isCompact
+                ? 42
+                : 56
+            : 32,
+        color: isDesktop
+            ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+            : Theme.of(context).extension<StackColors>()!.background,
         shadows: const [],
         icon: SvgPicture.asset(
           Assets.svg.arrowLeft,
-          width: 24,
-          height: 24,
+          width: isCompact ? 18 : 24,
+          height: isCompact ? 18 : 24,
+          color: Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
         ),
-        onPressed: onPressed,
+        onPressed: onPressed ?? Navigator.of(context).pop,
       ),
     );
   }

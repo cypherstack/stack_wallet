@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
-import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
+import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
+import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_subtitle.dart';
+import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_title.dart';
+import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_wallet_button_group.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:tuple/tuple.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 
 class CreateOrRestoreWalletView extends StatelessWidget {
   const CreateOrRestoreWalletView({
@@ -22,97 +25,105 @@ class CreateOrRestoreWalletView extends StatelessWidget {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+    final isDesktop = Util.isDesktop;
+
+    if (isDesktop) {
+      return DesktopScaffold(
+        appBar: const DesktopAppBar(
+          isCompactHeight: false,
+          leading: AppBarBackButton(),
+          trailing: ExitToMyStackButton(),
         ),
-      ),
-      body: Container(
-        color: CFColors.almostWhite,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+        body: SizedBox(
+          width: 480,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(31),
-                child: Image(
-                  image: AssetImage(
-                    Assets.png.imageFor(coin: coin),
-                  ),
-                  width: MediaQuery.of(context).size.width / 3,
-                ),
-              ),
               const Spacer(
-                flex: 2,
+                flex: 10,
               ),
-              Text(
-                "Add ${coin.prettyName} wallet",
-                textAlign: TextAlign.center,
-                style: STextStyles.pageTitleH1,
+              CreateRestoreWalletTitle(
+                coin: coin,
+                isDesktop: isDesktop,
               ),
               const SizedBox(
-                height: 8,
+                height: 16,
               ),
-              Text(
-                  "Create a new wallet or restore an existing wallet from seed.",
-                  textAlign: TextAlign.center,
-                  style: STextStyles.subtitle),
-              const Spacer(
-                flex: 5,
-              ),
-              TextButton(
-                style: Theme.of(context).textButtonTheme.style?.copyWith(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        CFColors.stackAccent,
-                      ),
-                    ),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    NameYourWalletView.routeName,
-                    arguments: Tuple2(
-                      AddWalletType.New,
-                      coin,
-                    ),
-                  );
-                },
-                child: Text(
-                  "Create new wallet",
-                  style: STextStyles.button,
+              SizedBox(
+                width: 324,
+                child: CreateRestoreWalletSubTitle(
+                  isDesktop: isDesktop,
                 ),
               ),
               const SizedBox(
-                height: 12,
+                height: 32,
               ),
-              TextButton(
-                style: Theme.of(context).textButtonTheme.style?.copyWith(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        CFColors.stackAccent.withOpacity(0.25),
-                      ),
-                    ),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    NameYourWalletView.routeName,
-                    arguments: Tuple2(
-                      AddWalletType.Restore,
-                      coin,
-                    ),
-                  );
-                },
-                child: Text(
-                  "Restore wallet",
-                  style: STextStyles.button.copyWith(
-                    color: CFColors.stackAccent,
-                  ),
-                ),
+              CoinImage(
+                coin: coin,
+                isDesktop: isDesktop,
+              ),
+              const SizedBox(
+                height: 32,
+              ),
+              CreateWalletButtonGroup(
+                coin: coin,
+                isDesktop: isDesktop,
+              ),
+              const Spacer(
+                flex: 15,
               ),
             ],
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      return Scaffold(
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+        body: Container(
+          color: Theme.of(context).extension<StackColors>()!.background,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(31),
+                  child: CoinImage(
+                    coin: coin,
+                    isDesktop: isDesktop,
+                  ),
+                ),
+                const Spacer(
+                  flex: 2,
+                ),
+                CreateRestoreWalletTitle(
+                  coin: coin,
+                  isDesktop: isDesktop,
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                CreateRestoreWalletSubTitle(
+                  isDesktop: isDesktop,
+                ),
+                const Spacer(
+                  flex: 5,
+                ),
+                CreateWalletButtonGroup(
+                  coin: coin,
+                  isDesktop: isDesktop,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

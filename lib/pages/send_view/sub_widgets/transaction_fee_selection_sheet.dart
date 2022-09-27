@@ -6,12 +6,12 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 final feeSheetSessionCacheProvider =
@@ -162,9 +162,9 @@ class _TransactionFeeSelectionSheetState
         .select((value) => value.getManager(walletId)));
 
     return Container(
-      decoration: const BoxDecoration(
-        color: CFColors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
       ),
@@ -182,7 +182,9 @@ class _TransactionFeeSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: CFColors.fieldGray,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -207,7 +209,7 @@ class _TransactionFeeSelectionSheetState
                   children: [
                     Text(
                       "Fee rate",
-                      style: STextStyles.pageTitleH2,
+                      style: STextStyles.pageTitleH2(context),
                       textAlign: TextAlign.left,
                     ),
                     const SizedBox(
@@ -235,7 +237,9 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                     value: FeeRateType.fast,
                                     groupValue: ref
                                         .watch(feeRateTypeStateProvider.state)
@@ -262,9 +266,7 @@ class _TransactionFeeSelectionSheetState
                                     children: [
                                       Text(
                                         FeeRateType.fast.prettyName,
-                                        style: STextStyles.titleBold12.copyWith(
-                                          color: const Color(0xFF44464E),
-                                        ),
+                                        style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(
@@ -274,7 +276,8 @@ class _TransactionFeeSelectionSheetState
                                         AnimatedText(
                                           stringsToLoopThrough:
                                               stringsToLoopThrough,
-                                          style: STextStyles.itemSubtitle,
+                                          style:
+                                              STextStyles.itemSubtitle(context),
                                         ),
                                       if (feeObject != null)
                                         FutureBuilder(
@@ -296,14 +299,16 @@ class _TransactionFeeSelectionSheetState
                                                 snapshot.hasData) {
                                               return Text(
                                                 "(~${snapshot.data!} ${manager.coin.ticker})",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               );
                                             } else {
                                               return AnimatedText(
                                                 stringsToLoopThrough:
                                                     stringsToLoopThrough,
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             }
                                           },
@@ -317,7 +322,7 @@ class _TransactionFeeSelectionSheetState
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   if (feeObject != null)
                                     Text(
@@ -326,7 +331,7 @@ class _TransactionFeeSelectionSheetState
                                             manager.coin),
                                         feeObject!.numberOfBlocksFast,
                                       ),
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     ),
                                 ],
@@ -360,7 +365,9 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                     value: FeeRateType.average,
                                     groupValue: ref
                                         .watch(feeRateTypeStateProvider.state)
@@ -386,9 +393,7 @@ class _TransactionFeeSelectionSheetState
                                     children: [
                                       Text(
                                         FeeRateType.average.prettyName,
-                                        style: STextStyles.titleBold12.copyWith(
-                                          color: const Color(0xFF44464E),
-                                        ),
+                                        style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(
@@ -398,7 +403,8 @@ class _TransactionFeeSelectionSheetState
                                         AnimatedText(
                                           stringsToLoopThrough:
                                               stringsToLoopThrough,
-                                          style: STextStyles.itemSubtitle,
+                                          style:
+                                              STextStyles.itemSubtitle(context),
                                         ),
                                       if (feeObject != null)
                                         FutureBuilder(
@@ -420,14 +426,16 @@ class _TransactionFeeSelectionSheetState
                                                 snapshot.hasData) {
                                               return Text(
                                                 "(~${snapshot.data!} ${manager.coin.ticker})",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               );
                                             } else {
                                               return AnimatedText(
                                                 stringsToLoopThrough:
                                                     stringsToLoopThrough,
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             }
                                           },
@@ -441,7 +449,7 @@ class _TransactionFeeSelectionSheetState
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   if (feeObject != null)
                                     Text(
@@ -450,7 +458,7 @@ class _TransactionFeeSelectionSheetState
                                             manager.coin),
                                         feeObject!.numberOfBlocksAverage,
                                       ),
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     ),
                                 ],
@@ -484,7 +492,9 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: CFColors.link2,
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                     value: FeeRateType.slow,
                                     groupValue: ref
                                         .watch(feeRateTypeStateProvider.state)
@@ -511,9 +521,7 @@ class _TransactionFeeSelectionSheetState
                                     children: [
                                       Text(
                                         FeeRateType.slow.prettyName,
-                                        style: STextStyles.titleBold12.copyWith(
-                                          color: const Color(0xFF44464E),
-                                        ),
+                                        style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(
@@ -523,7 +531,8 @@ class _TransactionFeeSelectionSheetState
                                         AnimatedText(
                                           stringsToLoopThrough:
                                               stringsToLoopThrough,
-                                          style: STextStyles.itemSubtitle,
+                                          style:
+                                              STextStyles.itemSubtitle(context),
                                         ),
                                       if (feeObject != null)
                                         FutureBuilder(
@@ -545,14 +554,16 @@ class _TransactionFeeSelectionSheetState
                                                 snapshot.hasData) {
                                               return Text(
                                                 "(~${snapshot.data!} ${manager.coin.ticker})",
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                                 textAlign: TextAlign.left,
                                               );
                                             } else {
                                               return AnimatedText(
                                                 stringsToLoopThrough:
                                                     stringsToLoopThrough,
-                                                style: STextStyles.itemSubtitle,
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
                                               );
                                             }
                                           },
@@ -566,7 +577,7 @@ class _TransactionFeeSelectionSheetState
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                     ),
                                   if (feeObject != null)
                                     Text(
@@ -575,7 +586,7 @@ class _TransactionFeeSelectionSheetState
                                             manager.coin),
                                         feeObject!.numberOfBlocksSlow,
                                       ),
-                                      style: STextStyles.itemSubtitle,
+                                      style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     ),
                                 ],

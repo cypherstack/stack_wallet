@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -78,8 +78,13 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                 height: 24,
                 decoration: BoxDecoration(
                   color: _node.name == DefaultNodes.defaultName
-                      ? CFColors.buttonGray
-                      : CFColors.link2.withOpacity(0.2),
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonBackSecondary
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemIcons
+                          .withOpacity(0.2),
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Center(
@@ -88,8 +93,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     height: 11,
                     width: 14,
                     color: _node.name == DefaultNodes.defaultName
-                        ? CFColors.stackAccent
-                        : CFColors.link2,
+                        ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark
+                        : Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemIcons,
                   ),
                 ),
               ),
@@ -101,14 +110,14 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                 children: [
                   Text(
                     _node.name,
-                    style: STextStyles.titleBold12,
+                    style: STextStyles.titleBold12(context),
                   ),
                   const SizedBox(
                     height: 2,
                   ),
                   Text(
                     _status,
-                    style: STextStyles.label,
+                    style: STextStyles.label(context),
                   ),
                 ],
               ),
@@ -116,8 +125,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
               SvgPicture.asset(
                 Assets.svg.network,
                 color: _status == "Connected"
-                    ? CFColors.stackGreen
-                    : CFColors.buttonGray,
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorGreen
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonBackSecondary,
                 width: 20,
                 height: 20,
               ),

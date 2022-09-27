@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class NumberKey extends StatefulWidget {
   const NumberKey({
@@ -22,7 +22,7 @@ class _NumberKeyState extends State<NumberKey> {
   late final String number;
   late final ValueSetter<String> onPressed;
 
-  Color _color = CFColors.white;
+  Color? _color;
 
   @override
   void initState() {
@@ -34,6 +34,8 @@ class _NumberKeyState extends State<NumberKey> {
 
   @override
   Widget build(BuildContext context) {
+    _color ??= Theme.of(context).extension<StackColors>()!.numberBackDefault;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
@@ -45,19 +47,24 @@ class _NumberKeyState extends State<NumberKey> {
         shadows: const [],
       ),
       child: MaterialButton(
-        // splashColor: CFColors.splashLight,
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () async {
           onPressed.call(number);
           setState(() {
-            _color = CFColors.splashLight;
+            _color = Theme.of(context)
+                .extension<StackColors>()!
+                .numberBackDefault
+                .withOpacity(0.8);
           });
 
           Future<void>.delayed(const Duration(milliseconds: 200), () {
             if (mounted) {
               setState(() {
-                _color = CFColors.white;
+                _color = Theme.of(context)
+                    .extension<StackColors>()!
+                    .numberBackDefault;
               });
             }
           });
@@ -65,11 +72,7 @@ class _NumberKeyState extends State<NumberKey> {
         child: Center(
           child: Text(
             number,
-            style: GoogleFonts.roboto(
-              color: CFColors.stackAccent,
-              fontWeight: FontWeight.w400,
-              fontSize: 26,
-            ),
+            style: STextStyles.numberDefault(context),
           ),
         ),
       ),
@@ -92,7 +95,7 @@ class BackspaceKey extends StatefulWidget {
 class _BackspaceKeyState extends State<BackspaceKey> {
   late final VoidCallback onPressed;
 
-  Color _color = CFColors.stackAccent;
+  Color? _color;
 
   @override
   void initState() {
@@ -102,6 +105,7 @@ class _BackspaceKeyState extends State<BackspaceKey> {
 
   @override
   Widget build(BuildContext context) {
+    _color ??= Theme.of(context).extension<StackColors>()!.numpadBackDefault;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
@@ -113,19 +117,24 @@ class _BackspaceKeyState extends State<BackspaceKey> {
         shadows: const [],
       ),
       child: MaterialButton(
-        // splashColor: CFColors.splashLight,
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () {
           onPressed.call();
           setState(() {
-            _color = CFColors.stackAccent.withOpacity(0.8);
+            _color = Theme.of(context)
+                .extension<StackColors>()!
+                .numpadBackDefault
+                .withOpacity(0.8);
           });
 
           Future<void>.delayed(const Duration(milliseconds: 200), () {
             if (mounted) {
               setState(() {
-                _color = CFColors.stackAccent;
+                _color = Theme.of(context)
+                    .extension<StackColors>()!
+                    .numpadBackDefault;
               });
             }
           });
@@ -135,6 +144,8 @@ class _BackspaceKeyState extends State<BackspaceKey> {
             Assets.svg.delete,
             width: 20,
             height: 20,
+            color:
+                Theme.of(context).extension<StackColors>()!.numpadTextDefault,
           ),
         ),
       ),
@@ -142,44 +153,44 @@ class _BackspaceKeyState extends State<BackspaceKey> {
   }
 }
 
-// class SubmitKey extends StatelessWidget {
-//   const SubmitKey({
-//     Key? key,
-//     required this.onPressed,
-//   }) : super(key: key);
-//
-//   final VoidCallback onPressed;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       height: 72,
-//       width: 72,
-//       decoration: ShapeDecoration(
-//         shape: StadiumBorder(),
-//         color: CFColors.stackAccent,
-//         shadows: [],
-//       ),
-//       child: MaterialButton(
-//         // splashColor: CFColors.splashLight,
-//         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-//         shape: StadiumBorder(),
-//         onPressed: () {
-//           onPressed.call();
-//         },
-//         child: Container(
-//           child: Center(
-//             child: SvgPicture.asset(
-//               Assets.svg.arrowRight,
-//               width: 20,
-//               height: 20,
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+class SubmitKey extends StatelessWidget {
+  const SubmitKey({
+    Key? key,
+    required this.onPressed,
+  }) : super(key: key);
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 72,
+      width: 72,
+      decoration: ShapeDecoration(
+        shape: const StadiumBorder(),
+        color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
+        shadows: const [],
+      ),
+      child: MaterialButton(
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: const StadiumBorder(),
+        onPressed: () {
+          onPressed.call();
+        },
+        child: Center(
+          child: SvgPicture.asset(
+            Assets.svg.arrowRight,
+            width: 20,
+            height: 20,
+            color:
+                Theme.of(context).extension<StackColors>()!.numpadTextDefault,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class PinKeyboard extends StatelessWidget {
   const PinKeyboard({
@@ -203,9 +214,9 @@ class PinKeyboard extends StatelessWidget {
     onBackPressed.call();
   }
 
-  // void _submitHandler() {
-  //   onSubmitPressed.call();
-  // }
+  void _submitHandler() {
+    onSubmitPressed.call();
+  }
 
   void _numberHandler(String number) {
     onNumberKeyPressed.call(number);
@@ -310,12 +321,12 @@ class PinKeyboard extends StatelessWidget {
               const SizedBox(
                 width: 24,
               ),
-              // SubmitKey(
-              //   onPressed: _submitHandler,
-              // )
               BackspaceKey(
                 onPressed: _backHandler,
               ),
+              // SubmitKey(
+              //   onPressed: _submitHandler,
+              // ),
             ],
           )
         ],

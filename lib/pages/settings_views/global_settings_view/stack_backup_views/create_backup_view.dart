@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -8,11 +9,11 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -81,7 +82,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -96,7 +97,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
         ),
         title: Text(
           "Create backup",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
@@ -152,7 +153,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                               }
                             },
                             controller: fileLocationController,
-                            style: STextStyles.field,
+                            style: STextStyles.field(context),
                             decoration: InputDecoration(
                               hintText: "Save to...",
                               suffixIcon: UnconstrainedBox(
@@ -163,7 +164,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     ),
                                     SvgPicture.asset(
                                       Assets.svg.folder,
-                                      color: CFColors.neutral50,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                       width: 16,
                                       height: 16,
                                     ),
@@ -200,13 +203,14 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                           key: const Key("createBackupPasswordFieldKey1"),
                           focusNode: passwordFocusNode,
                           controller: passwordController,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           obscureText: hidePassword,
                           enableSuggestions: false,
                           autocorrect: false,
                           decoration: standardInputDecoration(
                             "Create passphrase",
                             passwordFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: UnconstrainedBox(
                               child: Row(
@@ -226,7 +230,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                       hidePassword
                                           ? Assets.svg.eye
                                           : Assets.svg.eyeSlash,
-                                      color: CFColors.neutral50,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                       width: 16,
                                       height: 16,
                                     ),
@@ -287,7 +293,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                           child: passwordFeedback.isNotEmpty
                               ? Text(
                                   passwordFeedback,
-                                  style: STextStyles.infoSmall,
+                                  style: STextStyles.infoSmall(context),
                                 )
                               : null,
                         ),
@@ -305,11 +311,15 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                             width: MediaQuery.of(context).size.width - 32 - 24,
                             height: 5,
                             fillColor: passwordStrength < 0.51
-                                ? CFColors.stackRed
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed
                                 : passwordStrength < 1
-                                    ? CFColors.stackYellow
-                                    : CFColors.stackGreen,
-                            backgroundColor: CFColors.buttonGray,
+                                    ? Theme.of(context).extension<StackColors>()!.accentColorYellow
+                                    : Theme.of(context).extension<StackColors>()!.accentColorGreen,
+                            backgroundColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonBackSecondary,
                             percent: passwordStrength < 0.25
                                 ? 0.03
                                 : passwordStrength,
@@ -326,13 +336,14 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                           key: const Key("createBackupPasswordFieldKey2"),
                           focusNode: passwordRepeatFocusNode,
                           controller: passwordRepeatController,
-                          style: STextStyles.field,
+                          style: STextStyles.field(context),
                           obscureText: hidePassword,
                           enableSuggestions: false,
                           autocorrect: false,
                           decoration: standardInputDecoration(
                             "Confirm passphrase",
                             passwordRepeatFocusNode,
+                            context,
                           ).copyWith(
                             suffixIcon: UnconstrainedBox(
                               child: Row(
@@ -352,7 +363,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                       hidePassword
                                           ? Assets.svg.eye
                                           : Assets.svg.eyeSlash,
-                                      color: CFColors.neutral50,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                       width: 16,
                                       height: 16,
                                     ),
@@ -375,16 +388,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                       ),
                       const Spacer(),
                       TextButton(
-                        style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                shouldEnableCreate
-                                    ? CFColors.stackAccent
-                                    : CFColors.disabledButton,
-                              ),
-                            ),
+                        style: shouldEnableCreate
+                            ? Theme.of(context) .extension<StackColors>()!.getPrimaryEnabledButtonColor(context)
+                            : Theme.of(context) .extension<StackColors>()!.getPrimaryDisabledButtonColor(context),
                         onPressed: !shouldEnableCreate
                             ? null
                             : () async {
@@ -396,46 +402,46 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     passwordRepeatController.text;
 
                                 if (pathToSave.isEmpty) {
-                                  showFloatingFlushBar(
+                                  unawaited(showFloatingFlushBar(
                                     type: FlushBarType.warning,
                                     message: "Directory not chosen",
                                     context: context,
-                                  );
+                                  ));
                                   return;
                                 }
                                 if (!(await Directory(pathToSave).exists())) {
-                                  showFloatingFlushBar(
+                                  unawaited(showFloatingFlushBar(
                                     type: FlushBarType.warning,
                                     message: "Directory does not exist",
                                     context: context,
-                                  );
+                                  ));
                                   return;
                                 }
                                 if (passphrase.isEmpty) {
-                                  showFloatingFlushBar(
+                                  unawaited(showFloatingFlushBar(
                                     type: FlushBarType.warning,
                                     message: "A passphrase is required",
                                     context: context,
-                                  );
+                                  ));
                                   return;
                                 }
                                 if (passphrase != repeatPassphrase) {
-                                  showFloatingFlushBar(
+                                  unawaited(showFloatingFlushBar(
                                     type: FlushBarType.warning,
                                     message: "Passphrase does not match",
                                     context: context,
-                                  );
+                                  ));
                                   return;
                                 }
 
-                                showDialog<dynamic>(
+                                unawaited(showDialog<dynamic>(
                                   context: context,
                                   barrierDismissible: false,
                                   builder: (_) => const StackDialog(
                                     title: "Encrypting backup",
                                     message: "This shouldn't take long",
                                   ),
-                                );
+                                ));
                                 // make sure the dialog is able to be displayed for at least 1 second
                                 await Future<void>.delayed(
                                     const Duration(seconds: 1));
@@ -480,7 +486,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                               },
                         child: Text(
                           "Create backup",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                       ),
                     ],

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/wallet_card.dart';
 
 class WalletsSheet extends ConsumerWidget {
@@ -23,9 +23,9 @@ class WalletsSheet extends ConsumerWidget {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: CFColors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(20),
         ),
       ),
@@ -45,7 +45,9 @@ class WalletsSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CFColors.fieldGray,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -59,7 +61,7 @@ class WalletsSheet extends ConsumerWidget {
               ),
               Text(
                 "${coin.prettyName} (${coin.ticker}) wallets",
-                style: STextStyles.pageTitleH2,
+                style: STextStyles.pageTitleH2(context),
                 textAlign: TextAlign.left,
               ),
               const SizedBox(

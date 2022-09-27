@@ -13,11 +13,11 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -105,7 +105,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
         .select((value) => value.getContactById(_contactId)));
 
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () {
@@ -114,7 +114,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
         ),
         title: Text(
           "Contact details",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           Padding(
@@ -129,12 +129,16 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 key: const Key("contactDetails"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.star,
                   color: _contact.isFavorite
-                      ? CFColors.link2
-                      : CFColors.buttonGray,
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .favoriteStarActive
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .favoriteStarInactive,
                   width: 20,
                   height: 20,
                 ),
@@ -160,10 +164,12 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 key: const Key("contactDetailsViewDeleteContactButtonKey"),
                 size: 36,
                 shadows: const [],
-                color: CFColors.almostWhite,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 icon: SvgPicture.asset(
                   Assets.svg.trash,
-                  color: CFColors.stackAccent,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                   width: 20,
                   height: 20,
                 ),
@@ -177,16 +183,11 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       message: "Contact will be deleted permanently!",
                       leftButton: TextButton(
                         style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.buttonGray,
-                              ),
-                            ),
+                            .extension<StackColors>()!
+                            .getSecondaryEnabledButtonColor(context),
                         child: Text(
                           "Cancel",
-                          style: STextStyles.itemSubtitle12,
+                          style: STextStyles.itemSubtitle12(context),
                         ),
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -194,16 +195,11 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       ),
                       rightButton: TextButton(
                         style: Theme.of(context)
-                            .textButtonTheme
-                            .style
-                            ?.copyWith(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                CFColors.stackAccent,
-                              ),
-                            ),
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonColor(context),
                         child: Text(
                           "Delete",
-                          style: STextStyles.button,
+                          style: STextStyles.button(context),
                         ),
                         onPressed: () {
                           ref
@@ -246,7 +242,9 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       width: 48,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        color: CFColors.textFieldActive,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldActiveBG,
                       ),
                       child: Center(
                         child: _contact.emojiChar == null
@@ -257,7 +255,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                               )
                             : Text(
                                 _contact.emojiChar!,
-                                style: STextStyles.pageTitleH1,
+                                style: STextStyles.pageTitleH1(context),
                               ),
                       ),
                     ),
@@ -269,7 +267,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       child: Text(
                         _contact.name,
                         textAlign: TextAlign.left,
-                        style: STextStyles.pageTitleH2,
+                        style: STextStyles.pageTitleH2(context),
                       ),
                     ),
                     const Spacer(),
@@ -280,29 +278,29 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                           arguments: _contact.id,
                         );
                       },
-                      style: ButtonStyle(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 32)),
-                        backgroundColor: MaterialStateProperty.all(
-                          CFColors.buttonGray,
-                        ),
-                      ),
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
+                          .getSecondaryEnabledButtonColor(context)!
+                          .copyWith(
+                            minimumSize: MaterialStateProperty.all<Size>(
+                                const Size(46, 32)),
+                          ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Row(
                           children: [
-                            SvgPicture.asset(
-                              Assets.svg.pencil,
-                              width: 10,
-                              height: 10,
-                              color: CFColors.stackAccent,
-                            ),
+                            SvgPicture.asset(Assets.svg.pencil,
+                                width: 10,
+                                height: 10,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark),
                             const SizedBox(
                               width: 4,
                             ),
                             Text(
                               "Edit",
-                              style: STextStyles.buttonSmall,
+                              style: STextStyles.buttonSmall(context),
                             ),
                           ],
                         ),
@@ -318,7 +316,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                   children: [
                     Text(
                       "Addresses",
-                      style: STextStyles.itemSubtitle,
+                      style: STextStyles.itemSubtitle(context),
                     ),
                     BlueTextButton(
                       text: "Add new",
@@ -356,7 +354,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   children: [
                                     Text(
                                       "${e.label} (${e.coin.ticker})",
-                                      style: STextStyles.itemSubtitle12,
+                                      style:
+                                          STextStyles.itemSubtitle12(context),
                                     ),
                                     const SizedBox(
                                       height: 2,
@@ -365,8 +364,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                       fit: BoxFit.scaleDown,
                                       child: Text(
                                         e.address,
-                                        style:
-                                            STextStyles.itemSubtitle.copyWith(
+                                        style: STextStyles.itemSubtitle(context)
+                                            .copyWith(
                                           fontSize: 8,
                                         ),
                                       ),
@@ -391,14 +390,16 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   );
                                 },
                                 child: RoundedContainer(
-                                  color: CFColors.fieldGray,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
                                   padding: const EdgeInsets.all(4),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.pencil,
-                                    width: 12,
-                                    height: 12,
-                                    color: CFColors.stackAccent,
-                                  ),
+                                  child: SvgPicture.asset(Assets.svg.pencil,
+                                      width: 12,
+                                      height: 12,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                 ),
                               ),
                               const SizedBox(
@@ -417,14 +418,16 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   );
                                 },
                                 child: RoundedContainer(
-                                  color: CFColors.fieldGray,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
                                   padding: const EdgeInsets.all(4),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.copy,
-                                    width: 12,
-                                    height: 12,
-                                    color: CFColors.stackAccent,
-                                  ),
+                                  child: SvgPicture.asset(Assets.svg.copy,
+                                      width: 12,
+                                      height: 12,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
                                 ),
                               ),
                             ],
@@ -439,7 +442,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                 ),
                 Text(
                   "Transaction history",
-                  style: STextStyles.itemSubtitle,
+                  style: STextStyles.itemSubtitle(context),
                 ),
                 const SizedBox(
                   height: 12,
@@ -475,7 +478,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                           child: Center(
                             child: Text(
                               "No transactions found",
-                              style: STextStyles.itemSubtitle,
+                              style: STextStyles.itemSubtitle(context),
                             ),
                           ),
                         );

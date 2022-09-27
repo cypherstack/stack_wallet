@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 
 void main() {
@@ -15,6 +17,11 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(
+          extensions: [
+            StackColors.fromStackColorTheme(LightColors()),
+          ],
+        ),
         home: button,
       ),
     );
@@ -37,6 +44,11 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(
+          extensions: [
+            StackColors.fromStackColorTheme(LightColors()),
+          ],
+        ),
         home: SizedBox(
           width: 200,
           height: 60,
@@ -64,6 +76,11 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(
+          extensions: [
+            StackColors.fromStackColorTheme(LightColors()),
+          ],
+        ),
         home: SizedBox(
           width: 200,
           height: 60,

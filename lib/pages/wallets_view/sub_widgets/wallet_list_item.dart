@@ -4,11 +4,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/wallets_sheet/wallets_sheet.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class WalletListItem extends ConsumerWidget {
@@ -32,7 +32,7 @@ class WalletListItem extends ConsumerWidget {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
-        // splashColor: CFColors.splashLight,
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         key: Key("walletListItemButtonKey_${coin.name}"),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -78,11 +78,16 @@ class WalletListItem extends ConsumerWidget {
 
                   final double percentChange = tuple.item2;
 
-                  var percentChangedColor = CFColors.stackAccent;
+                  var percentChangedColor =
+                      Theme.of(context).extension<StackColors>()!.textDark;
                   if (percentChange > 0) {
-                    percentChangedColor = CFColors.stackGreen;
+                    percentChangedColor = Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorGreen;
                   } else if (percentChange < 0) {
-                    percentChangedColor = CFColors.stackRed;
+                    percentChangedColor = Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorRed;
                   }
 
                   return Column(
@@ -90,11 +95,14 @@ class WalletListItem extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Text(coin.prettyName),
+                          Text(
+                            coin.prettyName,
+                            style: STextStyles.titleBold12(context),
+                          ),
                           const Spacer(),
                           Text(
                             "$priceString $currency/${coin.ticker}",
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                         ],
                       ),
@@ -105,12 +113,12 @@ class WalletListItem extends ConsumerWidget {
                         children: [
                           Text(
                             walletCountString,
-                            style: STextStyles.itemSubtitle,
+                            style: STextStyles.itemSubtitle(context),
                           ),
                           const Spacer(),
                           Text(
                             "${percentChange.toStringAsFixed(2)}%",
-                            style: STextStyles.itemSubtitle.copyWith(
+                            style: STextStyles.itemSubtitle(context).copyWith(
                               color: percentChangedColor,
                             ),
                           ),

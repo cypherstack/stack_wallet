@@ -7,10 +7,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/providers/global/node_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -18,6 +16,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:tuple/tuple.dart';
 
@@ -103,6 +102,9 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.namecoin:
+      case Coin.bitcoincashTestnet:
         final client = ElectrumX(
           host: node!.host,
           port: node.port,
@@ -138,7 +140,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -153,7 +155,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
         ),
         title: Text(
           "Node details",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
         actions: [
           if (!nodeId.startsWith("default"))
@@ -169,10 +171,12 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                   key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
                   size: 36,
                   shadows: const [],
-                  color: CFColors.almostWhite,
+                  color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.pencil,
-                    color: CFColors.stackAccent,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -221,19 +225,18 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         ),
                         const Spacer(),
                         TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                              CFColors.buttonGray,
-                            ),
-                          ),
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getSecondaryEnabledButtonColor(context),
                           onPressed: () async {
                             await _testConnection(ref, context);
                           },
                           child: Text(
                             "Test connection",
-                            style: STextStyles.button.copyWith(
-                              color: CFColors.stackAccent,
-                            ),
+                            style: STextStyles.button(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark),
                           ),
                         ),
                         const SizedBox(height: 16),

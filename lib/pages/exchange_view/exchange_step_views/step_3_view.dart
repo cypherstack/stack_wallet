@@ -12,9 +12,9 @@ import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -50,7 +50,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CFColors.almostWhite,
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -65,7 +65,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
         ),
         title: Text(
           "Exchange",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -94,7 +94,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                         ),
                         Text(
                           "Confirm exchange details",
-                          style: STextStyles.pageTitleH1,
+                          style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(
                           height: 24,
@@ -104,12 +104,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             children: [
                               Text(
                                 "You send",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const Spacer(),
                               Text(
-                                "${model.sendAmount.toString()} ${model.sendTicker}",
-                                style: STextStyles.itemSubtitle12,
+                                "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -122,12 +122,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             children: [
                               Text(
                                 "You receive",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const Spacer(),
                               Text(
-                                "${model.receiveAmount.toString()} ${model.receiveTicker}",
-                                style: STextStyles.itemSubtitle12,
+                                "${model.receiveAmount.toString()} ${model.receiveTicker.toUpperCase()}",
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -140,12 +140,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             children: [
                               Text(
                                 "Estimated rate",
-                                style: STextStyles.itemSubtitle,
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const Spacer(),
                               Text(
                                 model.rateInfo,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -158,15 +158,15 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Recipient ${model.receiveTicker} address",
-                                style: STextStyles.itemSubtitle,
+                                "Recipient ${model.receiveTicker.toUpperCase()} address",
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const SizedBox(
                                 height: 4,
                               ),
                               Text(
                                 model.recipientAddress!,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -179,15 +179,15 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Refund ${model.sendTicker} address",
-                                style: STextStyles.itemSubtitle,
+                                "Refund ${model.sendTicker.toUpperCase()} address",
+                                style: STextStyles.itemSubtitle(context),
                               ),
                               const SizedBox(
                                 height: 4,
                               ),
                               Text(
                                 model.refundAddress!,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               )
                             ],
                           ),
@@ -203,10 +203,15 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getSecondaryEnabledButtonColor(context),
                                 child: Text(
                                   "Back",
-                                  style: STextStyles.button.copyWith(
-                                    color: CFColors.stackAccent,
+                                  style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
                                   ),
                                 ),
                               ),
@@ -304,17 +309,11 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   }
                                 },
                                 style: Theme.of(context)
-                                    .textButtonTheme
-                                    .style
-                                    ?.copyWith(
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                        CFColors.stackAccent,
-                                      ),
-                                    ),
+                                    .extension<StackColors>()!
+                                    .getPrimaryEnabledButtonColor(context),
                                 child: Text(
                                   "Next",
-                                  style: STextStyles.button,
+                                  style: STextStyles.button(context),
                                 ),
                               ),
                             ),

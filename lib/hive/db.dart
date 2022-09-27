@@ -9,7 +9,6 @@ import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-
 import 'package:stackwallet/utilities/logger.dart';
 
 class DB {
@@ -30,6 +29,7 @@ class DB {
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
   static const String boxNameDBInfo = "dbInfo";
+  static const String boxNameTheme = "theme";
 
   String boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
   String boxNameSetCache({required Coin coin}) =>

@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class ConfirmRecoveryDialog extends StatelessWidget {
@@ -11,44 +18,94 @@ class ConfirmRecoveryDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return true;
-      },
-      child: StackDialog(
-        title: "Are you ready?",
-        message:
-            "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",
-        leftButton: TextButton(
-          style: Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.buttonGray,
-                ),
+    if (Util.isDesktop) {
+      return DesktopDialog(
+        child: Column(
+          children: [
+            const DesktopDialogCloseButton(),
+            const SizedBox(
+              height: 5,
+            ),
+            SvgPicture.asset(
+              Assets.svg.drd,
+              width: 99,
+              height: 70,
+            ),
+            const Spacer(),
+            Text(
+              "Restore wallet",
+              style: STextStyles.desktopH2(context),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              "Restoring your wallet may take a while.\nPlease do not exit this screen once the process is started.",
+              style: STextStyles.desktopTextMedium(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
-          child: Text(
-            "Cancel",
-            style: STextStyles.itemSubtitle12,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        rightButton: TextButton(
-          style: Theme.of(context).textButtonTheme.style?.copyWith(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                  CFColors.stackAccent,
-                ),
+              textAlign: TextAlign.center,
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 32,
+                right: 32,
+                bottom: 32,
               ),
-          child: Text(
-            "Restore",
-            style: STextStyles.button,
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-            onConfirm.call();
-          },
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SecondaryButton(
+                      label: "Cancel",
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Expanded(
+                    child: PrimaryButton(
+                      label: "Restore",
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onConfirm.call();
+                      },
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
         ),
-      ),
-    );
+      );
+    } else {
+      return WillPopScope(
+        onWillPop: () async {
+          return true;
+        },
+        child: StackDialog(
+          title: "Are you ready?",
+          message:
+              "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",
+          leftButton: SecondaryButton(
+            label: "Cancel",
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          rightButton: PrimaryButton(
+            label: "Restore",
+            onPressed: () {
+              Navigator.of(context).pop();
+              onConfirm.call();
+            },
+          ),
+        ),
+      );
+    }
   }
 }

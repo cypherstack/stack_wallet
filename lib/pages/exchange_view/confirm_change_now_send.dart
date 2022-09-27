@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
@@ -8,10 +10,10 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/utilities/cfcolors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -47,14 +49,14 @@ class _ConfirmChangeNowSendViewState
   late final ExchangeTransaction trade;
 
   Future<void> _attemptSend(BuildContext context) async {
-    showDialog<void>(
+    unawaited(showDialog<void>(
       context: context,
       useSafeArea: false,
       barrierDismissible: false,
       builder: (context) {
         return const SendingTransactionDialog();
       },
-    );
+    ));
 
     final String note = transactionInfo["note"] as String? ?? "";
     final manager =
@@ -62,10 +64,10 @@ class _ConfirmChangeNowSendViewState
 
     try {
       final txid = await manager.confirmSend(txData: transactionInfo);
-      manager.refresh();
+      unawaited(manager.refresh());
 
       // save note
-      ref
+      await ref
           .read(notesServiceChangeNotifierProvider(walletId))
           .editOrAddNote(txid: txid, note: note);
 
@@ -86,7 +88,7 @@ class _ConfirmChangeNowSendViewState
       // pop sending dialog
       Navigator.of(context).pop();
 
-      showDialog<dynamic>(
+      await showDialog<dynamic>(
         context: context,
         useSafeArea: false,
         barrierDismissible: true,
@@ -95,15 +97,15 @@ class _ConfirmChangeNowSendViewState
             title: "Broadcast transaction failed",
             message: e.toString(),
             rightButton: TextButton(
-              style: Theme.of(context).textButtonTheme.style?.copyWith(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      CFColors.buttonGray,
-                    ),
-                  ),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.button.copyWith(
-                  color: CFColors.stackAccent,
+                style: STextStyles.button(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextSecondary,
                 ),
               ),
               onPressed: () {
@@ -131,7 +133,7 @@ class _ConfirmChangeNowSendViewState
         .select((value) => value.getManagerProvider(walletId)));
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: CFColors.almostWhite,
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
           onPressed: () async {
             // if (FocusScope.of(context).hasFocus) {
@@ -143,7 +145,7 @@ class _ConfirmChangeNowSendViewState
         ),
         title: Text(
           "Confirm transaction",
-          style: STextStyles.navBarTitle,
+          style: STextStyles.navBarTitle(context),
         ),
       ),
       body: LayoutBuilder(
@@ -167,7 +169,7 @@ class _ConfirmChangeNowSendViewState
                       children: [
                         Text(
                           "Send ${ref.watch(managerProvider.select((value) => value.coin)).ticker}",
-                          style: STextStyles.pageTitleH1,
+                          style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(
                           height: 12,
@@ -178,7 +180,7 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Send from",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               const SizedBox(
                                 height: 4,
@@ -188,7 +190,7 @@ class _ConfirmChangeNowSendViewState
                                     .watch(walletsChangeNotifierProvider)
                                     .getManager(walletId)
                                     .walletName,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
                           ),
@@ -205,14 +207,14 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "ChangeNOW address",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               const SizedBox(
                                 height: 4,
                               ),
                               Text(
                                 "${transactionInfo["address"] ?? "ERROR"}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
                           ),
@@ -226,7 +228,7 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Amount",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               Text(
                                 "${Format.satoshiAmountToPrettyString(
@@ -239,7 +241,7 @@ class _ConfirmChangeNowSendViewState
                                       managerProvider
                                           .select((value) => value.coin),
                                     ).ticker}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -254,7 +256,7 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Transaction fee",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               Text(
                                 "${Format.satoshiAmountToPrettyString(
@@ -267,7 +269,7 @@ class _ConfirmChangeNowSendViewState
                                       managerProvider
                                           .select((value) => value.coin),
                                     ).ticker}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -282,14 +284,14 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Note",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               const SizedBox(
                                 height: 4,
                               ),
                               Text(
                                 transactionInfo["note"] as String? ?? "",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
                           ),
@@ -303,11 +305,11 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Trade ID",
-                                style: STextStyles.smallMed12,
+                                style: STextStyles.smallMed12(context),
                               ),
                               Text(
                                 trade.id,
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -317,13 +319,15 @@ class _ConfirmChangeNowSendViewState
                           height: 12,
                         ),
                         RoundedContainer(
-                          color: CFColors.stackGreen15,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .snackBarBackSuccess,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "Total amount",
-                                style: STextStyles.titleBold12,
+                                style: STextStyles.titleBold12(context),
                               ),
                               Text(
                                 "${Format.satoshiAmountToPrettyString(
@@ -337,7 +341,7 @@ class _ConfirmChangeNowSendViewState
                                       managerProvider
                                           .select((value) => value.coin),
                                     ).ticker}",
-                                style: STextStyles.itemSubtitle12,
+                                style: STextStyles.itemSubtitle12(context),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -348,13 +352,9 @@ class _ConfirmChangeNowSendViewState
                         ),
                         const Spacer(),
                         TextButton(
-                          style:
-                              Theme.of(context).textButtonTheme.style?.copyWith(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                      CFColors.stackAccent,
-                                    ),
-                                  ),
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonColor(context),
                           onPressed: () async {
                             final unlocked = await Navigator.push(
                               context,
@@ -378,12 +378,12 @@ class _ConfirmChangeNowSendViewState
                             );
 
                             if (unlocked is bool && unlocked && mounted) {
-                              _attemptSend(context);
+                              await _attemptSend(context);
                             }
                           },
                           child: Text(
                             "Send",
-                            style: STextStyles.button,
+                            style: STextStyles.button(context),
                           ),
                         ),
                       ],
