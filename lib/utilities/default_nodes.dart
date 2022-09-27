@@ -68,6 +68,20 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  // TODO: eventually enable ssl and set scheme to https
+  // currently get certificate failure
+  static NodeModel get wownero => NodeModel(
+        host: "eu-west-2.wow.xmr.pm",
+        port: 34568,
+        name: defaultName,
+        id: _nodeId(Coin.wownero),
+        useSSL: false,
+        enabled: true,
+        coinName: Coin.wownero.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get epicCash => NodeModel(
         host: "http://epiccash.stackwallet.com",
         port: 3413,
@@ -132,6 +146,9 @@ abstract class DefaultNodes {
 
       case Coin.monero:
         return monero;
+
+      case Coin.wownero:
+        return wownero;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;

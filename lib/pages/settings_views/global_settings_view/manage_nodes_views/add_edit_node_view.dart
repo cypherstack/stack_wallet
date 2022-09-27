@@ -534,6 +534,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
       case Coin.epicCash:
       case Coin.monero:
+      case Coin.wownero:
         return true;
     }
   }

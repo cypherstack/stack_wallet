@@ -49,6 +49,9 @@ class AddressUtils {
       case Coin.monero:
         return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
             RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
+      case Coin.wownero:
+        return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
+            RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
       case Coin.firoTestNet:

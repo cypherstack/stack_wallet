@@ -5,6 +5,7 @@ import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
+import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 
 enum Coin {
   bitcoin,
@@ -12,6 +13,7 @@ enum Coin {
   epicCash,
   firo,
   monero,
+  wownero,
 
   ///
   ///
@@ -38,6 +40,8 @@ extension CoinExt on Coin {
         return "Firo";
       case Coin.monero:
         return "Monero";
+      case Coin.wownero:
+        return "Wownero";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
       case Coin.firoTestNet:
@@ -59,6 +63,8 @@ extension CoinExt on Coin {
         return "FIRO";
       case Coin.monero:
         return "XMR";
+      case Coin.wownero:
+        return "WOW";
       case Coin.bitcoinTestNet:
         return "tBTC";
       case Coin.firoTestNet:
@@ -81,6 +87,8 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.monero:
         return "monero";
+      case Coin.wownero:
+        return "wownero";
       case Coin.bitcoinTestNet:
         return "bitcoin";
       case Coin.firoTestNet:
@@ -102,6 +110,7 @@ extension CoinExt on Coin {
 
       case Coin.epicCash:
       case Coin.monero:
+      case Coin.wownero:
         return false;
     }
   }
@@ -125,6 +134,9 @@ extension CoinExt on Coin {
 
       case Coin.monero:
         return xmr.MINIMUM_CONFIRMATIONS;
+
+      case Coin.wownero:
+        return wow.MINIMUM_CONFIRMATIONS;
     }
   }
 }

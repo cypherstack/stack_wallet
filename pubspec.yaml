@@ -31,6 +31,9 @@ dependencies:
   cw_monero:
     path: ./crypto_plugins/flutter_libmonero/cw_monero
 
+  cw_wownero:
+    path: ./crypto_plugins/flutter_libmonero/cw_wownero
+
   cw_core:
     path: ./crypto_plugins/flutter_libmonero/cw_core
 
@@ -177,6 +180,7 @@ flutter:
     - assets/svg/clipboard.svg
     - assets/images/stack.png
     - assets/images/monero.png
+    - assets/images/wownero.png
     - assets/images/firo.png
     - assets/images/doge.png
     - assets/images/bitcoin.png
@@ -265,6 +269,7 @@ flutter:
     - assets/svg/coin_icons/EpicCash.svg
     - assets/svg/coin_icons/Firo.svg
     - assets/svg/coin_icons/Monero.svg
+    - assets/svg/coin_icons/Wownero.svg
     # lottie animations
     - assets/lottie/test.json
     - assets/lottie/test2.json
