@@ -13,17 +13,17 @@ import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_wownero/api/exceptions/creation_transaction_exception.dart';
 import 'package:cw_wownero/api/wallet.dart';
+import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:cw_wownero/wownero_amount_format.dart';
 import 'package:cw_wownero/wownero_wallet.dart';
-import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:dart_numerics/dart_numerics.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:flutter_libmonero/core/wallet_creation_service.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart'
     as wownero_output;
+import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
@@ -1249,6 +1249,7 @@ class WowneroWallet extends CoinServiceAPI {
         // // create final tx map
         midSortedTx["txid"] = tx.value.id;
         midSortedTx["confirmed_status"] = !tx.value.isPending &&
+            tx.value.confirmations != null &&
             tx.value.confirmations! >= MINIMUM_CONFIRMATIONS;
         midSortedTx["confirmations"] = tx.value.confirmations ?? 0;
         midSortedTx["timestamp"] =
