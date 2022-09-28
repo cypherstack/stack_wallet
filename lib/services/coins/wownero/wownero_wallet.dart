@@ -1452,7 +1452,7 @@ class WowneroWallet extends CoinServiceAPI {
         try {
           Logging.instance
               .log("$toAddress $amount $args", level: LogLevel.Info);
-          String amountToSend = wowneroAmountToString(amount: amount * 10000);
+          String amountToSend = wowneroAmountToString(amount: amount * 1000);
           Logging.instance.log("$amount $amountToSend", level: LogLevel.Info);
 
           wownero_output.Output output = wownero_output.Output(walletBase!);
@@ -1462,6 +1462,8 @@ class WowneroWallet extends CoinServiceAPI {
           List<wownero_output.Output> outputs = [output];
           Object tmp = wownero.createWowneroTransactionCreationCredentials(
               outputs: outputs, priority: feePriority);
+
+          print("AAAAAAAAAAAA: $tmp");
 
           awaitPendingTransaction = walletBase!.createTransaction(tmp);
         } catch (e, s) {

@@ -239,9 +239,11 @@ class _TransactionDetailsViewState
                         children: [
                           SelectableText(
                             "$amountPrefix${Format.localizedStringAsFixed(
-                              value: coin == Coin.monero || coin == Coin.wownero
+                              value: coin == Coin.monero
                                   ? (amount / 10000.toDecimal()).toDecimal()
-                                  : amount,
+                                  : coin == Coin.wownero
+                                      ? (amount / 1000.toDecimal()).toDecimal()
+                                      : amount,
                               locale: ref.watch(
                                 localeServiceChangeNotifierProvider
                                     .select((value) => value.locale),
@@ -254,7 +256,7 @@ class _TransactionDetailsViewState
                             height: 2,
                           ),
                           SelectableText(
-                            "${Format.localizedStringAsFixed(value: (coin == Coin.monero || coin == Coin.wownero ? (amount / 10000.toDecimal()).toDecimal() : amount) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
+                            "${Format.localizedStringAsFixed(value: (coin == Coin.monero ? (amount / 10000.toDecimal()).toDecimal() : coin == Coin.wownero ? (amount / 1000.toDecimal()).toDecimal() : amount) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
                                   localeServiceChangeNotifierProvider
                                       .select((value) => value.locale),
                                 ), decimalPlaces: 2)} ${ref.watch(
@@ -462,18 +464,23 @@ class _TransactionDetailsViewState
                         showFeePending
                             ? _transaction.confirmedStatus
                                 ? Format.localizedStringAsFixed(
-                                    value: coin == Coin.monero || coin == Coin.wownero
+                                    value: coin == Coin.monero
                                         ? (fee / 10000.toDecimal()).toDecimal()
-                                        : fee,
+                                        : coin == Coin.wownero
+                                            ? (fee / 1000.toDecimal())
+                                                .toDecimal()
+                                            : fee,
                                     locale: ref.watch(
                                         localeServiceChangeNotifierProvider
                                             .select((value) => value.locale)),
                                     decimalPlaces: Constants.decimalPlaces)
                                 : "Pending"
                             : Format.localizedStringAsFixed(
-                                value: coin == Coin.monero || coin == Coin.wownero
+                                value: coin == Coin.monero
                                     ? (fee / 10000.toDecimal()).toDecimal()
-                                    : fee,
+                                    : coin == Coin.wownero
+                                        ? (fee / 1000.toDecimal()).toDecimal()
+                                        : fee,
                                 locale: ref.watch(
                                     localeServiceChangeNotifierProvider
                                         .select((value) => value.locale)),

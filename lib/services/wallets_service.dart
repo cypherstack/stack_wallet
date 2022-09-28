@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
+import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
@@ -367,8 +368,13 @@ class WalletsService extends ChangeNotifier {
     await DB.instance.delete<dynamic>(
         boxName: DB.boxNameAllWalletsData,
         key: "${walletId}_mnemonicHasBeenVerified");
-
-    if (coinFromPrettyName(shell['coin'] as String) == Coin.monero) {
+    if (coinFromPrettyName(shell['coin'] as String) == Coin.wownero) {
+      final wowService =
+          wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
+      await wowService.remove(walletId);
+      Logging.instance
+          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+    } else if (coinFromPrettyName(shell['coin'] as String) == Coin.monero) {
       final xmrService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
       await xmrService.remove(walletId);

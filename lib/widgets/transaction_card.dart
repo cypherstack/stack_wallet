@@ -170,9 +170,11 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Builder(
                                 builder: (_) {
-                                  final amount = coin == Coin.monero || coin == Coin.wownero
+                                  final amount = coin == Coin.monero
                                       ? (_transaction.amount ~/ 10000)
-                                      : _transaction.amount;
+                                      : coin == Coin.wownero
+                                          ? (_transaction.amount ~/ 1000)
+                                          : _transaction.amount;
                                   return Text(
                                     "${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
                                     style:
@@ -210,8 +212,10 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                 builder: (_) {
                                   // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
                                   int value = _transaction.amount;
-                                  if (coin == Coin.monero || coin == Coin.wownero) {
+                                  if (coin == Coin.monero) {
                                     value = (value ~/ 10000);
+                                  } else if (coin == Coin.wownero) {
+                                    value = (value ~/ 1000);
                                   }
 
                                   return Text(

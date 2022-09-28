@@ -750,8 +750,13 @@ class _TransactionSearchViewState
     }
     int? amount;
     if (amountDecimal != null) {
-      if (widget.coin == Coin.monero || widget.coin == Coin.wownero) {
+      if (widget.coin == Coin.monero) {
         amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinMonero))
+            .floor()
+            .toBigInt()
+            .toInt();
+      } else if (widget.coin == Coin.wownero) {
+        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinWownero))
             .floor()
             .toBigInt()
             .toInt();
