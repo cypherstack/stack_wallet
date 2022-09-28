@@ -239,7 +239,7 @@ class _TransactionDetailsViewState
                         children: [
                           SelectableText(
                             "$amountPrefix${Format.localizedStringAsFixed(
-                              value: coin == Coin.monero
+                              value: coin == Coin.monero || coin == Coin.wownero
                                   ? (amount / 10000.toDecimal()).toDecimal()
                                   : amount,
                               locale: ref.watch(
@@ -254,7 +254,7 @@ class _TransactionDetailsViewState
                             height: 2,
                           ),
                           SelectableText(
-                            "${Format.localizedStringAsFixed(value: (coin == Coin.monero ? (amount / 10000.toDecimal()).toDecimal() : amount) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
+                            "${Format.localizedStringAsFixed(value: (coin == Coin.monero || coin == Coin.wownero ? (amount / 10000.toDecimal()).toDecimal() : amount) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
                                   localeServiceChangeNotifierProvider
                                       .select((value) => value.locale),
                                 ), decimalPlaces: 2)} ${ref.watch(
@@ -298,14 +298,14 @@ class _TransactionDetailsViewState
                     ],
                   ),
                 ),
-                if (!(coin == Coin.monero &&
+                if (!((coin == Coin.monero || coin == Coin.wownero) &&
                         _transaction.txType.toLowerCase() == "sent") &&
                     !((coin == Coin.firo || coin == Coin.firoTestNet) &&
                         _transaction.subType == "mint"))
                   const SizedBox(
                     height: 12,
                   ),
-                if (!(coin == Coin.monero &&
+                if (!((coin == Coin.monero || coin == Coin.wownero) &&
                         _transaction.txType.toLowerCase() == "sent") &&
                     !((coin == Coin.firo || coin == Coin.firoTestNet) &&
                         _transaction.subType == "mint"))
@@ -462,7 +462,7 @@ class _TransactionDetailsViewState
                         showFeePending
                             ? _transaction.confirmedStatus
                                 ? Format.localizedStringAsFixed(
-                                    value: coin == Coin.monero
+                                    value: coin == Coin.monero || coin == Coin.wownero
                                         ? (fee / 10000.toDecimal()).toDecimal()
                                         : fee,
                                     locale: ref.watch(
@@ -471,7 +471,7 @@ class _TransactionDetailsViewState
                                     decimalPlaces: Constants.decimalPlaces)
                                 : "Pending"
                             : Format.localizedStringAsFixed(
-                                value: coin == Coin.monero
+                                value: coin == Coin.monero || coin == Coin.wownero
                                     ? (fee / 10000.toDecimal()).toDecimal()
                                     : fee,
                                 locale: ref.watch(
