@@ -54,6 +54,9 @@ abstract class Constants {
       case Coin.monero:
         values.addAll([25]);
         break;
+      case Coin.wownero:
+        values.addAll([14]);
+        break;
     }
     return values;
   }
@@ -81,6 +84,9 @@ abstract class Constants {
         return 60;
 
       case Coin.monero:
+        return 120;
+
+      case Coin.wownero:
         return 120;
 
       case Coin.namecoin:

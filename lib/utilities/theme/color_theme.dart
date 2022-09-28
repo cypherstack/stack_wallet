@@ -209,8 +209,8 @@ class CoinThemeColor {
         return monero;
       case Coin.namecoin:
         return namecoin;
-      // case Coin.wownero:
-      //   return wownero;
+      case Coin.wownero:
+        return wownero;
     }
   }
 }
