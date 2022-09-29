@@ -4,7 +4,43 @@ import 'package:stackwallet/models/models.dart';
 import '../services/coins/firo/sample_data/transaction_data_samples.dart';
 
 void main() {
-  group("TimeStamp", () {
+  group("TransactionData", () {
+    test("TransactionData from Json", () {
+      final txChunk = TransactionChunk.fromJson({
+        "timestamp": 993260735,
+        "transactions": [
+          {
+            "txid": "txid",
+            "confirmed_status": true,
+            "timestamp": 1876352482,
+            "txType": "txType",
+            "amount": 10,
+            "worthNow": "1",
+            "worthAtBlockTimestamp": "1",
+            "fees": 1,
+            "inputSize": 1,
+            "outputSize": 1,
+            "inputs": [],
+            "outputs": [],
+            "address": "address",
+            "height": 1,
+            "confirmations": 1,
+            "aliens": [],
+            "subType": "mint",
+            "isCancelled": false,
+            "slateId": "slateId",
+            "otherData": "otherData",
+          }
+        ]
+      });
+      final txdata =
+          TransactionData.fromJson({"dateTimeChunks": [], "txChunks": []});
+      txdata.findTransaction("txid");
+      txdata.getAllTransactions();
+    });
+  });
+
+  group("Timestamp", () {
     test("Timestamp is now", () {
       final date = extractDateFromTimestamp(0);
     });
@@ -17,8 +53,9 @@ void main() {
       final date = extractDateFromTimestamp(1876352482);
     });
   });
+
   group("Transaction", () {
-    test("Factory transaction", () {
+    test("Transaction from Json", () {
       final tx = Transaction.fromJson({
         "txid": "txid",
         "confirmed_status": true,
@@ -43,7 +80,31 @@ void main() {
       });
     });
 
-    /// TODO: test TransactionChunk w a transaction in it
+    test("Transaction from Lelantus Json", () {
+      final tx = Transaction.fromLelantusJson({
+        "txid": "txid",
+        "confirmed_status": true,
+        "timestamp": 1876352482,
+        "txType": "txType",
+        "amount": 10,
+        "worthNow": "1",
+        "worthAtBlockTimestamp": "1",
+        "fees": 1,
+        "inputSize": 1,
+        "outputSize": 1,
+        "inputs": [],
+        "outputs": [],
+        "address": "address",
+        "height": 1,
+        "confirmations": 1,
+        "aliens": [],
+        "subType": "mint",
+        "isCancelled": false,
+        "slateId": "slateId",
+        "otherData": "otherData",
+      });
+    });
+
     test("TransactionChunk", () {
       final transactionchunk = TransactionChunk.fromJson({
         "timestamp": 45920,
@@ -52,58 +113,37 @@ void main() {
       expect(
           transactionchunk.toString(), "timestamp: 45920 transactions: [\n]");
     });
-  });
 
-  group("Input", () {
-    test("Input.toString", () {
-      final input = Input(
-        txid: "txid",
-        vout: 1,
-        prevout: null,
-        scriptsig: "scriptsig",
-        scriptsigAsm: "scriptsigAsm",
-        witness: [],
-        isCoinbase: false,
-        sequence: 1,
-        innerRedeemscriptAsm: "innerRedeemscriptAsm",
-      ); //Input
-
-      expect(input.toString(), "{txid: txid}");
-    });
-
-    test("Input.toString", () {
-      final input = Input.fromJson({
-        "txid": "txid",
-        "vout": 1,
-        "prevout": null,
-        "scriptSig": {"hex": "somehexString", "asm": "someasmthing"},
-        "scriptsigAsm": "scriptsigAsm",
-        "witness": [],
-        "isCoinbase": false,
-        "sequence": 1,
-        "innerRedeemscriptAsm": "innerRedeemscriptAsm",
-      }); //Input
-
-      expect(input.toString(), "{txid: txid}");
-    });
-  });
-
-  group("Output", () {
-    test("Output.toString", () {
-      final output = Output.fromJson({
-        "scriptPubKey": {
-          "hex": "somehexSting",
-          "asm": "someasmthing",
-          "type": "sometype",
-          "addresses": "someaddresses",
-        },
-        "scriptpubkeyAsm": "scriptpubkeyAsm",
-        "scriptpubkeyType": "scriptpubkeyType",
-        "scriptpubkeyAddress": "address",
-        "value": 2,
-      }); //Input
-
-      expect(output.toString(), "Instance of \'Output\'");
+    test("TransactionChunk with a transaction", () {
+      final txChunk = TransactionChunk.fromJson({
+        "timestamp": 993260735,
+        "transactions": [
+          {
+            "txid": "txid",
+            "confirmed_status": true,
+            "timestamp": 1876352482,
+            "txType": "txType",
+            "amount": 10,
+            "worthNow": "1",
+            "worthAtBlockTimestamp": "1",
+            "fees": 1,
+            "inputSize": 1,
+            "outputSize": 1,
+            "inputs": [],
+            "outputs": [],
+            "address": "address",
+            "height": 1,
+            "confirmations": 1,
+            "aliens": [],
+            "subType": "mint",
+            "isCancelled": false,
+            "slateId": "slateId",
+            "otherData": "otherData",
+          }
+        ]
+      });
+      expect(txChunk.toString(),
+          "timestamp: 993260735 transactions: [\n    {txid: txid, type: txType, subType: mint, value: 10, fee: 1, height: 1, confirm: true, confirmations: 1, address: address, timestamp: 1876352482, worthNow: 1, inputs: [], slateid: slateId } \n]");
     });
   });
 
@@ -198,5 +238,58 @@ void main() {
 
     expect(tx1 == tx2, false);
     expect(tx2.toString(), tx1.toString());
+  });
+
+  group("Input", () {
+    test("Input.toString", () {
+      final input = Input(
+        txid: "txid",
+        vout: 1,
+        prevout: null,
+        scriptsig: "scriptsig",
+        scriptsigAsm: "scriptsigAsm",
+        witness: [],
+        isCoinbase: false,
+        sequence: 1,
+        innerRedeemscriptAsm: "innerRedeemscriptAsm",
+      ); //Input
+
+      expect(input.toString(), "{txid: txid}");
+    });
+
+    test("Input.toString", () {
+      final input = Input.fromJson({
+        "txid": "txid",
+        "vout": 1,
+        "prevout": null,
+        "scriptSig": {"hex": "somehexString", "asm": "someasmthing"},
+        "scriptsigAsm": "scriptsigAsm",
+        "witness": [],
+        "isCoinbase": false,
+        "sequence": 1,
+        "innerRedeemscriptAsm": "innerRedeemscriptAsm",
+      }); //Input
+
+      expect(input.toString(), "{txid: txid}");
+    });
+  });
+
+  group("Output", () {
+    test("Output.toString", () {
+      final output = Output.fromJson({
+        "scriptPubKey": {
+          "hex": "somehexSting",
+          "asm": "someasmthing",
+          "type": "sometype",
+          "addresses": "someaddresses",
+        },
+        "scriptpubkeyAsm": "scriptpubkeyAsm",
+        "scriptpubkeyType": "scriptpubkeyType",
+        "scriptpubkeyAddress": "address",
+        "value": 2,
+      }); //Input
+
+      expect(output.toString(), "Instance of \'Output\'");
+    });
   });
 }
