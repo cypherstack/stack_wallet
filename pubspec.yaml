@@ -307,6 +307,7 @@ flutter:
     - assets/svg/exchange-3.svg
     - assets/svg/message-question-1.svg
     - assets/svg/drd-icon.svg
+    - assets/svg/box-auto.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
