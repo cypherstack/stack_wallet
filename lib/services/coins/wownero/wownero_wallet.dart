@@ -1463,8 +1463,6 @@ class WowneroWallet extends CoinServiceAPI {
           Object tmp = wownero.createWowneroTransactionCreationCredentials(
               outputs: outputs, priority: feePriority);
 
-          print("AAAAAAAAAAAA: $tmp");
-
           awaitPendingTransaction = walletBase!.createTransaction(tmp);
         } catch (e, s) {
           Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
