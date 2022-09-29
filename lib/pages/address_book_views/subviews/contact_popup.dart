@@ -268,11 +268,11 @@ class ContactPopUp extends ConsumerWidget {
                                               color: Theme.of(context)
                                                   .extension<StackColors>()!
                                                   .textFieldDefaultBG,
-                                              padding: const EdgeInsets.all(4),
+                                              padding: const EdgeInsets.all(6),
                                               child: SvgPicture.asset(
                                                   Assets.svg.copy,
-                                                  width: 12,
-                                                  height: 12,
+                                                  width: 16,
+                                                  height: 16,
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
                                                       .accentColorDark),
