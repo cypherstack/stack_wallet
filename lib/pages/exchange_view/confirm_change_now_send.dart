@@ -132,6 +132,7 @@ class _ConfirmChangeNowSendViewState
     final managerProvider = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManagerProvider(walletId)));
     return Scaffold(
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         leading: AppBarBackButton(
