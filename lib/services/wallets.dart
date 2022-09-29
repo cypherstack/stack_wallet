@@ -223,7 +223,7 @@ class Wallets extends ChangeNotifier {
             final shouldSetAutoSync = shouldAutoSyncAll ||
                 walletIdsToEnableAutoSync.contains(manager.walletId);
 
-            if (manager.coin == Coin.monero) {
+            if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
               walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
             } else {
               walletInitFutures.add(manager.initializeExisting().then((value) {
@@ -312,7 +312,7 @@ class Wallets extends ChangeNotifier {
           final shouldSetAutoSync = shouldAutoSyncAll ||
               walletIdsToEnableAutoSync.contains(manager.walletId);
 
-          if (manager.coin == Coin.monero) {
+          if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
             walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
             walletInitFutures.add(manager.initializeExisting().then((value) {

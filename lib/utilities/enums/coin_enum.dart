@@ -9,6 +9,7 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
     as nmc;
+import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 
 enum Coin {
   bitcoin,
@@ -17,6 +18,7 @@ enum Coin {
   epicCash,
   firo,
   monero,
+  wownero,
   namecoin,
 
   ///
@@ -47,6 +49,8 @@ extension CoinExt on Coin {
         return "Firo";
       case Coin.monero:
         return "Monero";
+      case Coin.wownero:
+        return "Wownero";
       case Coin.namecoin:
         return "Namecoin";
       case Coin.bitcoinTestNet:
@@ -74,6 +78,8 @@ extension CoinExt on Coin {
         return "FIRO";
       case Coin.monero:
         return "XMR";
+      case Coin.wownero:
+        return "WOW";
       case Coin.namecoin:
         return "NMC";
       case Coin.bitcoinTestNet:
@@ -102,6 +108,8 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.monero:
         return "monero";
+      case Coin.wownero:
+        return "wownero";
       case Coin.namecoin:
         return "namecoin";
       case Coin.bitcoinTestNet:
@@ -130,6 +138,7 @@ extension CoinExt on Coin {
 
       case Coin.epicCash:
       case Coin.monero:
+      case Coin.wownero:
         return false;
     }
   }
@@ -157,6 +166,10 @@ extension CoinExt on Coin {
 
       case Coin.monero:
         return xmr.MINIMUM_CONFIRMATIONS;
+
+      case Coin.wownero:
+        return wow.MINIMUM_CONFIRMATIONS;
+
       case Coin.namecoin:
         return nmc.MINIMUM_CONFIRMATIONS;
     }
@@ -204,6 +217,10 @@ Coin coinFromPrettyName(String name) {
     case "tDogecoin":
     case "dogecoinTestNet":
       return Coin.dogecoinTestNet;
+    case "Wownero":
+    case "tWownero":
+    case "wownero":
+      return Coin.wownero;
     default:
       throw ArgumentError.value(
           name, "name", "No Coin enum value with that prettyName");
@@ -234,6 +251,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.firoTestNet;
     case "tdoge":
       return Coin.dogecoinTestNet;
+    case "wow":
+      return Coin.wownero;
     default:
       throw ArgumentError.value(
           ticker, "name", "No Coin enum value with that ticker");

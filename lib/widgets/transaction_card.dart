@@ -172,7 +172,9 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                 builder: (_) {
                                   final amount = coin == Coin.monero
                                       ? (_transaction.amount ~/ 10000)
-                                      : _transaction.amount;
+                                      : coin == Coin.wownero
+                                          ? (_transaction.amount ~/ 1000)
+                                          : _transaction.amount;
                                   return Text(
                                     "${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
                                     style:
@@ -212,6 +214,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                   int value = _transaction.amount;
                                   if (coin == Coin.monero) {
                                     value = (value ~/ 10000);
+                                  } else if (coin == Coin.wownero) {
+                                    value = (value ~/ 1000);
                                   }
 
                                   return Text(
