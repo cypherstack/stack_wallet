@@ -67,8 +67,8 @@ jobs:
           $encodedBytes = [System.Convert]::FromBase64String($env:NAMECOIN_TEST);
           Set-Content $secretFileNamecoin -Value $encodedBytes -AsByteStream;
           $secretFileNamecoinHash = Get-FileHash $secretFileNamecoin;
-          Write-Output "::set-output name=SECRET_FILE_FIRO::$secretFileNamecoin";
-          Write-Output "::set-output name=SECRET_FILE_FIRO_HASH::$($secretFileNamecoinHash.Hash)";
+          Write-Output "::set-output name=SECRET_FILE_NAMECOIN::$secretFileNamecoin";
+          Write-Output "::set-output name=SECRET_FILE_NAMECOIN_HASH::$($secretFileNamecoinHash.Hash)";
           Write-Output "Secret file $secretFileNamecoin has hash $($secretFileNamecoinHash.Hash)";
           
         shell: pwsh
