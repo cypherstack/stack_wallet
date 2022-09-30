@@ -138,7 +138,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                         e.statusObject != null &&
                         (e.statusObject!.payinHash == tx.txid ||
                             e.statusObject!.payoutHash == tx.txid));
-                if (matchingTrades.isNotEmpty) {
+                if (tx.txType == "Sent" && matchingTrades.isNotEmpty) {
                   final trade = matchingTrades.first;
                   return Container(
                     decoration: BoxDecoration(
