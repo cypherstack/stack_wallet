@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.4.50+65
+version: 1.4.52+68
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -30,6 +30,9 @@ dependencies:
 
   cw_monero:
     path: ./crypto_plugins/flutter_libmonero/cw_monero
+
+  cw_wownero:
+    path: ./crypto_plugins/flutter_libmonero/cw_wownero
 
   cw_core:
     path: ./crypto_plugins/flutter_libmonero/cw_core
@@ -189,6 +192,7 @@ flutter:
     - assets/svg/clipboard.svg
     - assets/images/stack.png
     - assets/images/monero.png
+    - assets/images/wownero.png
     - assets/images/firo.png
     - assets/images/doge.png
     - assets/images/bitcoin.png
@@ -292,6 +296,7 @@ flutter:
     - assets/svg/coin_icons/EpicCash.svg
     - assets/svg/coin_icons/Firo.svg
     - assets/svg/coin_icons/Monero.svg
+    - assets/svg/coin_icons/Wownero.svg
     - assets/svg/coin_icons/Namecoin.svg
     # lottie animations
     - assets/lottie/test.json

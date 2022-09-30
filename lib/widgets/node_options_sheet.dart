@@ -85,6 +85,7 @@ class NodeOptionsSheet extends ConsumerWidget {
         break;
 
       case Coin.monero:
+      case Coin.wownero:
         try {
           final uri = Uri.parse(node.host);
           if (uri.scheme.startsWith("http")) {

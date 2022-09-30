@@ -8,6 +8,7 @@ import 'package:cw_core/wallet_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
+import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -84,7 +85,6 @@ void main() async {
     appDirectory = (await getLibraryDirectory());
   }
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await Hive.initFlutter(appDirectory.path);
   if (!(Logging.isArmLinux || Logging.isTestEnv)) {
     final isar = await Isar.open(
       [LogSchema],
@@ -128,11 +128,14 @@ void main() async {
 
   Hive.registerAdapter(NodeAdapter());
 
-  Hive.registerAdapter(WalletInfoAdapter());
+  if (!Hive.isAdapterRegistered(WalletInfoAdapter().typeId)) {
+    Hive.registerAdapter(WalletInfoAdapter());
+  }
 
   Hive.registerAdapter(WalletTypeAdapter());
 
   Hive.registerAdapter(UnspentCoinsInfoAdapter());
+  await Hive.initFlutter(appDirectory.path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
   int dbVersion = DB.instance.get<dynamic>(
@@ -143,6 +146,7 @@ void main() async {
   }
 
   monero.onStartup();
+  wownero.onStartup();
 
   await Hive.openBox<dynamic>(DB.boxNameTheme);
 

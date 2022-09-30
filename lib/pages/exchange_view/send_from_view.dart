@@ -85,7 +85,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
               height: 8,
             ),
             Text(
-              "You need to send ${amount.toStringAsFixed(coin == Coin.monero ? 12 : 8)} ${coin.ticker}",
+              "You need to send ${amount.toStringAsFixed(coin == Coin.monero ? Constants.satsPerCoinMonero : coin == Coin.wownero ? Constants.satsPerCoinWownero : Constants.satsPerCoin)} ${coin.ticker}",
               style: STextStyles.itemSubtitle(context),
             ),
             const SizedBox(
@@ -307,7 +307,11 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                         "${Format.localizedStringAsFixed(
                           value: snapshot.data!,
                           locale: locale,
-                          decimalPlaces: coin == Coin.monero ? 12 : 8,
+                          decimalPlaces: coin == Coin.monero
+                              ? Constants.satsPerCoinMonero
+                              : coin == Coin.wownero
+                                  ? Constants.satsPerCoinWownero
+                                  : Constants.satsPerCoin,
                         )} ${coin.ticker}",
                         style: STextStyles.itemSubtitle(context),
                       );
