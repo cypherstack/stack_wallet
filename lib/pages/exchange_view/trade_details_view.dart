@@ -782,10 +782,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       final coin =
                           coinFromTickerCaseInsensitive(trade.fromCurrency);
 
-                      print("amount: $amount");
-                      print("address: $address");
-                      print("coin: $coin");
-
                       Navigator.of(context).pushNamed(
                         SendFromView.routeName,
                         arguments: Tuple4(
