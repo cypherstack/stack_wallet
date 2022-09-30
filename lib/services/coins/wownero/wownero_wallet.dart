@@ -51,7 +51,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
-const int MINIMUM_CONFIRMATIONS = 10;
+const int MINIMUM_CONFIRMATIONS = 4;
 
 //https://github.com/wownero-project/wownero/blob/8361d60aef6e17908658128284899e3a11d808d4/src/cryptonote_config.h#L162
 const String GENESIS_HASH_MAINNET =
