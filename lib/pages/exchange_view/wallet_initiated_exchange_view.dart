@@ -83,8 +83,8 @@ class _WalletInitiatedExchangeViewState
           child: Container(
             color: Theme.of(context)
                 .extension<StackColors>()!
-                .accentColorDark
-                .withOpacity(0.8),
+                .overlay
+                .withOpacity(0.6),
             child: const CustomLoadingOverlay(
               message: "Updating exchange rate",
               eventBus: null,
