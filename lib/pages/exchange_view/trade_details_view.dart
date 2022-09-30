@@ -345,9 +345,48 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Send ${trade.fromCurrency.toUpperCase()} to this address",
-                          style: STextStyles.itemSubtitle(context),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Send ${trade.fromCurrency.toUpperCase()} to this address",
+                              style: STextStyles.itemSubtitle(context),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                final address = trade.payinAddress;
+                                await Clipboard.setData(
+                                  ClipboardData(
+                                    text: address,
+                                  ),
+                                );
+                                unawaited(showFloatingFlushBar(
+                                  type: FlushBarType.info,
+                                  message: "Copied to clipboard",
+                                  context: context,
+                                ));
+                              },
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(
+                                    Assets.svg.copy,
+                                    width: 12,
+                                    height: 12,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .infoItemIcons,
+                                  ),
+                                  const SizedBox(
+                                    width: 4,
+                                  ),
+                                  Text(
+                                    "Copy",
+                                    style: STextStyles.link2(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(
                           height: 4,
