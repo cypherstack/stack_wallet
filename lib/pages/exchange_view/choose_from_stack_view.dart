@@ -44,7 +44,7 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
       appBar: AppBar(
         leading: const AppBarBackButton(),
         title: Text(
-          "Edit trade note",
+          "Choose your ${coin.ticker.toUpperCase()} wallet",
           style: STextStyles.navBarTitle(context),
         ),
       ),
