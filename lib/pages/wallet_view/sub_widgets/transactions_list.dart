@@ -9,7 +9,12 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
+import 'package:tuple/tuple.dart';
+
+import '../../../providers/global/trades_service_provider.dart';
+import '../../exchange_view/trade_details_view.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
@@ -125,18 +130,67 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                   radius = _borderRadiusFirst;
                 }
                 final tx = list[index];
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).extension<StackColors>()!.popupBG,
-                    borderRadius: radius,
-                  ),
-                  child: TransactionCard(
-                    // this may mess with combined firo transactions
-                    key: Key(tx.toString()), //
-                    transaction: tx,
-                    walletId: widget.walletId,
-                  ),
-                );
+
+                final matchingTrades = ref
+                    .read(tradesServiceProvider)
+                    .trades
+                    .where((e) =>
+                        e.statusObject != null &&
+                        (e.statusObject!.payinHash == tx.txid ||
+                            e.statusObject!.payoutHash == tx.txid));
+                if (matchingTrades.isNotEmpty) {
+                  final trade = matchingTrades.first;
+                  return Container(
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.popupBG,
+                      borderRadius: radius,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TransactionCard(
+                          // this may mess with combined firo transactions
+                          key: Key(tx.toString()), //
+                          transaction: tx,
+                          walletId: widget.walletId,
+                        ),
+                        TradeCard(
+                          // this may mess with combined firo transactions
+                          key: Key(tx.toString() + trade.uuid), //
+                          trade: trade,
+                          onTap: () {
+                            unawaited(
+                              Navigator.of(context).pushNamed(
+                                TradeDetailsView.routeName,
+                                arguments: Tuple4(
+                                  trade.id,
+                                  tx,
+                                  widget.walletId,
+                                  ref.read(managerProvider).walletName,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      ],
+                    ),
+                  );
+                } else {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.popupBG,
+                      borderRadius: radius,
+                    ),
+                    child: TransactionCard(
+                      // this may mess with combined firo transactions
+                      key: Key(tx.toString()), //
+                      transaction: tx,
+                      walletId: widget.walletId,
+                    ),
+                  );
+                }
               },
             ),
           );
