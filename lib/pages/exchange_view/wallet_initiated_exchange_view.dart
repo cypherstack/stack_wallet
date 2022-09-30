@@ -83,8 +83,8 @@ class _WalletInitiatedExchangeViewState
           child: Container(
             color: Theme.of(context)
                 .extension<StackColors>()!
-                .accentColorDark
-                .withOpacity(0.8),
+                .overlay
+                .withOpacity(0.6),
             child: const CustomLoadingOverlay(
               message: "Updating exchange rate",
               eventBus: null,
@@ -329,7 +329,7 @@ class _WalletInitiatedExchangeViewState
             : fixedRateExchangeFormProvider.select(
                 (value) => value.toAmountString), (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
-        _receiveController.text = next;
+        _receiveController.text = isEstimated ? "-" : next;
         debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _sendController.text = isEstimated
@@ -349,7 +349,7 @@ class _WalletInitiatedExchangeViewState
         debugPrint("SEND AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _receiveController.text = isEstimated
-              ? ref.read(estimatedRateExchangeFormProvider).toAmountString
+              ? "-" //ref.read(estimatedRateExchangeFormProvider).toAmountString
               : ref.read(fixedRateExchangeFormProvider).toAmountString;
         }
       }
@@ -808,7 +808,8 @@ class _WalletInitiatedExchangeViewState
                                   .exchangeRateType ==
                               ExchangeRateType.estimated,
                           onTap: () {
-                            if (_receiveController.text == "-") {
+                            if (!isEstimated &&
+                                _receiveController.text == "-") {
                               _receiveController.text = "";
                             }
                           },

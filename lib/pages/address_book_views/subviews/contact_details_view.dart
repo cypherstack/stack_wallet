@@ -393,13 +393,15 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textFieldDefaultBG,
-                                  padding: const EdgeInsets.all(4),
-                                  child: SvgPicture.asset(Assets.svg.pencil,
-                                      width: 12,
-                                      height: 12,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
+                                  padding: const EdgeInsets.all(6),
+                                  child: SvgPicture.asset(
+                                    Assets.svg.pencil,
+                                    width: 14,
+                                    height: 14,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
+                                  ),
                                 ),
                               ),
                               const SizedBox(
@@ -421,13 +423,15 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textFieldDefaultBG,
-                                  padding: const EdgeInsets.all(4),
-                                  child: SvgPicture.asset(Assets.svg.copy,
-                                      width: 12,
-                                      height: 12,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
+                                  padding: const EdgeInsets.all(6),
+                                  child: SvgPicture.asset(
+                                    Assets.svg.copy,
+                                    width: 16,
+                                    height: 16,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
+                                  ),
                                 ),
                               ),
                             ],

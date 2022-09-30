@@ -48,6 +48,26 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
   late final String address;
   late final ExchangeTransaction trade;
 
+  String formatAmount(Decimal amount, Coin coin) {
+    switch (coin) {
+      case Coin.bitcoin:
+      case Coin.bitcoincash:
+      case Coin.dogecoin:
+      case Coin.epicCash:
+      case Coin.firo:
+      case Coin.namecoin:
+      case Coin.bitcoinTestNet:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoinTestNet:
+      case Coin.firoTestNet:
+        return amount.toStringAsFixed(Constants.decimalPlaces);
+      case Coin.monero:
+        return amount.toStringAsFixed(Constants.decimalPlacesMonero);
+      case Coin.wownero:
+        return amount.toStringAsFixed(Constants.decimalPlacesWownero);
+    }
+  }
+
   @override
   void initState() {
     coin = widget.coin;
@@ -59,6 +79,11 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("BUILD: $runtimeType");
+
+    final walletIds = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getWalletIdsFor(coin: coin)));
+
     return Scaffold(
       backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
@@ -68,44 +93,41 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
           },
         ),
         title: Text(
-          "Send ",
+          "Send from",
           style: STextStyles.navBarTitle(context),
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Wrap(
-          // crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(
-              "Choose your ${coin.ticker} wallet",
-              style: STextStyles.pageTitleH1(context),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            Text(
-              "You need to send ${amount.toStringAsFixed(coin == Coin.monero ? Constants.satsPerCoinMonero : coin == Coin.wownero ? Constants.satsPerCoinWownero : Constants.satsPerCoin)} ${coin.ticker}",
-              style: STextStyles.itemSubtitle(context),
+            Row(
+              children: [
+                Text(
+                  "You need to send ${formatAmount(amount, coin)} ${coin.ticker}",
+                  style: STextStyles.itemSubtitle(context),
+                ),
+              ],
             ),
             const SizedBox(
               height: 16,
             ),
-            ListView(
-              shrinkWrap: true,
-              children: [
-                ...ref
-                    .watch(walletsChangeNotifierProvider
-                        .select((value) => value.managers))
-                    .where((element) => element.coin == coin)
-                    .map((e) => SendFromCard(
-                          walletId: e.walletId,
-                          amount: amount,
-                          address: address,
-                          trade: trade,
-                        ))
-                    .toList(growable: false)
-              ],
+            Expanded(
+              child: ListView.builder(
+                itemCount: walletIds.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: SendFromCard(
+                      walletId: walletIds[index],
+                      amount: amount,
+                      address: address,
+                      trade: trade,
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -163,7 +185,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       child: MaterialButton(
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         key: Key("walletsSheetItemButtonKey_$walletId"),
-        padding: const EdgeInsets.all(5),
+        padding: const EdgeInsets.all(8),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
@@ -276,59 +298,61 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(6),
                 child: SvgPicture.asset(
                   Assets.svg.iconFor(coin: coin),
-                  width: 20,
-                  height: 20,
+                  width: 24,
+                  height: 24,
                 ),
               ),
             ),
             const SizedBox(
               width: 12,
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  manager.walletName,
-                  style: STextStyles.titleBold12(context),
-                ),
-                const SizedBox(
-                  height: 2,
-                ),
-                FutureBuilder(
-                  future: manager.totalBalance,
-                  builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done &&
-                        snapshot.hasData) {
-                      return Text(
-                        "${Format.localizedStringAsFixed(
-                          value: snapshot.data!,
-                          locale: locale,
-                          decimalPlaces: coin == Coin.monero
-                              ? Constants.satsPerCoinMonero
-                              : coin == Coin.wownero
-                                  ? Constants.satsPerCoinWownero
-                                  : Constants.satsPerCoin,
-                        )} ${coin.ticker}",
-                        style: STextStyles.itemSubtitle(context),
-                      );
-                    } else {
-                      return AnimatedText(
-                        stringsToLoopThrough: const [
-                          "Loading balance",
-                          "Loading balance.",
-                          "Loading balance..",
-                          "Loading balance..."
-                        ],
-                        style: STextStyles.itemSubtitle(context),
-                      );
-                    }
-                  },
-                ),
-              ],
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    manager.walletName,
+                    style: STextStyles.titleBold12(context),
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  FutureBuilder(
+                    future: manager.totalBalance,
+                    builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        return Text(
+                          "${Format.localizedStringAsFixed(
+                            value: snapshot.data!,
+                            locale: locale,
+                            decimalPlaces: coin == Coin.monero
+                                ? Constants.decimalPlacesMonero
+                                : coin == Coin.wownero
+                                    ? Constants.decimalPlacesWownero
+                                    : Constants.decimalPlaces,
+                          )} ${coin.ticker}",
+                          style: STextStyles.itemSubtitle(context),
+                        );
+                      } else {
+                        return AnimatedText(
+                          stringsToLoopThrough: const [
+                            "Loading balance",
+                            "Loading balance.",
+                            "Loading balance..",
+                            "Loading balance..."
+                          ],
+                          style: STextStyles.itemSubtitle(context),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
