@@ -90,6 +90,18 @@ class _Step2ViewState extends ConsumerState<Step2View> {
           _toController.text = value;
           model.recipientAddress = _toController.text;
         });
+      } else {
+        if (model.sendTicker.toUpperCase() ==
+            tuple.item2.ticker.toUpperCase()) {
+          ref
+              .read(walletsChangeNotifierProvider)
+              .getManager(tuple.item1)
+              .currentReceivingAddress
+              .then((value) {
+            _refundController.text = value;
+            model.refundAddress = _refundController.text;
+          });
+        }
       }
     }
 
