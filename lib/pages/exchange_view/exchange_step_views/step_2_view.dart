@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
+import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_3_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
@@ -301,13 +302,31 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 .state = true;
                                             Navigator.of(context)
                                                 .pushNamed(
-                                                  AddressBookView.routeName,
-                                                )
-                                                .then((_) => ref
+                                              AddressBookView.routeName,
+                                            )
+                                                .then((_) {
+                                              ref
+                                                  .read(
+                                                      exchangeFlowIsActiveStateProvider
+                                                          .state)
+                                                  .state = false;
+
+                                              final address = ref
+                                                  .read(
+                                                      exchangeFromAddressBookAddressStateProvider
+                                                          .state)
+                                                  .state;
+                                              if (address.isNotEmpty) {
+                                                _toController.text = address;
+                                                model.recipientAddress =
+                                                    _toController.text;
+                                                ref
                                                     .read(
-                                                        exchangeFlowIsActiveStateProvider
+                                                        exchangeFromAddressBookAddressStateProvider
                                                             .state)
-                                                    .state = false);
+                                                    .state = "";
+                                              }
+                                            });
                                           },
                                           child: const AddressBookIcon(),
                                         ),
@@ -525,13 +544,26 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 .state = true;
                                             Navigator.of(context)
                                                 .pushNamed(
-                                                  AddressBookView.routeName,
-                                                )
-                                                .then((_) => ref
-                                                    .read(
-                                                        exchangeFlowIsActiveStateProvider
-                                                            .state)
-                                                    .state = false);
+                                              AddressBookView.routeName,
+                                            )
+                                                .then((_) {
+                                              ref
+                                                  .read(
+                                                      exchangeFlowIsActiveStateProvider
+                                                          .state)
+                                                  .state = false;
+                                              final address = ref
+                                                  .read(
+                                                      exchangeFromAddressBookAddressStateProvider
+                                                          .state)
+                                                  .state;
+                                              if (address.isNotEmpty) {
+                                                _refundController.text =
+                                                    address;
+                                                model.refundAddress =
+                                                    _refundController.text;
+                                              }
+                                            });
                                           },
                                           child: const AddressBookIcon(),
                                         ),
