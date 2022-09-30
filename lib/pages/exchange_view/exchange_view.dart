@@ -232,7 +232,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
         ? ref.read(estimatedRateExchangeFormProvider).fromAmountString
         : ref.read(fixedRateExchangeFormProvider).fromAmountString;
     _receiveController.text = isEstimated
-        ? ref.read(estimatedRateExchangeFormProvider).toAmountString
+        ? "-" //ref.read(estimatedRateExchangeFormProvider).toAmountString
         : ref.read(fixedRateExchangeFormProvider).toAmountString;
 
     _sendFocusNode.addListener(() async {
@@ -325,7 +325,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
             : fixedRateExchangeFormProvider.select(
                 (value) => value.toAmountString), (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
-        _receiveController.text = next;
+        _receiveController.text = isEstimated ? "-" : next;
         debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _sendController.text = isEstimated
@@ -345,7 +345,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
         debugPrint("SEND AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _receiveController.text = isEstimated
-              ? ref.read(estimatedRateExchangeFormProvider).toAmountString
+              ? "-" //ref.read(estimatedRateExchangeFormProvider).toAmountString
               : ref.read(fixedRateExchangeFormProvider).toAmountString;
         }
       }
@@ -737,7 +737,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                 .exchangeRateType ==
                             ExchangeRateType.estimated,
                         onTap: () {
-                          if (_receiveController.text == "-") {
+                          if (!isEstimated && _receiveController.text == "-") {
                             _receiveController.text = "";
                           }
                         },
