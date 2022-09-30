@@ -20,6 +20,7 @@ import 'package:stackwallet/pages/address_book_views/subviews/address_book_filte
 import 'package:stackwallet/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
+import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_loading_overlay.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
@@ -871,6 +872,20 @@ class RouteGenerator {
               transactionIfSentFromStack: args.item2,
               walletId: args.item3,
               walletName: args.item4,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ChooseFromStackView.routeName:
+        if (args is Coin) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ChooseFromStackView(
+              coin: args,
             ),
             settings: RouteSettings(
               name: settings.name,
