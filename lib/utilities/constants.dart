@@ -21,6 +21,8 @@ abstract class Constants {
   static const int satsPerCoinWownero = 100000000000;
   static const int satsPerCoin = 100000000;
   static const int decimalPlaces = 8;
+  static const int decimalPlacesWownero = 11;
+  static const int decimalPlacesMonero = 12;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
