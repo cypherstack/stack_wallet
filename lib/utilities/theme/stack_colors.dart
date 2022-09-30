@@ -169,6 +169,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color loadingOverlayTextColor;
   final Color myStackContactIconBG;
   final Color textConfirmTotalAmount;
+  final Color textSelectedWordTableItem;
 
   StackColors({
     required this.themeType,
@@ -300,6 +301,7 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.loadingOverlayTextColor,
     required this.myStackContactIconBG,
     required this.textConfirmTotalAmount,
+    required this.textSelectedWordTableItem,
   });
 
   factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
@@ -435,6 +437,7 @@ class StackColors extends ThemeExtension<StackColors> {
       loadingOverlayTextColor: colorTheme.loadingOverlayTextColor,
       myStackContactIconBG: colorTheme.myStackContactIconBG,
       textConfirmTotalAmount: colorTheme.textConfirmTotalAmount,
+      textSelectedWordTableItem: colorTheme.textSelectedWordTableItem,
     );
   }
 
@@ -569,6 +572,7 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? loadingOverlayTextColor,
     Color? myStackContactIconBG,
     Color? textConfirmTotalAmount,
+    Color? textSelectedWordTableItem,
   }) {
     return StackColors(
       themeType: themeType ?? this.themeType,
@@ -736,6 +740,8 @@ class StackColors extends ThemeExtension<StackColors> {
       myStackContactIconBG: myStackContactIconBG ?? this.myStackContactIconBG,
       textConfirmTotalAmount:
           textConfirmTotalAmount ?? this.textConfirmTotalAmount,
+      textSelectedWordTableItem:
+          textSelectedWordTableItem ?? this.textSelectedWordTableItem,
     );
   }
 
@@ -1388,6 +1394,11 @@ class StackColors extends ThemeExtension<StackColors> {
         other.textConfirmTotalAmount,
         t,
       )!,
+      textSelectedWordTableItem: Color.lerp(
+        textSelectedWordTableItem,
+        other.textSelectedWordTableItem,
+        t,
+      )!,
     );
   }
 
@@ -1396,9 +1407,9 @@ class StackColors extends ThemeExtension<StackColors> {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return _coin.bitcoin;
-      // case Coin.bitcoincash:
-      // case Coin.bitcoincashTestnet:
-      //   return _coin.bitcoincash;
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+        return _coin.bitcoincash;
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
         return _coin.dogecoin;
@@ -1411,8 +1422,8 @@ class StackColors extends ThemeExtension<StackColors> {
         return _coin.monero;
       case Coin.namecoin:
         return _coin.namecoin;
-      // case Coin.wownero:
-      //   return wownero;
+      case Coin.wownero:
+        return _coin.wownero;
     }
   }
 
@@ -1460,6 +1471,13 @@ class StackColors extends ThemeExtension<StackColors> {
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondary,
+            ),
+          );
+
+  ButtonStyle? getSecondaryDisabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              buttonBackSecondaryDisabled,
             ),
           );
 

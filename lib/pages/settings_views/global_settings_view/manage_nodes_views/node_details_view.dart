@@ -81,6 +81,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
         break;
 
       case Coin.monero:
+      case Coin.wownero:
         try {
           final uri = Uri.parse(node!.host);
           if (uri.scheme.startsWith("http")) {
@@ -102,9 +103,9 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
-      // case Coin.bitcoincash:
+      case Coin.bitcoincash:
       case Coin.namecoin:
-        // case Coin.bitcoincashTestnet:
+      case Coin.bitcoincashTestnet:
         final client = ElectrumX(
           host: node!.host,
           port: node.port,

@@ -37,9 +37,11 @@ class CreateOrRestoreWalletView extends StatelessWidget {
         body: SizedBox(
           width: 480,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const Spacer(
+                flex: 10,
+              ),
               CreateRestoreWalletTitle(
                 coin: coin,
                 isDesktop: isDesktop,
@@ -66,6 +68,9 @@ class CreateOrRestoreWalletView extends StatelessWidget {
               CreateWalletButtonGroup(
                 coin: coin,
                 isDesktop: isDesktop,
+              ),
+              const Spacer(
+                flex: 15,
               ),
             ],
           ),

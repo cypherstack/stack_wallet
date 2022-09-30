@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/color_theme_provider.dart';
@@ -122,77 +121,43 @@ class _TransactionSearchViewState
       colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
       colorArrowPrevious:
           Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      textStyleButtonNegative: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleButtonNegative: STextStyles.datePicker600(context).copyWith(
         color: baseColor,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
       ),
-      textStyleButtonPositive: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleButtonPositive: STextStyles.datePicker600(context).copyWith(
         color: baseColor,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
       ),
-      textStyleCurrentDayOnCalendar: GoogleFonts.inter(
-        letterSpacing: 0.5,
-        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
-        fontWeight: FontWeight.w400,
-        fontSize: 12,
-      ),
-      textStyleDayHeader: GoogleFonts.inter(
-        letterSpacing: 0.5,
-        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-      ),
-      textStyleDayOnCalendar: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleCurrentDayOnCalendar: STextStyles.datePicker400(context),
+      textStyleDayHeader: STextStyles.datePicker600(context),
+      textStyleDayOnCalendar: STextStyles.datePicker400(context).copyWith(
         color: baseColor,
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
       ),
-      textStyleDayOnCalendarDisabled: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleDayOnCalendarDisabled:
+          STextStyles.datePicker400(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
-        fontWeight: FontWeight.w400,
-        fontSize: 12,
       ),
-      textStyleDayOnCalendarSelected: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleDayOnCalendarSelected:
+          STextStyles.datePicker400(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textWhite,
-        fontWeight: FontWeight.w400,
-        fontSize: 12,
       ),
-      textStyleMonthYearHeader: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleMonthYearHeader: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
       ),
-      textStyleYearButton: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleYearButton: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textWhite,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
       ),
-      textStyleButtonAction: GoogleFonts.inter(),
+      // textStyleButtonAction: GoogleFonts.inter(),
     );
   }
 
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
       backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
-      textStyleYear: GoogleFonts.inter(
-        letterSpacing: 0.5,
+      textStyleYear: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
-        fontWeight: FontWeight.w600,
         fontSize: 16,
       ),
-      textStyleYearSelected: GoogleFonts.inter(
-        letterSpacing: 0.5,
-        color: Theme.of(context).extension<StackColors>()!.accentColorDark,
-        fontWeight: FontWeight.w600,
+      textStyleYearSelected: STextStyles.datePicker600(context).copyWith(
         fontSize: 18,
       ),
     );
@@ -787,6 +752,11 @@ class _TransactionSearchViewState
     if (amountDecimal != null) {
       if (widget.coin == Coin.monero) {
         amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinMonero))
+            .floor()
+            .toBigInt()
+            .toInt();
+      } else if (widget.coin == Coin.wownero) {
+        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinWownero))
             .floor()
             .toBigInt()
             .toInt();

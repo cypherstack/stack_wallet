@@ -90,6 +90,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         break;
 
       case Coin.monero:
+      case Coin.wownero:
         try {
           final uri = Uri.parse(formData.host!);
           if (uri.scheme.startsWith("http")) {
@@ -113,12 +114,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         break;
 
       case Coin.bitcoin:
-      // case Coin.bitcoincash:
+      case Coin.bitcoincash:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoinTestNet:
-      // case Coin.bitcoincashTestnet:
+      case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
         final client = ElectrumX(
@@ -384,6 +385,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                   // strip unused path
                                   String address = formData.host!;
                                   if (coin == Coin.monero ||
+                                      coin == Coin.wownero ||
                                       coin == Coin.epicCash) {
                                     if (address.startsWith("http")) {
                                       final uri = Uri.parse(address);
@@ -530,15 +532,16 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
-      // case Coin.bitcoincash:
+      case Coin.bitcoincash:
       case Coin.bitcoinTestNet:
-      // case Coin.bitcoincashTestnet:
+      case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
         return false;
 
       case Coin.epicCash:
       case Coin.monero:
+      case Coin.wownero:
         return true;
     }
   }
@@ -699,7 +702,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   focusNode: _hostFocusNode,
                   style: STextStyles.field(context),
                   decoration: standardInputDecoration(
-                    (widget.coin != Coin.monero && widget.coin != Coin.epicCash)
+                    (widget.coin != Coin.monero &&
+                            widget.coin != Coin.wownero &&
+                            widget.coin != Coin.epicCash)
                         ? "IP address"
                         : "Url",
                     _hostFocusNode,
@@ -880,7 +885,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero && widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.monero &&
+            widget.coin != Coin.wownero &&
+            widget.coin != Coin.epicCash)
           Row(
             children: [
               GestureDetector(
@@ -931,11 +938,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin != Coin.monero && widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.monero &&
+            widget.coin != Coin.wownero &&
+            widget.coin != Coin.epicCash)
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero && widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.monero &&
+            widget.coin != Coin.wownero &&
+            widget.coin != Coin.epicCash)
           Row(
             children: [
               GestureDetector(

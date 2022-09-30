@@ -1,3 +1,5 @@
+// import 'dart:convert';
+//
 // import 'package:bitcoindart/bitcoindart.dart';
 // import 'package:decimal/decimal.dart';
 // import 'package:flutter_test/flutter_test.dart';
@@ -43,8 +45,9 @@ void main() {}
 //   });
 //
 //   test("bitcoincash DerivePathType enum", () {
-//     expect(DerivePathType.values.length, 1);
-//     expect(DerivePathType.values.toString(), "[DerivePathType.bip44]");
+//     expect(DerivePathType.values.length, 2);
+//     expect(DerivePathType.values.toString(),
+//         "[DerivePathType.bip44, DerivePathType.bip49]");
 //   });
 //
 //   group("bip32 node/root", () {
@@ -1270,13 +1273,13 @@ void main() {}
 //       }
 //       expect(didThrow, false);
 //
-//       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
+//       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(2);
 //       verify(client?.getServerFeatures()).called(1);
 //       verifyNever(client?.ping()).called(0);
 //
-//       expect(secureStore?.interactions, 11);
-//       expect(secureStore?.reads, 7);
-//       expect(secureStore?.writes, 4);
+//       expect(secureStore?.interactions, 20);
+//       expect(secureStore?.reads, 13);
+//       expect(secureStore?.writes, 7);
 //       expect(secureStore?.deletes, 0);
 //       verifyNoMoreInteractions(client);
 //       verifyNoMoreInteractions(cachedClient);
@@ -1316,9 +1319,9 @@ void main() {}
 //       verify(client?.getServerFeatures()).called(1);
 //       verifyNever(client?.ping()).called(0);
 //
-//       expect(secureStore?.interactions, 8);
-//       expect(secureStore?.reads, 5);
-//       expect(secureStore?.writes, 3);
+//       expect(secureStore?.interactions, 14);
+//       expect(secureStore?.reads, 9);
+//       expect(secureStore?.writes, 5);
 //       expect(secureStore?.deletes, 0);
 //       verifyNoMoreInteractions(client);
 //       verifyNoMoreInteractions(cachedClient);
@@ -1365,13 +1368,13 @@ void main() {}
 //       }
 //       expect(didThrow, false);
 //
-//       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
+//       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(2);
 //       verify(client?.getServerFeatures()).called(1);
 //       verifyNever(client?.ping()).called(0);
 //
-//       expect(secureStore?.interactions, 11);
-//       expect(secureStore?.reads, 7);
-//       expect(secureStore?.writes, 4);
+//       expect(secureStore?.interactions, 20);
+//       expect(secureStore?.reads, 13);
+//       expect(secureStore?.writes, 7);
 //       expect(secureStore?.deletes, 0);
 //       verifyNoMoreInteractions(client);
 //       verifyNoMoreInteractions(cachedClient);
@@ -1412,9 +1415,9 @@ void main() {}
 //       verify(client?.getServerFeatures()).called(1);
 //       verifyNever(client?.ping()).called(0);
 //
-//       expect(secureStore?.interactions, 8);
-//       expect(secureStore?.reads, 5);
-//       expect(secureStore?.writes, 3);
+//       expect(secureStore?.interactions, 14);
+//       expect(secureStore?.reads, 9);
+//       expect(secureStore?.writes, 5);
 //       expect(secureStore?.deletes, 0);
 //       verifyNoMoreInteractions(client);
 //       verifyNoMoreInteractions(cachedClient);
@@ -1829,6 +1832,10 @@ void main() {}
 //           .thenAnswer((_) async => emptyHistoryBatchResponse);
 //       when(client?.getBatchHistory(args: historyBatchArgs1))
 //           .thenAnswer((_) async => emptyHistoryBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs2))
+//           .thenAnswer((_) async => emptyHistoryBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs3))
+//           .thenAnswer((_) async => emptyHistoryBatchResponse);
 //
 //       final wallet = await Hive.openBox(testWalletId);
 //
@@ -1844,6 +1851,8 @@ void main() {}
 //       verify(client?.getServerFeatures()).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+//       verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+//       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
 //
 //       verifyNoMoreInteractions(client);
 //       verifyNoMoreInteractions(cachedClient);
@@ -1982,8 +1991,24 @@ void main() {}
 //           .thenAnswer((_) async => historyBatchResponse);
 //       when(client?.getBatchHistory(args: historyBatchArgs1))
 //           .thenAnswer((_) async => historyBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs2))
+//           .thenAnswer((_) async => historyBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs3))
+//           .thenAnswer((_) async => historyBatchResponse);
 //
-//       final wallet = await Hive.openBox(testWalletId);
+//       List<dynamic> dynamicArgValues = [];
+//
+//       when(client?.getBatchHistory(args: anyNamed("args")))
+//           .thenAnswer((realInvocation) async {
+//         if (realInvocation.namedArguments.values.first.length == 1) {
+//           dynamicArgValues.add(realInvocation.namedArguments.values.first);
+//         }
+//
+//         return historyBatchResponse;
+//       });
+//
+//       // final wallet = await Hive.openBox(testWalletId);
+//       await Hive.openBox<dynamic>(testWalletId);
 //
 //       bool hasThrown = false;
 //       try {
@@ -2000,10 +2025,20 @@ void main() {}
 //       verify(client?.getServerFeatures()).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+//       verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+//       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
 //
-//       expect(secureStore?.interactions, 6);
-//       expect(secureStore?.writes, 3);
-//       expect(secureStore?.reads, 3);
+//       for (final arg in dynamicArgValues) {
+//         final map = Map<String, List<dynamic>>.from(arg as Map);
+//
+//         verify(client?.getBatchHistory(args: map)).called(1);
+//         expect(activeScriptHashes.contains(map.values.first.first as String),
+//             true);
+//       }
+//
+//       expect(secureStore?.interactions, 10);
+//       expect(secureStore?.writes, 5);
+//       expect(secureStore?.reads, 5);
 //       expect(secureStore?.deletes, 0);
 //
 //       verifyNoMoreInteractions(client);
@@ -2027,9 +2062,33 @@ void main() {}
 //           .thenAnswer((_) async => historyBatchResponse);
 //       when(client?.getBatchHistory(args: historyBatchArgs1))
 //           .thenAnswer((_) async => historyBatchResponse);
-//
+//       when(client?.getBatchHistory(args: historyBatchArgs2))
+//           .thenAnswer((_) async => historyBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs3))
+//           .thenAnswer((_) async => historyBatchResponse);
 //       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
 //           .thenAnswer((realInvocation) async {});
+//
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+//         ]
+//       })).thenAnswer((_) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+//         ]
+//       })).thenAnswer((_) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+//         ]
+//       })).thenAnswer((_) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+//         ]
+//       })).thenAnswer((_) async => {"0": []});
 //
 //       final wallet = await Hive.openBox(testWalletId);
 //
@@ -2046,11 +2105,23 @@ void main() {}
 //       final preChangeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
 //       final preReceivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
 //       final preChangeIndexP2PKH = await wallet.get('changeIndexP2PKH');
+//
+//       final preReceivingAddressesP2SH =
+//           await wallet.get('receivingAddressesP2SH');
+//       final preChangeAddressesP2SH = await wallet.get('changeAddressesP2SH');
+//       final preReceivingIndexP2SH = await wallet.get('receivingIndexP2PKH');
+//       final preChangeIndexP2SH = await wallet.get('changeIndexP2SH');
+//
 //       final preUtxoData = await wallet.get('latest_utxo_model');
 //       final preReceiveDerivationsStringP2PKH = await secureStore?.read(
 //           key: "${testWalletId}_receiveDerivationsP2PKH");
 //       final preChangeDerivationsStringP2PKH = await secureStore?.read(
 //           key: "${testWalletId}_changeDerivationsP2PKH");
+//
+//       final preReceiveDerivationsStringP2SH = await secureStore?.read(
+//           key: "${testWalletId}_receiveDerivationsP2SH");
+//       final preChangeDerivationsStringP2SH =
+//           await secureStore?.read(key: "${testWalletId}_changeDerivationsP2SH");
 //
 //       // destroy the data that the rescan will fix
 //       await wallet.put(
@@ -2058,12 +2129,26 @@ void main() {}
 //       await wallet
 //           .put('changeAddressesP2PKH', ["some address", "some other address"]);
 //
+//       await wallet.put(
+//           'receivingAddressesP2SH', ["some address", "some other address"]);
+//       await wallet
+//           .put('changeAddressesP2SH', ["some address", "some other address"]);
+//
 //       await wallet.put('receivingIndexP2PKH', 123);
 //       await wallet.put('changeIndexP2PKH', 123);
+//
+//       await wallet.put('receivingIndexP2SH', 123);
+//       await wallet.put('changeIndexP2SH', 123);
+//
 //       await secureStore?.write(
 //           key: "${testWalletId}_receiveDerivationsP2PKH", value: "{}");
 //       await secureStore?.write(
 //           key: "${testWalletId}_changeDerivationsP2PKH", value: "{}");
+//
+//       await secureStore?.write(
+//           key: "${testWalletId}_receiveDerivationsP2SH", value: "{}");
+//       await secureStore?.write(
+//           key: "${testWalletId}_changeDerivationsP2SH", value: "{}");
 //
 //       bool hasThrown = false;
 //       try {
@@ -2079,29 +2164,73 @@ void main() {}
 //       final changeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
 //       final receivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
 //       final changeIndexP2PKH = await wallet.get('changeIndexP2PKH');
+//
+//       final receivingAddressesP2SH = await wallet.get('receivingAddressesP2SH');
+//       final changeAddressesP2SH = await wallet.get('changeAddressesP2SH');
+//       final receivingIndexP2SH = await wallet.get('receivingIndexP2SH');
+//       final changeIndexP2SH = await wallet.get('changeIndexP2SH');
+//
 //       final utxoData = await wallet.get('latest_utxo_model');
 //       final receiveDerivationsStringP2PKH = await secureStore?.read(
 //           key: "${testWalletId}_receiveDerivationsP2PKH");
 //       final changeDerivationsStringP2PKH = await secureStore?.read(
 //           key: "${testWalletId}_changeDerivationsP2PKH");
 //
+//       final receiveDerivationsStringP2SH = await secureStore?.read(
+//           key: "${testWalletId}_receiveDerivationsP2SH");
+//       final changeDerivationsStringP2SH =
+//           await secureStore?.read(key: "${testWalletId}_changeDerivationsP2SH");
+//
 //       expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
 //       expect(preChangeAddressesP2PKH, changeAddressesP2PKH);
 //       expect(preReceivingIndexP2PKH, receivingIndexP2PKH);
 //       expect(preChangeIndexP2PKH, changeIndexP2PKH);
+//
+//       expect(preReceivingAddressesP2SH, receivingAddressesP2SH);
+//       expect(preChangeAddressesP2SH, changeAddressesP2SH);
+//       expect(preReceivingIndexP2SH, receivingIndexP2SH);
+//       expect(preChangeIndexP2SH, changeIndexP2SH);
+//
 //       expect(preUtxoData, utxoData);
+//
 //       expect(preReceiveDerivationsStringP2PKH, receiveDerivationsStringP2PKH);
 //       expect(preChangeDerivationsStringP2PKH, changeDerivationsStringP2PKH);
+//
+//       expect(preReceiveDerivationsStringP2SH, receiveDerivationsStringP2SH);
+//       expect(preChangeDerivationsStringP2SH, changeDerivationsStringP2SH);
 //
 //       verify(client?.getServerFeatures()).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
 //       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
+//       verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
+//       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
 //       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
 //           .called(1);
 //
-//       expect(secureStore?.writes, 9);
-//       expect(secureStore?.reads, 12);
-//       expect(secureStore?.deletes, 2);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+//         ]
+//       })).called(2);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+//         ]
+//       })).called(2);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+//         ]
+//       })).called(2);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+//         ]
+//       })).called(2);
+//
+//       expect(secureStore?.writes, 17);
+//       expect(secureStore?.reads, 22);
+//       expect(secureStore?.deletes, 4);
 //
 //       verifyNoMoreInteractions(client);
 //       verifyNoMoreInteractions(cachedClient);
@@ -2125,19 +2254,33 @@ void main() {}
 //           .thenAnswer((_) async => historyBatchResponse);
 //       when(client?.getBatchHistory(args: historyBatchArgs1))
 //           .thenAnswer((_) async => historyBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs2))
+//           .thenAnswer((_) async => historyBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs3))
+//           .thenAnswer((_) async => historyBatchResponse);
+//       when(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
+//           .thenAnswer((realInvocation) async {});
+//
 //       when(client?.getBatchHistory(args: {
 //         "0": [
 //           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
 //         ]
 //       })).thenAnswer((realInvocation) async => {"0": []});
-//
 //       when(client?.getBatchHistory(args: {
 //         "0": [
 //           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
 //         ]
-//       })).thenAnswer((realInvocation) async => {"0": []});
-//       when(cachedClient?.clearSharedTransactionCache(coin: Coin.dogecoin))
-//           .thenAnswer((realInvocation) async {});
+//       })).thenAnswer((_) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+//         ]
+//       })).thenAnswer((_) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+//         ]
+//       })).thenAnswer((_) async => {"0": []});
 //
 //       final wallet = await Hive.openBox(testWalletId);
 //
@@ -2195,13 +2338,36 @@ void main() {}
 //
 //       verify(client?.getServerFeatures()).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
-//       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+//       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
+//       verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
+//       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
 //       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.bitcoincash))
 //           .called(1);
 //
-//       expect(secureStore?.writes, 7);
-//       expect(secureStore?.reads, 12);
-//       expect(secureStore?.deletes, 4);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+//         ]
+//       })).called(1);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+//         ]
+//       })).called(2);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+//         ]
+//       })).called(2);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+//         ]
+//       })).called(2);
+//
+//       expect(secureStore?.writes, 13);
+//       expect(secureStore?.reads, 18);
+//       expect(secureStore?.deletes, 8);
 //     });
 //
 //     // // test("fetchBuildTxData succeeds", () async {
@@ -2686,15 +2852,28 @@ void main() {}
 //           .thenAnswer((_) async => historyBatchResponse);
 //       when(client?.getBatchHistory(args: historyBatchArgs1))
 //           .thenAnswer((_) async => historyBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs2))
+//           .thenAnswer((_) async => historyBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs3))
+//           .thenAnswer((_) async => historyBatchResponse);
 //       when(client?.getBatchHistory(args: {
 //         "0": [
 //           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
 //         ]
 //       })).thenAnswer((realInvocation) async => {"0": []});
-//
 //       when(client?.getBatchHistory(args: {
 //         "0": [
 //           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+//         ]
+//       })).thenAnswer((realInvocation) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+//         ]
+//       })).thenAnswer((realInvocation) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
 //         ]
 //       })).thenAnswer((realInvocation) async => {"0": []});
 //
@@ -2713,10 +2892,33 @@ void main() {}
 //       verify(client?.getServerFeatures()).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+//       verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+//       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
 //
-//       expect(secureStore?.interactions, 6);
-//       expect(secureStore?.writes, 3);
-//       expect(secureStore?.reads, 3);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+//         ]
+//       })).called(1);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+//         ]
+//       })).called(1);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+//         ]
+//       })).called(1);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+//         ]
+//       })).called(1);
+//
+//       expect(secureStore?.interactions, 10);
+//       expect(secureStore?.writes, 5);
+//       expect(secureStore?.reads, 5);
 //       expect(secureStore?.deletes, 0);
 //
 //       verifyNoMoreInteractions(client);
@@ -2741,17 +2943,32 @@ void main() {}
 //           .thenAnswer((_) async => historyBatchResponse);
 //       when(client?.getBatchHistory(args: historyBatchArgs1))
 //           .thenAnswer((_) async => historyBatchResponse);
-//       when(client?.getBatchHistory(args: {
-//         "0": [
-//           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
-//         ]
-//       })).thenAnswer((realInvocation) async => {"0": []});
+//       when(client?.getBatchHistory(args: historyBatchArgs2))
+//           .thenAnswer((_) async => historyBatchResponse);
+//       when(client?.getBatchHistory(args: historyBatchArgs3))
+//           .thenAnswer((_) async => historyBatchResponse);
 //
 //       when(client?.getBatchHistory(args: {
 //         "0": [
 //           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
 //         ]
 //       })).thenAnswer((realInvocation) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+//         ]
+//       })).thenAnswer((realInvocation) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+//         ]
+//       })).thenAnswer((realInvocation) async => {"0": []});
+//       when(client?.getBatchHistory(args: {
+//         "0": [
+//           "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+//         ]
+//       })).thenAnswer((realInvocation) async => {"0": []});
+//
 //       when(client?.getHistory(scripthash: anyNamed("scripthash")))
 //           .thenThrow(Exception("some exception"));
 //
@@ -2769,12 +2986,36 @@ void main() {}
 //       verify(client?.getServerFeatures()).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
 //       verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+//       verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+//       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+//
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "04818da846fe5e03ac993d2e0c1ccc3848ff6073c3aba6a572df4efc5432ae8b"
+//         ]
+//       })).called(1);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "f0c86f888f2aca0efaf1705247dbd1ebc02347c183e197310c9062ea2c9d2e34"
+//         ]
+//       })).called(1);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "ff7f0d2a4b8e2805706ece77f4e672550fe4c505a150c781639814338eda1734"
+//         ]
+//       })).called(1);
+//       verify(client?.getBatchHistory(args: {
+//         "0": [
+//           "1c2336c32dc62f00862ee6a75643e01017c86edece10b5a9d7defbd5f66b0a80"
+//         ]
+//       })).called(1);
+//
 //       verify(client?.getBlockHeadTip()).called(1);
 //       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
 //
-//       expect(secureStore?.interactions, 6);
-//       expect(secureStore?.writes, 3);
-//       expect(secureStore?.reads, 3);
+//       expect(secureStore?.interactions, 10);
+//       expect(secureStore?.writes, 5);
+//       expect(secureStore?.reads, 5);
 //       expect(secureStore?.deletes, 0);
 //
 //       verifyNoMoreInteractions(client);

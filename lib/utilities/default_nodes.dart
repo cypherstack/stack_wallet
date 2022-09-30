@@ -13,10 +13,11 @@ abstract class DefaultNodes {
         firo,
         monero,
         epicCash,
-        // bitcoincash,
+        bitcoincash,
         namecoin,
+        wownero,
         bitcoinTestnet,
-        // bitcoincashTestnet,
+        bitcoincashTestnet,
         dogecoinTestnet,
         firoTestnet,
       ];
@@ -33,17 +34,17 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
-  // static NodeModel get bitcoincash => NodeModel(
-  //       host: "bitcoincash.stackwallet.com",
-  //       port: 50002,
-  //       name: defaultName,
-  //       id: _nodeId(Coin.bitcoincash),
-  //       useSSL: true,
-  //       enabled: true,
-  //       coinName: Coin.bitcoincash.name,
-  //       isFailover: true,
-  //       isDown: false,
-  //     );
+  static NodeModel get bitcoincash => NodeModel(
+        host: "bitcoincash.stackwallet.com",
+        port: 50002,
+        name: defaultName,
+        id: _nodeId(Coin.bitcoincash),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.bitcoincash.name,
+        isFailover: true,
+        isDown: false,
+      );
 
   static NodeModel get dogecoin => NodeModel(
         host: "dogecoin.stackwallet.com",
@@ -79,6 +80,20 @@ abstract class DefaultNodes {
         useSSL: false,
         enabled: true,
         coinName: Coin.monero.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  // TODO: eventually enable ssl and set scheme to https
+  // currently get certificate failure
+  static NodeModel get wownero => NodeModel(
+        host: "http://eu-west-2.wow.xmr.pm",
+        port: 34568,
+        name: defaultName,
+        id: _nodeId(Coin.wownero),
+        useSSL: false,
+        enabled: true,
+        coinName: Coin.wownero.name,
         isFailover: true,
         isDown: false,
       );
@@ -143,25 +158,25 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
-  // static NodeModel get bitcoincashTestnet => NodeModel(
-  //       host: "testnet.hsmiths.com",
-  //       port: 53012,
-  //       name: defaultName,
-  //       id: _nodeId(Coin.bitcoincash),
-  //       useSSL: true,
-  //       enabled: true,
-  //       coinName: Coin.bitcoincash.name,
-  //       isFailover: true,
-  //       isDown: false,
-  //     );
+  static NodeModel get bitcoincashTestnet => NodeModel(
+        host: "testnet.hsmiths.com",
+        port: 53012,
+        name: defaultName,
+        id: _nodeId(Coin.bitcoincashTestnet),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.bitcoincashTestnet.name,
+        isFailover: true,
+        isDown: false,
+      );
 
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
         return bitcoin;
-      //
-      // case Coin.bitcoincash:
-      //   return bitcoincash;
+
+      case Coin.bitcoincash:
+        return bitcoincash;
 
       case Coin.dogecoin:
         return dogecoin;
@@ -175,14 +190,17 @@ abstract class DefaultNodes {
       case Coin.monero:
         return monero;
 
+      case Coin.wownero:
+        return wownero;
+
       case Coin.namecoin:
         return namecoin;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
 
-      // case Coin.bitcoincashTestnet:
-      //   return bitcoincashTestnet;
+      case Coin.bitcoincashTestnet:
+        return bitcoincashTestnet;
 
       case Coin.firoTestNet:
         return firoTestnet;

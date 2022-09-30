@@ -4,10 +4,12 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
+import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
+import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -98,25 +100,25 @@ abstract class CoinServiceAPI {
           tracker: tracker,
         );
 
-      // case Coin.bitcoincash:
-      //   return BitcoinCashWallet(
-      //     walletId: walletId,
-      //     walletName: walletName,
-      //     coin: coin,
-      //     client: client,
-      //     cachedClient: cachedClient,
-      //     tracker: tracker,
-      //   );
-      //
-      // case Coin.bitcoincashTestnet:
-      //   return BitcoinCashWallet(
-      //     walletId: walletId,
-      //     walletName: walletName,
-      //     coin: coin,
-      //     client: client,
-      //     cachedClient: cachedClient,
-      //     tracker: tracker,
-      //   );
+      case Coin.bitcoincash:
+        return BitcoinCashWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
+
+      case Coin.bitcoincashTestnet:
+        return BitcoinCashWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
 
       case Coin.dogecoin:
         return DogecoinWallet(
@@ -138,6 +140,14 @@ abstract class CoinServiceAPI {
 
       case Coin.monero:
         return MoneroWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          // tracker: tracker,
+        );
+
+      case Coin.wownero:
+        return WowneroWallet(
           walletId: walletId,
           walletName: walletName,
           coin: coin,

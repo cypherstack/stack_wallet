@@ -59,7 +59,9 @@ class _NewWalletRecoveryPhraseWarningViewState
 
     final _numberOfPhraseWords = coin == Coin.monero
         ? Constants.seedPhraseWordCountMonero
-        : Constants.seedPhraseWordCountBip39;
+        : coin == Coin.wownero
+            ? 14
+            : Constants.seedPhraseWordCountBip39;
 
     return MasterScaffold(
       isDesktop: isDesktop,
@@ -79,9 +81,14 @@ class _NewWalletRecoveryPhraseWarningViewState
               ? CrossAxisAlignment.center
               : CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(
-              height: 4,
-            ),
+            if (isDesktop)
+              const Spacer(
+                flex: 10,
+              ),
+            if (!isDesktop)
+              const SizedBox(
+                height: 4,
+              ),
             if (!isDesktop)
               Text(
                 walletName,
@@ -90,9 +97,10 @@ class _NewWalletRecoveryPhraseWarningViewState
                   fontSize: 12,
                 ),
               ),
-            const SizedBox(
-              height: 4,
-            ),
+            if (!isDesktop)
+              const SizedBox(
+                height: 4,
+              ),
             Text(
               "Recovery Phrase",
               textAlign: TextAlign.center,
@@ -130,6 +138,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                 builder: (_, ref, __) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       GestureDetector(
                         onTap: () {
@@ -291,6 +300,10 @@ class _NewWalletRecoveryPhraseWarningViewState
                 },
               ),
             ),
+            if (isDesktop)
+              const Spacer(
+                flex: 15,
+              ),
           ],
         ),
       ),
