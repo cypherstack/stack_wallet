@@ -84,6 +84,17 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
     passwordFocusNode = FocusNode();
     passwordRepeatFocusNode = FocusNode();
 
+    if (Platform.isAndroid) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+        final dir = await stackFileSystem.prepareStorage();
+        if (mounted) {
+          setState(() {
+            fileLocationController.text = dir.path;
+          });
+        }
+      });
+    }
+
     super.initState();
   }
 
@@ -135,64 +146,70 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                     const SizedBox(
                       height: 10,
                     ),
-                    TextField(
-                      onTap: () async {
-                        try {
-                          await stackFileSystem.prepareStorage();
+                    if (!Platform.isAndroid)
+                      TextField(
+                        onTap: Platform.isAndroid
+                            ? null
+                            : () async {
+                                try {
+                                  await stackFileSystem.prepareStorage();
 
-                          if (mounted) {
-                            await stackFileSystem.pickDir(context);
-                          }
+                                  if (mounted) {
+                                    await stackFileSystem.pickDir(context);
+                                  }
 
-                          if (mounted) {
-                            setState(() {
-                              fileLocationController.text =
-                                  stackFileSystem.dirPath ?? "";
-                            });
-                          }
-                        } catch (e, s) {
-                          Logging.instance.log("$e\n$s", level: LogLevel.Error);
-                        }
-                      },
-                      controller: fileLocationController,
-                      style: STextStyles.field(context),
-                      decoration: InputDecoration(
-                        hintText: "Save to...",
-                        suffixIcon: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              const SizedBox(
-                                width: 16,
-                              ),
-                              SvgPicture.asset(
-                                Assets.svg.folder,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark3,
-                                width: 16,
-                                height: 16,
-                              ),
-                              const SizedBox(
-                                width: 12,
-                              ),
-                            ],
+                                  if (mounted) {
+                                    setState(() {
+                                      fileLocationController.text =
+                                          stackFileSystem.dirPath ?? "";
+                                    });
+                                  }
+                                } catch (e, s) {
+                                  Logging.instance
+                                      .log("$e\n$s", level: LogLevel.Error);
+                                }
+                              },
+                        controller: fileLocationController,
+                        style: STextStyles.field(context),
+                        decoration: InputDecoration(
+                          hintText: "Save to...",
+                          hintStyle: STextStyles.fieldLabel(context),
+                          suffixIcon: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                const SizedBox(
+                                  width: 16,
+                                ),
+                                SvgPicture.asset(
+                                  Assets.svg.folder,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
+                                  width: 16,
+                                  height: 16,
+                                ),
+                                const SizedBox(
+                                  width: 12,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
+                        key: const Key(
+                            "createBackupSaveToFileLocationTextFieldKey"),
+                        readOnly: true,
+                        toolbarOptions: const ToolbarOptions(
+                          copy: true,
+                          cut: false,
+                          paste: false,
+                          selectAll: false,
+                        ),
+                        onChanged: (newValue) {},
                       ),
-                      key: const Key(
-                          "createBackupSaveToFileLocationTextFieldKey"),
-                      readOnly: true,
-                      toolbarOptions: const ToolbarOptions(
-                        copy: true,
-                        cut: false,
-                        paste: false,
-                        selectAll: false,
+                    if (!Platform.isAndroid)
+                      const SizedBox(
+                        height: 10,
                       ),
-                      onChanged: (newValue) {},
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
@@ -594,8 +611,14 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                                   await showDialog<dynamic>(
                                     context: context,
                                     barrierDismissible: false,
-                                    builder: (_) => const StackOkDialog(
-                                        title: "Stack Auto Backup saved"),
+                                    builder: (_) => Platform.isAndroid
+                                        ? StackOkDialog(
+                                            title:
+                                                "Stack Auto Backup saved to:",
+                                            message: fileToSave,
+                                          )
+                                        : const StackOkDialog(
+                                            title: "Stack Auto Backup saved"),
                                   );
                                   if (mounted) {
                                     passwordController.text = "";

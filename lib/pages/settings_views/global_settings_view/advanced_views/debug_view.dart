@@ -303,13 +303,17 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                   Logging.instance
                                       .log("$e\n$s", level: LogLevel.Error);
                                 }
-
-                                final String? path =
-                                    await FilePicker.platform.getDirectoryPath(
-                                  dialogTitle: "Choose Backup location",
-                                  initialDirectory: dir.path,
-                                  lockParentWindow: true,
-                                );
+                                String? path;
+                                if (Platform.isAndroid) {
+                                  path = dir.path;
+                                } else {
+                                  path = await FilePicker.platform
+                                      .getDirectoryPath(
+                                    dialogTitle: "Choose Backup location",
+                                    initialDirectory: dir.path,
+                                    lockParentWindow: true,
+                                  );
+                                }
 
                                 if (path != null) {
                                   final eventBus = EventBus();
@@ -328,7 +332,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                     ),
                                   ));
 
-                                  await ref
+                                  final filename = await ref
                                       .read(debugServiceProvider)
                                       .exportToFile(path, eventBus);
 
@@ -336,10 +340,26 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                                   if (mounted) {
                                     Navigator.pop(context);
-                                    unawaited(showFloatingFlushBar(
-                                        type: FlushBarType.info,
-                                        context: context,
-                                        message: 'Logs file saved'));
+
+                                    if (Platform.isAndroid) {
+                                      unawaited(
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => StackOkDialog(
+                                            title: "Logs saved to",
+                                            message: "${path!}/$filename",
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      unawaited(
+                                        showFloatingFlushBar(
+                                          type: FlushBarType.info,
+                                          context: context,
+                                          message: 'Logs file saved',
+                                        ),
+                                      );
+                                    }
                                   }
                                 }
                               },
