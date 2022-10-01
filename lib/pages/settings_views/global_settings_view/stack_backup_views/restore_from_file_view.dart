@@ -99,29 +99,17 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                         onTap: () async {
                           try {
                             await stackFileSystem.prepareStorage();
-                            // ref
-                            //     .read(shouldShowLockscreenOnResumeStateProvider
-                            //         .state)
-                            //     .state = false;
-                            await stackFileSystem.openFile(context);
+                            if (mounted) {
+                              await stackFileSystem.openFile(context);
+                            }
 
-                            // Future<void>.delayed(
-                            //   const Duration(seconds: 2),
-                            //   () => ref
-                            //       .read(
-                            //           shouldShowLockscreenOnResumeStateProvider
-                            //               .state)
-                            //       .state = true,
-                            // );
-
-                            fileLocationController.text =
-                                stackFileSystem.filePath ?? "";
-                            setState(() {});
+                            if (mounted) {
+                              setState(() {
+                                fileLocationController.text =
+                                    stackFileSystem.filePath ?? "";
+                              });
+                            }
                           } catch (e, s) {
-                            // ref
-                            //     .read(shouldShowLockscreenOnResumeStateProvider
-                            //         .state)
-                            //     .state = true;
                             Logging.instance
                                 .log("$e\n$s", level: LogLevel.Error);
                           }
@@ -130,6 +118,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                         style: STextStyles.field(context),
                         decoration: InputDecoration(
                           hintText: "Choose file...",
+                          hintStyle: STextStyles.fieldLabel(context),
                           suffixIcon: UnconstrainedBox(
                             child: Row(
                               children: [

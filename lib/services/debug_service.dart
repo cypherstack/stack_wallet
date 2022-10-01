@@ -75,7 +75,8 @@ class DebugService extends ChangeNotifier {
         level: LogLevel.Info);
   }
 
-  Future<void> exportToFile(String directory, EventBus eventBus) async {
+  /// returns the filename of the saved logs file
+  Future<String> exportToFile(String directory, EventBus eventBus) async {
     final now = DateTime.now();
     final filename =
         "Stack_Wallet_logs_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.txt";
@@ -99,5 +100,6 @@ class DebugService extends ChangeNotifier {
     await sink.close();
 
     eventBus.fire(1.0);
+    return filename;
   }
 }
