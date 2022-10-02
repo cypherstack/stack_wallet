@@ -14,7 +14,6 @@ import 'package:stackwallet/models/exchange/change_now/change_now_response.dart'
     as _i2;
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart'
     as _i17;
-import 'package:stackwallet/models/exchange/change_now/currency.dart' as _i14;
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart'
     as _i16;
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart'
@@ -23,6 +22,8 @@ import 'package:stackwallet/models/exchange/change_now/exchange_transaction_stat
     as _i19;
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart'
     as _i18;
+import 'package:stackwallet/models/exchange/response_objects/currency.dart'
+    as _i14;
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
     as _i5;
 import 'package:stackwallet/services/change_now/change_now.dart' as _i12;

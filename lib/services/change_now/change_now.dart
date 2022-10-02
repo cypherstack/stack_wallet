@@ -7,11 +7,11 @@ import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart';
 import 'package:stackwallet/models/exchange/change_now/change_now_response.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
-import 'package:stackwallet/models/exchange/change_now/currency.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
+import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ChangeNow {

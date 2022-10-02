@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/exchange/change_now/change_now_response.dart';
-import 'package:stackwallet/models/exchange/change_now/currency.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/estimated_rate_exchange_form_state.dart';
+import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/services/change_now/change_now.dart';
 
 import 'estimated_rate_exchange_form_state_test.mocks.dart';
@@ -21,6 +21,7 @@ void main() {
     featured: false,
     isStable: true,
     supportsFixedRate: true,
+    network: '',
   );
   final currencyB = Currency(
     ticker: "xmr",
@@ -31,6 +32,7 @@ void main() {
     featured: false,
     isStable: true,
     supportsFixedRate: true,
+    network: '',
   );
   final currencyC = Currency(
     ticker: "firo",
@@ -41,6 +43,7 @@ void main() {
     featured: false,
     isStable: true,
     supportsFixedRate: true,
+    network: '',
   );
 
   test("EstimatedRateExchangeFormState constructor", () async {

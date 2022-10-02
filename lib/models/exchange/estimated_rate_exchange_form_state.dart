@@ -1,7 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:stackwallet/models/exchange/change_now/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/services/change_now/change_now.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
