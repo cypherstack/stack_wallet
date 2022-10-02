@@ -23,40 +23,40 @@ class Trade {
   final DateTime updatedAt;
 
   @HiveField(6)
-  final String from;
+  final String payInCurrency;
 
   @HiveField(7)
-  final String fromAmount;
+  final String payInAmount;
 
   @HiveField(8)
-  final String fromAddress;
+  final String payInAddress;
 
   @HiveField(9)
-  final String fromNetwork;
+  final String payInNetwork;
 
   @HiveField(10)
-  final String fromExtraId;
+  final String payInExtraId;
 
   @HiveField(11)
-  final String fromTxid;
+  final String payInTxid;
 
   @HiveField(12)
-  final String to;
+  final String payOutCurrency;
 
   @HiveField(13)
-  final String toAmount;
+  final String payOutAmount;
 
   @HiveField(14)
-  final String toAddress;
+  final String payOutAddress;
 
   @HiveField(15)
-  final String toNetwork;
+  final String payOutNetwork;
 
   @HiveField(16)
-  final String toExtraId;
+  final String payOutExtraId;
 
   @HiveField(17)
-  final String toTxid;
+  final String payOutTxid;
 
   @HiveField(18)
   final String refundAddress;
@@ -74,65 +74,64 @@ class Trade {
     required this.direction,
     required this.timestamp,
     required this.updatedAt,
-    required this.from,
-    required this.fromAmount,
-    required this.fromAddress,
-    required this.fromNetwork,
-    required this.fromExtraId,
-    required this.fromTxid,
-    required this.to,
-    required this.toAmount,
-    required this.toAddress,
-    required this.toNetwork,
-    required this.toExtraId,
-    required this.toTxid,
+    required this.payInCurrency,
+    required this.payInAmount,
+    required this.payInAddress,
+    required this.payInNetwork,
+    required this.payInExtraId,
+    required this.payInTxid,
+    required this.payOutCurrency,
+    required this.payOutAmount,
+    required this.payOutAddress,
+    required this.payOutNetwork,
+    required this.payOutExtraId,
+    required this.payOutTxid,
     required this.refundAddress,
     required this.refundExtraId,
     required this.status,
   });
 
   Trade copyWith({
-    String? uuid,
     String? tradeId,
     String? rateType,
     String? direction,
     DateTime? timestamp,
     DateTime? updatedAt,
-    String? from,
-    String? fromAmount,
-    String? fromAddress,
-    String? fromNetwork,
-    String? fromExtraId,
-    String? fromTxid,
-    String? to,
-    String? toAmount,
-    String? toAddress,
-    String? toNetwork,
-    String? toExtraId,
-    String? toTxid,
+    String? payInCurrency,
+    String? payInAmount,
+    String? payInAddress,
+    String? payInNetwork,
+    String? payInExtraId,
+    String? payInTxid,
+    String? payOutCurrency,
+    String? payOutAmount,
+    String? payOutAddress,
+    String? payOutNetwork,
+    String? payOutExtraId,
+    String? payOutTxid,
     String? refundAddress,
     String? refundExtraId,
     String? status,
   }) {
     return Trade(
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
       tradeId: tradeId ?? this.tradeId,
       rateType: rateType ?? this.rateType,
       direction: direction ?? this.direction,
       timestamp: timestamp ?? this.timestamp,
       updatedAt: updatedAt ?? this.updatedAt,
-      from: from ?? this.from,
-      fromAmount: fromAmount ?? this.fromAmount,
-      fromAddress: fromAddress ?? this.fromAddress,
-      fromNetwork: fromNetwork ?? this.fromNetwork,
-      fromExtraId: fromExtraId ?? this.fromExtraId,
-      fromTxid: fromTxid ?? this.fromTxid,
-      to: to ?? this.to,
-      toAmount: toAmount ?? this.toAmount,
-      toAddress: toAddress ?? this.toAddress,
-      toNetwork: toNetwork ?? this.toNetwork,
-      toExtraId: toExtraId ?? this.toExtraId,
-      toTxid: toTxid ?? this.toTxid,
+      payInCurrency: payInCurrency ?? this.payInCurrency,
+      payInAmount: payInAmount ?? this.payInAmount,
+      payInAddress: payInAddress ?? this.payInAddress,
+      payInNetwork: payInNetwork ?? this.payInNetwork,
+      payInExtraId: payInExtraId ?? this.payInExtraId,
+      payInTxid: payInTxid ?? this.payInTxid,
+      payOutCurrency: payOutCurrency ?? this.payOutCurrency,
+      payOutAmount: payOutAmount ?? this.payOutAmount,
+      payOutAddress: payOutAddress ?? this.payOutAddress,
+      payOutNetwork: payOutNetwork ?? this.payOutNetwork,
+      payOutExtraId: payOutExtraId ?? this.payOutExtraId,
+      payOutTxid: payOutTxid ?? this.payOutTxid,
       refundAddress: refundAddress ?? this.refundAddress,
       refundExtraId: refundExtraId ?? this.refundExtraId,
       status: status ?? this.status,
@@ -141,27 +140,27 @@ class Trade {
 
   Map<String, dynamic> toMap() {
     return {
-      "uuid,": uuid,
-      "tradeId,": tradeId,
-      "rateType,": rateType,
-      "direction,": direction,
-      "timestamp,": timestamp,
-      "updatedAt,": updatedAt,
-      "from,": from,
-      "fromAmount,": fromAmount,
-      "fromAddress,": fromAddress,
-      "fromNetwork,": fromNetwork,
-      "fromExtraId,": fromExtraId,
-      "fromTxid,": fromTxid,
-      "to,": to,
-      "toAmount,": toAmount,
-      "toAddress,": toAddress,
-      "toNetwork,": toNetwork,
-      "toExtraId,": toExtraId,
-      "toTxid,": toTxid,
-      "refundAddress,": refundAddress,
-      "refundExtraId,": refundExtraId,
-      "status,": status,
+      "uuid": uuid,
+      "tradeId": tradeId,
+      "rateType": rateType,
+      "direction": direction,
+      "timestamp": timestamp,
+      "updatedAt": updatedAt,
+      "payInCurrency": payInCurrency,
+      "payInAmount": payInAmount,
+      "payInAddress": payInAddress,
+      "payInNetwork": payInNetwork,
+      "payInExtraId": payInExtraId,
+      "payInTxid": payInTxid,
+      "payOutCurrency": payOutCurrency,
+      "payOutAmount": payOutAmount,
+      "payOutAddress": payOutAddress,
+      "payOutNetwork": payOutNetwork,
+      "payOutExtraId": payOutExtraId,
+      "payOutTxid": payOutTxid,
+      "refundAddress": refundAddress,
+      "refundExtraId": refundExtraId,
+      "status": status,
     };
   }
 
