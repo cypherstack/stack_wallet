@@ -73,6 +73,7 @@ class SimpleSwapExchange extends Exchange {
     String to,
     Decimal amount,
     bool fixedRate,
+    bool reversed,
   ) async {
     final response = await SimpleSwapAPI.instance.getEstimated(
       isFixedRate: fixedRate,
@@ -88,7 +89,7 @@ class SimpleSwapExchange extends Exchange {
   }
 
   @override
-  Future<ExchangeResponse<Range>> getMinMaxExchangeAmounts(
+  Future<ExchangeResponse<Range>> getRange(
     String from,
     String to,
     bool fixedRate,
@@ -112,6 +113,14 @@ class SimpleSwapExchange extends Exchange {
   @override
   Future<ExchangeResponse<Trade>> getTrade(String tradeId) async {
     return await SimpleSwapAPI.instance.getExchange(exchangeId: tradeId);
+  }
+
+  @override
+  Future<ExchangeResponse<Trade>> updateTrade(Trade trade) async {
+    return await SimpleSwapAPI.instance.getExchange(
+      exchangeId: trade.tradeId,
+      oldTrade: trade,
+    );
   }
 
   @override

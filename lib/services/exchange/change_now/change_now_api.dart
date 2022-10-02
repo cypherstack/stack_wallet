@@ -11,6 +11,7 @@ import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -266,6 +267,46 @@ class ChangeNowAPI {
     }
   }
 
+  /// The API endpoint returns minimal payment amount and maximum payment amount
+  /// required to make an exchange. If you try to exchange less than minimum or
+  /// more than maximum, the transaction will most likely fail. Any pair of
+  /// assets has minimum amount and some of pairs have maximum amount.
+  Future<ExchangeResponse<Range>> getRange({
+    required String fromTicker,
+    required String toTicker,
+    required bool isFixedRate,
+    String? apiKey,
+  }) async {
+    Map<String, dynamic>? params = {"api_key": apiKey ?? kChangeNowApiKey};
+
+    final uri = _buildUri(
+        "/exchange-range${isFixedRate ? "/fixed-rate" : ""}/${fromTicker}_$toTicker",
+        params);
+
+    try {
+      final jsonObject = await _makeGetRequest(uri);
+
+      final json = Map<String, dynamic>.from(jsonObject as Map);
+      return ExchangeResponse(
+        value: Range(
+          max: Decimal.tryParse(json["maxAmount"] as String? ?? ""),
+          min: Decimal.tryParse(json["minAmount"] as String? ?? ""),
+        ),
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "getRange exception: $e\n$s",
+        level: LogLevel.Error,
+      );
+      return ExchangeResponse(
+        exception: ExchangeException(
+          e.toString(),
+          ExchangeExceptionType.generic,
+        ),
+      );
+    }
+  }
+
   /// Get estimated amount of [toTicker] cryptocurrency to receive
   /// for [fromAmount] of [fromTicker]
   Future<ExchangeResponse<EstimatedExchangeAmount>> getEstimatedExchangeAmount({
@@ -280,6 +321,59 @@ class ChangeNowAPI {
       "/exchange-amount/${fromAmount.toString()}/${fromTicker}_$toTicker",
       params,
     );
+
+    try {
+      // simple json object is expected here
+      final json = await _makeGetRequest(uri);
+
+      try {
+        final value = EstimatedExchangeAmount.fromJson(
+            Map<String, dynamic>.from(json as Map));
+        return ExchangeResponse(value: value);
+      } catch (_) {
+        return ExchangeResponse(
+          exception: ExchangeException(
+            "Failed to serialize $json",
+            ExchangeExceptionType.serializeResponseError,
+          ),
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log("getEstimatedExchangeAmount exception: $e\n$s",
+          level: LogLevel.Error);
+      return ExchangeResponse(
+        exception: ExchangeException(
+          e.toString(),
+          ExchangeExceptionType.generic,
+        ),
+      );
+    }
+  }
+
+  /// Get estimated amount of [toTicker] cryptocurrency to receive
+  /// for [fromAmount] of [fromTicker]
+  Future<ExchangeResponse<EstimatedExchangeAmount>>
+      getEstimatedExchangeAmountFixedRate({
+    required String fromTicker,
+    required String toTicker,
+    required Decimal fromAmount,
+    required bool reversed,
+    String? apiKey,
+  }) async {
+    Map<String, dynamic> params = {"api_key": apiKey ?? kChangeNowApiKey};
+
+    late final Uri uri;
+    if (reversed) {
+      uri = _buildUri(
+        "/exchange-deposit/fixed-rate/${fromAmount.toString()}/${fromTicker}_$toTicker",
+        params,
+      );
+    } else {
+      uri = _buildUri(
+        "/exchange-amount/fixed-rate/${fromAmount.toString()}/${fromTicker}_$toTicker",
+        params,
+      );
+    }
 
     try {
       // simple json object is expected here

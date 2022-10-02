@@ -1,10 +1,13 @@
 import 'package:decimal/decimal.dart';
+import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:uuid/uuid.dart';
 
 class ChangeNowExchange extends Exchange {
   @override
@@ -25,8 +28,10 @@ class ChangeNowExchange extends Exchange {
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(
     bool fixedRate,
   ) async {
-    // TODO: implement getAllCurrencies
-    throw UnimplementedError();
+    return await ChangeNowAPI.instance.getAvailableCurrencies(
+      fixedRate: fixedRate ? true : null,
+      active: true,
+    );
   }
 
   @override
@@ -41,19 +46,41 @@ class ChangeNowExchange extends Exchange {
     String to,
     Decimal amount,
     bool fixedRate,
+    bool reversed,
   ) async {
-    // TODO: implement getEstimate
-    throw UnimplementedError();
+    late final ExchangeResponse<EstimatedExchangeAmount> response;
+    if (fixedRate) {
+      response =
+          await ChangeNowAPI.instance.getEstimatedExchangeAmountFixedRate(
+        fromTicker: from,
+        toTicker: to,
+        fromAmount: amount,
+        reversed: reversed,
+      );
+    } else {
+      response = await ChangeNowAPI.instance.getEstimatedExchangeAmount(
+        fromTicker: from,
+        toTicker: to,
+        fromAmount: amount,
+      );
+    }
+    if (response.exception != null) {
+      return ExchangeResponse(exception: response.exception);
+    }
+    return ExchangeResponse(value: response.value?.estimatedAmount);
   }
 
   @override
-  Future<ExchangeResponse<Range>> getMinMaxExchangeAmounts(
+  Future<ExchangeResponse<Range>> getRange(
     String from,
     String to,
     bool fixedRate,
   ) async {
-    // TODO: implement getMinMaxExchangeAmounts
-    throw UnimplementedError();
+    return await ChangeNowAPI.instance.getRange(
+      fromTicker: from,
+      toTicker: to,
+      isFixedRate: fixedRate,
+    );
   }
 
   @override
@@ -67,8 +94,76 @@ class ChangeNowExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<Trade>> getTrade(String tradeId) async {
-    // TODO: implement getTrade
-    throw UnimplementedError();
+    final response =
+        await ChangeNowAPI.instance.getTransactionStatus(id: tradeId);
+    if (response.exception != null) {
+      return ExchangeResponse(exception: response.exception);
+    }
+    final t = response.value!;
+    final timestamp = DateTime.tryParse(t.createdAt) ?? DateTime.now();
+
+    final trade = Trade(
+      uuid: const Uuid().v1(),
+      tradeId: tradeId,
+      rateType: "",
+      direction: "",
+      timestamp: timestamp,
+      updatedAt: DateTime.tryParse(t.updatedAt) ?? timestamp,
+      payInCurrency: t.fromCurrency,
+      payInAmount: t.expectedSendAmountDecimal,
+      payInAddress: t.payinAddress,
+      payInNetwork: "",
+      payInExtraId: t.payinExtraId,
+      payInTxid: "",
+      payOutCurrency: t.toCurrency,
+      payOutAmount: t.expectedReceiveAmountDecimal,
+      payOutAddress: t.payoutAddress,
+      payOutNetwork: "",
+      payOutExtraId: t.payoutExtraId,
+      payOutTxid: "",
+      refundAddress: t.refundAddress,
+      refundExtraId: t.refundExtraId,
+      status: t.status.name,
+    );
+
+    return ExchangeResponse(value: trade);
+  }
+
+  @override
+  Future<ExchangeResponse<Trade>> updateTrade(Trade trade) async {
+    final response =
+        await ChangeNowAPI.instance.getTransactionStatus(id: trade.tradeId);
+    if (response.exception != null) {
+      return ExchangeResponse(exception: response.exception);
+    }
+    final t = response.value!;
+    final timestamp = DateTime.tryParse(t.createdAt) ?? DateTime.now();
+
+    final _trade = Trade(
+      uuid: trade.uuid,
+      tradeId: trade.tradeId,
+      rateType: "",
+      direction: "",
+      timestamp: timestamp,
+      updatedAt: DateTime.tryParse(t.updatedAt) ?? timestamp,
+      payInCurrency: t.fromCurrency,
+      payInAmount: t.expectedSendAmountDecimal,
+      payInAddress: t.payinAddress,
+      payInNetwork: "",
+      payInExtraId: t.payinExtraId,
+      payInTxid: "",
+      payOutCurrency: t.toCurrency,
+      payOutAmount: t.expectedReceiveAmountDecimal,
+      payOutAddress: t.payoutAddress,
+      payOutNetwork: "",
+      payOutExtraId: t.payoutExtraId,
+      payOutTxid: "",
+      refundAddress: t.refundAddress,
+      refundExtraId: t.refundExtraId,
+      status: t.status.name,
+    );
+
+    return ExchangeResponse(value: _trade);
   }
 
   @override

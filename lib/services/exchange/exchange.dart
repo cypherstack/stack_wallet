@@ -18,10 +18,11 @@ abstract class Exchange {
   Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate);
 
   Future<ExchangeResponse<Trade>> getTrade(String tradeId);
+  Future<ExchangeResponse<Trade>> updateTrade(Trade trade);
 
   Future<ExchangeResponse<List<Trade>>> getTrades();
 
-  Future<ExchangeResponse<Range>> getMinMaxExchangeAmounts(
+  Future<ExchangeResponse<Range>> getRange(
     String from,
     String to,
     bool fixedRate,
@@ -32,6 +33,7 @@ abstract class Exchange {
     String to,
     Decimal amount,
     bool fixedRate,
+    bool reversed,
   );
 
   Future<ExchangeResponse<Trade>> createTrade({

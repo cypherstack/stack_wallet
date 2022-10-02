@@ -334,6 +334,7 @@ class SimpleSwapAPI {
   Future<ExchangeResponse<Trade>> getExchange({
     required String exchangeId,
     String? apiKey,
+    Trade? oldTrade,
   }) async {
     final uri = _buildUri(
       "/get_exchange",
@@ -349,7 +350,7 @@ class SimpleSwapAPI {
       final json = Map<String, dynamic>.from(jsonObject as Map);
       final ts = DateTime.parse(json["timestamp"] as String);
       final trade = Trade(
-        uuid: const Uuid().v1(),
+        uuid: oldTrade?.uuid ?? const Uuid().v1(),
         tradeId: json["id"] as String,
         rateType: json["type"] as String,
         direction: "direct",
