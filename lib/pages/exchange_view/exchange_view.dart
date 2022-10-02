@@ -260,7 +260,11 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                 .read(fixedRateExchangeFormProvider)
                 .setFromAmountAndCalculateToAmount(Decimal.zero, true);
           }
-          _receiveController.text = "";
+          _receiveController.text =
+              ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+                      ExchangeRateType.estimated
+                  ? "-"
+                  : "";
         }
       }
     });
@@ -325,7 +329,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
             : fixedRateExchangeFormProvider.select(
                 (value) => value.toAmountString), (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
-        _receiveController.text = isEstimated ? "-" : next;
+        _receiveController.text = isEstimated && next.isEmpty ? "-" : next;
         debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _sendController.text = isEstimated
@@ -345,7 +349,12 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
         debugPrint("SEND AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _receiveController.text = isEstimated
-              ? "-" //ref.read(estimatedRateExchangeFormProvider).toAmountString
+              ? ref
+                      .read(estimatedRateExchangeFormProvider)
+                      .toAmountString
+                      .isEmpty
+                  ? "-"
+                  : ref.read(estimatedRateExchangeFormProvider).toAmountString
               : ref.read(fixedRateExchangeFormProvider).toAmountString;
         }
       }
@@ -424,7 +433,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                   .setFromAmountAndCalculateToAmount(
                                       Decimal.zero, false);
                             }
-                            _receiveController.text = "";
+                            _receiveController.text = isEstimated ? "-" : "";
                           }
                         },
                         keyboardType: const TextInputType.numberWithOptions(
