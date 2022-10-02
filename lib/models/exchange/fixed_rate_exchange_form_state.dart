@@ -2,7 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class FixedRateExchangeFormState extends ChangeNotifier {
@@ -153,7 +153,8 @@ class FixedRateExchangeFormState extends ChangeNotifier {
       }
 
       if (amount != null && market != null && amount > Decimal.zero) {
-        final response = await ChangeNow.instance.getEstimatedExchangeAmountV2(
+        final response =
+            await ChangeNowAPI.instance.getEstimatedExchangeAmountV2(
           fromTicker: market!.from,
           toTicker: market!.to,
           fromOrTo: direction,

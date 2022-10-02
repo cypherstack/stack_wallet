@@ -2,15 +2,15 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/exchange/change_now/change_now_response.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/estimated_rate_exchange_form_state.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
+import 'package:stackwallet/services/exchange/exchange_response.dart';
 
 import 'estimated_rate_exchange_form_state_test.mocks.dart';
 
-@GenerateMocks([ChangeNow])
+@GenerateMocks([ChangeNowAPI])
 void main() {
   final currencyA = Currency(
     ticker: "btc",
@@ -98,7 +98,7 @@ void main() {
     state.cnTesting = cn;
 
     when(cn.getMinimalExchangeAmount(fromTicker: "btc", toTicker: "xmr"))
-        .thenAnswer((_) async => ChangeNowResponse(value: Decimal.fromInt(42)));
+        .thenAnswer((_) async => ExchangeResponse(value: Decimal.fromInt(42)));
 
     await state.updateFrom(currencyA, true);
     await state.updateTo(currencyB, true);
@@ -125,7 +125,7 @@ void main() {
     state.cnTesting = cn;
 
     when(cn.getMinimalExchangeAmount(fromTicker: "btc", toTicker: "xmr"))
-        .thenAnswer((_) async => ChangeNowResponse());
+        .thenAnswer((_) async => ExchangeResponse());
 
     await state.updateFrom(currencyA, true);
     await state.updateTo(currencyB, true);
@@ -152,7 +152,7 @@ void main() {
     state.cnTesting = cn;
 
     when(cn.getMinimalExchangeAmount(fromTicker: "btc", toTicker: "xmr"))
-        .thenAnswer((_) async => ChangeNowResponse(value: Decimal.fromInt(42)));
+        .thenAnswer((_) async => ExchangeResponse(value: Decimal.fromInt(42)));
 
     await state.updateFrom(currencyA, true);
     await state.setFromAmountAndCalculateToAmount(Decimal.parse("10.10"), true);
@@ -180,12 +180,12 @@ void main() {
     state.cnTesting = cn;
 
     when(cn.getMinimalExchangeAmount(fromTicker: "btc", toTicker: "xmr"))
-        .thenAnswer((_) async => ChangeNowResponse(value: Decimal.fromInt(42)));
+        .thenAnswer((_) async => ExchangeResponse(value: Decimal.fromInt(42)));
     when(cn.getEstimatedExchangeAmount(
             fromTicker: "btc",
             toTicker: "xmr",
             fromAmount: Decimal.parse("110.10")))
-        .thenAnswer((_) async => ChangeNowResponse(
+        .thenAnswer((_) async => ExchangeResponse(
                 value: EstimatedExchangeAmount(
               transactionSpeedForecast: '10-60',
               rateId: 'some rate id',

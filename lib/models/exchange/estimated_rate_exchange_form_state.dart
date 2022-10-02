@@ -2,12 +2,12 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class EstimatedRateExchangeFormState extends ChangeNotifier {
   /// used in testing to inject mock
-  ChangeNow? cnTesting;
+  ChangeNowAPI? cnTesting;
 
   Decimal? _fromAmount;
   Decimal? _toAmount;
@@ -195,7 +195,7 @@ class EstimatedRateExchangeFormState extends ChangeNotifier {
     required Currency to,
   }) async {
     final response =
-        await (cnTesting ?? ChangeNow.instance).getEstimatedExchangeAmount(
+        await (cnTesting ?? ChangeNowAPI.instance).getEstimatedExchangeAmount(
       fromTicker: from.ticker,
       toTicker: to.ticker,
       fromAmount: fromAmount,
@@ -234,7 +234,7 @@ class EstimatedRateExchangeFormState extends ChangeNotifier {
     required Currency from,
     required Currency to,
   }) async {
-    final response = await (cnTesting ?? ChangeNow.instance)
+    final response = await (cnTesting ?? ChangeNowAPI.instance)
         .getMinimalExchangeAmount(fromTicker: from.ticker, toTicker: to.ticker);
 
     if (response.value != null) {

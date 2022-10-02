@@ -5,7 +5,7 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/trade_service.dart';
@@ -17,7 +17,7 @@ class NotificationsService extends ChangeNotifier {
   late NodeService nodeService;
   late TradesService tradesService;
   late Prefs prefs;
-  late ChangeNow changeNow;
+  late ChangeNowAPI changeNow;
 
   NotificationsService._();
   static final NotificationsService _instance = NotificationsService._();
@@ -27,7 +27,7 @@ class NotificationsService extends ChangeNotifier {
     required NodeService nodeService,
     required TradesService tradesService,
     required Prefs prefs,
-    required ChangeNow changeNow,
+    required ChangeNowAPI changeNow,
   }) async {
     this.nodeService = nodeService;
     this.tradesService = tradesService;

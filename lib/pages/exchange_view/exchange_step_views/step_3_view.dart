@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/change_now/change_now_response.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
@@ -10,6 +9,7 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
+import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -243,7 +243,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     ),
                                   );
 
-                                  ChangeNowResponse<ExchangeTransaction>
+                                  ExchangeResponse<ExchangeTransaction>
                                       response;
                                   if (model.rateType ==
                                       ExchangeRateType.estimated) {

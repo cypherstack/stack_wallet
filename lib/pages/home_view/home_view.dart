@@ -13,7 +13,7 @@ import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
-import 'package:stackwallet/services/change_now/change_now_loading_service.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
