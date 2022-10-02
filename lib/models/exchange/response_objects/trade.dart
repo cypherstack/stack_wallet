@@ -138,4 +138,35 @@ class Trade {
       status: status ?? this.status,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      "uuid,": uuid,
+      "tradeId,": tradeId,
+      "rateType,": rateType,
+      "direction,": direction,
+      "timestamp,": timestamp,
+      "updatedAt,": updatedAt,
+      "from,": from,
+      "fromAmount,": fromAmount,
+      "fromAddress,": fromAddress,
+      "fromNetwork,": fromNetwork,
+      "fromExtraId,": fromExtraId,
+      "fromTxid,": fromTxid,
+      "to,": to,
+      "toAmount,": toAmount,
+      "toAddress,": toAddress,
+      "toNetwork,": toNetwork,
+      "toExtraId,": toExtraId,
+      "toTxid,": toTxid,
+      "refundAddress,": refundAddress,
+      "refundExtraId,": refundExtraId,
+      "status,": status,
+    };
+  }
+
+  @override
+  String toString() {
+    return toMap().toString();
+  }
 }

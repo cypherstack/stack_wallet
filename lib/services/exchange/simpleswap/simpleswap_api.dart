@@ -36,6 +36,7 @@ class SimpleSwapAPI {
       );
 
       final parsed = jsonDecode(response.body);
+      print("PARSED: $parsed");
 
       return parsed;
     } catch (e, s) {
@@ -81,14 +82,14 @@ class SimpleSwapAPI {
     String? extraIdTo,
     String? apiKey,
   }) async {
-    Map<String, String> body = {
-      "fixed": isFixedRate.toString(),
+    Map<String, dynamic> body = {
+      "fixed": isFixedRate,
       "currency_from": currencyFrom,
       "currency_to": currencyTo,
       "addressTo": addressTo,
       "userRefundAddress": userRefundAddress,
       "userRefundExtraId": userRefundExtraId,
-      "amount": amount,
+      "amount": double.parse(amount),
     };
 
     final uri =
@@ -118,7 +119,7 @@ class SimpleSwapAPI {
         toAmount: json["amount_to"] as String,
         toAddress: json["address_to"] as String,
         toNetwork: "",
-        toExtraId: json["extra_id_to"] as String,
+        toExtraId: json["extra_id_to"] as String? ?? "",
         toTxid: json["tx_to"] as String,
         refundAddress: json["user_refund_address"] as String,
         refundExtraId: json["user_refund_extra_id"] as String,
@@ -346,13 +347,14 @@ class SimpleSwapAPI {
       final jsonObject = await _makeGetRequest(uri);
 
       final json = Map<String, dynamic>.from(jsonObject as Map);
+      final ts = DateTime.parse(json["timestamp"] as String);
       final trade = Trade(
         uuid: const Uuid().v1(),
         tradeId: json["id"] as String,
         rateType: json["type"] as String,
         direction: "direct",
-        timestamp: DateTime.parse(json["timestamp"] as String),
-        updatedAt: DateTime.parse(json["updated_at"] as String),
+        timestamp: ts,
+        updatedAt: DateTime.tryParse(json["updated_at"] as String? ?? "") ?? ts,
         from: json["currency_from"] as String,
         fromAmount: json["amount_from"] as String,
         fromAddress: json["address_from"] as String,
@@ -363,7 +365,7 @@ class SimpleSwapAPI {
         toAmount: json["amount_to"] as String,
         toAddress: json["address_to"] as String,
         toNetwork: "",
-        toExtraId: json["extra_id_to"] as String,
+        toExtraId: json["extra_id_to"] as String? ?? "",
         toTxid: json["tx_to"] as String,
         refundAddress: json["user_refund_address"] as String,
         refundExtraId: json["user_refund_extra_id"] as String,
