@@ -121,6 +121,8 @@ void main() async {
   Hive.registerAdapter(ExchangeTransactionAdapter());
   Hive.registerAdapter(ExchangeTransactionStatusAdapter());
 
+  Hive.registerAdapter(TradeAdapter());
+
   // reference lookup data adapter
   Hive.registerAdapter(TradeWalletLookupAdapter());
 
