@@ -92,7 +92,7 @@ void main() {
   test(
       "updateTo after updateFrom where amounts are null and getMinimalExchangeAmount succeeds",
       () async {
-    final cn = MockChangeNow();
+    final cn = MockChangeNowAPI();
 
     final state = EstimatedRateExchangeFormState();
     state.cnTesting = cn;
@@ -119,7 +119,7 @@ void main() {
   test(
       "updateTo after updateFrom where amounts are null and getMinimalExchangeAmount fails",
       () async {
-    final cn = MockChangeNow();
+    final cn = MockChangeNowAPI();
 
     final state = EstimatedRateExchangeFormState();
     state.cnTesting = cn;
@@ -146,7 +146,7 @@ void main() {
   test(
       "updateTo after updateFrom and setFromAmountAndCalculateToAmount where fromAmount is less than the minimum required exchange amount",
       () async {
-    final cn = MockChangeNow();
+    final cn = MockChangeNowAPI();
 
     final state = EstimatedRateExchangeFormState();
     state.cnTesting = cn;
@@ -174,7 +174,7 @@ void main() {
   test(
       "updateTo after updateFrom and setFromAmountAndCalculateToAmount where fromAmount is greater than the minimum required exchange amount",
       () async {
-    final cn = MockChangeNow();
+    final cn = MockChangeNowAPI();
 
     final state = EstimatedRateExchangeFormState();
     state.cnTesting = cn;
