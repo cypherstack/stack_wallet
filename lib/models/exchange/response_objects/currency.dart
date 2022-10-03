@@ -52,7 +52,7 @@ class Currency {
       return Currency(
         ticker: json["ticker"] as String,
         name: json["name"] as String,
-        network: json["network"] as String,
+        network: json["network"] as String? ?? "",
         image: json["image"] as String,
         hasExternalId: json["hasExternalId"] as bool,
         externalId: json["externalId"] as String?,
