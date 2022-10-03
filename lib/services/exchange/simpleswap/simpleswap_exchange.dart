@@ -8,6 +8,11 @@ import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_api.dart';
 
 class SimpleSwapExchange extends Exchange {
+  static const exchangeName = "SimpleSwap";
+
+  @override
+  String get name => exchangeName;
+
   @override
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
@@ -15,8 +20,10 @@ class SimpleSwapExchange extends Exchange {
     required bool fixedRate,
     required Decimal amount,
     required String addressTo,
+    String? extraId,
     required String addressRefund,
     required String refundExtraId,
+    String? rateId,
   }) async {
     return await SimpleSwapAPI.instance.createNewExchange(
       isFixedRate: fixedRate,
@@ -26,6 +33,7 @@ class SimpleSwapExchange extends Exchange {
       userRefundAddress: addressRefund,
       userRefundExtraId: refundExtraId,
       amount: amount.toString(),
+      extraIdTo: extraId,
     );
   }
 

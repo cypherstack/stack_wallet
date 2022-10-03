@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
+import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
@@ -10,6 +11,11 @@ import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:uuid/uuid.dart';
 
 class ChangeNowExchange extends Exchange {
+  static const exchangeName = "ChangeNOW";
+
+  @override
+  String get name => exchangeName;
+
   @override
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
@@ -17,11 +23,51 @@ class ChangeNowExchange extends Exchange {
     required bool fixedRate,
     required Decimal amount,
     required String addressTo,
+    String? extraId,
     required String addressRefund,
     required String refundExtraId,
+    String? rateId,
   }) async {
-    // TODO: implement createTrade
-    throw UnimplementedError();
+    late final ExchangeResponse<ExchangeTransaction> response;
+    if (fixedRate) {
+      response = await ChangeNowAPI.instance.createFixedRateExchangeTransaction(
+        fromTicker: from,
+        toTicker: to,
+        receivingAddress: addressTo,
+        amount: amount,
+        rateId: rateId!,
+        extraId: extraId ?? "",
+        refundAddress: addressRefund,
+        refundExtraId: refundExtraId,
+      );
+    } else {
+      response = await ChangeNowAPI.instance.createStandardExchangeTransaction(
+        fromTicker: from,
+        toTicker: to,
+        receivingAddress: addressTo,
+        amount: amount,
+        extraId: extraId ?? "",
+        refundAddress: addressRefund,
+        refundExtraId: refundExtraId,
+      );
+    }
+    if (response.exception != null) {
+      return ExchangeResponse(exception: response.exception);
+    }
+
+    final statusResponse = await ChangeNowAPI.instance
+        .getTransactionStatus(id: response.value!.id);
+    if (statusResponse.exception != null) {
+      return ExchangeResponse(exception: statusResponse.exception);
+    }
+
+    return ExchangeResponse(
+      value: Trade.fromExchangeTransaction(
+        response.value!.copyWith(
+          statusObject: statusResponse.value!,
+        ),
+      ),
+    );
   }
 
   @override
@@ -124,6 +170,7 @@ class ChangeNowExchange extends Exchange {
       refundAddress: t.refundAddress,
       refundExtraId: t.refundExtraId,
       status: t.status.name,
+      exchangeName: ChangeNowExchange.exchangeName,
     );
 
     return ExchangeResponse(value: trade);
@@ -142,25 +189,30 @@ class ChangeNowExchange extends Exchange {
     final _trade = Trade(
       uuid: trade.uuid,
       tradeId: trade.tradeId,
-      rateType: "",
-      direction: "",
+      rateType: trade.rateType,
+      direction: trade.direction,
       timestamp: timestamp,
       updatedAt: DateTime.tryParse(t.updatedAt) ?? timestamp,
       payInCurrency: t.fromCurrency,
-      payInAmount: t.expectedSendAmountDecimal,
+      payInAmount: t.amountSendDecimal.isEmpty
+          ? t.expectedSendAmountDecimal
+          : t.amountSendDecimal,
       payInAddress: t.payinAddress,
-      payInNetwork: "",
+      payInNetwork: trade.payInNetwork,
       payInExtraId: t.payinExtraId,
-      payInTxid: "",
+      payInTxid: t.payinHash,
       payOutCurrency: t.toCurrency,
-      payOutAmount: t.expectedReceiveAmountDecimal,
+      payOutAmount: t.amountReceiveDecimal.isEmpty
+          ? t.expectedReceiveAmountDecimal
+          : t.amountReceiveDecimal,
       payOutAddress: t.payoutAddress,
-      payOutNetwork: "",
+      payOutNetwork: trade.payOutNetwork,
       payOutExtraId: t.payoutExtraId,
-      payOutTxid: "",
+      payOutTxid: t.payoutHash,
       refundAddress: t.refundAddress,
       refundExtraId: t.refundExtraId,
       status: t.status.name,
+      exchangeName: ChangeNowExchange.exchangeName,
     );
 
     return ExchangeResponse(value: _trade);

@@ -1,5 +1,5 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 
 class IncompleteExchangeModel {
@@ -18,7 +18,7 @@ class IncompleteExchangeModel {
 
   String? rateId;
 
-  ExchangeTransaction? trade;
+  Trade? trade;
 
   IncompleteExchangeModel({
     required this.sendTicker,

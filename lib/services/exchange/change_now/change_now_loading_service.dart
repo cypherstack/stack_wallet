@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
 import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -33,7 +33,7 @@ class ChangeNowLoadingService {
         ChangeNowLoadStatus.loading;
 
     final response3 =
-        await ref.read(changeNowProvider).getAvailableFixedRateMarkets();
+        await ChangeNowAPI.instance.getAvailableFixedRateMarkets();
     if (response3.value != null) {
       ref.read(fixedRateMarketPairsStateProvider.state).state =
           response3.value!;
@@ -81,9 +81,9 @@ class ChangeNowLoadingService {
     ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
         ChangeNowLoadStatus.loading;
 
-    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
+    final response = await ChangeNowAPI.instance.getAvailableCurrencies();
     final response2 =
-        await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
+        await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
     if (response.value != null) {
       ref.read(availableChangeNowCurrenciesStateProvider.state).state =
           response.value!;

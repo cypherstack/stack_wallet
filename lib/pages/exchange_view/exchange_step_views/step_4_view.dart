@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/confirm_change_now_send.dart';
@@ -51,7 +50,6 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   late final ClipboardInterface clipboard;
 
   String _statusString = "New";
-  ChangeNowTransactionStatus _status = ChangeNowTransactionStatus.New;
 
   Timer? _statusTimer;
 
@@ -69,13 +67,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   }
 
   Future<void> _updateStatus() async {
-    final statusResponse = await ref
-        .read(changeNowProvider)
-        .getTransactionStatus(id: model.trade!.id);
+    final statusResponse =
+        await ref.read(changeNowProvider).updateTrade(model.trade!);
     String status = "Waiting";
     if (statusResponse.value != null) {
-      _status = statusResponse.value!.status;
-      status = _status.name;
+      status = statusResponse.value!.status;
     }
 
     // extra info if status is waiting
@@ -112,7 +108,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   @override
   Widget build(BuildContext context) {
     final bool isWalletCoin =
-        _isWalletCoinAndHasWallet(model.trade!.fromCurrency, ref);
+        _isWalletCoinAndHasWallet(model.trade!.payInCurrency, ref);
     return Scaffold(
       backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
@@ -272,7 +268,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                   GestureDetector(
                                     onTap: () async {
                                       final data = ClipboardData(
-                                          text: model.trade!.payinAddress);
+                                          text: model.trade!.payInAddress);
                                       await clipboard.setData(data);
                                       unawaited(showFloatingFlushBar(
                                         type: FlushBarType.info,
@@ -305,7 +301,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 height: 4,
                               ),
                               Text(
-                                model.trade!.payinAddress,
+                                model.trade!.payInAddress,
                                 style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
@@ -325,7 +321,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               Row(
                                 children: [
                                   Text(
-                                    model.trade!.id,
+                                    model.trade!.tradeId,
                                     style: STextStyles.itemSubtitle12(context),
                                   ),
                                   const SizedBox(
@@ -333,8 +329,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                   ),
                                   GestureDetector(
                                     onTap: () async {
-                                      final data =
-                                          ClipboardData(text: model.trade!.id);
+                                      final data = ClipboardData(
+                                          text: model.trade!.tradeId);
                                       await clipboard.setData(data);
                                       unawaited(showFloatingFlushBar(
                                         type: FlushBarType.info,
@@ -372,7 +368,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     STextStyles.itemSubtitle(context).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .colorForStatus(_status),
+                                      .colorForStatus(_statusString),
                                 ),
                               ),
                             ],
@@ -408,7 +404,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                         child: QrImage(
                                           // TODO: grab coin uri scheme from somewhere
                                           // data: "${coin.uriScheme}:$receivingAddress",
-                                          data: model.trade!.payinAddress,
+                                          data: model.trade!.payInAddress,
                                           size: MediaQuery.of(context)
                                                   .size
                                                   .width /
@@ -496,7 +492,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             Format.decimalAmountToSatoshis(
                                                 model.sendAmount);
                                         final address =
-                                            model.trade!.payinAddress;
+                                            model.trade!.payInAddress;
 
                                         try {
                                           bool wasCancelled = false;
@@ -534,7 +530,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             }
 
                                             txData["note"] =
-                                                "${model.trade!.fromCurrency.toUpperCase()}/${model.trade!.toCurrency.toUpperCase()} exchange";
+                                                "${model.trade!.payInCurrency.toUpperCase()}/${model.trade!.payOutCurrency.toUpperCase()} exchange";
                                             txData["address"] = address;
 
                                             if (mounted) {
@@ -611,10 +607,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                 coin:
                                                     coinFromTickerCaseInsensitive(
                                                         model.trade!
-                                                            .fromCurrency),
+                                                            .payInCurrency),
                                                 amount: model.sendAmount,
                                                 address:
-                                                    model.trade!.payinAddress,
+                                                    model.trade!.payInAddress,
                                                 trade: model.trade!,
                                               );
                                             },

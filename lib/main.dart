@@ -18,6 +18,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -33,7 +34,6 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
 import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
@@ -46,6 +46,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/debug_service.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
@@ -221,7 +222,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       nodeService: _nodeService,
       tradesService: _tradesService,
       prefs: _prefs,
-      changeNow: ref.read(changeNowProvider),
     );
     await _prefs.init();
     ref.read(priceAnd24hChangeNotifierProvider).start(true);
@@ -258,9 +258,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             .isNotEmpty) {
       return;
     }
-    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
+    final response = await ChangeNowAPI.instance.getAvailableCurrencies();
     final response2 =
-        await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
+        await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
     if (response.value != null) {
       ref.read(availableChangeNowCurrenciesStateProvider.state).state =
           response.value!;
@@ -312,7 +312,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     }
 
     final response3 =
-        await ref.read(changeNowProvider).getAvailableFixedRateMarkets();
+        await ChangeNowAPI.instance.getAvailableFixedRateMarkets();
     if (response3.value != null) {
       ref.read(fixedRateMarketPairsStateProvider.state).state =
           response3.value!;

@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
@@ -243,33 +243,19 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     ),
                                   );
 
-                                  ExchangeResponse<ExchangeTransaction>
-                                      response;
-                                  if (model.rateType ==
-                                      ExchangeRateType.estimated) {
-                                    response = await ref
-                                        .read(changeNowProvider)
-                                        .createStandardExchangeTransaction(
-                                          fromTicker: model.sendTicker,
-                                          toTicker: model.receiveTicker,
-                                          receivingAddress:
-                                              model.recipientAddress!,
-                                          amount: model.sendAmount,
-                                          refundAddress: model.refundAddress!,
-                                        );
-                                  } else {
-                                    response = await ref
-                                        .read(changeNowProvider)
-                                        .createFixedRateExchangeTransaction(
-                                          fromTicker: model.sendTicker,
-                                          toTicker: model.receiveTicker,
-                                          receivingAddress:
-                                              model.recipientAddress!,
-                                          amount: model.sendAmount,
-                                          refundAddress: model.refundAddress!,
-                                          rateId: model.rateId!,
-                                        );
-                                  }
+                                  final ExchangeResponse<Trade> response =
+                                      await ref
+                                          .read(changeNowProvider)
+                                          .createTrade(
+                                            from: model.sendTicker,
+                                            to: model.receiveTicker,
+                                            fixedRate: model.rateType !=
+                                                ExchangeRateType.estimated,
+                                            amount: model.sendAmount,
+                                            addressTo: model.recipientAddress!,
+                                            addressRefund: model.refundAddress!,
+                                            refundExtraId: "",
+                                          );
 
                                   if (response.value == null) {
                                     if (mounted) {
@@ -293,20 +279,9 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                         shouldNotifyListeners: true,
                                       );
 
-                                  final statusResponse = await ref
-                                      .read(changeNowProvider)
-                                      .getTransactionStatus(
-                                          id: response.value!.id);
+                                  String status = response.value!.status;
 
-                                  String status = "Waiting";
-                                  if (statusResponse.value != null) {
-                                    status = statusResponse.value!.status.name;
-                                  }
-
-                                  model.trade = response.value!.copyWith(
-                                    statusString: status,
-                                    statusObject: statusResponse.value!,
-                                  );
+                                  model.trade = response.value!;
 
                                   // extra info if status is waiting
                                   if (status == "Waiting") {
@@ -318,12 +293,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   }
 
                                   unawaited(NotificationApi.showNotification(
-                                    changeNowId: model.trade!.id,
+                                    changeNowId: model.trade!.tradeId,
                                     title: status,
-                                    body: "Trade ID ${model.trade!.id}",
+                                    body: "Trade ID ${model.trade!.tradeId}",
                                     walletId: "",
                                     iconAssetName: Assets.svg.arrowRotate,
-                                    date: model.trade!.date,
+                                    date: model.trade!.timestamp,
                                     shouldWatchForUpdates: true,
                                     coinName: "coinName",
                                   ));

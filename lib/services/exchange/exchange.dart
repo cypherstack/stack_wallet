@@ -6,7 +6,7 @@ import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 
 abstract class Exchange {
-  //
+  String get name;
 
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(bool fixedRate);
 
@@ -42,7 +42,9 @@ abstract class Exchange {
     required bool fixedRate,
     required Decimal amount,
     required String addressTo,
+    String? extraId,
     required String addressRefund,
     required String refundExtraId,
+    String? rateId,
   });
 }

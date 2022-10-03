@@ -1,4 +1,8 @@
 import 'package:hive/hive.dart';
+import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+
+part 'trade.g.dart';
 
 @HiveType(typeId: Trade.typeId)
 class Trade {
@@ -67,6 +71,9 @@ class Trade {
   @HiveField(20)
   final String status;
 
+  @HiveField(21)
+  final String exchangeName;
+
   const Trade({
     required this.uuid,
     required this.tradeId,
@@ -89,6 +96,7 @@ class Trade {
     required this.refundAddress,
     required this.refundExtraId,
     required this.status,
+    required this.exchangeName,
   });
 
   Trade copyWith({
@@ -112,6 +120,7 @@ class Trade {
     String? refundAddress,
     String? refundExtraId,
     String? status,
+    String? exchangeName,
   }) {
     return Trade(
       uuid: uuid,
@@ -135,17 +144,18 @@ class Trade {
       refundAddress: refundAddress ?? this.refundAddress,
       refundExtraId: refundExtraId ?? this.refundExtraId,
       status: status ?? this.status,
+      exchangeName: exchangeName ?? this.exchangeName,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, String> toMap() {
     return {
       "uuid": uuid,
       "tradeId": tradeId,
       "rateType": rateType,
       "direction": direction,
-      "timestamp": timestamp,
-      "updatedAt": updatedAt,
+      "timestamp": timestamp.toIso8601String(),
+      "updatedAt": updatedAt.toIso8601String(),
       "payInCurrency": payInCurrency,
       "payInAmount": payInAmount,
       "payInAddress": payInAddress,
@@ -161,7 +171,64 @@ class Trade {
       "refundAddress": refundAddress,
       "refundExtraId": refundExtraId,
       "status": status,
+      "exchangeName": exchangeName,
     };
+  }
+
+  factory Trade.fromMap(Map<String, dynamic> map) {
+    return Trade(
+      uuid: map["uuid"] as String,
+      tradeId: map["tradeId"] as String,
+      rateType: map["rateType"] as String,
+      direction: map["direction"] as String,
+      timestamp: DateTime.parse(map["timestamp"] as String),
+      updatedAt: DateTime.parse(map["updatedAt"] as String),
+      payInCurrency: map["payInCurrency"] as String,
+      payInAmount: map["payInAmount"] as String,
+      payInAddress: map["payInAddress"] as String,
+      payInNetwork: map["payInNetwork"] as String,
+      payInExtraId: map["payInExtraId"] as String,
+      payInTxid: map["payInTxid"] as String,
+      payOutCurrency: map["payOutCurrency"] as String,
+      payOutAmount: map["payOutAmount"] as String,
+      payOutAddress: map["payOutAddress"] as String,
+      payOutNetwork: map["payOutNetwork"] as String,
+      payOutExtraId: map["payOutExtraId"] as String,
+      payOutTxid: map["payOutTxid"] as String,
+      refundAddress: map["refundAddress"] as String,
+      refundExtraId: map["refundExtraId"] as String,
+      status: map["status"] as String,
+      exchangeName: map["exchangeName"] as String,
+    );
+  }
+
+  factory Trade.fromExchangeTransaction(ExchangeTransaction exTx) {
+    return Trade(
+      uuid: exTx.uuid,
+      tradeId: exTx.id,
+      rateType: "",
+      direction: "direct",
+      timestamp: exTx.date,
+      updatedAt: DateTime.tryParse(exTx.statusObject!.updatedAt) ?? exTx.date,
+      payInCurrency: exTx.fromCurrency,
+      payInAmount: exTx.statusObject!.amountSendDecimal.isEmpty
+          ? exTx.statusObject!.expectedSendAmountDecimal
+          : exTx.statusObject!.amountSendDecimal,
+      payInAddress: exTx.payinAddress,
+      payInNetwork: "",
+      payInExtraId: exTx.payinExtraId,
+      payInTxid: exTx.statusObject!.payinHash,
+      payOutCurrency: exTx.toCurrency,
+      payOutAmount: exTx.amount,
+      payOutAddress: exTx.payoutAddress,
+      payOutNetwork: "",
+      payOutExtraId: exTx.payoutExtraId,
+      payOutTxid: exTx.statusObject!.payoutHash,
+      refundAddress: exTx.refundAddress,
+      refundExtraId: exTx.refundExtraId,
+      status: exTx.statusObject!.status.name,
+      exchangeName: ChangeNowExchange.exchangeName,
+    );
   }
 
   @override

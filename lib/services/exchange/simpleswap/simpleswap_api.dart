@@ -9,6 +9,7 @@ import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/exchange/simpleswap/sp_currency.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
@@ -90,6 +91,7 @@ class SimpleSwapAPI {
       "userRefundAddress": userRefundAddress,
       "userRefundExtraId": userRefundExtraId,
       "amount": double.parse(amount),
+      "extraIdTo": extraIdTo,
     };
 
     final uri =
@@ -124,6 +126,7 @@ class SimpleSwapAPI {
         refundAddress: json["user_refund_address"] as String,
         refundExtraId: json["user_refund_extra_id"] as String,
         status: json["status"] as String,
+        exchangeName: SimpleSwapExchange.exchangeName,
       );
       return ExchangeResponse(value: trade, exception: null);
     } catch (e, s) {
@@ -371,6 +374,7 @@ class SimpleSwapAPI {
         refundAddress: json["user_refund_address"] as String,
         refundExtraId: json["user_refund_extra_id"] as String,
         status: json["status"] as String,
+        exchangeName: SimpleSwapExchange.exchangeName,
       );
 
       return ExchangeResponse(value: trade);

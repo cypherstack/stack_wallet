@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
@@ -34,7 +34,7 @@ class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
   final Map<String, dynamic> transactionInfo;
   final String walletId;
   final String routeOnSuccessName;
-  final ExchangeTransaction trade;
+  final Trade trade;
 
   @override
   ConsumerState<ConfirmChangeNowSendView> createState() =>
@@ -46,7 +46,7 @@ class _ConfirmChangeNowSendViewState
   late final Map<String, dynamic> transactionInfo;
   late final String walletId;
   late final String routeOnSuccessName;
-  late final ExchangeTransaction trade;
+  late final Trade trade;
 
   Future<void> _attemptSend(BuildContext context) async {
     unawaited(showDialog<void>(
@@ -75,7 +75,7 @@ class _ConfirmChangeNowSendViewState
             tradeWalletLookup: TradeWalletLookup(
               uuid: const Uuid().v1(),
               txid: txid,
-              tradeId: trade.id,
+              tradeId: trade.tradeId,
               walletIds: [walletId],
             ),
           );
@@ -309,7 +309,7 @@ class _ConfirmChangeNowSendViewState
                                 style: STextStyles.smallMed12(context),
                               ),
                               Text(
-                                trade.id,
+                                trade.tradeId,
                                 style: STextStyles.itemSubtitle12(context),
                                 textAlign: TextAlign.right,
                               ),

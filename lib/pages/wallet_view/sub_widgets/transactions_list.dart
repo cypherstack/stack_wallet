@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -12,9 +14,6 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../providers/global/trades_service_provider.dart';
-import '../../exchange_view/trade_details_view.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
@@ -135,9 +134,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                     .read(tradesServiceProvider)
                     .trades
                     .where((e) =>
-                        e.statusObject != null &&
-                        (e.statusObject!.payinHash == tx.txid ||
-                            e.statusObject!.payoutHash == tx.txid));
+                        e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
                 if (tx.txType == "Sent" && matchingTrades.isNotEmpty) {
                   final trade = matchingTrades.first;
                   return Container(
@@ -164,7 +161,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                               Navigator.of(context).pushNamed(
                                 TradeDetailsView.routeName,
                                 arguments: Tuple4(
-                                  trade.id,
+                                  trade.tradeId,
                                   tx,
                                   widget.walletId,
                                   ref.read(managerProvider).walletName,

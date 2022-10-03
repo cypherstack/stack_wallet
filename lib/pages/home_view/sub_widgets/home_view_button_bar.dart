@@ -10,6 +10,7 @@ import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provi
 import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -43,9 +44,9 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
+    final response = await ref.read(changeNowProvider).getAllCurrencies(false);
     final response2 =
-        await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
+        await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
     if (response.value != null && response2.value != null) {
       ref.read(availableChangeNowCurrenciesStateProvider.state).state =
           response.value!;
@@ -90,7 +91,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
     WidgetRef ref,
   ) async {
     final response3 =
-        await ref.read(changeNowProvider).getAvailableFixedRateMarkets();
+        await ChangeNowAPI.instance.getAvailableFixedRateMarkets();
 
     if (response3.value != null) {
       ref.read(fixedRateMarketPairsStateProvider.state).state =
