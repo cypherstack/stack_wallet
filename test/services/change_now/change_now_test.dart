@@ -5,10 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 
@@ -741,7 +741,7 @@ void main() {
 
       expect(result.exception, null);
       expect(result.value == null, false);
-      expect(result.value, isA<List<AvailableFloatingRatePair>>());
+      expect(result.value, isA<List<Pair>>());
     });
 
     test(

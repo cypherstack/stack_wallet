@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:stackwallet/utilities/logger.dart';
+
 class Pair {
   final String from;
   final String fromNetwork;
@@ -17,7 +21,23 @@ class Pair {
     required this.floatingRate,
   });
 
-  Map<String, dynamic> toJson() {
+  factory Pair.fromMap(Map<String, dynamic> map) {
+    try {
+      return Pair(
+        from: map["from"] as String,
+        fromNetwork: map["fromNetwork"] as String,
+        to: map["to"] as String,
+        toNetwork: map["toNetwork"] as String,
+        fixedRate: map["fixedRate"] as bool,
+        floatingRate: map["floatingRate"] as bool,
+      );
+    } catch (e, s) {
+      Logging.instance.log("Pair.fromMap(): $e\n$s", level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  Map<String, dynamic> toMap() {
     return {
       "from": from,
       "fromNetwork": fromNetwork,
@@ -29,7 +49,25 @@ class Pair {
   }
 
   @override
-  String toString() {
-    return "Pair: ${toJson()}";
-  }
+  bool operator ==(other) =>
+      other is Pair &&
+      from == other.from &&
+      fromNetwork == other.fromNetwork &&
+      to == other.to &&
+      toNetwork == other.toNetwork &&
+      fixedRate == other.fixedRate &&
+      floatingRate == other.floatingRate;
+
+  @override
+  int get hashCode => hashValues(
+        from,
+        fromNetwork,
+        to,
+        toNetwork,
+        fixedRate,
+        floatingRate,
+      );
+
+  @override
+  String toString() => "Pair: ${toMap()}";
 }

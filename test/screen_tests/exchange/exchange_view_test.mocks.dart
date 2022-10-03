@@ -8,8 +8,6 @@ import 'dart:ui' as _i8;
 import 'package:decimal/decimal.dart' as _i15;
 import 'package:http/http.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart'
-    as _i22;
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart'
     as _i18;
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart'
@@ -22,6 +20,7 @@ import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart'
     as _i19;
 import 'package:stackwallet/models/exchange/response_objects/currency.dart'
     as _i14;
+import 'package:stackwallet/models/exchange/response_objects/pair.dart' as _i22;
 import 'package:stackwallet/models/exchange/response_objects/range.dart'
     as _i16;
 import 'package:stackwallet/models/exchange/response_objects/trade.dart'
@@ -554,13 +553,12 @@ class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
                   _FakeExchangeResponse_0<_i21.ExchangeTransactionStatus>())) as _i7
           .Future<_i2.ExchangeResponse<_i21.ExchangeTransactionStatus>>);
   @override
-  _i7.Future<_i2.ExchangeResponse<List<_i22.AvailableFloatingRatePair>>>
-      getAvailableFloatingRatePairs({bool? includePartners = false}) => (super
-          .noSuchMethod(
+  _i7.Future<_i2.ExchangeResponse<List<_i22.Pair>>>
+      getAvailableFloatingRatePairs({bool? includePartners = false}) =>
+          (super.noSuchMethod(
               Invocation.method(#getAvailableFloatingRatePairs, [],
                   {#includePartners: includePartners}),
-              returnValue:
-                  Future<_i2.ExchangeResponse<List<_i22.AvailableFloatingRatePair>>>.value(
-                      _FakeExchangeResponse_0<List<_i22.AvailableFloatingRatePair>>())) as _i7
-          .Future<_i2.ExchangeResponse<List<_i22.AvailableFloatingRatePair>>>);
+              returnValue: Future<_i2.ExchangeResponse<List<_i22.Pair>>>.value(
+                  _FakeExchangeResponse_0<List<_i22.Pair>>())) as _i7
+              .Future<_i2.ExchangeResponse<List<_i22.Pair>>>);
 }

@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart';
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/fixed_rate_pair_coin_selection_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/floating_rate_currency_selection_view.dart';
@@ -127,7 +127,7 @@ class _WalletInitiatedExchangeViewState
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
 
-    List<AvailableFloatingRatePair> availablePairs = [];
+    List<Pair> availablePairs = [];
     if (fromTicker.isEmpty ||
         fromTicker == "-" ||
         excludedTicker.isEmpty ||
@@ -138,23 +138,23 @@ class _WalletInitiatedExchangeViewState
       availablePairs = ref
           .read(availableFloatingRatePairsStateProvider.state)
           .state
-          .where((e) => e.fromTicker == excludedTicker)
+          .where((e) => e.from == excludedTicker)
           .toList(growable: false);
     } else {
       availablePairs = ref
           .read(availableFloatingRatePairsStateProvider.state)
           .state
-          .where((e) => e.toTicker == excludedTicker)
+          .where((e) => e.to == excludedTicker)
           .toList(growable: false);
     }
 
     final List<Currency> tickers = currencies.where((e) {
       if (excludedTicker == fromTicker) {
         return e.ticker != excludedTicker &&
-            availablePairs.where((e2) => e2.toTicker == e.ticker).isNotEmpty;
+            availablePairs.where((e2) => e2.to == e.ticker).isNotEmpty;
       } else {
         return e.ticker != excludedTicker &&
-            availablePairs.where((e2) => e2.fromTicker == e.ticker).isNotEmpty;
+            availablePairs.where((e2) => e2.from == e.ticker).isNotEmpty;
       }
     }).toList(growable: false);
 
@@ -1169,8 +1169,8 @@ class _WalletInitiatedExchangeViewState
                                               .state)
                                       .state
                                       .where((e) =>
-                                          e.toTicker == toTicker &&
-                                          e.fromTicker == fromTicker);
+                                          e.to == toTicker &&
+                                          e.from == fromTicker);
                                   if (available.isNotEmpty) {
                                     final availableCurrencies = ref
                                         .read(
@@ -1381,8 +1381,8 @@ class _WalletInitiatedExchangeViewState
                                                 .state)
                                         .state;
                                     for (final pair in availableFloatingPairs) {
-                                      if (pair.fromTicker == fromTicker &&
-                                          pair.toTicker == toTicker) {
+                                      if (pair.from == fromTicker &&
+                                          pair.to == toTicker) {
                                         isAvailable = true;
                                         break;
                                       }

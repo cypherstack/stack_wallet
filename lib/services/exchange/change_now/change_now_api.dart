@@ -4,13 +4,13 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/external_api_keys.dart';
-import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -749,8 +749,7 @@ class ChangeNowAPI {
     }
   }
 
-  Future<ExchangeResponse<List<AvailableFloatingRatePair>>>
-      getAvailableFloatingRatePairs({
+  Future<ExchangeResponse<List<Pair>>> getAvailableFloatingRatePairs({
     bool includePartners = false,
   }) async {
     final uri = _buildUri("/market-info/available-pairs",
@@ -786,15 +785,23 @@ class ChangeNowAPI {
     }
   }
 
-  ExchangeResponse<List<AvailableFloatingRatePair>>
-      _parseAvailableFloatingRatePairsJson(List<dynamic> jsonArray) {
+  ExchangeResponse<List<Pair>> _parseAvailableFloatingRatePairsJson(
+      List<dynamic> jsonArray) {
     try {
-      List<AvailableFloatingRatePair> pairs = [];
+      List<Pair> pairs = [];
       for (final json in jsonArray) {
         try {
           final List<String> stringPair = (json as String).split("_");
-          pairs.add(AvailableFloatingRatePair(
-              fromTicker: stringPair[0], toTicker: stringPair[1]));
+          pairs.add(
+            Pair(
+              from: stringPair[0],
+              to: stringPair[1],
+              fromNetwork: "",
+              toNetwork: "",
+              fixedRate: false,
+              floatingRate: true,
+            ),
+          );
         } catch (_) {
           return ExchangeResponse(
               exception: ExchangeException("Failed to serialize $json",
