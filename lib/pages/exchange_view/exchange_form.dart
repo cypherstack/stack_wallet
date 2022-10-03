@@ -14,6 +14,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/fixed_rate_pair_coin_selection_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/floating_rate_currency_selection_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
+import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_options.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
@@ -26,6 +27,7 @@ import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -33,15 +35,27 @@ import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:tuple/tuple.dart';
 
 class ExchangeForm extends ConsumerStatefulWidget {
-  const ExchangeForm({Key? key}) : super(key: key);
+  const ExchangeForm({
+    Key? key,
+    this.walletId,
+    this.coin,
+  }) : super(key: key);
+
+  final String? walletId;
+  final Coin? coin;
 
   @override
   ConsumerState<ExchangeForm> createState() => _ExchangeFormState();
 }
 
 class _ExchangeFormState extends ConsumerState<ExchangeForm> {
+  late final String? walletId;
+  late final Coin? coin;
+  late final bool walletInitiated;
+
   late final TextEditingController _sendController;
   late final TextEditingController _receiveController;
   final FocusNode _sendFocusNode = FocusNode();
@@ -82,13 +96,21 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void selectSendCurrency() async {
     if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
         ExchangeRateType.estimated) {
+      final fromTicker =
+          ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "-";
+
+      if (walletInitiated &&
+          fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
+        // do not allow changing away from wallet coin
+        return;
+      }
+
       await _showFloatingRateSelectionSheet(
           currencies:
               ref.read(availableChangeNowCurrenciesStateProvider.state).state,
           excludedTicker:
               ref.read(estimatedRateExchangeFormProvider).to?.ticker ?? "-",
-          fromTicker:
-              ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "-",
+          fromTicker: fromTicker,
           onSelected: (from) => ref
               .read(estimatedRateExchangeFormProvider)
               .updateFrom(from, true));
@@ -96,6 +118,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       final toTicker = ref.read(fixedRateExchangeFormProvider).market?.to ?? "";
       final fromTicker =
           ref.read(fixedRateExchangeFormProvider).market?.from ?? "";
+
+      if (walletInitiated &&
+          fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
+        // do not allow changing away from wallet coin
+        return;
+      }
+
       await _showFixedRateSelectionSheet(
         excludedTicker: toTicker,
         fromTicker: fromTicker,
@@ -129,6 +158,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void selectReceiveCurrency() async {
     if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
         ExchangeRateType.estimated) {
+      final toTicker =
+          ref.read(estimatedRateExchangeFormProvider).to?.ticker ?? "";
+
+      if (walletInitiated &&
+          toTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
+        // do not allow changing away from wallet coin
+        return;
+      }
+
       await _showFloatingRateSelectionSheet(
           currencies:
               ref.read(availableChangeNowCurrenciesStateProvider.state).state,
@@ -141,6 +179,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     } else {
       final fromTicker =
           ref.read(fixedRateExchangeFormProvider).market?.from ?? "";
+      final toTicker = ref.read(fixedRateExchangeFormProvider).market?.to ?? "";
+
+      if (walletInitiated &&
+          toTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
+        // do not allow changing away from wallet coin
+        return;
+      }
+
       await _showFixedRateSelectionSheet(
         excludedTicker: fromTicker,
         fromTicker: fromTicker,
@@ -173,9 +219,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
   void receiveFieldOnChanged(String value) async {
     final newToAmount = Decimal.tryParse(value);
+    final isEstimated =
+        ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+            ExchangeRateType.estimated;
     if (newToAmount != null) {
-      if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-          ExchangeRateType.estimated) {
+      if (isEstimated) {
         // await ref
         //     .read(estimatedRateExchangeFormProvider)
         //     .setToAmountAndCalculateFromAmount(
@@ -186,8 +234,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             .setToAmountAndCalculateFromAmount(newToAmount, false);
       }
     } else {
-      if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-          ExchangeRateType.estimated) {
+      if (isEstimated) {
         // await ref
         //     .read(estimatedRateExchangeFormProvider)
         //     .setToAmountAndCalculateFromAmount(
@@ -547,11 +594,20 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       );
 
       if (mounted) {
-        ref.read(exchangeSendFromWalletIdStateProvider.state).state = null;
-        unawaited(Navigator.of(context).pushNamed(
-          Step1View.routeName,
-          arguments: model,
-        ));
+        if (walletInitiated) {
+          ref.read(exchangeSendFromWalletIdStateProvider.state).state =
+              Tuple2(walletId!, coin!);
+          unawaited(Navigator.of(context).pushNamed(
+            Step2View.routeName,
+            arguments: model,
+          ));
+        } else {
+          ref.read(exchangeSendFromWalletIdStateProvider.state).state = null;
+          unawaited(Navigator.of(context).pushNamed(
+            Step1View.routeName,
+            arguments: model,
+          ));
+        }
       }
     } else {
       final fromTicker =
@@ -640,13 +696,53 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       );
 
       if (mounted) {
-        ref.read(exchangeSendFromWalletIdStateProvider.state).state = null;
-        unawaited(Navigator.of(context).pushNamed(
-          Step1View.routeName,
-          arguments: model,
-        ));
+        if (walletInitiated) {
+          ref.read(exchangeSendFromWalletIdStateProvider.state).state =
+              Tuple2(walletId!, coin!);
+          unawaited(Navigator.of(context).pushNamed(
+            Step2View.routeName,
+            arguments: model,
+          ));
+        } else {
+          ref.read(exchangeSendFromWalletIdStateProvider.state).state = null;
+          unawaited(Navigator.of(context).pushNamed(
+            Step1View.routeName,
+            arguments: model,
+          ));
+        }
       }
     }
+  }
+
+  bool isWalletCoin(Coin? coin, bool isSend) {
+    if (coin == null) {
+      return false;
+    }
+
+    String? ticker;
+
+    if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+        ExchangeRateType.estimated) {
+      if (isSend) {
+        ticker = ref.watch(estimatedRateExchangeFormProvider
+            .select((value) => value.from?.ticker));
+      } else {
+        ticker = ref.watch(estimatedRateExchangeFormProvider
+            .select((value) => value.to?.ticker));
+      }
+    } else {
+      if (isSend) {
+        ticker = ref.read(fixedRateExchangeFormProvider).market?.from;
+      } else {
+        ticker = ref.read(fixedRateExchangeFormProvider).market?.to;
+      }
+    }
+
+    if (ticker == null) {
+      return false;
+    }
+
+    return coin.ticker.toUpperCase() == ticker.toUpperCase();
   }
 
   @override
@@ -654,15 +750,26 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _sendController = TextEditingController();
     _receiveController = TextEditingController();
 
-    final isEstimated =
-        ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-            ExchangeRateType.estimated;
-    _sendController.text = isEstimated
-        ? ref.read(estimatedRateExchangeFormProvider).fromAmountString
-        : ref.read(fixedRateExchangeFormProvider).fromAmountString;
-    _receiveController.text = isEstimated
-        ? "-" //ref.read(estimatedRateExchangeFormProvider).toAmountString
-        : ref.read(fixedRateExchangeFormProvider).toAmountString;
+    walletId = widget.walletId;
+    coin = widget.coin;
+    walletInitiated = walletId != null && coin != null;
+
+    if (walletInitiated) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        ref.read(estimatedRateExchangeFormProvider).clearAmounts(true);
+        // ref.read(fixedRateExchangeFormProvider);
+      });
+    } else {
+      final isEstimated =
+          ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+              ExchangeRateType.estimated;
+      _sendController.text = isEstimated
+          ? ref.read(estimatedRateExchangeFormProvider).fromAmountString
+          : ref.read(fixedRateExchangeFormProvider).fromAmountString;
+      _receiveController.text = isEstimated
+          ? "-" //ref.read(estimatedRateExchangeFormProvider).toAmountString
+          : ref.read(fixedRateExchangeFormProvider).toAmountString;
+    }
 
     _sendFocusNode.addListener(() async {
       if (!_sendFocusNode.hasFocus) {
@@ -930,17 +1037,19 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                                 .textDark,
                           ),
                         ),
-                        const SizedBox(
-                          width: 6,
-                        ),
-                        SvgPicture.asset(
-                          Assets.svg.chevronDown,
-                          width: 5,
-                          height: 2.5,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                        ),
+                        if (!isWalletCoin(coin, true))
+                          const SizedBox(
+                            width: 6,
+                          ),
+                        if (!isWalletCoin(coin, true))
+                          SvgPicture.asset(
+                            Assets.svg.chevronDown,
+                            width: 5,
+                            height: 2.5,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                       ],
                     ),
                   ),
@@ -1148,17 +1257,19 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                                 .textDark,
                           ),
                         ),
-                        const SizedBox(
-                          width: 6,
-                        ),
-                        SvgPicture.asset(
-                          Assets.svg.chevronDown,
-                          width: 5,
-                          height: 2.5,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                        ),
+                        if (!isWalletCoin(coin, false))
+                          const SizedBox(
+                            width: 6,
+                          ),
+                        if (!isWalletCoin(coin, false))
+                          SvgPicture.asset(
+                            Assets.svg.chevronDown,
+                            width: 5,
+                            height: 2.5,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                       ],
                     ),
                   ),
