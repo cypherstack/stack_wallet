@@ -2,9 +2,9 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/estimated_rate_exchange_form_state.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 
@@ -186,8 +186,9 @@ void main() {
             toTicker: "xmr",
             fromAmount: Decimal.parse("110.10")))
         .thenAnswer((_) async => ExchangeResponse(
-                value: EstimatedExchangeAmount(
-              transactionSpeedForecast: '10-60',
+                value: Estimate(
+              reversed: false,
+              fixedRate: false,
               rateId: 'some rate id',
               warningMessage: '',
               estimatedAmount: Decimal.parse("302.002348"),

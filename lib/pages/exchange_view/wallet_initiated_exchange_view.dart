@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/fixed_rate_pair_coin_selection_view.dart';
@@ -1431,15 +1431,17 @@ class _WalletInitiatedExchangeViewState
                                     }
 
                                     String rate =
-                                        "1 ${fromTicker.toUpperCase()} ~${(response.value! / sendAmount).toDecimal(scaleOnInfinitePrecision: 8).toStringAsFixed(8)} ${toTicker.toUpperCase()}";
+                                        "1 ${fromTicker.toUpperCase()} ~${(response.value!.estimatedAmount / sendAmount).toDecimal(scaleOnInfinitePrecision: 8).toStringAsFixed(8)} ${toTicker.toUpperCase()}";
 
                                     final model = IncompleteExchangeModel(
                                       sendTicker: fromTicker.toUpperCase(),
                                       receiveTicker: toTicker.toUpperCase(),
                                       rateInfo: rate,
                                       sendAmount: sendAmount,
-                                      receiveAmount: response.value!,
+                                      receiveAmount:
+                                          response.value!.estimatedAmount,
                                       rateType: rateType,
+                                      rateId: response.value!.rateId,
                                     );
 
                                     if (mounted) {
@@ -1497,52 +1499,51 @@ class _WalletInitiatedExchangeViewState
                                         ),
                                       ));
                                       return;
+                                    } else if (response.value!.warningMessage !=
+                                            null &&
+                                        response.value!.warningMessage!
+                                            .isNotEmpty) {
+                                      shouldCancel = await showDialog<bool?>(
+                                        context: context,
+                                        barrierDismissible: true,
+                                        builder: (_) => StackDialog(
+                                          title:
+                                              "Failed to update trade estimate",
+                                          message:
+                                              "${response.value!.warningMessage!}\n\nDo you want to attempt trade anyways?",
+                                          leftButton: TextButton(
+                                            style: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .getSecondaryEnabledButtonColor(
+                                                    context),
+                                            child: Text(
+                                              "Cancel",
+                                              style: STextStyles.itemSubtitle12(
+                                                  context),
+                                            ),
+                                            onPressed: () {
+                                              // notify return to cancel
+                                              Navigator.of(context).pop(true);
+                                            },
+                                          ),
+                                          rightButton: TextButton(
+                                            style: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .getPrimaryEnabledButtonColor(
+                                                    context),
+                                            child: Text(
+                                              "Attempt",
+                                              style:
+                                                  STextStyles.button(context),
+                                            ),
+                                            onPressed: () {
+                                              // continue and try to attempt trade
+                                              Navigator.of(context).pop(false);
+                                            },
+                                          ),
+                                        ),
+                                      );
                                     }
-                                    // else if (response.value!.warningMessage !=
-                                    //         null &&
-                                    //     response.value!.warningMessage!
-                                    //         .isNotEmpty) {
-                                    //   shouldCancel = await showDialog<bool?>(
-                                    //     context: context,
-                                    //     barrierDismissible: true,
-                                    //     builder: (_) => StackDialog(
-                                    //       title:
-                                    //           "Failed to update trade estimate",
-                                    //       message:
-                                    //           "${response.value!.warningMessage!}\n\nDo you want to attempt trade anyways?",
-                                    //       leftButton: TextButton(
-                                    //         style: Theme.of(context)
-                                    //             .extension<StackColors>()!
-                                    //             .getSecondaryEnabledButtonColor(
-                                    //                 context),
-                                    //         child: Text(
-                                    //           "Cancel",
-                                    //           style: STextStyles.itemSubtitle12(
-                                    //               context),
-                                    //         ),
-                                    //         onPressed: () {
-                                    //           // notify return to cancel
-                                    //           Navigator.of(context).pop(true);
-                                    //         },
-                                    //       ),
-                                    //       rightButton: TextButton(
-                                    //         style: Theme.of(context)
-                                    //             .extension<StackColors>()!
-                                    //             .getPrimaryEnabledButtonColor(
-                                    //                 context),
-                                    //         child: Text(
-                                    //           "Attempt",
-                                    //           style:
-                                    //               STextStyles.button(context),
-                                    //         ),
-                                    //         onPressed: () {
-                                    //           // continue and try to attempt trade
-                                    //           Navigator.of(context).pop(false);
-                                    //         },
-                                    //       ),
-                                    //     ),
-                                    //   );
-                                    // }
 
                                     if (shouldCancel is bool && shouldCancel) {
                                       return;
@@ -1556,8 +1557,10 @@ class _WalletInitiatedExchangeViewState
                                       receiveTicker: toTicker,
                                       rateInfo: rate,
                                       sendAmount: sendAmount,
-                                      receiveAmount: response.value!,
+                                      receiveAmount:
+                                          response.value!.estimatedAmount,
                                       rateType: rateType,
+                                      rateId: response.value!.rateId,
                                     );
 
                                     if (mounted) {

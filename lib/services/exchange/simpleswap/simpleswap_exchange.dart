@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
@@ -76,7 +77,7 @@ class SimpleSwapExchange extends Exchange {
   }
 
   @override
-  Future<ExchangeResponse<Decimal>> getEstimate(
+  Future<ExchangeResponse<Estimate>> getEstimate(
     String from,
     String to,
     Decimal amount,
@@ -89,10 +90,18 @@ class SimpleSwapExchange extends Exchange {
       currencyTo: to,
       amount: amount.toString(),
     );
+    if (response.exception != null) {
+      return ExchangeResponse(
+        exception: response.exception,
+      );
+    }
 
     return ExchangeResponse(
-      value: Decimal.tryParse(response.value ?? ""),
-      exception: response.exception,
+      value: Estimate(
+        estimatedAmount: Decimal.parse(response.value!),
+        fixedRate: fixedRate,
+        reversed: reversed,
+      ),
     );
   }
 

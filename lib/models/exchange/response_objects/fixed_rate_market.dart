@@ -1,4 +1,5 @@
 import 'package:decimal/decimal.dart';
+import 'package:stackwallet/utilities/logger.dart';
 
 class FixedRateMarket {
   /// Currency ticker
@@ -20,7 +21,7 @@ class FixedRateMarket {
 
   /// Network fee for transferring funds between wallets, it should
   /// be deducted from the result.
-  final Decimal minerFee;
+  final Decimal? minerFee;
 
   FixedRateMarket({
     required this.from,
@@ -31,7 +32,7 @@ class FixedRateMarket {
     required this.minerFee,
   });
 
-  factory FixedRateMarket.fromJson(Map<String, dynamic> json) {
+  factory FixedRateMarket.fromMap(Map<String, dynamic> json) {
     try {
       return FixedRateMarket(
         from: json["from"] as String,
@@ -39,15 +40,19 @@ class FixedRateMarket {
         min: Decimal.parse(json["min"].toString()),
         max: Decimal.parse(json["max"].toString()),
         rate: Decimal.parse(json["rate"].toString()),
-        minerFee: Decimal.parse(json["minerFee"].toString()),
+        minerFee: Decimal.tryParse(json["minerFee"].toString()),
       );
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log(
+        "FixedRateMarket.fromMap(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
 
-  Map<String, dynamic> toJson() {
-    final map = {
+  Map<String, dynamic> toMap() {
+    return {
       "from": from,
       "to": to,
       "min": min,
@@ -55,8 +60,6 @@ class FixedRateMarket {
       "rate": rate,
       "minerFee": minerFee,
     };
-
-    return map;
   }
 
   FixedRateMarket copyWith({
@@ -78,7 +81,5 @@ class FixedRateMarket {
   }
 
   @override
-  String toString() {
-    return "FixedRateMarket: ${toJson()}";
-  }
+  String toString() => "FixedRateMarket: ${toMap()}";
 }

@@ -1,7 +1,7 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
@@ -87,14 +87,14 @@ class ChangeNowExchange extends Exchange {
   }
 
   @override
-  Future<ExchangeResponse<Decimal>> getEstimate(
+  Future<ExchangeResponse<Estimate>> getEstimate(
     String from,
     String to,
     Decimal amount,
     bool fixedRate,
     bool reversed,
   ) async {
-    late final ExchangeResponse<EstimatedExchangeAmount> response;
+    late final ExchangeResponse<Estimate> response;
     if (fixedRate) {
       response =
           await ChangeNowAPI.instance.getEstimatedExchangeAmountFixedRate(
@@ -110,10 +110,7 @@ class ChangeNowExchange extends Exchange {
         fromAmount: amount,
       );
     }
-    if (response.exception != null) {
-      return ExchangeResponse(exception: response.exception);
-    }
-    return ExchangeResponse(value: response.value?.estimatedAmount);
+    return response;
   }
 
   @override

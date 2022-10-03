@@ -10,16 +10,16 @@ import 'package:http/http.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart'
     as _i18;
-import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart'
-    as _i17;
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart'
     as _i20;
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart'
     as _i21;
-import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart'
-    as _i19;
 import 'package:stackwallet/models/exchange/response_objects/currency.dart'
     as _i14;
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart'
+    as _i17;
+import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart'
+    as _i19;
 import 'package:stackwallet/models/exchange/response_objects/pair.dart' as _i22;
 import 'package:stackwallet/models/exchange/response_objects/range.dart'
     as _i16;
@@ -405,27 +405,23 @@ class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
                   _FakeExchangeResponse_0<_i16.Range>()))
           as _i7.Future<_i2.ExchangeResponse<_i16.Range>>);
   @override
-  _i7.Future<_i2.ExchangeResponse<_i17.EstimatedExchangeAmount>>
-      getEstimatedExchangeAmount(
-              {String? fromTicker,
-              String? toTicker,
-              _i15.Decimal? fromAmount,
-              String? apiKey}) =>
-          (super.noSuchMethod(
-                  Invocation.method(#getEstimatedExchangeAmount, [], {
-                    #fromTicker: fromTicker,
-                    #toTicker: toTicker,
-                    #fromAmount: fromAmount,
-                    #apiKey: apiKey
-                  }),
-                  returnValue: Future<
-                          _i2.ExchangeResponse<
-                              _i17.EstimatedExchangeAmount>>.value(
-                      _FakeExchangeResponse_0<_i17.EstimatedExchangeAmount>()))
-              as _i7
-                  .Future<_i2.ExchangeResponse<_i17.EstimatedExchangeAmount>>);
+  _i7.Future<_i2.ExchangeResponse<_i17.Estimate>> getEstimatedExchangeAmount(
+          {String? fromTicker,
+          String? toTicker,
+          _i15.Decimal? fromAmount,
+          String? apiKey}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getEstimatedExchangeAmount, [], {
+                #fromTicker: fromTicker,
+                #toTicker: toTicker,
+                #fromAmount: fromAmount,
+                #apiKey: apiKey
+              }),
+              returnValue: Future<_i2.ExchangeResponse<_i17.Estimate>>.value(
+                  _FakeExchangeResponse_0<_i17.Estimate>()))
+          as _i7.Future<_i2.ExchangeResponse<_i17.Estimate>>);
   @override
-  _i7.Future<_i2.ExchangeResponse<_i17.EstimatedExchangeAmount>>
+  _i7.Future<_i2.ExchangeResponse<_i17.Estimate>>
       getEstimatedExchangeAmountFixedRate(
               {String? fromTicker,
               String? toTicker,
@@ -433,19 +429,16 @@ class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
               bool? reversed,
               String? apiKey}) =>
           (super.noSuchMethod(
-                  Invocation.method(#getEstimatedExchangeAmountFixedRate, [], {
-                    #fromTicker: fromTicker,
-                    #toTicker: toTicker,
-                    #fromAmount: fromAmount,
-                    #reversed: reversed,
-                    #apiKey: apiKey
-                  }),
-                  returnValue: Future<
-                          _i2.ExchangeResponse<
-                              _i17.EstimatedExchangeAmount>>.value(
-                      _FakeExchangeResponse_0<_i17.EstimatedExchangeAmount>()))
-              as _i7
-                  .Future<_i2.ExchangeResponse<_i17.EstimatedExchangeAmount>>);
+              Invocation.method(#getEstimatedExchangeAmountFixedRate, [], {
+                #fromTicker: fromTicker,
+                #toTicker: toTicker,
+                #fromAmount: fromAmount,
+                #reversed: reversed,
+                #apiKey: apiKey
+              }),
+              returnValue: Future<_i2.ExchangeResponse<_i17.Estimate>>.value(
+                  _FakeExchangeResponse_0<_i17.Estimate>())) as _i7
+              .Future<_i2.ExchangeResponse<_i17.Estimate>>);
   @override
   _i7.Future<_i2.ExchangeResponse<_i18.CNExchangeEstimate>>
       getEstimatedExchangeAmountV2(

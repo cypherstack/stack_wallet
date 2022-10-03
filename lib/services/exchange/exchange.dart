@@ -1,5 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
@@ -28,7 +29,7 @@ abstract class Exchange {
     bool fixedRate,
   );
 
-  Future<ExchangeResponse<Decimal>> getEstimate(
+  Future<ExchangeResponse<Estimate>> getEstimate(
     String from,
     String to,
     Decimal amount,

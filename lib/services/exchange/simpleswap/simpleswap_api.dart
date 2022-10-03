@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/external_api_keys.dart';
+import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
@@ -37,7 +38,6 @@ class SimpleSwapAPI {
       );
 
       final parsed = jsonDecode(response.body);
-      print("PARSED: $parsed");
 
       return parsed;
     } catch (e, s) {
@@ -99,9 +99,6 @@ class SimpleSwapAPI {
 
     try {
       final jsonObject = await _makePostRequest(uri, body);
-      print("================================");
-      print(jsonObject);
-      print("================================");
 
       final json = Map<String, dynamic>.from(jsonObject as Map);
       final trade = Trade(
@@ -425,6 +422,78 @@ class SimpleSwapAPI {
           ExchangeExceptionType.generic,
         ),
       );
+    }
+  }
+
+  Future<ExchangeResponse<List<FixedRateMarket>>> getFixedRateMarketInfo({
+    String? apiKey,
+  }) async {
+    final uri = _buildUri(
+      "/get_market_info",
+      null,
+      // {
+      //   "api_key": apiKey ?? kSimpleSwapApiKey,
+      //   "fixed": isFixedRate.toString(),
+      //   "currency_from": currencyFrom,
+      //   "currency_to": currencyTo,
+      // },
+    );
+
+    try {
+      final jsonArray = await _makeGetRequest(uri);
+
+      try {
+        final result = await compute(
+          _parseFixedRateMarketsJson,
+          jsonArray as List,
+        );
+        return result;
+      } catch (e, s) {
+        Logging.instance.log("getAvailableFixedRateMarkets exception: $e\n$s",
+            level: LogLevel.Error);
+        return ExchangeResponse(
+          exception: ExchangeException(
+            "Error: $jsonArray",
+            ExchangeExceptionType.serializeResponseError,
+          ),
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log("getAvailableFixedRateMarkets exception: $e\n$s",
+          level: LogLevel.Error);
+      return ExchangeResponse(
+        exception: ExchangeException(
+          e.toString(),
+          ExchangeExceptionType.generic,
+        ),
+      );
+    }
+  }
+
+  ExchangeResponse<List<FixedRateMarket>> _parseFixedRateMarketsJson(
+      List<dynamic> jsonArray) {
+    try {
+      final List<FixedRateMarket> markets = [];
+      for (final json in jsonArray) {
+        try {
+          final map = Map<String, dynamic>.from(json as Map);
+          markets.add(FixedRateMarket(
+            from: map["currency_from"] as String,
+            to: map["currency_to"] as String,
+            min: Decimal.parse(map["min"] as String),
+            max: Decimal.parse(map["max"] as String),
+            rate: Decimal.parse(map["rate"] as String),
+            minerFee: null,
+          ));
+        } catch (_) {
+          return ExchangeResponse(
+              exception: ExchangeException("Failed to serialize $json",
+                  ExchangeExceptionType.serializeResponseError));
+        }
+      }
+      return ExchangeResponse(value: markets);
+    } catch (_) {
+      rethrow;
     }
   }
 }

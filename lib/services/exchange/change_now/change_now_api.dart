@@ -8,8 +8,9 @@ import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
+import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
@@ -309,7 +310,7 @@ class ChangeNowAPI {
 
   /// Get estimated amount of [toTicker] cryptocurrency to receive
   /// for [fromAmount] of [fromTicker]
-  Future<ExchangeResponse<EstimatedExchangeAmount>> getEstimatedExchangeAmount({
+  Future<ExchangeResponse<Estimate>> getEstimatedExchangeAmount({
     required String fromTicker,
     required String toTicker,
     required Decimal fromAmount,
@@ -329,7 +330,15 @@ class ChangeNowAPI {
       try {
         final value = EstimatedExchangeAmount.fromJson(
             Map<String, dynamic>.from(json as Map));
-        return ExchangeResponse(value: value);
+        return ExchangeResponse(
+          value: Estimate(
+            estimatedAmount: value.estimatedAmount,
+            fixedRate: false,
+            reversed: false,
+            rateId: value.rateId,
+            warningMessage: value.warningMessage,
+          ),
+        );
       } catch (_) {
         return ExchangeResponse(
           exception: ExchangeException(
@@ -352,8 +361,7 @@ class ChangeNowAPI {
 
   /// Get estimated amount of [toTicker] cryptocurrency to receive
   /// for [fromAmount] of [fromTicker]
-  Future<ExchangeResponse<EstimatedExchangeAmount>>
-      getEstimatedExchangeAmountFixedRate({
+  Future<ExchangeResponse<Estimate>> getEstimatedExchangeAmountFixedRate({
     required String fromTicker,
     required String toTicker,
     required Decimal fromAmount,
@@ -382,7 +390,15 @@ class ChangeNowAPI {
       try {
         final value = EstimatedExchangeAmount.fromJson(
             Map<String, dynamic>.from(json as Map));
-        return ExchangeResponse(value: value);
+        return ExchangeResponse(
+          value: Estimate(
+            estimatedAmount: value.estimatedAmount,
+            fixedRate: true,
+            reversed: reversed,
+            rateId: value.rateId,
+            warningMessage: value.warningMessage,
+          ),
+        );
       } catch (_) {
         return ExchangeResponse(
           exception: ExchangeException(
@@ -574,7 +590,7 @@ class ChangeNowAPI {
       for (final json in jsonArray) {
         try {
           markets.add(
-              FixedRateMarket.fromJson(Map<String, dynamic>.from(json as Map)));
+              FixedRateMarket.fromMap(Map<String, dynamic>.from(json as Map)));
         } catch (_) {
           return ExchangeResponse(
               exception: ExchangeException("Failed to serialize $json",
