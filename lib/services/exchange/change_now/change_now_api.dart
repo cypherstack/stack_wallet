@@ -290,8 +290,8 @@ class ChangeNowAPI {
       final json = Map<String, dynamic>.from(jsonObject as Map);
       return ExchangeResponse(
         value: Range(
-          max: Decimal.tryParse(json["maxAmount"] as String? ?? ""),
-          min: Decimal.tryParse(json["minAmount"] as String? ?? ""),
+          max: Decimal.tryParse(json["maxAmount"]?.toString() ?? ""),
+          min: Decimal.tryParse(json["minAmount"]?.toString() ?? ""),
         ),
       );
     } catch (e, s) {
@@ -366,9 +366,13 @@ class ChangeNowAPI {
     required String toTicker,
     required Decimal fromAmount,
     required bool reversed,
+    bool useRateId = true,
     String? apiKey,
   }) async {
-    Map<String, dynamic> params = {"api_key": apiKey ?? kChangeNowApiKey};
+    Map<String, dynamic> params = {
+      "api_key": apiKey ?? kChangeNowApiKey,
+      "useRateId": useRateId.toString(),
+    };
 
     late final Uri uri;
     if (reversed) {
