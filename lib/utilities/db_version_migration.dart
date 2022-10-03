@@ -21,6 +21,10 @@ class DbVersionMigrator {
       FlutterSecureStorage(),
     ),
   }) async {
+    Logging.instance.log(
+      "Running migrate fromVersion $fromVersion",
+      level: LogLevel.Warning,
+    );
     switch (fromVersion) {
       case 0:
         await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
@@ -117,37 +121,14 @@ class DbVersionMigrator {
         return await migrate(1);
 
       case 1:
-        await Hive.openBox<dynamic>(DB.boxNameTrades);
-        await Hive.openBox<dynamic>(DB.boxNameTradesV2);
+        await Hive.openBox<ExchangeTransaction>(DB.boxNameTrades);
+        await Hive.openBox<Trade>(DB.boxNameTradesV2);
         final trades =
             DB.instance.values<ExchangeTransaction>(boxName: DB.boxNameTrades);
 
         for (final old in trades) {
           if (old.statusObject != null) {
-            final trade = Trade(
-              uuid: old.uuid,
-              tradeId: old.id,
-              rateType: "",
-              direction: "direct",
-              timestamp: old.date,
-              updatedAt: DateTime.tryParse(old.statusObject?.updatedAt ?? "") ??
-                  old.date,
-              payInCurrency: old.fromCurrency,
-              payInAmount: old.statusObject!.expectedSendAmountDecimal,
-              payInAddress: old.payinAddress,
-              payInNetwork: "",
-              payInExtraId: old.payinExtraId,
-              payInTxid: "",
-              payOutCurrency: old.toCurrency,
-              payOutAmount: old.amount,
-              payOutAddress: old.payoutAddress,
-              payOutNetwork: "",
-              payOutExtraId: old.payoutExtraId,
-              payOutTxid: "",
-              refundAddress: old.refundAddress,
-              refundExtraId: old.refundExtraId,
-              status: old.statusObject!.status.name,
-            );
+            final trade = Trade.fromExchangeTransaction(old);
             await DB.instance.put<Trade>(
               boxName: DB.boxNameTradesV2,
               key: trade.uuid,
