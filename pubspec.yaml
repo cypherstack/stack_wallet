@@ -312,6 +312,9 @@ flutter:
     - assets/svg/exchange-3.svg
     - assets/svg/message-question-1.svg
     - assets/svg/drd-icon.svg
+    # exchange icons
+    - assets/svg/exchange_icons/change_now_logo_1.svg
+    - assets/svg/exchange_icons/simpleswap-icon.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
