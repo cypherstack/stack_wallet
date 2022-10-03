@@ -60,9 +60,6 @@ class _WalletInitiatedExchangeViewState
   late final TextEditingController _sendController;
   late final TextEditingController _receiveController;
 
-  String calcSend = "";
-  String calcReceive = "";
-
   final FocusNode _sendFocusNode = FocusNode();
   final FocusNode _receiveFocusNode = FocusNode();
 
