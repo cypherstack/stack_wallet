@@ -678,6 +678,7 @@ class ChangeNowAPI {
     required String receivingAddress,
     required Decimal amount,
     required String rateId,
+    required bool reversed,
     String extraId = "",
     String userId = "",
     String contactEmail = "",
@@ -689,7 +690,6 @@ class ChangeNowAPI {
       "from": fromTicker,
       "to": toTicker,
       "address": receivingAddress,
-      "amount": amount.toString(),
       "flow": "fixed-rate",
       "extraId": extraId,
       "userId": userId,
@@ -699,8 +699,16 @@ class ChangeNowAPI {
       "rateId": rateId,
     };
 
+    if (reversed) {
+      map["result"] = amount.toString();
+    } else {
+      map["amount"] = amount.toString();
+    }
+
     final uri = _buildUri(
-        "/transactions/fixed-rate/${apiKey ?? kChangeNowApiKey}", null);
+      "/transactions/fixed-rate${reversed ? "/from-result" : ""}/${apiKey ?? kChangeNowApiKey}",
+      null,
+    );
 
     try {
       // simple json object is expected here

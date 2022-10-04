@@ -21,7 +21,6 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -530,37 +529,20 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
       final rateType = ref.read(prefsChangeNotifierProvider).exchangeRateType;
 
-      final response = await ref.read(changeNowProvider).getEstimate(
-            fromTicker,
-            toTicker,
-            sendAmount,
-            false,
-            false,
-          );
-
-      if (response.value == null) {
-        unawaited(showDialog<dynamic>(
-          context: context,
-          barrierDismissible: true,
-          builder: (_) => StackDialog(
-            title: "Failed to update trade estimate",
-            message: response.exception?.toString(),
-          ),
-        ));
-        return;
-      }
+      final estimate = ref.read(exchangeFormStateProvider).estimate!;
 
       String rate =
-          "1 ${fromTicker.toUpperCase()} ~${(response.value!.estimatedAmount / sendAmount).toDecimal(scaleOnInfinitePrecision: 8).toStringAsFixed(8)} ${toTicker.toUpperCase()}";
+          "1 ${fromTicker.toUpperCase()} ~${(estimate.estimatedAmount / sendAmount).toDecimal(scaleOnInfinitePrecision: 8).toStringAsFixed(8)} ${toTicker.toUpperCase()}";
 
       final model = IncompleteExchangeModel(
         sendTicker: fromTicker.toUpperCase(),
         receiveTicker: toTicker.toUpperCase(),
         rateInfo: rate,
         sendAmount: sendAmount,
-        receiveAmount: response.value!.estimatedAmount,
+        receiveAmount: estimate.estimatedAmount,
         rateType: rateType,
-        rateId: response.value!.rateId,
+        rateId: estimate.rateId,
+        reversed: estimate.reversed,
       );
 
       if (mounted) {
@@ -587,35 +569,19 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
       final rateType = ref.read(prefsChangeNotifierProvider).exchangeRateType;
 
-      final response = await ref.read(changeNowProvider).getEstimate(
-            fromTicker,
-            toTicker,
-            sendAmount,
-            true,
-            false,
-          );
+      final estimate = ref.read(exchangeFormStateProvider).estimate!;
 
       bool? shouldCancel;
 
-      if (response.value == null) {
-        unawaited(showDialog<dynamic>(
-          context: context,
-          barrierDismissible: true,
-          builder: (_) => StackDialog(
-            title: "Failed to update trade estimate",
-            message: response.exception?.toString(),
-          ),
-        ));
-        return;
-      } else if (response.value!.warningMessage != null &&
-          response.value!.warningMessage!.isNotEmpty) {
+      if (estimate.warningMessage != null &&
+          estimate.warningMessage!.isNotEmpty) {
         shouldCancel = await showDialog<bool?>(
           context: context,
           barrierDismissible: true,
           builder: (_) => StackDialog(
             title: "Failed to update trade estimate",
             message:
-                "${response.value!.warningMessage!}\n\nDo you want to attempt trade anyways?",
+                "${estimate.warningMessage!}\n\nDo you want to attempt trade anyways?",
             leftButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
@@ -657,10 +623,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         sendTicker: fromTicker,
         receiveTicker: toTicker,
         rateInfo: rate,
-        sendAmount: sendAmount,
-        receiveAmount: response.value!.estimatedAmount,
+        sendAmount: estimate.reversed ? estimate.estimatedAmount : sendAmount,
+        receiveAmount: estimate.reversed
+            ? ref.read(exchangeFormStateProvider).toAmount!
+            : estimate.estimatedAmount,
         rateType: rateType,
-        rateId: response.value!.rateId,
+        rateId: estimate.rateId,
+        reversed: estimate.reversed,
       );
 
       if (mounted) {

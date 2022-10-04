@@ -1198,7 +1198,7 @@ abstract class SWB {
 
       Trade trade;
       if (exTx != null) {
-        trade = Trade.fromExchangeTransaction(exTx);
+        trade = Trade.fromExchangeTransaction(exTx, false);
       } else {
         trade = Trade.fromMap(trades[i] as Map<String, dynamic>);
       }
@@ -1220,7 +1220,7 @@ abstract class SWB {
 
       Trade trade;
       if (exTx != null) {
-        trade = Trade.fromExchangeTransaction(exTx);
+        trade = Trade.fromExchangeTransaction(exTx, false);
       } else {
         trade = Trade.fromMap(trades.last as Map<String, dynamic>);
       }

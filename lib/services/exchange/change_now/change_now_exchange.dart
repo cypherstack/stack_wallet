@@ -27,6 +27,7 @@ class ChangeNowExchange extends Exchange {
     required String addressRefund,
     required String refundExtraId,
     String? rateId,
+    required bool reversed,
   }) async {
     late final ExchangeResponse<ExchangeTransaction> response;
     if (fixedRate) {
@@ -39,6 +40,7 @@ class ChangeNowExchange extends Exchange {
         extraId: extraId ?? "",
         refundAddress: addressRefund,
         refundExtraId: refundExtraId,
+        reversed: reversed,
       );
     } else {
       response = await ChangeNowAPI.instance.createStandardExchangeTransaction(
@@ -66,6 +68,7 @@ class ChangeNowExchange extends Exchange {
         response.value!.copyWith(
           statusObject: statusResponse.value!,
         ),
+        reversed,
       ),
     );
   }

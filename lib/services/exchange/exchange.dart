@@ -47,5 +47,6 @@ abstract class Exchange {
     required String addressRefund,
     required String refundExtraId,
     String? rateId,
+    required bool reversed,
   });
 }

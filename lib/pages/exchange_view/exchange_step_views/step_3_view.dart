@@ -251,10 +251,15 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                             to: model.receiveTicker,
                                             fixedRate: model.rateType !=
                                                 ExchangeRateType.estimated,
-                                            amount: model.sendAmount,
+                                            amount: model.reversed
+                                                ? model.receiveAmount
+                                                : model.sendAmount,
                                             addressTo: model.recipientAddress!,
+                                            extraId: null,
                                             addressRefund: model.refundAddress!,
                                             refundExtraId: "",
+                                            rateId: model.rateId,
+                                            reversed: model.reversed,
                                           );
 
                                   if (response.value == null) {

@@ -128,7 +128,7 @@ class DbVersionMigrator {
 
         for (final old in trades) {
           if (old.statusObject != null) {
-            final trade = Trade.fromExchangeTransaction(old);
+            final trade = Trade.fromExchangeTransaction(old, false);
             await DB.instance.put<Trade>(
               boxName: DB.boxNameTradesV2,
               key: trade.uuid,

@@ -25,6 +25,7 @@ class SimpleSwapExchange extends Exchange {
     required String addressRefund,
     required String refundExtraId,
     String? rateId,
+    required bool reversed,
   }) async {
     return await SimpleSwapAPI.instance.createNewExchange(
       isFixedRate: fixedRate,

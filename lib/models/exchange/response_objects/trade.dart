@@ -202,12 +202,13 @@ class Trade {
     );
   }
 
-  factory Trade.fromExchangeTransaction(ExchangeTransaction exTx) {
+  factory Trade.fromExchangeTransaction(
+      ExchangeTransaction exTx, bool reversed) {
     return Trade(
       uuid: exTx.uuid,
       tradeId: exTx.id,
       rateType: "",
-      direction: "direct",
+      direction: reversed ? "reverse" : "direct",
       timestamp: exTx.date,
       updatedAt: DateTime.tryParse(exTx.statusObject!.updatedAt) ?? exTx.date,
       payInCurrency: exTx.fromCurrency,

@@ -13,6 +13,8 @@ class IncompleteExchangeModel {
 
   final ExchangeRateType rateType;
 
+  final bool reversed;
+
   String? recipientAddress;
   String? refundAddress;
 
@@ -27,6 +29,7 @@ class IncompleteExchangeModel {
     required this.sendAmount,
     required this.receiveAmount,
     required this.rateType,
+    required this.reversed,
     this.rateId,
   });
 }
