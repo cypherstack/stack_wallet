@@ -427,6 +427,7 @@ class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
               String? toTicker,
               _i15.Decimal? fromAmount,
               bool? reversed,
+              bool? useRateId = true,
               String? apiKey}) =>
           (super.noSuchMethod(
               Invocation.method(#getEstimatedExchangeAmountFixedRate, [], {
@@ -434,6 +435,7 @@ class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
                 #toTicker: toTicker,
                 #fromAmount: fromAmount,
                 #reversed: reversed,
+                #useRateId: useRateId,
                 #apiKey: apiKey
               }),
               returnValue: Future<_i2.ExchangeResponse<_i17.Estimate>>.value(
@@ -512,6 +514,7 @@ class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
               String? receivingAddress,
               _i15.Decimal? amount,
               String? rateId,
+              bool? reversed,
               String? extraId = r'',
               String? userId = r'',
               String? contactEmail = r'',
@@ -525,6 +528,7 @@ class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
                     #receivingAddress: receivingAddress,
                     #amount: amount,
                     #rateId: rateId,
+                    #reversed: reversed,
                     #extraId: extraId,
                     #userId: userId,
                     #contactEmail: contactEmail,

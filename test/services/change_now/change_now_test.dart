@@ -589,6 +589,7 @@ void main() {
         refundAddress: "",
         apiKey: "testAPIKEY",
         rateId: '',
+        reversed: false,
       );
 
       expect(result.exception, null);
@@ -621,6 +622,7 @@ void main() {
         refundAddress: "",
         apiKey: "testAPIKEY",
         rateId: '',
+        reversed: false,
       );
 
       expect(
@@ -652,6 +654,7 @@ void main() {
             "888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H",
         apiKey: "testAPIKEY",
         rateId: '',
+        reversed: false,
       );
 
       expect(result.exception!.type, ExchangeExceptionType.generic);
