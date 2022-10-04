@@ -85,7 +85,7 @@ void main() async {
     appDirectory = (await getLibraryDirectory());
   }
   if (Platform.isLinux || Logging.isArmLinux) {
-    appDirectory = Directory("${appDirectory.path}/stackwallet");
+    appDirectory = Directory("${appDirectory.path}/.stackwallet");
     await appDirectory.create();
   }
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);

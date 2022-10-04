@@ -912,7 +912,7 @@ class MoneroWallet extends CoinServiceAPI {
     }
     //
     if (Platform.isLinux) {
-      root = Directory("${root.path}/stackwallet");
+      root = Directory("${root.path}/.stackwallet");
     }
     final prefix = walletTypeToString(type).toLowerCase();
     final walletsDir = Directory('${root.path}/wallets');
