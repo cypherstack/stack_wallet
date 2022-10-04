@@ -207,7 +207,7 @@ class _ConfirmChangeNowSendViewState
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                "ChangeNOW address",
+                                "${trade.exchangeName} address",
                                 style: STextStyles.smallMed12(context),
                               ),
                               const SizedBox(

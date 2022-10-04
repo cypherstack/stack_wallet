@@ -24,7 +24,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             context: context,
             barrierDismissible: true,
             builder: (_) => StackDialog(
-              title: "ChangeNOW API Call Failed",
+              title: "Exchange API Call Failed",
               message: message,
             ),
           ),

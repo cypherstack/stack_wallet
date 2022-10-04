@@ -235,14 +235,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
-          title: "ChangeNOW not available for Epic Cash",
+          title: "Exchange not available for Epic Cash",
         ),
       );
     } else if (coin.name.endsWith("TestNet")) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
-          title: "ChangeNOW not available for test net coins",
+          title: "Exchange not available for test net coins",
         ),
       );
     } else {

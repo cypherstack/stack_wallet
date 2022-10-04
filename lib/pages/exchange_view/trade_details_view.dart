@@ -15,7 +15,9 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.d
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
+import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -331,7 +333,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "ChangeNOW address",
+                          "${trade.exchangeName} address",
                           style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
@@ -674,16 +676,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         "Exchange",
                         style: STextStyles.itemSubtitle(context),
                       ),
-                      // Flexible(
-                      //   child: FittedBox(
-                      //     fit: BoxFit.scaleDown,
-                      //     child:
                       SelectableText(
-                        "ChangeNOW",
+                        trade.exchangeName,
                         style: STextStyles.itemSubtitle12(context),
                       ),
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
@@ -744,20 +740,31 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       const SizedBox(
                         height: 4,
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          final url =
-                              "https://changenow.io/exchange/txs/${trade.tradeId}";
-                          launchUrl(
-                            Uri.parse(url),
-                            mode: LaunchMode.externalApplication,
-                          );
-                        },
-                        child: Text(
-                          "https://changenow.io/exchange/txs/${trade.tradeId}",
-                          style: STextStyles.link2(context),
-                        ),
-                      ),
+                      Builder(builder: (context) {
+                        late final String url;
+                        switch (trade.exchangeName) {
+                          case ChangeNowExchange.exchangeName:
+                            url =
+                                "https://changenow.io/exchange/txs/${trade.tradeId}";
+                            break;
+                          case SimpleSwapExchange.exchangeName:
+                            url =
+                                "https://simpleswap.io/exchange?id=${trade.tradeId}";
+                            break;
+                        }
+                        return GestureDetector(
+                          onTap: () {
+                            launchUrl(
+                              Uri.parse(url),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          child: Text(
+                            url,
+                            style: STextStyles.link2(context),
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),

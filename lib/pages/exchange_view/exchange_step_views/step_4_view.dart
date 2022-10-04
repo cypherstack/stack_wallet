@@ -158,7 +158,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                           height: 8,
                         ),
                         Text(
-                          "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ChangeNOW will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
+                          "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ${model.trade!.exchangeName} will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
                           style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(

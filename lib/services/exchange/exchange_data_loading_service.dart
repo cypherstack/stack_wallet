@@ -15,7 +15,7 @@ class ExchangeDataLoadingService {
         loadSimpleswapFloatingRateCurrencies(ref),
       ]);
     } catch (e, s) {
-      Logging.instance.log("ChangeNowLoadingService.loadAll failed: $e\n$s",
+      Logging.instance.log("ExchangeDataLoadingService.loadAll failed: $e\n$s",
           level: LogLevel.Error);
     }
   }
