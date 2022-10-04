@@ -913,6 +913,9 @@ class WowneroWallet extends CoinServiceAPI {
     if (Platform.isIOS) {
       root = (await getLibraryDirectory());
     }
+    if (Platform.isLinux) {
+      root = Directory("${root.path}/stackwallet");
+    }
     final prefix = walletTypeToString(type).toLowerCase();
     final walletsDir = Directory('${root.path}/wallets');
     final walletDire = Directory('${walletsDir.path}/$prefix/$name');
