@@ -2,12 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
 import 'package:stackwallet/providers/exchange/change_now_provider.dart';
-import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
-import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
@@ -54,15 +53,15 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
           response2.value!;
 
       if (response.value!.length > 1) {
-        if (ref.read(estimatedRateExchangeFormProvider).from == null) {
+        if (ref.read(exchangeFormStateProvider).from == null) {
           if (response.value!.where((e) => e.ticker == "btc").isNotEmpty) {
-            await ref.read(estimatedRateExchangeFormProvider).updateFrom(
+            await ref.read(exchangeFormStateProvider).updateFrom(
                 response.value!.firstWhere((e) => e.ticker == "btc"), true);
           }
         }
-        if (ref.read(estimatedRateExchangeFormProvider).to == null) {
+        if (ref.read(exchangeFormStateProvider).to == null) {
           if (response.value!.where((e) => e.ticker == "doge").isNotEmpty) {
-            await ref.read(estimatedRateExchangeFormProvider).updateTo(
+            await ref.read(exchangeFormStateProvider).updateTo(
                 response.value!.firstWhere((e) => e.ticker == "doge"), true);
           }
         }
@@ -97,13 +96,13 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
       ref.read(fixedRateMarketPairsStateProvider.state).state =
           response3.value!;
 
-      if (ref.read(fixedRateExchangeFormProvider).market == null) {
+      if (ref.read(exchangeFormStateProvider).market == null) {
         final matchingMarkets =
             response3.value!.where((e) => e.to == "doge" && e.from == "btc");
 
         if (matchingMarkets.isNotEmpty) {
           await ref
-              .read(fixedRateExchangeFormProvider)
+              .read(exchangeFormStateProvider)
               .updateMarket(matchingMarkets.first, true);
         }
       }
@@ -126,7 +125,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
 
   @override
   void initState() {
-    ref.read(estimatedRateExchangeFormProvider).setOnError(
+    ref.read(exchangeFormStateProvider).setOnError(
           onError: (String message) => showDialog<dynamic>(
             context: context,
             barrierDismissible: true,

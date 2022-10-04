@@ -1,9 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
 import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
-import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -38,7 +37,7 @@ class ChangeNowLoadingService {
       ref.read(fixedRateMarketPairsStateProvider.state).state =
           response3.value!;
 
-      if (ref.read(fixedRateExchangeFormProvider).market == null) {
+      if (ref.read(exchangeFormStateProvider).market == null) {
         String fromTicker = "btc";
         String toTicker = "xmr";
 
@@ -50,7 +49,7 @@ class ChangeNowLoadingService {
             .where((e) => e.to == toTicker && e.from == fromTicker);
         if (matchingMarkets.isNotEmpty) {
           await ref
-              .read(fixedRateExchangeFormProvider)
+              .read(exchangeFormStateProvider)
               .updateMarket(matchingMarkets.first, true);
         }
       }
@@ -99,18 +98,18 @@ class ChangeNowLoadingService {
         }
 
         if (response.value!.length > 1) {
-          if (ref.read(estimatedRateExchangeFormProvider).from == null) {
+          if (ref.read(exchangeFormStateProvider).from == null) {
             if (response.value!
                 .where((e) => e.ticker == fromTicker)
                 .isNotEmpty) {
-              await ref.read(estimatedRateExchangeFormProvider).updateFrom(
+              await ref.read(exchangeFormStateProvider).updateFrom(
                   response.value!.firstWhere((e) => e.ticker == fromTicker),
                   false);
             }
           }
-          if (ref.read(estimatedRateExchangeFormProvider).to == null) {
+          if (ref.read(exchangeFormStateProvider).to == null) {
             if (response.value!.where((e) => e.ticker == toTicker).isNotEmpty) {
-              await ref.read(estimatedRateExchangeFormProvider).updateTo(
+              await ref.read(exchangeFormStateProvider).updateTo(
                   response.value!.firstWhere((e) => e.ticker == toTicker),
                   false);
             }

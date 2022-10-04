@@ -5,6 +5,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
@@ -19,7 +20,6 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_navigation_bar.
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
-import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
@@ -250,6 +250,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
       final walletId = ref.read(managerProvider).walletId;
       ref.read(prefsChangeNotifierProvider).exchangeRateType =
           ExchangeRateType.estimated;
+      ref.read(exchangeFormStateProvider).exchangeType =
+          ExchangeRateType.estimated;
 
       final currencies = ref
           .read(availableChangeNowCurrenciesStateProvider.state)
@@ -258,28 +260,31 @@ class _WalletViewState extends ConsumerState<WalletView> {
               element.ticker.toLowerCase() == coin.ticker.toLowerCase());
 
       if (currencies.isNotEmpty) {
-        unawaited(ref
-            .read(estimatedRateExchangeFormProvider)
-            .updateFrom(currencies.first, false));
-        unawaited(ref.read(estimatedRateExchangeFormProvider).updateTo(
-            ref
-                .read(availableChangeNowCurrenciesStateProvider.state)
-                .state
-                .firstWhere(
-                  (element) =>
-                      element.ticker.toLowerCase() != coin.ticker.toLowerCase(),
-                ),
-            false));
+        ref.read(exchangeFormStateProvider).setCurrencies(
+              currencies.first,
+              ref
+                  .read(availableChangeNowCurrenciesStateProvider.state)
+                  .state
+                  .firstWhere(
+                    (element) =>
+                        element.ticker.toLowerCase() !=
+                        coin.ticker.toLowerCase(),
+                  ),
+            );
       }
 
-      unawaited(Navigator.of(context).pushNamed(
-        WalletInitiatedExchangeView.routeName,
-        arguments: Tuple3(
-          walletId,
-          coin,
-          _loadCNData,
-        ),
-      ));
+      if (mounted) {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            WalletInitiatedExchangeView.routeName,
+            arguments: Tuple3(
+              walletId,
+              coin,
+              _loadCNData,
+            ),
+          ),
+        );
+      }
     }
   }
 

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
@@ -21,9 +22,7 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dar
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
 import 'package:stackwallet/providers/exchange/change_now_provider.dart';
-import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
-import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -62,42 +61,27 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   final FocusNode _receiveFocusNode = FocusNode();
 
   bool _swapLock = false;
-  bool _reversed = false;
 
   void sendFieldOnChanged(String value) async {
     final newFromAmount = Decimal.tryParse(value);
-    final isEstimated =
-        ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-            ExchangeRateType.estimated;
-    if (newFromAmount != null) {
-      if (isEstimated) {
-        await ref
-            .read(estimatedRateExchangeFormProvider)
-            .setFromAmountAndCalculateToAmount(newFromAmount, false);
-      } else {
-        await ref
-            .read(fixedRateExchangeFormProvider)
-            .setFromAmountAndCalculateToAmount(newFromAmount, false);
-      }
-    } else {
-      if (isEstimated) {
-        await ref
-            .read(estimatedRateExchangeFormProvider)
-            .setFromAmountAndCalculateToAmount(Decimal.zero, false);
-      } else {
-        await ref
-            .read(fixedRateExchangeFormProvider)
-            .setFromAmountAndCalculateToAmount(Decimal.zero, false);
-      }
-      _receiveController.text = isEstimated ? "-" : "";
+
+    ref.read(exchangeFormStateProvider).fromAmount =
+        newFromAmount ?? Decimal.zero;
+
+    if (newFromAmount == null) {
+      _receiveController.text =
+          ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+                  ExchangeRateType.estimated
+              ? "-"
+              : "";
     }
   }
 
   void selectSendCurrency() async {
     if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
         ExchangeRateType.estimated) {
-      final fromTicker =
-          ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "-";
+      final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "-";
+      // ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "-";
 
       if (walletInitiated &&
           fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
@@ -108,16 +92,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       await _showFloatingRateSelectionSheet(
           currencies:
               ref.read(availableChangeNowCurrenciesStateProvider.state).state,
-          excludedTicker:
-              ref.read(estimatedRateExchangeFormProvider).to?.ticker ?? "-",
+          excludedTicker: ref.read(exchangeFormStateProvider).toTicker ?? "-",
           fromTicker: fromTicker,
-          onSelected: (from) => ref
-              .read(estimatedRateExchangeFormProvider)
-              .updateFrom(from, true));
+          onSelected: (from) =>
+              ref.read(exchangeFormStateProvider).updateFrom(from, true));
     } else {
-      final toTicker = ref.read(fixedRateExchangeFormProvider).market?.to ?? "";
-      final fromTicker =
-          ref.read(fixedRateExchangeFormProvider).market?.from ?? "";
+      final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
+      final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
 
       if (walletInitiated &&
           fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
@@ -138,7 +119,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 );
 
             await ref
-                .read(fixedRateExchangeFormProvider)
+                .read(exchangeFormStateProvider)
                 .updateMarket(market, true);
           } catch (e) {
             unawaited(showDialog<dynamic>(
@@ -158,8 +139,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void selectReceiveCurrency() async {
     if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
         ExchangeRateType.estimated) {
-      final toTicker =
-          ref.read(estimatedRateExchangeFormProvider).to?.ticker ?? "";
+      final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
 
       if (walletInitiated &&
           toTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
@@ -170,16 +150,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       await _showFloatingRateSelectionSheet(
           currencies:
               ref.read(availableChangeNowCurrenciesStateProvider.state).state,
-          excludedTicker:
-              ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "",
-          fromTicker:
-              ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "",
+          excludedTicker: ref.read(exchangeFormStateProvider).fromTicker ?? "",
+          fromTicker: ref.read(exchangeFormStateProvider).fromTicker ?? "",
           onSelected: (to) =>
-              ref.read(estimatedRateExchangeFormProvider).updateTo(to, true));
+              ref.read(exchangeFormStateProvider).updateTo(to, true));
     } else {
-      final fromTicker =
-          ref.read(fixedRateExchangeFormProvider).market?.from ?? "";
-      final toTicker = ref.read(fixedRateExchangeFormProvider).market?.to ?? "";
+      final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
+      final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
 
       if (walletInitiated &&
           toTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
@@ -200,7 +177,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 );
 
             await ref
-                .read(fixedRateExchangeFormProvider)
+                .read(exchangeFormStateProvider)
                 .updateMarket(market, true);
           } catch (e) {
             unawaited(showDialog<dynamic>(
@@ -222,28 +199,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final isEstimated =
         ref.read(prefsChangeNotifierProvider).exchangeRateType ==
             ExchangeRateType.estimated;
-    if (newToAmount != null) {
-      if (isEstimated) {
-        // await ref
-        //     .read(estimatedRateExchangeFormProvider)
-        //     .setToAmountAndCalculateFromAmount(
-        //         newToAmount, false);
-      } else {
-        await ref
-            .read(fixedRateExchangeFormProvider)
-            .setToAmountAndCalculateFromAmount(newToAmount, false);
-      }
-    } else {
-      if (isEstimated) {
-        // await ref
-        //     .read(estimatedRateExchangeFormProvider)
-        //     .setToAmountAndCalculateFromAmount(
-        //         Decimal.zero, false);
-      } else {
-        await ref
-            .read(fixedRateExchangeFormProvider)
-            .setToAmountAndCalculateFromAmount(Decimal.zero, false);
-      }
+    if (!isEstimated) {
+      ref.read(exchangeFormStateProvider).toAmount =
+          newToAmount ?? Decimal.zero;
+    }
+    if (newToAmount == null) {
       _sendController.text = "";
     }
   }
@@ -276,10 +236,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     if (ref.watch(prefsChangeNotifierProvider
             .select((pref) => pref.exchangeRateType)) ==
         ExchangeRateType.estimated) {
-      await ref.read(estimatedRateExchangeFormProvider).swap();
+      await ref.read(exchangeFormStateProvider).swap();
     } else {
-      final from = ref.read(fixedRateExchangeFormProvider).market?.from;
-      final to = ref.read(fixedRateExchangeFormProvider).market?.to;
+      final from = ref.read(exchangeFormStateProvider).fromTicker;
+      final to = ref.read(exchangeFormStateProvider).toTicker;
 
       if (to != null && from != null) {
         final markets = ref
@@ -288,7 +248,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             .where((e) => e.from == to && e.to == from);
 
         if (markets.isNotEmpty) {
-          await ref.read(fixedRateExchangeFormProvider).swap(markets.first);
+          await ref.read(exchangeFormStateProvider).swap(market: markets.first);
         }
       }
     }
@@ -351,7 +311,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
   }
 
-  String? _fetchIconUrlFromTickerForFixedRateFlow(String? ticker) {
+  String? _fetchIconUrlFromTicker(String? ticker) {
     if (ticker == null) return null;
 
     final possibleCurrencies = ref
@@ -417,15 +377,35 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void onRateTypeChanged(ExchangeRateType rateType) async {
     _receiveFocusNode.unfocus();
     _sendFocusNode.unfocus();
+
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
+            child: const CustomLoadingOverlay(
+              message: "Updating exchange rate",
+              eventBus: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "-";
+    final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "-";
+
+    ref.read(exchangeFormStateProvider).exchangeType = rateType;
+    ref.read(exchangeFormStateProvider).reversed = false;
     switch (rateType) {
       case ExchangeRateType.estimated:
-        final market = ref.read(fixedRateExchangeFormProvider).market;
-        final fromTicker = market?.from ?? "";
-        final toTicker = market?.to ?? "";
-        if (!(fromTicker.isEmpty ||
-            toTicker.isEmpty ||
-            toTicker == "-" ||
-            fromTicker == "-")) {
+        if (!(toTicker == "-" || fromTicker == "-")) {
           final available = ref
               .read(availableFloatingRatePairsStateProvider.state)
               .state
@@ -442,27 +422,28 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                   availableCurrencies.firstWhere((e) => e.ticker == toTicker);
 
               final newFromAmount = Decimal.tryParse(_sendController.text);
-              if (newFromAmount != null) {
-                await ref
-                    .read(estimatedRateExchangeFormProvider)
-                    .setFromAmountAndCalculateToAmount(newFromAmount, false);
-              } else {
-                await ref
-                    .read(estimatedRateExchangeFormProvider)
-                    .setFromAmountAndCalculateToAmount(Decimal.zero, false);
-
+              ref.read(exchangeFormStateProvider).fromAmount =
+                  newFromAmount ?? Decimal.zero;
+              if (newFromAmount == null) {
                 _receiveController.text = "";
               }
 
-              await ref
-                  .read(estimatedRateExchangeFormProvider)
-                  .updateTo(to, false);
-              await ref
-                  .read(estimatedRateExchangeFormProvider)
-                  .updateFrom(from, true);
+              await ref.read(exchangeFormStateProvider).updateTo(to, false);
+              await ref.read(exchangeFormStateProvider).updateFrom(from, true);
+
+              _receiveController.text =
+                  ref.read(exchangeFormStateProvider).toAmountString.isEmpty
+                      ? "-"
+                      : ref.read(exchangeFormStateProvider).toAmountString;
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
               return;
             }
           }
+        }
+        if (mounted) {
+          Navigator.of(context).pop();
         }
         unawaited(showFloatingFlushBar(
           type: FlushBarType.warning,
@@ -472,14 +453,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ));
         break;
       case ExchangeRateType.fixed:
-        final fromTicker =
-            ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "";
-        final toTicker =
-            ref.read(estimatedRateExchangeFormProvider).to?.ticker ?? "";
-        if (!(fromTicker.isEmpty ||
-            toTicker.isEmpty ||
-            toTicker == "-" ||
-            fromTicker == "-")) {
+        if (!(toTicker == "-" || fromTicker == "-")) {
           FixedRateMarket? market;
           try {
             market = ref
@@ -491,28 +465,27 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           }
 
           final newFromAmount = Decimal.tryParse(_sendController.text);
-          if (newFromAmount != null) {
-            await ref
-                .read(fixedRateExchangeFormProvider)
-                .setFromAmountAndCalculateToAmount(newFromAmount, false);
-          } else {
-            await ref
-                .read(fixedRateExchangeFormProvider)
-                .setFromAmountAndCalculateToAmount(Decimal.zero, false);
+          ref.read(exchangeFormStateProvider).fromAmount =
+              newFromAmount ?? Decimal.zero;
 
+          if (newFromAmount == null) {
             _receiveController.text = "";
           }
 
+          await ref.read(exchangeFormStateProvider).updateMarket(market, false);
           await ref
-              .read(fixedRateExchangeFormProvider)
-              .updateMarket(market, false);
-          await ref
-              .read(fixedRateExchangeFormProvider)
+              .read(exchangeFormStateProvider)
               .setFromAmountAndCalculateToAmount(
                 Decimal.tryParse(_sendController.text) ?? Decimal.zero,
                 true,
               );
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
           return;
+        }
+        if (mounted) {
+          Navigator.of(context).pop();
         }
         unawaited(showFloatingFlushBar(
           type: FlushBarType.warning,
@@ -527,10 +500,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void onExchangePressed() async {
     if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
         ExchangeRateType.estimated) {
-      final fromTicker =
-          ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "";
-      final toTicker =
-          ref.read(estimatedRateExchangeFormProvider).to?.ticker ?? "";
+      final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
+      final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
 
       bool isAvailable = false;
       final availableFloatingPairs =
@@ -555,8 +526,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         return;
       }
 
-      final sendAmount = Decimal.parse(
-          ref.read(estimatedRateExchangeFormProvider).fromAmountString);
+      final sendAmount = ref.read(exchangeFormStateProvider).fromAmount!;
 
       final rateType = ref.read(prefsChangeNotifierProvider).exchangeRateType;
 
@@ -610,12 +580,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         }
       }
     } else {
-      final fromTicker =
-          ref.read(fixedRateExchangeFormProvider).market?.from ?? "";
-      final toTicker = ref.read(fixedRateExchangeFormProvider).market?.to ?? "";
+      final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
+      final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
 
-      final sendAmount = Decimal.parse(
-          ref.read(fixedRateExchangeFormProvider).fromAmountString);
+      final sendAmount = ref.read(exchangeFormStateProvider).fromAmount!;
 
       final rateType = ref.read(prefsChangeNotifierProvider).exchangeRateType;
 
@@ -683,7 +651,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
 
       String rate =
-          "1 ${fromTicker.toUpperCase()} ~${ref.read(fixedRateExchangeFormProvider).rate!.toStringAsFixed(8)} ${toTicker.toUpperCase()}";
+          "1 ${fromTicker.toUpperCase()} ~${ref.read(exchangeFormStateProvider).rate!.toStringAsFixed(8)} ${toTicker.toUpperCase()}";
 
       final model = IncompleteExchangeModel(
         sendTicker: fromTicker,
@@ -721,21 +689,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     String? ticker;
 
-    if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-        ExchangeRateType.estimated) {
-      if (isSend) {
-        ticker = ref.watch(estimatedRateExchangeFormProvider
-            .select((value) => value.from?.ticker));
-      } else {
-        ticker = ref.watch(estimatedRateExchangeFormProvider
-            .select((value) => value.to?.ticker));
-      }
+    if (isSend) {
+      ticker = ref.read(exchangeFormStateProvider).fromTicker;
     } else {
-      if (isSend) {
-        ticker = ref.read(fixedRateExchangeFormProvider).market?.from;
-      } else {
-        ticker = ref.read(fixedRateExchangeFormProvider).market?.to;
-      }
+      ticker = ref.read(exchangeFormStateProvider).toTicker;
     }
 
     if (ticker == null) {
@@ -756,46 +713,29 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     if (walletInitiated) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        ref.read(estimatedRateExchangeFormProvider).clearAmounts(true);
+        ref.read(exchangeFormStateProvider).clearAmounts(true);
         // ref.read(fixedRateExchangeFormProvider);
       });
     } else {
       final isEstimated =
           ref.read(prefsChangeNotifierProvider).exchangeRateType ==
               ExchangeRateType.estimated;
-      _sendController.text = isEstimated
-          ? ref.read(estimatedRateExchangeFormProvider).fromAmountString
-          : ref.read(fixedRateExchangeFormProvider).fromAmountString;
+      _sendController.text =
+          ref.read(exchangeFormStateProvider).fromAmountString;
       _receiveController.text = isEstimated
           ? "-" //ref.read(estimatedRateExchangeFormProvider).toAmountString
-          : ref.read(fixedRateExchangeFormProvider).toAmountString;
+          : ref.read(exchangeFormStateProvider).toAmountString;
     }
 
     _sendFocusNode.addListener(() async {
       if (!_sendFocusNode.hasFocus) {
         final newFromAmount = Decimal.tryParse(_sendController.text);
-        if (newFromAmount != null) {
-          if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-              ExchangeRateType.estimated) {
-            await ref
-                .read(estimatedRateExchangeFormProvider)
-                .setFromAmountAndCalculateToAmount(newFromAmount, true);
-          } else {
-            await ref
-                .read(fixedRateExchangeFormProvider)
-                .setFromAmountAndCalculateToAmount(newFromAmount, true);
-          }
-        } else {
-          if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-              ExchangeRateType.estimated) {
-            await ref
-                .read(estimatedRateExchangeFormProvider)
-                .setFromAmountAndCalculateToAmount(Decimal.zero, true);
-          } else {
-            await ref
-                .read(fixedRateExchangeFormProvider)
-                .setFromAmountAndCalculateToAmount(Decimal.zero, true);
-          }
+        await ref
+            .read(exchangeFormStateProvider)
+            .setFromAmountAndCalculateToAmount(
+                newFromAmount ?? Decimal.zero, true);
+
+        if (newFromAmount == null) {
           _receiveController.text =
               ref.read(prefsChangeNotifierProvider).exchangeRateType ==
                       ExchangeRateType.estimated
@@ -807,28 +747,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _receiveFocusNode.addListener(() async {
       if (!_receiveFocusNode.hasFocus) {
         final newToAmount = Decimal.tryParse(_receiveController.text);
-        if (newToAmount != null) {
-          if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-              ExchangeRateType.estimated) {
-            // await ref
-            //     .read(estimatedRateExchangeFormProvider)
-            //     .setToAmountAndCalculateFromAmount(newToAmount, true);
-          } else {
-            await ref
-                .read(fixedRateExchangeFormProvider)
-                .setToAmountAndCalculateFromAmount(newToAmount, true);
-          }
-        } else {
-          if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-              ExchangeRateType.estimated) {
-            // await ref
-            //     .read(estimatedRateExchangeFormProvider)
-            //     .setToAmountAndCalculateFromAmount(Decimal.zero, true);
-          } else {
-            await ref
-                .read(fixedRateExchangeFormProvider)
-                .setToAmountAndCalculateFromAmount(Decimal.zero, true);
-          }
+        if (ref.read(prefsChangeNotifierProvider).exchangeRateType !=
+            ExchangeRateType.estimated) {
+          await ref
+              .read(exchangeFormStateProvider)
+              .setToAmountAndCalculateFromAmount(
+                  newToAmount ?? Decimal.zero, true);
+        }
+        if (newToAmount == null) {
           _sendController.text = "";
         }
       }
@@ -853,39 +779,29 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ExchangeRateType.estimated;
 
     ref.listen(
-        isEstimated
-            ? estimatedRateExchangeFormProvider
-                .select((value) => value.toAmountString)
-            : fixedRateExchangeFormProvider.select(
-                (value) => value.toAmountString), (previous, String next) {
+        exchangeFormStateProvider.select((value) => value.toAmountString),
+        (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
         _receiveController.text = isEstimated && next.isEmpty ? "-" : next;
         debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
-          _sendController.text = isEstimated
-              ? ref.read(estimatedRateExchangeFormProvider).fromAmountString
-              : ref.read(fixedRateExchangeFormProvider).fromAmountString;
+          _sendController.text =
+              ref.read(exchangeFormStateProvider).fromAmountString;
         }
       }
     });
     ref.listen(
-        isEstimated
-            ? estimatedRateExchangeFormProvider
-                .select((value) => value.fromAmountString)
-            : fixedRateExchangeFormProvider.select(
-                (value) => value.fromAmountString), (previous, String next) {
+        exchangeFormStateProvider.select((value) => value.fromAmountString),
+        (previous, String next) {
       if (!_sendFocusNode.hasFocus) {
         _sendController.text = next;
         debugPrint("SEND AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _receiveController.text = isEstimated
-              ? ref
-                      .read(estimatedRateExchangeFormProvider)
-                      .toAmountString
-                      .isEmpty
+              ? ref.read(exchangeFormStateProvider).toAmountString.isEmpty
                   ? "-"
-                  : ref.read(estimatedRateExchangeFormProvider).toAmountString
-              : ref.read(fixedRateExchangeFormProvider).toAmountString;
+                  : ref.read(exchangeFormStateProvider).toAmountString
+              : ref.read(exchangeFormStateProvider).toAmountString;
         }
       }
     });
@@ -956,20 +872,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                           ),
                           child: Builder(
                             builder: (context) {
-                              String? image;
-                              if (ref.watch(prefsChangeNotifierProvider.select(
-                                      (value) => value.exchangeRateType)) ==
-                                  ExchangeRateType.estimated) {
-                                image = ref
-                                    .watch(estimatedRateExchangeFormProvider
-                                        .select((value) => value.from))
-                                    ?.image;
-                              } else {
-                                image = _fetchIconUrlFromTickerForFixedRateFlow(
-                                    ref.watch(
-                                        fixedRateExchangeFormProvider.select(
-                                            (value) => value.market?.from)));
-                              }
+                              final image = _fetchIconUrlFromTicker(ref.watch(
+                                  exchangeFormStateProvider
+                                      .select((value) => value.fromTicker)));
+
                               if (image != null && image.isNotEmpty) {
                                 return Center(
                                   child: SvgPicture.network(
@@ -1020,17 +926,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                           width: 6,
                         ),
                         Text(
-                          ref.watch(prefsChangeNotifierProvider.select(
-                                      (value) => value.exchangeRateType)) ==
-                                  ExchangeRateType.estimated
-                              ? ref.watch(estimatedRateExchangeFormProvider
-                                      .select((value) =>
-                                          value.from?.ticker.toUpperCase())) ??
-                                  "-"
-                              : ref.watch(fixedRateExchangeFormProvider.select(
-                                      (value) =>
-                                          value.market?.from.toUpperCase())) ??
-                                  "-",
+                          ref.watch(exchangeFormStateProvider.select((value) =>
+                                  value.fromTicker?.toUpperCase())) ??
+                              "-",
                           style: STextStyles.smallMed14(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
@@ -1105,14 +1003,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             ),
             Positioned.fill(
               child: Align(
-                alignment: Alignment.topRight,
+                alignment: ref.watch(exchangeFormStateProvider
+                        .select((value) => value.reversed))
+                    ? Alignment.bottomRight
+                    : Alignment.topRight,
                 child: Text(
-                  ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-                          ExchangeRateType.estimated
-                      ? ref.watch(estimatedRateExchangeFormProvider
-                          .select((value) => value.minimumSendWarning))
-                      : ref.watch(fixedRateExchangeFormProvider
-                          .select((value) => value.sendAmountWarning)),
+                  ref.watch(exchangeFormStateProvider
+                      .select((value) => value.warning)),
                   style: STextStyles.errorSmall(context),
                 ),
               ),
@@ -1179,19 +1076,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                           ),
                           child: Builder(
                             builder: (context) {
-                              String? image;
-                              if (ref.watch(prefsChangeNotifierProvider.select(
-                                      (value) => value.exchangeRateType)) ==
-                                  ExchangeRateType.estimated) {
-                                image = ref
-                                    .watch(estimatedRateExchangeFormProvider
-                                        .select((value) => value.to))
-                                    ?.image;
-                              } else {
-                                image = _fetchIconUrlFromTickerForFixedRateFlow(
-                                    ref.watch(fixedRateExchangeFormProvider
-                                        .select((value) => value.market?.to)));
-                              }
+                              final image = _fetchIconUrlFromTicker(ref.watch(
+                                  exchangeFormStateProvider
+                                      .select((value) => value.toTicker)));
+
                               if (image != null && image.isNotEmpty) {
                                 return Center(
                                   child: SvgPicture.network(
@@ -1240,17 +1128,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                           width: 6,
                         ),
                         Text(
-                          ref.watch(prefsChangeNotifierProvider.select(
-                                      (value) => value.exchangeRateType)) ==
-                                  ExchangeRateType.estimated
-                              ? ref.watch(estimatedRateExchangeFormProvider
-                                      .select((value) =>
-                                          value.to?.ticker.toUpperCase())) ??
-                                  "-"
-                              : ref.watch(fixedRateExchangeFormProvider.select(
-                                      (value) =>
-                                          value.market?.to.toUpperCase())) ??
-                                  "-",
+                          ref.watch(exchangeFormStateProvider.select(
+                                  (value) => value.toTicker?.toUpperCase())) ??
+                              "-",
                           style: STextStyles.smallMed14(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
@@ -1293,24 +1173,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           fixedRate: ref.watch(prefsChangeNotifierProvider
                   .select((value) => value.exchangeRateType)) ==
               ExchangeRateType.fixed,
-          reversed: _reversed,
+          reversed: ref.watch(
+              exchangeFormStateProvider.select((value) => value.reversed)),
         ),
         const SizedBox(
           height: 12,
         ),
         PrimaryButton(
-          enabled: ((ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-                  ExchangeRateType.estimated)
-              ? ref.watch(estimatedRateExchangeFormProvider
+          enabled: ref.watch(
+              exchangeFormStateProvider.select((value) => value.canExchange)),
+          onPressed: ref.watch(exchangeFormStateProvider
                   .select((value) => value.canExchange))
-              : ref.watch(fixedRateExchangeFormProvider
-                  .select((value) => value.canExchange))),
-          onPressed: ((ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-                      ExchangeRateType.estimated)
-                  ? ref.watch(estimatedRateExchangeFormProvider
-                      .select((value) => value.canExchange))
-                  : ref.watch(fixedRateExchangeFormProvider
-                      .select((value) => value.canExchange)))
               ? onExchangePressed
               : null,
           label: "Exchange",

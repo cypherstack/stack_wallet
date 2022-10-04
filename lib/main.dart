@@ -18,6 +18,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/models/models.dart';
@@ -35,8 +36,6 @@ import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
 import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
-import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/base_currencies_provider.dart';
@@ -47,6 +46,7 @@ import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/debug_service.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
@@ -271,15 +271,15 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             response2.value!;
 
         if (response.value!.length > 1) {
-          if (ref.read(estimatedRateExchangeFormProvider).from == null) {
+          if (ref.read(exchangeFormStateProvider).from == null) {
             if (response.value!.where((e) => e.ticker == "btc").isNotEmpty) {
-              await ref.read(estimatedRateExchangeFormProvider).updateFrom(
+              await ref.read(exchangeFormStateProvider).updateFrom(
                   response.value!.firstWhere((e) => e.ticker == "btc"), false);
             }
           }
-          if (ref.read(estimatedRateExchangeFormProvider).to == null) {
+          if (ref.read(exchangeFormStateProvider).to == null) {
             if (response.value!.where((e) => e.ticker == "doge").isNotEmpty) {
-              await ref.read(estimatedRateExchangeFormProvider).updateTo(
+              await ref.read(exchangeFormStateProvider).updateTo(
                   response.value!.firstWhere((e) => e.ticker == "doge"), false);
             }
           }
@@ -319,12 +319,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       ref.read(fixedRateMarketPairsStateProvider.state).state =
           response3.value!;
 
-      if (ref.read(fixedRateExchangeFormProvider).market == null) {
+      if (ref.read(exchangeFormStateProvider).market == null) {
         final matchingMarkets =
             response3.value!.where((e) => e.to == "doge" && e.from == "btc");
         if (matchingMarkets.isNotEmpty) {
           await ref
-              .read(fixedRateExchangeFormProvider)
+              .read(exchangeFormStateProvider)
               .updateMarket(matchingMarkets.first, true);
         }
       }
@@ -355,6 +355,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
+    ref.read(exchangeFormStateProvider).exchange = ChangeNowExchange();
     final colorScheme = DB.instance
         .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
 

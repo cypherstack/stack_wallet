@@ -35,8 +35,10 @@ class EstimatedExchangeAmount {
   factory EstimatedExchangeAmount.fromJson(Map<String, dynamic> json) {
     try {
       return EstimatedExchangeAmount(
-        estimatedAmount: Decimal.parse(json["estimatedAmount"].toString()),
-        transactionSpeedForecast: json["transactionSpeedForecast"] as String,
+        estimatedAmount: Decimal.parse(json["estimatedAmount"]?.toString() ??
+            json["estimatedDeposit"].toString()),
+        transactionSpeedForecast:
+            json["transactionSpeedForecast"] as String? ?? "",
         warningMessage: json["warningMessage"] as String?,
         rateId: json["rateId"] as String?,
         networkFee: Decimal.tryParse(json["networkFee"].toString()),
