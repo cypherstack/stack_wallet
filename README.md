@@ -45,6 +45,15 @@ sudo apt install build-essential debhelper cmake libclang-dev libncurses5-dev cl
 sudo apt install unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
 ```
 
+Run prebuild script
+
+```
+cd scripts
+./prebuild.sh
+// when finished go back to the root directory
+cd ..
+```
+
 Building plugins for Android
 ```
 cd scripts/android/
