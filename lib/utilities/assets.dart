@@ -130,6 +130,7 @@ class _SVG {
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
   String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";
+  String get wownero => "assets/svg/coin_icons/Wownero.svg";
   String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
 
   String get chevronRight => "assets/svg/chevron-right.svg";
@@ -158,6 +159,8 @@ class _SVG {
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.wownero:
+        return wownero;
       case Coin.namecoin:
         return namecoin;
       case Coin.bitcoinTestNet:
@@ -179,6 +182,7 @@ class _PNG {
   String get splash => "assets/images/splash.png";
 
   String get monero => "assets/images/monero.png";
+  String get wownero => "assets/images/wownero.png";
   String get firo => "assets/images/firo.png";
   String get dogecoin => "assets/images/doge.png";
   String get bitcoin => "assets/images/bitcoin.png";
@@ -205,6 +209,8 @@ class _PNG {
         return firo;
       case Coin.monero:
         return monero;
+      case Coin.wownero:
+        return wownero;
       case Coin.namecoin:
         return namecoin;
     }

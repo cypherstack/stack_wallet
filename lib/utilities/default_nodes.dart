@@ -15,7 +15,9 @@ abstract class DefaultNodes {
         epicCash,
         bitcoincash,
         namecoin,
+        wownero,
         bitcoinTestnet,
+        bitcoincashTestnet,
         dogecoinTestnet,
         firoTestnet,
       ];
@@ -78,6 +80,20 @@ abstract class DefaultNodes {
         useSSL: false,
         enabled: true,
         coinName: Coin.monero.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  // TODO: eventually enable ssl and set scheme to https
+  // currently get certificate failure
+  static NodeModel get wownero => NodeModel(
+        host: "http://eu-west-2.wow.xmr.pm",
+        port: 34568,
+        name: defaultName,
+        id: _nodeId(Coin.wownero),
+        useSSL: false,
+        enabled: true,
+        coinName: Coin.wownero.name,
         isFailover: true,
         isDown: false,
       );
@@ -173,6 +189,9 @@ abstract class DefaultNodes {
 
       case Coin.monero:
         return monero;
+
+      case Coin.wownero:
+        return wownero;
 
       case Coin.namecoin:
         return namecoin;

@@ -755,6 +755,11 @@ class _TransactionSearchViewState
             .floor()
             .toBigInt()
             .toInt();
+      } else if (widget.coin == Coin.wownero) {
+        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinWownero))
+            .floor()
+            .toBigInt()
+            .toInt();
       } else {
         amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoin))
             .floor()

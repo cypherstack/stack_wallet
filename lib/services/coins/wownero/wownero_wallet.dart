@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cw_core/monero_amount_format.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/node.dart';
 import 'package:cw_core/pending_transaction.dart';
@@ -12,17 +11,19 @@ import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
-import 'package:cw_monero/api/exceptions/creation_transaction_exception.dart';
-import 'package:cw_monero/api/wallet.dart';
-import 'package:cw_monero/monero_wallet.dart';
-import 'package:cw_monero/pending_monero_transaction.dart';
+import 'package:cw_wownero/api/exceptions/creation_transaction_exception.dart';
+import 'package:cw_wownero/api/wallet.dart';
+import 'package:cw_wownero/pending_wownero_transaction.dart';
+import 'package:cw_wownero/wownero_amount_format.dart';
+import 'package:cw_wownero/wownero_wallet.dart';
 import 'package:dart_numerics/dart_numerics.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:flutter_libmonero/core/wallet_creation_service.dart';
-import 'package:flutter_libmonero/monero/monero.dart';
-import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
+import 'package:flutter_libmonero/view_model/send/output.dart'
+    as wownero_output;
+import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
@@ -50,21 +51,21 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
-const int MINIMUM_CONFIRMATIONS = 10;
+const int MINIMUM_CONFIRMATIONS = 4;
 
-//https://github.com/monero-project/monero/blob/8361d60aef6e17908658128284899e3a11d808d4/src/cryptonote_config.h#L162
+//https://github.com/wownero-project/wownero/blob/8361d60aef6e17908658128284899e3a11d808d4/src/cryptonote_config.h#L162
 const String GENESIS_HASH_MAINNET =
     "013c01ff0001ffffffffffff03029b2e4c0281c0b02e7c53291a94d1d0cbff8883f8024f5142ee494ffbbd08807121017767aafcde9be00dcfd098715ebcf7f410daebc582fda69d24a28e9d0bc890d1";
 const String GENESIS_HASH_TESTNET =
     "013c01ff0001ffffffffffff03029b2e4c0281c0b02e7c53291a94d1d0cbff8883f8024f5142ee494ffbbd08807121017767aafcde9be00dcfd098715ebcf7f410daebc582fda69d24a28e9d0bc890d1";
 
-class MoneroWallet extends CoinServiceAPI {
+class WowneroWallet extends CoinServiceAPI {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
   final _prefs = Prefs.instance;
 
   Timer? timer;
-  Timer? moneroAutosaveTimer;
+  Timer? wowneroAutosaveTimer;
   late Coin _coin;
 
   late FlutterSecureStorageInterface _secureStore;
@@ -76,7 +77,7 @@ class MoneroWallet extends CoinServiceAPI {
         DefaultNodes.getNodeFor(coin);
   }
 
-  MoneroWallet(
+  WowneroWallet(
       {required String walletId,
       required String walletName,
       required Coin coin,
@@ -102,9 +103,9 @@ class MoneroWallet extends CoinServiceAPI {
       _shouldAutoSync = shouldAutoSync;
       if (!shouldAutoSync) {
         timer?.cancel();
-        moneroAutosaveTimer?.cancel();
+        wowneroAutosaveTimer?.cancel();
         timer = null;
-        moneroAutosaveTimer = null;
+        wowneroAutosaveTimer = null;
         stopNetworkAlivePinging();
       } else {
         startNetworkAlivePinging();
@@ -120,7 +121,7 @@ class MoneroWallet extends CoinServiceAPI {
 
     final host = Uri.parse(node.host).host;
     await walletBase?.connectToNode(
-        node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+        node: Node(uri: "$host:${node.port}", type: WalletType.wownero));
 
     // TODO: is this sync call needed? Do we need to notify ui here?
     await walletBase?.startSync();
@@ -183,7 +184,7 @@ class MoneroWallet extends CoinServiceAPI {
   }
 
   Future<int> get currentSyncingHeight async {
-    //TODO return the tip of the monero blockchain
+    //TODO return the tip of the wownero blockchain
     try {
       if (walletBase!.syncStatus! is SyncedSyncStatus &&
           walletBase!.syncStatus!.progress() == 1.0) {
@@ -398,7 +399,7 @@ class MoneroWallet extends CoinServiceAPI {
     }
 
     if (walletBase == null) {
-      throw Exception("Tried to call refresh() in monero without walletBase!");
+      throw Exception("Tried to call refresh() in wownero without walletBase!");
     }
 
     try {
@@ -433,7 +434,7 @@ class MoneroWallet extends CoinServiceAPI {
       }
 
       if (_currentSyncingHeight > storedHeight) {
-        // 0 is returned from monero as I assume an error?????
+        // 0 is returned from wownero as I assume an error?????
         if (_currentSyncingHeight > 0) {
           // 0 failed to fetch current height???
           await updateStoredChainHeight(newHeight: _currentSyncingHeight);
@@ -459,7 +460,7 @@ class MoneroWallet extends CoinServiceAPI {
       if (isActive || shouldAutoSync) {
         timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
           debugPrint("run timer");
-          //TODO: check for new data and refresh if needed. if monero even needs this
+          //TODO: check for new data and refresh if needed. if wownero even needs this
           // chain height check currently broken
           // if ((await chainHeight) != (await storedChainHeight)) {
           // if (await refreshIfThereIsNewData()) {
@@ -470,9 +471,9 @@ class MoneroWallet extends CoinServiceAPI {
           // }
           // }
         });
-        moneroAutosaveTimer ??=
+        wowneroAutosaveTimer ??=
             Timer.periodic(const Duration(seconds: 93), (timer) async {
-          debugPrint("run monero timer");
+          debugPrint("run wownero timer");
           if (isActive) {
             await walletBase?.save();
             GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
@@ -549,8 +550,8 @@ class MoneroWallet extends CoinServiceAPI {
     isActive = false;
     await walletBase?.save(prioritySave: true);
     walletBase?.close();
-    moneroAutosaveTimer?.cancel();
-    moneroAutosaveTimer = null;
+    wowneroAutosaveTimer?.cancel();
+    wowneroAutosaveTimer = null;
     timer?.cancel();
     timer = null;
     stopNetworkAlivePinging();
@@ -649,7 +650,7 @@ class MoneroWallet extends CoinServiceAPI {
   Future<void> _generateNewWallet() async {
     Logging.instance
         .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
-    // TODO: ping monero server and make sure the genesis hash matches
+    // TODO: ping wownero server and make sure the genesis hash matches
     // if (!integrationTestFlag) {
     //   final features = await electrumXClient.getServerFeatures();
     //   Logging.instance.log("features: $features");
@@ -671,8 +672,9 @@ class MoneroWallet extends CoinServiceAPI {
     }
 
     storage = const FlutterSecureStorage();
+    // TODO: Wallet Service may need to be switched to Wownero
     walletService =
-        monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
+        wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
     prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(storage!);
     WalletInfo walletInfo;
@@ -680,24 +682,17 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       String name = _walletId;
       final dirPath =
-          await pathForWalletDir(name: name, type: WalletType.monero);
-      final path = await pathForWallet(name: name, type: WalletType.monero);
-      credentials = monero.createMoneroNewWalletCredentials(
+          await pathForWalletDir(name: name, type: WalletType.wownero);
+      final path = await pathForWallet(name: name, type: WalletType.wownero);
+      credentials = wownero.createWowneroNewWalletCredentials(
         name: name,
         language: "English",
       );
 
-      // subtract a couple days to ensure we have a buffer for SWB
-      final bufferedCreateHeight = monero.getHeigthByDate(
-          date: DateTime.now().subtract(const Duration(days: 2)));
-
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: "restoreHeight", value: bufferedCreateHeight);
-
       walletInfo = WalletInfo.external(
-          id: WalletBase.idFor(name, WalletType.monero),
+          id: WalletBase.idFor(name, WalletType.wownero),
           name: name,
-          type: WalletType.monero,
+          type: WalletType.wownero,
           isRecovery: false,
           restoreHeight: credentials.height ?? 0,
           date: DateTime.now(),
@@ -717,13 +712,21 @@ class MoneroWallet extends CoinServiceAPI {
       // To restore from a seed
       final wallet = await _walletCreationService?.create(credentials);
 
+      // subtract a couple days to ensure we have a buffer for SWB
+      final bufferedCreateHeight =
+          getSeedHeightSync(wallet?.seed.trim() as String);
+
+      await DB.instance.put<dynamic>(
+          boxName: walletId, key: "restoreHeight", value: bufferedCreateHeight);
+      walletInfo.restoreHeight = bufferedCreateHeight;
+
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: wallet?.seed.trim());
       walletInfo.address = wallet?.walletAddresses.address;
       await DB.instance
           .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
       walletBase?.close();
-      walletBase = wallet as MoneroWalletBase;
+      walletBase = wallet as WowneroWalletBase;
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());
@@ -731,7 +734,7 @@ class MoneroWallet extends CoinServiceAPI {
     final node = await getCurrentNode();
     final host = Uri.parse(node.host).host;
     await walletBase?.connectToNode(
-        node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+        node: Node(uri: "$host:${node.port}", type: WalletType.wownero));
     await walletBase?.startSync();
     await DB.instance
         .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
@@ -777,7 +780,7 @@ class MoneroWallet extends CoinServiceAPI {
   // TODO: implement initializeWallet
   Future<bool> initializeNew() async {
     await _prefs.init();
-    // TODO: ping actual monero network
+    // TODO: ping actual wownero network
     // try {
     //   final hasNetwork = await _electrumXClient.ping();
     //   if (!hasNetwork) {
@@ -789,7 +792,7 @@ class MoneroWallet extends CoinServiceAPI {
     // }
     storage = const FlutterSecureStorage();
     walletService =
-        monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
+        wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
     prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(storage!);
 
@@ -807,7 +810,7 @@ class MoneroWallet extends CoinServiceAPI {
     //   return true;
     // }
     // walletBase = (await walletService?.openWallet(this._walletId, password))
-    //     as MoneroWalletBase;
+    //     as WowneroWalletBase;
     // Logging.instance.log("Opening existing ${coin.ticker} wallet.");
     // // Wallet already exists, triggers for a returning user
     // final currentAddress = awaicurrentHeightt _getCurrentAddressForChain(0);
@@ -815,7 +818,7 @@ class MoneroWallet extends CoinServiceAPI {
     //
     // await walletBase?.connectToNode(
     //     node: Node(
-    //         uri: "xmr-node.cakewallet.com:18081", type: WalletType.monero));
+    //         uri: "xmr-node.cakewallet.com:18081", type: WalletType.wownero));
     // walletBase?.startSync();
 
     return true;
@@ -835,7 +838,7 @@ class MoneroWallet extends CoinServiceAPI {
 
     storage = const FlutterSecureStorage();
     walletService =
-        monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
+        wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
     prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(storage!);
 
@@ -855,7 +858,7 @@ class MoneroWallet extends CoinServiceAPI {
       throw Exception("Password not found $e, $s");
     }
     walletBase = (await walletService?.openWallet(_walletId, password!))
-        as MoneroWalletBase;
+        as WowneroWalletBase;
     debugPrint("walletBase $walletBase");
     Logging.instance.log(
         "Opened existing ${coin.prettyName} wallet $walletName",
@@ -876,7 +879,7 @@ class MoneroWallet extends CoinServiceAPI {
   Future<int> get maxFee async {
     var bal = await availableBalance;
     var fee = walletBase!.calculateEstimatedFee(
-            monero.getDefaultTransactionPriority(), bal.toBigInt().toInt()) ~/
+            wownero.getDefaultTransactionPriority(), bal.toBigInt().toInt()) ~/
         10000;
 
     return fee;
@@ -893,7 +896,7 @@ class MoneroWallet extends CoinServiceAPI {
   WalletService? walletService;
   SharedPreferences? prefs;
   KeyService? keysStorage;
-  MoneroWalletBase? walletBase;
+  WowneroWalletBase? walletBase;
   WalletCreationService? _walletCreationService;
 
   String toStringForinfo(WalletInfo info) {
@@ -910,7 +913,6 @@ class MoneroWallet extends CoinServiceAPI {
     if (Platform.isIOS) {
       root = (await getLibraryDirectory());
     }
-    //
     if (Platform.isLinux) {
       root = Directory("${root.path}/.stackwallet");
     }
@@ -967,30 +969,32 @@ class MoneroWallet extends CoinServiceAPI {
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
 
+      height = getSeedHeightSync(mnemonic.trim());
+
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
 
       storage = const FlutterSecureStorage();
       walletService =
-          monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
+          wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
       prefs = await SharedPreferences.getInstance();
       keysStorage = KeyService(storage!);
       WalletInfo walletInfo;
       WalletCredentials credentials;
       String name = _walletId;
       final dirPath =
-          await pathForWalletDir(name: name, type: WalletType.monero);
-      final path = await pathForWallet(name: name, type: WalletType.monero);
-      credentials = monero.createMoneroRestoreWalletFromSeedCredentials(
+          await pathForWalletDir(name: name, type: WalletType.wownero);
+      final path = await pathForWallet(name: name, type: WalletType.wownero);
+      credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
         name: name,
         height: height,
         mnemonic: mnemonic.trim(),
       );
       try {
         walletInfo = WalletInfo.external(
-            id: WalletBase.idFor(name, WalletType.monero),
+            id: WalletBase.idFor(name, WalletType.wownero),
             name: name,
-            type: WalletType.monero,
+            type: WalletType.wownero,
             isRecovery: false,
             restoreHeight: credentials.height ?? 0,
             date: DateTime.now(),
@@ -1014,7 +1018,7 @@ class MoneroWallet extends CoinServiceAPI {
         await DB.instance
             .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
         walletBase?.close();
-        walletBase = wallet as MoneroWalletBase;
+        walletBase = wallet as WowneroWalletBase;
         await DB.instance.put<dynamic>(
             boxName: walletId,
             key: 'receivingAddresses',
@@ -1044,7 +1048,7 @@ class MoneroWallet extends CoinServiceAPI {
       final node = await getCurrentNode();
       final host = Uri.parse(node.host).host;
       await walletBase?.connectToNode(
-          node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+          node: Node(uri: "$host:${node.port}", type: WalletType.wownero));
       await walletBase?.rescan(height: credentials.height);
     } catch (e, s) {
       Logging.instance.log(
@@ -1140,11 +1144,11 @@ class MoneroWallet extends CoinServiceAPI {
     }
     debugPrint("balances: $transactionBalance $bal");
     if (isActive) {
-      String am = moneroAmountToString(amount: bal);
+      String am = wowneroAmountToString(amount: bal);
 
       return Decimal.parse(am);
     } else {
-      String am = moneroAmountToString(amount: transactionBalance);
+      String am = wowneroAmountToString(amount: transactionBalance);
 
       return Decimal.parse(am);
     }
@@ -1155,8 +1159,8 @@ class MoneroWallet extends CoinServiceAPI {
   void Function(bool)? get onIsActiveWalletChanged => (isActive) async {
         await walletBase?.save();
         walletBase?.close();
-        moneroAutosaveTimer?.cancel();
-        moneroAutosaveTimer = null;
+        wowneroAutosaveTimer?.cancel();
+        wowneroAutosaveTimer = null;
         timer?.cancel();
         timer = null;
         await stopSyncPercentTimer();
@@ -1170,12 +1174,13 @@ class MoneroWallet extends CoinServiceAPI {
             throw Exception("Password not found $e, $s");
           }
           walletBase = (await walletService?.openWallet(_walletId, password!))
-              as MoneroWalletBase?;
+              as WowneroWalletBase?;
           if (!(await walletBase!.isConnected())) {
             final node = await getCurrentNode();
             final host = Uri.parse(node.host).host;
             await walletBase?.connectToNode(
-                node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+                node:
+                    Node(uri: "$host:${node.port}", type: WalletType.wownero));
             await walletBase?.startSync();
           }
           await refresh();
@@ -1226,7 +1231,7 @@ class MoneroWallet extends CoinServiceAPI {
     // }
 
     // sort thing stuff
-    // change to get Monero price
+    // change to get Wownero price
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
@@ -1241,12 +1246,13 @@ class MoneroWallet extends CoinServiceAPI {
             "${tx.value.recipientAddress}, ${tx.value.additionalInfo} con:${tx.value.confirmations}"
             " ${tx.value.keyIndex}",
             level: LogLevel.Info);
-        String am = moneroAmountToString(amount: tx.value.amount!);
+        String am = wowneroAmountToString(amount: tx.value.amount!);
         final worthNow = (currentPrice * Decimal.parse(am)).toStringAsFixed(2);
         Map<String, dynamic> midSortedTx = {};
         // // create final tx map
         midSortedTx["txid"] = tx.value.id;
         midSortedTx["confirmed_status"] = !tx.value.isPending &&
+            tx.value.confirmations != null &&
             tx.value.confirmations! >= MINIMUM_CONFIRMATIONS;
         midSortedTx["confirmations"] = tx.value.confirmations ?? 0;
         midSortedTx["timestamp"] =
@@ -1259,7 +1265,7 @@ class MoneroWallet extends CoinServiceAPI {
         midSortedTx["worthNow"] = worthNow;
         midSortedTx["worthAtBlockTimestamp"] = worthNow;
         midSortedTx["fees"] = tx.value.fee;
-        // TODO: shouldn't monero have an address I can grab
+        // TODO: shouldn't wownero have an address I can grab
         if (tx.value.direction == TransactionDirection.incoming) {
           final addressInfo = tx.value.additionalInfo;
 
@@ -1389,7 +1395,7 @@ class MoneroWallet extends CoinServiceAPI {
     for (var element in walletBase!.balance!.entries) {
       bal = bal + element.value.unlockedBalance;
     }
-    String am = moneroAmountToString(amount: bal);
+    String am = wowneroAmountToString(amount: bal);
 
     return Decimal.parse(am);
   }
@@ -1401,16 +1407,16 @@ class MoneroWallet extends CoinServiceAPI {
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
       Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
-      final pendingMoneroTransaction =
-          txData['pendingMoneroTransaction'] as PendingMoneroTransaction;
+      final pendingWowneroTransaction =
+          txData['pendingWowneroTransaction'] as PendingWowneroTransaction;
       try {
-        await pendingMoneroTransaction.commit();
+        await pendingWowneroTransaction.commit();
         Logging.instance.log(
-            "transaction ${pendingMoneroTransaction.id} has been sent",
+            "transaction ${pendingWowneroTransaction.id} has been sent",
             level: LogLevel.Info);
-        return pendingMoneroTransaction.id;
+        return pendingWowneroTransaction.id;
       } catch (e, s) {
-        Logging.instance.log("$walletName monero confirmSend: $e\n$s",
+        Logging.instance.log("$walletName wownero confirmSend: $e\n$s",
             level: LogLevel.Error);
         rethrow;
       }
@@ -1449,15 +1455,15 @@ class MoneroWallet extends CoinServiceAPI {
         try {
           Logging.instance
               .log("$toAddress $amount $args", level: LogLevel.Info);
-          String amountToSend = moneroAmountToString(amount: amount * 10000);
+          String amountToSend = wowneroAmountToString(amount: amount * 1000);
           Logging.instance.log("$amount $amountToSend", level: LogLevel.Info);
 
-          monero_output.Output output = monero_output.Output(walletBase!);
+          wownero_output.Output output = wownero_output.Output(walletBase!);
           output.address = toAddress;
           output.setCryptoAmount(amountToSend);
 
-          List<monero_output.Output> outputs = [output];
-          Object tmp = monero.createMoneroTransactionCreationCredentials(
+          List<wownero_output.Output> outputs = [output];
+          Object tmp = wownero.createWowneroTransactionCreationCredentials(
               outputs: outputs, priority: feePriority);
 
           awaitPendingTransaction = walletBase!.createTransaction(tmp);
@@ -1466,15 +1472,15 @@ class MoneroWallet extends CoinServiceAPI {
               level: LogLevel.Warning);
         }
 
-        PendingMoneroTransaction pendingMoneroTransaction =
-            await (awaitPendingTransaction!) as PendingMoneroTransaction;
-        int realfee = (Decimal.parse(pendingMoneroTransaction.feeFormatted) *
+        PendingWowneroTransaction pendingWowneroTransaction =
+            await (awaitPendingTransaction!) as PendingWowneroTransaction;
+        int realfee = (Decimal.parse(pendingWowneroTransaction.feeFormatted) *
                 100000000.toDecimal())
             .toBigInt()
             .toInt();
         debugPrint("fee? $realfee");
         Map<String, dynamic> txData = {
-          "pendingMoneroTransaction": pendingMoneroTransaction,
+          "pendingWowneroTransaction": pendingWowneroTransaction,
           "fee": realfee,
           "addresss": toAddress,
           "recipientAmt": satoshiAmount,

@@ -328,7 +328,12 @@ class _ConfirmChangeNowSendViewState
                             children: [
                               Text(
                                 "Total amount",
-                                style: STextStyles.titleBold12(context),
+                                style:
+                                    STextStyles.titleBold12(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textConfirmTotalAmount,
+                                ),
                               ),
                               Text(
                                 "${Format.satoshiAmountToPrettyString(
@@ -342,7 +347,12 @@ class _ConfirmChangeNowSendViewState
                                       managerProvider
                                           .select((value) => value.coin),
                                     ).ticker}",
-                                style: STextStyles.itemSubtitle12(context),
+                                style: STextStyles.itemSubtitle12(context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textConfirmTotalAmount,
+                                ),
                                 textAlign: TextAlign.right,
                               ),
                             ],

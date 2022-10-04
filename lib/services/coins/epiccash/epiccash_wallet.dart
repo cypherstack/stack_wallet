@@ -259,6 +259,9 @@ Future<String> deleteEpicWallet({
     if (Platform.isIOS) {
       appDir = (await getLibraryDirectory());
     }
+    if (Platform.isLinux) {
+      appDir = Directory("${appDir.path}/.stackwallet");
+    }
     final path = "${appDir.path}/epiccash";
     final String name = walletId;
 
@@ -1231,6 +1234,9 @@ class EpicCashWallet extends CoinServiceAPI {
     Directory appDir = (await getApplicationDocumentsDirectory());
     if (Platform.isIOS) {
       appDir = (await getLibraryDirectory());
+    }
+    if (Platform.isLinux) {
+      appDir = Directory("${appDir.path}/.stackwallet");
     }
     final path = "${appDir.path}/epiccash";
     final String name = _walletId.trim();

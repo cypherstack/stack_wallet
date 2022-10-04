@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:bitbox/bitbox.dart' as Bitbox;
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:crypto/crypto.dart';
@@ -41,7 +42,6 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
-import 'package:bitbox/bitbox.dart' as Bitbox;
 
 const int MINIMUM_CONFIRMATIONS = 3;
 const int DUST_LIMIT = 546;

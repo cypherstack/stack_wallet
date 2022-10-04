@@ -64,6 +64,17 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
     passwordFocusNode = FocusNode();
     passwordRepeatFocusNode = FocusNode();
 
+    if (Platform.isAndroid) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+        final dir = await stackFileSystem.prepareStorage();
+        if (mounted) {
+          setState(() {
+            fileLocationController.text = dir.path;
+          });
+        }
+      });
+    }
+
     super.initState();
   }
 
@@ -113,88 +124,78 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Consumer(builder: (context, ref, __) {
-                        return Container(
-                          color: Colors.transparent,
-                          child: TextField(
-                            onTap: () async {
-                              try {
-                                await stackFileSystem.prepareStorage();
-                                // ref
-                                //     .read(
-                                //         shouldShowLockscreenOnResumeStateProvider
-                                //             .state)
-                                //     .state = false;
-                                if (mounted) {
-                                  await stackFileSystem.pickDir(context);
-                                }
+                      if (!Platform.isAndroid)
+                        Consumer(builder: (context, ref, __) {
+                          return Container(
+                            color: Colors.transparent,
+                            child: TextField(
+                              onTap: Platform.isAndroid
+                                  ? null
+                                  : () async {
+                                      try {
+                                        await stackFileSystem.prepareStorage();
 
-                                // Future<void>.delayed(
-                                //   const Duration(seconds: 2),
-                                //   () => ref
-                                //       .read(
-                                //           shouldShowLockscreenOnResumeStateProvider
-                                //               .state)
-                                //       .state = true,
-                                // );
+                                        if (mounted) {
+                                          await stackFileSystem
+                                              .pickDir(context);
+                                        }
 
-                                setState(() {
-                                  fileLocationController.text =
-                                      stackFileSystem.dirPath ?? "";
-                                });
-                              } catch (e, s) {
-                                // ref
-                                //     .read(
-                                //         shouldShowLockscreenOnResumeStateProvider
-                                //             .state)
-                                //     .state = true;
-                                Logging.instance
-                                    .log("$e\n$s", level: LogLevel.Error);
-                              }
-                            },
-                            controller: fileLocationController,
-                            style: STextStyles.field(context),
-                            decoration: InputDecoration(
-                              hintText: "Save to...",
-                              suffixIcon: UnconstrainedBox(
-                                child: Row(
-                                  children: [
-                                    const SizedBox(
-                                      width: 16,
-                                    ),
-                                    SvgPicture.asset(
-                                      Assets.svg.folder,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark3,
-                                      width: 16,
-                                      height: 16,
-                                    ),
-                                    const SizedBox(
-                                      width: 12,
-                                    ),
-                                  ],
+                                        if (mounted) {
+                                          setState(() {
+                                            fileLocationController.text =
+                                                stackFileSystem.dirPath ?? "";
+                                          });
+                                        }
+                                      } catch (e, s) {
+                                        Logging.instance.log("$e\n$s",
+                                            level: LogLevel.Error);
+                                      }
+                                    },
+                              controller: fileLocationController,
+                              style: STextStyles.field(context),
+                              decoration: InputDecoration(
+                                hintText: "Save to...",
+                                hintStyle: STextStyles.fieldLabel(context),
+                                suffixIcon: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      const SizedBox(
+                                        width: 16,
+                                      ),
+                                      SvgPicture.asset(
+                                        Assets.svg.folder,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
+                                        width: 16,
+                                        height: 16,
+                                      ),
+                                      const SizedBox(
+                                        width: 12,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
+                              key: const Key(
+                                  "createBackupSaveToFileLocationTextFieldKey"),
+                              readOnly: true,
+                              toolbarOptions: const ToolbarOptions(
+                                copy: true,
+                                cut: false,
+                                paste: false,
+                                selectAll: false,
+                              ),
+                              onChanged: (newValue) {
+                                // ref.read(addressEntryDataProvider(widget.id)).address = newValue;
+                              },
                             ),
-                            key: const Key(
-                                "createBackupSaveToFileLocationTextFieldKey"),
-                            readOnly: true,
-                            toolbarOptions: const ToolbarOptions(
-                              copy: true,
-                              cut: false,
-                              paste: false,
-                              selectAll: false,
-                            ),
-                            onChanged: (newValue) {
-                              // ref.read(addressEntryDataProvider(widget.id)).address = newValue;
-                            },
-                          ),
-                        );
-                      }),
-                      const SizedBox(
-                        height: 8,
-                      ),
+                          );
+                        }),
+                      if (!Platform.isAndroid)
+                        const SizedBox(
+                          height: 8,
+                        ),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
@@ -315,8 +316,12 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     .extension<StackColors>()!
                                     .accentColorRed
                                 : passwordStrength < 1
-                                    ? Theme.of(context).extension<StackColors>()!.accentColorYellow
-                                    : Theme.of(context).extension<StackColors>()!.accentColorGreen,
+                                    ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorYellow
+                                    : Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorGreen,
                             backgroundColor: Theme.of(context)
                                 .extension<StackColors>()!
                                 .buttonBackSecondary,
@@ -389,8 +394,12 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                       const Spacer(),
                       TextButton(
                         style: shouldEnableCreate
-                            ? Theme.of(context) .extension<StackColors>()!.getPrimaryEnabledButtonColor(context)
-                            : Theme.of(context) .extension<StackColors>()!.getPrimaryDisabledButtonColor(context),
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .getPrimaryEnabledButtonColor(context)
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .getPrimaryDisabledButtonColor(context),
                         onPressed: !shouldEnableCreate
                             ? null
                             : () async {
@@ -468,8 +477,14 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     await showDialog<dynamic>(
                                       context: context,
                                       barrierDismissible: false,
-                                      builder: (_) => const StackOkDialog(
-                                          title: "Backup creation succeeded"),
+                                      builder: (_) => Platform.isAndroid
+                                          ? StackOkDialog(
+                                              title: "Backup saved to:",
+                                              message: fileToSave,
+                                            )
+                                          : const StackOkDialog(
+                                              title:
+                                                  "Backup creation succeeded"),
                                     );
                                     passwordController.text = "";
                                     passwordRepeatController.text = "";

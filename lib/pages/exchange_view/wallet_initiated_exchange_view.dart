@@ -83,8 +83,8 @@ class _WalletInitiatedExchangeViewState
           child: Container(
             color: Theme.of(context)
                 .extension<StackColors>()!
-                .accentColorDark
-                .withOpacity(0.8),
+                .overlay
+                .withOpacity(0.6),
             child: const CustomLoadingOverlay(
               message: "Updating exchange rate",
               eventBus: null,
@@ -271,7 +271,11 @@ class _WalletInitiatedExchangeViewState
                 .read(fixedRateExchangeFormProvider)
                 .setFromAmountAndCalculateToAmount(Decimal.zero, true);
           }
-          _receiveController.text = "";
+          _receiveController.text =
+              ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+                      ExchangeRateType.estimated
+                  ? "-"
+                  : "";
         }
       }
     });
@@ -329,7 +333,7 @@ class _WalletInitiatedExchangeViewState
             : fixedRateExchangeFormProvider.select(
                 (value) => value.toAmountString), (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
-        _receiveController.text = next;
+        _receiveController.text = isEstimated && next.isEmpty ? "-" : next;
         debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _sendController.text = isEstimated
@@ -349,7 +353,12 @@ class _WalletInitiatedExchangeViewState
         debugPrint("SEND AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _receiveController.text = isEstimated
-              ? ref.read(estimatedRateExchangeFormProvider).toAmountString
+              ? ref
+                      .read(estimatedRateExchangeFormProvider)
+                      .toAmountString
+                      .isEmpty
+                  ? "-"
+                  : ref.read(estimatedRateExchangeFormProvider).toAmountString
               : ref.read(fixedRateExchangeFormProvider).toAmountString;
         }
       }
@@ -469,7 +478,7 @@ class _WalletInitiatedExchangeViewState
                                     .setFromAmountAndCalculateToAmount(
                                         Decimal.zero, false);
                               }
-                              _receiveController.text = "";
+                              _receiveController.text = isEstimated ? "-" : "";
                             }
                           },
                           keyboardType: const TextInputType.numberWithOptions(
@@ -808,7 +817,8 @@ class _WalletInitiatedExchangeViewState
                                   .exchangeRateType ==
                               ExchangeRateType.estimated,
                           onTap: () {
-                            if (_receiveController.text == "-") {
+                            if (!isEstimated &&
+                                _receiveController.text == "-") {
                               _receiveController.text = "";
                             }
                           },
@@ -1280,23 +1290,23 @@ class _WalletInitiatedExchangeViewState
                                           .exchangeRateType ==
                                       ExchangeRateType.estimated;
 
-                                  final ft = isEstimated
-                                      ? ref
-                                              .read(
-                                                  estimatedRateExchangeFormProvider)
-                                              .from
-                                              ?.ticker ??
-                                          ""
-                                      : ref
-                                              .read(
-                                                  fixedRateExchangeFormProvider)
-                                              .market
-                                              ?.from ??
-                                          "";
-
-                                  final manager = ref
-                                      .read(walletsChangeNotifierProvider)
-                                      .getManager(walletId);
+                                  // final ft = isEstimated
+                                  //     ? ref
+                                  //             .read(
+                                  //                 estimatedRateExchangeFormProvider)
+                                  //             .from
+                                  //             ?.ticker ??
+                                  //         ""
+                                  //     : ref
+                                  //             .read(
+                                  //                 fixedRateExchangeFormProvider)
+                                  //             .market
+                                  //             ?.from ??
+                                  //         "";
+                                  //
+                                  // final manager = ref
+                                  //     .read(walletsChangeNotifierProvider)
+                                  //     .getManager(walletId);
                                   final sendAmount = Decimal.parse(ref
                                       .read(estimatedRateExchangeFormProvider)
                                       .fromAmountString);

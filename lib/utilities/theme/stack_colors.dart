@@ -1422,8 +1422,8 @@ class StackColors extends ThemeExtension<StackColors> {
         return _coin.monero;
       case Coin.namecoin:
         return _coin.namecoin;
-      // case Coin.wownero:
-      //   return wownero;
+      case Coin.wownero:
+        return _coin.wownero;
     }
   }
 

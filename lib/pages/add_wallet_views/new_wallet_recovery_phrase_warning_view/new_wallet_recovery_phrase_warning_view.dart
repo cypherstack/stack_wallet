@@ -59,7 +59,9 @@ class _NewWalletRecoveryPhraseWarningViewState
 
     final _numberOfPhraseWords = coin == Coin.monero
         ? Constants.seedPhraseWordCountMonero
-        : Constants.seedPhraseWordCountBip39;
+        : coin == Coin.wownero
+            ? 14
+            : Constants.seedPhraseWordCountBip39;
 
     return MasterScaffold(
       isDesktop: isDesktop,
