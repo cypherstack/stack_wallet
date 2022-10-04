@@ -18,7 +18,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/models/models.dart';
@@ -41,7 +40,7 @@ import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/debug_service.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_loading_service.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
@@ -229,7 +228,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     // run without awaiting
     if (Constants.enableExchange) {
-      unawaited(ChangeNowLoadingService().loadAll(ref));
+      unawaited(ExchangeDataLoadingService().loadAll(ref));
     }
 
     if (_prefs.isAutoBackupEnabled) {
@@ -248,102 +247,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       }
     }
   }
-
-  // Future<void> _loadChangeNowStandardCurrencies() async {
-  //   if (ref
-  //           .read(availableChangeNowCurrenciesStateProvider.state)
-  //           .state
-  //           .isNotEmpty &&
-  //       ref
-  //           .read(availableFloatingRatePairsStateProvider.state)
-  //           .state
-  //           .isNotEmpty) {
-  //     return;
-  //   }
-  //   final response = await ChangeNowAPI.instance.getAvailableCurrencies();
-  //   final response2 =
-  //       await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
-  //   if (response.value != null) {
-  //     ref.read(availableChangeNowCurrenciesStateProvider.state).state =
-  //         response.value!;
-  //     if (response2.value != null) {
-  //       ref.read(availableFloatingRatePairsStateProvider.state).state =
-  //           response2.value!;
-  //
-  //       if (response.value!.length > 1) {
-  //         if (ref.read(exchangeFormStateProvider).from == null) {
-  //           if (response.value!.where((e) => e.ticker == "btc").isNotEmpty) {
-  //             await ref.read(exchangeFormStateProvider).updateFrom(
-  //                 response.value!.firstWhere((e) => e.ticker == "btc"), false);
-  //           }
-  //         }
-  //         if (ref.read(exchangeFormStateProvider).to == null) {
-  //           if (response.value!.where((e) => e.ticker == "doge").isNotEmpty) {
-  //             await ref.read(exchangeFormStateProvider).updateTo(
-  //                 response.value!.firstWhere((e) => e.ticker == "doge"), false);
-  //           }
-  //         }
-  //       }
-  //     } else {
-  //       Logging.instance.log(
-  //           "Failed to load changeNOW available floating rate pairs: ${response2.exception?.errorMessage}",
-  //           level: LogLevel.Error);
-  //       ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-  //           ChangeNowLoadStatus.failed;
-  //       return;
-  //     }
-  //   } else {
-  //     Logging.instance.log(
-  //         "Failed to load changeNOW currencies: ${response.exception?.errorMessage}",
-  //         level: LogLevel.Error);
-  //     await Future<void>.delayed(const Duration(seconds: 1));
-  //     ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-  //         ChangeNowLoadStatus.failed;
-  //     return;
-  //   }
-  //
-  //   ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-  //       ChangeNowLoadStatus.success;
-  // }
-
-  // Future<void> _loadFixedRateMarkets() async {
-  //   Logging.instance.log("Starting initial fixed rate market data loading...",
-  //       level: LogLevel.Info);
-  //   if (ref.read(fixedRateMarketPairsStateProvider.state).state.isNotEmpty) {
-  //     return;
-  //   }
-  //
-  //   final response3 =
-  //       await ChangeNowAPI.instance.getAvailableFixedRateMarkets();
-  //   if (response3.value != null) {
-  //     ref.read(fixedRateMarketPairsStateProvider.state).state =
-  //         response3.value!;
-  //
-  //     if (ref.read(exchangeFormStateProvider).market == null) {
-  //       final matchingMarkets =
-  //           response3.value!.where((e) => e.to == "doge" && e.from == "btc");
-  //       if (matchingMarkets.isNotEmpty) {
-  //         await ref
-  //             .read(exchangeFormStateProvider)
-  //             .updateMarket(matchingMarkets.first, true);
-  //       }
-  //     }
-  //
-  //     Logging.instance.log("Initial fixed rate market data loading complete.",
-  //         level: LogLevel.Info);
-  //   } else {
-  //     Logging.instance.log(
-  //         "Failed to load changeNOW fixed rate markets: ${response3.exception?.errorMessage}",
-  //         level: LogLevel.Error);
-  //
-  //     ref.read(changeNowFixedInitialLoadStatusStateProvider.state).state =
-  //         ChangeNowLoadStatus.failed;
-  //     return;
-  //   }
-  //
-  //   ref.read(changeNowFixedInitialLoadStatusStateProvider.state).state =
-  //       ChangeNowLoadStatus.success;
-  // }
 
   @override
   void initState() {

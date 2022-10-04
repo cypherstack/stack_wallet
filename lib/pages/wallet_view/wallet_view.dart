@@ -5,7 +5,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
@@ -19,7 +18,6 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_navigation_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
-import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
@@ -31,7 +29,8 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_loading_service.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -79,7 +78,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
 
-  final _cnLoadingService = ChangeNowLoadingService();
+  final _cnLoadingService = ExchangeDataLoadingService();
 
   @override
   void initState() {
@@ -247,15 +246,19 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
       );
     } else {
+      ref.read(currentExchangeNameStateProvider.state).state =
+          ChangeNowExchange.exchangeName;
       final walletId = ref.read(managerProvider).walletId;
       ref.read(prefsChangeNotifierProvider).exchangeRateType =
           ExchangeRateType.estimated;
+
+      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
       ref.read(exchangeFormStateProvider).exchangeType =
           ExchangeRateType.estimated;
 
       final currencies = ref
-          .read(availableChangeNowCurrenciesStateProvider.state)
-          .state
+          .read(availableChangeNowCurrenciesProvider)
+          .currencies
           .where((element) =>
               element.ticker.toLowerCase() == coin.ticker.toLowerCase());
 
@@ -263,8 +266,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ref.read(exchangeFormStateProvider).setCurrencies(
               currencies.first,
               ref
-                  .read(availableChangeNowCurrenciesStateProvider.state)
-                  .state
+                  .read(availableChangeNowCurrenciesProvider)
+                  .currencies
                   .firstWhere(
                     (element) =>
                         element.ticker.toLowerCase() !=

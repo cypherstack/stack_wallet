@@ -7,7 +7,7 @@ import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
+import 'package:stackwallet/providers/exchange/exchange_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/notifications_api.dart';
@@ -245,7 +245,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
                                   final ExchangeResponse<Trade> response =
                                       await ref
-                                          .read(changeNowProvider)
+                                          .read(exchangeProvider)
                                           .createTrade(
                                             from: model.sendTicker,
                                             to: model.receiveTicker,

@@ -12,8 +12,6 @@ import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
-import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -68,7 +66,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   Future<void> _updateStatus() async {
     final statusResponse =
-        await ref.read(changeNowProvider).updateTrade(model.trade!);
+        await ref.read(exchangeProvider).updateTrade(model.trade!);
     String status = "Waiting";
     if (statusResponse.value != null) {
       status = statusResponse.value!.status;

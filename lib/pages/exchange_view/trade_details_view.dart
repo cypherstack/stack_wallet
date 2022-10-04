@@ -13,10 +13,9 @@ import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
-import 'package:stackwallet/providers/exchange/trade_note_service_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -85,7 +84,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
           .firstWhere((e) => e.tradeId == tradeId);
 
       if (mounted) {
-        final response = await ref.read(changeNowProvider).updateTrade(trade);
+        final exchange = Exchange.fromName(trade.exchangeName);
+        final response = await exchange.updateTrade(trade);
 
         if (mounted && response.value != null) {
           await ref

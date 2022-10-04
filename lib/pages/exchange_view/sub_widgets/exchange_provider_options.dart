@@ -2,31 +2,13 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-final currentExchangeNameStateProvider =
-    StateProvider<String>((ref) => ChangeNowExchange.exchangeName);
-
-final exchangeProvider = Provider<Exchange>((ref) {
-  switch (ref.watch(currentExchangeNameStateProvider.state).state) {
-    case ChangeNowExchange.exchangeName:
-      return ChangeNowExchange();
-    case SimpleSwapExchange.exchangeName:
-      return SimpleSwapExchange();
-    default:
-      const errorMessage =
-          "Attempted to access exchangeProvider with invalid exchange name!";
-      Logging.instance.log(errorMessage, level: LogLevel.Fatal);
-      throw Exception(errorMessage);
-  }
-});
 
 class ExchangeProviderOptions extends ConsumerWidget {
   const ExchangeProviderOptions({

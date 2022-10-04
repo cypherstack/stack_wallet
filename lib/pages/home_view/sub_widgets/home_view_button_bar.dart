@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_loading_service.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -119,7 +118,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
                 //     // },
                 //   ),
                 // );
-                await ChangeNowLoadingService().loadAll(ref);
+                await ExchangeDataLoadingService().loadAll(ref);
                 // if (!okPressed && mounted) {
                 //   Navigator.of(context).pop();
                 // }

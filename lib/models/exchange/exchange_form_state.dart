@@ -1,16 +1,12 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
-
-final exchangeFormStateProvider =
-    ChangeNotifierProvider<ExchangeFormState>((ref) => ExchangeFormState());
 
 class ExchangeFormState extends ChangeNotifier {
   Exchange? _exchange;
