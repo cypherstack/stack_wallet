@@ -32,7 +32,10 @@ cd stack_wallet
 git submodule update --init --recursive
 ```
 
-You will need to install all dependencies listed in each of the plugins in the crypto_plugins folder. (eg. [Monero](https://github.com/cypherstack/flutter_libmonero), [Epic Cash](https://github.com/cypherstack/flutter_libepiccash) ) as of Sep 8th 2022 that is:
+Install all dependencies listed in each of the plugins in the crypto_plugins folder (eg. [flutter_libmonero](https://github.com/cypherstack/flutter_libmonero/blob/main/howto-build-android.md), [flutter_libepiccash](https://github.com/cypherstack/flutter_libepiccash) ) as of Oct 3rd 2022 that is:
+```
+sudo apt-get install unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm sudo apt-get install debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
+```
 
 Install [Rust](https://www.rust-lang.org/tools/install)
 ```
@@ -53,6 +56,17 @@ cd scripts
 // when finished go back to the root directory
 cd ..
 ```
+
+
+Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
+```
+sudo apt list --installed | grep boost
+```
+for example to find which pre-installed packages you may need to remove with `sudo apt remove`.  Be careful, as some packages (especially boost) are linked to GNOME (GUI) packages: when in doubt, remove `-dev` packages first like with
+```
+sudo apt-get remove '^libboost.*-dev.*'
+```
+<!-- TODO: configure compiler to prefer built over system libraries -->
 
 Building plugins for Android
 ```
