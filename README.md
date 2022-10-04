@@ -48,6 +48,16 @@ sudo apt install build-essential debhelper cmake libclang-dev libncurses5-dev cl
 sudo apt install unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
 ```
 
+Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
+```
+sudo apt list --installed | grep boost
+```
+for example to find which pre-installed packages you may need to remove with `sudo apt remove`.  Be careful, as some packages (especially boost) are linked to GNOME (GUI) packages: when in doubt, remove `-dev` packages first like with
+```
+sudo apt-get remove '^libboost.*-dev.*'
+```
+<!-- TODO: configure compiler to prefer built over system libraries -->
+
 Building plugins for Android
 ```
 cd scripts/android/
