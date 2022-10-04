@@ -48,6 +48,16 @@ sudo apt install build-essential debhelper cmake libclang-dev libncurses5-dev cl
 sudo apt install unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
 ```
 
+Run prebuild script
+
+```
+cd scripts
+./prebuild.sh
+// when finished go back to the root directory
+cd ..
+```
+
+
 Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
 ```
 sudo apt list --installed | grep boost
