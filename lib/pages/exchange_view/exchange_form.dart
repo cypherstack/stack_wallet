@@ -18,7 +18,6 @@ import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_options.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
-import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
