@@ -289,6 +289,7 @@ flutter:
     - assets/svg/tx-icon-anonymize.svg
     - assets/svg/tx-icon-anonymize-pending.svg
     - assets/svg/tx-icon-anonymize-failed.svg
+    - assets/svg/Polygon.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg
@@ -312,6 +313,7 @@ flutter:
     - assets/svg/exchange-3.svg
     - assets/svg/message-question-1.svg
     - assets/svg/drd-icon.svg
+    - assets/svg/box-auto.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
