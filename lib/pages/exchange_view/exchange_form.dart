@@ -294,8 +294,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       ),
     );
 
-    if (ref.watch(prefsChangeNotifierProvider
-            .select((pref) => pref.exchangeRateType)) ==
+    if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
         ExchangeRateType.estimated) {
       await ref.read(exchangeFormStateProvider).swap();
     } else {
@@ -912,6 +911,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    ref.listen<String>(currentExchangeNameStateProvider, (previous, next) {
+      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
+    });
+
     final isEstimated = ref.watch(prefsChangeNotifierProvider
             .select((pref) => pref.exchangeRateType)) ==
         ExchangeRateType.estimated;
@@ -920,7 +923,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         exchangeFormStateProvider.select((value) => value.toAmountString),
         (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
-        _receiveController.text = isEstimated && next.isEmpty ? "-" : next;
+        _receiveController.text = isEstimated &&
+                ref.watch(exchangeProvider).name ==
+                    SimpleSwapExchange.exchangeName &&
+                next.isEmpty
+            ? "-"
+            : next;
         debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _sendController.text =
@@ -1164,8 +1172,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           focusNode: _receiveFocusNode,
           controller: _receiveController,
           readOnly: ref.watch(prefsChangeNotifierProvider
-                  .select((value) => value.exchangeRateType)) ==
-              ExchangeRateType.estimated,
+                      .select((value) => value.exchangeRateType)) ==
+                  ExchangeRateType.estimated ||
+              ref.watch(exchangeProvider).name ==
+                  SimpleSwapExchange.exchangeName,
           onTap: () {
             if (!(ref.read(prefsChangeNotifierProvider).exchangeRateType ==
                     ExchangeRateType.estimated) &&
@@ -1306,8 +1316,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           height: 8,
         ),
         ExchangeProviderOptions(
-          fromAmount: null,
-          toAmount: null,
+          from: ref.watch(exchangeFormStateProvider).fromTicker,
+          to: ref.watch(exchangeFormStateProvider).toTicker,
+          fromAmount: ref.watch(exchangeFormStateProvider).fromAmount,
+          toAmount: ref.watch(exchangeFormStateProvider).toAmount,
           fixedRate: ref.watch(prefsChangeNotifierProvider
                   .select((value) => value.exchangeRateType)) ==
               ExchangeRateType.fixed,

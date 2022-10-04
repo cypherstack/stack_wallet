@@ -6,6 +6,7 @@ import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
+import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
@@ -184,7 +185,7 @@ class ExchangeFormState extends ChangeNotifier {
       );
 
       debugPrint(
-          "_updated TO: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate");
+          "_updated TO: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate for: $exchange");
 
       if (shouldNotifyListeners) {
         notifyListeners();
@@ -212,7 +213,7 @@ class ExchangeFormState extends ChangeNotifier {
       );
 
       debugPrint(
-          "_updated FROM: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate");
+          "_updated FROM: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate for: $exchange");
       if (shouldNotifyListeners) {
         notifyListeners();
       }
@@ -254,15 +255,23 @@ class ExchangeFormState extends ChangeNotifier {
   }
 
   void _onExchangeTypeChanged() {
-    print("_onExchangeTypeChanged");
+    updateRanges(shouldNotifyListeners: true).then(
+      (_) => updateEstimate(
+        shouldNotifyListeners: true,
+        reversed: reversed,
+      ),
+    );
   }
 
   Future<void> updateRanges({required bool shouldNotifyListeners}) async {
+    if (exchange?.name == SimpleSwapExchange.exchangeName) {
+      reversed = false;
+    }
     final _fromTicker = reversed ? toTicker : fromTicker;
     final _toTicker = reversed ? fromTicker : toTicker;
     if (_fromTicker == null || _toTicker == null) {
       Logging.instance.log(
-        "Tried to $runtimeType.updateRanges where (from: $_fromTicker || to: $_toTicker)",
+        "Tried to $runtimeType.updateRanges where (from: $_fromTicker || to: $_toTicker) for: $exchange",
         level: LogLevel.Info,
       );
       return;
@@ -275,7 +284,7 @@ class ExchangeFormState extends ChangeNotifier {
 
     if (response?.value == null) {
       Logging.instance.log(
-        "Tried to $runtimeType.updateRanges where response: $response",
+        "Tried to $runtimeType.updateRanges for: $exchange where response: $response",
         level: LogLevel.Info,
       );
       return;
@@ -286,7 +295,8 @@ class ExchangeFormState extends ChangeNotifier {
     minAmount = range.min;
     maxAmount = range.max;
 
-    debugPrint("updated range for $_fromTicker-$_toTicker: $range");
+    debugPrint(
+        "updated range for: $exchange for $_fromTicker-$_toTicker: $range");
 
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -297,13 +307,16 @@ class ExchangeFormState extends ChangeNotifier {
     required bool shouldNotifyListeners,
     required bool reversed,
   }) async {
+    if (exchange?.name == SimpleSwapExchange.exchangeName) {
+      reversed = false;
+    }
     final amount = reversed ? toAmount : fromAmount;
     if (fromTicker == null ||
         toTicker == null ||
         amount == null ||
         amount <= Decimal.zero) {
       Logging.instance.log(
-        "Tried to $runtimeType.updateEstimate where (from: $fromTicker || to: $toTicker || amount: $amount)",
+        "Tried to $runtimeType.updateEstimate for: $exchange where (from: $fromTicker || to: $toTicker || amount: $amount)",
         level: LogLevel.Info,
       );
       return;
@@ -318,7 +331,7 @@ class ExchangeFormState extends ChangeNotifier {
 
     if (response?.value == null) {
       Logging.instance.log(
-        "Tried to $runtimeType.updateEstimate where response: $response",
+        "Tried to $runtimeType.updateEstimate for: $exchange where response: $response",
         level: LogLevel.Info,
       );
       return;
@@ -334,7 +347,8 @@ class ExchangeFormState extends ChangeNotifier {
 
     rate = (toAmount! / fromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
 
-    debugPrint("updated estimate for $fromTicker-$toTicker: $estimate");
+    debugPrint(
+        "updated estimate for: $exchange for $fromTicker-$toTicker: $estimate");
 
     if (shouldNotifyListeners) {
       notifyListeners();
