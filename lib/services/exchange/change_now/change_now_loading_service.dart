@@ -67,8 +67,10 @@ class ChangeNowLoadingService {
         ChangeNowLoadStatus.success;
   }
 
-  Future<void> _loadChangeNowStandardCurrencies(WidgetRef ref,
-      {Coin? coin}) async {
+  Future<void> _loadChangeNowStandardCurrencies(
+    WidgetRef ref, {
+    Coin? coin,
+  }) async {
     if (ref
             .read(changeNowEstimatedInitialLoadStatusStateProvider.state)
             .state ==

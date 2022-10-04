@@ -13,8 +13,6 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:tuple/tuple.dart';
 
-const kFixedRateEnabled = true;
-
 class ExchangeView extends ConsumerStatefulWidget {
   const ExchangeView({Key? key}) : super(key: key);
 

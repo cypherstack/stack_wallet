@@ -1,16 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/exchange_form_state.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
-import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
-import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
-import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_loading_service.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -25,103 +17,6 @@ class HomeViewButtonBar extends ConsumerStatefulWidget {
 class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
   final DateTime _lastRefreshed = DateTime.now();
   final Duration _refreshInterval = const Duration(hours: 1);
-
-  Future<void> _loadChangeNowData(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    List<Future<void>> futures = [];
-    if (kFixedRateEnabled) {
-      futures.add(_loadFixedRateMarkets(context, ref));
-    }
-    futures.add(_loadStandardCurrencies(context, ref));
-
-    await Future.wait(futures);
-  }
-
-  Future<void> _loadStandardCurrencies(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final response = await ref.read(changeNowProvider).getAllCurrencies(false);
-    final response2 =
-        await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
-    if (response.value != null && response2.value != null) {
-      ref.read(availableChangeNowCurrenciesStateProvider.state).state =
-          response.value!;
-      ref.read(availableFloatingRatePairsStateProvider.state).state =
-          response2.value!;
-
-      if (response.value!.length > 1) {
-        if (ref.read(exchangeFormStateProvider).from == null) {
-          if (response.value!.where((e) => e.ticker == "btc").isNotEmpty) {
-            await ref.read(exchangeFormStateProvider).updateFrom(
-                response.value!.firstWhere((e) => e.ticker == "btc"), true);
-          }
-        }
-        if (ref.read(exchangeFormStateProvider).to == null) {
-          if (response.value!.where((e) => e.ticker == "doge").isNotEmpty) {
-            await ref.read(exchangeFormStateProvider).updateTo(
-                response.value!.firstWhere((e) => e.ticker == "doge"), true);
-          }
-        }
-      }
-
-      Logging.instance
-          .log("loaded floating rate change now data", level: LogLevel.Info);
-    } else {
-      Logging.instance.log(
-          "Failed to load changeNOW floating rate market data: \n${response.exception?.errorMessage}\n${response2.exception?.toString()}",
-          level: LogLevel.Error);
-      unawaited(showDialog<dynamic>(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => StackDialog(
-          title: "Failed to fetch available currencies",
-          message:
-              "${response.exception?.toString()}\n\n${response2.exception?.toString()}",
-        ),
-      ));
-    }
-  }
-
-  Future<void> _loadFixedRateMarkets(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final response3 =
-        await ChangeNowAPI.instance.getAvailableFixedRateMarkets();
-
-    if (response3.value != null) {
-      ref.read(fixedRateMarketPairsStateProvider.state).state =
-          response3.value!;
-
-      if (ref.read(exchangeFormStateProvider).market == null) {
-        final matchingMarkets =
-            response3.value!.where((e) => e.to == "doge" && e.from == "btc");
-
-        if (matchingMarkets.isNotEmpty) {
-          await ref
-              .read(exchangeFormStateProvider)
-              .updateMarket(matchingMarkets.first, true);
-        }
-      }
-      Logging.instance
-          .log("loaded fixed rate change now data", level: LogLevel.Info);
-    } else {
-      Logging.instance.log(
-          "Failed to load changeNOW fixed rate markets: ${response3.exception?.errorMessage}",
-          level: LogLevel.Error);
-      unawaited(showDialog<dynamic>(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => StackDialog(
-          title: "ChangeNOW API call failed",
-          message: "${response3.exception?.toString()}",
-        ),
-      ));
-    }
-  }
 
   @override
   void initState() {
@@ -224,7 +119,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
                 //     // },
                 //   ),
                 // );
-                await _loadChangeNowData(context, ref);
+                await ChangeNowLoadingService().loadAll(ref);
                 // if (!okPressed && mounted) {
                 //   Navigator.of(context).pop();
                 // }
