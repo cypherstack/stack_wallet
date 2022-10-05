@@ -51,7 +51,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
-const int MINIMUM_CONFIRMATIONS = 4;
+const int MINIMUM_CONFIRMATIONS = 10;
 
 //https://github.com/wownero-project/wownero/blob/8361d60aef6e17908658128284899e3a11d808d4/src/cryptonote_config.h#L162
 const String GENESIS_HASH_MAINNET =
@@ -912,6 +912,9 @@ class WowneroWallet extends CoinServiceAPI {
     Directory root = (await getApplicationDocumentsDirectory());
     if (Platform.isIOS) {
       root = (await getLibraryDirectory());
+    }
+    if (Platform.isLinux) {
+      root = Directory("${root.path}/.stackwallet");
     }
     final prefix = walletTypeToString(type).toLowerCase();
     final walletsDir = Directory('${root.path}/wallets');
