@@ -348,22 +348,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                               "sendViewScanQrButtonKey"),
                                           onTap: () async {
                                             try {
-                                              // ref
-                                              //     .read(
-                                              //         shouldShowLockscreenOnResumeStateProvider
-                                              //             .state)
-                                              //     .state = false;
                                               final qrResult =
                                                   await scanner.scan();
-
-                                              // Future<void>.delayed(
-                                              //   const Duration(seconds: 2),
-                                              //   () => ref
-                                              //       .read(
-                                              //           shouldShowLockscreenOnResumeStateProvider
-                                              //               .state)
-                                              //       .state = true,
-                                              // );
 
                                               final results =
                                                   AddressUtils.parseUri(
@@ -385,16 +371,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 setState(() {});
                                               }
                                             } on PlatformException catch (e, s) {
-                                              // ref
-                                              //     .read(
-                                              //         shouldShowLockscreenOnResumeStateProvider
-                                              //             .state)
-                                              //     .state = true;
-                                              // here we ignore the exception caused by not giving permission
-                                              // to use the camera to scan a qr code
                                               Logging.instance.log(
-                                                  "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                                  level: LogLevel.Warning);
+                                                "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+                                                level: LogLevel.Warning,
+                                              );
                                             }
                                           },
                                           child: const QrCodeIcon(),
@@ -585,22 +565,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                               "sendViewScanQrButtonKey"),
                                           onTap: () async {
                                             try {
-                                              // ref
-                                              //     .read(
-                                              //         shouldShowLockscreenOnResumeStateProvider
-                                              //             .state)
-                                              //     .state = false;
                                               final qrResult =
                                                   await scanner.scan();
-
-                                              // Future<void>.delayed(
-                                              //   const Duration(seconds: 2),
-                                              //   () => ref
-                                              //       .read(
-                                              //           shouldShowLockscreenOnResumeStateProvider
-                                              //               .state)
-                                              //       .state = true,
-                                              // );
 
                                               final results =
                                                   AddressUtils.parseUri(
@@ -622,16 +588,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 setState(() {});
                                               }
                                             } on PlatformException catch (e, s) {
-                                              // ref
-                                              //     .read(
-                                              //         shouldShowLockscreenOnResumeStateProvider
-                                              //             .state)
-                                              //     .state = true;
-                                              // here we ignore the exception caused by not giving permission
-                                              // to use the camera to scan a qr code
                                               Logging.instance.log(
-                                                  "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                                  level: LogLevel.Warning);
+                                                "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+                                                level: LogLevel.Warning,
+                                              );
                                             }
                                           },
                                           child: const QrCodeIcon(),
@@ -680,8 +640,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               child: TextButton(
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(
-                                      Step3View.routeName,
-                                      arguments: model);
+                                    Step3View.routeName,
+                                    arguments: model,
+                                  );
                                 },
                                 style: Theme.of(context)
                                     .extension<StackColors>()!

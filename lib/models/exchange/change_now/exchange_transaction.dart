@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 
 part '../../type_adaptors/exchange_transaction.g.dart';
 
+@Deprecated(
+    "Do not use. Migrated to Trade in db_version_migration to hive_data_version 2")
 // @HiveType(typeId: 13)
 class ExchangeTransaction {
   /// You can use it to get transaction status at the Transaction status API endpoint
