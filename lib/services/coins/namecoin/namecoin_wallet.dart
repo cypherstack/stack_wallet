@@ -2501,7 +2501,8 @@ class NamecoinWallet extends CoinServiceAPI {
         int totalOutput = 0;
 
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["addresses"][0];
+          Logging.instance.log(output, level: LogLevel.Info);
+          final address = output["scriptPubKey"]["address"];
           final value = output["value"];
           final _value = (Decimal.parse(value.toString()) *
                   Decimal.fromInt(Constants.satsPerCoin))
