@@ -944,7 +944,9 @@ class RouteGenerator {
       case SettingsMenu.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SettingsMenu(),
+            builder: (_) => SettingsMenu(
+                  onSelectionChanged: (int) {},
+                ),
             settings: RouteSettings(name: settings.name));
 
       // == End of desktop specific routes =====================================
