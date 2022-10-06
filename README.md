@@ -118,6 +118,6 @@ sudo snap install android-studio --classic
 
 Use Tools > SDK Manager to install the SDK Tools > Android SDK (API 30), SDK Tools > NDK, SDK Tools > Android SDK command line tools, and SDK Tools > CMake
 
-Then install the Flutter plugin.  In Android Studio's options for the Flutter language, enable auto format on save to match the project's code style
+Then install the Flutter plugin and restart the IDE.  In Android Studio's options for the Flutter language, enable auto format on save to match the project's code style
 
 Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
