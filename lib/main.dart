@@ -84,6 +84,10 @@ void main() async {
   if (Platform.isIOS) {
     appDirectory = (await getLibraryDirectory());
   }
+  if (Platform.isLinux || Logging.isArmLinux) {
+    appDirectory = Directory("${appDirectory.path}/.stackwallet");
+    await appDirectory.create();
+  }
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   if (!(Logging.isArmLinux || Logging.isTestEnv)) {
     final isar = await Isar.open(

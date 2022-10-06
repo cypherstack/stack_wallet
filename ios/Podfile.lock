@@ -42,6 +42,25 @@ PODS:
     - Flutter
   - cw_shared_external/Sodium (0.0.1):
     - Flutter
+  - cw_wownero (0.0.2):
+    - cw_shared_external
+    - cw_wownero/Boost (= 0.0.2)
+    - cw_wownero/OpenSSL (= 0.0.2)
+    - cw_wownero/Sodium (= 0.0.2)
+    - cw_wownero/Wownero (= 0.0.2)
+    - Flutter
+  - cw_wownero/Boost (0.0.2):
+    - cw_shared_external
+    - Flutter
+  - cw_wownero/OpenSSL (0.0.2):
+    - cw_shared_external
+    - Flutter
+  - cw_wownero/Sodium (0.0.2):
+    - cw_shared_external
+    - Flutter
+  - cw_wownero/Wownero (0.0.2):
+    - cw_shared_external
+    - Flutter
   - devicelocale (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.4):
@@ -127,6 +146,7 @@ DEPENDENCIES:
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - cw_monero (from `.symlinks/plugins/cw_monero/ios`)
   - cw_shared_external (from `.symlinks/plugins/cw_shared_external/ios`)
+  - cw_wownero (from `.symlinks/plugins/cw_wownero/ios`)
   - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
@@ -169,6 +189,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/cw_monero/ios"
   cw_shared_external:
     :path: ".symlinks/plugins/cw_shared_external/ios"
+  cw_wownero:
+    :path: ".symlinks/plugins/cw_wownero/ios"
   devicelocale:
     :path: ".symlinks/plugins/devicelocale/ios"
   file_picker:
@@ -216,6 +238,7 @@ SPEC CHECKSUMS:
   connectivity_plus: 413a8857dd5d9f1c399a39130850d02fe0feaf7e
   cw_monero: 9816991daff0e3ad0a8be140e31933b5526babd4
   cw_shared_external: 2972d872b8917603478117c9957dfca611845a92
+  cw_wownero: 08e5713fe311a3be95efd7f3c1bf9d47d9cfafde
   devicelocale: b22617f40038496deffba44747101255cee005b0
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179

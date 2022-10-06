@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.4.52+68
+version: 1.5.0+70
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -289,6 +289,7 @@ flutter:
     - assets/svg/tx-icon-anonymize.svg
     - assets/svg/tx-icon-anonymize-pending.svg
     - assets/svg/tx-icon-anonymize-failed.svg
+    - assets/svg/Polygon.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg
@@ -312,6 +313,7 @@ flutter:
     - assets/svg/exchange-3.svg
     - assets/svg/message-question-1.svg
     - assets/svg/drd-icon.svg
+    - assets/svg/box-auto.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

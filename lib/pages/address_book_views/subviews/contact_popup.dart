@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_details_view.dart';
+import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/providers/exchange/exchange_flow_is_active_state_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
@@ -18,6 +19,9 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
+
+final exchangeFromAddressBookAddressStateProvider =
+    StateProvider<String>((ref) => "");
 
 class ContactPopUp extends ConsumerWidget {
   const ContactPopUp({
@@ -268,11 +272,11 @@ class ContactPopUp extends ConsumerWidget {
                                               color: Theme.of(context)
                                                   .extension<StackColors>()!
                                                   .textFieldDefaultBG,
-                                              padding: const EdgeInsets.all(4),
+                                              padding: const EdgeInsets.all(6),
                                               child: SvgPicture.asset(
                                                   Assets.svg.copy,
-                                                  width: 12,
-                                                  height: 12,
+                                                  width: 16,
+                                                  height: 16,
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
                                                       .accentColorDark),
@@ -280,6 +284,45 @@ class ContactPopUp extends ConsumerWidget {
                                           ),
                                         ],
                                       ),
+                                      if (isExchangeFlow)
+                                        const SizedBox(
+                                          width: 6,
+                                        ),
+                                      if (isExchangeFlow)
+                                        Column(
+                                          children: [
+                                            const SizedBox(
+                                              height: 2,
+                                            ),
+                                            GestureDetector(
+                                              onTap: () {
+                                                ref
+                                                    .read(
+                                                        exchangeFromAddressBookAddressStateProvider
+                                                            .state)
+                                                    .state = e.address;
+                                                Navigator.of(context).popUntil(
+                                                    ModalRoute.withName(
+                                                        Step2View.routeName));
+                                              },
+                                              child: RoundedContainer(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textFieldDefaultBG,
+                                                padding:
+                                                    const EdgeInsets.all(6),
+                                                child: SvgPicture.asset(
+                                                    Assets.svg.chevronRight,
+                                                    width: 16,
+                                                    height: 16,
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .accentColorDark),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       if (contact.id != "default" &&
                                           hasActiveWallet &&
                                           !isExchangeFlow)

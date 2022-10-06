@@ -1,7 +1,9 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
@@ -20,12 +22,14 @@ import 'package:stackwallet/pages/address_book_views/subviews/address_book_filte
 import 'package:stackwallet/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
+import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_loading_overlay.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_3_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
+import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
@@ -871,6 +875,37 @@ class RouteGenerator {
               transactionIfSentFromStack: args.item2,
               walletId: args.item3,
               walletName: args.item4,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ChooseFromStackView.routeName:
+        if (args is Coin) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ChooseFromStackView(
+              coin: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SendFromView.routeName:
+        if (args is Tuple4<Coin, Decimal, String, ExchangeTransaction>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SendFromView(
+              coin: args.item1,
+              amount: args.item2,
+              trade: args.item4,
+              address: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,

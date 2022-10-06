@@ -209,6 +209,10 @@ abstract class SWB {
       Logging.instance.log(
           "...createStackWalletJSON DB.instance.mutex acquired",
           level: LogLevel.Info);
+      Logging.instance.log(
+        "SWB backing up nodes",
+        level: LogLevel.Warning,
+      );
       try {
         var primaryNodes = nodeService.primaryNodes.map((e) async {
           final map = e.toMap();
@@ -231,6 +235,11 @@ abstract class SWB {
         Logging.instance.log("$e $s", level: LogLevel.Error);
       }
 
+      Logging.instance.log(
+        "SWB backing up prefs",
+        level: LogLevel.Warning,
+      );
+
       Map<String, dynamic> prefs = {};
       final _prefs = Prefs.instance;
       await _prefs.init();
@@ -251,10 +260,20 @@ abstract class SWB {
 
       backupJson['prefs'] = prefs;
 
+      Logging.instance.log(
+        "SWB backing up addressbook",
+        level: LogLevel.Warning,
+      );
+
       AddressBookService addressBookService = AddressBookService();
       var addresses = await addressBookService.addressBookEntries;
       backupJson['addressBookEntries'] =
           addresses.map((e) => e.toMap()).toList();
+
+      Logging.instance.log(
+        "SWB backing up wallets",
+        level: LogLevel.Warning,
+      );
 
       List<dynamic> backupWallets = [];
       for (var manager in _wallets.managers) {
@@ -283,6 +302,11 @@ abstract class SWB {
       }
       backupJson['wallets'] = backupWallets;
 
+      Logging.instance.log(
+        "SWB backing up trades",
+        level: LogLevel.Warning,
+      );
+
       // back up trade history
       final tradesService = TradesService();
       final trades =
@@ -294,6 +318,11 @@ abstract class SWB {
       final lookupData =
           tradeTxidLookupDataService.all.map((e) => e.toMap()).toList();
       backupJson["tradeTxidLookupData"] = lookupData;
+
+      Logging.instance.log(
+        "SWB backing up trade notes",
+        level: LogLevel.Warning,
+      );
 
       // back up trade notes
       final tradeNotesService = TradeNotesService();
@@ -357,7 +386,7 @@ abstract class SWB {
       final notes = walletbackup["notes"] as Map?;
       if (notes != null) {
         for (final note in notes.entries) {
-          notesService.editOrAddNote(
+          await notesService.editOrAddNote(
               txid: note.key as String, note: note.value as String);
         }
       }
@@ -432,11 +461,19 @@ abstract class SWB {
 
     uiState?.preferences = StackRestoringStatus.restoring;
 
+    Logging.instance.log(
+      "SWB restoring prefs",
+      level: LogLevel.Warning,
+    );
     await _restorePrefs(prefs);
 
     uiState?.preferences = StackRestoringStatus.success;
     uiState?.addressBook = StackRestoringStatus.restoring;
 
+    Logging.instance.log(
+      "SWB restoring addressbook",
+      level: LogLevel.Warning,
+    );
     if (addressBookEntries != null) {
       await _restoreAddressBook(addressBookEntries);
     }
@@ -444,6 +481,10 @@ abstract class SWB {
     uiState?.addressBook = StackRestoringStatus.success;
     uiState?.nodes = StackRestoringStatus.restoring;
 
+    Logging.instance.log(
+      "SWB restoring nodes",
+      level: LogLevel.Warning,
+    );
     await _restoreNodes(nodes, primaryNodes);
 
     uiState?.nodes = StackRestoringStatus.success;
@@ -451,17 +492,29 @@ abstract class SWB {
 
     // restore trade history
     if (trades != null) {
+      Logging.instance.log(
+        "SWB restoring trades",
+        level: LogLevel.Warning,
+      );
       await _restoreTrades(trades);
     }
 
     // restore trade history lookup data for trades send from stack wallet
     if (tradeTxidLookupData != null) {
+      Logging.instance.log(
+        "SWB restoring trade look up data",
+        level: LogLevel.Warning,
+      );
       await _restoreTradesLookUpData(tradeTxidLookupData, oldToNewWalletIdMap);
     }
 
     // restore trade notes
 
     if (tradeNotes != null) {
+      Logging.instance.log(
+        "SWB restoring trade notes",
+        level: LogLevel.Warning,
+      );
       await _restoreTradesNotes(tradeNotes);
     }
 
@@ -490,9 +543,17 @@ abstract class SWB {
     String jsonBackup,
     StackRestoringUIState? uiState,
   ) async {
-    if (!Platform.isLinux) Wakelock.enable();
+    if (!Platform.isLinux) await Wakelock.enable();
 
+    Logging.instance.log(
+      "SWB creating temp backup",
+      level: LogLevel.Warning,
+    );
     final preRestoreJSON = await createStackWalletJSON();
+    Logging.instance.log(
+      "SWB temp backup created",
+      level: LogLevel.Warning,
+    );
 
     List<String> _currentWalletIds = Map<String, dynamic>.from(DB.instance
                 .get<dynamic>(
@@ -814,13 +875,13 @@ abstract class SWB {
       }
       await asyncRestore(epicCashWallets[i], uiState, walletsService);
     }
-    if (!Platform.isLinux) Wakelock.disable();
+    if (!Platform.isLinux) await Wakelock.disable();
     // check if cancel was requested and restore previous state
     if (_checkShouldCancel(preRestoreState)) {
       return false;
     }
 
-    Logging.instance.log("done with SWB restore", level: LogLevel.Info);
+    Logging.instance.log("done with SWB restore", level: LogLevel.Warning);
     return true;
   }
 
@@ -849,7 +910,7 @@ abstract class SWB {
       // if no contacts were present before attempted restore then delete any that
       // could have been added before the restore was cancelled
       for (final String idToDelete in allContactIds) {
-        addressBookService.removeContact(idToDelete);
+        await addressBookService.removeContact(idToDelete);
       }
     } else {
       final Map<String, dynamic> preContactMap = {};
@@ -886,7 +947,7 @@ abstract class SWB {
           );
         } else {
           // otherwise remove it as it was not there before attempting SWB restore
-          addressBookService.removeContact(id);
+          await addressBookService.removeContact(id);
         }
       }
     }
@@ -898,7 +959,7 @@ abstract class SWB {
       // no pre nodes found so we delete all but defaults
       for (final node in currentNodes) {
         if (!node.isDefault) {
-          nodeService.delete(node.id, true);
+          await nodeService.delete(node.id, true);
         }
       }
     } else {
@@ -912,7 +973,7 @@ abstract class SWB {
         if (nodeData != null) {
           // node existed before restore attempt
           // revert to pre restore node
-          nodeService.edit(
+          await nodeService.edit(
               node.copyWith(
                 host: nodeData['host'] as String,
                 port: nodeData['port'] as int,
@@ -927,7 +988,7 @@ abstract class SWB {
               nodeData['password'] as String?,
               true);
         } else {
-          nodeService.delete(node.id, true);
+          await nodeService.delete(node.id, true);
         }
       }
     }
@@ -951,7 +1012,7 @@ abstract class SWB {
       // no trade history found pre restore attempt so we delete anything that
       // was added during the restore attempt
       for (final tradeTx in currentTrades) {
-        tradesService.delete(trade: tradeTx, shouldNotifyListeners: true);
+        await tradesService.delete(trade: tradeTx, shouldNotifyListeners: true);
       }
     } else {
       final Map<String, dynamic> preTradeMap = {};
@@ -964,13 +1025,14 @@ abstract class SWB {
         if (tradeData != null) {
           // trade existed before attempted restore so we don't delete it, only
           // revert data to pre restore state
-          tradesService.edit(
+          await tradesService.edit(
               trade: ExchangeTransaction.fromJson(
                   tradeData as Map<String, dynamic>),
               shouldNotifyListeners: true);
         } else {
           // trade did not exist before so we delete it
-          tradesService.delete(trade: tradeTx, shouldNotifyListeners: true);
+          await tradesService.delete(
+              trade: tradeTx, shouldNotifyListeners: true);
         }
       }
     }
@@ -982,7 +1044,7 @@ abstract class SWB {
 
     if (tradeNotes == null) {
       for (final noteEntry in currentNotes.entries) {
-        tradeNotesService.delete(tradeId: noteEntry.key);
+        await tradeNotesService.delete(tradeId: noteEntry.key);
       }
     } else {
       // grab all trade IDs of (reverted to pre state) trades
@@ -991,7 +1053,7 @@ abstract class SWB {
       // delete all notes that don't correspond to an id that we have
       for (final noteEntry in currentNotes.entries) {
         if (!idsToKeep.contains(noteEntry.key)) {
-          tradeNotesService.delete(tradeId: noteEntry.key);
+          await tradeNotesService.delete(tradeId: noteEntry.key);
         }
       }
     }
@@ -1009,7 +1071,7 @@ abstract class SWB {
       for (int i = 0; i < tradeTxidLookupData.length; i++) {
         final json = Map<String, dynamic>.from(tradeTxidLookupData[i] as Map);
         TradeWalletLookup lookup = TradeWalletLookup.fromJson(json);
-        tradeTxidLookupDataService.save(tradeWalletLookup: lookup);
+        await tradeTxidLookupDataService.save(tradeWalletLookup: lookup);
       }
     }
 
@@ -1127,14 +1189,14 @@ abstract class SWB {
   ) async {
     final tradesService = TradesService();
     for (int i = 0; i < trades.length - 1; i++) {
-      tradesService.add(
+      await tradesService.add(
         trade: ExchangeTransaction.fromJson(trades[i] as Map<String, dynamic>),
         shouldNotifyListeners: false,
       );
     }
     // only call notifyListeners on last one added
     if (trades.isNotEmpty) {
-      tradesService.add(
+      await tradesService.add(
         trade:
             ExchangeTransaction.fromJson(trades.last as Map<String, dynamic>),
         shouldNotifyListeners: true,
@@ -1177,7 +1239,7 @@ abstract class SWB {
         }
       }
 
-      tradeTxidLookupDataService.save(tradeWalletLookup: lookup);
+      await tradeTxidLookupDataService.save(tradeWalletLookup: lookup);
     }
   }
 
@@ -1186,7 +1248,8 @@ abstract class SWB {
   ) async {
     final tradeNotesService = TradeNotesService();
     for (final note in tradeNotes.entries) {
-      tradeNotesService.set(tradeId: note.key, note: note.value as String);
+      await tradeNotesService.set(
+          tradeId: note.key, note: note.value as String);
     }
   }
 }

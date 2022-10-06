@@ -13,7 +13,7 @@ class StackFileSystem {
 
   final bool isDesktop = !(Platform.isAndroid || Platform.isIOS);
 
-  Future<void> prepareStorage() async {
+  Future<Directory> prepareStorage() async {
     rootPath = (await getApplicationDocumentsDirectory());
     debugPrint(rootPath!.absolute.toString());
     if (Platform.isAndroid) {
@@ -47,6 +47,7 @@ class StackFileSystem {
       debugPrint("$e $s");
     }
     startPath = sampleFolder;
+    return sampleFolder;
   }
 
   Future<void> pickDir(BuildContext context) async {

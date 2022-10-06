@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -222,6 +223,26 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                             Expanded(
                               child: TextButton(
                                 onPressed: () async {
+                                  unawaited(
+                                    showDialog<void>(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (_) => WillPopScope(
+                                        onWillPop: () async => false,
+                                        child: Container(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .overlay
+                                              .withOpacity(0.6),
+                                          child: const CustomLoadingOverlay(
+                                            message: "Creating a trade",
+                                            eventBus: null,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+
                                   ChangeNowResponse<ExchangeTransaction>
                                       response;
                                   if (model.rateType ==
@@ -251,6 +272,10 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   }
 
                                   if (response.value == null) {
+                                    if (mounted) {
+                                      Navigator.of(context).pop();
+                                    }
+
                                     unawaited(showDialog<void>(
                                       context: context,
                                       barrierDismissible: true,
@@ -273,8 +298,6 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                       .getTransactionStatus(
                                           id: response.value!.id);
 
-                                  debugPrint("WTF: $statusResponse");
-
                                   String status = "Waiting";
                                   if (statusResponse.value != null) {
                                     status = statusResponse.value!.status.name;
@@ -288,6 +311,10 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   // extra info if status is waiting
                                   if (status == "Waiting") {
                                     status += " for deposit";
+                                  }
+
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
                                   }
 
                                   unawaited(NotificationApi.showNotification(

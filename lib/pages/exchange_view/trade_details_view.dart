@@ -10,6 +10,7 @@ import 'package:stackwallet/models/exchange/change_now/exchange_transaction_stat
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
+import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/exchange/change_now_provider.dart';
@@ -24,6 +25,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -59,6 +61,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   late final String? walletId;
 
   String _note = "";
+
+  bool isStackCoin(String ticker) {
+    try {
+      coinFromTickerCaseInsensitive(ticker);
+      return true;
+    } on ArgumentError catch (_) {
+      return false;
+    }
+  }
 
   @override
   initState() {
@@ -345,9 +356,48 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Send ${trade.fromCurrency.toUpperCase()} to this address",
-                          style: STextStyles.itemSubtitle(context),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Send ${trade.fromCurrency.toUpperCase()} to this address",
+                              style: STextStyles.itemSubtitle(context),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                final address = trade.payinAddress;
+                                await Clipboard.setData(
+                                  ClipboardData(
+                                    text: address,
+                                  ),
+                                );
+                                unawaited(showFloatingFlushBar(
+                                  type: FlushBarType.info,
+                                  message: "Copied to clipboard",
+                                  context: context,
+                                ));
+                              },
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(
+                                    Assets.svg.copy,
+                                    width: 12,
+                                    height: 12,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .infoItemIcons,
+                                  ),
+                                  const SizedBox(
+                                    width: 4,
+                                  ),
+                                  Text(
+                                    "Copy",
+                                    style: STextStyles.link2(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(
                           height: 4,
@@ -717,6 +767,32 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 const SizedBox(
                   height: 12,
                 ),
+                if (isStackCoin(trade.fromCurrency) &&
+                    trade.statusObject != null &&
+                    (trade.statusObject!.status ==
+                            ChangeNowTransactionStatus.New ||
+                        trade.statusObject!.status ==
+                            ChangeNowTransactionStatus.Waiting))
+                  SecondaryButton(
+                    label: "Send from Stack",
+                    onPressed: () {
+                      final amount = sendAmount;
+                      final address = trade.payinAddress;
+
+                      final coin =
+                          coinFromTickerCaseInsensitive(trade.fromCurrency);
+
+                      Navigator.of(context).pushNamed(
+                        SendFromView.routeName,
+                        arguments: Tuple4(
+                          coin,
+                          amount,
+                          address,
+                          trade,
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
           ),

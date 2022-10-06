@@ -96,7 +96,14 @@ class AddWalletButton extends StatelessWidget {
           .extension<StackColors>()!
           .getPrimaryEnabledButtonColor(context),
       onPressed: () {
-        Navigator.of(context).pushNamed(AddWalletView.routeName);
+        if (isDesktop) {
+          Navigator.of(
+            context,
+            rootNavigator: true,
+          ).pushNamed(AddWalletView.routeName);
+        } else {
+          Navigator.of(context).pushNamed(AddWalletView.routeName);
+        }
       },
       child: Center(
         child: Container(

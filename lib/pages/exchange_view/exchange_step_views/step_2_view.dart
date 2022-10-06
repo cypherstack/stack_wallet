@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
+import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
+import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_3_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/providers/exchange/exchange_flow_is_active_state_provider.dart';
@@ -17,6 +19,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -54,6 +57,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
   late final FocusNode _toFocusNode;
   late final FocusNode _refundFocusNode;
 
+  bool isStackCoin(String ticker) {
+    try {
+      coinFromTickerCaseInsensitive(ticker);
+      return true;
+    } on ArgumentError catch (_) {
+      return false;
+    }
+  }
+
   @override
   void initState() {
     model = widget.model;
@@ -74,7 +86,22 @@ class _Step2ViewState extends ConsumerState<Step2View> {
             .read(walletsChangeNotifierProvider)
             .getManager(tuple.item1)
             .currentReceivingAddress
-            .then((value) => _toController.text = value);
+            .then((value) {
+          _toController.text = value;
+          model.recipientAddress = _toController.text;
+        });
+      } else {
+        if (model.sendTicker.toUpperCase() ==
+            tuple.item2.ticker.toUpperCase()) {
+          ref
+              .read(walletsChangeNotifierProvider)
+              .getManager(tuple.item1)
+              .currentReceivingAddress
+              .then((value) {
+            _refundController.text = value;
+            model.refundAddress = _refundController.text;
+          });
+        }
       }
     }
 
@@ -158,15 +185,36 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               "Recipient Wallet",
                               style: STextStyles.smallMed12(context),
                             ),
-                            // GestureDetector(
-                            //   onTap: () {
-                            //     // TODO: choose from stack?
-                            //   },
-                            //   child: Text(
-                            //     "Choose from Stack",
-                            //     style: STextStyles.link2(context),
-                            //   ),
-                            // ),
+                            if (isStackCoin(model.receiveTicker))
+                              BlueTextButton(
+                                text: "Choose from stack",
+                                onTap: () {
+                                  try {
+                                    final coin = coinFromTickerCaseInsensitive(
+                                      model.receiveTicker,
+                                    );
+                                    Navigator.of(context)
+                                        .pushNamed(
+                                      ChooseFromStackView.routeName,
+                                      arguments: coin,
+                                    )
+                                        .then((value) async {
+                                      if (value is String) {
+                                        final manager = ref
+                                            .read(walletsChangeNotifierProvider)
+                                            .getManager(value);
+
+                                        _toController.text = manager.walletName;
+                                        model.recipientAddress = await manager
+                                            .currentReceivingAddress;
+                                      }
+                                    });
+                                  } catch (e, s) {
+                                    Logging.instance
+                                        .log("$e\n$s", level: LogLevel.Info);
+                                  }
+                                },
+                              ),
                           ],
                         ),
                         const SizedBox(
@@ -195,6 +243,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                             ),
                             focusNode: _toFocusNode,
                             style: STextStyles.field(context),
+                            onChanged: (value) {
+                              setState(() {});
+                            },
                             decoration: standardInputDecoration(
                               "Enter the ${model.receiveTicker.toUpperCase()} payout address",
                               _toFocusNode,
@@ -221,6 +272,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                   "sendViewClearAddressFieldButtonKey"),
                                               onTap: () {
                                                 _toController.text = "";
+                                                model.recipientAddress =
+                                                    _toController.text;
 
                                                 setState(() {});
                                               },
@@ -239,6 +292,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                       data.text!.trim();
 
                                                   _toController.text = content;
+                                                  model.recipientAddress =
+                                                      _toController.text;
 
                                                   setState(() {});
                                                 }
@@ -259,13 +314,31 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 .state = true;
                                             Navigator.of(context)
                                                 .pushNamed(
-                                                  AddressBookView.routeName,
-                                                )
-                                                .then((_) => ref
+                                              AddressBookView.routeName,
+                                            )
+                                                .then((_) {
+                                              ref
+                                                  .read(
+                                                      exchangeFlowIsActiveStateProvider
+                                                          .state)
+                                                  .state = false;
+
+                                              final address = ref
+                                                  .read(
+                                                      exchangeFromAddressBookAddressStateProvider
+                                                          .state)
+                                                  .state;
+                                              if (address.isNotEmpty) {
+                                                _toController.text = address;
+                                                model.recipientAddress =
+                                                    _toController.text;
+                                                ref
                                                     .read(
-                                                        exchangeFlowIsActiveStateProvider
+                                                        exchangeFromAddressBookAddressStateProvider
                                                             .state)
-                                                    .state = false);
+                                                    .state = "";
+                                              }
+                                            });
                                           },
                                           child: const AddressBookIcon(),
                                         ),
@@ -299,11 +372,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 // auto fill address
                                                 _toController.text =
                                                     results["address"] ?? "";
+                                                model.recipientAddress =
+                                                    _toController.text;
 
                                                 setState(() {});
                                               } else {
                                                 _toController.text =
                                                     qrResult.rawContent;
+                                                model.recipientAddress =
+                                                    _toController.text;
 
                                                 setState(() {});
                                               }
@@ -348,15 +425,37 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               "Refund Wallet (required)",
                               style: STextStyles.smallMed12(context),
                             ),
-                            // GestureDetector(
-                            //   onTap: () {
-                            //     // TODO: choose from stack?
-                            //   },
-                            //   child: Text(
-                            //     "Choose from Stack",
-                            //     style: STextStyles.link2(context),
-                            //   ),
-                            // ),
+                            if (isStackCoin(model.sendTicker))
+                              BlueTextButton(
+                                text: "Choose from stack",
+                                onTap: () {
+                                  try {
+                                    final coin = coinFromTickerCaseInsensitive(
+                                      model.sendTicker,
+                                    );
+                                    Navigator.of(context)
+                                        .pushNamed(
+                                      ChooseFromStackView.routeName,
+                                      arguments: coin,
+                                    )
+                                        .then((value) async {
+                                      if (value is String) {
+                                        final manager = ref
+                                            .read(walletsChangeNotifierProvider)
+                                            .getManager(value);
+
+                                        _refundController.text =
+                                            manager.walletName;
+                                        model.refundAddress = await manager
+                                            .currentReceivingAddress;
+                                      }
+                                    });
+                                  } catch (e, s) {
+                                    Logging.instance
+                                        .log("$e\n$s", level: LogLevel.Info);
+                                  }
+                                },
+                              ),
                           ],
                         ),
                         const SizedBox(
@@ -384,6 +483,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                             ),
                             focusNode: _refundFocusNode,
                             style: STextStyles.field(context),
+                            onChanged: (value) {
+                              setState(() {});
+                            },
                             decoration: standardInputDecoration(
                               "Enter ${model.sendTicker.toUpperCase()} refund address",
                               _refundFocusNode,
@@ -410,6 +512,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                   "sendViewClearAddressFieldButtonKey"),
                                               onTap: () {
                                                 _refundController.text = "";
+                                                model.refundAddress =
+                                                    _refundController.text;
 
                                                 setState(() {});
                                               },
@@ -429,6 +533,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
                                                   _refundController.text =
                                                       content;
+                                                  model.refundAddress =
+                                                      _refundController.text;
 
                                                   setState(() {});
                                                 }
@@ -450,13 +556,26 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 .state = true;
                                             Navigator.of(context)
                                                 .pushNamed(
-                                                  AddressBookView.routeName,
-                                                )
-                                                .then((_) => ref
-                                                    .read(
-                                                        exchangeFlowIsActiveStateProvider
-                                                            .state)
-                                                    .state = false);
+                                              AddressBookView.routeName,
+                                            )
+                                                .then((_) {
+                                              ref
+                                                  .read(
+                                                      exchangeFlowIsActiveStateProvider
+                                                          .state)
+                                                  .state = false;
+                                              final address = ref
+                                                  .read(
+                                                      exchangeFromAddressBookAddressStateProvider
+                                                          .state)
+                                                  .state;
+                                              if (address.isNotEmpty) {
+                                                _refundController.text =
+                                                    address;
+                                                model.refundAddress =
+                                                    _refundController.text;
+                                              }
+                                            });
                                           },
                                           child: const AddressBookIcon(),
                                         ),
@@ -490,11 +609,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 // auto fill address
                                                 _refundController.text =
                                                     results["address"] ?? "";
+                                                model.refundAddress =
+                                                    _refundController.text;
 
                                                 setState(() {});
                                               } else {
                                                 _refundController.text =
                                                     qrResult.rawContent;
+                                                model.refundAddress =
+                                                    _refundController.text;
 
                                                 setState(() {});
                                               }
@@ -556,9 +679,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                             Expanded(
                               child: TextButton(
                                 onPressed: () {
-                                  model.recipientAddress = _toController.text;
-                                  model.refundAddress = _refundController.text;
-
                                   Navigator.of(context).pushNamed(
                                       Step3View.routeName,
                                       arguments: model);
