@@ -17,15 +17,22 @@ Highlights include:
 - Custom Nodes.
 - Open source software.
 
-## Build and run
+## Building
 ### Prerequisites
 - The only OS supported for building is Ubuntu 20.04
 - A machine with at least 100 GB of Storage
+
+The following prerequisities can be installed with the setup script `scripts/setup.sh` or manually as described below:
+
 - Flutter 3.0.5 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
 - Dart SDK Requirement (>=2.17.0, up until <3.0.0)
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 
-After that download the project and init the submodules
+### Scripted setup
+`scripts/setup.sh` is provided as a tool to set up a stock Ubuntu 20.04 installation for building.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you for [running](#running)
+
+### Manual setup
+After installing the prerequisites listed above, download the code and init the submodules
 ```
 git clone https://github.com/cypherstack/stack_wallet.git
 cd stack_wallet
@@ -57,7 +64,6 @@ cd scripts
 cd ..
 ```
 
-
 Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
 ```
 sudo apt list --installed | grep boost
@@ -76,7 +82,7 @@ cd scripts/android/
 cd ../..
 ```
 
-Building plugins for testing on Linux
+Building plugins for Linux
 
 ```
 cd scripts/linux/
@@ -85,10 +91,33 @@ cd scripts/linux/
 cd ../..
 ```
 
-Finally, plug in your android device or use the emulator available via Android Studio and then run the following commands:
+## Running
+### Android
+Plug in your android device or use the emulator available via Android Studio and then run the following commands:
 ```
 flutter pub get
-flutter run
+flutter run android
 ```
 
 Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not work
+
+### Linux
+Plug in your android device or use the emulator available via Android Studio and then run the following commands:
+```
+flutter pub get Linux
+flutter run linux
+```
+
+## Android Studio
+Android Studio is the recommended IDE for development, not just for launching on Android devices and emulators but also for Linux desktop development.  Install it and configure it as follows:
+```
+# setup android studio
+sudo apt install -y openjdk-11-jdk
+sudo snap install android-studio --classic
+```
+
+Use Tools > SDK Manager to install the Android SDK, NDK, Android SDK command line tools, and cmake
+
+Then install the Flutter plugin.  In Android Studio's options for the Flutter language, enable auto format on save to match the project's code style
+
+Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
