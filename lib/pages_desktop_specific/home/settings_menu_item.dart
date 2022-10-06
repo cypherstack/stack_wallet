@@ -21,6 +21,7 @@ class SettingsMenuItem<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
+      //if val == group, then button is selected, otherwise unselected
       style: value == group
           ? Theme.of(context)
               .extension<StackColors>()!
