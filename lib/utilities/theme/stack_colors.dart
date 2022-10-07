@@ -1501,4 +1501,11 @@ class StackColors extends ThemeExtension<StackColors> {
               textFieldDefaultBG,
             ),
           );
+
+  ButtonStyle? getDesktopSettingsButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              background,
+            ),
+          );
 }

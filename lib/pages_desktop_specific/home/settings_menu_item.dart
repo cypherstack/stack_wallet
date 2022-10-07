@@ -25,10 +25,10 @@ class SettingsMenuItem<T> extends StatelessWidget {
       style: value == group
           ? Theme.of(context)
               .extension<StackColors>()!
-              .getDesktopMenuButtonColorSelected(context)
+              .getDesktopSettingsButtonColor(context)
           : Theme.of(context)
               .extension<StackColors>()!
-              .getDesktopMenuButtonColor(context),
+              .getDesktopSettingsButtonColor(context),
       onPressed: () {
         onChanged(value);
       },
