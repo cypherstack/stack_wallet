@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
-import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
+import 'package:stackwallet/pages/stack_privacy_calls.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -255,7 +255,7 @@ class GetStartedButton extends StatelessWidget {
                   .extension<StackColors>()!
                   .getPrimaryEnabledButtonColor(context),
               onPressed: () {
-                Navigator.of(context).pushNamed(CreatePasswordView.routeName);
+                Navigator.of(context).pushNamed(StackPrivacyCalls.routeName);
               },
               child: Text(
                 "Get started",
