@@ -47,8 +47,8 @@ class SettingsMenuItem<T> extends StatelessWidget {
             Text(
               label,
               style: value == group //checks if option is selected
-                  ? STextStyles.desktopMenuItemSelected(context)
-                  : STextStyles.desktopMenuItem(context),
+                  ? STextStyles.settingsMenuItemSelected(context)
+                  : STextStyles.settingsMenuItem(context),
             ),
           ],
         ),

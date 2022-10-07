@@ -793,6 +793,44 @@ class STextStyles {
     }
   }
 
+  static TextStyle settingsMenuItem(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark.withOpacity(0.5),
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 20.8 / 16,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark.withOpacity(0.5),
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 20.8 / 16,
+        );
+    }
+  }
+
+  static TextStyle settingsMenuItemSelected(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 20.8 / 16,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 20.8 / 16,
+        );
+    }
+  }
+
   static TextStyle stepIndicator(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
