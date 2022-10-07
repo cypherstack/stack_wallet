@@ -1507,5 +1507,8 @@ class StackColors extends ThemeExtension<StackColors> {
             backgroundColor: MaterialStateProperty.all<Color>(
               background,
             ),
+            overlayColor: MaterialStateProperty.all<Color>(
+              Colors.transparent,
+            ),
           );
 }
