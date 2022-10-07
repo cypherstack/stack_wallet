@@ -929,11 +929,11 @@ class RouteGenerator {
             builder: (_) => const DesktopHomeView(),
             settings: RouteSettings(name: settings.name));
 
-      case DesktopSettingsView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopSettingsView(),
-            settings: RouteSettings(name: settings.name));
+      // case DesktopSettingsView.routeName:
+      //   return getRoute(
+      //       shouldUseMaterialRoute: useMaterialPageRoute,
+      //       builder: (_) => const DesktopSettingsView(),
+      //       settings: RouteSettings(name: settings.name));
 
       case MyStackView.routeName:
         return getRoute(
