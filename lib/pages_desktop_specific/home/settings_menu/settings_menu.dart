@@ -33,8 +33,6 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
 
   @override
   Widget build(BuildContext context) {
-    // // TODO: implement build
-    // throw UnimplementedError();
     debugPrint("BUILD: $runtimeType");
 
     return Material(
@@ -89,7 +87,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                             height: 11,
                           ),
                           label: "Security",
-                          value: 0,
+                          value: 1,
                           group: selectedMenuItem,
                           onChanged: updateSelectedMenuItem,
                         ),
@@ -103,7 +101,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                             height: 11,
                           ),
                           label: "Currency",
-                          value: 0,
+                          value: 2,
                           group: selectedMenuItem,
                           onChanged: updateSelectedMenuItem,
                         ),
@@ -117,7 +115,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                             height: 11,
                           ),
                           label: "Language",
-                          value: 0,
+                          value: 3,
                           group: selectedMenuItem,
                           onChanged: updateSelectedMenuItem,
                         ),
@@ -131,7 +129,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                             height: 11,
                           ),
                           label: "Nodes",
-                          value: 0,
+                          value: 4,
                           group: selectedMenuItem,
                           onChanged: updateSelectedMenuItem,
                         ),
@@ -145,7 +143,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                             height: 11,
                           ),
                           label: "Syncing preferences",
-                          value: 0,
+                          value: 5,
                           group: selectedMenuItem,
                           onChanged: updateSelectedMenuItem,
                         ),
@@ -159,7 +157,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                             height: 11,
                           ),
                           label: "Appearance",
-                          value: 0,
+                          value: 6,
                           group: selectedMenuItem,
                           onChanged: updateSelectedMenuItem,
                         ),
@@ -173,7 +171,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                             height: 11,
                           ),
                           label: "Advanced",
-                          value: 0,
+                          value: 7,
                           group: selectedMenuItem,
                           onChanged: updateSelectedMenuItem,
                         ),
