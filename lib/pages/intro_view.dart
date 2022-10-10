@@ -16,6 +16,8 @@ import 'package:stackwallet/hive/db.dart';
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
 
+  static const String routeName = "/introView";
+
   @override
   State<IntroView> createState() => _IntroViewState();
 }

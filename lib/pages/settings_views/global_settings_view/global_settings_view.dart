@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
@@ -5,6 +7,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/about_view
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/delete_account_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/language_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/security_views/security_view.dart';
@@ -224,6 +227,20 @@ class GlobalSettingsView extends StatelessWidget {
                                       .pushNamed(SupportView.routeName);
                                 },
                               ),
+                              if (Platform.isIOS)
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                              if (Platform.isIOS)
+                                SettingsListButton(
+                                  iconAssetName: Assets.svg.circleAlert,
+                                  iconSize: 16,
+                                  title: "Delete account",
+                                  onPressed: () async {
+                                    await Navigator.of(context)
+                                        .pushNamed(DeleteAccountView.routeName);
+                                  },
+                                ),
                               // TextButton(
                               //   style: Theme.of(context)
                               //       .textButtonTheme
