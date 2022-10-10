@@ -3,15 +3,13 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/pages/stack_privacy_calls.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:stackwallet/hive/db.dart';
 
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
@@ -248,7 +246,8 @@ class GetStartedButton extends StatelessWidget {
             onPressed: () {
               unawaited(DB.instance.put<dynamic>(
                   boxName: DB.boxNamePrefs, key: "externalCalls", value: true));
-              Navigator.of(context).pushNamed(StackPrivacyCalls.routeName);
+              Navigator.of(context)
+                  .pushNamed(StackPrivacyCalls.routeName, arguments: false);
             },
             child: Text(
               "Get started",
@@ -263,7 +262,8 @@ class GetStartedButton extends StatelessWidget {
                   .extension<StackColors>()!
                   .getPrimaryEnabledButtonColor(context),
               onPressed: () {
-                Navigator.of(context).pushNamed(StackPrivacyCalls.routeName);
+                Navigator.of(context)
+                    .pushNamed(StackPrivacyCalls.routeName, arguments: false);
               },
               child: Text(
                 "Get started",
