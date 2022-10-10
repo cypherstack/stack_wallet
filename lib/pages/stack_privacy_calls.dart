@@ -13,7 +13,10 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
     Key? key,
+    required this.isSettings,
   }) : super(key: key);
+
+  final bool isSettings;
 
   static const String routeName = "/stackPrivacy";
 
@@ -78,11 +81,6 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                     child: CustomRadio((bool isEasy) {
                       setState(() {
                         this.isEasy = isEasy;
-
-                        DB.instance.put<dynamic>(
-                            boxName: DB.boxNamePrefs,
-                            key: "externalCalls",
-                            value: isEasy);
                       });
                     }),
                   ),
@@ -153,6 +151,8 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                         Expanded(
                           child: ContinueButton(
                             isDesktop: isDesktop,
+                            isSettings: widget.isSettings,
+                            isEasy: isEasy,
                           ),
                         ),
                       ],
@@ -169,9 +169,16 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
 }
 
 class ContinueButton extends StatelessWidget {
-  const ContinueButton({Key? key, required this.isDesktop}) : super(key: key);
+  const ContinueButton(
+      {Key? key,
+      required this.isDesktop,
+      required this.isSettings,
+      required this.isEasy})
+      : super(key: key);
 
   final bool isDesktop;
+  final bool isSettings;
+  final bool isEasy;
 
   @override
   Widget build(BuildContext context) {
@@ -181,10 +188,20 @@ class ContinueButton extends StatelessWidget {
                 .extension<StackColors>()!
                 .getPrimaryEnabledButtonColor(context),
             onPressed: () {
-              Navigator.of(context).pushNamed(CreatePinView.routeName);
+              print("Output of isEasy:");
+              print(isEasy);
+
+              DB.instance.put<dynamic>(
+                boxName: DB.boxNamePrefs,
+                key: "externalCalls",
+                value: isEasy,
+              );
+              if (!isSettings) {
+                Navigator.of(context).pushNamed(CreatePinView.routeName);
+              }
             },
             child: Text(
-              "Continue",
+              !isSettings ? "Continue" : "Save changes",
               style: STextStyles.button(context),
             ),
           )
@@ -196,10 +213,21 @@ class ContinueButton extends StatelessWidget {
                   .extension<StackColors>()!
                   .getPrimaryEnabledButtonColor(context),
               onPressed: () {
-                Navigator.of(context).pushNamed(StackPrivacyCalls.routeName);
+                print("Output of isEasy:");
+                print(isEasy);
+
+                DB.instance.put<dynamic>(
+                  boxName: DB.boxNamePrefs,
+                  key: "externalCalls",
+                  value: isEasy,
+                );
+
+                if (!isSettings) {
+                  Navigator.of(context).pushNamed(StackPrivacyCalls.routeName);
+                }
               },
               child: Text(
-                "Continue",
+                !isSettings ? "Continue" : "Save changes",
                 style: STextStyles.button(context).copyWith(fontSize: 20),
               ),
             ),

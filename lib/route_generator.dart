@@ -122,9 +122,16 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case StackPrivacyCalls.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => StackPrivacyCalls(isSettings: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const StackPrivacyCalls(),
+            builder: (_) => StackPrivacyCalls(isSettings: false),
             settings: RouteSettings(name: settings.name));
 
       case WalletsView.routeName:
