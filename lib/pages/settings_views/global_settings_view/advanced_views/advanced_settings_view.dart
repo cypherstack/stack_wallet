@@ -8,9 +8,9 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:tuple/tuple.dart';
 
-import '../../../../hive/db.dart';
-import '../../../stack_privacy_calls.dart';
+import 'package:stackwallet/pages/stack_privacy_calls.dart';
 
 class AdvancedSettingsView extends StatelessWidget {
   const AdvancedSettingsView({
@@ -22,10 +22,6 @@ class AdvancedSettingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-
-    final externalCalls = DB.instance
-            .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") ??
-        true;
 
     return Scaffold(
       backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -127,45 +123,55 @@ class AdvancedSettingsView extends StatelessWidget {
             ),
             RoundedWhiteContainer(
               padding: const EdgeInsets.all(0),
-              child: RawMaterialButton(
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.of(context)
-                      .pushNamed(StackPrivacyCalls.routeName, arguments: true);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.left,
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: "Stack Experience",
-                              style: STextStyles.titleBold12(context),
-                            ),
-                            TextSpan(
-                              text: externalCalls as bool
-                                  ? "\nEasy crypto"
-                                  : "\nIncognito",
-                              style: STextStyles.label(context)
-                                  .copyWith(fontSize: 15.0),
-                            )
-                          ],
-                        ),
+              child: Consumer(
+                builder: (_, ref, __) {
+                  final externalCalls = ref.watch(
+                    prefsChangeNotifierProvider
+                        .select((value) => value.externalCalls),
+                  );
+                  return RawMaterialButton(
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        StackPrivacyCalls.routeName,
+                        arguments: true,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 20,
+                      ),
+                      child: Row(
+                        children: [
+                          RichText(
+                            textAlign: TextAlign.left,
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "Stack Experience",
+                                  style: STextStyles.titleBold12(context),
+                                ),
+                                TextSpan(
+                                  text: externalCalls
+                                      ? "\nEasy crypto"
+                                      : "\nIncognito",
+                                  style: STextStyles.label(context)
+                                      .copyWith(fontSize: 15.0),
+                                )
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],

@@ -8,6 +8,7 @@ import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
@@ -290,7 +291,7 @@ void main() {
 
       expect(result.exception, null);
       expect(result.value == null, false);
-      expect(result.value, isA<EstimatedExchangeAmount>());
+      expect(result.value, isA<Estimate>());
     });
 
     test(
@@ -574,7 +575,7 @@ void main() {
             "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY"),
         headers: {'Content-Type': 'application/json'},
         body:
-            '{"from":"btc","to":"eth","address":"0x57f31ad4b64095347F87eDB1675566DAfF5EC886","amount":"0.3","flow":"fixed-rate","extraId":"","userId":"","contactEmail":"","refundAddress":"","refundExtraId":"","rateId":""}',
+            '{"from":"btc","to":"eth","address":"0x57f31ad4b64095347F87eDB1675566DAfF5EC886","flow":"fixed-rate","extraId":"","userId":"","contactEmail":"","refundAddress":"","refundExtraId":"","rateId":"","amount":"0.3"}',
         encoding: null,
       )).thenAnswer((realInvocation) async => Response(
           '{"payinAddress": "33eFX2jfeWbXMSmRe9ewUUTrmSVSxZi5cj", "payoutAddress": "0x57f31ad4b64095347F87eDB1675566DAfF5EC886","payoutExtraId": "", "fromCurrency": "btc", "toCurrency": "eth", "refundAddress": "","refundExtraId": "","validUntil": "2019-09-09T14:01:04.921Z","id": "a5c73e2603f40d","amount": 62.9737711}',
@@ -625,8 +626,7 @@ void main() {
         reversed: false,
       );
 
-      expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+      expect(result.exception!.type, ExchangeExceptionType.generic);
       expect(result.value == null, true);
     });
 

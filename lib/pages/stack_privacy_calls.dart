@@ -10,6 +10,9 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/utilities/prefs.dart';
+
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
     Key? key,
@@ -26,7 +29,7 @@ class StackPrivacyCalls extends ConsumerStatefulWidget {
 
 class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
   late final bool isDesktop;
-  bool isEasy = true;
+  bool isEasy = Prefs.instance.externalCalls;
   final PageController _pageController =
       PageController(initialPage: 0, keepPage: true);
 
@@ -78,11 +81,19 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                     height: 36,
                   ),
                   Center(
-                    child: CustomRadio((bool isEasy) {
-                      setState(() {
-                        this.isEasy = isEasy;
-                      });
-                    }),
+                    child: Consumer(
+                      builder: (_, ref, __) {
+                        final externalCalls = ref.watch(
+                          prefsChangeNotifierProvider
+                              .select((value) => value.externalCalls),
+                        );
+                        return CustomRadio((bool isEasy) {
+                          setState(() {
+                            this.isEasy = isEasy;
+                          });
+                        }, externalCalls);
+                      },
+                    ),
                   ),
                   const SizedBox(
                     height: 36,
@@ -191,11 +202,7 @@ class ContinueButton extends StatelessWidget {
               print("Output of isEasy:");
               print(isEasy);
 
-              DB.instance.put<dynamic>(
-                boxName: DB.boxNamePrefs,
-                key: "externalCalls",
-                value: isEasy,
-              );
+              Prefs.instance.externalCalls = isEasy;
               if (!isSettings) {
                 Navigator.of(context).pushNamed(CreatePinView.routeName);
               }
@@ -216,14 +223,10 @@ class ContinueButton extends StatelessWidget {
                 print("Output of isEasy:");
                 print(isEasy);
 
-                DB.instance.put<dynamic>(
-                  boxName: DB.boxNamePrefs,
-                  key: "externalCalls",
-                  value: isEasy,
-                );
+                Prefs.instance.externalCalls = isEasy;
 
                 if (!isSettings) {
-                  Navigator.of(context).pushNamed(StackPrivacyCalls.routeName);
+                  Navigator.of(context).pushNamed(CreatePinView.routeName);
                 }
               },
               child: Text(
@@ -236,8 +239,9 @@ class ContinueButton extends StatelessWidget {
 }
 
 class CustomRadio extends StatefulWidget {
-  CustomRadio(this.upperCall, {Key? key}) : super(key: key);
+  CustomRadio(this.upperCall, this.isEasy, {Key? key}) : super(key: key);
 
+  bool isEasy;
   Function upperCall;
 
   @override
@@ -252,10 +256,10 @@ class CustomRadioState extends State<CustomRadio> {
   @override
   void initState() {
     super.initState();
-    sampleData.add(
-        RadioModel(true, Assets.svg.personaEasy, 'Easy Crypto', 'Recommended'));
     sampleData.add(RadioModel(
-        false, Assets.svg.personaIncognito, 'Incognito', 'Privacy conscious'));
+        widget.isEasy, Assets.svg.personaEasy, 'Easy Crypto', 'Recommended'));
+    sampleData.add(RadioModel(!widget.isEasy, Assets.svg.personaIncognito,
+        'Incognito', 'Privacy conscious'));
   }
 
   @override

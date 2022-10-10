@@ -107,6 +107,14 @@ class MockPrefs extends _i1.Mock implements _i3.Prefs {
       super.noSuchMethod(Invocation.setter(#wifiOnly, wifiOnly),
           returnValueForMissingStub: null);
   @override
+  bool get externalCalls =>
+      (super.noSuchMethod(Invocation.getter(#externalCalls), returnValue: false)
+          as bool);
+  @override
+  set externalCalls(bool? eCalls) =>
+      super.noSuchMethod(Invocation.setter(#externalCalls, eCalls),
+          returnValueForMissingStub: null);
+  @override
   bool get showFavoriteWallets =>
       (super.noSuchMethod(Invocation.getter(#showFavoriteWallets),
           returnValue: false) as bool);

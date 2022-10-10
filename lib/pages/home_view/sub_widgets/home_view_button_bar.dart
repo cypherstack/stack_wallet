@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -6,8 +8,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/services/change_now/change_now_loading_service.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 
 class HomeViewButtonBar extends ConsumerStatefulWidget {
   const HomeViewButtonBar({Key? key}) : super(key: key);
@@ -104,11 +105,9 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
                 ref.read(homeViewPageIndexStateProvider.state).state = 1;
               }
               DateTime now = DateTime.now();
-              // TODO: find out why it infinitely loads
-              final _cnLoadingService = ChangeNowLoadingService();
-              final externalCalls = DB.instance.get<dynamic>(
-                  boxName: DB.boxNamePrefs, key: "externalCalls") as bool?;
-              if (!(externalCalls ?? false)) {
+              final _cnLoadingService = ExchangeDataLoadingService();
+              final externalCalls = Prefs.instance.externalCalls;
+              if (!externalCalls) {
                 print("loading?");
                 unawaited(_cnLoadingService.loadAll(ref));
               }

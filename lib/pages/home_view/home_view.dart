@@ -21,9 +21,9 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
-import 'package:stackwallet/hive/db.dart';
-
 import 'package:stackwallet/utilities/logger.dart';
+
+import 'package:stackwallet/utilities/prefs.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -86,9 +86,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
   void _loadCNData() {
     // unawaited future
     //
-    final externalCalls = DB.instance
-        .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") as bool?;
-    if (externalCalls ?? false) {
+    final externalCalls = Prefs.instance.externalCalls;
+    if (externalCalls) {
       _cnLoadingService.loadAll(ref);
     } else {
       Logging.instance.log("User does not want to use external calls",

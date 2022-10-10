@@ -49,6 +49,8 @@ import 'package:stackwallet/hive/db.dart';
 
 import 'package:stackwallet/utilities/logger.dart';
 
+import 'package:stackwallet/utilities/prefs.dart';
+
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
   const WalletView({
@@ -233,6 +235,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
+    final _cnLoadingService = ExchangeDataLoadingService();
+    final externalCalls = Prefs.instance.externalCalls;
+    if (!externalCalls) {
+      print("loading?");
+      unawaited(_cnLoadingService.loadAll(ref));
+    }
     final coin = ref.read(managerProvider).coin;
 
     if (coin == Coin.epicCash) {

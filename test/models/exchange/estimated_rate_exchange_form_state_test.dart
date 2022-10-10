@@ -10,6 +10,8 @@
 //
 // import 'estimated_rate_exchange_form_state_test.mocks.dart';
 //
+void main() {}
+
 // @GenerateMocks([ChangeNowAPI])
 // void main() {
 //   final currencyA = Currency(
