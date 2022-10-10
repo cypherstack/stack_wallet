@@ -46,6 +46,10 @@ import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:stackwallet/hive/db.dart';
+
+import 'package:stackwallet/utilities/logger.dart';
+
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
   const WalletView({
@@ -351,7 +355,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   void _loadCNData() {
     // unawaited future
-    _cnLoadingService.loadAll(ref, coin: ref.read(managerProvider).coin);
+    final externalCalls = DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") as bool?;
+    if (externalCalls ?? false) {
+      _cnLoadingService.loadAll(ref, coin: ref.read(managerProvider).coin);
+    } else {
+      Logging.instance.log("User does not want to use external calls",
+          level: LogLevel.Info);
+    }
   }
 
   @override

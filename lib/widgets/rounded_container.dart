@@ -10,6 +10,7 @@ class RoundedContainer extends StatelessWidget {
     this.radiusMultiplier = 1.0,
     this.width,
     this.height,
+    this.borderColor,
   }) : super(key: key);
 
   final Widget? child;
@@ -18,6 +19,7 @@ class RoundedContainer extends StatelessWidget {
   final double radiusMultiplier;
   final double? width;
   final double? height;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +31,7 @@ class RoundedContainer extends StatelessWidget {
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius * radiusMultiplier,
         ),
+        border: borderColor == null ? null : Border.all(color: borderColor!),
       ),
       child: Padding(
         padding: padding,
