@@ -6,6 +6,9 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
+import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/services/change_now/change_now_loading_service.dart';
+
 class HomeViewButtonBar extends ConsumerStatefulWidget {
   const HomeViewButtonBar({Key? key}) : super(key: key);
 
@@ -101,7 +104,14 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
                 ref.read(homeViewPageIndexStateProvider.state).state = 1;
               }
               DateTime now = DateTime.now();
-
+              // TODO: find out why it infinitely loads
+              final _cnLoadingService = ChangeNowLoadingService();
+              final externalCalls = DB.instance.get<dynamic>(
+                  boxName: DB.boxNamePrefs, key: "externalCalls") as bool?;
+              if (!(externalCalls ?? false)) {
+                print("loading?");
+                unawaited(_cnLoadingService.loadAll(ref));
+              }
               if (now.difference(_lastRefreshed) > _refreshInterval) {
                 // bool okPressed = false;
                 // showDialog<dynamic>(

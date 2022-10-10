@@ -2444,8 +2444,8 @@ class NamecoinWallet extends CoinServiceAPI {
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
             String? address = out["scriptPubKey"]["address"] as String?;
-            if (address == null && out["scriptPubKey"]["addresses"] != null) {
-              address = out["scriptPubKey"]["addresses"][0] as String?;
+            if (address == null && out["scriptPubKey"]["address"] != null) {
+              address = out["scriptPubKey"]["address"] as String?;
             }
 
             if (address != null) {
@@ -2459,8 +2459,8 @@ class NamecoinWallet extends CoinServiceAPI {
 
       for (final output in txObject["vout"] as List) {
         String? address = output["scriptPubKey"]["address"] as String?;
-        if (address == null && output["scriptPubKey"]["addresses"] != null) {
-          address = output["scriptPubKey"]["addresses"][0] as String?;
+        if (address == null && output["scriptPubKey"]["address"] != null) {
+          address = output["scriptPubKey"]["address"] as String?;
         }
         if (address != null) {
           recipientsArray.add(address);
@@ -2501,7 +2501,8 @@ class NamecoinWallet extends CoinServiceAPI {
         int totalOutput = 0;
 
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["addresses"][0];
+          Logging.instance.log(output, level: LogLevel.Info);
+          final address = output["scriptPubKey"]["address"];
           final value = output["value"];
           final _value = (Decimal.parse(value.toString()) *
                   Decimal.fromInt(Constants.satsPerCoin))
@@ -2527,8 +2528,8 @@ class NamecoinWallet extends CoinServiceAPI {
         // add up received tx value
         for (final output in txObject["vout"] as List) {
           String? address = output["scriptPubKey"]["address"] as String?;
-          if (address == null && output["scriptPubKey"]["addresses"] != null) {
-            address = output["scriptPubKey"]["addresses"][0] as String?;
+          if (address == null && output["scriptPubKey"]["address"] != null) {
+            address = output["scriptPubKey"]["address"] as String?;
           }
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
@@ -3048,7 +3049,7 @@ class NamecoinWallet extends CoinServiceAPI {
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["addresses"][0] as String;
+            final address = output["scriptPubKey"]["address"] as String;
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
             }
