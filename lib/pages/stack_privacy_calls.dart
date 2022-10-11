@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -12,10 +11,6 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/util.dart';
 
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
@@ -82,18 +77,24 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                 const SizedBox(
                   height: 36,
                 ),
-                Center(
-                  child: CustomRadio((bool isEasy) {
-                    setState(() {
-                      this.isEasy = isEasy;
-
-                      DB.instance.put<dynamic>(
-                          boxName: DB.boxNamePrefs,
-                          key: "externalCalls",
-                          value: isEasy);
-                    });
-                  }),
+                const Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                  ),
+                  child: PrivacyToggle(),
                 ),
+                // Center(
+                // child: CustomRadio((bool isEasy) {
+                // setState(() {
+                //   this.isEasy = isEasy;
+                //
+                //   DB.instance.put<dynamic>(
+                //       boxName: DB.boxNamePrefs,
+                //       key: "externalCalls",
+                //       value: isEasy);
+                // });
+                // }),
+                // ),
                 const SizedBox(
                   height: 36,
                 ),
@@ -148,6 +149,8 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                       Expanded(
                         child: ContinueButton(
                           isDesktop: isDesktop,
+                          isSettings: widget.isSettings,
+                          isEasy: isEasy,
                         ),
                       ),
                     ],
@@ -380,113 +383,113 @@ class ContinueButton extends StatelessWidget {
   }
 }
 
-class CustomRadio extends StatefulWidget {
-  CustomRadio(this.upperCall, {Key? key}) : super(key: key);
-
-  Function upperCall;
-
-  @override
-  createState() {
-    return CustomRadioState();
-  }
-}
-
-class CustomRadioState extends State<CustomRadio> {
-  List<RadioModel> sampleData = <RadioModel>[];
-
-  @override
-  void initState() {
-    super.initState();
-    sampleData.add(
-        RadioModel(true, Assets.svg.personaEasy, 'Easy Crypto', 'Recommended'));
-    sampleData.add(RadioModel(
-        false, Assets.svg.personaIncognito, 'Incognito', 'Privacy conscious'));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        InkWell(
-          onTap: () {
-            setState(() {
-              // if (!sampleData[0].isSelected) {
-              widget.upperCall.call(true);
-              // }
-              for (var element in sampleData) {
-                element.isSelected = false;
-              }
-              sampleData[0].isSelected = true;
-            });
-          },
-          child: RadioItem(sampleData[0]),
-        ),
-        InkWell(
-          onTap: () {
-            setState(() {
-              // if (!sampleData[1].isSelected) {
-              widget.upperCall.call(false);
-              // }
-              for (var element in sampleData) {
-                element.isSelected = false;
-              }
-              sampleData[1].isSelected = true;
-            });
-          },
-          child: RadioItem(sampleData[1]),
-        )
-      ],
-    );
-  }
-}
-
-class RadioItem extends StatelessWidget {
-  final RadioModel _item;
-  const RadioItem(this._item, {Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(15.0),
-      child: RoundedWhiteContainer(
-        borderColor: _item.isSelected ? const Color(0xFF0056D2) : null,
-        child: Center(
-            child: Column(
-          children: [
-            SvgPicture.asset(
-              _item.svg,
-              // color: Theme.of(context).extension<StackColors>()!.textWhite,
-              width: 140,
-              height: 140,
-            ),
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style: STextStyles.label(context).copyWith(fontSize: 12.0),
-                children: [
-                  TextSpan(
-                      text: _item.topText,
-                      style: TextStyle(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                          fontWeight: FontWeight.bold)),
-                  TextSpan(text: "\n${_item.bottomText}"),
-                ],
-              ),
-            ),
-          ],
-        )),
-      ),
-    );
-  }
-}
-
-class RadioModel {
-  bool isSelected;
-  final String svg;
-  final String topText;
-  final String bottomText;
-
-  RadioModel(this.isSelected, this.svg, this.topText, this.bottomText);
-}
+// class CustomRadio extends StatefulWidget {
+//   CustomRadio(this.upperCall, {Key? key}) : super(key: key);
+//
+//   Function upperCall;
+//
+//   @override
+//   createState() {
+//     return CustomRadioState();
+//   }
+// }
+//
+// class CustomRadioState extends State<CustomRadio> {
+//   List<RadioModel> sampleData = <RadioModel>[];
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     sampleData.add(
+//         RadioModel(true, Assets.svg.personaEasy, 'Easy Crypto', 'Recommended'));
+//     sampleData.add(RadioModel(
+//         false, Assets.svg.personaIncognito, 'Incognito', 'Privacy conscious'));
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       children: [
+//         InkWell(
+//           onTap: () {
+//             setState(() {
+//               // if (!sampleData[0].isSelected) {
+//               widget.upperCall.call(true);
+//               // }
+//               for (var element in sampleData) {
+//                 element.isSelected = false;
+//               }
+//               sampleData[0].isSelected = true;
+//             });
+//           },
+//           child: RadioItem(sampleData[0]),
+//         ),
+//         InkWell(
+//           onTap: () {
+//             setState(() {
+//               // if (!sampleData[1].isSelected) {
+//               widget.upperCall.call(false);
+//               // }
+//               for (var element in sampleData) {
+//                 element.isSelected = false;
+//               }
+//               sampleData[1].isSelected = true;
+//             });
+//           },
+//           child: RadioItem(sampleData[1]),
+//         )
+//       ],
+//     );
+//   }
+// }
+//
+// class RadioItem extends StatelessWidget {
+//   final RadioModel _item;
+//   const RadioItem(this._item, {Key? key}) : super(key: key);
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       margin: const EdgeInsets.all(15.0),
+//       child: RoundedWhiteContainer(
+//         borderColor: _item.isSelected ? const Color(0xFF0056D2) : null,
+//         child: Center(
+//             child: Column(
+//           children: [
+//             SvgPicture.asset(
+//               _item.svg,
+//               // color: Theme.of(context).extension<StackColors>()!.textWhite,
+//               width: 140,
+//               height: 140,
+//             ),
+//             RichText(
+//               textAlign: TextAlign.center,
+//               text: TextSpan(
+//                 style: STextStyles.label(context).copyWith(fontSize: 12.0),
+//                 children: [
+//                   TextSpan(
+//                       text: _item.topText,
+//                       style: TextStyle(
+//                           color: Theme.of(context)
+//                               .extension<StackColors>()!
+//                               .textDark,
+//                           fontWeight: FontWeight.bold)),
+//                   TextSpan(text: "\n${_item.bottomText}"),
+//                 ],
+//               ),
+//             ),
+//           ],
+//         )),
+//       ),
+//     );
+//   }
+// }
+//
+// class RadioModel {
+//   bool isSelected;
+//   final String svg;
+//   final String topText;
+//   final String bottomText;
+//
+//   RadioModel(this.isSelected, this.svg, this.topText, this.bottomText);
+// }

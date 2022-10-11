@@ -53,7 +53,7 @@ class _SVG {
 
   String get polygon => "assets/svg/Polygon.svg";
   String get personaIncognito => "assets/svg/persona-incognito-1.svg";
-  String get personaEasy => "assets/svg/persona-easy-1.svg";
+  String get personaEasy => "assets/svg/persona-easy.svg";
   String get drd => "assets/svg/drd-icon.svg";
   String get boxAuto => "assets/svg/box-auto.svg";
   String get plus => "assets/svg/plus.svg";
