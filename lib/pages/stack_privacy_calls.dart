@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -80,20 +82,11 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                   const SizedBox(
                     height: 36,
                   ),
-                  Center(
-                    child: Consumer(
-                      builder: (_, ref, __) {
-                        final externalCalls = ref.watch(
-                          prefsChangeNotifierProvider
-                              .select((value) => value.externalCalls),
-                        );
-                        return CustomRadio((bool isEasy) {
-                          setState(() {
-                            this.isEasy = isEasy;
-                          });
-                        }, externalCalls);
-                      },
+                  const Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16,
                     ),
+                    child: PrivacyToggle(),
                   ),
                   const SizedBox(
                     height: 36,
@@ -107,7 +100,11 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                           text: TextSpan(
                             style: STextStyles.label(context)
                                 .copyWith(fontSize: 12.0),
-                            children: isEasy
+                            children: ref.watch(
+                              prefsChangeNotifierProvider.select(
+                                (value) => value.externalCalls,
+                              ),
+                            )
                                 ? [
                                     const TextSpan(
                                         text:
@@ -163,7 +160,11 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                           child: ContinueButton(
                             isDesktop: isDesktop,
                             isSettings: widget.isSettings,
-                            isEasy: isEasy,
+                            isEasy: ref.watch(
+                              prefsChangeNotifierProvider.select(
+                                (value) => value.externalCalls,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -175,6 +176,212 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class PrivacyToggle extends ConsumerStatefulWidget {
+  const PrivacyToggle({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<PrivacyToggle> createState() => _PrivacyToggleState();
+}
+
+class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: RawMaterialButton(
+            fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
+            shape: RoundedRectangleBorder(
+              side: !ref.watch(
+                prefsChangeNotifierProvider.select(
+                  (value) => value.externalCalls,
+                ),
+              )
+                  ? BorderSide.none
+                  : BorderSide(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemIcons,
+                      width: 2,
+                    ),
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius * 2,
+              ),
+            ),
+            onPressed: () {
+              ref.read(prefsChangeNotifierProvider).externalCalls = true;
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(
+                12,
+              ),
+              child: Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SvgPicture.asset(
+                        Assets.svg.personaEasy,
+                        width: 140,
+                        height: 140,
+                      ),
+                      const Center(
+                          child: Text(
+                        "Easy Crypto",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )),
+                      const Center(
+                        child: Text(
+                          "Recommended",
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (ref.watch(
+                    prefsChangeNotifierProvider.select(
+                      (value) => value.externalCalls,
+                    ),
+                  ))
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: SvgPicture.asset(
+                        Assets.svg.checkCircle,
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemIcons,
+                      ),
+                    ),
+                  if (!ref.watch(
+                    prefsChangeNotifierProvider.select(
+                      (value) => value.externalCalls,
+                    ),
+                  ))
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(1000),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 16,
+        ),
+        Expanded(
+          child: RawMaterialButton(
+            elevation: 0,
+            fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
+            shape: RoundedRectangleBorder(
+              side: ref.watch(
+                prefsChangeNotifierProvider.select(
+                  (value) => value.externalCalls,
+                ),
+              )
+                  ? BorderSide.none
+                  : BorderSide(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemIcons,
+                      width: 2,
+                    ),
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius * 2,
+              ),
+            ),
+            onPressed: () {
+              ref.read(prefsChangeNotifierProvider).externalCalls = false;
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(
+                12,
+              ),
+              child: Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SvgPicture.asset(
+                        Assets.svg.personaIncognito,
+                        width: 140,
+                        height: 140,
+                      ),
+                      const Center(
+                        child: Text(
+                          "Incognito",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const Center(
+                        child: Text(
+                          "Privacy conscious",
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (!ref.watch(
+                    prefsChangeNotifierProvider.select(
+                      (value) => value.externalCalls,
+                    ),
+                  ))
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: SvgPicture.asset(
+                        Assets.svg.checkCircle,
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemIcons,
+                      ),
+                    ),
+                  if (ref.watch(
+                    prefsChangeNotifierProvider.select(
+                      (value) => value.externalCalls,
+                    ),
+                  ))
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(1000),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -238,114 +445,113 @@ class ContinueButton extends StatelessWidget {
   }
 }
 
-class CustomRadio extends StatefulWidget {
-  CustomRadio(this.upperCall, this.isEasy, {Key? key}) : super(key: key);
-
-  bool isEasy;
-  Function upperCall;
-
-  @override
-  createState() {
-    return CustomRadioState();
-  }
-}
-
-class CustomRadioState extends State<CustomRadio> {
-  List<RadioModel> sampleData = <RadioModel>[];
-
-  @override
-  void initState() {
-    super.initState();
-    sampleData.add(RadioModel(
-        widget.isEasy, Assets.svg.personaEasy, 'Easy Crypto', 'Recommended'));
-    sampleData.add(RadioModel(!widget.isEasy, Assets.svg.personaIncognito,
-        'Incognito', 'Privacy conscious'));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        InkWell(
-          onTap: () {
-            setState(() {
-              // if (!sampleData[0].isSelected) {
-              widget.upperCall.call(true);
-              // }
-              for (var element in sampleData) {
-                element.isSelected = false;
-              }
-              sampleData[0].isSelected = true;
-            });
-          },
-          child: RadioItem(sampleData[0]),
-        ),
-        InkWell(
-          onTap: () {
-            setState(() {
-              // if (!sampleData[1].isSelected) {
-              widget.upperCall.call(false);
-              // }
-              for (var element in sampleData) {
-                element.isSelected = false;
-              }
-              sampleData[1].isSelected = true;
-            });
-          },
-          child: RadioItem(sampleData[1]),
-        )
-      ],
-    );
-  }
-}
-
-class RadioItem extends StatelessWidget {
-  final RadioModel _item;
-  const RadioItem(this._item, {Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(15.0),
-      child: RoundedWhiteContainer(
-        borderColor: _item.isSelected ? const Color(0xFF0056D2) : null,
-        child: Center(
-            child: Column(
-          children: [
-            SvgPicture.asset(
-              _item.svg,
-              // color: Theme.of(context).extension<StackColors>()!.textWhite,
-              width: 140,
-              height: 140,
-            ),
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style: STextStyles.label(context).copyWith(fontSize: 12.0),
-                children: [
-                  TextSpan(
-                      text: _item.topText,
-                      style: TextStyle(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                          fontWeight: FontWeight.bold)),
-                  TextSpan(text: "\n${_item.bottomText}"),
-                ],
-              ),
-            ),
-          ],
-        )),
-      ),
-    );
-  }
-}
-
-class RadioModel {
-  bool isSelected;
-  final String svg;
-  final String topText;
-  final String bottomText;
-
-  RadioModel(this.isSelected, this.svg, this.topText, this.bottomText);
-}
+// class CustomRadio extends StatefulWidget {
+//   CustomRadio(this.upperCall, {Key? key}) : super(key: key);
+//
+//   Function upperCall;
+//
+//   @override
+//   createState() {
+//     return CustomRadioState();
+//   }
+// }
+//
+// class CustomRadioState extends State<CustomRadio> {
+//   List<RadioModel> sampleData = <RadioModel>[];
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     sampleData.add(
+//         RadioModel(true, Assets.svg.personaEasy, 'Easy Crypto', 'Recommended'));
+//     sampleData.add(RadioModel(
+//         false, Assets.svg.personaIncognito, 'Incognito', 'Privacy conscious'));
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       children: [
+//         InkWell(
+//           onTap: () {
+//             setState(() {
+//               // if (!sampleData[0].isSelected) {
+//               widget.upperCall.call(true);
+//               // }
+//               for (var element in sampleData) {
+//                 element.isSelected = false;
+//               }
+//               sampleData[0].isSelected = true;
+//             });
+//           },
+//           child: RadioItem(sampleData[0]),
+//         ),
+//         InkWell(
+//           onTap: () {
+//             setState(() {
+//               // if (!sampleData[1].isSelected) {
+//               widget.upperCall.call(false);
+//               // }
+//               for (var element in sampleData) {
+//                 element.isSelected = false;
+//               }
+//               sampleData[1].isSelected = true;
+//             });
+//           },
+//           child: RadioItem(sampleData[1]),
+//         )
+//       ],
+//     );
+//   }
+// }
+//
+// class RadioItem extends StatelessWidget {
+//   final RadioModel _item;
+//   const RadioItem(this._item, {Key? key}) : super(key: key);
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       margin: const EdgeInsets.all(15.0),
+//       child: RoundedWhiteContainer(
+//         borderColor: _item.isSelected ? const Color(0xFF0056D2) : null,
+//         child: Center(
+//             child: Column(
+//           children: [
+//             SvgPicture.asset(
+//               _item.svg,
+//               // color: Theme.of(context).extension<StackColors>()!.textWhite,
+//               width: 140,
+//               height: 140,
+//             ),
+//             RichText(
+//               textAlign: TextAlign.center,
+//               text: TextSpan(
+//                 style: STextStyles.label(context).copyWith(fontSize: 12.0),
+//                 children: [
+//                   TextSpan(
+//                       text: _item.topText,
+//                       style: TextStyle(
+//                           color: Theme.of(context)
+//                               .extension<StackColors>()!
+//                               .textDark,
+//                           fontWeight: FontWeight.bold)),
+//                   TextSpan(text: "\n${_item.bottomText}"),
+//                 ],
+//               ),
+//             ),
+//           ],
+//         )),
+//       ),
+//     );
+//   }
+// }
+//
+// class RadioModel {
+//   bool isSelected;
+//   final String svg;
+//   final String topText;
+//   final String bottomText;
+//
+//   RadioModel(this.isSelected, this.svg, this.topText, this.bottomText);
+// }

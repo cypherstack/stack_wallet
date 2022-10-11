@@ -36,7 +36,7 @@ class Prefs extends ChangeNotifier {
       _hideBlockExplorerWarning = await _getHideBlockExplorerWarning();
       _gotoWalletOnStartup = await _getGotoWalletOnStartup();
       _startupWalletId = await _getStartupWalletId();
-      _externalCalls = await _getExternalCalls();
+      _externalCalls = await _getHasExternalCalls();
 
       _initialized = true;
     }
@@ -178,27 +178,6 @@ class Prefs extends ChangeNotifier {
     return await DB.instance
             .get<dynamic>(boxName: DB.boxNamePrefs, key: "wifiOnly") as bool? ??
         false;
-  }
-
-  // external calls
-
-  bool _externalCalls = true;
-
-  bool get externalCalls => _externalCalls;
-
-  set externalCalls(bool eCalls) {
-    if (_externalCalls != eCalls) {
-      DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "externalCalls", value: eCalls);
-      _externalCalls = eCalls;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> _getExternalCalls() async {
-    return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "externalCalls") as bool? ??
-        true;
   }
 
   // show favorites
@@ -565,5 +544,29 @@ class Prefs extends ChangeNotifier {
   Future<String?> _getStartupWalletId() async {
     return await DB.instance.get<dynamic>(
         boxName: DB.boxNamePrefs, key: "startupWalletId") as String?;
+  }
+
+  bool _externalCalls = false;
+
+  bool get externalCalls => _externalCalls;
+
+  set externalCalls(bool externalCalls) {
+    if (_externalCalls != externalCalls) {
+      DB.instance
+          .put<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "externalCalls",
+              value: externalCalls)
+          .then((_) {
+        _externalCalls = externalCalls;
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<bool> _getHasExternalCalls() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "externalCalls") as bool? ??
+        false;
   }
 }
