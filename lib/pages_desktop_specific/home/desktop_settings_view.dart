@@ -1,49 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
-import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
-class DesktopHomeView extends ConsumerStatefulWidget {
-  const DesktopHomeView({Key? key}) : super(key: key);
+class DesktopSettingsView extends ConsumerStatefulWidget {
+  const DesktopSettingsView({Key? key}) : super(key: key);
 
-  static const String routeName = "/desktopHome";
+  static const String routeName = "/desktopSettings";
 
   @override
-  ConsumerState<DesktopHomeView> createState() => _DesktopHomeViewState();
+  ConsumerState<DesktopSettingsView> createState() =>
+      _DesktopSettingsViewState();
 }
 
-class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
+class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
   int currentViewIndex = 0;
   final List<Widget> contentViews = [
-    const Navigator(
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: MyStackView.routeName,
-    ),
+    Container(
+      color: Colors.lime,
+    ), //b+r
     Container(
       color: Colors.green,
-    ),
+    ), //security
     Container(
       color: Colors.red,
-    ),
+    ), //currency
     Container(
       color: Colors.orange,
-    ),
-    const Navigator(
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: SettingsMenu.routeName,
-    ),
+    ), //language
+    Container(
+      color: Colors.yellow,
+    ), //nodes
     Container(
       color: Colors.blue,
-    ),
+    ), //syncing prefs
     Container(
       color: Colors.pink,
-    ),
+    ), //appearance
     Container(
       color: Colors.purple,
-    ),
+    ), //advanced
   ];
 
   void onMenuSelectionChanged(int newIndex) {
@@ -52,13 +48,14 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     });
   }
 
+  // will have a row with two items: SettingsMenu and settings contentxd
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Theme.of(context).extension<StackColors>()!.background,
       child: Row(
         children: [
-          DesktopMenu(
+          SettingsMenu(
             onSelectionChanged: onMenuSelectionChanged,
           ),
           Expanded(
