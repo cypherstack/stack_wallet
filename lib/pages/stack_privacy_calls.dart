@@ -229,16 +229,17 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         width: 140,
                         height: 140,
                       ),
-                      const Center(
+                      Center(
                           child: Text(
                         "Easy Crypto",
-                        style: TextStyle(
+                        style: STextStyles.label(context).copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       )),
-                      const Center(
+                      Center(
                         child: Text(
                           "Recommended",
+                          style: STextStyles.label(context),
                         ),
                       ),
                     ],
@@ -325,17 +326,18 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         width: 140,
                         height: 140,
                       ),
-                      const Center(
+                      Center(
                         child: Text(
                           "Incognito",
-                          style: TextStyle(
+                          style: STextStyles.label(context).copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      const Center(
+                      Center(
                         child: Text(
                           "Privacy conscious",
+                          style: STextStyles.label(context),
                         ),
                       ),
                     ],
