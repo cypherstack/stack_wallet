@@ -290,7 +290,7 @@ flutter:
     - assets/svg/tx-icon-anonymize-pending.svg
     - assets/svg/tx-icon-anonymize-failed.svg
     - assets/svg/Polygon.svg
-    - assets/svg/persona-easy.svg
+    - assets/svg/persona-easy-1.svg
     - assets/svg/persona-incognito-1.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg

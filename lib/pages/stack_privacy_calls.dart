@@ -60,95 +60,115 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Choose your Stack experience",
-                  style: STextStyles.pageTitleH1(context),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                Text(
-                  "You can change it later in Settings",
-                  style: STextStyles.subtitle(context),
-                ),
-                const SizedBox(
-                  height: 36,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 40, 0, 0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Choose your Stack experience",
+                    style: STextStyles.pageTitleH1(context),
                   ),
-                  child: PrivacyToggle(),
-                ),
-                const SizedBox(
-                  height: 36,
-                ),
-                RoundedWhiteContainer(
-                  child: Center(
-                    child: RichText(
-                      textAlign: TextAlign.left,
-                      text: TextSpan(
-                        style:
-                            STextStyles.label(context).copyWith(fontSize: 12.0),
-                        children: ref.watch(
-                          prefsChangeNotifierProvider.select(
-                            (value) => value.externalCalls,
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  Text(
+                    "You can change it later in Settings",
+                    style: STextStyles.subtitle(context),
+                  ),
+                  const SizedBox(
+                    height: 36,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                    ),
+                    child: PrivacyToggle(),
+                  ),
+                  const SizedBox(
+                    height: 36,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: RoundedWhiteContainer(
+                      child: Center(
+                        child: RichText(
+                          textAlign: TextAlign.left,
+                          text: TextSpan(
+                            style: STextStyles.label(context)
+                                .copyWith(fontSize: 12.0),
+                            children: ref.watch(
+                              prefsChangeNotifierProvider.select(
+                                (value) => value.externalCalls,
+                              ),
+                            )
+                                ? [
+                                    const TextSpan(
+                                        text:
+                                            "Exchange data preloaded for a seamless experience."),
+                                    const TextSpan(
+                                        text:
+                                            "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
+                                    TextSpan(
+                                      text:
+                                          "\n\nRecommended for most crypto users.",
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ]
+                                : [
+                                    const TextSpan(
+                                        text:
+                                            "Exchange data not preloaded (slower experience)."),
+                                    const TextSpan(
+                                        text:
+                                            "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
+                                    TextSpan(
+                                      text:
+                                          "\n\nRecommended for the privacy conscious.",
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                           ),
-                        )
-                            ? const [
-                                TextSpan(
-                                    text:
-                                        "Exchange data preloaded for a seamless experience."),
-                                TextSpan(
-                                    text:
-                                        "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
-                                TextSpan(
-                                    text:
-                                        "\n\nRecommended for most crypto users.",
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                              ]
-                            : const [
-                                TextSpan(
-                                    text:
-                                        "Exchange data not preloaded (slower experience)."),
-                                TextSpan(
-                                    text:
-                                        "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
-                                TextSpan(
-                                    text:
-                                        "\n\nRecommended for the privacy conscious.",
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                              ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const Spacer(
-                  flex: 4,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
+                  const Spacer(
+                    flex: 4,
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ContinueButton(
-                          isDesktop: isDesktop,
-                          isSettings: widget.isSettings,
-                          isEasy: isEasy,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ContinueButton(
+                            isDesktop: isDesktop,
+                            isSettings: widget.isSettings,
+                            isEasy: ref.watch(
+                              prefsChangeNotifierProvider.select(
+                                (value) => value.externalCalls,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -203,8 +223,8 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                     children: [
                       SvgPicture.asset(
                         Assets.svg.personaEasy,
-                        width: 96,
-                        height: 96,
+                        width: 140,
+                        height: 140,
                       ),
                       const Center(
                           child: Text(
@@ -299,8 +319,8 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                     children: [
                       SvgPicture.asset(
                         Assets.svg.personaIncognito,
-                        width: 96,
-                        height: 96,
+                        width: 140,
+                        height: 140,
                       ),
                       const Center(
                         child: Text(
