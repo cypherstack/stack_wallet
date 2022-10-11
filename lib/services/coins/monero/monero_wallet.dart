@@ -1447,6 +1447,16 @@ class MoneroWallet extends CoinServiceAPI {
 
         Future<PendingTransaction>? awaitPendingTransaction;
         try {
+          // check for send all
+          bool isSendAll = false;
+          final balance = await availableBalance;
+          final satInDecimal = ((Decimal.fromInt(satoshiAmount) /
+                      Decimal.fromInt(Constants.satsPerCoinWownero))
+                  .toDecimal() *
+              Decimal.fromInt(10000));
+          if (satInDecimal == balance) {
+            isSendAll = true;
+          }
           Logging.instance
               .log("$toAddress $amount $args", level: LogLevel.Info);
           String amountToSend = moneroAmountToString(amount: amount * 10000);
@@ -1454,6 +1464,7 @@ class MoneroWallet extends CoinServiceAPI {
 
           monero_output.Output output = monero_output.Output(walletBase!);
           output.address = toAddress;
+          output.sendAll = isSendAll;
           output.setCryptoAmount(amountToSend);
 
           List<monero_output.Output> outputs = [output];

@@ -1453,6 +1453,16 @@ class WowneroWallet extends CoinServiceAPI {
 
         Future<PendingTransaction>? awaitPendingTransaction;
         try {
+          // check for send all
+          bool isSendAll = false;
+          final balance = await availableBalance;
+          final satInDecimal = ((Decimal.fromInt(satoshiAmount) /
+                      Decimal.fromInt(Constants.satsPerCoinWownero))
+                  .toDecimal() *
+              Decimal.fromInt(1000));
+          if (satInDecimal == balance) {
+            isSendAll = true;
+          }
           Logging.instance
               .log("$toAddress $amount $args", level: LogLevel.Info);
           String amountToSend = wowneroAmountToString(amount: amount * 1000);
@@ -1460,6 +1470,7 @@ class WowneroWallet extends CoinServiceAPI {
 
           wownero_output.Output output = wownero_output.Output(walletBase!);
           output.address = toAddress;
+          output.sendAll = isSendAll;
           output.setCryptoAmount(amountToSend);
 
           List<wownero_output.Output> outputs = [output];
