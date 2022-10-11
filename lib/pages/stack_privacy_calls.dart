@@ -83,18 +83,6 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                   ),
                   child: PrivacyToggle(),
                 ),
-                // Center(
-                // child: CustomRadio((bool isEasy) {
-                // setState(() {
-                //   this.isEasy = isEasy;
-                //
-                //   DB.instance.put<dynamic>(
-                //       boxName: DB.boxNamePrefs,
-                //       key: "externalCalls",
-                //       value: isEasy);
-                // });
-                // }),
-                // ),
                 const SizedBox(
                   height: 36,
                 ),
@@ -105,7 +93,11 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                       text: TextSpan(
                         style:
                             STextStyles.label(context).copyWith(fontSize: 12.0),
-                        children: isEasy
+                        children: ref.watch(
+                          prefsChangeNotifierProvider.select(
+                            (value) => value.externalCalls,
+                          ),
+                        )
                             ? const [
                                 TextSpan(
                                     text:
@@ -181,6 +173,18 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
           child: RawMaterialButton(
             fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
             shape: RoundedRectangleBorder(
+              side: !ref.watch(
+                prefsChangeNotifierProvider.select(
+                  (value) => value.externalCalls,
+                ),
+              )
+                  ? BorderSide.none
+                  : BorderSide(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemIcons,
+                      width: 2,
+                    ),
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius * 2,
               ),
@@ -192,23 +196,66 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
               padding: const EdgeInsets.all(
                 12,
               ),
-              child: Column(
+              child: Stack(
                 children: [
-                  SvgPicture.asset(
-                    Assets.svg.personaEasy,
-                    // color: Theme.of(context).extension<StackColors>()!.textWhite,
-                    width: 96,
-                    height: 96,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SvgPicture.asset(
+                        Assets.svg.personaEasy,
+                        width: 96,
+                        height: 96,
+                      ),
+                      const Center(
+                          child: Text(
+                        "Easy Crypto",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )),
+                      const Center(
+                        child: Text(
+                          "Recommended",
+                        ),
+                      ),
+                    ],
                   ),
-                  const Text(
-                    "Easy Crypto",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                  if (ref.watch(
+                    prefsChangeNotifierProvider.select(
+                      (value) => value.externalCalls,
                     ),
-                  ),
-                  const Text(
-                    "Recommended",
-                  ),
+                  ))
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: SvgPicture.asset(
+                        Assets.svg.checkCircle,
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemIcons,
+                      ),
+                    ),
+                  if (!ref.watch(
+                    prefsChangeNotifierProvider.select(
+                      (value) => value.externalCalls,
+                    ),
+                  ))
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(1000),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
