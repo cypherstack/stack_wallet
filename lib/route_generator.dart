@@ -33,6 +33,7 @@ import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
@@ -43,6 +44,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_v
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/delete_account_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/global_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/language_view.dart';
@@ -98,6 +100,18 @@ class RouteGenerator {
     final args = settings.arguments;
 
     switch (settings.name) {
+      case IntroView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const IntroView(),
+            settings: RouteSettings(name: settings.name));
+
+      case DeleteAccountView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DeleteAccountView(),
+            settings: RouteSettings(name: settings.name));
+
       case HomeView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
