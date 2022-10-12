@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
@@ -136,9 +136,16 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case StackPrivacyCalls.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => StackPrivacyCalls(isSettings: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const StackPrivacyCalls(),
+            builder: (_) => StackPrivacyCalls(isSettings: false),
             settings: RouteSettings(name: settings.name));
 
       case WalletsView.routeName:
@@ -919,7 +926,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SendFromView.routeName:
-        if (args is Tuple4<Coin, Decimal, String, ExchangeTransaction>) {
+        if (args is Tuple4<Coin, Decimal, String, Trade>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendFromView(

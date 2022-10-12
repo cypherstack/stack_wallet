@@ -23,6 +23,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+import 'package:stackwallet/utilities/delete_everything.dart';
+
 class GlobalSettingsView extends StatelessWidget {
   const GlobalSettingsView({
     Key? key,
@@ -191,6 +193,20 @@ class GlobalSettingsView extends StatelessWidget {
                                       AppearanceSettingsView.routeName);
                                 },
                               ),
+                              if (Platform.isIOS)
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                              if (Platform.isIOS)
+                                SettingsListButton(
+                                  iconAssetName: Assets.svg.circleAlert,
+                                  iconSize: 16,
+                                  title: "Delete account",
+                                  onPressed: () async {
+                                    await Navigator.of(context)
+                                        .pushNamed(DeleteAccountView.routeName);
+                                  },
+                                ),
                               const SizedBox(
                                 height: 8,
                               ),
@@ -227,20 +243,6 @@ class GlobalSettingsView extends StatelessWidget {
                                       .pushNamed(SupportView.routeName);
                                 },
                               ),
-                              if (Platform.isIOS)
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                              if (Platform.isIOS)
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.circleAlert,
-                                  iconSize: 16,
-                                  title: "Delete account",
-                                  onPressed: () async {
-                                    await Navigator.of(context)
-                                        .pushNamed(DeleteAccountView.routeName);
-                                  },
-                                ),
                               // TextButton(
                               //   style: Theme.of(context)
                               //       .textButtonTheme

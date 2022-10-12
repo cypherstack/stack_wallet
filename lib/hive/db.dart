@@ -4,6 +4,7 @@ import 'package:cw_core/wallet_info.dart' as xmr;
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
@@ -22,6 +23,7 @@ class DB {
       "watchedTxNotificationModels";
   static const String boxNameWatchedTrades = "watchedTradesNotificationModels";
   static const String boxNameTrades = "exchangeTransactionsBox";
+  static const String boxNameTradesV2 = "exchangeTradesBox";
   static const String boxNameTradeNotes = "tradeNotesBox";
   static const String boxNameTradeLookup = "tradeToTxidLookUpBox";
   static const String boxNameFavoriteWallets = "favoriteWallets";
@@ -48,6 +50,7 @@ class DB {
   late final Box<NotificationModel> _boxWatchedTransactions;
   late final Box<NotificationModel> _boxWatchedTrades;
   late final Box<ExchangeTransaction> _boxTrades;
+  late final Box<Trade> _boxTradesV2;
   late final Box<String> _boxTradeNotes;
   late final Box<String> _boxFavoriteWallets;
   late final Box<xmr.WalletInfo> _walletInfoSource;
@@ -125,6 +128,7 @@ class DB {
       _boxWatchedTrades =
           await Hive.openBox<NotificationModel>(boxNameWatchedTrades);
       _boxTrades = await Hive.openBox<ExchangeTransaction>(boxNameTrades);
+      _boxTradesV2 = await Hive.openBox<Trade>(boxNameTradesV2);
       _boxTradeNotes = await Hive.openBox<String>(boxNameTradeNotes);
       _boxTradeLookup =
           await Hive.openBox<TradeWalletLookup>(boxNameTradeLookup);

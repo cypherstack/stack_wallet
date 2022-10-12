@@ -1,10 +1,10 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/services/trade_notes_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
-@GenerateMocks([Prefs, TradesService, TradeNotesService, ChangeNow])
+@GenerateMocks([Prefs, TradesService, TradeNotesService, ChangeNowAPI])
 void main() {
   // testWidgets("ExchangeView builds correctly with no trade history",
   //     (widgetTester) async {

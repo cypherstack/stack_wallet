@@ -8,24 +8,28 @@ import 'dart:ui' as _i8;
 import 'package:decimal/decimal.dart' as _i15;
 import 'package:http/http.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart'
-    as _i20;
-import 'package:stackwallet/models/exchange/change_now/change_now_response.dart'
-    as _i2;
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart'
-    as _i17;
-import 'package:stackwallet/models/exchange/change_now/currency.dart' as _i14;
-import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart'
-    as _i16;
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart'
-    as _i10;
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart'
-    as _i19;
-import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart'
     as _i18;
+import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart'
+    as _i20;
+import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart'
+    as _i21;
+import 'package:stackwallet/models/exchange/response_objects/currency.dart'
+    as _i14;
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart'
+    as _i17;
+import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart'
+    as _i19;
+import 'package:stackwallet/models/exchange/response_objects/pair.dart' as _i22;
+import 'package:stackwallet/models/exchange/response_objects/range.dart'
+    as _i16;
+import 'package:stackwallet/models/exchange/response_objects/trade.dart'
+    as _i10;
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
     as _i5;
-import 'package:stackwallet/services/change_now/change_now.dart' as _i12;
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart'
+    as _i12;
+import 'package:stackwallet/services/exchange/exchange_response.dart' as _i2;
 import 'package:stackwallet/services/trade_notes_service.dart' as _i11;
 import 'package:stackwallet/services/trade_service.dart' as _i9;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i6;
@@ -42,8 +46,8 @@ import 'package:stackwallet/utilities/prefs.dart' as _i3;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 
-class _FakeChangeNowResponse_0<T> extends _i1.Fake
-    implements _i2.ChangeNowResponse<T> {}
+class _FakeExchangeResponse_0<T> extends _i1.Fake
+    implements _i2.ExchangeResponse<T> {}
 
 /// A class which mocks [Prefs].
 ///
@@ -101,6 +105,14 @@ class MockPrefs extends _i1.Mock implements _i3.Prefs {
   @override
   set wifiOnly(bool? wifiOnly) =>
       super.noSuchMethod(Invocation.setter(#wifiOnly, wifiOnly),
+          returnValueForMissingStub: null);
+  @override
+  bool get externalCalls =>
+      (super.noSuchMethod(Invocation.getter(#externalCalls), returnValue: false)
+          as bool);
+  @override
+  set externalCalls(bool? eCalls) =>
+      super.noSuchMethod(Invocation.setter(#externalCalls, eCalls),
           returnValueForMissingStub: null);
   @override
   bool get showFavoriteWallets =>
@@ -245,33 +257,28 @@ class MockTradesService extends _i1.Mock implements _i9.TradesService {
   }
 
   @override
-  List<_i10.ExchangeTransaction> get trades =>
-      (super.noSuchMethod(Invocation.getter(#trades),
-              returnValue: <_i10.ExchangeTransaction>[])
-          as List<_i10.ExchangeTransaction>);
+  List<_i10.Trade> get trades => (super.noSuchMethod(Invocation.getter(#trades),
+      returnValue: <_i10.Trade>[]) as List<_i10.Trade>);
   @override
   bool get hasListeners =>
       (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
           as bool);
   @override
-  _i7.Future<void> add(
-          {_i10.ExchangeTransaction? trade, bool? shouldNotifyListeners}) =>
+  _i7.Future<void> add({_i10.Trade? trade, bool? shouldNotifyListeners}) =>
       (super.noSuchMethod(
           Invocation.method(#add, [],
               {#trade: trade, #shouldNotifyListeners: shouldNotifyListeners}),
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future<void>.value()) as _i7.Future<void>);
   @override
-  _i7.Future<void> edit(
-          {_i10.ExchangeTransaction? trade, bool? shouldNotifyListeners}) =>
+  _i7.Future<void> edit({_i10.Trade? trade, bool? shouldNotifyListeners}) =>
       (super.noSuchMethod(
           Invocation.method(#edit, [],
               {#trade: trade, #shouldNotifyListeners: shouldNotifyListeners}),
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future<void>.value()) as _i7.Future<void>);
   @override
-  _i7.Future<void> delete(
-          {_i10.ExchangeTransaction? trade, bool? shouldNotifyListeners}) =>
+  _i7.Future<void> delete({_i10.Trade? trade, bool? shouldNotifyListeners}) =>
       (super.noSuchMethod(
           Invocation.method(#delete, [],
               {#trade: trade, #shouldNotifyListeners: shouldNotifyListeners}),
@@ -347,11 +354,11 @@ class MockTradeNotesService extends _i1.Mock implements _i11.TradeNotesService {
           returnValueForMissingStub: null);
 }
 
-/// A class which mocks [ChangeNow].
+/// A class which mocks [ChangeNowAPI].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockChangeNow extends _i1.Mock implements _i12.ChangeNow {
-  MockChangeNow() {
+class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
+  MockChangeNowAPI() {
     _i1.throwOnMissingStub(this);
   }
 
@@ -360,25 +367,25 @@ class MockChangeNow extends _i1.Mock implements _i12.ChangeNow {
       super.noSuchMethod(Invocation.setter(#client, _client),
           returnValueForMissingStub: null);
   @override
-  _i7.Future<_i2.ChangeNowResponse<List<_i14.Currency>>> getAvailableCurrencies(
+  _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>> getAvailableCurrencies(
           {bool? fixedRate, bool? active}) =>
       (super.noSuchMethod(
           Invocation.method(#getAvailableCurrencies, [],
               {#fixedRate: fixedRate, #active: active}),
-          returnValue: Future<_i2.ChangeNowResponse<List<_i14.Currency>>>.value(
-              _FakeChangeNowResponse_0<List<_i14.Currency>>())) as _i7
-          .Future<_i2.ChangeNowResponse<List<_i14.Currency>>>);
+          returnValue: Future<_i2.ExchangeResponse<List<_i14.Currency>>>.value(
+              _FakeExchangeResponse_0<List<_i14.Currency>>())) as _i7
+          .Future<_i2.ExchangeResponse<List<_i14.Currency>>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<List<_i14.Currency>>> getPairedCurrencies(
+  _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>> getPairedCurrencies(
           {String? ticker, bool? fixedRate}) =>
       (super.noSuchMethod(
           Invocation.method(#getPairedCurrencies, [],
               {#ticker: ticker, #fixedRate: fixedRate}),
-          returnValue: Future<_i2.ChangeNowResponse<List<_i14.Currency>>>.value(
-              _FakeChangeNowResponse_0<List<_i14.Currency>>())) as _i7
-          .Future<_i2.ChangeNowResponse<List<_i14.Currency>>>);
+          returnValue: Future<_i2.ExchangeResponse<List<_i14.Currency>>>.value(
+              _FakeExchangeResponse_0<List<_i14.Currency>>())) as _i7
+          .Future<_i2.ExchangeResponse<List<_i14.Currency>>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<_i15.Decimal>> getMinimalExchangeAmount(
+  _i7.Future<_i2.ExchangeResponse<_i15.Decimal>> getMinimalExchangeAmount(
           {String? fromTicker, String? toTicker, String? apiKey}) =>
       (super.noSuchMethod(
               Invocation.method(#getMinimalExchangeAmount, [], {
@@ -386,39 +393,72 @@ class MockChangeNow extends _i1.Mock implements _i12.ChangeNow {
                 #toTicker: toTicker,
                 #apiKey: apiKey
               }),
-              returnValue: Future<_i2.ChangeNowResponse<_i15.Decimal>>.value(
-                  _FakeChangeNowResponse_0<_i15.Decimal>()))
-          as _i7.Future<_i2.ChangeNowResponse<_i15.Decimal>>);
+              returnValue: Future<_i2.ExchangeResponse<_i15.Decimal>>.value(
+                  _FakeExchangeResponse_0<_i15.Decimal>()))
+          as _i7.Future<_i2.ExchangeResponse<_i15.Decimal>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<_i16.EstimatedExchangeAmount>>
-      getEstimatedExchangeAmount(
+  _i7.Future<_i2.ExchangeResponse<_i16.Range>> getRange(
+          {String? fromTicker,
+          String? toTicker,
+          bool? isFixedRate,
+          String? apiKey}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getRange, [], {
+                #fromTicker: fromTicker,
+                #toTicker: toTicker,
+                #isFixedRate: isFixedRate,
+                #apiKey: apiKey
+              }),
+              returnValue: Future<_i2.ExchangeResponse<_i16.Range>>.value(
+                  _FakeExchangeResponse_0<_i16.Range>()))
+          as _i7.Future<_i2.ExchangeResponse<_i16.Range>>);
+  @override
+  _i7.Future<_i2.ExchangeResponse<_i17.Estimate>> getEstimatedExchangeAmount(
+          {String? fromTicker,
+          String? toTicker,
+          _i15.Decimal? fromAmount,
+          String? apiKey}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getEstimatedExchangeAmount, [], {
+                #fromTicker: fromTicker,
+                #toTicker: toTicker,
+                #fromAmount: fromAmount,
+                #apiKey: apiKey
+              }),
+              returnValue: Future<_i2.ExchangeResponse<_i17.Estimate>>.value(
+                  _FakeExchangeResponse_0<_i17.Estimate>()))
+          as _i7.Future<_i2.ExchangeResponse<_i17.Estimate>>);
+  @override
+  _i7.Future<_i2.ExchangeResponse<_i17.Estimate>>
+      getEstimatedExchangeAmountFixedRate(
               {String? fromTicker,
               String? toTicker,
               _i15.Decimal? fromAmount,
+              bool? reversed,
+              bool? useRateId = true,
               String? apiKey}) =>
           (super.noSuchMethod(
-                  Invocation.method(#getEstimatedExchangeAmount, [], {
-                    #fromTicker: fromTicker,
-                    #toTicker: toTicker,
-                    #fromAmount: fromAmount,
-                    #apiKey: apiKey
-                  }),
-                  returnValue: Future<
-                          _i2.ChangeNowResponse<
-                              _i16.EstimatedExchangeAmount>>.value(
-                      _FakeChangeNowResponse_0<_i16.EstimatedExchangeAmount>()))
-              as _i7
-                  .Future<_i2.ChangeNowResponse<_i16.EstimatedExchangeAmount>>);
+              Invocation.method(#getEstimatedExchangeAmountFixedRate, [], {
+                #fromTicker: fromTicker,
+                #toTicker: toTicker,
+                #fromAmount: fromAmount,
+                #reversed: reversed,
+                #useRateId: useRateId,
+                #apiKey: apiKey
+              }),
+              returnValue: Future<_i2.ExchangeResponse<_i17.Estimate>>.value(
+                  _FakeExchangeResponse_0<_i17.Estimate>())) as _i7
+              .Future<_i2.ExchangeResponse<_i17.Estimate>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<_i17.CNExchangeEstimate>>
+  _i7.Future<_i2.ExchangeResponse<_i18.CNExchangeEstimate>>
       getEstimatedExchangeAmountV2(
               {String? fromTicker,
               String? toTicker,
-              _i17.CNEstimateType? fromOrTo,
+              _i18.CNEstimateType? fromOrTo,
               _i15.Decimal? amount,
               String? fromNetwork,
               String? toNetwork,
-              _i17.CNFlowType? flow = _i17.CNFlowType.standard,
+              _i18.CNFlowType? flow = _i18.CNFlowType.standard,
               String? apiKey}) =>
           (super.noSuchMethod(
                   Invocation.method(#getEstimatedExchangeAmountV2, [], {
@@ -432,20 +472,20 @@ class MockChangeNow extends _i1.Mock implements _i12.ChangeNow {
                     #apiKey: apiKey
                   }),
                   returnValue: Future<
-                          _i2.ChangeNowResponse<_i17.CNExchangeEstimate>>.value(
-                      _FakeChangeNowResponse_0<_i17.CNExchangeEstimate>()))
-              as _i7.Future<_i2.ChangeNowResponse<_i17.CNExchangeEstimate>>);
+                          _i2.ExchangeResponse<_i18.CNExchangeEstimate>>.value(
+                      _FakeExchangeResponse_0<_i18.CNExchangeEstimate>()))
+              as _i7.Future<_i2.ExchangeResponse<_i18.CNExchangeEstimate>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<List<_i18.FixedRateMarket>>>
+  _i7.Future<_i2.ExchangeResponse<List<_i19.FixedRateMarket>>>
       getAvailableFixedRateMarkets({String? apiKey}) => (super.noSuchMethod(
           Invocation.method(
               #getAvailableFixedRateMarkets, [], {#apiKey: apiKey}),
           returnValue:
-              Future<_i2.ChangeNowResponse<List<_i18.FixedRateMarket>>>.value(
-                  _FakeChangeNowResponse_0<List<_i18.FixedRateMarket>>())) as _i7
-          .Future<_i2.ChangeNowResponse<List<_i18.FixedRateMarket>>>);
+              Future<_i2.ExchangeResponse<List<_i19.FixedRateMarket>>>.value(
+                  _FakeExchangeResponse_0<List<_i19.FixedRateMarket>>())) as _i7
+          .Future<_i2.ExchangeResponse<List<_i19.FixedRateMarket>>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<_i10.ExchangeTransaction>>
+  _i7.Future<_i2.ExchangeResponse<_i20.ExchangeTransaction>>
       createStandardExchangeTransaction(
               {String? fromTicker,
               String? toTicker,
@@ -458,30 +498,31 @@ class MockChangeNow extends _i1.Mock implements _i12.ChangeNow {
               String? refundExtraId = r'',
               String? apiKey}) =>
           (super.noSuchMethod(
-              Invocation.method(#createStandardExchangeTransaction, [], {
-                #fromTicker: fromTicker,
-                #toTicker: toTicker,
-                #receivingAddress: receivingAddress,
-                #amount: amount,
-                #extraId: extraId,
-                #userId: userId,
-                #contactEmail: contactEmail,
-                #refundAddress: refundAddress,
-                #refundExtraId: refundExtraId,
-                #apiKey: apiKey
-              }),
-              returnValue: Future<
-                      _i2.ChangeNowResponse<_i10.ExchangeTransaction>>.value(
-                  _FakeChangeNowResponse_0<_i10.ExchangeTransaction>())) as _i7
-              .Future<_i2.ChangeNowResponse<_i10.ExchangeTransaction>>);
+                  Invocation.method(#createStandardExchangeTransaction, [], {
+                    #fromTicker: fromTicker,
+                    #toTicker: toTicker,
+                    #receivingAddress: receivingAddress,
+                    #amount: amount,
+                    #extraId: extraId,
+                    #userId: userId,
+                    #contactEmail: contactEmail,
+                    #refundAddress: refundAddress,
+                    #refundExtraId: refundExtraId,
+                    #apiKey: apiKey
+                  }),
+                  returnValue: Future<
+                          _i2.ExchangeResponse<_i20.ExchangeTransaction>>.value(
+                      _FakeExchangeResponse_0<_i20.ExchangeTransaction>()))
+              as _i7.Future<_i2.ExchangeResponse<_i20.ExchangeTransaction>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<_i10.ExchangeTransaction>>
+  _i7.Future<_i2.ExchangeResponse<_i20.ExchangeTransaction>>
       createFixedRateExchangeTransaction(
               {String? fromTicker,
               String? toTicker,
               String? receivingAddress,
               _i15.Decimal? amount,
               String? rateId,
+              bool? reversed,
               String? extraId = r'',
               String? userId = r'',
               String? contactEmail = r'',
@@ -489,40 +530,40 @@ class MockChangeNow extends _i1.Mock implements _i12.ChangeNow {
               String? refundExtraId = r'',
               String? apiKey}) =>
           (super.noSuchMethod(
-              Invocation.method(#createFixedRateExchangeTransaction, [], {
-                #fromTicker: fromTicker,
-                #toTicker: toTicker,
-                #receivingAddress: receivingAddress,
-                #amount: amount,
-                #rateId: rateId,
-                #extraId: extraId,
-                #userId: userId,
-                #contactEmail: contactEmail,
-                #refundAddress: refundAddress,
-                #refundExtraId: refundExtraId,
-                #apiKey: apiKey
-              }),
-              returnValue: Future<
-                      _i2.ChangeNowResponse<_i10.ExchangeTransaction>>.value(
-                  _FakeChangeNowResponse_0<_i10.ExchangeTransaction>())) as _i7
-              .Future<_i2.ChangeNowResponse<_i10.ExchangeTransaction>>);
+                  Invocation.method(#createFixedRateExchangeTransaction, [], {
+                    #fromTicker: fromTicker,
+                    #toTicker: toTicker,
+                    #receivingAddress: receivingAddress,
+                    #amount: amount,
+                    #rateId: rateId,
+                    #reversed: reversed,
+                    #extraId: extraId,
+                    #userId: userId,
+                    #contactEmail: contactEmail,
+                    #refundAddress: refundAddress,
+                    #refundExtraId: refundExtraId,
+                    #apiKey: apiKey
+                  }),
+                  returnValue: Future<
+                          _i2.ExchangeResponse<_i20.ExchangeTransaction>>.value(
+                      _FakeExchangeResponse_0<_i20.ExchangeTransaction>()))
+              as _i7.Future<_i2.ExchangeResponse<_i20.ExchangeTransaction>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<_i19.ExchangeTransactionStatus>>
+  _i7.Future<_i2.ExchangeResponse<_i21.ExchangeTransactionStatus>>
       getTransactionStatus({String? id, String? apiKey}) => (super.noSuchMethod(
           Invocation.method(
               #getTransactionStatus, [], {#id: id, #apiKey: apiKey}),
           returnValue:
-              Future<_i2.ChangeNowResponse<_i19.ExchangeTransactionStatus>>.value(
-                  _FakeChangeNowResponse_0<_i19.ExchangeTransactionStatus>())) as _i7
-          .Future<_i2.ChangeNowResponse<_i19.ExchangeTransactionStatus>>);
+              Future<_i2.ExchangeResponse<_i21.ExchangeTransactionStatus>>.value(
+                  _FakeExchangeResponse_0<_i21.ExchangeTransactionStatus>())) as _i7
+          .Future<_i2.ExchangeResponse<_i21.ExchangeTransactionStatus>>);
   @override
-  _i7.Future<_i2.ChangeNowResponse<List<_i20.AvailableFloatingRatePair>>>
-      getAvailableFloatingRatePairs({bool? includePartners = false}) => (super
-          .noSuchMethod(
+  _i7.Future<_i2.ExchangeResponse<List<_i22.Pair>>>
+      getAvailableFloatingRatePairs({bool? includePartners = false}) =>
+          (super.noSuchMethod(
               Invocation.method(#getAvailableFloatingRatePairs, [],
                   {#includePartners: includePartners}),
-              returnValue:
-                  Future<_i2.ChangeNowResponse<List<_i20.AvailableFloatingRatePair>>>.value(
-                      _FakeChangeNowResponse_0<List<_i20.AvailableFloatingRatePair>>())) as _i7
-          .Future<_i2.ChangeNowResponse<List<_i20.AvailableFloatingRatePair>>>);
+              returnValue: Future<_i2.ExchangeResponse<List<_i22.Pair>>>.value(
+                  _FakeExchangeResponse_0<List<_i22.Pair>>())) as _i7
+              .Future<_i2.ExchangeResponse<List<_i22.Pair>>>);
 }
