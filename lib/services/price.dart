@@ -79,7 +79,7 @@ class PriceAPI {
     }
 
     final externalCalls = Prefs.instance.externalCalls;
-    if (!externalCalls) {
+    if (!Logger.isTestEnv && !externalCalls) {
       Logging.instance.log("User does not want to use external calls",
           level: LogLevel.Info);
       return _cachedPrices;
@@ -124,7 +124,7 @@ class PriceAPI {
 
   static Future<List<String>?> availableBaseCurrencies() async {
     final externalCalls = Prefs.instance.externalCalls;
-    if (!externalCalls) {
+    if (!Logger.isTestEnv && !externalCalls) {
       Logging.instance.log("User does not want to use external calls",
           level: LogLevel.Info);
       return null;
