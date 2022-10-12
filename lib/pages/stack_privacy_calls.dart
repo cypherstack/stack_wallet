@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
@@ -194,6 +192,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
       children: [
         Expanded(
           child: RawMaterialButton(
+            elevation: 0,
             fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
             shape: RoundedRectangleBorder(
               side: !ref.watch(
@@ -224,10 +223,13 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      SvgPicture.asset(
-                        Assets.svg.personaEasy,
-                        width: 140,
-                        height: 140,
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.personaEasy,
+                          width: 140,
+                          height: 140,
+                        ),
                       ),
                       Center(
                           child: Text(
@@ -321,10 +323,13 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      SvgPicture.asset(
-                        Assets.svg.personaIncognito,
-                        width: 140,
-                        height: 140,
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.personaIncognito,
+                          width: 140,
+                          height: 140,
+                        ),
                       ),
                       Center(
                         child: Text(
@@ -434,9 +439,17 @@ class ContinueButton extends StatelessWidget {
 
                 Prefs.instance.externalCalls = isEasy;
 
-                if (!isSettings) {
-                  Navigator.of(context).pushNamed(CreatePinView.routeName);
-                }
+                !isSettings
+                    ? Navigator.of(context).pushNamed(CreatePinView.routeName)
+                    : Navigator.of(context)
+                        .pushNamed(AdvancedSettingsView.routeName);
+
+                // if (!isSettings) {
+                //   Navigator.of(context).pushNamed(CreatePinView.routeName);
+                // }
+                // if (isSettings) {
+                //   Navigator.of(context).pop();
+                // }
               },
               child: Text(
                 !isSettings ? "Continue" : "Save changes",
