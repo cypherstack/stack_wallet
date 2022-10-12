@@ -4,25 +4,27 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/external_api_keys.dart';
-import 'package:stackwallet/models/exchange/change_now/available_floating_rate_pair.dart';
-import 'package:stackwallet/models/exchange/change_now/change_now_response.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
-import 'package:stackwallet/models/exchange/change_now/currency.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
+import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
+import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
+import 'package:stackwallet/models/exchange/response_objects/pair.dart';
+import 'package:stackwallet/models/exchange/response_objects/range.dart';
+import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
-class ChangeNow {
+class ChangeNowAPI {
   static const String scheme = "https";
   static const String authority = "api.changenow.io";
   static const String apiVersion = "/v1";
   static const String apiVersionV2 = "/v2";
 
-  ChangeNow._();
-  static final ChangeNow _instance = ChangeNow._();
-  static ChangeNow get instance => _instance;
+  ChangeNowAPI._();
+  static final ChangeNowAPI _instance = ChangeNowAPI._();
+  static ChangeNowAPI get instance => _instance;
 
   /// set this to override using standard http client. Useful for testing
   http.Client? client;
@@ -100,7 +102,7 @@ class ChangeNow {
   ///
   /// Set [active] to true to return only active currencies.
   /// Set [fixedRate] to true to return only currencies available on a fixed-rate flow.
-  Future<ChangeNowResponse<List<Currency>>> getAvailableCurrencies({
+  Future<ExchangeResponse<List<Currency>>> getAvailableCurrencies({
     bool? fixedRate,
     bool? active,
   }) async {
@@ -129,26 +131,26 @@ class ChangeNow {
       } catch (e, s) {
         Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
             level: LogLevel.Error);
-        return ChangeNowResponse(
-          exception: ChangeNowException(
+        return ExchangeResponse(
+          exception: ExchangeException(
             "Error: $jsonArray",
-            ChangeNowExceptionType.serializeResponseError,
+            ExchangeExceptionType.serializeResponseError,
           ),
         );
       }
     } catch (e, s) {
       Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
           level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
         ),
       );
     }
   }
 
-  ChangeNowResponse<List<Currency>> _parseAvailableCurrenciesJson(
+  ExchangeResponse<List<Currency>> _parseAvailableCurrenciesJson(
       List<dynamic> jsonArray) {
     try {
       List<Currency> currencies = [];
@@ -158,13 +160,13 @@ class ChangeNow {
           currencies
               .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
         } catch (_) {
-          return ChangeNowResponse(
-              exception: ChangeNowException("Failed to serialize $json",
-                  ChangeNowExceptionType.serializeResponseError));
+          return ExchangeResponse(
+              exception: ExchangeException("Failed to serialize $json",
+                  ExchangeExceptionType.serializeResponseError));
         }
       }
 
-      return ChangeNowResponse(value: currencies);
+      return ExchangeResponse(value: currencies);
     } catch (_) {
       rethrow;
     }
@@ -175,7 +177,7 @@ class ChangeNow {
   ///
   /// Required [ticker] to fetch paired currencies for.
   /// Set [fixedRate] to true to return only currencies available on a fixed-rate flow.
-  Future<ChangeNowResponse<List<Currency>>> getPairedCurrencies({
+  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies({
     required String ticker,
     bool? fixedRate,
   }) async {
@@ -199,10 +201,10 @@ class ChangeNow {
             currencies
                 .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
           } catch (_) {
-            return ChangeNowResponse(
-              exception: ChangeNowException(
+            return ExchangeResponse(
+              exception: ExchangeException(
                 "Failed to serialize $json",
-                ChangeNowExceptionType.serializeResponseError,
+                ExchangeExceptionType.serializeResponseError,
               ),
             );
           }
@@ -210,18 +212,18 @@ class ChangeNow {
       } catch (e, s) {
         Logging.instance.log("getPairedCurrencies exception: $e\n$s",
             level: LogLevel.Error);
-        return ChangeNowResponse(
-            exception: ChangeNowException("Error: $jsonArray",
-                ChangeNowExceptionType.serializeResponseError));
+        return ExchangeResponse(
+            exception: ExchangeException("Error: $jsonArray",
+                ExchangeExceptionType.serializeResponseError));
       }
-      return ChangeNowResponse(value: currencies);
+      return ExchangeResponse(value: currencies);
     } catch (e, s) {
       Logging.instance
           .log("getPairedCurrencies exception: $e\n$s", level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
         ),
       );
     }
@@ -230,7 +232,7 @@ class ChangeNow {
   /// The API endpoint returns minimal payment amount required to make
   /// an exchange of [fromTicker] to [toTicker].
   /// If you try to exchange less, the transaction will most likely fail.
-  Future<ChangeNowResponse<Decimal>> getMinimalExchangeAmount({
+  Future<ExchangeResponse<Decimal>> getMinimalExchangeAmount({
     required String fromTicker,
     required String toTicker,
     String? apiKey,
@@ -245,22 +247,62 @@ class ChangeNow {
 
       try {
         final value = Decimal.parse(json["minAmount"].toString());
-        return ChangeNowResponse(value: value);
+        return ExchangeResponse(value: value);
       } catch (_) {
-        return ChangeNowResponse(
-          exception: ChangeNowException(
+        return ExchangeResponse(
+          exception: ExchangeException(
             "Failed to serialize $json",
-            ChangeNowExceptionType.serializeResponseError,
+            ExchangeExceptionType.serializeResponseError,
           ),
         );
       }
     } catch (e, s) {
       Logging.instance.log("getMinimalExchangeAmount exception: $e\n$s",
           level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
+        ),
+      );
+    }
+  }
+
+  /// The API endpoint returns minimal payment amount and maximum payment amount
+  /// required to make an exchange. If you try to exchange less than minimum or
+  /// more than maximum, the transaction will most likely fail. Any pair of
+  /// assets has minimum amount and some of pairs have maximum amount.
+  Future<ExchangeResponse<Range>> getRange({
+    required String fromTicker,
+    required String toTicker,
+    required bool isFixedRate,
+    String? apiKey,
+  }) async {
+    Map<String, dynamic>? params = {"api_key": apiKey ?? kChangeNowApiKey};
+
+    final uri = _buildUri(
+        "/exchange-range${isFixedRate ? "/fixed-rate" : ""}/${fromTicker}_$toTicker",
+        params);
+
+    try {
+      final jsonObject = await _makeGetRequest(uri);
+
+      final json = Map<String, dynamic>.from(jsonObject as Map);
+      return ExchangeResponse(
+        value: Range(
+          max: Decimal.tryParse(json["maxAmount"]?.toString() ?? ""),
+          min: Decimal.tryParse(json["minAmount"]?.toString() ?? ""),
+        ),
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "getRange exception: $e\n$s",
+        level: LogLevel.Error,
+      );
+      return ExchangeResponse(
+        exception: ExchangeException(
+          e.toString(),
+          ExchangeExceptionType.generic,
         ),
       );
     }
@@ -268,8 +310,7 @@ class ChangeNow {
 
   /// Get estimated amount of [toTicker] cryptocurrency to receive
   /// for [fromAmount] of [fromTicker]
-  Future<ChangeNowResponse<EstimatedExchangeAmount>>
-      getEstimatedExchangeAmount({
+  Future<ExchangeResponse<Estimate>> getEstimatedExchangeAmount({
     required String fromTicker,
     required String toTicker,
     required Decimal fromAmount,
@@ -289,22 +330,94 @@ class ChangeNow {
       try {
         final value = EstimatedExchangeAmount.fromJson(
             Map<String, dynamic>.from(json as Map));
-        return ChangeNowResponse(value: value);
+        return ExchangeResponse(
+          value: Estimate(
+            estimatedAmount: value.estimatedAmount,
+            fixedRate: false,
+            reversed: false,
+            rateId: value.rateId,
+            warningMessage: value.warningMessage,
+          ),
+        );
       } catch (_) {
-        return ChangeNowResponse(
-          exception: ChangeNowException(
+        return ExchangeResponse(
+          exception: ExchangeException(
             "Failed to serialize $json",
-            ChangeNowExceptionType.serializeResponseError,
+            ExchangeExceptionType.serializeResponseError,
           ),
         );
       }
     } catch (e, s) {
       Logging.instance.log("getEstimatedExchangeAmount exception: $e\n$s",
           level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
+        ),
+      );
+    }
+  }
+
+  /// Get estimated amount of [toTicker] cryptocurrency to receive
+  /// for [fromAmount] of [fromTicker]
+  Future<ExchangeResponse<Estimate>> getEstimatedExchangeAmountFixedRate({
+    required String fromTicker,
+    required String toTicker,
+    required Decimal fromAmount,
+    required bool reversed,
+    bool useRateId = true,
+    String? apiKey,
+  }) async {
+    Map<String, dynamic> params = {
+      "api_key": apiKey ?? kChangeNowApiKey,
+      "useRateId": useRateId.toString(),
+    };
+
+    late final Uri uri;
+    if (reversed) {
+      uri = _buildUri(
+        "/exchange-deposit/fixed-rate/${fromAmount.toString()}/${fromTicker}_$toTicker",
+        params,
+      );
+    } else {
+      uri = _buildUri(
+        "/exchange-amount/fixed-rate/${fromAmount.toString()}/${fromTicker}_$toTicker",
+        params,
+      );
+    }
+
+    try {
+      // simple json object is expected here
+      final json = await _makeGetRequest(uri);
+
+      try {
+        final value = EstimatedExchangeAmount.fromJson(
+            Map<String, dynamic>.from(json as Map));
+        return ExchangeResponse(
+          value: Estimate(
+            estimatedAmount: value.estimatedAmount,
+            fixedRate: true,
+            reversed: reversed,
+            rateId: value.rateId,
+            warningMessage: value.warningMessage,
+          ),
+        );
+      } catch (_) {
+        return ExchangeResponse(
+          exception: ExchangeException(
+            "Failed to serialize $json",
+            ExchangeExceptionType.serializeResponseError,
+          ),
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log("getEstimatedExchangeAmount exception: $e\n$s",
+          level: LogLevel.Error);
+      return ExchangeResponse(
+        exception: ExchangeException(
+          e.toString(),
+          ExchangeExceptionType.generic,
         ),
       );
     }
@@ -313,7 +426,7 @@ class ChangeNow {
   // old v1 version
   /// This API endpoint returns fixed-rate estimated exchange amount of
   /// [toTicker] cryptocurrency to receive for [fromAmount] of [fromTicker]
-  // Future<ChangeNowResponse<EstimatedExchangeAmount>>
+  // Future<ExchangeResponse<EstimatedExchangeAmount>>
   //     getEstimatedFixedRateExchangeAmount({
   //   required String fromTicker,
   //   required String toTicker,
@@ -342,12 +455,12 @@ class ChangeNow {
   //     try {
   //       final value = EstimatedExchangeAmount.fromJson(
   //           Map<String, dynamic>.from(json as Map));
-  //       return ChangeNowResponse(value: value);
+  //       return ExchangeResponse(value: value);
   //     } catch (_) {
-  //       return ChangeNowResponse(
-  //         exception: ChangeNowException(
+  //       return ExchangeResponse(
+  //         exception: ExchangeException(
   //           "Failed to serialize $json",
-  //           ChangeNowExceptionType.serializeResponseError,
+  //           ExchangeExceptionType.serializeResponseError,
   //         ),
   //       );
   //     }
@@ -355,10 +468,10 @@ class ChangeNow {
   //     Logging.instance.log(
   //         "getEstimatedFixedRateExchangeAmount exception: $e\n$s",
   //         level: LogLevel.Error);
-  //     return ChangeNowResponse(
-  //       exception: ChangeNowException(
+  //     return ExchangeResponse(
+  //       exception: ExchangeException(
   //         e.toString(),
-  //         ChangeNowExceptionType.generic,
+  //         ExchangeExceptionType.generic,
   //       ),
   //     );
   //   }
@@ -366,7 +479,7 @@ class ChangeNow {
 
   /// Get estimated amount of [toTicker] cryptocurrency to receive
   /// for [fromAmount] of [fromTicker]
-  Future<ChangeNowResponse<CNExchangeEstimate>> getEstimatedExchangeAmountV2({
+  Future<ExchangeResponse<CNExchangeEstimate>> getEstimatedExchangeAmountV2({
     required String fromTicker,
     required String toTicker,
     required CNEstimateType fromOrTo,
@@ -413,22 +526,22 @@ class ChangeNow {
       try {
         final value =
             CNExchangeEstimate.fromJson(Map<String, dynamic>.from(json as Map));
-        return ChangeNowResponse(value: value);
+        return ExchangeResponse(value: value);
       } catch (_) {
-        return ChangeNowResponse(
-          exception: ChangeNowException(
+        return ExchangeResponse(
+          exception: ExchangeException(
             "Failed to serialize $json",
-            ChangeNowExceptionType.serializeResponseError,
+            ExchangeExceptionType.serializeResponseError,
           ),
         );
       }
     } catch (e, s) {
       Logging.instance.log("getEstimatedExchangeAmountV2 exception: $e\n$s",
           level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
         ),
       );
     }
@@ -438,8 +551,7 @@ class ChangeNow {
   /// fixed-rate flow. Some currencies get enabled or disabled from time to
   /// time and the market info gets updates, so make sure to refresh the list
   /// occasionally. One time per minute is sufficient.
-  Future<ChangeNowResponse<List<FixedRateMarket>>>
-      getAvailableFixedRateMarkets({
+  Future<ExchangeResponse<List<FixedRateMarket>>> getAvailableFixedRateMarkets({
     String? apiKey,
   }) async {
     final uri = _buildUri(
@@ -456,40 +568,40 @@ class ChangeNow {
       } catch (e, s) {
         Logging.instance.log("getAvailableFixedRateMarkets exception: $e\n$s",
             level: LogLevel.Error);
-        return ChangeNowResponse(
-          exception: ChangeNowException(
+        return ExchangeResponse(
+          exception: ExchangeException(
             "Error: $jsonArray",
-            ChangeNowExceptionType.serializeResponseError,
+            ExchangeExceptionType.serializeResponseError,
           ),
         );
       }
     } catch (e, s) {
       Logging.instance.log("getAvailableFixedRateMarkets exception: $e\n$s",
           level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
         ),
       );
     }
   }
 
-  ChangeNowResponse<List<FixedRateMarket>> _parseFixedRateMarketsJson(
+  ExchangeResponse<List<FixedRateMarket>> _parseFixedRateMarketsJson(
       List<dynamic> jsonArray) {
     try {
       List<FixedRateMarket> markets = [];
       for (final json in jsonArray) {
         try {
           markets.add(
-              FixedRateMarket.fromJson(Map<String, dynamic>.from(json as Map)));
+              FixedRateMarket.fromMap(Map<String, dynamic>.from(json as Map)));
         } catch (_) {
-          return ChangeNowResponse(
-              exception: ChangeNowException("Failed to serialize $json",
-                  ChangeNowExceptionType.serializeResponseError));
+          return ExchangeResponse(
+              exception: ExchangeException("Failed to serialize $json",
+                  ExchangeExceptionType.serializeResponseError));
         }
       }
-      return ChangeNowResponse(value: markets);
+      return ExchangeResponse(value: markets);
     } catch (_) {
       rethrow;
     }
@@ -497,7 +609,7 @@ class ChangeNow {
 
   /// The API endpoint creates a transaction, generates an address for
   /// sending funds and returns transaction attributes.
-  Future<ChangeNowResponse<ExchangeTransaction>>
+  Future<ExchangeResponse<ExchangeTransaction>>
       createStandardExchangeTransaction({
     required String fromTicker,
     required String toTicker,
@@ -535,12 +647,12 @@ class ChangeNow {
       try {
         final value = ExchangeTransaction.fromJson(
             Map<String, dynamic>.from(json as Map));
-        return ChangeNowResponse(value: value);
+        return ExchangeResponse(value: value);
       } catch (_) {
-        return ChangeNowResponse(
-          exception: ChangeNowException(
+        return ExchangeResponse(
+          exception: ExchangeException(
             "Failed to serialize $json",
-            ChangeNowExceptionType.serializeResponseError,
+            ExchangeExceptionType.serializeResponseError,
           ),
         );
       }
@@ -548,10 +660,10 @@ class ChangeNow {
       Logging.instance.log(
           "createStandardExchangeTransaction exception: $e\n$s",
           level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
         ),
       );
     }
@@ -559,13 +671,14 @@ class ChangeNow {
 
   /// The API endpoint creates a transaction, generates an address for
   /// sending funds and returns transaction attributes.
-  Future<ChangeNowResponse<ExchangeTransaction>>
+  Future<ExchangeResponse<ExchangeTransaction>>
       createFixedRateExchangeTransaction({
     required String fromTicker,
     required String toTicker,
     required String receivingAddress,
     required Decimal amount,
     required String rateId,
+    required bool reversed,
     String extraId = "",
     String userId = "",
     String contactEmail = "",
@@ -577,7 +690,6 @@ class ChangeNow {
       "from": fromTicker,
       "to": toTicker,
       "address": receivingAddress,
-      "amount": amount.toString(),
       "flow": "fixed-rate",
       "extraId": extraId,
       "userId": userId,
@@ -587,8 +699,16 @@ class ChangeNow {
       "rateId": rateId,
     };
 
+    if (reversed) {
+      map["result"] = amount.toString();
+    } else {
+      map["amount"] = amount.toString();
+    }
+
     final uri = _buildUri(
-        "/transactions/fixed-rate/${apiKey ?? kChangeNowApiKey}", null);
+      "/transactions/fixed-rate${reversed ? "/from-result" : ""}/${apiKey ?? kChangeNowApiKey}",
+      null,
+    );
 
     try {
       // simple json object is expected here
@@ -600,12 +720,12 @@ class ChangeNow {
       try {
         final value = ExchangeTransaction.fromJson(
             Map<String, dynamic>.from(json as Map));
-        return ChangeNowResponse(value: value);
+        return ExchangeResponse(value: value);
       } catch (_) {
-        return ChangeNowResponse(
-          exception: ChangeNowException(
+        return ExchangeResponse(
+          exception: ExchangeException(
             "Failed to serialize $json",
-            ChangeNowExceptionType.serializeResponseError,
+            ExchangeExceptionType.serializeResponseError,
           ),
         );
       }
@@ -613,16 +733,16 @@ class ChangeNow {
       Logging.instance.log(
           "createFixedRateExchangeTransaction exception: $e\n$s",
           level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
         ),
       );
     }
   }
 
-  Future<ChangeNowResponse<ExchangeTransactionStatus>> getTransactionStatus({
+  Future<ExchangeResponse<ExchangeTransactionStatus>> getTransactionStatus({
     required String id,
     String? apiKey,
   }) async {
@@ -636,29 +756,28 @@ class ChangeNow {
       try {
         final value = ExchangeTransactionStatus.fromJson(
             Map<String, dynamic>.from(json as Map));
-        return ChangeNowResponse(value: value);
+        return ExchangeResponse(value: value);
       } catch (_) {
-        return ChangeNowResponse(
-          exception: ChangeNowException(
+        return ExchangeResponse(
+          exception: ExchangeException(
             "Failed to serialize $json",
-            ChangeNowExceptionType.serializeResponseError,
+            ExchangeExceptionType.serializeResponseError,
           ),
         );
       }
     } catch (e, s) {
       Logging.instance
           .log("getTransactionStatus exception: $e\n$s", level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
         ),
       );
     }
   }
 
-  Future<ChangeNowResponse<List<AvailableFloatingRatePair>>>
-      getAvailableFloatingRatePairs({
+  Future<ExchangeResponse<List<Pair>>> getAvailableFloatingRatePairs({
     bool includePartners = false,
   }) async {
     final uri = _buildUri("/market-info/available-pairs",
@@ -675,41 +794,49 @@ class ChangeNow {
       } catch (e, s) {
         Logging.instance.log("getAvailableFloatingRatePairs exception: $e\n$s",
             level: LogLevel.Error);
-        return ChangeNowResponse(
-          exception: ChangeNowException(
+        return ExchangeResponse(
+          exception: ExchangeException(
             "Error: $jsonArray",
-            ChangeNowExceptionType.serializeResponseError,
+            ExchangeExceptionType.serializeResponseError,
           ),
         );
       }
     } catch (e, s) {
       Logging.instance.log("getAvailableFloatingRatePairs exception: $e\n$s",
           level: LogLevel.Error);
-      return ChangeNowResponse(
-        exception: ChangeNowException(
+      return ExchangeResponse(
+        exception: ExchangeException(
           e.toString(),
-          ChangeNowExceptionType.generic,
+          ExchangeExceptionType.generic,
         ),
       );
     }
   }
 
-  ChangeNowResponse<List<AvailableFloatingRatePair>>
-      _parseAvailableFloatingRatePairsJson(List<dynamic> jsonArray) {
+  ExchangeResponse<List<Pair>> _parseAvailableFloatingRatePairsJson(
+      List<dynamic> jsonArray) {
     try {
-      List<AvailableFloatingRatePair> pairs = [];
+      List<Pair> pairs = [];
       for (final json in jsonArray) {
         try {
           final List<String> stringPair = (json as String).split("_");
-          pairs.add(AvailableFloatingRatePair(
-              fromTicker: stringPair[0], toTicker: stringPair[1]));
+          pairs.add(
+            Pair(
+              from: stringPair[0],
+              to: stringPair[1],
+              fromNetwork: "",
+              toNetwork: "",
+              fixedRate: false,
+              floatingRate: true,
+            ),
+          );
         } catch (_) {
-          return ChangeNowResponse(
-              exception: ChangeNowException("Failed to serialize $json",
-                  ChangeNowExceptionType.serializeResponseError));
+          return ExchangeResponse(
+              exception: ExchangeException("Failed to serialize $json",
+                  ExchangeExceptionType.serializeResponseError));
         }
       }
-      return ChangeNowResponse(value: pairs);
+      return ExchangeResponse(value: pairs);
     } catch (_) {
       rethrow;
     }

@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/services/change_now/change_now.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/trade_service.dart';
@@ -17,7 +19,6 @@ class NotificationsService extends ChangeNotifier {
   late NodeService nodeService;
   late TradesService tradesService;
   late Prefs prefs;
-  late ChangeNow changeNow;
 
   NotificationsService._();
   static final NotificationsService _instance = NotificationsService._();
@@ -27,12 +28,10 @@ class NotificationsService extends ChangeNotifier {
     required NodeService nodeService,
     required TradesService tradesService,
     required Prefs prefs,
-    required ChangeNow changeNow,
   }) async {
     this.nodeService = nodeService;
     this.tradesService = tradesService;
     this.prefs = prefs;
-    this.changeNow = changeNow;
   }
 
   // watched transactions
@@ -184,33 +183,52 @@ class NotificationsService extends ChangeNotifier {
     for (final notification in _watchedChangeNowTradeNotifications) {
       final id = notification.changeNowId!;
 
-      final result = await changeNow.getTransactionStatus(id: id);
+      final trades =
+          tradesService.trades.where((element) => element.tradeId == id);
 
-      ChangeNowTransactionStatus? status = result.value?.status;
+      if (trades.isEmpty) {
+        return;
+      }
+      final oldTrade = trades.first;
+      late final ExchangeResponse<Trade> response;
+      switch (oldTrade.exchangeName) {
+        case SimpleSwapExchange.exchangeName:
+          response = await SimpleSwapExchange().updateTrade(oldTrade);
+          break;
+        case ChangeNowExchange.exchangeName:
+          response = await ChangeNowExchange().updateTrade(oldTrade);
+          break;
+        default:
+          return;
+      }
+
+      if (response.value == null) {
+        return;
+      }
+
+      final trade = response.value!;
 
       // only update if status has changed
-      if (status != null && status.name != notification.title) {
+      if (trade.status != notification.title) {
         bool shouldWatchForUpdates = true;
         // TODO: make sure we set shouldWatchForUpdates to correct value here
-        switch (status) {
-          case ChangeNowTransactionStatus.New:
-          case ChangeNowTransactionStatus.Waiting:
-          case ChangeNowTransactionStatus.Confirming:
-          case ChangeNowTransactionStatus.Exchanging:
-          case ChangeNowTransactionStatus.Verifying:
-          case ChangeNowTransactionStatus.Sending:
-            shouldWatchForUpdates = true;
-            break;
-
-          case ChangeNowTransactionStatus.Finished:
-          case ChangeNowTransactionStatus.Failed:
-          case ChangeNowTransactionStatus.Refunded:
+        switch (trade.status) {
+          case "Refunded":
+          case "refunded":
+          case "Failed":
+          case "failed":
+          case "closed":
+          case "expired":
+          case "Finished":
+          case "finished":
             shouldWatchForUpdates = false;
             break;
+          default:
+            shouldWatchForUpdates = true;
         }
 
         final updatedNotification = notification.copyWith(
-          title: status.name,
+          title: trade.status,
           shouldWatchForUpdates: shouldWatchForUpdates,
         );
 
@@ -220,23 +238,11 @@ class NotificationsService extends ChangeNotifier {
         }
 
         // replaces the current notification with the updated one
-        add(updatedNotification, true);
+        unawaited(add(updatedNotification, true));
 
         // update the trade in db
-        if (result.value != null) {
-          // fetch matching trade from db
-          final trade = tradesService.trades
-              .firstWhere((element) => element.id == result.value!.id);
-
-          // update status
-          final updatedTrade = trade.copyWith(
-            statusObject: result.value!,
-            statusString: result.value!.status.name,
-          );
-
-          // over write trade stored in db with updated version
-          tradesService.add(trade: updatedTrade, shouldNotifyListeners: true);
-        }
+        // over write trade stored in db with updated version
+        await tradesService.edit(trade: trade, shouldNotifyListeners: true);
       }
     }
   }

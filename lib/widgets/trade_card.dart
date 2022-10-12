@@ -2,8 +2,8 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -16,7 +16,7 @@ class TradeCard extends ConsumerWidget {
     required this.onTap,
   }) : super(key: key);
 
-  final ExchangeTransaction trade;
+  final Trade trade;
   final VoidCallback onTap;
 
   String _fetchIconAssetForStatus(String statusString, BuildContext context) {
@@ -62,7 +62,7 @@ class TradeCard extends ConsumerWidget {
               child: Center(
                 child: SvgPicture.asset(
                   _fetchIconAssetForStatus(
-                    trade.statusObject?.status.name ?? trade.statusString,
+                    trade.status,
                     context,
                   ),
                   width: 32,
@@ -80,11 +80,11 @@ class TradeCard extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "${trade.fromCurrency.toUpperCase()} → ${trade.toCurrency.toUpperCase()}",
+                        "${trade.payInCurrency.toUpperCase()} → ${trade.payOutCurrency.toUpperCase()}",
                         style: STextStyles.itemSubtitle12(context),
                       ),
                       Text(
-                        "${Decimal.tryParse(trade.statusObject?.amountSendDecimal ?? "") ?? "..."} ${trade.fromCurrency.toUpperCase()}",
+                        "${Decimal.tryParse(trade.payInAmount) ?? "..."} ${trade.payInCurrency.toUpperCase()}",
                         style: STextStyles.itemSubtitle12(context),
                       ),
                     ],
@@ -96,12 +96,12 @@ class TradeCard extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "ChangeNOW",
+                        trade.exchangeName,
                         style: STextStyles.label(context),
                       ),
                       Text(
                         Format.extractDateFrom(
-                            trade.date.millisecondsSinceEpoch ~/ 1000),
+                            trade.timestamp.millisecondsSinceEpoch ~/ 1000),
                         style: STextStyles.label(context),
                       ),
                     ],

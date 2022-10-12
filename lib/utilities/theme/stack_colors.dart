@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 
@@ -1435,21 +1434,34 @@ class StackColors extends ThemeExtension<StackColors> {
         blurRadius: 4,
       );
 
-  Color colorForStatus(ChangeNowTransactionStatus status) {
+  Color colorForStatus(String status) {
     switch (status) {
-      case ChangeNowTransactionStatus.New:
-      case ChangeNowTransactionStatus.Waiting:
-      case ChangeNowTransactionStatus.Confirming:
-      case ChangeNowTransactionStatus.Exchanging:
-      case ChangeNowTransactionStatus.Sending:
-      case ChangeNowTransactionStatus.Verifying:
+      case "New":
+      case "new":
+      case "Waiting":
+      case "waiting":
+      case "Confirming":
+      case "confirming":
+      case "Exchanging":
+      case "exchanging":
+      case "Sending":
+      case "sending":
+      case "Verifying":
+      case "verifying":
         return const Color(0xFFD3A90F);
-      case ChangeNowTransactionStatus.Finished:
+      case "Finished":
+      case "finished":
         return accentColorGreen;
-      case ChangeNowTransactionStatus.Failed:
+      case "Failed":
+      case "failed":
+      case "closed":
+      case "expired":
         return accentColorRed;
-      case ChangeNowTransactionStatus.Refunded:
+      case "Refunded":
+      case "refunded":
         return textSubtitle2;
+      default:
+        return const Color(0xFFD3A90F);
     }
   }
 

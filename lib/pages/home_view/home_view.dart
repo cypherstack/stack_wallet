@@ -13,7 +13,7 @@ import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
-import 'package:stackwallet/services/change_now/change_now_loading_service.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -21,9 +21,9 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
-import 'package:stackwallet/hive/db.dart';
-
 import 'package:stackwallet/utilities/logger.dart';
+
+import 'package:stackwallet/utilities/prefs.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -45,7 +45,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   bool _exitEnabled = false;
 
-  final _cnLoadingService = ChangeNowLoadingService();
+  final _cnLoadingService = ExchangeDataLoadingService();
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
@@ -86,9 +86,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
   void _loadCNData() {
     // unawaited future
     //
-    final externalCalls = DB.instance
-        .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") as bool?;
-    if (externalCalls ?? false) {
+    final externalCalls = Prefs.instance.externalCalls;
+    if (externalCalls) {
       _cnLoadingService.loadAll(ref);
     } else {
       Logging.instance.log("User does not want to use external calls",

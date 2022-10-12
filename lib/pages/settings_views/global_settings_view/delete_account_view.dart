@@ -8,6 +8,10 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/utilities/delete_everything.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+
 class DeleteAccountView extends StatefulWidget {
   const DeleteAccountView({Key? key}) : super(key: key);
 
@@ -22,9 +26,45 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
 
   Future<void> onConfirmDeleteAccount() async {
     // TODO delete everything then pop to intro view
-    await Navigator.of(context).pushNamedAndRemoveUntil(
-      IntroView.routeName,
-      (route) => false,
+
+    await showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (_) => StackDialog(
+        title: "Are you sure you want to delete all Wallets?",
+        leftButton: TextButton(
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getSecondaryEnabledButtonColor(context),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text(
+            "Cancel",
+            style: STextStyles.button(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark),
+          ),
+        ),
+        rightButton: TextButton(
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getPrimaryEnabledButtonColor(context),
+          onPressed: () async {
+            await deleteEverything();
+
+            await Navigator.of(context).pushNamedAndRemoveUntil(
+              IntroView.routeName,
+              (route) => false,
+            );
+          },
+          child: Text(
+            "Delete",
+            style: STextStyles.button(context),
+          ),
+        ),
+      ),
     );
   }
 

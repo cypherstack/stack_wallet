@@ -9,6 +9,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:stackwallet/utilities/prefs.dart';
+
 class PriceAPI {
   static const refreshInterval = 60;
 
@@ -76,9 +78,8 @@ class PriceAPI {
       return _cachedPrices;
     }
 
-    final externalCalls = DB.instance
-        .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") as bool?;
-    if (!(externalCalls ?? false)) {
+    final externalCalls = Prefs.instance.externalCalls;
+    if (!Logger.isTestEnv && !externalCalls) {
       Logging.instance.log("User does not want to use external calls",
           level: LogLevel.Info);
       return _cachedPrices;
@@ -122,10 +123,8 @@ class PriceAPI {
   }
 
   static Future<List<String>?> availableBaseCurrencies() async {
-    final externalCalls = DB.instance
-        .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") as bool?;
-    print("externalCalls hi2 $externalCalls");
-    if (!(externalCalls ?? false)) {
+    final externalCalls = Prefs.instance.externalCalls;
+    if (!Logger.isTestEnv && !externalCalls) {
       Logging.instance.log("User does not want to use external calls",
           level: LogLevel.Info);
       return null;
