@@ -1,23 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
-import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
-import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
-import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
-import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
+import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
-class ChangeNowLoadingService {
+class ExchangeDataLoadingService {
   Future<void> loadAll(WidgetRef ref, {Coin? coin}) async {
     try {
       await Future.wait([
         _loadFixedRateMarkets(ref, coin: coin),
         _loadChangeNowStandardCurrencies(ref, coin: coin),
+        loadSimpleswapFixedRateCurrencies(ref),
+        loadSimpleswapFloatingRateCurrencies(ref),
       ]);
     } catch (e, s) {
-      Logging.instance.log("ChangeNowLoadingService.loadAll failed: $e\n$s",
+      Logging.instance.log("ExchangeDataLoadingService.loadAll failed: $e\n$s",
           level: LogLevel.Error);
     }
   }
@@ -33,12 +31,13 @@ class ChangeNowLoadingService {
         ChangeNowLoadStatus.loading;
 
     final response3 =
-        await ref.read(changeNowProvider).getAvailableFixedRateMarkets();
+        await ChangeNowAPI.instance.getAvailableFixedRateMarkets();
     if (response3.value != null) {
-      ref.read(fixedRateMarketPairsStateProvider.state).state =
-          response3.value!;
+      ref
+          .read(availableChangeNowCurrenciesProvider)
+          .updateMarkets(response3.value!);
 
-      if (ref.read(fixedRateExchangeFormProvider).market == null) {
+      if (ref.read(exchangeFormStateProvider).market == null) {
         String fromTicker = "btc";
         String toTicker = "xmr";
 
@@ -50,7 +49,7 @@ class ChangeNowLoadingService {
             .where((e) => e.to == toTicker && e.from == fromTicker);
         if (matchingMarkets.isNotEmpty) {
           await ref
-              .read(fixedRateExchangeFormProvider)
+              .read(exchangeFormStateProvider)
               .updateMarket(matchingMarkets.first, true);
         }
       }
@@ -68,8 +67,10 @@ class ChangeNowLoadingService {
         ChangeNowLoadStatus.success;
   }
 
-  Future<void> _loadChangeNowStandardCurrencies(WidgetRef ref,
-      {Coin? coin}) async {
+  Future<void> _loadChangeNowStandardCurrencies(
+    WidgetRef ref, {
+    Coin? coin,
+  }) async {
     if (ref
             .read(changeNowEstimatedInitialLoadStatusStateProvider.state)
             .state ==
@@ -81,15 +82,18 @@ class ChangeNowLoadingService {
     ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
         ChangeNowLoadStatus.loading;
 
-    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
+    final response = await ChangeNowAPI.instance.getAvailableCurrencies();
     final response2 =
-        await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
+        await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
     if (response.value != null) {
-      ref.read(availableChangeNowCurrenciesStateProvider.state).state =
-          response.value!;
+      ref
+          .read(availableChangeNowCurrenciesProvider)
+          .updateCurrencies(response.value!);
+
       if (response2.value != null) {
-        ref.read(availableFloatingRatePairsStateProvider.state).state =
-            response2.value!;
+        ref
+            .read(availableChangeNowCurrenciesProvider)
+            .updateFloatingPairs(response2.value!);
 
         String fromTicker = "btc";
         String toTicker = "xmr";
@@ -99,18 +103,18 @@ class ChangeNowLoadingService {
         }
 
         if (response.value!.length > 1) {
-          if (ref.read(estimatedRateExchangeFormProvider).from == null) {
+          if (ref.read(exchangeFormStateProvider).from == null) {
             if (response.value!
                 .where((e) => e.ticker == fromTicker)
                 .isNotEmpty) {
-              await ref.read(estimatedRateExchangeFormProvider).updateFrom(
+              await ref.read(exchangeFormStateProvider).updateFrom(
                   response.value!.firstWhere((e) => e.ticker == fromTicker),
                   false);
             }
           }
-          if (ref.read(estimatedRateExchangeFormProvider).to == null) {
+          if (ref.read(exchangeFormStateProvider).to == null) {
             if (response.value!.where((e) => e.ticker == toTicker).isNotEmpty) {
-              await ref.read(estimatedRateExchangeFormProvider).updateTo(
+              await ref.read(exchangeFormStateProvider).updateTo(
                   response.value!.firstWhere((e) => e.ticker == toTicker),
                   false);
             }
@@ -136,5 +140,63 @@ class ChangeNowLoadingService {
 
     ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
         ChangeNowLoadStatus.success;
+  }
+
+  Future<void> loadSimpleswapFloatingRateCurrencies(WidgetRef ref) async {
+    final exchange = SimpleSwapExchange();
+    final responseCurrencies = await exchange.getAllCurrencies(false);
+
+    if (responseCurrencies.value != null) {
+      ref
+          .read(availableSimpleswapCurrenciesProvider)
+          .updateFloatingCurrencies(responseCurrencies.value!);
+
+      final responsePairs = await exchange.getAllPairs(false);
+
+      if (responsePairs.value != null) {
+        ref
+            .read(availableSimpleswapCurrenciesProvider)
+            .updateFloatingPairs(responsePairs.value!);
+      } else {
+        Logging.instance.log(
+          "loadSimpleswapFloatingRateCurrencies: $responsePairs",
+          level: LogLevel.Warning,
+        );
+      }
+    } else {
+      Logging.instance.log(
+        "loadSimpleswapFloatingRateCurrencies: $responseCurrencies",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
+  Future<void> loadSimpleswapFixedRateCurrencies(WidgetRef ref) async {
+    final exchange = SimpleSwapExchange();
+    final responseCurrencies = await exchange.getAllCurrencies(true);
+
+    if (responseCurrencies.value != null) {
+      ref
+          .read(availableSimpleswapCurrenciesProvider)
+          .updateFixedCurrencies(responseCurrencies.value!);
+
+      final responsePairs = await exchange.getAllPairs(true);
+
+      if (responsePairs.value != null) {
+        ref
+            .read(availableSimpleswapCurrenciesProvider)
+            .updateFixedPairs(responsePairs.value!);
+      } else {
+        Logging.instance.log(
+          "loadSimpleswapFixedRateCurrencies: $responsePairs",
+          level: LogLevel.Warning,
+        );
+      }
+    } else {
+      Logging.instance.log(
+        "loadSimpleswapFixedRateCurrencies: $responseCurrencies",
+        level: LogLevel.Warning,
+      );
+    }
   }
 }

@@ -410,8 +410,8 @@ class _TransactionFeeSelectionSheetState
                                         FutureBuilder(
                                           future: feeFor(
                                               coin: manager.coin,
-                                              feeRateType: FeeRateType.fast,
-                                              feeRate: feeObject!.fast,
+                                              feeRateType: FeeRateType.average,
+                                              feeRate: feeObject!.medium,
                                               amount: Format
                                                   .decimalAmountToSatoshis(
                                                       amount)),

@@ -1,22 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 
 class TradesService extends ChangeNotifier {
-  List<ExchangeTransaction> get trades {
-    final list =
-        DB.instance.values<ExchangeTransaction>(boxName: DB.boxNameTrades);
+  List<Trade> get trades {
+    final list = DB.instance.values<Trade>(boxName: DB.boxNameTradesV2);
     list.sort((a, b) =>
-        b.date.millisecondsSinceEpoch - a.date.millisecondsSinceEpoch);
+        b.timestamp.millisecondsSinceEpoch -
+        a.timestamp.millisecondsSinceEpoch);
     return list;
   }
 
   Future<void> add({
-    required ExchangeTransaction trade,
+    required Trade trade,
     required bool shouldNotifyListeners,
   }) async {
-    await DB.instance.put<ExchangeTransaction>(
-        boxName: DB.boxNameTrades, key: trade.uuid, value: trade);
+    await DB.instance
+        .put<Trade>(boxName: DB.boxNameTradesV2, key: trade.uuid, value: trade);
 
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -24,11 +24,10 @@ class TradesService extends ChangeNotifier {
   }
 
   Future<void> edit({
-    required ExchangeTransaction trade,
+    required Trade trade,
     required bool shouldNotifyListeners,
   }) async {
-    if (DB.instance.get<ExchangeTransaction>(
-            boxName: DB.boxNameTrades, key: trade.uuid) ==
+    if (DB.instance.get<Trade>(boxName: DB.boxNameTradesV2, key: trade.uuid) ==
         null) {
       throw Exception("Attempted to edit a trade that does not exist in Hive!");
     }
@@ -38,7 +37,7 @@ class TradesService extends ChangeNotifier {
   }
 
   Future<void> delete({
-    required ExchangeTransaction trade,
+    required Trade trade,
     required bool shouldNotifyListeners,
   }) async {
     await deleteByUuid(
@@ -49,8 +48,7 @@ class TradesService extends ChangeNotifier {
     required String uuid,
     required bool shouldNotifyListeners,
   }) async {
-    await DB.instance
-        .delete<ExchangeTransaction>(boxName: DB.boxNameTrades, key: uuid);
+    await DB.instance.delete<Trade>(boxName: DB.boxNameTradesV2, key: uuid);
 
     if (shouldNotifyListeners) {
       notifyListeners();

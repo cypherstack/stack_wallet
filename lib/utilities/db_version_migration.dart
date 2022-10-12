@@ -2,6 +2,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/lelantus_coin.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -19,6 +21,10 @@ class DbVersionMigrator {
       FlutterSecureStorage(),
     ),
   }) async {
+    Logging.instance.log(
+      "Running migrate fromVersion $fromVersion",
+      level: LogLevel.Warning,
+    );
     switch (fromVersion) {
       case 0:
         await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
@@ -114,26 +120,29 @@ class DbVersionMigrator {
         // try to continue migrating
         return await migrate(1);
 
-      // case 1:
-      //   await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
-      //   final walletsService = WalletsService();
-      //   final walletInfoList = await walletsService.walletNames;
-      //   for (final walletInfo in walletInfoList.values) {
-      //     if (walletInfo.coin == Coin.firo) {
-      //       await Hive.openBox<dynamic>(walletInfo.walletId);
-      //       await DB.instance.delete<dynamic>(
-      //           key: "latest_tx_model", boxName: walletInfo.walletId);
-      //       await DB.instance.delete<dynamic>(
-      //           key: "latest_lelantus_tx_model", boxName: walletInfo.walletId);
-      //     }
-      //   }
-      //
-      //   // update version
-      //   await DB.instance.put<dynamic>(
-      //       boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 2);
-      //
-      //   // try to continue migrating
-      //   return await migrate(2);
+      case 1:
+        await Hive.openBox<ExchangeTransaction>(DB.boxNameTrades);
+        await Hive.openBox<Trade>(DB.boxNameTradesV2);
+        final trades =
+            DB.instance.values<ExchangeTransaction>(boxName: DB.boxNameTrades);
+
+        for (final old in trades) {
+          if (old.statusObject != null) {
+            final trade = Trade.fromExchangeTransaction(old, false);
+            await DB.instance.put<Trade>(
+              boxName: DB.boxNameTradesV2,
+              key: trade.uuid,
+              value: trade,
+            );
+          }
+        }
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 2);
+
+        // try to continue migrating
+        return await migrate(2);
 
       default:
         // finally return

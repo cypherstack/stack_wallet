@@ -389,7 +389,7 @@ class _StackRestoreProgressViewState
                           height: 20,
                           child: _getIconForState(state),
                         ),
-                        title: "ChangeNOW history",
+                        title: "Exchange history",
                         subTitle: state == StackRestoringStatus.failed
                             ? Text(
                                 "Something went wrong",

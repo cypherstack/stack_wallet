@@ -7,6 +7,7 @@ abstract class Assets {
   static const png = _PNG();
   static const lottie = _ANIMATIONS();
   static const socials = _SOCIALS();
+  static const exchange = _EXCHANGE();
 }
 
 class _SOCIALS {
@@ -16,6 +17,13 @@ class _SOCIALS {
   String get reddit => "assets/svg/socials/reddit-alien-brands.svg";
   String get twitter => "assets/svg/socials/twitter-brands.svg";
   String get telegram => "assets/svg/socials/telegram-brands.svg";
+}
+
+class _EXCHANGE {
+  const _EXCHANGE();
+
+  String get changeNow => "assets/svg/exchange_icons/change_now_logo_1.svg";
+  String get simpleSwap => "assets/svg/exchange_icons/simpleswap-icon.svg";
 }
 
 class _SVG {
@@ -52,6 +60,8 @@ class _SVG {
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
   String get polygon => "assets/svg/Polygon.svg";
+  String get personaIncognito => "assets/svg/persona-incognito-1.svg";
+  String get personaEasy => "assets/svg/persona-easy-1.svg";
   String get drd => "assets/svg/drd-icon.svg";
   String get boxAuto => "assets/svg/box-auto.svg";
   String get plus => "assets/svg/plus.svg";

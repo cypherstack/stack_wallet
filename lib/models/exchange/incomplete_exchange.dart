@@ -1,5 +1,5 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 
 class IncompleteExchangeModel {
@@ -13,12 +13,14 @@ class IncompleteExchangeModel {
 
   final ExchangeRateType rateType;
 
+  final bool reversed;
+
   String? recipientAddress;
   String? refundAddress;
 
   String? rateId;
 
-  ExchangeTransaction? trade;
+  Trade? trade;
 
   IncompleteExchangeModel({
     required this.sendTicker,
@@ -27,6 +29,7 @@ class IncompleteExchangeModel {
     required this.sendAmount,
     required this.receiveAmount,
     required this.rateType,
+    required this.reversed,
     this.rateId,
   });
 }

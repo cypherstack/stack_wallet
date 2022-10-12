@@ -10,6 +10,7 @@ class RoundedWhiteContainer extends StatelessWidget {
     this.radiusMultiplier = 1.0,
     this.width,
     this.height,
+    this.borderColor,
   }) : super(key: key);
 
   final Widget? child;
@@ -17,6 +18,7 @@ class RoundedWhiteContainer extends StatelessWidget {
   final double radiusMultiplier;
   final double? width;
   final double? height;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +29,7 @@ class RoundedWhiteContainer extends StatelessWidget {
       width: width,
       height: height,
       child: child,
+      borderColor: borderColor,
     );
   }
 }
