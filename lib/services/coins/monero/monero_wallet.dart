@@ -1451,7 +1451,7 @@ class MoneroWallet extends CoinServiceAPI {
           bool isSendAll = false;
           final balance = await availableBalance;
           final satInDecimal = ((Decimal.fromInt(satoshiAmount) /
-                      Decimal.fromInt(Constants.satsPerCoinWownero))
+                      Decimal.fromInt(Constants.satsPerCoinMonero))
                   .toDecimal() *
               Decimal.fromInt(10000));
           if (satInDecimal == balance) {
@@ -1471,7 +1471,9 @@ class MoneroWallet extends CoinServiceAPI {
           Object tmp = monero.createMoneroTransactionCreationCredentials(
               outputs: outputs, priority: feePriority);
 
-          awaitPendingTransaction = walletBase!.createTransaction(tmp);
+          await prepareSendMutex.protect(() async {
+            awaitPendingTransaction = walletBase!.createTransaction(tmp);
+          });
         } catch (e, s) {
           Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
               level: LogLevel.Warning);
@@ -1510,30 +1512,57 @@ class MoneroWallet extends CoinServiceAPI {
     }
   }
 
+  Mutex prepareSendMutex = Mutex();
+  Mutex estimateFeeMutex = Mutex();
+
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
     MoneroTransactionPriority? priority;
+    FeeRateType feeRateType = FeeRateType.slow;
     switch (feeRate) {
       case 1:
         priority = MoneroTransactionPriority.regular;
+        feeRateType = FeeRateType.slow;
         break;
       case 2:
         priority = MoneroTransactionPriority.medium;
+        feeRateType = FeeRateType.average;
         break;
       case 3:
         priority = MoneroTransactionPriority.fast;
+        feeRateType = FeeRateType.average;
         break;
       case 4:
         priority = MoneroTransactionPriority.fastest;
+        feeRateType = FeeRateType.fast;
         break;
       case 0:
       default:
         priority = MoneroTransactionPriority.slow;
+        feeRateType = FeeRateType.slow;
         break;
     }
-    final fee =
-        (walletBase?.calculateEstimatedFee(priority, satoshiAmount) ?? 0) ~/
-            10000;
+    var aprox;
+
+    await estimateFeeMutex.protect(() async {
+      {
+        try {
+          aprox = (await prepareSend(
+              // This address is only used for getting an approximate fee, never for sending
+              address:
+                  "8347huhmj6Ggzr1BpZPJAD5oa96ob5Fe8GtQdGZDYVVYVsCgtUNH3pEEzExDuaAVZdC16D4FkAb24J6wUfsKkcZtC8EPXB7",
+              satoshiAmount: satoshiAmount,
+              args: {"feeRate": feeRateType}))['fee'];
+          await Future.delayed(const Duration(milliseconds: 1000));
+        } catch (e, s) {
+          Logging.instance.log("$feeRateType $e $s", level: LogLevel.Error);
+          aprox = -9999999999999999;
+        }
+      }
+    });
+
+    print("this is the aprox fee $aprox for $satoshiAmount");
+    final fee = (aprox as int);
     return fee;
   }
 
