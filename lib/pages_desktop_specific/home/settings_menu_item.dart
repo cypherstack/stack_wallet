@@ -21,13 +21,14 @@ class SettingsMenuItem<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
+      //if val == group, then button is selected, otherwise unselected
       style: value == group
           ? Theme.of(context)
               .extension<StackColors>()!
-              .getDesktopMenuButtonColorSelected(context)
+              .getDesktopSettingsButtonColor(context)
           : Theme.of(context)
               .extension<StackColors>()!
-              .getDesktopMenuButtonColor(context),
+              .getDesktopSettingsButtonColor(context),
       onPressed: () {
         onChanged(value);
       },
@@ -46,8 +47,8 @@ class SettingsMenuItem<T> extends StatelessWidget {
             Text(
               label,
               style: value == group //checks if option is selected
-                  ? STextStyles.desktopMenuItemSelected(context)
-                  : STextStyles.desktopMenuItem(context),
+                  ? STextStyles.settingsMenuItemSelected(context)
+                  : STextStyles.settingsMenuItem(context),
             ),
           ],
         ),
