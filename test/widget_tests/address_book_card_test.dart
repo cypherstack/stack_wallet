@@ -50,5 +50,7 @@ void main() {
         ),
       ),
     );
+
+    expect(find.text("John Doe"), findsOneWidget);
   });
 }
