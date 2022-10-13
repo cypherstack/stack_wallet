@@ -19,6 +19,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   int currentViewIndex = 0;
   final List<Widget> contentViews = [
     const Navigator(
+      key: Key("desktopStackHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: MyStackView.routeName,
     ),
@@ -32,6 +33,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       color: Colors.orange,
     ),
     const Navigator(
+      key: Key("desktopSettingHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: SettingsMenu.routeName,
     ),
