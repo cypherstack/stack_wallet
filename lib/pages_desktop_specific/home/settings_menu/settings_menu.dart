@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu_item.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../utilities/assets.dart';
+import '../settings_menu_item.dart';
 
 class SettingsMenu extends ConsumerStatefulWidget {
   const SettingsMenu({
@@ -35,155 +37,160 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return Material(
-      color: Theme.of(context).extension<StackColors>()!.background,
-      child: SizedBox(
-        width: 300,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24.0, 10.0, 0, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      children: [
+        DesktopAppBar(
+          isCompactHeight: true,
+          leading: Row(
             children: [
-              SizedBox(
-                height: 20,
-                // width: 300,
+              const SizedBox(
+                width: 24,
+                height: 24,
               ),
               Text(
                 "Settings",
-                style: STextStyles.desktopH3(context).copyWith(
-                  fontSize: 24,
-                ),
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      3.0,
-                      30.0,
-                      55.0,
-                      0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SettingsMenuItem(
-                          icon: SvgPicture.asset(
-                            Assets.svg.polygon,
-                            width: 11,
-                            height: 11,
-                          ),
-                          label: "Backup and restore",
-                          value: 0,
-                          group: selectedMenuItem,
-                          onChanged: updateSelectedMenuItem,
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        SettingsMenuItem(
-                          icon: SvgPicture.asset(
-                            Assets.svg.polygon,
-                            width: 11,
-                            height: 11,
-                          ),
-                          label: "Security",
-                          value: 1,
-                          group: selectedMenuItem,
-                          onChanged: updateSelectedMenuItem,
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        SettingsMenuItem(
-                          icon: SvgPicture.asset(
-                            Assets.svg.polygon,
-                            width: 11,
-                            height: 11,
-                          ),
-                          label: "Currency",
-                          value: 2,
-                          group: selectedMenuItem,
-                          onChanged: updateSelectedMenuItem,
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        SettingsMenuItem(
-                          icon: SvgPicture.asset(
-                            Assets.svg.polygon,
-                            width: 11,
-                            height: 11,
-                          ),
-                          label: "Language",
-                          value: 3,
-                          group: selectedMenuItem,
-                          onChanged: updateSelectedMenuItem,
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        SettingsMenuItem(
-                          icon: SvgPicture.asset(
-                            Assets.svg.polygon,
-                            width: 11,
-                            height: 11,
-                          ),
-                          label: "Nodes",
-                          value: 4,
-                          group: selectedMenuItem,
-                          onChanged: updateSelectedMenuItem,
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        SettingsMenuItem(
-                          icon: SvgPicture.asset(
-                            Assets.svg.polygon,
-                            width: 11,
-                            height: 11,
-                          ),
-                          label: "Syncing preferences",
-                          value: 5,
-                          group: selectedMenuItem,
-                          onChanged: updateSelectedMenuItem,
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        SettingsMenuItem(
-                          icon: SvgPicture.asset(
-                            Assets.svg.polygon,
-                            width: 11,
-                            height: 11,
-                          ),
-                          label: "Appearance",
-                          value: 6,
-                          group: selectedMenuItem,
-                          onChanged: updateSelectedMenuItem,
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        SettingsMenuItem(
-                          icon: SvgPicture.asset(
-                            Assets.svg.polygon,
-                            width: 11,
-                            height: 11,
-                          ),
-                          label: "Advanced",
-                          value: 7,
-                          group: selectedMenuItem,
-                          onChanged: updateSelectedMenuItem,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                style: STextStyles.desktopH3(context),
+              )
             ],
           ),
         ),
-      ),
+        Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SettingsMenuItem(
+                    icon: SvgPicture.asset(
+                      Assets.svg.polygon,
+                      width: 11,
+                      height: 11,
+                    ),
+                    label: "Backup and restore",
+                    value: 0,
+                    group: selectedMenuItem,
+                    onChanged: updateSelectedMenuItem,
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  SettingsMenuItem(
+                    icon: SvgPicture.asset(
+                      Assets.svg.polygon,
+                      width: 11,
+                      height: 11,
+                    ),
+                    label: "Security",
+                    value: 1,
+                    group: selectedMenuItem,
+                    onChanged: updateSelectedMenuItem,
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  SettingsMenuItem(
+                    icon: SvgPicture.asset(
+                      Assets.svg.polygon,
+                      width: 11,
+                      height: 11,
+                    ),
+                    label: "Currency",
+                    value: 2,
+                    group: selectedMenuItem,
+                    onChanged: updateSelectedMenuItem,
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  SettingsMenuItem(
+                    icon: SvgPicture.asset(
+                      Assets.svg.polygon,
+                      width: 11,
+                      height: 11,
+                    ),
+                    label: "Language",
+                    value: 3,
+                    group: selectedMenuItem,
+                    onChanged: updateSelectedMenuItem,
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  SettingsMenuItem(
+                    icon: SvgPicture.asset(
+                      Assets.svg.polygon,
+                      width: 11,
+                      height: 11,
+                    ),
+                    label: "Nodes",
+                    value: 4,
+                    group: selectedMenuItem,
+                    onChanged: updateSelectedMenuItem,
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  SettingsMenuItem(
+                    icon: SvgPicture.asset(
+                      Assets.svg.polygon,
+                      width: 11,
+                      height: 11,
+                    ),
+                    label: "Syncing preferences",
+                    value: 5,
+                    group: selectedMenuItem,
+                    onChanged: updateSelectedMenuItem,
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  SettingsMenuItem(
+                    icon: SvgPicture.asset(
+                      Assets.svg.polygon,
+                      width: 11,
+                      height: 11,
+                    ),
+                    label: "Appearance",
+                    value: 6,
+                    group: selectedMenuItem,
+                    onChanged: updateSelectedMenuItem,
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  SettingsMenuItem(
+                    icon: SvgPicture.asset(
+                      Assets.svg.polygon,
+                      width: 11,
+                      height: 11,
+                    ),
+                    label: "Advanced",
+                    value: 7,
+                    group: selectedMenuItem,
+                    onChanged: updateSelectedMenuItem,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 10,
+                  right: 40,
+                ),
+                child: RoundedWhiteContainer(
+                  child: SvgPicture.asset(
+                    Assets.svg.backupAuto,
+                    width: 48,
+                    height: 48,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+      ],
     );
   }
 }
