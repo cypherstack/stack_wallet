@@ -77,7 +77,8 @@ class _WalletNetworkSettingsViewState
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) Wakelock.enable();
 
-    const int maxUnusedAddressGap = 20;
+    int maxUnusedAddressGap = 20;
+
     const int maxNumberOfIndexesToCheck = 1000;
 
     showDialog<dynamic>(
@@ -88,6 +89,13 @@ class _WalletNetworkSettingsViewState
     );
 
     try {
+      if (ref
+              .read(walletsChangeNotifierProvider)
+              .getManager(widget.walletId)
+              .coin ==
+          Coin.firo) {
+        maxUnusedAddressGap = 50;
+      }
       await ref
           .read(walletsChangeNotifierProvider)
           .getManager(widget.walletId)
