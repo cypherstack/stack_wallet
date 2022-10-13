@@ -63,6 +63,10 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
           DesktopMenu(
             onSelectionChanged: onMenuSelectionChanged,
           ),
+          Container(
+            width: 1,
+            color: Theme.of(context).extension<StackColors>()!.background,
+          ),
           Expanded(
             child: contentViews[currentViewIndex],
           ),
