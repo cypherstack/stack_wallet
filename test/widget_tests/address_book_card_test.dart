@@ -5,6 +5,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/services/address_book_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -52,5 +53,45 @@ void main() {
     );
 
     expect(find.text("John Doe"), findsOneWidget);
+  });
+
+  testWidgets("TEst button press opens dialog", (widgetTester) async {
+    final service = MockAddressBookService();
+
+    //   await widgetTester.pumpWidget(
+    //     ProviderScope(
+    //       overrides: [
+    //         addressBookServiceProvider.overrideWithValue(
+    //           service,
+    //         ),
+    //       ],
+    //       child: MaterialApp(
+    //         theme: ThemeData(
+    //           extensions: [
+    //             StackColors.fromStackColorTheme(
+    //               LightColors(),
+    //             ),
+    //           ],
+    //         ),
+    //         home: const AddressBookCard(
+    //           contactId: "03177ce0-4af4-11ed-9617-af8aa7a3796f",
+    //         ),
+    //       ),
+    //     ),
+    //   );
+    //
+    //   when(service.getContactById("03177ce0-4af4-11ed-9617-af8aa7a3796f"))
+    //       .thenAnswer((realInvocation) => Contact(
+    //           name: "John Doe",
+    //           addresses: [
+    //             const ContactAddressEntry(
+    //                 coin: Coin.bitcoincash,
+    //                 address: "some bch address",
+    //                 label: "Bills")
+    //           ],
+    //           isFavorite: true));
+    //   await widgetTester.tap(find.byType(RawMaterialButton));
+    //   // when(contact)
+    //   await widgetTester.pump();
   });
 }
