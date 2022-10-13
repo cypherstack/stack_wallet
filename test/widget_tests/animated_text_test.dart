@@ -33,5 +33,6 @@ void main() {
     );
 
     expect(find.text("Calculating"), findsOneWidget);
+    expect(find.byWidget(animatedText), findsOneWidget);
   });
 }
