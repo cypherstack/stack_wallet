@@ -115,18 +115,18 @@ class ExchangeFormState extends ChangeNotifier {
   String get toAmountString => toAmount?.toStringAsFixed(8) ?? "";
 
   bool get canExchange {
-    switch (exchangeType) {
-      case ExchangeRateType.estimated:
-        return fromAmount != null &&
-            fromAmount != Decimal.zero &&
-            toAmount != null &&
-            rate != null &&
-            warning.isEmpty;
-      case ExchangeRateType.fixed:
-        return _market != null &&
-            fromAmount != null &&
-            toAmount != null &&
-            warning.isEmpty;
+    if (exchange?.name == ChangeNowExchange.exchangeName &&
+        exchangeType == ExchangeRateType.fixed) {
+      return _market != null &&
+          fromAmount != null &&
+          toAmount != null &&
+          warning.isEmpty;
+    } else {
+      return fromAmount != null &&
+          fromAmount != Decimal.zero &&
+          toAmount != null &&
+          rate != null &&
+          warning.isEmpty;
     }
   }
 
