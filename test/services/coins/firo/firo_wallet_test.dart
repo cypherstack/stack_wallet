@@ -3283,9 +3283,9 @@ void main() {
         "a5V5r6We6mNZzWJwGwEeRML3mEYLjvK39w",
       ]);
 
-      expect(await firo.maxFee, 1234); // ???
+      expect(await firo.maxFee, 0); // ???
 
-      expect(await firo.balanceMinusMaxFee, Decimal.parse("-0.00001234"));
+      expect(await firo.balanceMinusMaxFee, Decimal.parse("0"));
     });
 
     test("wallet balance minus maxfee - wallet balance is not zero", () async {

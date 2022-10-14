@@ -35,7 +35,8 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          color:
+              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return const LoadingIndicator();
@@ -95,7 +96,10 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
 
               try {
                 final mnemonicList = await manager.mnemonic;
-                const maxUnusedAddressGap = 20;
+                int maxUnusedAddressGap = 20;
+                if (coin == Coin.firo) {
+                  maxUnusedAddressGap = 50;
+                }
                 const maxNumberOfIndexesToCheck = 1000;
 
                 if (mnemonicList.isEmpty) {
@@ -155,14 +159,17 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
           ? Container(
               height: 20,
               decoration: BoxDecoration(
-                color: Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonBackSecondary,
                 borderRadius: BorderRadius.circular(
                   1000,
                 ),
               ),
               child: RawMaterialButton(
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                splashColor:
+                    Theme.of(context).extension<StackColors>()!.highlight,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     1000,
@@ -187,7 +194,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                   child: Text(
                     "Show recovery phrase",
                     style: STextStyles.infoSmall(context).copyWith(
-                        color: Theme.of(context).extension<StackColors>()!.accentColorDark),
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark),
                   ),
                 ),
               ),

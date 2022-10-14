@@ -1558,7 +1558,7 @@ class WowneroWallet extends CoinServiceAPI {
                   "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
               satoshiAmount: satoshiAmount,
               args: {"feeRate": feeRateType}))['fee'];
-          await Future.delayed(const Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 500));
         } catch (e, s) {
           aprox = -9999999999999999;
         }
