@@ -5,6 +5,7 @@ import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -41,12 +42,24 @@ class ExchangeFormState extends ChangeNotifier {
   Currency? _from;
   Currency? _to;
 
+  @override
+  String toString() {
+    return 'ExchangeFormState: {_exchange: $_exchange, _exchangeType: $_exchangeType, reversed: $reversed, fromAmount: $fromAmount, toAmount: $toAmount, minAmount: $minAmount, maxAmount: $maxAmount, rate: $rate, estimate: $estimate, _market: $_market, _from: $_from, _to: $_to, _onError: $_onError}';
+  }
+
   String? get fromTicker {
     switch (exchangeType) {
       case ExchangeRateType.estimated:
         return _from?.ticker;
       case ExchangeRateType.fixed:
-        return _market?.from;
+        switch (exchange?.name) {
+          case SimpleSwapExchange.exchangeName:
+            return _from?.ticker;
+          case ChangeNowExchange.exchangeName:
+            return market?.from;
+          default:
+            return null;
+        }
     }
   }
 
@@ -55,7 +68,14 @@ class ExchangeFormState extends ChangeNotifier {
       case ExchangeRateType.estimated:
         return _to?.ticker;
       case ExchangeRateType.fixed:
-        return _market?.to;
+        switch (exchange?.name) {
+          case SimpleSwapExchange.exchangeName:
+            return _to?.ticker;
+          case ChangeNowExchange.exchangeName:
+            return market?.to;
+          default:
+            return null;
+        }
     }
   }
 
