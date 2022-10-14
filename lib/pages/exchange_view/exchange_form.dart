@@ -294,33 +294,24 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     );
 
     if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-        ExchangeRateType.estimated) {
-      await ref.read(exchangeFormStateProvider).swap();
-    } else {
-      switch (ref.read(currentExchangeNameStateProvider.state).state) {
-        case ChangeNowExchange.exchangeName:
-          final from = ref.read(exchangeFormStateProvider).fromTicker;
-          final to = ref.read(exchangeFormStateProvider).toTicker;
+            ExchangeRateType.fixed &&
+        ref.read(exchangeFormStateProvider).exchange?.name ==
+            ChangeNowExchange.exchangeName) {
+      final from = ref.read(exchangeFormStateProvider).fromTicker;
+      final to = ref.read(exchangeFormStateProvider).toTicker;
 
-          if (to != null && from != null) {
-            final markets = ref
-                .read(availableChangeNowCurrenciesProvider)
-                .markets
-                .where((e) => e.from == to && e.to == from);
+      if (to != null && from != null) {
+        final markets = ref
+            .read(availableChangeNowCurrenciesProvider)
+            .markets
+            .where((e) => e.from == to && e.to == from);
 
-            if (markets.isNotEmpty) {
-              await ref
-                  .read(exchangeFormStateProvider)
-                  .swap(market: markets.first);
-            }
-          }
-          break;
-        case SimpleSwapExchange.exchangeName:
-          await ref.read(exchangeFormStateProvider).swap();
-          break;
-        default:
-        //
+        if (markets.isNotEmpty) {
+          await ref.read(exchangeFormStateProvider).swap(market: markets.first);
+        }
       }
+    } else {
+      await ref.read(exchangeFormStateProvider).swap();
     }
     if (mounted) {
       Navigator.of(context).pop();

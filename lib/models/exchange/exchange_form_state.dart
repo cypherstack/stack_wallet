@@ -395,24 +395,22 @@ class ExchangeFormState extends ChangeNotifier {
     minAmount = null;
     maxAmount = null;
 
-    switch (exchangeType) {
-      case ExchangeRateType.estimated:
-        final Currency? newTo = from;
-        final Currency? newFrom = to;
+    if (exchangeType == ExchangeRateType.fixed &&
+        exchange?.name == ChangeNowExchange.exchangeName) {
+      await updateMarket(market, false);
+    } else {
+      final Currency? newTo = from;
+      final Currency? newFrom = to;
 
-        _to = newTo;
-        _from = newFrom;
+      _to = newTo;
+      _from = newFrom;
 
-        await updateRanges(shouldNotifyListeners: false);
+      await updateRanges(shouldNotifyListeners: false);
 
-        await updateEstimate(
-          shouldNotifyListeners: false,
-          reversed: reversed,
-        );
-        break;
-      case ExchangeRateType.fixed:
-        await updateMarket(market, false);
-        break;
+      await updateEstimate(
+        shouldNotifyListeners: false,
+        reversed: reversed,
+      );
     }
 
     notifyListeners();
