@@ -20,6 +20,7 @@ import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_monero/api/wallet.dart';
+import 'package:cw_monero/api/wallet_manager.dart' as monero_wallet_manager;
 import 'package:cw_monero/pending_monero_transaction.dart';
 import 'package:cw_monero/monero_wallet.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +52,8 @@ MoneroWalletBase? walletBase;
 late WalletCreationService _walletCreationService;
 dynamic _walletInfoSource;
 Wallets? walletsService;
+
+String path = '';
 
 String name = 'namee${Random().nextInt(10000000)}';
 int nettype = 0;
@@ -96,7 +99,7 @@ void main() async {
         // name = await generateName();
         // }
         final dirPath = await pathForWalletDir(name: name, type: type);
-        final path = await pathForWallet(name: name, type: type);
+        path = await pathForWallet(name: name, type: type);
         credentials =
             // //     creating a new wallet
             // monero.createMoneroNewWalletCredentials(
@@ -163,23 +166,21 @@ void main() async {
           await walletBase!.getTransactionAddress(1, 2), mainnetTestData[1][2]);
     });
   });
-
+  /*
+  // Not needed; only folder created, wallet files not saved yet.  TODO test saving and deleting wallet files and make sure to clean up leftover folder afterwards
   group("Mainnet wallet deletion test", () {
-    test("Test mainnet wallet deletion", () async {
+    test("Test mainnet wallet existence", () {
+      expect(monero_wallet_manager.isWalletExistSync(path: path), true);
+    });
+
+    test("Test mainnet wallet deletion", () {
       // Remove wallet from wallet service
       walletService?.remove(name);
       walletsService?.removeWallet(walletId: name);
-
-      // TODO test deletion, get code from generation for checking if it already exists
+      expect(monero_wallet_manager.isWalletExistSync(path: path), false);
     });
-
-    /*
-    // wait for widget tree to dispose of any widgets watching the manager
-    await Future<void>.delayed(const Duration(seconds: 1));
-    walletsInstance.removeWallet(walletId: walletId);
-     */
   });
-  /*
+
   group("Mainnet node tests", () {
     test("Test mainnet node connection", () async {
       await walletBase?.connectToNode(
