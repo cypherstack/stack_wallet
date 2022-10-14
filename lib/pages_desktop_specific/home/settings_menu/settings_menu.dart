@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu_item.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../utilities/assets.dart';
-import '../settings_menu_item.dart';
 
 class SettingsMenu extends ConsumerStatefulWidget {
   const SettingsMenu({
@@ -54,7 +52,8 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
             ],
           ),
         ),
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.only(left: 15),
@@ -173,21 +172,6 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 10,
-                  right: 40,
-                ),
-                child: RoundedWhiteContainer(
-                  child: SvgPicture.asset(
-                    Assets.svg.backupAuto,
-                    width: 48,
-                    height: 48,
-                  ),
-                ),
-              ),
-            )
           ],
         ),
       ],
