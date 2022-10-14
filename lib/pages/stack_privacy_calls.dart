@@ -393,21 +393,21 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   }
 }
 
-class ContinueButton extends StatelessWidget {
-  const ContinueButton(
-      {Key? key,
-      required this.isDesktop,
-      required this.isSettings,
-      required this.isEasy})
-      : super(key: key);
+class ContinueButton extends ConsumerWidget {
+  const ContinueButton({
+    Key? key,
+    required this.isDesktop,
+    required this.isSettings,
+    required this.isEasy,
+  }) : super(key: key);
 
   final bool isDesktop;
   final bool isSettings;
   final bool isEasy;
 
   @override
-  Widget build(BuildContext context) {
-    return isDesktop
+  Widget build(BuildContext context, WidgetRef ref) {
+    return !isDesktop
         ? TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
@@ -416,10 +416,11 @@ class ContinueButton extends StatelessWidget {
               print("Output of isEasy:");
               print(isEasy);
 
-              Prefs.instance.externalCalls = isEasy;
-              if (!isSettings) {
-                Navigator.of(context).pushNamed(CreatePasswordView.routeName);
-              }
+              ref.read(prefsChangeNotifierProvider).externalCalls = isEasy;
+
+              !isSettings
+                  ? Navigator.of(context).pushNamed(CreatePinView.routeName)
+                  : Navigator.of(context).pop();
             },
             child: Text(
               !isSettings ? "Continue" : "Save changes",
@@ -437,10 +438,11 @@ class ContinueButton extends StatelessWidget {
                 print("Output of isEasy:");
                 print(isEasy);
 
-                Prefs.instance.externalCalls = isEasy;
+                ref.read(prefsChangeNotifierProvider).externalCalls = isEasy;
 
                 !isSettings
-                    ? Navigator.of(context).pushNamed(CreatePinView.routeName)
+                    ? Navigator.of(context)
+                        .pushNamed(CreatePasswordView.routeName)
                     : Navigator.of(context).pop();
               },
               child: Text(
