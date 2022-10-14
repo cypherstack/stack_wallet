@@ -1319,6 +1319,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     cryptoAmountController
                                                         .text) ??
                                                 Decimal.zero,
+                                            updateChosen: (String fee) {
+                                              setState(() {
+                                                _calculateFeesFuture =
+                                                    Future(() => fee);
+                                              });
+                                            },
                                           ),
                                         );
                                       },
