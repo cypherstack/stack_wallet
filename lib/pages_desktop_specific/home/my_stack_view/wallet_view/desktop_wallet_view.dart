@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -217,10 +218,80 @@ class _MyWalletState extends State<MyWallet> {
         Expanded(
           child: RoundedWhiteContainer(
             padding: const EdgeInsets.all(0),
-            child: Container(),
+            child: DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  TabBar(
+                    indicatorColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorBlue,
+                    labelStyle: STextStyles.desktopTextExtraSmall(context),
+                    labelColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorBlue,
+                    unselectedLabelColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
+                    labelPadding: const EdgeInsets.symmetric(
+                      vertical: 6,
+                    ),
+                    splashBorderRadius: BorderRadius.vertical(
+                      top: Radius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                    ),
+                    tabs: const [
+                      Tab(text: "Send"),
+                      Tab(text: "Receive"),
+                    ],
+                  ),
+                  const Expanded(
+                    child: TabBarView(
+                      children: [
+                        DesktopSend(),
+                        DesktopReceive(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class DesktopReceive extends StatefulWidget {
+  const DesktopReceive({Key? key}) : super(key: key);
+
+  @override
+  State<DesktopReceive> createState() => _DesktopReceiveState();
+}
+
+class _DesktopReceiveState extends State<DesktopReceive> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.green,
+    );
+  }
+}
+
+class DesktopSend extends StatefulWidget {
+  const DesktopSend({Key? key}) : super(key: key);
+
+  @override
+  State<DesktopSend> createState() => _DesktopSendState();
+}
+
+class _DesktopSendState extends State<DesktopSend> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.red,
     );
   }
 }
