@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -408,7 +407,7 @@ class ContinueButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return !isDesktop
+    return isDesktop
         ? TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
@@ -442,15 +441,7 @@ class ContinueButton extends StatelessWidget {
 
                 !isSettings
                     ? Navigator.of(context).pushNamed(CreatePinView.routeName)
-                    : Navigator.of(context)
-                        .pushNamed(AdvancedSettingsView.routeName);
-
-                // if (!isSettings) {
-                //   Navigator.of(context).pushNamed(CreatePinView.routeName);
-                // }
-                // if (isSettings) {
-                //   Navigator.of(context).pop();
-                // }
+                    : Navigator.of(context).pop();
               },
               child: Text(
                 !isSettings ? "Continue" : "Save changes",
