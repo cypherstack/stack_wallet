@@ -34,6 +34,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
+import 'package:stackwallet/services/wallets.dart';
+
 import 'dart:developer' as developer;
 
 // TODO trim down to the minimum imports above
@@ -48,6 +50,7 @@ KeyService? keysStorage;
 MoneroWalletBase? walletBase;
 late WalletCreationService _walletCreationService;
 dynamic _walletInfoSource;
+Wallets? walletsService;
 
 String name = 'namee${Random().nextInt(10000000)}';
 int nettype = 0;
@@ -159,6 +162,22 @@ void main() async {
       expect(
           await walletBase!.getTransactionAddress(1, 2), mainnetTestData[1][2]);
     });
+  });
+
+  group("Mainnet wallet deletion test", () {
+    test("Test mainnet wallet deletion", () async {
+      // Remove wallet from wallet service
+      walletService?.remove(name);
+      walletsService?.removeWallet(walletId: name);
+
+      // TODO test deletion, get code from generation for checking if it already exists
+    });
+
+    /*
+    // wait for widget tree to dispose of any widgets watching the manager
+    await Future<void>.delayed(const Duration(seconds: 1));
+    walletsInstance.removeWallet(walletId: walletId);
+     */
   });
   /*
   group("Mainnet node tests", () {
