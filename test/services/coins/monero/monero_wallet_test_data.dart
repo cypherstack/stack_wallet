@@ -1,5 +1,17 @@
 String testMnemonic =
     'agreed aquarium wallets uptight karate wonders afoot guys itself nucleus reduce lamb fully fewest bimonthly dazed skulls magically mocked fugitive imbalance saga calamity dialect itself';
+var stagenetTestData = [
+  [
+    '5ArTmbRXWxQhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD49oStD5',
+    '72JqiVrdvGwBPwJMF5PfT8GitThJzUq3FFoSQyr4fKfJdxZebgY3mHPcnAqTBA3FFwZRGxC4ZDwkfE1VVULPa55x42ZZYYZ',
+    '74YWK4e3zyPKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHTLvFCb'
+  ],
+  [
+    '76ECyDHuoaSU3vk1X7nGBbQnrUSknGbd6Uw8a9hUUgy3KBeXTDvk3pm8upMzZKw17m3mLPEzbcPp5WLpYVoHR5PKNW2mKKS',
+    '7AN7FXMfXgqYUMsy6M9ZVXMEkTBZyEDT7aQmY32trCxbU6dwkZJSCSbcpyL7UiTB9QXXosomZtJYvUJ296vTNX5yQ3rqiyZ',
+    '74z3uiWevc29PKmXEwjcYMVAUqoH5rrAXe3GokvSupXnDmccYvZagz5Qem7bQLteEw4iFEJ9oRk9BNfjTi4K2cyTJaBGwut'
+  ]
+];
 var mainnetTestData = [
   [
     '4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn',

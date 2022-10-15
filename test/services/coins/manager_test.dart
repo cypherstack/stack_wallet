@@ -241,12 +241,12 @@ void main() {
           .thenAnswer((realInvocation) => Future(() => {}));
 
       final manager = Manager(wallet);
-
       await manager.recoverFromMnemonic(
           mnemonic: "Some valid mnemonic",
           maxUnusedAddressGap: 20,
           maxNumberOfIndexesToCheck: 1000,
-          height: 0);
+          height: 0,
+          nettype: 0);
 
       verify(wallet.recoverFromMnemonic(
               mnemonic: "Some valid mnemonic",
@@ -272,7 +272,8 @@ void main() {
               mnemonic: "Some invalid mnemonic",
               maxUnusedAddressGap: 20,
               maxNumberOfIndexesToCheck: 1000,
-              height: 0),
+              height: 0,
+              nettype: 0),
           throwsA(isA<Exception>()));
 
       verify(wallet.recoverFromMnemonic(
@@ -299,7 +300,8 @@ void main() {
               mnemonic: "Some valid mnemonic",
               maxUnusedAddressGap: 20,
               maxNumberOfIndexesToCheck: 1000,
-              height: 0),
+              height: 0,
+              nettype: 0),
           throwsA(isA<Error>()));
 
       verify(wallet.recoverFromMnemonic(

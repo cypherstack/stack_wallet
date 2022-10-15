@@ -146,6 +146,22 @@ abstract class CoinServiceAPI {
           // tracker: tracker,
         );
 
+      case Coin.moneroTestNet:
+        return MoneroWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          // tracker: tracker,
+        );
+
+      case Coin.moneroStageNet:
+        return MoneroWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          // tracker: tracker,
+        );
+
       case Coin.wownero:
         return WowneroWallet(
           walletId: walletId,
@@ -232,12 +248,12 @@ abstract class CoinServiceAPI {
 
   Future<bool> testNetworkConnection();
 
-  Future<void> recoverFromMnemonic({
-    required String mnemonic,
-    required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
-    required int height,
-  });
+  Future<void> recoverFromMnemonic(
+      {required String mnemonic,
+      required int maxUnusedAddressGap,
+      required int maxNumberOfIndexesToCheck,
+      required int height,
+      int? nettype});
 
   Future<void> initializeNew();
   Future<void> initializeExisting();

@@ -214,7 +214,11 @@ class _WalletNetworkSettingsViewState
         .getManager(widget.walletId)
         .coin;
 
-    if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
+    if (coin == Coin.monero ||
+        coin == Coin.moneroTestNet ||
+        coin == Coin.moneroStageNet ||
+        coin == Coin.wownero ||
+        coin == Coin.epicCash) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
         (event) async {
           if (event.walletId == widget.walletId) {
@@ -271,7 +275,9 @@ class _WalletNetworkSettingsViewState
         .getManager(widget.walletId)
         .coin;
 
-    if (coin == Coin.monero) {
+    if (coin == Coin.monero ||
+        coin == Coin.moneroTestNet ||
+        coin == Coin.moneroStageNet) {
       double highestPercent = (ref
               .read(walletsChangeNotifierProvider)
               .getManager(widget.walletId)
@@ -563,6 +569,8 @@ class _WalletNetworkSettingsViewState
                                           ),
                                         ),
                                         if (coin == Coin.monero ||
+                                            coin == Coin.moneroTestNet ||
+                                            coin == Coin.moneroStageNet ||
                                             coin == Coin.wownero ||
                                             coin == Coin.epicCash)
                                           Text(

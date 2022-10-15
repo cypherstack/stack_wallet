@@ -62,6 +62,8 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
       case Coin.firoTestNet:
         return amount.toStringAsFixed(Constants.decimalPlaces);
       case Coin.monero:
+      case Coin.moneroTestNet:
+      case Coin.moneroStageNet:
         return amount.toStringAsFixed(Constants.decimalPlacesMonero);
       case Coin.wownero:
         return amount.toStringAsFixed(Constants.decimalPlacesWownero);
@@ -330,7 +332,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                           "${Format.localizedStringAsFixed(
                             value: snapshot.data!,
                             locale: locale,
-                            decimalPlaces: coin == Coin.monero
+                            decimalPlaces: (coin == Coin.monero ||
+                                    coin == Coin.moneroTestNet ||
+                                    coin == Coin.moneroStageNet)
                                 ? Constants.decimalPlacesMonero
                                 : coin == Coin.wownero
                                     ? Constants.decimalPlacesWownero

@@ -90,6 +90,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         break;
 
       case Coin.monero:
+      case Coin.moneroTestNet:
+      case Coin.moneroStageNet:
       case Coin.wownero:
         try {
           final uri = Uri.parse(formData.host!);
@@ -385,6 +387,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                   // strip unused path
                                   String address = formData.host!;
                                   if (coin == Coin.monero ||
+                                      coin == Coin.moneroTestNet ||
+                                      coin == Coin.moneroStageNet ||
                                       coin == Coin.wownero ||
                                       coin == Coin.epicCash) {
                                     if (address.startsWith("http")) {
@@ -541,6 +545,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
       case Coin.epicCash:
       case Coin.monero:
+      case Coin.moneroTestNet:
+      case Coin.moneroStageNet:
       case Coin.wownero:
         return true;
     }
@@ -703,6 +709,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   style: STextStyles.field(context),
                   decoration: standardInputDecoration(
                     (widget.coin != Coin.monero &&
+                            widget.coin != Coin.moneroTestNet &&
+                            widget.coin != Coin.moneroStageNet &&
                             widget.coin != Coin.wownero &&
                             widget.coin != Coin.epicCash)
                         ? "IP address"
@@ -886,6 +894,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             height: 8,
           ),
         if (widget.coin != Coin.monero &&
+            widget.coin != Coin.moneroTestNet &&
+            widget.coin != Coin.moneroStageNet &&
             widget.coin != Coin.wownero &&
             widget.coin != Coin.epicCash)
           Row(
@@ -939,12 +949,16 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             ],
           ),
         if (widget.coin != Coin.monero &&
+            widget.coin != Coin.moneroTestNet &&
+            widget.coin != Coin.moneroStageNet &&
             widget.coin != Coin.wownero &&
             widget.coin != Coin.epicCash)
           const SizedBox(
             height: 8,
           ),
         if (widget.coin != Coin.monero &&
+            widget.coin != Coin.moneroTestNet &&
+            widget.coin != Coin.moneroStageNet &&
             widget.coin != Coin.wownero &&
             widget.coin != Coin.epicCash)
           Row(

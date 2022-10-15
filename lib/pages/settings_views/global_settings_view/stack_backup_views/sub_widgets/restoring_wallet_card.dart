@@ -102,13 +102,20 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                 }
                 const maxNumberOfIndexesToCheck = 1000;
 
+                int nettype = 0;
+                if (manager.coin == Coin.moneroTestNet) {
+                  nettype = 1;
+                } else if (manager.coin == Coin.moneroStageNet) {
+                  nettype = 2;
+                }
+
                 if (mnemonicList.isEmpty) {
                   await manager.recoverFromMnemonic(
-                    mnemonic: ref.read(provider).mnemonic!,
-                    maxUnusedAddressGap: maxUnusedAddressGap,
-                    maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
-                    height: ref.read(provider).height ?? 0,
-                  );
+                      mnemonic: ref.read(provider).mnemonic!,
+                      maxUnusedAddressGap: maxUnusedAddressGap,
+                      maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+                      height: ref.read(provider).height ?? 0,
+                      nettype: nettype);
                 } else {
                   await manager.fullRescan(
                     maxUnusedAddressGap,

@@ -57,7 +57,9 @@ class _NewWalletRecoveryPhraseWarningViewState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final _numberOfPhraseWords = coin == Coin.monero
+    final _numberOfPhraseWords = (coin == Coin.monero ||
+            coin == Coin.moneroTestNet ||
+            coin == Coin.moneroStageNet)
         ? Constants.seedPhraseWordCountMonero
         : coin == Coin.wownero
             ? 14

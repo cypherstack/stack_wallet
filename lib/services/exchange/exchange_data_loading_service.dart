@@ -8,6 +8,9 @@ import 'package:stackwallet/utilities/logger.dart';
 class ExchangeDataLoadingService {
   Future<void> loadAll(WidgetRef ref, {Coin? coin}) async {
     try {
+      if (coin == Coin.moneroTestNet || coin == Coin.moneroStageNet) {
+        coin = Coin.monero;
+      }
       await Future.wait([
         _loadFixedRateMarkets(ref, coin: coin),
         _loadChangeNowStandardCurrencies(ref, coin: coin),

@@ -12,10 +12,12 @@ abstract class DefaultNodes {
         dogecoin,
         firo,
         monero,
+        moneroTestNet,
+        moneroStageNet,
+        wownero,
         epicCash,
         bitcoincash,
         namecoin,
-        wownero,
         bitcoinTestnet,
         bitcoincashTestnet,
         dogecoinTestnet,
@@ -80,6 +82,34 @@ abstract class DefaultNodes {
         useSSL: false,
         enabled: true,
         coinName: Coin.monero.name,
+        isFailover: true,
+        isDown: false,
+      );
+  
+  // TODO: eventually enable ssl and set scheme to https
+  // currently get certificate failure
+  static NodeModel get moneroTestNet => NodeModel(
+        host: "http://monero-testnet.stackwallet.com", // can use http://node.sethforprivacy.com:28089 for development purposes until testnet node set up
+        port: 28081,
+        name: defaultName,
+        id: _nodeId(Coin.moneroTestNet),
+        useSSL: false,
+        enabled: true,
+        coinName: Coin.moneroTestNet.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  // TODO: eventually enable ssl and set scheme to https
+  // currently get certificate failure
+  static NodeModel get moneroStageNet => NodeModel(
+        host: "http://monero-stagenet.stackwallet.com", // can use http://node.sethforprivacy.com:38089 for development purposes until stagenet node set up
+        port: 38081,
+        name: defaultName,
+        id: _nodeId(Coin.moneroStageNet),
+        useSSL: false,
+        enabled: true,
+        coinName: Coin.moneroStageNet.name,
         isFailover: true,
         isDown: false,
       );
@@ -188,6 +218,12 @@ abstract class DefaultNodes {
         return firo;
 
       case Coin.monero:
+        return monero;
+
+      case Coin.moneroTestNet:
+        return monero;
+
+      case Coin.moneroStageNet:
         return monero;
 
       case Coin.wownero:

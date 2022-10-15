@@ -400,12 +400,20 @@ abstract class SWB {
       // default is 20 but it may miss some transactions if
       // the previous wallet software generated many addresses
       // without using them
+
+      int nettype = 0;
+      if (manager.coin == Coin.moneroTestNet) {
+        nettype = 1;
+      } else if (manager.coin == Coin.moneroStageNet) {
+        nettype = 2;
+      }
+
       await manager.recoverFromMnemonic(
-        mnemonic: mnemonic,
-        maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
-        maxNumberOfIndexesToCheck: 1000,
-        height: restoreHeight,
-      );
+          mnemonic: mnemonic,
+          maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
+          maxNumberOfIndexesToCheck: 1000,
+          height: restoreHeight,
+          nettype: nettype);
 
       if (_shouldCancelRestore) {
         return false;

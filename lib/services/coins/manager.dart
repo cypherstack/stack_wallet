@@ -210,19 +210,19 @@ class Manager with ChangeNotifier {
 
   Future<void> initializeNew() => _currentWallet.initializeNew();
   Future<void> initializeExisting() => _currentWallet.initializeExisting();
-  Future<void> recoverFromMnemonic({
-    required String mnemonic,
-    required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
-    required int height,
-  }) async {
+  Future<void> recoverFromMnemonic(
+      {required String mnemonic,
+      required int maxUnusedAddressGap,
+      required int maxNumberOfIndexesToCheck,
+      required int height,
+      int? nettype}) async {
     try {
       await _currentWallet.recoverFromMnemonic(
-        mnemonic: mnemonic,
-        maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
-        height: height,
-      );
+          mnemonic: mnemonic,
+          maxUnusedAddressGap: maxUnusedAddressGap,
+          maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+          height: height,
+          nettype: nettype ?? 0);
     } catch (e, s) {
       Logging.instance.log("e: $e, S: $s", level: LogLevel.Error);
       rethrow;

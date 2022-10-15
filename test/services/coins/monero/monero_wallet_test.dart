@@ -55,7 +55,7 @@ Wallets? walletsService;
 
 String path = '';
 
-String name = 'namee${Random().nextInt(10000000)}';
+String name = '';
 int nettype = 0;
 WalletType type = WalletType.monero;
 
@@ -73,7 +73,8 @@ void main() async {
       date: DateTime.now(),
       path: '',
       address: '',
-      dirPath: '');
+      dirPath: '',
+      nettype: 0);
   late WalletCredentials credentials;
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -92,14 +93,88 @@ void main() async {
   _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
   walletService = monero.createMoneroWalletService(_walletInfoSource);
 
+  group("Stagenet tests", () {
+    setUp(() async {
+      try {
+        name =
+            'namee${Random().nextInt(10000000)}'; // TODO set static name and handle mocked storage etc to not pollute wallet files
+        type = WalletType.moneroStageNet;
+        nettype = 2;
+        final dirPath = await pathForWalletDir(name: name, type: type);
+        final path = await pathForWallet(name: name, type: type);
+        credentials =
+            // //     creating a new wallet
+            // monero.createMoneroNewWalletCredentials(
+            //     name: name, language: "English");
+            // restoring a previous wallet
+            monero.createMoneroRestoreWalletFromSeedCredentials(
+                name: name, height: 1199000, mnemonic: testMnemonic);
+
+        walletInfo = WalletInfo.external(
+            id: WalletBase.idFor(name, type),
+            name: name,
+            type: type,
+            isRecovery: false,
+            restoreHeight: credentials.height ?? 0,
+            date: DateTime.now(),
+            path: path,
+            address: "",
+            dirPath: dirPath,
+            nettype: nettype);
+        credentials.walletInfo = walletInfo;
+
+        _walletCreationService = WalletCreationService(
+          secureStorage: storage,
+          sharedPreferences: prefs,
+          walletService: walletService,
+          keyService: keysStorage,
+        );
+        _walletCreationService.changeWalletType();
+      } catch (e, s) {
+        print(e);
+        print(s);
+      }
+    });
+
+    test("Test stagenet address generation from seed", () async {
+      final wallet = await
+          // _walletCreationService.create(credentials);
+          _walletCreationService.restoreFromSeed(credentials, nettype);
+      walletInfo.address = wallet.walletAddresses.address;
+      //print(walletInfo.address);
+
+      await _walletInfoSource.add(walletInfo);
+      walletBase?.close();
+      walletBase = wallet as MoneroWalletBase;
+      //print("${walletBase?.seed}");
+
+      expect(walletInfo.address, stagenetTestData[0][0]);
+      expect(await walletBase!.getTransactionAddress(0, 0),
+          stagenetTestData[0][0]);
+      expect(await walletBase!.getTransactionAddress(0, 1),
+          stagenetTestData[0][1]);
+      expect(await walletBase!.getTransactionAddress(0, 2),
+          stagenetTestData[0][2]);
+      expect(await walletBase!.getTransactionAddress(1, 0),
+          stagenetTestData[1][0]);
+      expect(await walletBase!.getTransactionAddress(1, 1),
+          stagenetTestData[1][1]);
+      expect(await walletBase!.getTransactionAddress(1, 2),
+          stagenetTestData[1][2]);
+    });
+  });
+
   group("Mainnet tests", () {
     setUp(() async {
       try {
         // if (name?.isEmpty ?? true) {
         // name = await generateName();
         // }
+        name = "namee${Random().nextInt(10000000)}";
+        type = WalletType.monero;
+        nettype = 0;
         final dirPath = await pathForWalletDir(name: name, type: type);
-        path = await pathForWallet(name: name, type: type);
+        final path = await pathForWallet(name: name, type: type);
         credentials =
             // //     creating a new wallet
             // monero.createMoneroNewWalletCredentials(
@@ -117,7 +192,8 @@ void main() async {
             date: DateTime.now(),
             path: path,
             address: "",
-            dirPath: dirPath);
+            dirPath: dirPath,
+            nettype: nettype);
         credentials.walletInfo = walletInfo;
 
         _walletCreationService = WalletCreationService(
@@ -136,7 +212,7 @@ void main() async {
     test("Test mainnet address generation from seed", () async {
       final wallet = await
           // _walletCreationService.create(credentials);
-          _walletCreationService.restoreFromSeed(credentials);
+          _walletCreationService.restoreFromSeed(credentials, nettype);
       walletInfo.address = wallet.walletAddresses.address;
       //print(walletInfo.address);
 
@@ -167,20 +243,6 @@ void main() async {
     });
   });
   /*
-  // Not needed; only folder created, wallet files not saved yet.  TODO test saving and deleting wallet files and make sure to clean up leftover folder afterwards
-  group("Mainnet wallet deletion test", () {
-    test("Test mainnet wallet existence", () {
-      expect(monero_wallet_manager.isWalletExistSync(path: path), true);
-    });
-
-    test("Test mainnet wallet deletion", () {
-      // Remove wallet from wallet service
-      walletService?.remove(name);
-      walletsService?.removeWallet(walletId: name);
-      expect(monero_wallet_manager.isWalletExistSync(path: path), false);
-    });
-  });
-
   group("Mainnet node tests", () {
     test("Test mainnet node connection", () async {
       await walletBase?.connectToNode(
@@ -195,7 +257,6 @@ void main() async {
       print('height: $height');
       bool connected = await walletBase!.isConnected();
       print('connected: $connected');
-
       //expect...
     });
   });

@@ -750,7 +750,9 @@ class _TransactionSearchViewState
     }
     int? amount;
     if (amountDecimal != null) {
-      if (widget.coin == Coin.monero) {
+      if (widget.coin == Coin.monero ||
+          widget.coin == Coin.moneroTestNet ||
+          widget.coin == Coin.moneroStageNet) {
         amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinMonero))
             .floor()
             .toBigInt()

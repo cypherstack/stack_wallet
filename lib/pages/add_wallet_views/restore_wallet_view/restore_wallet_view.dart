@@ -151,7 +151,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
-    if (widget.coin == Coin.monero) {
+    if (widget.coin == Coin.monero ||
+        widget.coin == Coin.moneroTestNet ||
+        widget.coin == Coin.moneroStageNet) {
       var moneroWordList = monero.getMoneroWordList("English");
       return moneroWordList.contains(word);
     }
@@ -200,7 +202,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       // TODO: do actual check to make sure it is a valid mnemonic for monero
       if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin == Coin.monero || widget.coin == Coin.wownero)) {
+          !(widget.coin == Coin.monero ||
+              widget.coin == Coin.moneroTestNet ||
+              widget.coin == Coin.moneroStageNet ||
+              widget.coin == Coin.wownero)) {
         unawaited(showFloatingFlushBar(
           type: FlushBarType.warning,
           message: "Invalid seed phrase!",
@@ -273,12 +278,20 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // default is 20 but it may miss some transactions if
           // the previous wallet software generated many addresses
           // without using them
+
+          int nettype = 0;
+          if (widget.coin == Coin.moneroTestNet) {
+            nettype = 1;
+          } else if (widget.coin == Coin.moneroStageNet) {
+            nettype = 2;
+          }
+
           await manager.recoverFromMnemonic(
-            mnemonic: mnemonic,
-            maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
-            maxNumberOfIndexesToCheck: 1000,
-            height: height,
-          );
+              mnemonic: mnemonic,
+              maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
+              maxNumberOfIndexesToCheck: 1000,
+              height: height,
+              nettype: nettype);
 
           // check if state is still active before continuing
           if (mounted) {

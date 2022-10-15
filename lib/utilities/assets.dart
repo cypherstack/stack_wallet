@@ -168,6 +168,8 @@ class _SVG {
       case Coin.firo:
         return firo;
       case Coin.monero:
+      case Coin.moneroTestNet:
+      case Coin.moneroStageNet:
         return monero;
       case Coin.wownero:
         return wownero;
@@ -214,10 +216,11 @@ class _PNG {
       case Coin.epicCash:
         return epicCash;
       case Coin.firo:
-        return firo;
       case Coin.firoTestNet:
         return firo;
       case Coin.monero:
+      case Coin.moneroTestNet:
+      case Coin.moneroStageNet:
         return monero;
       case Coin.wownero:
         return wownero;
