@@ -2040,7 +2040,8 @@ class FiroWallet extends CoinServiceAPI {
         case "Sent":
           unawaited(
             NotificationApi.showNotification(
-              title: "Outgoing transaction",
+              title:
+                  tx.subType == "mint" ? "Anonymizing" : "Outgoing transaction",
               body: walletName,
               walletId: walletId,
               iconAssetName: Assets.svg.iconFor(coin: coin),
@@ -2076,7 +2077,9 @@ class FiroWallet extends CoinServiceAPI {
       } else if (tx.txType == "Sent" && tx.subType == "join") {
         unawaited(
           NotificationApi.showNotification(
-            title: "Outgoing transaction confirmed",
+            title: tx.subType == "mint"
+                ? "Anonymized"
+                : "Outgoing transaction confirmed",
             body: walletName,
             walletId: walletId,
             iconAssetName: Assets.svg.iconFor(coin: coin),
