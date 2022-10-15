@@ -1308,20 +1308,24 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         RateTypeToggle(
           onChanged: onRateTypeChanged,
         ),
-        const SizedBox(
-          height: 8,
-        ),
-        ExchangeProviderOptions(
-          from: ref.watch(exchangeFormStateProvider).fromTicker,
-          to: ref.watch(exchangeFormStateProvider).toTicker,
-          fromAmount: ref.watch(exchangeFormStateProvider).fromAmount,
-          toAmount: ref.watch(exchangeFormStateProvider).toAmount,
-          fixedRate: ref.watch(prefsChangeNotifierProvider
-                  .select((value) => value.exchangeRateType)) ==
-              ExchangeRateType.fixed,
-          reversed: ref.watch(
-              exchangeFormStateProvider.select((value) => value.reversed)),
-        ),
+        if (ref.read(exchangeFormStateProvider).fromAmount != null &&
+            ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
+          const SizedBox(
+            height: 8,
+          ),
+        if (ref.read(exchangeFormStateProvider).fromAmount != null &&
+            ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
+          ExchangeProviderOptions(
+            from: ref.watch(exchangeFormStateProvider).fromTicker,
+            to: ref.watch(exchangeFormStateProvider).toTicker,
+            fromAmount: ref.watch(exchangeFormStateProvider).fromAmount,
+            toAmount: ref.watch(exchangeFormStateProvider).toAmount,
+            fixedRate: ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.exchangeRateType)) ==
+                ExchangeRateType.fixed,
+            reversed: ref.watch(
+                exchangeFormStateProvider.select((value) => value.reversed)),
+          ),
         const SizedBox(
           height: 12,
         ),
