@@ -753,10 +753,11 @@ Future<Map<String, dynamic>?> getInitialAnonymitySetCache(
     );
 
     final response = jsonDecode(anonSetResult.body.toString());
+    Logging.instance.log(response, level: LogLevel.Info);
     if (response['status'] == 'success') {
       final anonResponse = jsonDecode(response['result'] as String);
 
-      final setData = Map<String, dynamic>.from(anonResponse["result"] as Map);
+      final setData = Map<String, dynamic>.from(anonResponse as Map);
       return setData;
     } else {
       return null;
