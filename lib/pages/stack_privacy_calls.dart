@@ -408,12 +408,11 @@ class ContinueButton extends StatelessWidget {
                 .extension<StackColors>()!
                 .getPrimaryEnabledButtonColor(context),
             onPressed: () {
-              print("Output of isEasy:");
-              print(isEasy);
-
               Prefs.instance.externalCalls = isEasy;
               if (!isSettings) {
                 Navigator.of(context).pushNamed(CreatePinView.routeName);
+              } else {
+                Navigator.pop(context);
               }
             },
             child: Text(
@@ -429,9 +428,6 @@ class ContinueButton extends StatelessWidget {
                   .extension<StackColors>()!
                   .getPrimaryEnabledButtonColor(context),
               onPressed: () {
-                print("Output of isEasy:");
-                print(isEasy);
-
                 Prefs.instance.externalCalls = isEasy;
 
                 if (!isSettings) {
