@@ -572,14 +572,16 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         if (mounted) {
           Navigator.of(context).pop();
         }
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message:
-                "Estimated rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last estimated rate pair.",
-            context: context,
-          ),
-        );
+        if (!(fromTicker == "-" || toTicker == "-")) {
+          unawaited(
+            showFloatingFlushBar(
+              type: FlushBarType.warning,
+              message:
+                  "Estimated rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last estimated rate pair.",
+              context: context,
+            ),
+          );
+        }
         break;
       case ExchangeRateType.fixed:
         if (!(toTicker == "-" || fromTicker == "-")) {

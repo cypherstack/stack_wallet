@@ -92,7 +92,9 @@ class ExchangeFormState extends ChangeNotifier {
   String get warning {
     if (reversed) {
       if (toTicker != null && toAmount != null) {
-        if (minAmount != null && toAmount! < minAmount!) {
+        if (minAmount != null &&
+            toAmount! < minAmount! &&
+            toAmount! > Decimal.zero) {
           return "Minimum amount ${minAmount!.toString()} ${toTicker!.toUpperCase()}";
         } else if (maxAmount != null && toAmount! > maxAmount!) {
           return "Maximum amount ${maxAmount!.toString()} ${toTicker!.toUpperCase()}";
@@ -100,7 +102,9 @@ class ExchangeFormState extends ChangeNotifier {
       }
     } else {
       if (fromTicker != null && fromAmount != null) {
-        if (minAmount != null && fromAmount! < minAmount!) {
+        if (minAmount != null &&
+            fromAmount! < minAmount! &&
+            fromAmount! > Decimal.zero) {
           return "Minimum amount ${minAmount!.toString()} ${fromTicker!.toUpperCase()}";
         } else if (maxAmount != null && fromAmount! > maxAmount!) {
           return "Maximum amount ${maxAmount!.toString()} ${fromTicker!.toUpperCase()}";
