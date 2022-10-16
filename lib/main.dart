@@ -231,7 +231,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     //  unawaited(_nodeService.updateCommunityNodes());
 
     // run without awaiting
-    if (Constants.enableExchange) {
+    if (Constants.enableExchange && _prefs.externalCalls) {
       unawaited(ExchangeDataLoadingService().loadAll(ref));
     }
 
