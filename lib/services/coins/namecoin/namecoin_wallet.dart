@@ -328,12 +328,12 @@ class NamecoinWallet extends CoinServiceAPI {
   bool longMutex = false;
 
   @override
-  Future<void> recoverFromMnemonic({
-    required String mnemonic,
-    required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
-    required int height,
-  }) async {
+  Future<void> recoverFromMnemonic(
+      {required String mnemonic,
+      required int maxUnusedAddressGap,
+      required int maxNumberOfIndexesToCheck,
+      required int height,
+      int? nettype}) async {
     longMutex = true;
     final start = DateTime.now();
     try {

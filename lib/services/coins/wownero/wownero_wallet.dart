@@ -936,12 +936,12 @@ class WowneroWallet extends CoinServiceAPI {
 
   // TODO: take in a dynamic height
   @override
-  Future<void> recoverFromMnemonic({
-    required String mnemonic,
-    required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
-    required int height,
-  }) async {
+  Future<void> recoverFromMnemonic(
+      {required String mnemonic,
+      required int maxUnusedAddressGap,
+      required int maxNumberOfIndexesToCheck,
+      required int height,
+      int? nettype}) async {
     await _prefs.init();
     longMutex = true;
     final start = DateTime.now();

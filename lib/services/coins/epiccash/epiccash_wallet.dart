@@ -1380,7 +1380,8 @@ class EpicCashWallet extends CoinServiceAPI {
       {required String mnemonic,
       required int maxUnusedAddressGap,
       required int maxNumberOfIndexesToCheck,
-      required int height}) async {
+      required int height,
+      int? nettype}) async {
     try {
       await _prefs.init();
       await updateNode(false);

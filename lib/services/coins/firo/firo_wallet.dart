@@ -4019,12 +4019,12 @@ class FiroWallet extends CoinServiceAPI {
 
   /// wrapper for _recoverWalletFromBIP32SeedPhrase()
   @override
-  Future<void> recoverFromMnemonic({
-    required String mnemonic,
-    required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
-    required int height,
-  }) async {
+  Future<void> recoverFromMnemonic(
+      {required String mnemonic,
+      required int maxUnusedAddressGap,
+      required int maxNumberOfIndexesToCheck,
+      required int height,
+      int? nettype}) async {
     try {
       await compute(
         _setTestnetWrapper,
