@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu_item.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 
 class SettingsMenu extends ConsumerStatefulWidget {
@@ -65,6 +66,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       Assets.svg.polygon,
                       width: 11,
                       height: 11,
+                      color: selectedMenuItem == 0
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Colors.transparent,
                     ),
                     label: "Backup and restore",
                     value: 0,
@@ -79,6 +85,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       Assets.svg.polygon,
                       width: 11,
                       height: 11,
+                      color: selectedMenuItem == 1
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Colors.transparent,
                     ),
                     label: "Security",
                     value: 1,
@@ -93,6 +104,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       Assets.svg.polygon,
                       width: 11,
                       height: 11,
+                      color: selectedMenuItem == 2
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Colors.transparent,
                     ),
                     label: "Currency",
                     value: 2,
@@ -107,6 +123,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       Assets.svg.polygon,
                       width: 11,
                       height: 11,
+                      color: selectedMenuItem == 3
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Colors.transparent,
                     ),
                     label: "Language",
                     value: 3,
@@ -121,6 +142,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       Assets.svg.polygon,
                       width: 11,
                       height: 11,
+                      color: selectedMenuItem == 4
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Colors.transparent,
                     ),
                     label: "Nodes",
                     value: 4,
@@ -135,6 +161,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       Assets.svg.polygon,
                       width: 11,
                       height: 11,
+                      color: selectedMenuItem == 5
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Colors.transparent,
                     ),
                     label: "Syncing preferences",
                     value: 5,
@@ -149,6 +180,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       Assets.svg.polygon,
                       width: 11,
                       height: 11,
+                      color: selectedMenuItem == 6
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Colors.transparent,
                     ),
                     label: "Appearance",
                     value: 6,
@@ -163,6 +199,11 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       Assets.svg.polygon,
                       width: 11,
                       height: 11,
+                      color: selectedMenuItem == 7
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Colors.transparent,
                     ),
                     label: "Advanced",
                     value: 7,

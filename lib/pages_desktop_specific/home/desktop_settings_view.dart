@@ -19,6 +19,7 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
   int currentViewIndex = 0;
   final List<Widget> contentViews = [
     const Navigator(
+      key: Key("settingsBackupRestoreDesktopKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: BackupRestore.routeName,
     ), //b+r
