@@ -38,7 +38,12 @@ class PriceAPI {
 
     for (final coin in Coin.values) {
       final entry = data[coin];
-      if (entry == null) {
+
+      if (entry == null ||
+          coin.prettyName
+              .contains(new RegExp(r'TestNet', caseSensitive: false)) ||
+          coin.prettyName
+              .contains(new RegExp(r'StageNet', caseSensitive: false))) {
         map[coin.prettyName] = ["0", 0.0];
       } else {
         map[coin.prettyName] = [entry.item1.toString(), entry.item2];
