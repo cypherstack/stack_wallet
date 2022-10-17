@@ -36,6 +36,7 @@ class Prefs extends ChangeNotifier {
       _hideBlockExplorerWarning = await _getHideBlockExplorerWarning();
       _gotoWalletOnStartup = await _getGotoWalletOnStartup();
       _startupWalletId = await _getStartupWalletId();
+      _externalCalls = await _getHasExternalCalls();
 
       _initialized = true;
     }
@@ -543,5 +544,31 @@ class Prefs extends ChangeNotifier {
   Future<String?> _getStartupWalletId() async {
     return await DB.instance.get<dynamic>(
         boxName: DB.boxNamePrefs, key: "startupWalletId") as String?;
+  }
+
+  // incognito mode off by default
+  // allow external network calls such as exchange data and price info
+  bool _externalCalls = true;
+
+  bool get externalCalls => _externalCalls;
+
+  set externalCalls(bool externalCalls) {
+    if (_externalCalls != externalCalls) {
+      DB.instance
+          .put<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "externalCalls",
+              value: externalCalls)
+          .then((_) {
+        _externalCalls = externalCalls;
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<bool> _getHasExternalCalls() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "externalCalls") as bool? ??
+        false;
   }
 }

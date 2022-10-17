@@ -32,10 +32,12 @@ class TransactionFeeSelectionSheet extends ConsumerStatefulWidget {
     Key? key,
     required this.walletId,
     required this.amount,
+    required this.updateChosen,
   }) : super(key: key);
 
   final String walletId;
   final Decimal amount;
+  final Function updateChosen;
 
   @override
   ConsumerState<TransactionFeeSelectionSheet> createState() =>
@@ -223,6 +225,10 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.fast;
                         }
+                        String? fee = getAmount(FeeRateType.fast);
+                        if (fee != null) {
+                          widget.updateChosen(fee);
+                        }
                         Navigator.of(context).pop();
                       },
                       child: Container(
@@ -352,6 +358,10 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.average;
                         }
+                        String? fee = getAmount(FeeRateType.average);
+                        if (fee != null) {
+                          widget.updateChosen(fee);
+                        }
                         Navigator.of(context).pop();
                       },
                       child: Container(
@@ -410,8 +420,8 @@ class _TransactionFeeSelectionSheetState
                                         FutureBuilder(
                                           future: feeFor(
                                               coin: manager.coin,
-                                              feeRateType: FeeRateType.fast,
-                                              feeRate: feeObject!.fast,
+                                              feeRateType: FeeRateType.average,
+                                              feeRate: feeObject!.medium,
                                               amount: Format
                                                   .decimalAmountToSatoshis(
                                                       amount)),
@@ -478,6 +488,11 @@ class _TransactionFeeSelectionSheetState
                         if (state != FeeRateType.slow) {
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.slow;
+                        }
+                        String? fee = getAmount(FeeRateType.slow);
+                        print("fee $fee");
+                        if (fee != null) {
+                          widget.updateChosen(fee);
                         }
                         Navigator.of(context).pop();
                       },
@@ -607,5 +622,46 @@ class _TransactionFeeSelectionSheetState
         ),
       ),
     );
+  }
+
+  String? getAmount(FeeRateType feeRateType) {
+    try {
+      print(feeRateType);
+      var amount = Format.decimalAmountToSatoshis(this.amount);
+      print(amount);
+      print(ref.read(feeSheetSessionCacheProvider).fast);
+      print(ref.read(feeSheetSessionCacheProvider).average);
+      print(ref.read(feeSheetSessionCacheProvider).slow);
+      switch (feeRateType) {
+        case FeeRateType.fast:
+          if (ref.read(feeSheetSessionCacheProvider).fast[amount] != null) {
+            return (ref.read(feeSheetSessionCacheProvider).fast[amount]
+                    as Decimal)
+                .toString();
+          }
+          return null;
+
+        case FeeRateType.average:
+          if (ref.read(feeSheetSessionCacheProvider).average[amount] != null) {
+            return (ref.read(feeSheetSessionCacheProvider).average[amount]
+                    as Decimal)
+                .toString();
+          }
+          return null;
+
+        case FeeRateType.slow:
+          print(ref.read(feeSheetSessionCacheProvider).slow);
+          print(ref.read(feeSheetSessionCacheProvider).slow[amount]);
+          if (ref.read(feeSheetSessionCacheProvider).slow[amount] != null) {
+            return (ref.read(feeSheetSessionCacheProvider).slow[amount]
+                    as Decimal)
+                .toString();
+          }
+          return null;
+      }
+    } catch (e, s) {
+      print("$e $s");
+      return null;
+    }
   }
 }

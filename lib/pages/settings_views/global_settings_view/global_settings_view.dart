@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
@@ -5,6 +7,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/about_view
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/delete_account_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/language_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/security_views/security_view.dart';
@@ -19,6 +22,8 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import 'package:stackwallet/utilities/delete_everything.dart';
 
 class GlobalSettingsView extends StatelessWidget {
   const GlobalSettingsView({
@@ -188,6 +193,20 @@ class GlobalSettingsView extends StatelessWidget {
                                       AppearanceSettingsView.routeName);
                                 },
                               ),
+                              if (Platform.isIOS)
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                              if (Platform.isIOS)
+                                SettingsListButton(
+                                  iconAssetName: Assets.svg.circleAlert,
+                                  iconSize: 16,
+                                  title: "Delete account",
+                                  onPressed: () async {
+                                    await Navigator.of(context)
+                                        .pushNamed(DeleteAccountView.routeName);
+                                  },
+                                ),
                               const SizedBox(
                                 height: 8,
                               ),

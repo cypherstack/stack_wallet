@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/change_now/change_now_response.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
+import 'package:stackwallet/providers/exchange/exchange_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
+import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -243,33 +243,24 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     ),
                                   );
 
-                                  ChangeNowResponse<ExchangeTransaction>
-                                      response;
-                                  if (model.rateType ==
-                                      ExchangeRateType.estimated) {
-                                    response = await ref
-                                        .read(changeNowProvider)
-                                        .createStandardExchangeTransaction(
-                                          fromTicker: model.sendTicker,
-                                          toTicker: model.receiveTicker,
-                                          receivingAddress:
-                                              model.recipientAddress!,
-                                          amount: model.sendAmount,
-                                          refundAddress: model.refundAddress!,
-                                        );
-                                  } else {
-                                    response = await ref
-                                        .read(changeNowProvider)
-                                        .createFixedRateExchangeTransaction(
-                                          fromTicker: model.sendTicker,
-                                          toTicker: model.receiveTicker,
-                                          receivingAddress:
-                                              model.recipientAddress!,
-                                          amount: model.sendAmount,
-                                          refundAddress: model.refundAddress!,
-                                          rateId: model.rateId!,
-                                        );
-                                  }
+                                  final ExchangeResponse<Trade> response =
+                                      await ref
+                                          .read(exchangeProvider)
+                                          .createTrade(
+                                            from: model.sendTicker,
+                                            to: model.receiveTicker,
+                                            fixedRate: model.rateType !=
+                                                ExchangeRateType.estimated,
+                                            amount: model.reversed
+                                                ? model.receiveAmount
+                                                : model.sendAmount,
+                                            addressTo: model.recipientAddress!,
+                                            extraId: null,
+                                            addressRefund: model.refundAddress!,
+                                            refundExtraId: "",
+                                            rateId: model.rateId,
+                                            reversed: model.reversed,
+                                          );
 
                                   if (response.value == null) {
                                     if (mounted) {
@@ -293,20 +284,9 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                         shouldNotifyListeners: true,
                                       );
 
-                                  final statusResponse = await ref
-                                      .read(changeNowProvider)
-                                      .getTransactionStatus(
-                                          id: response.value!.id);
+                                  String status = response.value!.status;
 
-                                  String status = "Waiting";
-                                  if (statusResponse.value != null) {
-                                    status = statusResponse.value!.status.name;
-                                  }
-
-                                  model.trade = response.value!.copyWith(
-                                    statusString: status,
-                                    statusObject: statusResponse.value!,
-                                  );
+                                  model.trade = response.value!;
 
                                   // extra info if status is waiting
                                   if (status == "Waiting") {
@@ -318,12 +298,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   }
 
                                   unawaited(NotificationApi.showNotification(
-                                    changeNowId: model.trade!.id,
+                                    changeNowId: model.trade!.tradeId,
                                     title: status,
-                                    body: "Trade ID ${model.trade!.id}",
+                                    body: "Trade ID ${model.trade!.tradeId}",
                                     walletId: "",
                                     iconAssetName: Assets.svg.arrowRotate,
-                                    date: model.trade!.date,
+                                    date: model.trade!.timestamp,
                                     shouldWatchForUpdates: true,
                                     coinName: "coinName",
                                   ));

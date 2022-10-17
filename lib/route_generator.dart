@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
@@ -33,6 +33,7 @@ import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
@@ -43,6 +44,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_v
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/delete_account_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/global_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/language_view.dart';
@@ -73,6 +75,7 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
+import 'package:stackwallet/pages/stack_privacy_calls.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
@@ -97,6 +100,18 @@ class RouteGenerator {
     final args = settings.arguments;
 
     switch (settings.name) {
+      case IntroView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const IntroView(),
+            settings: RouteSettings(name: settings.name));
+
+      case DeleteAccountView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DeleteAccountView(),
+            settings: RouteSettings(name: settings.name));
+
       case HomeView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -118,6 +133,19 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const CreatePinView(),
+            settings: RouteSettings(name: settings.name));
+
+      case StackPrivacyCalls.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => StackPrivacyCalls(isSettings: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => StackPrivacyCalls(isSettings: false),
             settings: RouteSettings(name: settings.name));
 
       case WalletsView.routeName:
@@ -898,7 +926,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SendFromView.routeName:
-        if (args is Tuple4<Coin, Decimal, String, ExchangeTransaction>) {
+        if (args is Tuple4<Coin, Decimal, String, Trade>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendFromView(

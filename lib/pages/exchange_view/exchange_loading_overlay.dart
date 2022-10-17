@@ -70,7 +70,7 @@ class _ExchangeLoadingOverlayViewState
                 .overlay
                 .withOpacity(0.7),
             child: const CustomLoadingOverlay(
-                message: "Loading ChangeNOW data", eventBus: null),
+                message: "Loading Exchange data", eventBus: null),
           ),
         if ((_statusEst == ChangeNowLoadStatus.failed ||
                 _statusFixed == ChangeNowLoadStatus.failed) &&
@@ -85,9 +85,9 @@ class _ExchangeLoadingOverlayViewState
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 StackDialog(
-                  title: "Failed to fetch ChangeNow data",
+                  title: "Failed to fetch Exchange data",
                   message:
-                      "ChangeNOW requires a working internet connection. Tap OK to try fetching again.",
+                      "Exchange requires a working internet connection. Tap OK to try fetching again.",
                   rightButton: TextButton(
                     style: Theme.of(context)
                         .extension<StackColors>()!

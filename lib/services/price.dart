@@ -9,6 +9,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:stackwallet/utilities/prefs.dart';
+
 class PriceAPI {
   static const refreshInterval = 60;
 
@@ -76,6 +78,13 @@ class PriceAPI {
       return _cachedPrices;
     }
 
+    final externalCalls = Prefs.instance.externalCalls;
+    if (!Logger.isTestEnv && !externalCalls) {
+      Logging.instance.log("User does not want to use external calls",
+          level: LogLevel.Info);
+      return _cachedPrices;
+    }
+
     Map<Coin, Tuple2<Decimal, double>> result = {};
     try {
       final uri = Uri.parse(
@@ -88,13 +97,7 @@ class PriceAPI {
         headers: {'Content-Type': 'application/json'},
       );
 
-      // debugPrint(coinGeckoResponse.statusCode.toString());
-      // debugPrint(coinGeckoResponse.body.toString());
-      // debugPrint(coinGeckoResponse.headers.toString());
-
       final coinGeckoData = jsonDecode(coinGeckoResponse.body) as List<dynamic>;
-
-      // log(JsonEncoder.withIndent("   ").convert(coinGeckoData));
 
       for (final map in coinGeckoData) {
         final String coinName = map["name"] as String;
@@ -120,6 +123,12 @@ class PriceAPI {
   }
 
   static Future<List<String>?> availableBaseCurrencies() async {
+    final externalCalls = Prefs.instance.externalCalls;
+    if (!Logger.isTestEnv && !externalCalls) {
+      Logging.instance.log("User does not want to use external calls",
+          level: LogLevel.Info);
+      return null;
+    }
     const uriString =
         "https://api.coingecko.com/api/v3/simple/supported_vs_currencies";
     try {

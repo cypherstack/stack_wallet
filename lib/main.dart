@@ -18,12 +18,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/loading_view.dart';
@@ -31,13 +31,6 @@ import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
-import 'package:stackwallet/providers/exchange/available_floating_rate_pairs_state_provider.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
-import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
-import 'package:stackwallet/providers/exchange/fixed_rate_exchange_form_provider.dart';
-import 'package:stackwallet/providers/exchange/fixed_rate_market_pairs_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
@@ -46,6 +39,8 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/debug_service.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
@@ -123,6 +118,8 @@ void main() async {
   // change now trade adapters
   Hive.registerAdapter(ExchangeTransactionAdapter());
   Hive.registerAdapter(ExchangeTransactionStatusAdapter());
+
+  Hive.registerAdapter(TradeAdapter());
 
   // reference lookup data adapter
   Hive.registerAdapter(TradeWalletLookupAdapter());
@@ -225,7 +222,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       nodeService: _nodeService,
       tradesService: _tradesService,
       prefs: _prefs,
-      changeNow: ref.read(changeNowProvider),
     );
     await _prefs.init();
     ref.read(priceAnd24hChangeNotifierProvider).start(true);
@@ -233,6 +229,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     loadingCompleter.complete();
     // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
     //  unawaited(_nodeService.updateCommunityNodes());
+
+    // run without awaiting
+    if (Constants.enableExchange && _prefs.externalCalls) {
+      unawaited(ExchangeDataLoadingService().loadAll(ref));
+    }
 
     if (_prefs.isAutoBackupEnabled) {
       switch (_prefs.backupFrequencyType) {
@@ -251,112 +252,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     }
   }
 
-  Future<void> _loadChangeNowStandardCurrencies() async {
-    if (ref
-            .read(availableChangeNowCurrenciesStateProvider.state)
-            .state
-            .isNotEmpty &&
-        ref
-            .read(availableFloatingRatePairsStateProvider.state)
-            .state
-            .isNotEmpty) {
-      return;
-    }
-    final response = await ref.read(changeNowProvider).getAvailableCurrencies();
-    final response2 =
-        await ref.read(changeNowProvider).getAvailableFloatingRatePairs();
-    if (response.value != null) {
-      ref.read(availableChangeNowCurrenciesStateProvider.state).state =
-          response.value!;
-      if (response2.value != null) {
-        ref.read(availableFloatingRatePairsStateProvider.state).state =
-            response2.value!;
-
-        if (response.value!.length > 1) {
-          if (ref.read(estimatedRateExchangeFormProvider).from == null) {
-            if (response.value!.where((e) => e.ticker == "btc").isNotEmpty) {
-              await ref.read(estimatedRateExchangeFormProvider).updateFrom(
-                  response.value!.firstWhere((e) => e.ticker == "btc"), false);
-            }
-          }
-          if (ref.read(estimatedRateExchangeFormProvider).to == null) {
-            if (response.value!.where((e) => e.ticker == "doge").isNotEmpty) {
-              await ref.read(estimatedRateExchangeFormProvider).updateTo(
-                  response.value!.firstWhere((e) => e.ticker == "doge"), false);
-            }
-          }
-        }
-      } else {
-        Logging.instance.log(
-            "Failed to load changeNOW available floating rate pairs: ${response2.exception?.errorMessage}",
-            level: LogLevel.Error);
-        ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-            ChangeNowLoadStatus.failed;
-        return;
-      }
-    } else {
-      Logging.instance.log(
-          "Failed to load changeNOW currencies: ${response.exception?.errorMessage}",
-          level: LogLevel.Error);
-      await Future<void>.delayed(const Duration(seconds: 1));
-      ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-          ChangeNowLoadStatus.failed;
-      return;
-    }
-
-    ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-        ChangeNowLoadStatus.success;
-  }
-
-  Future<void> _loadFixedRateMarkets() async {
-    Logging.instance.log("Starting initial fixed rate market data loading...",
-        level: LogLevel.Info);
-    if (ref.read(fixedRateMarketPairsStateProvider.state).state.isNotEmpty) {
-      return;
-    }
-
-    final response3 =
-        await ref.read(changeNowProvider).getAvailableFixedRateMarkets();
-    if (response3.value != null) {
-      ref.read(fixedRateMarketPairsStateProvider.state).state =
-          response3.value!;
-
-      if (ref.read(fixedRateExchangeFormProvider).market == null) {
-        final matchingMarkets =
-            response3.value!.where((e) => e.to == "doge" && e.from == "btc");
-        if (matchingMarkets.isNotEmpty) {
-          await ref
-              .read(fixedRateExchangeFormProvider)
-              .updateMarket(matchingMarkets.first, true);
-        }
-      }
-
-      Logging.instance.log("Initial fixed rate market data loading complete.",
-          level: LogLevel.Info);
-    } else {
-      Logging.instance.log(
-          "Failed to load changeNOW fixed rate markets: ${response3.exception?.errorMessage}",
-          level: LogLevel.Error);
-
-      ref.read(changeNowFixedInitialLoadStatusStateProvider.state).state =
-          ChangeNowLoadStatus.failed;
-      return;
-    }
-
-    ref.read(changeNowFixedInitialLoadStatusStateProvider.state).state =
-        ChangeNowLoadStatus.success;
-  }
-
-  Future<void> _loadChangeNowData() async {
-    List<Future<dynamic>> concurrentFutures = [];
-    concurrentFutures.add(_loadChangeNowStandardCurrencies());
-    if (kFixedRateEnabled) {
-      concurrentFutures.add(_loadFixedRateMarkets());
-    }
-  }
-
   @override
   void initState() {
+    ref.read(exchangeFormStateProvider).exchange = ChangeNowExchange();
     final colorScheme = DB.instance
         .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
 
@@ -636,11 +534,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             // FlutterNativeSplash.remove();
             if (_wallets.hasWallets || _prefs.hasPin) {
               // return HomeView();
-
-              // run without awaiting
-              if (Constants.enableExchange) {
-                _loadChangeNowData();
-              }
 
               String? startupWalletId;
               if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {

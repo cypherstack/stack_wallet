@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/change_now/currency.dart';
-import 'package:stackwallet/models/exchange/change_now/fixed_rate_market.dart';
+import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';

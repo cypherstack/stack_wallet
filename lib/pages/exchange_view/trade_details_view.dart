@@ -13,10 +13,11 @@ import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/exchange/change_now_provider.dart';
-import 'package:stackwallet/providers/exchange/trade_note_service_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange.dart';
+import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -82,18 +83,16 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       final trade = ref
           .read(tradesServiceProvider)
           .trades
-          .firstWhere((e) => e.id == tradeId);
+          .firstWhere((e) => e.tradeId == tradeId);
 
-      if (mounted && trade.statusObject == null ||
-          trade.statusObject!.amountSendDecimal.isEmpty) {
-        final status = await ref
-            .read(changeNowProvider)
-            .getTransactionStatus(id: trade.id);
+      if (mounted) {
+        final exchange = Exchange.fromName(trade.exchangeName);
+        final response = await exchange.updateTrade(trade);
 
-        if (mounted && status.value != null) {
-          await ref.read(tradesServiceProvider).edit(
-              trade: trade.copyWith(statusObject: status.value),
-              shouldNotifyListeners: true);
+        if (mounted && response.value != null) {
+          await ref
+              .read(tradesServiceProvider)
+              .edit(trade: response.value!, shouldNotifyListeners: true);
         }
       }
     });
@@ -132,23 +131,29 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
     final bool sentFromStack =
         transactionIfSentFromStack != null && walletId != null;
 
-    final trade = ref.watch(tradesServiceProvider
-        .select((value) => value.trades.firstWhere((e) => e.id == tradeId)));
+    final trade = ref.watch(tradesServiceProvider.select(
+        (value) => value.trades.firstWhere((e) => e.tradeId == tradeId)));
 
     final bool hasTx = sentFromStack ||
-        !(trade.statusObject?.status == ChangeNowTransactionStatus.New ||
-            trade.statusObject?.status == ChangeNowTransactionStatus.Waiting ||
-            trade.statusObject?.status == ChangeNowTransactionStatus.Refunded ||
-            trade.statusObject?.status == ChangeNowTransactionStatus.Failed);
+        !(trade.status == "New" ||
+            trade.status == "new" ||
+            trade.status == "Waiting" ||
+            trade.status == "waiting" ||
+            trade.status == "Refunded" ||
+            trade.status == "refunded" ||
+            trade.status == "Closed" ||
+            trade.status == "closed" ||
+            trade.status == "Expired" ||
+            trade.status == "expired" ||
+            trade.status == "Failed" ||
+            trade.status == "failed");
 
     debugPrint("sentFromStack: $sentFromStack");
     debugPrint("hasTx: $hasTx");
     debugPrint("trade: ${trade.toString()}");
 
-    final sendAmount = Decimal.tryParse(
-            trade.statusObject?.amountSendDecimal ?? "") ??
-        Decimal.tryParse(trade.statusObject?.expectedSendAmountDecimal ?? "") ??
-        Decimal.parse("-1");
+    final sendAmount =
+        Decimal.tryParse(trade.payInAmount) ?? Decimal.parse("-1");
 
     return Scaffold(
       backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -180,7 +185,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SelectableText(
-                            "${trade.fromCurrency.toUpperCase()} → ${trade.toCurrency.toUpperCase()}",
+                            "${trade.payInCurrency.toUpperCase()} → ${trade.payOutCurrency.toUpperCase()}",
                             style: STextStyles.titleBold12(context),
                           ),
                           const SizedBox(
@@ -190,7 +195,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             "${Format.localizedStringAsFixed(value: sendAmount, locale: ref.watch(
                                   localeServiceChangeNotifierProvider
                                       .select((value) => value.locale),
-                                ), decimalPlaces: trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.fromCurrency.toUpperCase()}",
+                                ), decimalPlaces: trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.payInCurrency.toUpperCase()}",
                             style: STextStyles.itemSubtitle(context),
                           ),
                         ],
@@ -203,9 +208,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         ),
                         child: Center(
                           child: SvgPicture.asset(
-                            _fetchIconAssetForStatus(
-                                trade.statusObject?.status.name ??
-                                    trade.statusString),
+                            _fetchIconAssetForStatus(trade.status),
                             width: 32,
                             height: 32,
                           ),
@@ -229,15 +232,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         height: 4,
                       ),
                       SelectableText(
-                        trade.statusObject?.status.name ?? trade.statusString,
+                        trade.status,
                         style: STextStyles.itemSubtitle(context).copyWith(
-                          color: trade.statusObject != null
-                              ? Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .colorForStatus(trade.statusObject!.status)
-                              : Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .colorForStatus(trade.status),
                         ),
                       ),
                       //   ),
@@ -258,8 +257,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       text: TextSpan(
                           text:
                               "You must send at least ${sendAmount.toStringAsFixed(
-                            trade.fromCurrency.toLowerCase() == "xmr" ? 12 : 8,
-                          )} ${trade.fromCurrency.toUpperCase()}. ",
+                            trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
+                          )} ${trade.payInCurrency.toUpperCase()}. ",
                           style: STextStyles.label700(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
@@ -269,10 +268,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             TextSpan(
                               text:
                                   "If you send less than ${sendAmount.toStringAsFixed(
-                                trade.fromCurrency.toLowerCase() == "xmr"
+                                trade.payInCurrency.toLowerCase() == "xmr"
                                     ? 12
                                     : 8,
-                              )} ${trade.fromCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
+                              )} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
                               style: STextStyles.label(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -308,7 +307,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         GestureDetector(
                           onTap: () {
                             final Coin coin = coinFromTickerCaseInsensitive(
-                                trade.fromCurrency);
+                                trade.payInCurrency);
 
                             Navigator.of(context).pushNamed(
                               TransactionDetailsView.routeName,
@@ -334,14 +333,14 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "ChangeNOW address",
+                          "${trade.exchangeName} address",
                           style: STextStyles.itemSubtitle(context),
                         ),
                         const SizedBox(
                           height: 4,
                         ),
                         SelectableText(
-                          trade.payinAddress,
+                          trade.payInAddress,
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
@@ -360,12 +359,12 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Send ${trade.fromCurrency.toUpperCase()} to this address",
+                              "Send ${trade.payInCurrency.toUpperCase()} to this address",
                               style: STextStyles.itemSubtitle(context),
                             ),
                             GestureDetector(
                               onTap: () async {
-                                final address = trade.payinAddress;
+                                final address = trade.payInAddress;
                                 await Clipboard.setData(
                                   ClipboardData(
                                     text: address,
@@ -403,7 +402,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           height: 4,
                         ),
                         SelectableText(
-                          trade.payinAddress,
+                          trade.payInAddress,
                           style: STextStyles.itemSubtitle12(context),
                         ),
                         const SizedBox(
@@ -425,7 +424,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     children: [
                                       Center(
                                         child: Text(
-                                          "Send ${trade.fromCurrency.toUpperCase()} to this address",
+                                          "Send ${trade.payInCurrency.toUpperCase()} to this address",
                                           style:
                                               STextStyles.pageTitleH2(context),
                                         ),
@@ -440,7 +439,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                             width: width + 20,
                                             height: width + 20,
                                             child: QrImage(
-                                                data: trade.payinAddress,
+                                                data: trade.payInAddress,
                                                 size: width,
                                                 backgroundColor: Theme.of(
                                                         context)
@@ -658,7 +657,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       //     child:
                       SelectableText(
                         Format.extractDateFrom(
-                            trade.date.millisecondsSinceEpoch ~/ 1000),
+                            trade.timestamp.millisecondsSinceEpoch ~/ 1000),
                         style: STextStyles.itemSubtitle12(context),
                       ),
                       //   ),
@@ -677,16 +676,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         "Exchange",
                         style: STextStyles.itemSubtitle(context),
                       ),
-                      // Flexible(
-                      //   child: FittedBox(
-                      //     fit: BoxFit.scaleDown,
-                      //     child:
                       SelectableText(
-                        "ChangeNOW",
+                        trade.exchangeName,
                         style: STextStyles.itemSubtitle12(context),
                       ),
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
@@ -704,7 +697,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       Row(
                         children: [
                           Text(
-                            trade.id,
+                            trade.tradeId,
                             style: STextStyles.itemSubtitle12(context),
                           ),
                           const SizedBox(
@@ -712,7 +705,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           ),
                           GestureDetector(
                             onTap: () async {
-                              final data = ClipboardData(text: trade.id);
+                              final data = ClipboardData(text: trade.tradeId);
                               await clipboard.setData(data);
                               unawaited(showFloatingFlushBar(
                                 type: FlushBarType.info,
@@ -747,40 +740,50 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       const SizedBox(
                         height: 4,
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          final url =
-                              "https://changenow.io/exchange/txs/${trade.id}";
-                          launchUrl(
-                            Uri.parse(url),
-                            mode: LaunchMode.externalApplication,
-                          );
-                        },
-                        child: Text(
-                          "https://changenow.io/exchange/txs/${trade.id}",
-                          style: STextStyles.link2(context),
-                        ),
-                      ),
+                      Builder(builder: (context) {
+                        late final String url;
+                        switch (trade.exchangeName) {
+                          case ChangeNowExchange.exchangeName:
+                            url =
+                                "https://changenow.io/exchange/txs/${trade.tradeId}";
+                            break;
+                          case SimpleSwapExchange.exchangeName:
+                            url =
+                                "https://simpleswap.io/exchange?id=${trade.tradeId}";
+                            break;
+                        }
+                        return GestureDetector(
+                          onTap: () {
+                            launchUrl(
+                              Uri.parse(url),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          child: Text(
+                            url,
+                            style: STextStyles.link2(context),
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
                 const SizedBox(
                   height: 12,
                 ),
-                if (isStackCoin(trade.fromCurrency) &&
-                    trade.statusObject != null &&
-                    (trade.statusObject!.status ==
-                            ChangeNowTransactionStatus.New ||
-                        trade.statusObject!.status ==
-                            ChangeNowTransactionStatus.Waiting))
+                if (isStackCoin(trade.payInCurrency) &&
+                    (trade.status == "New" ||
+                        trade.status == "new" ||
+                        trade.status == "waiting" ||
+                        trade.status == "Waiting"))
                   SecondaryButton(
                     label: "Send from Stack",
                     onPressed: () {
                       final amount = sendAmount;
-                      final address = trade.payinAddress;
+                      final address = trade.payInAddress;
 
                       final coin =
-                          coinFromTickerCaseInsensitive(trade.fromCurrency);
+                          coinFromTickerCaseInsensitive(trade.payInCurrency);
 
                       Navigator.of(context).pushNamed(
                         SendFromView.routeName,

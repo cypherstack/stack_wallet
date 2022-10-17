@@ -4,7 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/confirm_change_now_send.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
@@ -36,7 +36,7 @@ class SendFromView extends ConsumerStatefulWidget {
   final Coin coin;
   final Decimal amount;
   final String address;
-  final ExchangeTransaction trade;
+  final Trade trade;
 
   @override
   ConsumerState<SendFromView> createState() => _SendFromViewState();
@@ -46,7 +46,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
   late final Coin coin;
   late final Decimal amount;
   late final String address;
-  late final ExchangeTransaction trade;
+  late final Trade trade;
 
   String formatAmount(Decimal amount, Coin coin) {
     switch (coin) {
@@ -148,7 +148,7 @@ class SendFromCard extends ConsumerStatefulWidget {
   final String walletId;
   final Decimal amount;
   final String address;
-  final ExchangeTransaction trade;
+  final Trade trade;
 
   @override
   ConsumerState<SendFromCard> createState() => _SendFromCardState();
@@ -158,7 +158,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
   late final String walletId;
   late final Decimal amount;
   late final String address;
-  late final ExchangeTransaction trade;
+  late final Trade trade;
 
   @override
   void initState() {
@@ -230,7 +230,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               }
 
               txData["note"] =
-                  "${trade.fromCurrency.toUpperCase()}/${trade.toCurrency.toUpperCase()} exchange";
+                  "${trade.payInCurrency.toUpperCase()}/${trade.payOutCurrency.toUpperCase()} exchange";
               txData["address"] = address;
 
               if (mounted) {

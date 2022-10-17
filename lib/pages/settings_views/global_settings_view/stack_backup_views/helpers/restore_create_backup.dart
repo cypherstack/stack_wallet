@@ -11,6 +11,7 @@ import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/stack_restoring_ui_state.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
@@ -401,7 +402,7 @@ abstract class SWB {
       // without using them
       await manager.recoverFromMnemonic(
         mnemonic: mnemonic,
-        maxUnusedAddressGap: 20,
+        maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
         maxNumberOfIndexesToCheck: 1000,
         height: restoreHeight,
       );
@@ -996,10 +997,14 @@ abstract class SWB {
     // primary nodes
     if (primaryNodes != null) {
       for (var node in primaryNodes) {
-        await nodeService.setPrimaryNodeFor(
-          coin: coinFromPrettyName(node['coinName'] as String),
-          node: nodeService.getNodeById(id: node['id'] as String)!,
-        );
+        try {
+          await nodeService.setPrimaryNodeFor(
+            coin: coinFromPrettyName(node['coinName'] as String),
+            node: nodeService.getNodeById(id: node['id'] as String)!,
+          );
+        } catch (e, s) {
+          Logging.instance.log("$e $s", level: LogLevel.Error);
+        }
       }
     }
     await nodeService.updateDefaults();
@@ -1026,8 +1031,7 @@ abstract class SWB {
           // trade existed before attempted restore so we don't delete it, only
           // revert data to pre restore state
           await tradesService.edit(
-              trade: ExchangeTransaction.fromJson(
-                  tradeData as Map<String, dynamic>),
+              trade: Trade.fromMap(tradeData as Map<String, dynamic>),
               shouldNotifyListeners: true);
         } else {
           // trade did not exist before so we delete it
@@ -1048,7 +1052,7 @@ abstract class SWB {
       }
     } else {
       // grab all trade IDs of (reverted to pre state) trades
-      final idsToKeep = tradesService.trades.map((e) => e.id);
+      final idsToKeep = tradesService.trades.map((e) => e.tradeId);
 
       // delete all notes that don't correspond to an id that we have
       for (final noteEntry in currentNotes.entries) {
@@ -1175,10 +1179,14 @@ abstract class SWB {
     }
     if (primaryNodes != null) {
       for (var node in primaryNodes) {
-        await nodeService.setPrimaryNodeFor(
-          coin: coinFromPrettyName(node['coinName'] as String),
-          node: nodeService.getNodeById(id: node['id'] as String)!,
-        );
+        try {
+          await nodeService.setPrimaryNodeFor(
+            coin: coinFromPrettyName(node['coinName'] as String),
+            node: nodeService.getNodeById(id: node['id'] as String)!,
+          );
+        } catch (e, s) {
+          Logging.instance.log("$e $s", level: LogLevel.Error);
+        }
       }
     }
     await nodeService.updateDefaults();
@@ -1189,16 +1197,44 @@ abstract class SWB {
   ) async {
     final tradesService = TradesService();
     for (int i = 0; i < trades.length - 1; i++) {
+      ExchangeTransaction? exTx;
+      try {
+        exTx = ExchangeTransaction.fromJson(trades[i] as Map<String, dynamic>);
+      } catch (e, s) {
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      }
+
+      Trade trade;
+      if (exTx != null) {
+        trade = Trade.fromExchangeTransaction(exTx, false);
+      } else {
+        trade = Trade.fromMap(trades[i] as Map<String, dynamic>);
+      }
+
       await tradesService.add(
-        trade: ExchangeTransaction.fromJson(trades[i] as Map<String, dynamic>),
+        trade: trade,
         shouldNotifyListeners: false,
       );
     }
     // only call notifyListeners on last one added
     if (trades.isNotEmpty) {
+      ExchangeTransaction? exTx;
+      try {
+        exTx =
+            ExchangeTransaction.fromJson(trades.last as Map<String, dynamic>);
+      } catch (e, s) {
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      }
+
+      Trade trade;
+      if (exTx != null) {
+        trade = Trade.fromExchangeTransaction(exTx, false);
+      } else {
+        trade = Trade.fromMap(trades.last as Map<String, dynamic>);
+      }
+
       await tradesService.add(
-        trade:
-            ExchangeTransaction.fromJson(trades.last as Map<String, dynamic>),
+        trade: trade,
         shouldNotifyListeners: true,
       );
     }

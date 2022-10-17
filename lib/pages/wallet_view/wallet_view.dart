@@ -18,20 +18,19 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_navigation_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
-import 'package:stackwallet/providers/exchange/available_currencies_state_provider.dart';
-import 'package:stackwallet/providers/exchange/estimate_rate_exchange_form_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/change_now/change_now_loading_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -45,6 +44,12 @@ import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
+
+import 'package:stackwallet/hive/db.dart';
+
+import 'package:stackwallet/utilities/logger.dart';
+
+import 'package:stackwallet/utilities/prefs.dart';
 
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
@@ -79,7 +84,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
 
-  final _cnLoadingService = ChangeNowLoadingService();
+  final _cnLoadingService = ExchangeDataLoadingService();
 
   @override
   void initState() {
@@ -230,56 +235,71 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
+    final _cnLoadingService = ExchangeDataLoadingService();
+    final externalCalls = Prefs.instance.externalCalls;
+    if (!externalCalls) {
+      print("loading?");
+      unawaited(_cnLoadingService.loadAll(ref));
+    }
     final coin = ref.read(managerProvider).coin;
 
     if (coin == Coin.epicCash) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
-          title: "ChangeNOW not available for Epic Cash",
+          title: "Exchange not available for Epic Cash",
         ),
       );
     } else if (coin.name.endsWith("TestNet")) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
-          title: "ChangeNOW not available for test net coins",
+          title: "Exchange not available for test net coins",
         ),
       );
     } else {
+      ref.read(currentExchangeNameStateProvider.state).state =
+          ChangeNowExchange.exchangeName;
       final walletId = ref.read(managerProvider).walletId;
       ref.read(prefsChangeNotifierProvider).exchangeRateType =
           ExchangeRateType.estimated;
 
+      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
+      ref.read(exchangeFormStateProvider).exchangeType =
+          ExchangeRateType.estimated;
+
       final currencies = ref
-          .read(availableChangeNowCurrenciesStateProvider.state)
-          .state
+          .read(availableChangeNowCurrenciesProvider)
+          .currencies
           .where((element) =>
               element.ticker.toLowerCase() == coin.ticker.toLowerCase());
 
       if (currencies.isNotEmpty) {
-        unawaited(ref
-            .read(estimatedRateExchangeFormProvider)
-            .updateFrom(currencies.first, false));
-        unawaited(ref.read(estimatedRateExchangeFormProvider).updateTo(
-            ref
-                .read(availableChangeNowCurrenciesStateProvider.state)
-                .state
-                .firstWhere(
-                  (element) =>
-                      element.ticker.toLowerCase() != coin.ticker.toLowerCase(),
-                ),
-            false));
+        ref.read(exchangeFormStateProvider).setCurrencies(
+              currencies.first,
+              ref
+                  .read(availableChangeNowCurrenciesProvider)
+                  .currencies
+                  .firstWhere(
+                    (element) =>
+                        element.ticker.toLowerCase() !=
+                        coin.ticker.toLowerCase(),
+                  ),
+            );
       }
 
-      unawaited(Navigator.of(context).pushNamed(
-        WalletInitiatedExchangeView.routeName,
-        arguments: Tuple3(
-          walletId,
-          coin,
-          _loadCNData,
-        ),
-      ));
+      if (mounted) {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            WalletInitiatedExchangeView.routeName,
+            arguments: Tuple3(
+              walletId,
+              coin,
+              _loadCNData,
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -351,7 +371,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   void _loadCNData() {
     // unawaited future
-    _cnLoadingService.loadAll(ref, coin: ref.read(managerProvider).coin);
+    final externalCalls = DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") as bool?;
+    if (externalCalls ?? false) {
+      _cnLoadingService.loadAll(ref, coin: ref.read(managerProvider).coin);
+    } else {
+      Logging.instance.log("User does not want to use external calls",
+          level: LogLevel.Info);
+    }
   }
 
   @override

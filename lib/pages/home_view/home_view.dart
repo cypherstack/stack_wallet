@@ -13,9 +13,11 @@ import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
-import 'package:stackwallet/services/change_now/change_now_loading_service.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -41,7 +43,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   bool _exitEnabled = false;
 
-  final _cnLoadingService = ChangeNowLoadingService();
+  final _exchangeDataLoadingService = ExchangeDataLoadingService();
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
@@ -81,7 +83,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   void _loadCNData() {
     // unawaited future
-    _cnLoadingService.loadAll(ref);
+    //
+    final externalCalls = Prefs.instance.externalCalls;
+    if (externalCalls) {
+      _exchangeDataLoadingService.loadAll(ref);
+    } else {
+      Logging.instance.log("User does not want to use external calls",
+          level: LogLevel.Info);
+    }
   }
 
   @override
@@ -279,6 +288,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     _ref.listen(homeViewPageIndexStateProvider,
                         (previous, next) {
                       if (next is int) {
+                        if (next == 1) {
+                          _loadCNData();
+                        }
                         if (next >= 0 && next <= 1) {
                           _pageController.animateToPage(
                             next,
