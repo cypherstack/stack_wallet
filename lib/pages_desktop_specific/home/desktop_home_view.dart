@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
+import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
@@ -35,7 +35,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     const Navigator(
       key: Key("desktopSettingHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: SettingsMenu.routeName,
+      initialRoute: DesktopSettingsView.routeName,
     ),
     Container(
       color: Colors.blue,
