@@ -1160,6 +1160,15 @@ class MoneroWallet extends CoinServiceAPI {
 
   @override
   Future<Decimal> get totalBalance async {
+    if (walletBase == null) {
+      String am = moneroAmountToString(amount: 0);
+
+      return Decimal.parse(am);
+      throw Exception(
+          "Tried to call totalBalance() in monero without walletBase!");
+      // TODO throw exception or handle case, users might get upset if their balances "disappear"
+    }
+
     var transactions = walletBase?.transactionHistory!.transactions;
     int transactionBalance = 0;
     for (var tx in transactions!.entries) {
@@ -1438,6 +1447,16 @@ class MoneroWallet extends CoinServiceAPI {
   // TODO: implement availableBalance
   Future<Decimal> get availableBalance async {
     var bal = 0;
+
+    if (walletBase == null) {
+      String am = moneroAmountToString(amount: bal);
+
+      return Decimal.parse(am);
+      throw Exception(
+          "Tried to call availableBalance() in monero without walletBase!");
+      // TODO throw exception or handle case?  Might alarm users if their balance "disappears"
+    }
+
     for (var element in walletBase!.balance!.entries) {
       bal = bal + element.value.unlockedBalance;
     }
