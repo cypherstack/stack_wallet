@@ -85,11 +85,12 @@ abstract class DefaultNodes {
         isFailover: true,
         isDown: false,
       );
-  
+
   // TODO: eventually enable ssl and set scheme to https
   // currently get certificate failure
   static NodeModel get moneroTestNet => NodeModel(
-        host: "http://monero-testnet.stackwallet.com", // can use http://node.sethforprivacy.com:28089 for development purposes until testnet node set up
+        host:
+            "http://monero-testnet.stackwallet.com", // can use http://node.sethforprivacy.com:28089 for development purposes until testnet node set up
         port: 28081,
         name: defaultName,
         id: _nodeId(Coin.moneroTestNet),
@@ -103,13 +104,14 @@ abstract class DefaultNodes {
   // TODO: eventually enable ssl and set scheme to https
   // currently get certificate failure
   static NodeModel get moneroStageNet => NodeModel(
-        host: "http://monero-stagenet.stackwallet.com", // can use http://node.sethforprivacy.com:38089 for development purposes until stagenet node set up
+        host:
+            "http://monero-stagenet.stackwallet.com", // can use http://node.sethforprivacy.com:38089 for development purposes until stagenet node set up
         port: 38081,
         name: defaultName,
-        id: _nodeId(Coin.moneroStageNet),
+        id: _nodeId(Coin.monero),
         useSSL: false,
         enabled: true,
-        coinName: Coin.moneroStageNet.name,
+        coinName: Coin.monero.name,
         isFailover: true,
         isDown: false,
       );
