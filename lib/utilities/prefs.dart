@@ -546,7 +546,7 @@ class Prefs extends ChangeNotifier {
         boxName: DB.boxNamePrefs, key: "startupWalletId") as String?;
   }
 
-  bool _externalCalls = false;
+  bool _externalCalls = true;
 
   bool get externalCalls => _externalCalls;
 
