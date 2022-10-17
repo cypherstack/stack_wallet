@@ -180,7 +180,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       int height = 0;
 
-      if (widget.coin == Coin.monero) {
+      if (widget.coin == Coin.monero ||
+          widget.coin == Coin.moneroTestNet ||
+          widget.coin == Coin.moneroStageNet) {
         height = monero.getHeigthByDate(date: widget.restoreFromDate);
       }
 
