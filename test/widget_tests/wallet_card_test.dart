@@ -22,7 +22,7 @@ import 'wallet_card_test.mocks.dart';
 
 @GenerateMocks([Wallets, BitcoinWallet, LocaleService])
 void main() {
-  testWidgets("When pop popOver redirect", (widgetTester) async {
+  testWidgets("Test button pressed", (widgetTester) async {
     final CoinServiceAPI wallet = MockBitcoinWallet();
     mockito.when(wallet.walletId).thenAnswer((realInvocation) => "wallet id");
     mockito.when(wallet.coin).thenAnswer((realInvocation) => Coin.bitcoin);
@@ -50,15 +50,6 @@ void main() {
             arguments: Tuple2("wallet id", managerProvider)))
         .thenAnswer((_) async => {});
 
-    // mockingjay
-    //     .when(() => navigator.push(mockingjay.any(
-    //         that: mockingjay.isRoute(
-    //             whereName: equals("/wallets"),
-    //             whereArguments: equals(Tuple2(
-    //                 "wallet id", wallets.getManagerProvider("wallet id")))))))
-    //     .thenAnswer((_) async => {});
-    // mockingjay.when(() => navigator.pop()).thenAnswer((invocation) {});
-
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -79,10 +70,9 @@ void main() {
         ),
       ),
     );
-    //
+
     expect(find.byType(MaterialButton), findsOneWidget);
     await widgetTester.tap(find.byType(MaterialButton));
-    // });
   });
 
   testWidgets('test widget loads correctly', (widgetTester) async {

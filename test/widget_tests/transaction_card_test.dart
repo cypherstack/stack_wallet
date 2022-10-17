@@ -351,13 +351,12 @@ void main() {
 
     when(wallet.coin).thenAnswer((_) => Coin.firo);
 
-    when(wallets.getManager("wallet-id"))
+    when(wallets.getManager("wallet id"))
         .thenAnswer((realInvocation) => Manager(wallet));
 
     mockingjay
-        .when(() => navigator.push(mockingjay.any(
-            that: mockingjay.isRoute(
-                whereName: equals("/transactiondetailsview")))))
+        .when(() => navigator.pushNamed("/transactionDetails",
+            arguments: Tuple3(tx, Coin.firo, "wallet id")))
         .thenAnswer((_) async => {});
 
     await tester.pumpWidget(
@@ -377,7 +376,7 @@ void main() {
           ),
           home: mockingjay.MockNavigatorProvider(
               navigator: navigator,
-              child: TransactionCard(transaction: tx, walletId: "wallet-id")),
+              child: TransactionCard(transaction: tx, walletId: "wallet id")),
         ),
       ),
     );
@@ -386,11 +385,11 @@ void main() {
 
     await tester.tap(find.byType(GestureDetector));
     await tester.pump();
-    //
+
     // verify(mockManager.addListener(any)).called(1);
-    // verify(mockLocaleService.addListener(any)).called(1);
+    verify(mockLocaleService.addListener(any)).called(1);
     // verify(mockNotesService.addListener(any)).called(1);
-    //
+
     // verify(mockNotesService.getNoteFor(txid: "some txid")).called(1);
     //
     // verify(mockManager.fiatCurrency).called(1);
@@ -405,10 +404,10 @@ void main() {
     //
     // mockingjay
     //     .verify(() => navigator.push(mockingjay.any(
-    //         that: mockingjay.isRoute(
-    //             whereName: equals("/transactiondetailsview")))))
+    //         that:
+    //             mockingjay.isRoute(whereName: equals("/transactionDetails"), whereArguments: equals(Tuple3(item1, item2, item3))))))
     //     .called(1);
-    //
+
     // mockingjay.verifyNoMoreInteractions(navigator);
   });
 }

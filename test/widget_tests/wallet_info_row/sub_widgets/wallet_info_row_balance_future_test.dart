@@ -3,55 +3,49 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/coin_wallets_table.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_balance_future.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
-import 'package:stackwallet/widgets/table_view/table_view_row.dart';
 
-import 'table_view_row_test.mocks.dart';
+import 'wallet_info_row_balance_future_test.mocks.dart';
 
 @GenerateMocks([
   Wallets,
   WalletsService,
   BitcoinWallet
 ], customMocks: [
+  MockSpec<NodeService>(returnNullOnMissingStub: true),
   MockSpec<Manager>(returnNullOnMissingStub: true),
-  MockSpec<CoinServiceAPI>(returnNullOnMissingStub: true)
+  MockSpec<CoinServiceAPI>(returnNullOnMissingStub: true),
+  // MockSpec<WalletsService>(returnNullOnMissingStub: true),
 ])
 void main() {
-  testWidgets('Test table view row', (widgetTester) async {
-    final mockWallet = MockWallets();
+  testWidgets("Test wallet info row balance loads correctly",
+      (widgetTester) async {
+    final wallets = MockWallets();
     final CoinServiceAPI wallet = MockBitcoinWallet();
     when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
-
     when(wallet.walletName).thenAnswer((_) => "some wallet");
-    when(wallet.walletId).thenAnswer((_) => "Wallet id 1");
+    when(wallet.walletId).thenAnswer((_) => "some-wallet-id");
 
     final manager = Manager(wallet);
-
-    when(mockWallet.getWalletIdsFor(coin: Coin.bitcoin))
-        .thenAnswer((realInvocation) => ["Wallet id 1", "wallet id 2"]);
-
-    when(mockWallet.getManagerProvider("Wallet id 1")).thenAnswer(
+    when(wallets.getManagerProvider("some-wallet-id")).thenAnswer(
         (realInvocation) => ChangeNotifierProvider((ref) => manager));
 
-    when(mockWallet.getManagerProvider("wallet id 2")).thenAnswer(
-        (realInvocation) => ChangeNotifierProvider((ref) => manager));
-
-    final walletIds = mockWallet.getWalletIdsFor(coin: Coin.bitcoin);
-
+    const walletInfoRowBalance =
+        WalletInfoRowBalanceFuture(walletId: "some-wallet-id");
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(mockWallet),
+          walletsChangeNotifierProvider.overrideWithValue(wallets),
         ],
         child: MaterialApp(
           theme: ThemeData(
@@ -61,19 +55,14 @@ void main() {
               ),
             ],
           ),
-          home: Material(
-            child: TableViewRow(cells: [
-              for (int j = 1; j <= 5; j++)
-                TableViewCell(flex: 16, child: Text("Some Text ${j}"))
-            ], expandingChild: CoinWalletsTable(walletIds: walletIds)),
+          home: const Material(
+            child: walletInfoRowBalance,
           ),
         ),
       ),
     );
-
-    expect(find.text("Some Text 1"), findsOneWidget);
-    expect(find.byType(TableViewRow), findsWidgets);
-    expect(find.byType(TableViewCell), findsWidgets);
-    expect(find.byType(CoinWalletsTable), findsWidgets);
+    //
+    // expect(find.text("some wallet"), findsOneWidget);
+    expect(find.byType(WalletInfoRowBalanceFuture), findsOneWidget);
   });
 }
