@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class DesktopSettingsView extends ConsumerStatefulWidget {
@@ -16,8 +18,9 @@ class DesktopSettingsView extends ConsumerStatefulWidget {
 class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
   int currentViewIndex = 0;
   final List<Widget> contentViews = [
-    Container(
-      color: Colors.lime,
+    const Navigator(
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: BackupRestore.routeName,
     ), //b+r
     Container(
       color: Colors.green,
@@ -48,7 +51,6 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
     });
   }
 
-  // will have a row with two items: SettingsMenu and settings contentxd
   @override
   Widget build(BuildContext context) {
     return Material(

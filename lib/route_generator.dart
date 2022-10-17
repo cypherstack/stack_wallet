@@ -87,6 +87,7 @@ import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -990,6 +991,12 @@ class RouteGenerator {
             builder: (_) => SettingsMenu(
                   onSelectionChanged: (int) {},
                 ),
+            settings: RouteSettings(name: settings.name));
+
+      case BackupRestore.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const BackupRestore(),
             settings: RouteSettings(name: settings.name));
 
       // == End of desktop specific routes =====================================

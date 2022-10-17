@@ -88,7 +88,7 @@ class _BackupRestore extends ConsumerState<BackupRestore> {
                       padding: EdgeInsets.all(
                         10,
                       ),
-                      child: EnableBackupButton(),
+                      child: AutoBackupButton(),
                     ),
                   ],
                 ),
@@ -137,6 +137,72 @@ class _BackupRestore extends ConsumerState<BackupRestore> {
                     ),
                   ),
                 ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Padding(
+                      padding: EdgeInsets.all(
+                        10,
+                      ),
+                      child: ManualBackupButton(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 25,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            right: 30,
+          ),
+          child: RoundedWhiteContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SvgPicture.asset(
+                  Assets.svg.backupRestore,
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.topLeft,
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: RichText(
+                      textAlign: TextAlign.start,
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "Restore Backup",
+                            style: STextStyles.desktopTextSmall(context),
+                          ),
+                          TextSpan(
+                            text:
+                                "\n\nUse your Stack Wallet backup file to restore your wallets, address book "
+                                "and wallet preferences.",
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Padding(
+                      padding: EdgeInsets.all(
+                        10,
+                      ),
+                      child: ManualBackupButton(),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -146,8 +212,8 @@ class _BackupRestore extends ConsumerState<BackupRestore> {
   }
 }
 
-class EnableBackupButton extends ConsumerWidget {
-  const EnableBackupButton({
+class AutoBackupButton extends ConsumerWidget {
+  const AutoBackupButton({
     Key? key,
   }) : super(key: key);
   @override
@@ -162,6 +228,52 @@ class EnableBackupButton extends ConsumerWidget {
         onPressed: () {},
         child: Text(
           "Enable Auto Backup",
+          style: STextStyles.button(context),
+        ),
+      ),
+    );
+  }
+}
+
+class ManualBackupButton extends ConsumerWidget {
+  const ManualBackupButton({
+    Key? key,
+  }) : super(key: key);
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      width: 200,
+      height: 48,
+      child: TextButton(
+        style: Theme.of(context)
+            .extension<StackColors>()!
+            .getPrimaryEnabledButtonColor(context),
+        onPressed: () {},
+        child: Text(
+          "Create Manual Backup",
+          style: STextStyles.button(context),
+        ),
+      ),
+    );
+  }
+}
+
+class RestoreBackupButton extends ConsumerWidget {
+  const RestoreBackupButton({
+    Key? key,
+  }) : super(key: key);
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      width: 200,
+      height: 48,
+      child: TextButton(
+        style: Theme.of(context)
+            .extension<StackColors>()!
+            .getPrimaryEnabledButtonColor(context),
+        onPressed: () {},
+        child: Text(
+          "Restore Backup",
           style: STextStyles.button(context),
         ),
       ),
