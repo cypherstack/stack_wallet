@@ -401,19 +401,11 @@ abstract class SWB {
       // the previous wallet software generated many addresses
       // without using them
 
-      int nettype = 0;
-      if (manager.coin == Coin.moneroTestNet) {
-        nettype = 1;
-      } else if (manager.coin == Coin.moneroStageNet) {
-        nettype = 2;
-      }
-
       await manager.recoverFromMnemonic(
           mnemonic: mnemonic,
           maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
           maxNumberOfIndexesToCheck: 1000,
-          height: restoreHeight,
-          nettype: nettype);
+          height: restoreHeight);
 
       if (_shouldCancelRestore) {
         return false;

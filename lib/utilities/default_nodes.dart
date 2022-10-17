@@ -108,10 +108,10 @@ abstract class DefaultNodes {
             "http://monero-stagenet.stackwallet.com", // can use http://node.sethforprivacy.com:38089 for development purposes until stagenet node set up
         port: 38081,
         name: defaultName,
-        id: _nodeId(Coin.monero),
+        id: _nodeId(Coin.moneroStageNet),
         useSSL: false,
         enabled: true,
-        coinName: Coin.monero.name,
+        coinName: Coin.moneroStageNet.name,
         isFailover: true,
         isDown: false,
       );

@@ -281,19 +281,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // the previous wallet software generated many addresses
           // without using them
 
-          int nettype = 0;
-          if (widget.coin == Coin.moneroTestNet) {
-            nettype = 1;
-          } else if (widget.coin == Coin.moneroStageNet) {
-            nettype = 2;
-          }
-
           await manager.recoverFromMnemonic(
               mnemonic: mnemonic,
               maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
               maxNumberOfIndexesToCheck: 1000,
-              height: height,
-              nettype: nettype);
+              height: height);
 
           // check if state is still active before continuing
           if (mounted) {

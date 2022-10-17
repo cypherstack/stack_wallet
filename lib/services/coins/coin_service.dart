@@ -252,8 +252,7 @@ abstract class CoinServiceAPI {
       {required String mnemonic,
       required int maxUnusedAddressGap,
       required int maxNumberOfIndexesToCheck,
-      required int height,
-      int? nettype});
+      required int height});
 
   Future<void> initializeNew();
   Future<void> initializeExisting();

@@ -214,15 +214,13 @@ class Manager with ChangeNotifier {
       {required String mnemonic,
       required int maxUnusedAddressGap,
       required int maxNumberOfIndexesToCheck,
-      required int height,
-      int? nettype}) async {
+      required int height}) async {
     try {
       await _currentWallet.recoverFromMnemonic(
           mnemonic: mnemonic,
           maxUnusedAddressGap: maxUnusedAddressGap,
           maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
-          height: height,
-          nettype: nettype ?? 0);
+          height: height);
     } catch (e, s) {
       Logging.instance.log("e: $e, S: $s", level: LogLevel.Error);
       rethrow;

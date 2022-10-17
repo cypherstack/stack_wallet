@@ -115,14 +115,14 @@ class MoneroWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<void> updateNode(bool shouldRefresh, [int? nettype = 0]) async {
+  Future<void> updateNode(bool shouldRefresh) async {
     final node = await getCurrentNode();
     final host = Uri.parse(node.host).host;
 
     WalletType type = WalletType.monero;
-    if (nettype == 1) {
+    if (coin == Coin.moneroTestNet) {
       type = WalletType.moneroTestNet;
-    } else if (nettype == 2) {
+    } else if (coin == Coin.moneroStageNet) {
       type = WalletType.moneroStageNet;
     }
 
@@ -696,15 +696,12 @@ class MoneroWallet extends CoinServiceAPI {
       names = Map<String, dynamic>.from(_names);
     }
 
-    int? nettype = 0;
+    int? nettype = getNettype();
     WalletType type = WalletType.monero;
-
-    if (names[_walletId]['coin'] == 'moneroStageNet') {
-      nettype = 2;
-      type = WalletType.moneroStageNet;
-    } else if (names[_walletId]['coin'] == 'moneroTestNet') {
-      nettype = 1;
+    if (coin == Coin.moneroTestNet) {
       type = WalletType.moneroTestNet;
+    } else if (coin == Coin.moneroStageNet) {
+      type = WalletType.moneroStageNet;
     }
 
     try {
@@ -956,6 +953,16 @@ class MoneroWallet extends CoinServiceAPI {
     return walletDire.path;
   }
 
+  int getNettype() {
+    if (coin == Coin.monero) {
+      return 0;
+    } else if (coin == Coin.moneroTestNet) {
+      return 1;
+    } else {
+      return 2;
+    }
+  }
+
   Future<String> pathForWallet({
     required String name,
     required WalletType type,
@@ -969,9 +976,9 @@ class MoneroWallet extends CoinServiceAPI {
       {required String mnemonic,
       required int maxUnusedAddressGap,
       required int maxNumberOfIndexesToCheck,
-      required int height,
-      int? nettype}) async {
+      required int height}) async {
     await _prefs.init();
+    int nettype = getNettype();
     longMutex = true;
     final start = DateTime.now();
     try {
@@ -1010,9 +1017,9 @@ class MoneroWallet extends CoinServiceAPI {
       WalletCredentials credentials;
       String name = _walletId;
       WalletType type = WalletType.monero;
-      if (nettype == 1) {
+      if (coin == Coin.moneroTestNet) {
         type = WalletType.moneroTestNet;
-      } else if (nettype == 2) {
+      } else if (coin == Coin.moneroStageNet) {
         type = WalletType.moneroStageNet;
       }
       final dirPath = await pathForWalletDir(name: name, type: type);
@@ -1021,7 +1028,7 @@ class MoneroWallet extends CoinServiceAPI {
           name: name,
           height: height,
           mnemonic: mnemonic.trim(),
-          nettype: nettype ?? 0);
+          nettype: nettype);
       try {
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -1034,7 +1041,7 @@ class MoneroWallet extends CoinServiceAPI {
             dirPath: dirPath,
             // TODO: find out what to put for address
             address: '',
-            nettype: nettype ?? 0);
+            nettype: nettype);
         credentials.walletInfo = walletInfo;
 
         _walletCreationService = WalletCreationService(
@@ -1045,8 +1052,8 @@ class MoneroWallet extends CoinServiceAPI {
         );
         _walletCreationService!.changeWalletType();
         // To restore from a seed
-        final wallet = await _walletCreationService!
-            .restoreFromSeed(credentials, nettype ?? 0);
+        final wallet =
+            await _walletCreationService!.restoreFromSeed(credentials, nettype);
         walletInfo.address = wallet.walletAddresses.address;
         await DB.instance
             .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
@@ -1222,16 +1229,9 @@ class MoneroWallet extends CoinServiceAPI {
             final host = Uri.parse(node.host).host;
 
             WalletType type = WalletType.monero;
-            /*
-            if (nettype == 1) {
+            if (coin == Coin.moneroTestNet) {
               type = WalletType.moneroTestNet;
-            } else if (nettype == 2) {
-              type = WalletType.moneroStageNet;
-            }
-             */
-            if (walletBase?.type == WalletType.moneroTestNet) {
-              type = WalletType.moneroTestNet;
-            } else if (walletBase?.type == WalletType.moneroStageNet) {
+            } else if (coin == Coin.moneroStageNet) {
               type = WalletType.moneroStageNet;
             }
 

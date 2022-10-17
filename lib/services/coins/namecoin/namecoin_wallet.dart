@@ -332,8 +332,7 @@ class NamecoinWallet extends CoinServiceAPI {
       {required String mnemonic,
       required int maxUnusedAddressGap,
       required int maxNumberOfIndexesToCheck,
-      required int height,
-      int? nettype}) async {
+      required int height}) async {
     longMutex = true;
     final start = DateTime.now();
     try {

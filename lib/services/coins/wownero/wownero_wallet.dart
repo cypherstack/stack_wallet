@@ -940,8 +940,7 @@ class WowneroWallet extends CoinServiceAPI {
       {required String mnemonic,
       required int maxUnusedAddressGap,
       required int maxNumberOfIndexesToCheck,
-      required int height,
-      int? nettype}) async {
+      required int height}) async {
     await _prefs.init();
     longMutex = true;
     final start = DateTime.now();
