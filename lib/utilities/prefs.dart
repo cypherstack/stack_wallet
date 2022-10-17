@@ -546,6 +546,8 @@ class Prefs extends ChangeNotifier {
         boxName: DB.boxNamePrefs, key: "startupWalletId") as String?;
   }
 
+  // incognito mode off by default
+  // allow external network calls such as exchange data and price info
   bool _externalCalls = true;
 
   bool get externalCalls => _externalCalls;

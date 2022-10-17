@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -7,8 +5,6 @@ import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-
-import 'package:stackwallet/utilities/prefs.dart';
 
 class HomeViewButtonBar extends ConsumerStatefulWidget {
   const HomeViewButtonBar({Key? key}) : super(key: key);
@@ -18,8 +14,8 @@ class HomeViewButtonBar extends ConsumerStatefulWidget {
 }
 
 class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
-  final DateTime _lastRefreshed = DateTime.now();
-  final Duration _refreshInterval = const Duration(hours: 1);
+  // final DateTime _lastRefreshed = DateTime.now();
+  // final Duration _refreshInterval = const Duration(hours: 1);
 
   @override
   void initState() {
@@ -104,34 +100,14 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               if (selectedIndex != 1) {
                 ref.read(homeViewPageIndexStateProvider.state).state = 1;
               }
-              DateTime now = DateTime.now();
-              final _cnLoadingService = ExchangeDataLoadingService();
-              final externalCalls = Prefs.instance.externalCalls;
-              if (!externalCalls) {
+              // DateTime now = DateTime.now();
+              if (ref.read(prefsChangeNotifierProvider).externalCalls) {
                 print("loading?");
-                unawaited(_cnLoadingService.loadAll(ref));
-              }
-              if (now.difference(_lastRefreshed) > _refreshInterval) {
-                // bool okPressed = false;
-                // showDialog<dynamic>(
-                //   context: context,
-                //   barrierDismissible: false,
-                //   builder: (_) => const StackDialog(
-                //     // builder: (_) => StackOkDialog(
-                //     title: "Refreshing ChangeNOW data",
-                //     message: "This may take a while",
-                //     // onOkPressed: (value) {
-                //     //   if (value == "OK") {
-                //     //     okPressed = true;
-                //     //   }
-                //     // },
-                //   ),
-                // );
                 await ExchangeDataLoadingService().loadAll(ref);
-                // if (!okPressed && mounted) {
-                //   Navigator.of(context).pop();
-                // }
               }
+              // if (now.difference(_lastRefreshed) > _refreshInterval) {
+              //   await ExchangeDataLoadingService().loadAll(ref);
+              // }
             },
             child: Text(
               "Exchange",
