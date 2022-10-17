@@ -32,17 +32,22 @@ class SimpleSwapAPI {
 
   Future<dynamic> _makeGetRequest(Uri uri) async {
     final client = this.client ?? http.Client();
+    int code = -1;
     try {
       final response = await client.get(
         uri,
       );
 
+      code = response.statusCode;
+
       final parsed = jsonDecode(response.body);
 
       return parsed;
     } catch (e, s) {
-      Logging.instance
-          .log("_makeRequest($uri) threw: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log(
+        "_makeRequest($uri) HTTP:$code threw: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }

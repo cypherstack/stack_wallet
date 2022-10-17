@@ -12,8 +12,7 @@ import 'package:stackwallet/utilities/enums/log_level_enum.dart';
 export 'enums/log_level_enum.dart';
 
 class Logging {
-  static const isArmLinux =
-  bool.fromEnvironment("IS_ARM");
+  static const isArmLinux = bool.fromEnvironment("IS_ARM");
   static final isTestEnv = Platform.environment["FLUTTER_TEST"] == "true";
   Logging._();
   static final Logging _instance = Logging._();
@@ -45,41 +44,47 @@ class Logging {
     core.bool printToConsole = true,
     core.bool printFullLength = false,
   }) {
-    if (isTestEnv || isArmLinux) {
-      Logger.print(object, normalLength: !printFullLength);
-      return;
-    }
-    final now = core.DateTime.now().toUtc();
-    final log = Log()
-      ..message = object.toString()
-      ..logLevel = level
-      ..timestampInMillisUTC = now.millisecondsSinceEpoch;
-    if (level == LogLevel.Error || level == LogLevel.Fatal) {
-      printFullLength = true;
-    }
+    try {
+      if (isTestEnv || isArmLinux) {
+        Logger.print(object, normalLength: !printFullLength);
+        return;
+      }
+      final now = core.DateTime.now().toUtc();
+      final log = Log()
+        ..message = object.toString()
+        ..logLevel = level
+        ..timestampInMillisUTC = now.millisecondsSinceEpoch;
+      if (level == LogLevel.Error || level == LogLevel.Fatal) {
+        printFullLength = true;
+      }
 
-    isar!.writeTxnSync(() => log.id = isar!.logs.putSync(log));
+      isar!.writeTxnSync(() => log.id = isar!.logs.putSync(log));
 
-    if (printToConsole) {
-      final core.String logStr = "Log: ${log.toString()}";
-      final core.int logLength = logStr.length;
+      if (printToConsole) {
+        final core.String logStr = "Log: ${log.toString()}";
+        final core.int logLength = logStr.length;
 
-      if (!printFullLength || logLength <= defaultPrintLength) {
-        debugPrint(logStr);
-      } else {
-        core.int start = 0;
-        core.int endIndex = defaultPrintLength;
-        core.int tmpLogLength = logLength;
-        while (endIndex < logLength) {
-          debugPrint(logStr.substring(start, endIndex));
-          endIndex += defaultPrintLength;
-          start += defaultPrintLength;
-          tmpLogLength -= defaultPrintLength;
-        }
-        if (tmpLogLength > 0) {
-          debugPrint(logStr.substring(start, logLength));
+        if (!printFullLength || logLength <= defaultPrintLength) {
+          debugPrint(logStr);
+        } else {
+          core.int start = 0;
+          core.int endIndex = defaultPrintLength;
+          core.int tmpLogLength = logLength;
+          while (endIndex < logLength) {
+            debugPrint(logStr.substring(start, endIndex));
+            endIndex += defaultPrintLength;
+            start += defaultPrintLength;
+            tmpLogLength -= defaultPrintLength;
+          }
+          if (tmpLogLength > 0) {
+            debugPrint(logStr.substring(start, logLength));
+          }
         }
       }
+    } catch (e, s) {
+      print("problem trying to log");
+      print("$e $s");
+      Logger.print(object);
     }
   }
 }
