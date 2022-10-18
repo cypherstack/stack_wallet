@@ -151,4 +151,63 @@ void main() {
             arguments: const Tuple3(Coin.bitcoin, "node id", "coinNodes")))
         .called(1);
   });
+
+  testWidgets("Connect tap", (tester) async {
+    final mockWallets = MockWallets();
+    final mockPrefs = MockPrefs();
+    final mockNodeService = MockNodeService();
+
+    when(mockNodeService.getNodeById(id: "node id")).thenAnswer(
+        (realInvocation) => NodeModel(
+            host: "127.0.0.1",
+            port: 2000,
+            name: "Stack Default",
+            id: "node id",
+            useSSL: true,
+            enabled: true,
+            coinName: "Bitcoin",
+            isFailover: false,
+            isDown: false));
+
+    when(mockNodeService.getPrimaryNodeFor(coin: Coin.bitcoin)).thenAnswer(
+        (realInvocation) => NodeModel(
+            host: "127.0.0.1",
+            port: 2000,
+            name: "Some other node name",
+            id: "some node id",
+            useSSL: true,
+            enabled: true,
+            coinName: "Bitcoin",
+            isFailover: false,
+            isDown: false));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          walletsChangeNotifierProvider.overrideWithValue(mockWallets),
+          prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+          nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService)
+        ],
+        child: MaterialApp(
+          theme: ThemeData(
+            extensions: [
+              StackColors.fromStackColorTheme(
+                LightColors(),
+              ),
+            ],
+          ),
+          home: const NodeOptionsSheet(
+              nodeId: "node id", coin: Coin.bitcoin, popBackToRoute: ""),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    expect(find.text("Node options"), findsOneWidget);
+    // expect(find.text("Stack Default"), findsOneWidget);
+    expect(find.text("Disconnected"), findsOneWidget);
+
+    await tester.tap(find.text("Connect"));
+    await tester.pumpAndSettle();
+  });
 }
