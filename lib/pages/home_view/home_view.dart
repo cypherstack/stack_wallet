@@ -287,7 +287,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         (previous, next) {
                       if (next is int) {
                         if (next == 1) {
-                          _loadCNData();
+                          _exchangeDataLoadingService.loadAll(ref);
                         }
                         if (next >= 0 && next <= 1) {
                           _pageController.animateToPage(
