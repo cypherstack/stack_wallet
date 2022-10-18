@@ -186,10 +186,10 @@ class Wallets extends ChangeNotifier {
         Logging.instance.log(
             "LOADING WALLET: ${entry.value.toString()} IS VERIFIED: $isVerified",
             level: LogLevel.Info);
+        final coin = entry.value.coin;
         if (isVerified) {
           if (_managerMap[walletId] == null &&
               _managerProviderMap[walletId] == null) {
-            final coin = entry.value.coin;
             NodeModel node = nodeService.getPrimaryNodeFor(coin: coin) ??
                 DefaultNodes.getNodeFor(coin);
             // ElectrumXNode? node = await nodeService.getCurrentNode(coin: coin);
@@ -257,7 +257,17 @@ class Wallets extends ChangeNotifier {
           }
         } else {
           // wallet creation was not completed by user so we remove it completely
-          await walletsService.deleteWallet(entry.value.name, false);
+
+          int nettype;
+          if (coin == Coin.monero) {
+            nettype = 0;
+          } else if (coin == Coin.moneroTestNet) {
+            nettype = 1;
+          } else {
+            nettype = 2;
+          }
+
+          await walletsService.deleteWallet(entry.value.name, false, nettype);
         }
       } catch (e, s) {
         Logging.instance.log("$e $s", level: LogLevel.Fatal);
@@ -349,7 +359,17 @@ class Wallets extends ChangeNotifier {
         }
       } else {
         // wallet creation was not completed by user so we remove it completely
-        await walletsService.deleteWallet(manager.walletName, false);
+
+        int nettype;
+        if (manager.coin == Coin.monero) {
+          nettype = 0;
+        } else if (manager.coin == Coin.moneroTestNet) {
+          nettype = 1;
+        } else {
+          nettype = 2;
+        }
+
+        await walletsService.deleteWallet(manager.walletName, false, nettype);
       }
     }
 
