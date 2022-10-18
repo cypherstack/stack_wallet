@@ -119,12 +119,7 @@ class MoneroWallet extends CoinServiceAPI {
     final node = await getCurrentNode();
     final host = Uri.parse(node.host).host;
 
-    WalletType type = WalletType.monero;
-    if (coin == Coin.moneroTestNet) {
-      type = WalletType.moneroTestNet;
-    } else if (coin == Coin.moneroStageNet) {
-      type = WalletType.moneroStageNet;
-    }
+    WalletType type = getWalletType();
 
     await walletBase?.connectToNode(
         node: Node(uri: "$host:${node.port}", type: type));
@@ -697,12 +692,7 @@ class MoneroWallet extends CoinServiceAPI {
     }
 
     int? nettype = getNettype();
-    WalletType type = WalletType.monero;
-    if (coin == Coin.moneroTestNet) {
-      type = WalletType.moneroTestNet;
-    } else if (coin == Coin.moneroStageNet) {
-      type = WalletType.moneroStageNet;
-    }
+    WalletType type = getWalletType();
 
     try {
       String name = _walletId;
@@ -963,6 +953,16 @@ class MoneroWallet extends CoinServiceAPI {
     }
   }
 
+  WalletType getWalletType() {
+    if (coin == Coin.monero) {
+      return WalletType.monero;
+    } else if (coin == Coin.moneroTestNet) {
+      return WalletType.moneroTestNet;
+    } else {
+      return WalletType.moneroStageNet;
+    }
+  }
+
   Future<String> pathForWallet({
     required String name,
     required WalletType type,
@@ -1020,12 +1020,7 @@ class MoneroWallet extends CoinServiceAPI {
       WalletInfo walletInfo;
       WalletCredentials credentials;
       String name = _walletId;
-      WalletType type = WalletType.monero;
-      if (coin == Coin.moneroTestNet) {
-        type = WalletType.moneroTestNet;
-      } else if (coin == Coin.moneroStageNet) {
-        type = WalletType.moneroStageNet;
-      }
+      WalletType type = getWalletType();
       final dirPath = await pathForWalletDir(name: name, type: type);
       final path = await pathForWallet(name: name, type: type);
       credentials = monero.createMoneroRestoreWalletFromSeedCredentials(
@@ -1232,12 +1227,7 @@ class MoneroWallet extends CoinServiceAPI {
             final node = await getCurrentNode();
             final host = Uri.parse(node.host).host;
 
-            WalletType type = WalletType.monero;
-            if (coin == Coin.moneroTestNet) {
-              type = WalletType.moneroTestNet;
-            } else if (coin == Coin.moneroStageNet) {
-              type = WalletType.moneroStageNet;
-            }
+            WalletType type = getWalletType();
 
             await walletBase?.connectToNode(
                 node: Node(uri: "$host:${node.port}", type: type));
