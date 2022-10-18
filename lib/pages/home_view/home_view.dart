@@ -11,13 +11,13 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/global_set
 import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -83,9 +83,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   void _loadCNData() {
     // unawaited future
-    //
-    final externalCalls = Prefs.instance.externalCalls;
-    if (externalCalls) {
+    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
       _exchangeDataLoadingService.loadAll(ref);
     } else {
       Logging.instance.log("User does not want to use external calls",
