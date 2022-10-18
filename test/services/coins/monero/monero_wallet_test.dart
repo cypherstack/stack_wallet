@@ -73,8 +73,7 @@ void main() async {
       date: DateTime.now(),
       path: '',
       address: '',
-      dirPath: '',
-      nettype: 0);
+      dirPath: '');
   late WalletCredentials credentials;
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -108,7 +107,10 @@ void main() async {
             //     name: name, language: "English");
             // restoring a previous wallet
             monero.createMoneroRestoreWalletFromSeedCredentials(
-                name: name, height: 1199000, mnemonic: testMnemonic);
+                name: name,
+                height: 1199000,
+                mnemonic: testMnemonic,
+                nettype: nettype);
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -119,8 +121,7 @@ void main() async {
             date: DateTime.now(),
             path: path,
             address: "",
-            dirPath: dirPath,
-            nettype: nettype);
+            dirPath: dirPath);
         credentials.walletInfo = walletInfo;
 
         _walletCreationService = WalletCreationService(
@@ -181,7 +182,10 @@ void main() async {
             //     name: name, language: "English");
             // restoring a previous wallet
             monero.createMoneroRestoreWalletFromSeedCredentials(
-                name: name, height: 2580000, mnemonic: testMnemonic);
+                name: name,
+                height: 2580000,
+                mnemonic: testMnemonic,
+                nettype: nettype);
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -192,8 +196,7 @@ void main() async {
             date: DateTime.now(),
             path: path,
             address: "",
-            dirPath: dirPath,
-            nettype: nettype);
+            dirPath: dirPath);
         credentials.walletInfo = walletInfo;
 
         _walletCreationService = WalletCreationService(

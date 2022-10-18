@@ -857,8 +857,16 @@ class WowneroWallet extends CoinServiceAPI {
       debugPrint("Exception was thrown $e $s");
       throw Exception("Password not found $e, $s");
     }
-    walletBase = (await walletService?.openWallet(_walletId, password!))
-        as WowneroWalletBase;
+    int nettype;
+    if (coin == Coin.monero) {
+      nettype = 0;
+    } else if (coin == Coin.moneroTestNet) {
+      nettype = 1;
+    } else {
+      nettype = 2;
+    }
+    walletBase = (await walletService?.openWallet(
+        _walletId, password!, nettype)) as WowneroWalletBase;
     debugPrint("walletBase $walletBase");
     Logging.instance.log(
         "Opened existing ${coin.prettyName} wallet $walletName",
@@ -873,6 +881,30 @@ class WowneroWallet extends CoinServiceAPI {
     Logging.instance.log("xmr address in init existing: $newReceivingAddress",
         level: LogLevel.Info);
     _currentReceivingAddress = Future(() => newReceivingAddress);
+  }
+
+  int getNettype() {
+    //if (coin == Coin.wownero) {
+    return 0;
+    /*
+    } else if (coin == Coin.wowneroTestNet) {
+      return 1;
+    } else {
+      return 2;
+    }
+    */
+  }
+
+  WalletType getWalletType() {
+    //if (coin == Coin.wownero) {
+    return WalletType.wownero;
+    /*
+    } else if (coin == Coin.wowneroTestNet) {
+      return WalletType.wowneroTestNet;
+    } else {
+      return WalletType.wowneroStageNet;
+    }
+    */
   }
 
   @override
@@ -1172,8 +1204,8 @@ class WowneroWallet extends CoinServiceAPI {
             debugPrint("Exception was thrown $e $s");
             throw Exception("Password not found $e, $s");
           }
-          walletBase = (await walletService?.openWallet(_walletId, password!))
-              as WowneroWalletBase?;
+          walletBase = (await walletService?.openWallet(
+              _walletId, password!, getNettype())) as WowneroWalletBase?;
           if (!(await walletBase!.isConnected())) {
             final node = await getCurrentNode();
             final host = Uri.parse(node.host).host;
