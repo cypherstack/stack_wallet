@@ -258,16 +258,8 @@ class Wallets extends ChangeNotifier {
         } else {
           // wallet creation was not completed by user so we remove it completely
 
-          int nettype;
-          if (coin == Coin.monero) {
-            nettype = 0;
-          } else if (coin == Coin.moneroTestNet) {
-            nettype = 1;
-          } else {
-            nettype = 2;
-          }
-
-          await walletsService.deleteWallet(entry.value.name, false, nettype);
+          await walletsService.deleteWallet(
+              entry.value.name, false, getNettype(coin));
         }
       } catch (e, s) {
         Logging.instance.log("$e $s", level: LogLevel.Fatal);
@@ -360,16 +352,8 @@ class Wallets extends ChangeNotifier {
       } else {
         // wallet creation was not completed by user so we remove it completely
 
-        int nettype;
-        if (manager.coin == Coin.monero) {
-          nettype = 0;
-        } else if (manager.coin == Coin.moneroTestNet) {
-          nettype = 1;
-        } else {
-          nettype = 2;
-        }
-
-        await walletsService.deleteWallet(manager.walletName, false, nettype);
+        await walletsService.deleteWallet(
+            manager.walletName, false, getNettype(manager.coin));
       }
     }
 
@@ -385,6 +369,16 @@ class Wallets extends ChangeNotifier {
     } else if (walletsToInitLinearly.isNotEmpty) {
       await _initLinearly(walletsToInitLinearly);
       notifyListeners();
+    }
+  }
+
+  int getNettype(Coin coin) {
+    if (coin == Coin.monero) {
+      return 0;
+    } else if (coin == Coin.moneroTestNet) {
+      return 1;
+    } else {
+      return 2;
     }
   }
 }
