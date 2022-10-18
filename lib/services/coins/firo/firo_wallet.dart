@@ -254,7 +254,7 @@ Future<Map<String, dynamic>> isolateRestore(
     }
 
     final root = getBip32Root(mnemonic, network);
-    while (currentIndex < lastFoundIndex + 20) {
+    while (currentIndex < lastFoundIndex + 50) {
       final mintKeyPair = getBip32NodeFromRoot(MINT_INDEX, currentIndex, root);
       final mintTag = CreateTag(
           Format.uint8listToString(mintKeyPair.privateKey!),
