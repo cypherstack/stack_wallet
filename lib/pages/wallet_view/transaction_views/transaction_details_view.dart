@@ -255,17 +255,19 @@ class _TransactionDetailsViewState
                           const SizedBox(
                             height: 2,
                           ),
-                          SelectableText(
-                            "${Format.localizedStringAsFixed(value: (coin == Coin.monero ? (amount / 10000.toDecimal()).toDecimal() : coin == Coin.wownero ? (amount / 1000.toDecimal()).toDecimal() : amount) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
-                                  localeServiceChangeNotifierProvider
-                                      .select((value) => value.locale),
-                                ), decimalPlaces: 2)} ${ref.watch(
-                              prefsChangeNotifierProvider.select(
-                                (value) => value.currency,
-                              ),
-                            )}",
-                            style: STextStyles.itemSubtitle(context),
-                          ),
+                          if (ref.watch(prefsChangeNotifierProvider
+                              .select((value) => value.externalCalls)))
+                            SelectableText(
+                              "${Format.localizedStringAsFixed(value: (coin == Coin.monero ? (amount / 10000.toDecimal()).toDecimal() : coin == Coin.wownero ? (amount / 1000.toDecimal()).toDecimal() : amount) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
+                                    localeServiceChangeNotifierProvider
+                                        .select((value) => value.locale),
+                                  ), decimalPlaces: 2)} ${ref.watch(
+                                prefsChangeNotifierProvider.select(
+                                  (value) => value.currency,
+                                ),
+                              )}",
+                              style: STextStyles.itemSubtitle(context),
+                            ),
                         ],
                       ),
                       TxIcon(

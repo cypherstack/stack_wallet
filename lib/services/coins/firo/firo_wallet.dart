@@ -254,7 +254,7 @@ Future<Map<String, dynamic>> isolateRestore(
     }
 
     final root = getBip32Root(mnemonic, network);
-    while (currentIndex < lastFoundIndex + 20) {
+    while (currentIndex < lastFoundIndex + 50) {
       final mintKeyPair = getBip32NodeFromRoot(MINT_INDEX, currentIndex, root);
       final mintTag = CreateTag(
           Format.uint8listToString(mintKeyPair.privateKey!),
@@ -753,10 +753,11 @@ Future<Map<String, dynamic>?> getInitialAnonymitySetCache(
     );
 
     final response = jsonDecode(anonSetResult.body.toString());
+    Logging.instance.log(response, level: LogLevel.Info);
     if (response['status'] == 'success') {
       final anonResponse = jsonDecode(response['result'] as String);
 
-      final setData = Map<String, dynamic>.from(anonResponse["result"] as Map);
+      final setData = Map<String, dynamic>.from(anonResponse as Map);
       return setData;
     } else {
       return null;
@@ -1355,7 +1356,7 @@ class FiroWallet extends CoinServiceAPI {
     List<UtxoObject> utxoObjectsToUse = [];
 
     for (var i = 0;
-        satoshisBeingUsed < satoshiAmountToSend && i < spendableOutputs.length;
+        satoshisBeingUsed <= satoshiAmountToSend && i < spendableOutputs.length;
         i++) {
       utxoObjectsToUse.add(spendableOutputs[i]);
       satoshisBeingUsed += spendableOutputs[i].value;
@@ -2040,7 +2041,8 @@ class FiroWallet extends CoinServiceAPI {
         case "Sent":
           unawaited(
             NotificationApi.showNotification(
-              title: "Outgoing transaction",
+              title:
+                  tx.subType == "mint" ? "Anonymizing" : "Outgoing transaction",
               body: walletName,
               walletId: walletId,
               iconAssetName: Assets.svg.iconFor(coin: coin),
@@ -2076,7 +2078,9 @@ class FiroWallet extends CoinServiceAPI {
       } else if (tx.txType == "Sent" && tx.subType == "join") {
         unawaited(
           NotificationApi.showNotification(
-            title: "Outgoing transaction confirmed",
+            title: tx.subType == "mint"
+                ? "Anonymized"
+                : "Outgoing transaction confirmed",
             body: walletName,
             walletId: walletId,
             iconAssetName: Assets.svg.iconFor(coin: coin),
@@ -4493,6 +4497,7 @@ class FiroWallet extends CoinServiceAPI {
         }
       }
 
+      // TODO: investigate the bug here where chosen is null, conditions, given one mint
       spendVal += chosen!.amount;
       coinsToSpend.insert(coinsToSpend.length, chosen);
     }
@@ -4514,36 +4519,61 @@ class FiroWallet extends CoinServiceAPI {
   Future<int> estimateJoinSplitFee(
     int spendAmount,
   ) async {
-    int fee;
-    int size;
-
-    for (fee = 0;;) {
-      int currentRequired = spendAmount;
-
-      var map = await getCoinsToJoinSplit(currentRequired);
-      if (map is bool && !map) {
-        return 0;
-      }
-
-      List<DartLelantusEntry> coinsToBeSpent =
-          map['coinsToSpend'] as List<DartLelantusEntry>;
-
-      // 1054 is constant part, mainly Schnorr and Range proofs, 2560 is for each sigma/aux data
-      // 179 other parts of tx, assuming 1 utxo and 1 jmint
-      size = 1054 + 2560 * coinsToBeSpent.length + 180;
-      //        uint64_t feeNeeded = GetMinimumFee(size, DEFAULT_TX_CONFIRM_TARGET);
-      int feeNeeded =
-          size; //TODO(Levon) temporary, use real estimation methods here
-
-      if (fee >= feeNeeded) {
-        break;
-      }
-
-      fee = feeNeeded;
+    var lelantusEntry = await _getLelantusEntry();
+    final balance = await availableBalance;
+    int spendAmount =
+        (balance * Decimal.fromInt(Constants.satsPerCoin)).toBigInt().toInt();
+    if (spendAmount == 0 || lelantusEntry.isEmpty) {
+      return LelantusFeeData(0, 0, []).fee;
     }
+    ReceivePort receivePort = await getIsolate({
+      "function": "estimateJoinSplit",
+      "spendAmount": spendAmount,
+      "subtractFeeFromAmount": true,
+      "lelantusEntries": lelantusEntry,
+      "coin": coin,
+    });
 
-    return fee;
+    final message = await receivePort.first;
+    if (message is String) {
+      Logging.instance.log("this is a string", level: LogLevel.Error);
+      stop(receivePort);
+      throw Exception("_fetchMaxFee isolate failed");
+    }
+    stop(receivePort);
+    Logging.instance.log('Closing estimateJoinSplit!', level: LogLevel.Info);
+    return (message as LelantusFeeData).fee;
   }
+  // int fee;
+  // int size;
+  //
+  // for (fee = 0;;) {
+  //   int currentRequired = spendAmount;
+  //
+  // TODO: investigate the bug here
+  //   var map = await getCoinsToJoinSplit(currentRequired);
+  //   if (map is bool && !map) {
+  //     return 0;
+  //   }
+  //
+  //   List<DartLelantusEntry> coinsToBeSpent =
+  //       map['coinsToSpend'] as List<DartLelantusEntry>;
+  //
+  //   // 1054 is constant part, mainly Schnorr and Range proofs, 2560 is for each sigma/aux data
+  //   // 179 other parts of tx, assuming 1 utxo and 1 jmint
+  //   size = 1054 + 2560 * coinsToBeSpent.length + 180;
+  //   //        uint64_t feeNeeded = GetMinimumFee(size, DEFAULT_TX_CONFIRM_TARGET);
+  //   int feeNeeded =
+  //       size; //TODO(Levon) temporary, use real estimation methods here
+  //
+  //   if (fee >= feeNeeded) {
+  //     break;
+  //   }
+  //
+  //   fee = feeNeeded;
+  // }
+  //
+  // return fee;
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {

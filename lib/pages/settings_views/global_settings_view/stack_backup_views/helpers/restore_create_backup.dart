@@ -402,7 +402,7 @@ abstract class SWB {
       // without using them
       await manager.recoverFromMnemonic(
         mnemonic: mnemonic,
-        maxUnusedAddressGap: 20,
+        maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
         maxNumberOfIndexesToCheck: 1000,
         height: restoreHeight,
       );
@@ -997,10 +997,14 @@ abstract class SWB {
     // primary nodes
     if (primaryNodes != null) {
       for (var node in primaryNodes) {
-        await nodeService.setPrimaryNodeFor(
-          coin: coinFromPrettyName(node['coinName'] as String),
-          node: nodeService.getNodeById(id: node['id'] as String)!,
-        );
+        try {
+          await nodeService.setPrimaryNodeFor(
+            coin: coinFromPrettyName(node['coinName'] as String),
+            node: nodeService.getNodeById(id: node['id'] as String)!,
+          );
+        } catch (e, s) {
+          Logging.instance.log("$e $s", level: LogLevel.Error);
+        }
       }
     }
     await nodeService.updateDefaults();
@@ -1175,10 +1179,14 @@ abstract class SWB {
     }
     if (primaryNodes != null) {
       for (var node in primaryNodes) {
-        await nodeService.setPrimaryNodeFor(
-          coin: coinFromPrettyName(node['coinName'] as String),
-          node: nodeService.getNodeById(id: node['id'] as String)!,
-        );
+        try {
+          await nodeService.setPrimaryNodeFor(
+            coin: coinFromPrettyName(node['coinName'] as String),
+            node: nodeService.getNodeById(id: node['id'] as String)!,
+          );
+        } catch (e, s) {
+          Logging.instance.log("$e $s", level: LogLevel.Error);
+        }
       }
     }
     await nodeService.updateDefaults();

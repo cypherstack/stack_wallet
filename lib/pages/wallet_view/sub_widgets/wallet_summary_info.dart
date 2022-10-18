@@ -70,6 +70,8 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
             builder: (_, ref, __) {
               final Coin coin =
                   ref.watch(managerProvider.select((value) => value.coin));
+              final externalCalls = ref.watch(prefsChangeNotifierProvider
+                  .select((value) => value.externalCalls));
 
               Future<Decimal>? totalBalanceFuture;
               Future<Decimal>? availableBalanceFuture;
@@ -176,18 +178,19 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                             ),
                           ),
                         ),
-                        Text(
-                          "${Format.localizedStringAsFixed(
-                            value: priceTuple.item1 * balanceToShow,
-                            locale: locale,
-                            decimalPlaces: 2,
-                          )} $baseCurrency",
-                          style: STextStyles.subtitle500(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFavoriteCard,
+                        if (externalCalls)
+                          Text(
+                            "${Format.localizedStringAsFixed(
+                              value: priceTuple.item1 * balanceToShow,
+                              locale: locale,
+                              decimalPlaces: 2,
+                            )} $baseCurrency",
+                            style: STextStyles.subtitle500(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFavoriteCard,
+                            ),
                           ),
-                        ),
                       ],
                     );
                   } else {

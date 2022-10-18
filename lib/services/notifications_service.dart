@@ -84,7 +84,9 @@ class NotificationsService extends ChangeNotifier {
     _timer = Timer.periodic(notificationRefreshInterval, (_) {
       Logging.instance
           .log("Periodic notifications update check", level: LogLevel.Info);
-      _checkTrades();
+      if (prefs.externalCalls) {
+        _checkTrades();
+      }
       _checkTransactions();
     });
   }
