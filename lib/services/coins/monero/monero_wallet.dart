@@ -977,6 +977,10 @@ class MoneroWallet extends CoinServiceAPI {
       required int maxUnusedAddressGap,
       required int maxNumberOfIndexesToCheck,
       required int height}) async {
+    if (height <= 0) {
+      height = 0;
+    }
+    print("restored height: $height");
     await _prefs.init();
     int nettype = getNettype();
     longMutex = true;
