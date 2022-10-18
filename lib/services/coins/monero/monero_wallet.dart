@@ -680,18 +680,7 @@ class MoneroWallet extends CoinServiceAPI {
     WalletInfo walletInfo;
     WalletCredentials credentials;
 
-    // Find coin name for nettype (monero, moneroStageNet, moneroTestNet, etc) by calling the database for all wallet names and use the name param to find the coin ... Not a good solution, hacky, need to find better way to find the coin/nettype here
-    final _names = DB.instance
-        .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
-
-    Map<String, dynamic> names;
-    if (_names == null) {
-      names = {};
-    } else {
-      names = Map<String, dynamic>.from(_names);
-    }
-
-    int? nettype = getNettype();
+    int nettype = getNettype();
     WalletType type = getWalletType();
 
     try {
@@ -721,8 +710,7 @@ class MoneroWallet extends CoinServiceAPI {
           path: path,
           dirPath: dirPath,
           // TODO: find out what to put for address
-          address: '',
-          nettype: nettype);
+          address: '');
       credentials.walletInfo = walletInfo;
 
       _walletCreationService = WalletCreationService(
@@ -872,8 +860,8 @@ class MoneroWallet extends CoinServiceAPI {
       debugPrint("Exception was thrown $e $s");
       throw Exception("Password not found $e, $s");
     }
-    walletBase = (await walletService?.openWallet(_walletId, password!))
-        as MoneroWalletBase;
+    walletBase = (await walletService?.openWallet(
+        _walletId, password!, getNettype())) as MoneroWalletBase;
     debugPrint("walletBase $walletBase");
     Logging.instance.log(
         "Opened existing ${coin.prettyName} wallet $walletName",
@@ -963,26 +951,6 @@ class MoneroWallet extends CoinServiceAPI {
     return walletDire.path;
   }
 
-  int getNettype() {
-    if (coin == Coin.monero) {
-      return 0;
-    } else if (coin == Coin.moneroTestNet) {
-      return 1;
-    } else {
-      return 2;
-    }
-  }
-
-  WalletType getWalletType() {
-    if (coin == Coin.monero) {
-      return WalletType.monero;
-    } else if (coin == Coin.moneroTestNet) {
-      return WalletType.moneroTestNet;
-    } else {
-      return WalletType.moneroStageNet;
-    }
-  }
-
   Future<String> pathForWallet({
     required String name,
     required WalletType type,
@@ -1002,7 +970,8 @@ class MoneroWallet extends CoinServiceAPI {
     }
     print("restored height: $height");
     await _prefs.init();
-    int nettype = getNettype();
+    int nettype =
+        getNettype(); // TODO use type param to get nettype of explicitly-passed type, refactoring getNettype to also accept a specific WalletType that's not the active wallet
     longMutex = true;
     final start = DateTime.now();
     try {
@@ -1059,8 +1028,7 @@ class MoneroWallet extends CoinServiceAPI {
             path: path,
             dirPath: dirPath,
             // TODO: find out what to put for address
-            address: '',
-            nettype: nettype);
+            address: '');
         credentials.walletInfo = walletInfo;
 
         _walletCreationService = WalletCreationService(
@@ -1189,10 +1157,10 @@ class MoneroWallet extends CoinServiceAPI {
     if (walletBase == null) {
       String am = moneroAmountToString(amount: 0);
 
-      return Decimal.parse(am);
       throw Exception(
           "Tried to call totalBalance() in monero without walletBase!");
-      // TODO throw exception or handle case, users might get upset if their balances "disappear"
+      return Decimal.parse(am);
+      // TODO figure out why walletBase would be null here
     }
 
     var transactions = walletBase?.transactionHistory!.transactions;
@@ -1241,16 +1209,13 @@ class MoneroWallet extends CoinServiceAPI {
             debugPrint("Exception was thrown $e $s");
             throw Exception("Password not found $e, $s");
           }
-          walletBase = (await walletService?.openWallet(_walletId, password!))
-              as MoneroWalletBase?;
+          walletBase = (await walletService?.openWallet(
+              _walletId, password!, getNettype())) as MoneroWalletBase?;
           if (!(await walletBase!.isConnected())) {
             final node = await getCurrentNode();
             final host = Uri.parse(node.host).host;
-
-            WalletType type = getWalletType();
-
             await walletBase?.connectToNode(
-                node: Node(uri: "$host:${node.port}", type: type));
+                node: Node(uri: "$host:${node.port}", type: getWalletType()));
             await walletBase?.startSync();
           }
           await refresh();
