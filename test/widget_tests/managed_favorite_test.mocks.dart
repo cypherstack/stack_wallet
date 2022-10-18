@@ -13,10 +13,11 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i11;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i10;
 import 'package:stackwallet/models/models.dart' as _i8;
-import 'package:stackwallet/models/node_model.dart' as _i20;
+import 'package:stackwallet/models/node_model.dart' as _i21;
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i19;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i13;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
+import 'package:stackwallet/services/locale_service.dart' as _i20;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i7;
@@ -1312,6 +1313,68 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
       ) as _i16.Future<bool>);
 }
 
+/// A class which mocks [LocaleService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockLocaleService extends _i1.Mock implements _i20.LocaleService {
+  MockLocaleService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  String get locale => (super.noSuchMethod(
+        Invocation.getter(#locale),
+        returnValue: '',
+      ) as String);
+  @override
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
+  @override
+  _i16.Future<void> loadLocale({bool? notify = true}) => (super.noSuchMethod(
+        Invocation.method(
+          #loadLocale,
+          [],
+          {#notify: notify},
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+  @override
+  void addListener(_i18.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  void removeListener(_i18.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  void notifyListeners() => super.noSuchMethod(
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
 /// A class which mocks [NodeService].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -1326,15 +1389,15 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         ),
       ) as _i12.FlutterSecureStorageInterface);
   @override
-  List<_i20.NodeModel> get primaryNodes => (super.noSuchMethod(
+  List<_i21.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
-        returnValue: <_i20.NodeModel>[],
-      ) as List<_i20.NodeModel>);
+        returnValue: <_i21.NodeModel>[],
+      ) as List<_i21.NodeModel>);
   @override
-  List<_i20.NodeModel> get nodes => (super.noSuchMethod(
+  List<_i21.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
-        returnValue: <_i20.NodeModel>[],
-      ) as List<_i20.NodeModel>);
+        returnValue: <_i21.NodeModel>[],
+      ) as List<_i21.NodeModel>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -1352,7 +1415,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
   @override
   _i16.Future<void> setPrimaryNodeFor({
     required _i15.Coin? coin,
-    required _i20.NodeModel? node,
+    required _i21.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
       (super.noSuchMethod(
@@ -1369,40 +1432,40 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         returnValueForMissingStub: _i16.Future<void>.value(),
       ) as _i16.Future<void>);
   @override
-  _i20.NodeModel? getPrimaryNodeFor({required _i15.Coin? coin}) =>
+  _i21.NodeModel? getPrimaryNodeFor({required _i15.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
         {#coin: coin},
-      )) as _i20.NodeModel?);
+      )) as _i21.NodeModel?);
   @override
-  List<_i20.NodeModel> getNodesFor(_i15.Coin? coin) => (super.noSuchMethod(
+  List<_i21.NodeModel> getNodesFor(_i15.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
         ),
-        returnValue: <_i20.NodeModel>[],
-      ) as List<_i20.NodeModel>);
+        returnValue: <_i21.NodeModel>[],
+      ) as List<_i21.NodeModel>);
   @override
-  _i20.NodeModel? getNodeById({required String? id}) =>
+  _i21.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getNodeById,
         [],
         {#id: id},
-      )) as _i20.NodeModel?);
+      )) as _i21.NodeModel?);
   @override
-  List<_i20.NodeModel> failoverNodesFor({required _i15.Coin? coin}) =>
+  List<_i21.NodeModel> failoverNodesFor({required _i15.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
           {#coin: coin},
         ),
-        returnValue: <_i20.NodeModel>[],
-      ) as List<_i20.NodeModel>);
+        returnValue: <_i21.NodeModel>[],
+      ) as List<_i21.NodeModel>);
   @override
   _i16.Future<void> add(
-    _i20.NodeModel? node,
+    _i21.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
@@ -1454,7 +1517,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
       ) as _i16.Future<void>);
   @override
   _i16.Future<void> edit(
-    _i20.NodeModel? editedNode,
+    _i21.NodeModel? editedNode,
     String? password,
     bool? shouldNotifyListeners,
   ) =>

@@ -39,6 +39,10 @@ class _FakeFlutterSecureStorageInterface_0 extends _i1.SmartFake
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockNodeService extends _i1.Mock implements _i3.NodeService {
+  MockNodeService() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i2.FlutterSecureStorageInterface get secureStorageInterface =>
       (super.noSuchMethod(
