@@ -890,6 +890,26 @@ class MoneroWallet extends CoinServiceAPI {
     _currentReceivingAddress = Future(() => newReceivingAddress);
   }
 
+  int getNettype() {
+    if (coin == Coin.monero) {
+      return 0;
+    } else if (coin == Coin.moneroTestNet) {
+      return 1;
+    } else {
+      return 2;
+    }
+  }
+
+  WalletType getWalletType() {
+    if (coin == Coin.monero) {
+      return WalletType.monero;
+    } else if (coin == Coin.moneroTestNet) {
+      return WalletType.moneroTestNet;
+    } else {
+      return WalletType.moneroStageNet;
+    }
+  }
+
   @override
   Future<int> get maxFee async {
     var bal = await availableBalance;
