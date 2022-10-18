@@ -207,6 +207,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     didLoad = true;
 
     await DB.instance.init();
+    await _prefs.init();
 
     _notificationsService = ref.read(notificationsProvider);
     _nodeService = ref.read(nodeServiceChangeNotifierProvider);
@@ -223,7 +224,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       tradesService: _tradesService,
       prefs: _prefs,
     );
-    await _prefs.init();
     ref.read(priceAnd24hChangeNotifierProvider).start(true);
     await _wallets.load(_prefs);
     loadingCompleter.complete();

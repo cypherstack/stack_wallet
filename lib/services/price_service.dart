@@ -19,9 +19,7 @@ class PriceService extends ChangeNotifier {
 
   Tuple2<Decimal, double> getPrice(Coin coin) => _cachedPrices[coin]!;
 
-  PriceService(this.baseTicker) {
-    start(true);
-  }
+  PriceService(this.baseTicker);
 
   Future<void> updatePrice() async {
     final priceMap =

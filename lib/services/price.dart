@@ -7,9 +7,8 @@ import 'package:http/http.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:tuple/tuple.dart';
-
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:tuple/tuple.dart';
 
 class PriceAPI {
   static const refreshInterval = 60;
