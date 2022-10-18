@@ -36,7 +36,7 @@ jobs:
       - name: Build Monero
         run: |
           cd crypto_plugins/flutter_libmonero/scripts/linux/
-          ./build_all.sh
+          ./build_monero_all.sh
       - name: Build Epic Cash
         run: |
           cd crypto_plugins/flutter_libepiccash/scripts/linux/
