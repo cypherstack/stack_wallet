@@ -1356,7 +1356,7 @@ class FiroWallet extends CoinServiceAPI {
     List<UtxoObject> utxoObjectsToUse = [];
 
     for (var i = 0;
-        satoshisBeingUsed < satoshiAmountToSend && i < spendableOutputs.length;
+        satoshisBeingUsed <= satoshiAmountToSend && i < spendableOutputs.length;
         i++) {
       utxoObjectsToUse.add(spendableOutputs[i]);
       satoshisBeingUsed += spendableOutputs[i].value;
