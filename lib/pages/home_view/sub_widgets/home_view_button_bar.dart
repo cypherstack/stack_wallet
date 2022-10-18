@@ -101,10 +101,10 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
                 ref.read(homeViewPageIndexStateProvider.state).state = 1;
               }
               // DateTime now = DateTime.now();
-              if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-                print("loading?");
-                await ExchangeDataLoadingService().loadAll(ref);
-              }
+              // if (ref.read(prefsChangeNotifierProvider).externalCalls) {
+              //   print("loading?");
+              await ExchangeDataLoadingService().loadAll(ref);
+              // }
               // if (now.difference(_lastRefreshed) > _refreshInterval) {
               //   await ExchangeDataLoadingService().loadAll(ref);
               // }
