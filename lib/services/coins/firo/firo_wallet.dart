@@ -254,7 +254,7 @@ Future<Map<String, dynamic>> isolateRestore(
     }
 
     final root = getBip32Root(mnemonic, network);
-    while (currentIndex < lastFoundIndex + 20) {
+    while (currentIndex < lastFoundIndex + 50) {
       final mintKeyPair = getBip32NodeFromRoot(MINT_INDEX, currentIndex, root);
       final mintTag = CreateTag(
           Format.uint8listToString(mintKeyPair.privateKey!),
@@ -1356,7 +1356,7 @@ class FiroWallet extends CoinServiceAPI {
     List<UtxoObject> utxoObjectsToUse = [];
 
     for (var i = 0;
-        satoshisBeingUsed < satoshiAmountToSend && i < spendableOutputs.length;
+        satoshisBeingUsed <= satoshiAmountToSend && i < spendableOutputs.length;
         i++) {
       utxoObjectsToUse.add(spendableOutputs[i]);
       satoshisBeingUsed += spendableOutputs[i].value;

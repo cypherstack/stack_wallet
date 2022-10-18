@@ -204,37 +204,41 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Builder(
-                                builder: (_) {
-                                  // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
-                                  int value = _transaction.amount;
+                          if (ref.watch(prefsChangeNotifierProvider
+                              .select((value) => value.externalCalls)))
+                            const SizedBox(
+                              width: 10,
+                            ),
+                          if (ref.watch(prefsChangeNotifierProvider
+                              .select((value) => value.externalCalls)))
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Builder(
+                                  builder: (_) {
+                                    // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
+                                    int value = _transaction.amount;
                                   if (coin == Coin.monero ||
                                       coin == Coin.moneroTestNet ||
                                       coin == Coin.moneroStageNet) {
-                                    value = (value ~/ 10000);
-                                  } else if (coin == Coin.wownero) {
-                                    value = (value ~/ 1000);
-                                  }
+                                      value = (value ~/ 10000);
+                                    } else if (coin == Coin.wownero) {
+                                      value = (value ~/ 1000);
+                                    }
 
-                                  return Text(
-                                    "${Format.localizedStringAsFixed(
-                                      value: Format.satoshisToAmount(value) *
-                                          price,
-                                      locale: locale,
-                                      decimalPlaces: 2,
-                                    )} $baseCurrency",
-                                    style: STextStyles.label(context),
-                                  );
-                                },
+                                    return Text(
+                                      "${Format.localizedStringAsFixed(
+                                        value: Format.satoshisToAmount(value) *
+                                            price,
+                                        locale: locale,
+                                        decimalPlaces: 2,
+                                      )} $baseCurrency",
+                                      style: STextStyles.label(context),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ],
