@@ -130,7 +130,7 @@ void main() async {
           walletService: walletService,
           keyService: keysStorage,
         );
-        _walletCreationService.changeWalletType();
+        _walletCreationService.changeWalletType(nettype);
       } catch (e, s) {
         print(e);
         print(s);
@@ -205,7 +205,7 @@ void main() async {
           walletService: walletService,
           keyService: keysStorage,
         );
-        _walletCreationService.changeWalletType();
+        _walletCreationService.changeWalletType(nettype);
       } catch (e, s) {
         print(e);
         print(s);

@@ -719,7 +719,7 @@ class MoneroWallet extends CoinServiceAPI {
         walletService: walletService,
         keyService: keysStorage,
       );
-      _walletCreationService?.changeWalletType();
+      _walletCreationService?.changeWalletType(nettype);
       // To restore from a seed
       final wallet = await _walletCreationService?.create(credentials, nettype);
 
@@ -970,8 +970,6 @@ class MoneroWallet extends CoinServiceAPI {
     }
     print("restored height: $height");
     await _prefs.init();
-    int nettype =
-        getNettype(); // TODO use type param to get nettype of explicitly-passed type, refactoring getNettype to also accept a specific WalletType that's not the active wallet
     longMutex = true;
     final start = DateTime.now();
     try {
@@ -1009,6 +1007,7 @@ class MoneroWallet extends CoinServiceAPI {
       WalletInfo walletInfo;
       WalletCredentials credentials;
       String name = _walletId;
+      int nettype = getNettype();
       WalletType type = getWalletType();
       final dirPath = await pathForWalletDir(name: name, type: type);
       final path = await pathForWallet(name: name, type: type);
@@ -1037,7 +1036,7 @@ class MoneroWallet extends CoinServiceAPI {
           walletService: walletService,
           keyService: keysStorage,
         );
-        _walletCreationService!.changeWalletType();
+        _walletCreationService!.changeWalletType(nettype);
         // To restore from a seed
         final wallet =
             await _walletCreationService!.restoreFromSeed(credentials, nettype);

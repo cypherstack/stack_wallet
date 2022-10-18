@@ -679,6 +679,9 @@ class WowneroWallet extends CoinServiceAPI {
     keysStorage = KeyService(storage!);
     WalletInfo walletInfo;
     WalletCredentials credentials;
+
+    int nettype = 0;
+
     try {
       String name = _walletId;
       final dirPath =
@@ -708,9 +711,9 @@ class WowneroWallet extends CoinServiceAPI {
         walletService: walletService,
         keyService: keysStorage,
       );
-      _walletCreationService?.changeWalletType();
+      _walletCreationService?.changeWalletType(nettype);
       // To restore from a seed
-      final wallet = await _walletCreationService?.create(credentials);
+      final wallet = await _walletCreationService?.create(credentials, nettype);
 
       // subtract a couple days to ensure we have a buffer for SWB
       final bufferedCreateHeight =
@@ -1022,6 +1025,8 @@ class WowneroWallet extends CoinServiceAPI {
         mnemonic: mnemonic.trim(),
       );
       try {
+        int nettype = 0;
+
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, WalletType.wownero),
             name: name,
@@ -1041,10 +1046,10 @@ class WowneroWallet extends CoinServiceAPI {
           walletService: walletService,
           keyService: keysStorage,
         );
-        _walletCreationService!.changeWalletType();
+        _walletCreationService!.changeWalletType(nettype);
         // To restore from a seed
         final wallet =
-            await _walletCreationService!.restoreFromSeed(credentials);
+            await _walletCreationService!.restoreFromSeed(credentials, nettype);
         walletInfo.address = wallet.walletAddresses.address;
         await DB.instance
             .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
