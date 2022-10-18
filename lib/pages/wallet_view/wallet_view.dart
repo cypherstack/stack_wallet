@@ -37,6 +37,7 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -44,12 +45,6 @@ import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
-
-import 'package:stackwallet/hive/db.dart';
-
-import 'package:stackwallet/utilities/logger.dart';
-
-import 'package:stackwallet/utilities/prefs.dart';
 
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
@@ -235,12 +230,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
-    final _cnLoadingService = ExchangeDataLoadingService();
-    final externalCalls = Prefs.instance.externalCalls;
-    if (!externalCalls) {
-      print("loading?");
-      unawaited(_cnLoadingService.loadAll(ref));
-    }
+    unawaited(_cnLoadingService.loadAll(ref));
+
     final coin = ref.read(managerProvider).coin;
 
     if (coin == Coin.epicCash) {
@@ -371,9 +362,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   void _loadCNData() {
     // unawaited future
-    final externalCalls = DB.instance
-        .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") as bool?;
-    if (externalCalls ?? false) {
+    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
       _cnLoadingService.loadAll(ref, coin: ref.read(managerProvider).coin);
     } else {
       Logging.instance.log("User does not want to use external calls",
