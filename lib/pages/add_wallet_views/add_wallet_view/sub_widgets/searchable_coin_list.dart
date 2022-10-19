@@ -31,6 +31,8 @@ class SearchableCoinList extends ConsumerWidget {
     }
     // remove firo testnet regardless
     _coins.remove(Coin.firoTestNet);
+    // remove monero testnet regardless because we don't have a good node for it
+    _coins.remove(Coin.moneroTestNet);
 
     return _coins;
   }

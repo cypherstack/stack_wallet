@@ -52,9 +52,9 @@ extension CoinExt on Coin {
       case Coin.monero:
         return "Monero";
       case Coin.moneroTestNet:
-        return "Monero Testnet";
+        return "tMonero";
       case Coin.moneroStageNet:
-        return "Monero Stagenet";
+        return "sMonero";
       case Coin.wownero:
         return "Wownero";
       case Coin.namecoin:
