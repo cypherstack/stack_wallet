@@ -265,9 +265,11 @@ class BitcoinCashWallet extends CoinServiceAPI {
   DerivePathType addressType({required String address}) {
     Uint8List? decodeBase58;
     Segwit? decodeBech32;
-    if (Bitbox.Address.detectFormat(address) == 0) {
-      address = Bitbox.Address.toLegacyAddress(address);
-    }
+    try {
+      if (Bitbox.Address.detectFormat(address) == 0) {
+        address = Bitbox.Address.toLegacyAddress(address);
+      }
+    } catch (e, s) {}
     try {
       decodeBase58 = bs58check.decode(address);
     } catch (err) {
