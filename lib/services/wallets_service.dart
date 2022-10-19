@@ -338,8 +338,7 @@ class WalletsService extends ChangeNotifier {
   }
 
   // pin + mnemonic as well as anything else in secureStore
-  Future<int> deleteWallet(
-      String name, bool shouldNotifyListeners, int nettype) async {
+  Future<int> deleteWallet(String name, bool shouldNotifyListeners) async {
     final names = DB.instance.get<dynamic>(
             boxName: DB.boxNameAllWalletsData, key: 'names') as Map? ??
         {};
@@ -372,7 +371,7 @@ class WalletsService extends ChangeNotifier {
     if (coinFromPrettyName(shell['coin'] as String) == Coin.wownero) {
       final wowService =
           wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
-      await wowService.remove(walletId, nettype);
+      await wowService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
     } else if (coinFromPrettyName(shell['coin'] as String) == Coin.monero ||
@@ -380,7 +379,7 @@ class WalletsService extends ChangeNotifier {
         coinFromPrettyName(shell['coin'] as String) == Coin.moneroStageNet) {
       final xmrService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-      await xmrService.remove(walletId, nettype);
+      await xmrService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
     } else if (coinFromPrettyName(shell['coin'] as String) == Coin.epicCash) {

@@ -713,7 +713,7 @@ class WowneroWallet extends CoinServiceAPI {
       );
       _walletCreationService?.changeWalletType(nettype);
       // To restore from a seed
-      final wallet = await _walletCreationService?.create(credentials, nettype);
+      final wallet = await _walletCreationService?.create(credentials);
 
       // subtract a couple days to ensure we have a buffer for SWB
       final bufferedCreateHeight =
@@ -868,8 +868,8 @@ class WowneroWallet extends CoinServiceAPI {
     } else {
       nettype = 2;
     }
-    walletBase = (await walletService?.openWallet(
-        _walletId, password!, nettype)) as WowneroWalletBase;
+    walletBase = (await walletService?.openWallet(_walletId, password!))
+        as WowneroWalletBase;
     debugPrint("walletBase $walletBase");
     Logging.instance.log(
         "Opened existing ${coin.prettyName} wallet $walletName",
@@ -1049,7 +1049,7 @@ class WowneroWallet extends CoinServiceAPI {
         _walletCreationService!.changeWalletType(nettype);
         // To restore from a seed
         final wallet =
-            await _walletCreationService!.restoreFromSeed(credentials, nettype);
+            await _walletCreationService!.restoreFromSeed(credentials);
         walletInfo.address = wallet.walletAddresses.address;
         await DB.instance
             .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
@@ -1209,8 +1209,8 @@ class WowneroWallet extends CoinServiceAPI {
             debugPrint("Exception was thrown $e $s");
             throw Exception("Password not found $e, $s");
           }
-          walletBase = (await walletService?.openWallet(
-              _walletId, password!, getNettype())) as WowneroWalletBase?;
+          walletBase = (await walletService?.openWallet(_walletId, password!))
+              as WowneroWalletBase?;
           if (!(await walletBase!.isConnected())) {
             final node = await getCurrentNode();
             final host = Uri.parse(node.host).host;
