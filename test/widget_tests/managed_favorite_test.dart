@@ -18,6 +18,7 @@ import 'package:stackwallet/widgets/managed_favorite.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 import 'managed_favorite_test.mocks.dart';
 
