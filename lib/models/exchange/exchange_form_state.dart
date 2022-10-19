@@ -5,6 +5,7 @@ import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -41,12 +42,24 @@ class ExchangeFormState extends ChangeNotifier {
   Currency? _from;
   Currency? _to;
 
+  @override
+  String toString() {
+    return 'ExchangeFormState: {_exchange: $_exchange, _exchangeType: $_exchangeType, reversed: $reversed, fromAmount: $fromAmount, toAmount: $toAmount, minAmount: $minAmount, maxAmount: $maxAmount, rate: $rate, estimate: $estimate, _market: $_market, _from: $_from, _to: $_to, _onError: $_onError}';
+  }
+
   String? get fromTicker {
     switch (exchangeType) {
       case ExchangeRateType.estimated:
         return _from?.ticker;
       case ExchangeRateType.fixed:
-        return _market?.from;
+        switch (exchange?.name) {
+          case SimpleSwapExchange.exchangeName:
+            return _from?.ticker;
+          case ChangeNowExchange.exchangeName:
+            return market?.from;
+          default:
+            return null;
+        }
     }
   }
 
@@ -55,7 +68,14 @@ class ExchangeFormState extends ChangeNotifier {
       case ExchangeRateType.estimated:
         return _to?.ticker;
       case ExchangeRateType.fixed:
-        return _market?.to;
+        switch (exchange?.name) {
+          case SimpleSwapExchange.exchangeName:
+            return _to?.ticker;
+          case ChangeNowExchange.exchangeName:
+            return market?.to;
+          default:
+            return null;
+        }
     }
   }
 
@@ -72,7 +92,9 @@ class ExchangeFormState extends ChangeNotifier {
   String get warning {
     if (reversed) {
       if (toTicker != null && toAmount != null) {
-        if (minAmount != null && toAmount! < minAmount!) {
+        if (minAmount != null &&
+            toAmount! < minAmount! &&
+            toAmount! > Decimal.zero) {
           return "Minimum amount ${minAmount!.toString()} ${toTicker!.toUpperCase()}";
         } else if (maxAmount != null && toAmount! > maxAmount!) {
           return "Maximum amount ${maxAmount!.toString()} ${toTicker!.toUpperCase()}";
@@ -80,7 +102,9 @@ class ExchangeFormState extends ChangeNotifier {
       }
     } else {
       if (fromTicker != null && fromAmount != null) {
-        if (minAmount != null && fromAmount! < minAmount!) {
+        if (minAmount != null &&
+            fromAmount! < minAmount! &&
+            fromAmount! > Decimal.zero) {
           return "Minimum amount ${minAmount!.toString()} ${fromTicker!.toUpperCase()}";
         } else if (maxAmount != null && fromAmount! > maxAmount!) {
           return "Maximum amount ${maxAmount!.toString()} ${fromTicker!.toUpperCase()}";
@@ -95,18 +119,18 @@ class ExchangeFormState extends ChangeNotifier {
   String get toAmountString => toAmount?.toStringAsFixed(8) ?? "";
 
   bool get canExchange {
-    switch (exchangeType) {
-      case ExchangeRateType.estimated:
-        return fromAmount != null &&
-            fromAmount != Decimal.zero &&
-            toAmount != null &&
-            rate != null &&
-            warning.isEmpty;
-      case ExchangeRateType.fixed:
-        return _market != null &&
-            fromAmount != null &&
-            toAmount != null &&
-            warning.isEmpty;
+    if (exchange?.name == ChangeNowExchange.exchangeName &&
+        exchangeType == ExchangeRateType.fixed) {
+      return _market != null &&
+          fromAmount != null &&
+          toAmount != null &&
+          warning.isEmpty;
+    } else {
+      return fromAmount != null &&
+          fromAmount != Decimal.zero &&
+          toAmount != null &&
+          rate != null &&
+          warning.isEmpty;
     }
   }
 
@@ -375,24 +399,22 @@ class ExchangeFormState extends ChangeNotifier {
     minAmount = null;
     maxAmount = null;
 
-    switch (exchangeType) {
-      case ExchangeRateType.estimated:
-        final Currency? newTo = from;
-        final Currency? newFrom = to;
+    if (exchangeType == ExchangeRateType.fixed &&
+        exchange?.name == ChangeNowExchange.exchangeName) {
+      await updateMarket(market, false);
+    } else {
+      final Currency? newTo = from;
+      final Currency? newFrom = to;
 
-        _to = newTo;
-        _from = newFrom;
+      _to = newTo;
+      _from = newFrom;
 
-        await updateRanges(shouldNotifyListeners: false);
+      await updateRanges(shouldNotifyListeners: false);
 
-        await updateEstimate(
-          shouldNotifyListeners: false,
-          reversed: reversed,
-        );
-        break;
-      case ExchangeRateType.fixed:
-        await updateMarket(market, false);
-        break;
+      await updateEstimate(
+        shouldNotifyListeners: false,
+        reversed: reversed,
+      );
     }
 
     notifyListeners();

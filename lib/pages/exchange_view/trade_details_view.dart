@@ -79,23 +79,25 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
     transactionIfSentFromStack = widget.transactionIfSentFromStack;
     walletId = widget.walletId;
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final trade = ref
-          .read(tradesServiceProvider)
-          .trades
-          .firstWhere((e) => e.tradeId == tradeId);
+    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+        final trade = ref
+            .read(tradesServiceProvider)
+            .trades
+            .firstWhere((e) => e.tradeId == tradeId);
 
-      if (mounted) {
-        final exchange = Exchange.fromName(trade.exchangeName);
-        final response = await exchange.updateTrade(trade);
+        if (mounted) {
+          final exchange = Exchange.fromName(trade.exchangeName);
+          final response = await exchange.updateTrade(trade);
 
-        if (mounted && response.value != null) {
-          await ref
-              .read(tradesServiceProvider)
-              .edit(trade: response.value!, shouldNotifyListeners: true);
+          if (mounted && response.value != null) {
+            await ref
+                .read(tradesServiceProvider)
+                .edit(trade: response.value!, shouldNotifyListeners: true);
+          }
         }
-      }
-    });
+      });
+    }
     super.initState();
   }
 

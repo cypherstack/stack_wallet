@@ -7,6 +7,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -67,6 +68,8 @@ class WalletListItem extends ConsumerWidget {
                 builder: (_, ref, __) {
                   final tuple = ref.watch(priceAnd24hChangeNotifierProvider
                       .select((value) => value.getPrice(coin)));
+                  final calls =
+                      ref.watch(prefsChangeNotifierProvider).externalCalls;
 
                   final priceString = Format.localizedStringAsFixed(
                     value: tuple.item1,
@@ -100,10 +103,11 @@ class WalletListItem extends ConsumerWidget {
                             style: STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
-                          Text(
-                            "$priceString $currency/${coin.ticker}",
-                            style: STextStyles.itemSubtitle(context),
-                          ),
+                          if (calls)
+                            Text(
+                              "$priceString $currency/${coin.ticker}",
+                              style: STextStyles.itemSubtitle(context),
+                            ),
                         ],
                       ),
                       const SizedBox(
@@ -116,12 +120,13 @@ class WalletListItem extends ConsumerWidget {
                             style: STextStyles.itemSubtitle(context),
                           ),
                           const Spacer(),
-                          Text(
-                            "${percentChange.toStringAsFixed(2)}%",
-                            style: STextStyles.itemSubtitle(context).copyWith(
-                              color: percentChangedColor,
+                          if (calls)
+                            Text(
+                              "${percentChange.toStringAsFixed(2)}%",
+                              style: STextStyles.itemSubtitle(context).copyWith(
+                                color: percentChangedColor,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ],

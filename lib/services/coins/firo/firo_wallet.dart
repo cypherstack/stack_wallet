@@ -254,7 +254,7 @@ Future<Map<String, dynamic>> isolateRestore(
     }
 
     final root = getBip32Root(mnemonic, network);
-    while (currentIndex < lastFoundIndex + 20) {
+    while (currentIndex < lastFoundIndex + 50) {
       final mintKeyPair = getBip32NodeFromRoot(MINT_INDEX, currentIndex, root);
       final mintTag = CreateTag(
           Format.uint8listToString(mintKeyPair.privateKey!),
@@ -753,10 +753,11 @@ Future<Map<String, dynamic>?> getInitialAnonymitySetCache(
     );
 
     final response = jsonDecode(anonSetResult.body.toString());
+    Logging.instance.log(response, level: LogLevel.Info);
     if (response['status'] == 'success') {
       final anonResponse = jsonDecode(response['result'] as String);
 
-      final setData = Map<String, dynamic>.from(anonResponse["result"] as Map);
+      final setData = Map<String, dynamic>.from(anonResponse as Map);
       return setData;
     } else {
       return null;
@@ -1355,7 +1356,7 @@ class FiroWallet extends CoinServiceAPI {
     List<UtxoObject> utxoObjectsToUse = [];
 
     for (var i = 0;
-        satoshisBeingUsed < satoshiAmountToSend && i < spendableOutputs.length;
+        satoshisBeingUsed <= satoshiAmountToSend && i < spendableOutputs.length;
         i++) {
       utxoObjectsToUse.add(spendableOutputs[i]);
       satoshisBeingUsed += spendableOutputs[i].value;
@@ -2040,7 +2041,8 @@ class FiroWallet extends CoinServiceAPI {
         case "Sent":
           unawaited(
             NotificationApi.showNotification(
-              title: "Outgoing transaction",
+              title:
+                  tx.subType == "mint" ? "Anonymizing" : "Outgoing transaction",
               body: walletName,
               walletId: walletId,
               iconAssetName: Assets.svg.iconFor(coin: coin),
@@ -2076,7 +2078,9 @@ class FiroWallet extends CoinServiceAPI {
       } else if (tx.txType == "Sent" && tx.subType == "join") {
         unawaited(
           NotificationApi.showNotification(
-            title: "Outgoing transaction confirmed",
+            title: tx.subType == "mint"
+                ? "Anonymized"
+                : "Outgoing transaction confirmed",
             body: walletName,
             walletId: walletId,
             iconAssetName: Assets.svg.iconFor(coin: coin),

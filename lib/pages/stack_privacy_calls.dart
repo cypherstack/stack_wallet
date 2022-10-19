@@ -29,19 +29,19 @@ class StackPrivacyCalls extends ConsumerStatefulWidget {
 
 class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
   late final bool isDesktop;
-  bool isEasy = Prefs.instance.externalCalls;
-  final PageController _pageController =
-      PageController(initialPage: 0, keepPage: true);
+  late bool isEasy;
+  late bool infoToggle;
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
+    isEasy = ref.read(prefsChangeNotifierProvider).externalCalls;
+    infoToggle = isEasy;
     super.initState();
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
     super.dispose();
   }
 
@@ -57,135 +57,161 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
         ),
       ),
       body: SafeArea(
-        child: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 40, 0, 0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Choose your Stack experience",
-                    style: STextStyles.pageTitleH1(context),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Text(
-                    "You can change it later in Settings",
-                    style: STextStyles.subtitle(context),
-                  ),
-                  const SizedBox(
-                    height: 36,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
-                    child: PrivacyToggle(),
-                  ),
-                  const SizedBox(
-                    height: 36,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: RoundedWhiteContainer(
-                      child: Center(
-                        child: RichText(
-                          textAlign: TextAlign.left,
-                          text: TextSpan(
-                            style: STextStyles.label(context)
-                                .copyWith(fontSize: 12.0),
-                            children: ref.watch(
-                              prefsChangeNotifierProvider.select(
-                                (value) => value.externalCalls,
-                              ),
-                            )
-                                ? [
-                                    const TextSpan(
-                                        text:
-                                            "Exchange data preloaded for a seamless experience."),
-                                    const TextSpan(
-                                        text:
-                                            "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
-                                    TextSpan(
-                                      text:
-                                          "\n\nRecommended for most crypto users.",
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ]
-                                : [
-                                    const TextSpan(
-                                        text:
-                                            "Exchange data not preloaded (slower experience)."),
-                                    const TextSpan(
-                                        text:
-                                            "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
-                                    TextSpan(
-                                      text:
-                                          "\n\nRecommended for the privacy conscious.",
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                          ),
-                        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 40, 0, 0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Choose your Stack experience",
+                style: STextStyles.pageTitleH1(context),
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              Text(
+                "You can change it later in Settings",
+                style: STextStyles.subtitle(context),
+              ),
+              const SizedBox(
+                height: 36,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
+                child: PrivacyToggle(
+                  externalCallsEnabled: isEasy,
+                  onChanged: (externalCalls) {
+                    isEasy = externalCalls;
+                    setState(() {
+                      infoToggle = isEasy;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 36,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: RoundedWhiteContainer(
+                  child: Center(
+                    child: RichText(
+                      textAlign: TextAlign.left,
+                      text: TextSpan(
+                        style:
+                            STextStyles.label(context).copyWith(fontSize: 12.0),
+                        children: infoToggle
+                            ? [
+                                const TextSpan(
+                                    text:
+                                        "Exchange data preloaded for a seamless experience."),
+                                const TextSpan(
+                                    text:
+                                        "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
+                                TextSpan(
+                                  text:
+                                      "\n\nRecommended for most crypto users.",
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ]
+                            : [
+                                const TextSpan(
+                                    text:
+                                        "Exchange data not preloaded (slower experience)."),
+                                const TextSpan(
+                                    text:
+                                        "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
+                                TextSpan(
+                                  text:
+                                      "\n\nRecommended for the privacy conscious.",
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                       ),
                     ),
                   ),
-                  const Spacer(
-                    flex: 4,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ContinueButton(
-                            isDesktop: isDesktop,
-                            isSettings: widget.isSettings,
-                            isEasy: ref.watch(
-                              prefsChangeNotifierProvider.select(
-                                (value) => value.externalCalls,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              const Spacer(
+                flex: 4,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ContinueButton(
+                        isDesktop: isDesktop,
+                        label: !widget.isSettings ? "Continue" : "Save changes",
+                        onPressed: () {
+                          ref.read(prefsChangeNotifierProvider).externalCalls =
+                              isEasy;
+                          if (!widget.isSettings) {
+                            if (isDesktop) {
+                              Navigator.of(context).pushNamed(
+                                CreatePasswordView.routeName,
+                              );
+                            } else {
+                              Navigator.of(context).pushNamed(
+                                CreatePinView.routeName,
+                              );
+                            }
+                          } else {
+                            Navigator.pop(context);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class PrivacyToggle extends ConsumerStatefulWidget {
-  const PrivacyToggle({Key? key}) : super(key: key);
+class PrivacyToggle extends StatefulWidget {
+  const PrivacyToggle({
+    Key? key,
+    required this.externalCallsEnabled,
+    this.onChanged,
+  }) : super(key: key);
+
+  final bool externalCallsEnabled;
+  final void Function(bool)? onChanged;
 
   @override
-  ConsumerState<PrivacyToggle> createState() => _PrivacyToggleState();
+  State<PrivacyToggle> createState() => _PrivacyToggleState();
 }
 
-class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
+class _PrivacyToggleState extends State<PrivacyToggle> {
+  late bool externalCallsEnabled;
+
+  @override
+  void initState() {
+    // initial toggle state
+    externalCallsEnabled = widget.externalCallsEnabled;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -195,11 +221,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
             elevation: 0,
             fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
             shape: RoundedRectangleBorder(
-              side: !ref.watch(
-                prefsChangeNotifierProvider.select(
-                  (value) => value.externalCalls,
-                ),
-              )
+              side: !externalCallsEnabled
                   ? BorderSide.none
                   : BorderSide(
                       color: Theme.of(context)
@@ -212,7 +234,12 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
               ),
             ),
             onPressed: () {
-              ref.read(prefsChangeNotifierProvider).externalCalls = true;
+              setState(() {
+                // update toggle state
+                externalCallsEnabled = true;
+              });
+              // call callback with newly set value
+              widget.onChanged?.call(externalCallsEnabled);
             },
             child: Padding(
               padding: const EdgeInsets.all(
@@ -246,11 +273,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       ),
                     ],
                   ),
-                  if (ref.watch(
-                    prefsChangeNotifierProvider.select(
-                      (value) => value.externalCalls,
-                    ),
-                  ))
+                  if (externalCallsEnabled)
                     Positioned(
                       top: 4,
                       right: 4,
@@ -263,11 +286,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                             .infoItemIcons,
                       ),
                     ),
-                  if (!ref.watch(
-                    prefsChangeNotifierProvider.select(
-                      (value) => value.externalCalls,
-                    ),
-                  ))
+                  if (!externalCallsEnabled)
                     Positioned(
                       top: 4,
                       right: 4,
@@ -295,11 +314,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
             elevation: 0,
             fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
             shape: RoundedRectangleBorder(
-              side: ref.watch(
-                prefsChangeNotifierProvider.select(
-                  (value) => value.externalCalls,
-                ),
-              )
+              side: externalCallsEnabled
                   ? BorderSide.none
                   : BorderSide(
                       color: Theme.of(context)
@@ -312,7 +327,12 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
               ),
             ),
             onPressed: () {
-              ref.read(prefsChangeNotifierProvider).externalCalls = false;
+              setState(() {
+                // update toggle state
+                externalCallsEnabled = false;
+              });
+              // call callback with newly set value
+              widget.onChanged?.call(externalCallsEnabled);
             },
             child: Padding(
               padding: const EdgeInsets.all(
@@ -347,11 +367,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       ),
                     ],
                   ),
-                  if (!ref.watch(
-                    prefsChangeNotifierProvider.select(
-                      (value) => value.externalCalls,
-                    ),
-                  ))
+                  if (!externalCallsEnabled)
                     Positioned(
                       top: 4,
                       right: 4,
@@ -364,11 +380,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                             .infoItemIcons,
                       ),
                     ),
-                  if (ref.watch(
-                    prefsChangeNotifierProvider.select(
-                      (value) => value.externalCalls,
-                    ),
-                  ))
+                  if (externalCallsEnabled)
                     Positioned(
                       top: 4,
                       right: 4,
@@ -401,9 +413,9 @@ class ContinueButton extends ConsumerWidget {
     required this.isEasy,
   }) : super(key: key);
 
+  final String label;
   final bool isDesktop;
-  final bool isSettings;
-  final bool isEasy;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
