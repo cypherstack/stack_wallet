@@ -245,8 +245,7 @@ void main() {
           mnemonic: "Some valid mnemonic",
           maxUnusedAddressGap: 20,
           maxNumberOfIndexesToCheck: 1000,
-          height: 0,
-          nettype: 0);
+          height: 0);
 
       verify(wallet.recoverFromMnemonic(
               mnemonic: "Some valid mnemonic",
@@ -269,11 +268,11 @@ void main() {
 
       expect(
           () => manager.recoverFromMnemonic(
-              mnemonic: "Some invalid mnemonic",
-              maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
-              height: 0,
-              nettype: 0),
+                mnemonic: "Some invalid mnemonic",
+                maxUnusedAddressGap: 20,
+                maxNumberOfIndexesToCheck: 1000,
+                height: 0,
+              ),
           throwsA(isA<Exception>()));
 
       verify(wallet.recoverFromMnemonic(
@@ -297,11 +296,11 @@ void main() {
 
       expect(
           () => manager.recoverFromMnemonic(
-              mnemonic: "Some valid mnemonic",
-              maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
-              height: 0,
-              nettype: 0),
+                mnemonic: "Some valid mnemonic",
+                maxUnusedAddressGap: 20,
+                maxNumberOfIndexesToCheck: 1000,
+                height: 0,
+              ),
           throwsA(isA<Error>()));
 
       verify(wallet.recoverFromMnemonic(

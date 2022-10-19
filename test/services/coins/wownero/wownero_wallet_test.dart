@@ -81,7 +81,8 @@ void main() async {
 
   wownero.onStartup();
   _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-  walletService = wownero.createWowneroWalletService(_walletInfoSource);
+  walletService =
+      wownero.createWowneroWalletService(_walletInfoSource as Box<WalletInfo>);
 
   group("Wownero tests", () {
     setUp(() async {

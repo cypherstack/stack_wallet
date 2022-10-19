@@ -689,7 +689,7 @@ class MoneroWallet extends CoinServiceAPI {
       final dirPath = await pathForWalletDir(name: name, type: type);
       final path = await pathForWallet(name: name, type: type);
       credentials = monero.createMoneroNewWalletCredentials(
-          name: name, language: "English", nettype: nettype);
+          name: name, language: "English");
 
       // subtract a couple days to ensure we have a buffer for SWB
       final bufferedCreateHeight = monero.getHeigthByDate(

@@ -90,7 +90,8 @@ void main() async {
 
   monero.onStartup();
   _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-  walletService = monero.createMoneroWalletService(_walletInfoSource);
+  walletService =
+      monero.createMoneroWalletService(_walletInfoSource as Box<WalletInfo>);
 
   group("Stagenet tests", () {
     setUp(() async {
