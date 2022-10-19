@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -24,28 +30,40 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
     const Navigator(
       key: Key("settingsBackupRestoreDesktopKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: BackupRestore.routeName,
+      initialRoute: BackupRestoreSettings.routeName,
     ), //b+r
-    Container(
-      color: Colors.green,
+    const Navigator(
+      key: Key("settingsSecurityDesktopKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: SecuritySettings.routeName,
     ), //security
-    Container(
-      color: Colors.red,
+    const Navigator(
+      key: Key("settingsCurrencyDesktopKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: CurrencySettings.routeName,
     ), //currency
-    Container(
-      color: Colors.orange,
+    const Navigator(
+      key: Key("settingsCurrencyDesktopKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: LanguageOptionSettings.routeName,
     ), //language
     Container(
       color: Colors.yellow,
     ), //nodes
-    Container(
-      color: Colors.blue,
+    const Navigator(
+      key: Key("settingsSyncingPreferencesDesktopKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: SyncingPreferencesSettings.routeName,
     ), //syncing prefs
-    Container(
-      color: Colors.pink,
+    const Navigator(
+      key: Key("settingsAppearanceDesktopKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: AppearanceOptionSettings.routeName,
     ), //appearance
-    Container(
-      color: Colors.purple,
+    const Navigator(
+      key: Key("settingsAdvancedDesktopKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: AdvancedSettings.routeName,
     ), //advanced
   ];
 
