@@ -712,6 +712,7 @@ class MoneroWallet extends CoinServiceAPI {
           // TODO: find out what to put for address
           address: '');
       credentials.walletInfo = walletInfo;
+      credentials.nettype = nettype;
 
       _walletCreationService = WalletCreationService(
         secureStorage: storage,
