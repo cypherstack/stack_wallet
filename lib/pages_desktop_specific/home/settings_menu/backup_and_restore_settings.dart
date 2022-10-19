@@ -8,16 +8,17 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class BackupRestore extends ConsumerStatefulWidget {
-  const BackupRestore({Key? key}) : super(key: key);
+class BackupRestoreSettings extends ConsumerStatefulWidget {
+  const BackupRestoreSettings({Key? key}) : super(key: key);
 
-  static const String routeName = "/backupRestore";
+  static const String routeName = "/settingsMenuBackupRestore";
 
   @override
-  ConsumerState<BackupRestore> createState() => _BackupRestore();
+  ConsumerState<BackupRestoreSettings> createState() =>
+      _BackupRestoreSettings();
 }
 
-class _BackupRestore extends ConsumerState<BackupRestore> {
+class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -37,7 +38,6 @@ class _BackupRestore extends ConsumerState<BackupRestore> {
                   Assets.svg.backupAuto,
                   width: 48,
                   height: 48,
-                  alignment: Alignment.topLeft,
                 ),
                 Center(
                   child: Padding(
@@ -52,7 +52,7 @@ class _BackupRestore extends ConsumerState<BackupRestore> {
                           ),
                           TextSpan(
                             text:
-                                "\n\nAuto Backup is a custom Stack Wallet feature that offers a convenient backup of your data."
+                                "\n\nAuto backup is a custom Stack Wallet feature that offers a convenient backup of your data."
                                 "To ensure maximum security, we recommend using a unique password that you haven't used anywhere "
                                 "else on the internet before. Your password is not stored.",
                             style:
@@ -126,7 +126,7 @@ class _BackupRestore extends ConsumerState<BackupRestore> {
                           ),
                           TextSpan(
                             text:
-                                "\n\nCreate Manual backup to easily transfer your data between devices. "
+                                "\n\nCreate manual backup to easily transfer your data between devices. "
                                 "You will create a backup file that can be later used in the Restore option. "
                                 "Use a strong password to encrypt your data.",
                             style:
@@ -227,7 +227,7 @@ class AutoBackupButton extends ConsumerWidget {
             .getPrimaryEnabledButtonColor(context),
         onPressed: () {},
         child: Text(
-          "Enable Auto Backup",
+          "Enable auto backup",
           style: STextStyles.button(context),
         ),
       ),
@@ -250,7 +250,7 @@ class ManualBackupButton extends ConsumerWidget {
             .getPrimaryEnabledButtonColor(context),
         onPressed: () {},
         child: Text(
-          "Create Manual Backup",
+          "Create manual backup",
           style: STextStyles.button(context),
         ),
       ),
@@ -273,7 +273,7 @@ class RestoreBackupButton extends ConsumerWidget {
             .getPrimaryEnabledButtonColor(context),
         onPressed: () {},
         child: Text(
-          "Restore Backup",
+          "Restore backup",
           style: STextStyles.button(context),
         ),
       ),
