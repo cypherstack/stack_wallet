@@ -2113,7 +2113,16 @@ class BitcoinCashWallet extends CoinServiceAPI {
         if (txHeight > 0 &&
             txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS) {
           if (unconfirmedCachedTransactions[tx["tx_hash"] as String] == null) {
-            allTxHashes.remove(tx);
+            print(cachedTransactions.findTransaction(tx["tx_hash"] as String));
+            print(unconfirmedCachedTransactions[tx["tx_hash"] as String]);
+            final cachedTx =
+                cachedTransactions.findTransaction(tx["tx_hash"] as String);
+            if (!(cachedTx != null &&
+                addressType(address: cachedTx.address) ==
+                    DerivePathType.bip44 &&
+                Bitbox.Address.detectFormat(cachedTx.address) == 1)) {
+              allTxHashes.remove(tx);
+            }
           }
         }
       }
@@ -2122,7 +2131,6 @@ class BitcoinCashWallet extends CoinServiceAPI {
     List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
-      Logging.instance.log("bch: $txHash", level: LogLevel.Info);
       final tx = await cachedElectrumXClient.getTransaction(
         txHash: txHash["tx_hash"] as String,
         verbose: true,
