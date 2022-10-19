@@ -49,6 +49,8 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(managerProvider.select((value) => value.coin));
+    final externalCalls = ref.watch(
+        prefsChangeNotifierProvider.select((value) => value.externalCalls));
 
     return GestureDetector(
       onTap: () {
@@ -70,7 +72,9 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                 width: widget.width,
                 height: widget.height,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).extension<StackColors>()!.colorForCoin(coin),
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .colorForCoin(coin),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -138,7 +142,9 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                           ref.watch(managerProvider
                               .select((value) => value.walletName)),
                           style: STextStyles.itemSubtitle12(context).copyWith(
-                            color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFavoriteCard,
                           ),
                           overflow: TextOverflow.fade,
                         ),
@@ -159,14 +165,16 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                         snapshot.hasData) {
                       if (snapshot.data != null) {
                         _cachedBalance = snapshot.data!;
-                        _cachedFiatValue = _cachedBalance *
-                            ref
-                                .watch(
-                                  priceAnd24hChangeNotifierProvider.select(
-                                    (value) => value.getPrice(coin),
-                                  ),
-                                )
-                                .item1;
+                        if (externalCalls) {
+                          _cachedFiatValue = _cachedBalance *
+                              ref
+                                  .watch(
+                                    priceAnd24hChangeNotifierProvider.select(
+                                      (value) => value.getPrice(coin),
+                                    ),
+                                  )
+                                  .item1;
+                        }
                       }
                     }
                     return Column(
@@ -185,30 +193,36 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             )} ${coin.ticker}",
                             style: STextStyles.titleBold12(context).copyWith(
                               fontSize: 16,
-                              color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFavoriteCard,
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        Text(
-                          "${Format.localizedStringAsFixed(
-                            decimalPlaces: 2,
-                            value: _cachedFiatValue,
-                            locale: ref.watch(
-                              localeServiceChangeNotifierProvider
-                                  .select((value) => value.locale),
-                            ),
-                          )} ${ref.watch(
-                            prefsChangeNotifierProvider
-                                .select((value) => value.currency),
-                          )}",
-                          style: STextStyles.itemSubtitle12(context).copyWith(
-                            fontSize: 10,
-                            color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
+                        if (externalCalls)
+                          const SizedBox(
+                            height: 4,
                           ),
-                        ),
+                        if (externalCalls)
+                          Text(
+                            "${Format.localizedStringAsFixed(
+                              decimalPlaces: 2,
+                              value: _cachedFiatValue,
+                              locale: ref.watch(
+                                localeServiceChangeNotifierProvider
+                                    .select((value) => value.locale),
+                              ),
+                            )} ${ref.watch(
+                              prefsChangeNotifierProvider
+                                  .select((value) => value.currency),
+                            )}",
+                            style: STextStyles.itemSubtitle12(context).copyWith(
+                              fontSize: 10,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFavoriteCard,
+                            ),
+                          ),
                       ],
                     );
                   },

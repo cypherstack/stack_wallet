@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class StackFileSystem {
   Directory? rootPath;
@@ -14,6 +15,9 @@ class StackFileSystem {
   final bool isDesktop = !(Platform.isAndroid || Platform.isIOS);
 
   Future<Directory> prepareStorage() async {
+    if (Platform.isAndroid) {
+      await Permission.storage.request();
+    }
     rootPath = (await getApplicationDocumentsDirectory());
     debugPrint(rootPath!.absolute.toString());
     if (Platform.isAndroid) {
@@ -22,13 +26,13 @@ class StackFileSystem {
     debugPrint(rootPath!.absolute.toString());
 
     Directory sampleFolder =
-        Directory('${rootPath!.path}/Documents/Stack_backups');
+        Directory('${rootPath!.path}Documents/Stack_backups');
     if (Platform.isIOS) {
       sampleFolder = Directory(rootPath!.path);
     }
     try {
       if (!sampleFolder.existsSync()) {
-        sampleFolder.createSync();
+        sampleFolder.createSync(recursive: true);
       }
     } catch (e, s) {
       debugPrint("$e $s");
@@ -65,8 +69,7 @@ class StackFileSystem {
       result = await FilePicker.platform.pickFiles(
         dialogTitle: "Load backup file",
         initialDirectory: startPath!.path,
-        type: FileType.custom,
-        allowedExtensions: ['bin'],
+        type: FileType.any,
         allowCompression: false,
         lockParentWindow: true,
       );

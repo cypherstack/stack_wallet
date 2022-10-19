@@ -24,6 +24,7 @@ import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dar
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -294,33 +295,29 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     );
 
     if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-        ExchangeRateType.estimated) {
-      await ref.read(exchangeFormStateProvider).swap();
-    } else {
-      switch (ref.read(currentExchangeNameStateProvider.state).state) {
-        case ChangeNowExchange.exchangeName:
-          final from = ref.read(exchangeFormStateProvider).fromTicker;
-          final to = ref.read(exchangeFormStateProvider).toTicker;
+            ExchangeRateType.fixed &&
+        ref.read(exchangeFormStateProvider).exchange?.name ==
+            ChangeNowExchange.exchangeName) {
+      final from = ref.read(exchangeFormStateProvider).fromTicker;
+      final to = ref.read(exchangeFormStateProvider).toTicker;
 
-          if (to != null && from != null) {
-            final markets = ref
-                .read(availableChangeNowCurrenciesProvider)
-                .markets
-                .where((e) => e.from == to && e.to == from);
+      if (to != null && from != null) {
+        final markets = ref
+            .read(availableChangeNowCurrenciesProvider)
+            .markets
+            .where((e) => e.from == to && e.to == from);
 
-            if (markets.isNotEmpty) {
-              await ref
-                  .read(exchangeFormStateProvider)
-                  .swap(market: markets.first);
-            }
-          }
-          break;
-        case SimpleSwapExchange.exchangeName:
-          await ref.read(exchangeFormStateProvider).swap();
-          break;
-        default:
-        //
+        if (markets.isNotEmpty) {
+          await ref.read(exchangeFormStateProvider).swap(market: markets.first);
+        } else {
+          Logging.instance.log(
+            "swap to fixed rate market failed",
+            level: LogLevel.Warning,
+          );
+        }
       }
+    } else {
+      await ref.read(exchangeFormStateProvider).swap();
     }
     if (mounted) {
       Navigator.of(context).pop();
@@ -575,14 +572,16 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         if (mounted) {
           Navigator.of(context).pop();
         }
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message:
-                "Estimated rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last estimated rate pair.",
-            context: context,
-          ),
-        );
+        if (!(fromTicker == "-" || toTicker == "-")) {
+          unawaited(
+            showFloatingFlushBar(
+              type: FlushBarType.warning,
+              message:
+                  "Estimated rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last estimated rate pair.",
+              context: context,
+            ),
+          );
+        }
         break;
       case ExchangeRateType.fixed:
         if (!(toTicker == "-" || fromTicker == "-")) {
@@ -1311,20 +1310,24 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         RateTypeToggle(
           onChanged: onRateTypeChanged,
         ),
-        const SizedBox(
-          height: 8,
-        ),
-        ExchangeProviderOptions(
-          from: ref.watch(exchangeFormStateProvider).fromTicker,
-          to: ref.watch(exchangeFormStateProvider).toTicker,
-          fromAmount: ref.watch(exchangeFormStateProvider).fromAmount,
-          toAmount: ref.watch(exchangeFormStateProvider).toAmount,
-          fixedRate: ref.watch(prefsChangeNotifierProvider
-                  .select((value) => value.exchangeRateType)) ==
-              ExchangeRateType.fixed,
-          reversed: ref.watch(
-              exchangeFormStateProvider.select((value) => value.reversed)),
-        ),
+        if (ref.read(exchangeFormStateProvider).fromAmount != null &&
+            ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
+          const SizedBox(
+            height: 8,
+          ),
+        if (ref.read(exchangeFormStateProvider).fromAmount != null &&
+            ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
+          ExchangeProviderOptions(
+            from: ref.watch(exchangeFormStateProvider).fromTicker,
+            to: ref.watch(exchangeFormStateProvider).toTicker,
+            fromAmount: ref.watch(exchangeFormStateProvider).fromAmount,
+            toAmount: ref.watch(exchangeFormStateProvider).toAmount,
+            fixedRate: ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.exchangeRateType)) ==
+                ExchangeRateType.fixed,
+            reversed: ref.watch(
+                exchangeFormStateProvider.select((value) => value.reversed)),
+          ),
         const SizedBox(
           height: 12,
         ),

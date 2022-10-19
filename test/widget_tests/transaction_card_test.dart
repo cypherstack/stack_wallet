@@ -70,6 +70,7 @@ void main() {
     when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
+    when(mockPrefs.externalCalls).thenAnswer((_) => true);
     when(mockPriceService.getPrice(Coin.firo))
         .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
 
@@ -162,6 +163,7 @@ void main() {
     when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
+    when(mockPrefs.externalCalls).thenAnswer((_) => true);
     when(mockPriceService.getPrice(Coin.firo))
         .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
 
@@ -245,6 +247,7 @@ void main() {
     when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
+    when(mockPrefs.externalCalls).thenAnswer((_) => true);
     when(mockPriceService.getPrice(Coin.firo))
         .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
 
