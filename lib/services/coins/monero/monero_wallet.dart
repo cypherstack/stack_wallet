@@ -689,9 +689,7 @@ class MoneroWallet extends CoinServiceAPI {
       final dirPath = await pathForWalletDir(name: name, type: type);
       final path = await pathForWallet(name: name, type: type);
       credentials = monero.createMoneroNewWalletCredentials(
-        name: name,
-        language: "English",
-      );
+          name: name, language: "English", nettype: nettype);
 
       // subtract a couple days to ensure we have a buffer for SWB
       final bufferedCreateHeight = monero.getHeigthByDate(
@@ -861,8 +859,9 @@ class MoneroWallet extends CoinServiceAPI {
       debugPrint("Exception was thrown $e $s");
       throw Exception("Password not found $e, $s");
     }
-    walletBase = (await walletService?.openWallet(_walletId, password!))
-        as MoneroWalletBase;
+
+    walletBase = (await walletService?.openWallet(
+        _walletId, password!, getNettype())) as MoneroWalletBase;
     debugPrint("walletBase $walletBase");
     Logging.instance.log(
         "Opened existing ${coin.prettyName} wallet $walletName",
@@ -1209,8 +1208,9 @@ class MoneroWallet extends CoinServiceAPI {
             debugPrint("Exception was thrown $e $s");
             throw Exception("Password not found $e, $s");
           }
-          walletBase = (await walletService?.openWallet(_walletId, password!))
-              as MoneroWalletBase?;
+
+          walletBase = (await walletService?.openWallet(
+              _walletId, password!, getNettype())) as MoneroWalletBase?;
           if (!(await walletBase!.isConnected())) {
             final node = await getCurrentNode();
             final host = Uri.parse(node.host).host;
