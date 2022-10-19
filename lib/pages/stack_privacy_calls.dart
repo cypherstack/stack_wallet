@@ -6,7 +6,6 @@ import 'package:stackwallet/pages_desktop_specific/create_password/create_passwo
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -218,7 +217,6 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
       children: [
         Expanded(
           child: RawMaterialButton(
-            elevation: 0,
             fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
             shape: RoundedRectangleBorder(
               side: !externalCallsEnabled
@@ -250,13 +248,10 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: SvgPicture.asset(
-                          Assets.svg.personaEasy,
-                          width: 140,
-                          height: 140,
-                        ),
+                      SvgPicture.asset(
+                        Assets.svg.personaEasy,
+                        width: 140,
+                        height: 140,
                       ),
                       Center(
                           child: Text(
@@ -343,13 +338,10 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: SvgPicture.asset(
-                          Assets.svg.personaIncognito,
-                          width: 140,
-                          height: 140,
-                        ),
+                      SvgPicture.asset(
+                        Assets.svg.personaIncognito,
+                        width: 140,
+                        height: 140,
                       ),
                       Center(
                         child: Text(
@@ -409,8 +401,8 @@ class ContinueButton extends ConsumerWidget {
   const ContinueButton({
     Key? key,
     required this.isDesktop,
-    required this.isSettings,
-    required this.isEasy,
+    required this.onPressed,
+    required this.label,
   }) : super(key: key);
 
   final String label;
@@ -419,50 +411,33 @@ class ContinueButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return !isDesktop
-        ? TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
-            onPressed: () {
-              print("Output of isEasy:");
-              print(isEasy);
-
-              ref.read(prefsChangeNotifierProvider).externalCalls = isEasy;
-
-              !isSettings
-                  ? Navigator.of(context).pushNamed(CreatePinView.routeName)
-                  : Navigator.of(context).pop();
-            },
-            child: Text(
-              !isSettings ? "Continue" : "Save changes",
-              style: STextStyles.button(context),
-            ),
-          )
-        : SizedBox(
-            width: 328,
-            height: 70,
-            child: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonColor(context),
-              onPressed: () {
-                print("Output of isEasy:");
-                print(isEasy);
-
-                ref.read(prefsChangeNotifierProvider).externalCalls = isEasy;
-
-                !isSettings
-                    ? Navigator.of(context)
-                        .pushNamed(CreatePasswordView.routeName)
-                    : Navigator.of(context).pop();
-              },
-              child: Text(
-                !isSettings ? "Continue" : "Save changes",
-                style: STextStyles.button(context).copyWith(fontSize: 20),
-              ),
-            ),
-          );
+    if (isDesktop) {
+      return SizedBox(
+        width: 328,
+        height: 70,
+        child: TextButton(
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getPrimaryEnabledButtonColor(context),
+          onPressed: onPressed,
+          child: Text(
+            label,
+            style: STextStyles.button(context).copyWith(fontSize: 20),
+          ),
+        ),
+      );
+    } else {
+      return TextButton(
+        style: Theme.of(context)
+            .extension<StackColors>()!
+            .getPrimaryEnabledButtonColor(context),
+        onPressed: onPressed,
+        child: Text(
+          label,
+          style: STextStyles.button(context),
+        ),
+      );
+    }
   }
 }
 
