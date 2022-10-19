@@ -26,7 +26,8 @@ class SearchableCoinList extends ConsumerWidget {
           e.name.toLowerCase().contains(lowercaseTerm));
     }
     if (!showTestNetCoins) {
-      _coins.removeWhere((e) => e.name.endsWith("TestNet"));
+      _coins.removeWhere((e) => e.name.toUpperCase().endsWith("TESTNET"));
+      _coins.removeWhere((e) => e.name.toUpperCase().endsWith("STAGENET"));
     }
     // remove firo testnet regardless
     _coins.remove(Coin.firoTestNet);
