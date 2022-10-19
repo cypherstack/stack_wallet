@@ -29,7 +29,7 @@ git submodule update --init --recursive
 KEYS="$HOME/projects/stack_wallet/lib/external_api_keys.dart"
 if ! test -f "$KEYS"; then
     echo 'prebuild.sh: creating template lib/external_api_keys.dart file'
-    echo 'const kChangeNowApiKey = "";' > $KEYS
+    printf 'const kChangeNowApiKey = "";\nconst kSimpleSwapApiKey = "";' > $KEYS
 fi
 
 #install stack wallet dependencies

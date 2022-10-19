@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -7,6 +8,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 
 class WalletBalanceToggleSheet extends ConsumerWidget {
   const WalletBalanceToggleSheet({
@@ -22,6 +25,22 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
 
     final coin = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).coin));
+
+    Future<Decimal>? totalBalanceFuture;
+    Future<Decimal>? availableBalanceFuture;
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      final firoWallet = ref
+          .watch(walletsChangeNotifierProvider
+              .select((value) => value.getManager(walletId)))
+          .wallet as FiroWallet;
+      totalBalanceFuture = firoWallet.availablePublicBalance();
+      availableBalanceFuture = firoWallet.availablePrivateBalance();
+    } else {
+      final wallet = ref.watch(walletsChangeNotifierProvider
+          .select((value) => value.getManager(walletId)));
+      totalBalanceFuture = wallet.totalBalance;
+      availableBalanceFuture = wallet.availableBalance;
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -125,15 +144,35 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                             const SizedBox(
                               height: 2,
                             ),
-                            Text(
-                              "Current spendable (unlocked) balance",
-                              style:
-                                  STextStyles.itemSubtitle12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
-                              ),
-                            ),
+                            FutureBuilder(
+                                future: availableBalanceFuture,
+                                builder: (fbContext,
+                                    AsyncSnapshot<Decimal> snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.done &&
+                                      snapshot.hasData &&
+                                      snapshot.data != null) {
+                                    return Text(
+                                      "${snapshot.data!}",
+                                      style: STextStyles.itemSubtitle12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    );
+                                  } else {
+                                    return Text(
+                                      "",
+                                      style: STextStyles.itemSubtitle12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    );
+                                  }
+                                }),
                           ],
                         ),
                       if (coin == Coin.firo || coin == Coin.firoTestNet)
@@ -147,15 +186,35 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                             const SizedBox(
                               height: 2,
                             ),
-                            Text(
-                              "Current private spendable (unlocked) balance",
-                              style:
-                                  STextStyles.itemSubtitle12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
-                              ),
-                            ),
+                            FutureBuilder(
+                                future: availableBalanceFuture,
+                                builder: (fbContext,
+                                    AsyncSnapshot<Decimal> snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.done &&
+                                      snapshot.hasData &&
+                                      snapshot.data != null) {
+                                    return Text(
+                                      "${snapshot.data!}",
+                                      style: STextStyles.itemSubtitle12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    );
+                                  } else {
+                                    return Text(
+                                      "",
+                                      style: STextStyles.itemSubtitle12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    );
+                                  }
+                                }),
                           ],
                         ),
                     ],
@@ -219,15 +278,35 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                             const SizedBox(
                               height: 2,
                             ),
-                            Text(
-                              "Total wallet balance",
-                              style:
-                                  STextStyles.itemSubtitle12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
-                              ),
-                            ),
+                            FutureBuilder(
+                                future: totalBalanceFuture,
+                                builder: (fbContext,
+                                    AsyncSnapshot<Decimal> snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.done &&
+                                      snapshot.hasData &&
+                                      snapshot.data != null) {
+                                    return Text(
+                                      "${snapshot.data!}",
+                                      style: STextStyles.itemSubtitle12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    );
+                                  } else {
+                                    return Text(
+                                      "",
+                                      style: STextStyles.itemSubtitle12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    );
+                                  }
+                                }),
                           ],
                         ),
                       if (coin == Coin.firo || coin == Coin.firoTestNet)
@@ -241,15 +320,35 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                             const SizedBox(
                               height: 2,
                             ),
-                            Text(
-                              "Current public spendable (unlocked) balance",
-                              style:
-                                  STextStyles.itemSubtitle12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
-                              ),
-                            ),
+                            FutureBuilder(
+                                future: totalBalanceFuture,
+                                builder: (fbContext,
+                                    AsyncSnapshot<Decimal> snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.done &&
+                                      snapshot.hasData &&
+                                      snapshot.data != null) {
+                                    return Text(
+                                      "${snapshot.data!}",
+                                      style: STextStyles.itemSubtitle12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    );
+                                  } else {
+                                    return Text(
+                                      "",
+                                      style: STextStyles.itemSubtitle12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    );
+                                  }
+                                }),
                           ],
                         ),
                     ],
