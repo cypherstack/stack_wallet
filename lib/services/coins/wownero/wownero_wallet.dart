@@ -868,8 +868,8 @@ class WowneroWallet extends CoinServiceAPI {
     } else {
       nettype = 2;
     }
-    walletBase = (await walletService?.openWallet(
-        _walletId, password!, getNettype())) as WowneroWalletBase;
+    walletBase = (await walletService?.openWallet(_walletId, password!))
+        as WowneroWalletBase;
     debugPrint("walletBase $walletBase");
     Logging.instance.log(
         "Opened existing ${coin.prettyName} wallet $walletName",
@@ -1209,8 +1209,8 @@ class WowneroWallet extends CoinServiceAPI {
             debugPrint("Exception was thrown $e $s");
             throw Exception("Password not found $e, $s");
           }
-          walletBase = (await walletService?.openWallet(
-              _walletId, password!, getNettype())) as WowneroWalletBase?;
+          walletBase = (await walletService?.openWallet(_walletId, password!))
+              as WowneroWalletBase?;
           if (!(await walletBase!.isConnected())) {
             final node = await getCurrentNode();
             final host = Uri.parse(node.host).host;

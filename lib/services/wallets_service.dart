@@ -371,27 +371,15 @@ class WalletsService extends ChangeNotifier {
     if (coinFromPrettyName(shell['coin'] as String) == Coin.wownero) {
       final wowService =
           wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
-      await wowService.remove(walletId, 0);
+      await wowService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (coinFromPrettyName(shell['coin'] as String) == Coin.monero) {
+    } else if (coinFromPrettyName(shell['coin'] as String) == Coin.monero ||
+        coinFromPrettyName(shell['coin'] as String) == Coin.moneroTestNet ||
+        coinFromPrettyName(shell['coin'] as String) == Coin.moneroStageNet) {
       final xmrService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-      await xmrService.remove(walletId, 0);
-      Logging.instance
-          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (coinFromPrettyName(shell['coin'] as String) ==
-        Coin.moneroTestNet) {
-      final xmrService =
-          monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-      await xmrService.remove(walletId, 1);
-      Logging.instance
-          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (coinFromPrettyName(shell['coin'] as String) ==
-        Coin.moneroStageNet) {
-      final xmrService =
-          monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-      await xmrService.remove(walletId, 2);
+      await xmrService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
     } else if (coinFromPrettyName(shell['coin'] as String) == Coin.epicCash) {
