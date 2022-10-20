@@ -1990,7 +1990,6 @@ class EpicCashWallet extends CoinServiceAPI {
 
   Future<bool> refreshIfThereIsNewData() async {
     if (_hasCalledExit) return false;
-    Logging.instance.log("Can we do this here?", level: LogLevel.Fatal);
     // TODO returning true here signals this class to call refresh() after which it will fire an event that notifies the UI that new data has been fetched/found for this wallet
     return true;
     // TODO: do a quick check to see if there is any new data that would require a refresh
