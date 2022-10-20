@@ -451,7 +451,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 78;
+				CURRENT_PROJECT_VERSION = 79;
 				DEVELOPMENT_TEAM = 4DQKUWSG6C;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -505,7 +505,7 @@
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
-				MARKETING_VERSION = 1.5.8;
+				MARKETING_VERSION = 1.5.9;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -635,7 +635,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 78;
+				CURRENT_PROJECT_VERSION = 79;
 				DEVELOPMENT_TEAM = 4DQKUWSG6C;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -689,7 +689,7 @@
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
-				MARKETING_VERSION = 1.5.8;
+				MARKETING_VERSION = 1.5.9;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -711,7 +711,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 78;
+				CURRENT_PROJECT_VERSION = 79;
 				DEVELOPMENT_TEAM = 4DQKUWSG6C;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -765,7 +765,7 @@
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
-				MARKETING_VERSION = 1.5.8;
+				MARKETING_VERSION = 1.5.9;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
