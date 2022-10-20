@@ -46,7 +46,8 @@ void main() {
         .thenAnswer((realInvocation) => manager);
 
     when(manager.isFavorite).thenAnswer((realInvocation) => false);
-    const managedFavorite = ManagedFavorite(walletId: "some wallet id");
+    final key = UniqueKey();
+    // const managedFavorite = ManagedFavorite(walletId: "some wallet id", key: key,);
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -60,8 +61,11 @@ void main() {
               ),
             ],
           ),
-          home: const Material(
-            child: managedFavorite,
+          home: Material(
+            child: ManagedFavorite(
+              walletId: "some wallet id",
+              key: key,
+            ),
           ),
         ),
       ),
