@@ -19,6 +19,7 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -160,6 +161,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: amountController,
                             focusNode: _amountFocusNode,
                             style: STextStyles.field(context),
@@ -209,6 +212,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: noteController,
                             focusNode: _noteFocusNode,
                             style: STextStyles.field(context),

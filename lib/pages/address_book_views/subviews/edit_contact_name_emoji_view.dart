@@ -13,6 +13,8 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class EditContactNameEmojiView extends ConsumerStatefulWidget {
   const EditContactNameEmojiView({
     Key? key,
@@ -200,6 +202,8 @@ class _EditContactNameEmojiViewState
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: nameController,
                             focusNode: nameFocusNode,
                             style: STextStyles.field(context),

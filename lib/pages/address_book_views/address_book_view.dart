@@ -21,6 +21,8 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class AddressBookView extends ConsumerStatefulWidget {
   const AddressBookView({Key? key, this.coin}) : super(key: key);
 
@@ -198,6 +200,8 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: _searchController,
                             focusNode: _searchFocusNode,
                             onChanged: (value) {

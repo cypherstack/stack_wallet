@@ -90,6 +90,8 @@ class _AddWalletViewState extends State<AddWalletView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: _searchFieldController,
                             focusNode: _searchFocusNode,
                             onChanged: (value) {

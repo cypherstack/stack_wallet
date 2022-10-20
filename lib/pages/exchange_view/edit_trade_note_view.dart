@@ -9,6 +9,8 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class EditTradeNoteView extends ConsumerStatefulWidget {
   const EditTradeNoteView({
     Key? key,
@@ -85,6 +87,8 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: _noteController,
                             style: STextStyles.field(context),
                             focusNode: noteFieldFocusNode,
