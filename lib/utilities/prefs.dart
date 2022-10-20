@@ -571,4 +571,13 @@ class Prefs extends ChangeNotifier {
             boxName: DB.boxNamePrefs, key: "externalCalls") as bool? ??
         true;
   }
+
+  Future<bool> isExternalCallsSet() async {
+    if (await DB.instance
+            .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") ==
+        null) {
+      return false;
+    }
+    return true;
+  }
 }
