@@ -41,7 +41,7 @@ import 'dart:developer' as developer;
 
 // TODO trim down to the minimum imports above
 
-import 'monero_wallet_test_data.dart';
+import 'monero_wallet_test_parameters.dart';
 
 //FlutterSecureStorage? storage;
 FakeSecureStorage? storage;
