@@ -273,6 +273,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 // if (!isDesktop)
                 RestoreFromDatePicker(
                   onTap: chooseDate,
+                  controller: _dateController,
                 ),
 
               // if (isDesktop)
