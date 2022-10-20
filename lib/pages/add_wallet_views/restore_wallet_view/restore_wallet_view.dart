@@ -180,10 +180,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       int height = 0;
 
-      if (widget.coin == Coin.monero ||
-          widget.coin == Coin.moneroTestNet ||
-          widget.coin == Coin.moneroStageNet) {
-        height = monero.getHeigthByDate(date: widget.restoreFromDate);
+      if (widget.coin == Coin.monero) {
+        height = monero.getHeightByDate(date: widget.restoreFromDate);
       }
 
       // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
