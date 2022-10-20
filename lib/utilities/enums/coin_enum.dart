@@ -197,19 +197,24 @@ Coin coinFromPrettyName(String name) {
     case "Bitcoin":
     case "bitcoin":
       return Coin.bitcoin;
+
     case "Bitcoincash":
     case "bitcoincash":
     case "Bitcoin Cash":
       return Coin.bitcoincash;
+
     case "Dogecoin":
     case "dogecoin":
       return Coin.dogecoin;
+
     case "Epic Cash":
     case "epicCash":
       return Coin.epicCash;
+
     case "Firo":
     case "firo":
       return Coin.firo;
+
     case "Monero":
     case "monero":
       return Coin.monero;
@@ -232,6 +237,7 @@ Coin coinFromPrettyName(String name) {
     case "Namecoin":
     case "namecoin":
       return Coin.namecoin;
+
     case "Bitcoin Testnet":
     case "tBitcoin":
     case "bitcoinTestNet":
@@ -239,15 +245,19 @@ Coin coinFromPrettyName(String name) {
     case "Bitcoincash Testnet":
     case "tBitcoin Cash":
     case "Bitcoin Cash Testnet":
+    case "bitcoincashTestnet":
       return Coin.bitcoincashTestnet;
+
     case "Firo Testnet":
     case "tFiro":
     case "firoTestNet":
       return Coin.firoTestNet;
+
     case "Dogecoin Testnet":
     case "tDogecoin":
     case "dogecoinTestNet":
       return Coin.dogecoinTestNet;
+      
     default:
       throw ArgumentError.value(
           name, "name", "No Coin enum value with that prettyName");

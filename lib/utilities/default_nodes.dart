@@ -72,14 +72,12 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
-  // TODO: eventually enable ssl and set scheme to https
-  // currently get certificate failure
   static NodeModel get monero => NodeModel(
-        host: "http://monero.stackwallet.com",
+        host: "https://monero.stackwallet.com",
         port: 18081,
         name: defaultName,
         id: _nodeId(Coin.monero),
-        useSSL: false,
+        useSSL: true,
         enabled: true,
         coinName: Coin.monero.name,
         isFailover: true,
@@ -118,12 +116,14 @@ abstract class DefaultNodes {
 
   // TODO: eventually enable ssl and set scheme to https
   // currently get certificate failure
+
+
   static NodeModel get wownero => NodeModel(
-        host: "http://eu-west-2.wow.xmr.pm",
+        host: "https://wownero.stackwallet.com",
         port: 34568,
         name: defaultName,
         id: _nodeId(Coin.wownero),
-        useSSL: false,
+        useSSL: true,
         enabled: true,
         coinName: Coin.wownero.name,
         isFailover: true,
