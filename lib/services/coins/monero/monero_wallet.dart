@@ -692,7 +692,7 @@ class MoneroWallet extends CoinServiceAPI {
           name: name, language: "English");
 
       // subtract a couple days to ensure we have a buffer for SWB
-      final bufferedCreateHeight = monero.getHeigthByDate(
+      final bufferedCreateHeight = monero.getHeightByDate(
           date: DateTime.now().subtract(const Duration(days: 2)));
 
       await DB.instance.put<dynamic>(
