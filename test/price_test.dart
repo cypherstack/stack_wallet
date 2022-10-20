@@ -16,6 +16,9 @@ void main() {
   setUp(() async {
     await setUpTestHive();
     await Hive.openBox<dynamic>(DB.boxNamePriceCache);
+    await Hive.openBox<dynamic>(DB.boxNamePrefs);
+    await DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs, key: "externalCalls", value: true);
   });
 
   test("getPricesAnd24hChange fetch", () async {
