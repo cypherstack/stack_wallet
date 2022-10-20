@@ -92,6 +92,7 @@ import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
@@ -1021,6 +1022,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const LanguageOptionSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case NodesSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const NodesSettings(),
             settings: RouteSettings(name: settings.name));
 
       case SyncingPreferencesSettings.routeName:

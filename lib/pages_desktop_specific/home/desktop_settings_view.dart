@@ -5,6 +5,7 @@ import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
@@ -43,12 +44,14 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
       initialRoute: CurrencySettings.routeName,
     ), //currency
     const Navigator(
-      key: Key("settingsCurrencyDesktopKey"),
+      key: Key("settingsLanguageDesktopKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: LanguageOptionSettings.routeName,
     ), //language
-    Container(
-      color: Colors.yellow,
+    const Navigator(
+      key: Key("settingsNodesDesktopKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: NodesSettings.routeName,
     ), //nodes
     const Navigator(
       key: Key("settingsSyncingPreferencesDesktopKey"),

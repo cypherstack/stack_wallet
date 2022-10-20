@@ -298,6 +298,7 @@ flutter:
     - assets/svg/language-circle.svg
     - assets/svg/rotate-circle.svg
     - assets/svg/sun-circle.svg
+    - assets/svg/node-circle.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg

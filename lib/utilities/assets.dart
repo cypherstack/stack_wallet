@@ -59,6 +59,7 @@ class _SVG {
   String txExchangeFailed(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
+  String get circleNode => "assets/svg/node-circle.svg";
   String get circleSun => "assets/svg/sun-circle.svg";
   String get circleArrowRotate => "assets/svg/rotate-circle.svg";
   String get circleLanguage => "assets/svg/language-circle.svg";
