@@ -20,6 +20,8 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class RestoreFromFileView extends ConsumerStatefulWidget {
   const RestoreFromFileView({Key? key}) : super(key: key);
 
@@ -96,6 +98,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       TextField(
+                        autocorrect: Util.isDesktop ? false : true,
+                        enableSuggestions: Util.isDesktop ? false : true,
                         onTap: () async {
                           try {
                             await stackFileSystem.prepareStorage();

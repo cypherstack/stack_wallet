@@ -20,6 +20,8 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class NewContactAddressEntryForm extends ConsumerStatefulWidget {
   const NewContactAddressEntryForm({
     Key? key,
@@ -71,6 +73,8 @@ class _NewContactAddressEntryFormState
     return Column(
       children: [
         TextField(
+          autocorrect: Util.isDesktop ? false : true,
+          enableSuggestions: Util.isDesktop ? false : true,
           readOnly: true,
           style: STextStyles.field(context),
           decoration: InputDecoration(
@@ -154,6 +158,8 @@ class _NewContactAddressEntryFormState
             Constants.size.circularBorderRadius,
           ),
           child: TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
             focusNode: addressLabelFocusNode,
             controller: addressLabelController,
             style: STextStyles.field(context),
@@ -197,6 +203,7 @@ class _NewContactAddressEntryFormState
             Constants.size.circularBorderRadius,
           ),
           child: TextField(
+            enableSuggestions: Util.isDesktop ? false : true,
             focusNode: addressFocusNode,
             controller: addressController,
             style: STextStyles.field(context),
@@ -324,7 +331,6 @@ class _NewContactAddressEntryFormState
             key: const Key("addAddressBookEntryViewAddressField"),
             readOnly: false,
             autocorrect: false,
-            enableSuggestions: false,
             // inputFormatters: <TextInputFormatter>[
             //   FilteringTextInputFormatter.allow(RegExp("[a-zA-Z0-9]{34}")),
             // ],

@@ -25,6 +25,8 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class DebugView extends ConsumerStatefulWidget {
   const DebugView({Key? key}) : super(key: key);
 
@@ -217,6 +219,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: _searchController,
                             focusNode: _searchFocusNode,
                             onChanged: (newString) {
