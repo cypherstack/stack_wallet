@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/providers/global/node_service_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../providers/global/node_service_provider.dart';
-import '../../../providers/global/prefs_provider.dart';
-import '../../../utilities/constants.dart';
-import '../../../utilities/enums/coin_enum.dart';
 
 class NodesSettings extends ConsumerStatefulWidget {
   const NodesSettings({Key? key}) : super(key: key);
@@ -37,6 +37,9 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
 
   @override
   Widget build(BuildContext context) {
+    double deviceWidth(BuildContext context) =>
+        MediaQuery.of(context).size.width;
+
     bool showTestNet = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
@@ -85,6 +88,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                     ),
                   ],
                 ),
+                //TODO: add search bar
                 SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,55 +101,62 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                               .length;
 
                           return Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: RoundedWhiteContainer(
-                              padding: const EdgeInsets.all(0),
-                              child: RawMaterialButton(
-                                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
-                                  ),
+                            padding: const EdgeInsets.all(0),
+                            child: RawMaterialButton(
+                              // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
                                 ),
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                onPressed: () {
-                                  // Navigator.of(context).pushNamed(
-                                  //   CoinNodesView.routeName,
-                                  //   arguments: coin,
-                                  // );
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Row(
-                                    children: [
-                                      SvgPicture.asset(
-                                        Assets.svg.iconFor(coin: coin),
-                                        width: 24,
-                                        height: 24,
-                                      ),
-                                      const SizedBox(
-                                        width: 12,
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "${coin.prettyName} nodes",
-                                            style: STextStyles.titleBold12(
-                                                context),
-                                          ),
-                                          Text(
-                                            count > 1
-                                                ? "$count nodes"
-                                                : "Default",
-                                            style: STextStyles.label(context),
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  ),
+                                side: BorderSide(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .shadow),
+                              ),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              onPressed: () {
+                                // Navigator.of(context).pushNamed(
+                                //   CoinNodesView.routeName,
+                                //   arguments: coin,
+                                // );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(
+                                  12.0,
+                                ),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      Assets.svg.iconFor(coin: coin),
+                                      width: 24,
+                                      height: 24,
+                                    ),
+                                    const SizedBox(
+                                      width: 12,
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "${coin.prettyName} nodes",
+                                          style:
+                                              STextStyles.titleBold12(context),
+                                        ),
+                                        Text(
+                                          count > 1
+                                              ? "$count nodes"
+                                              : "Default",
+                                          style: STextStyles.label(context),
+                                        ),
+                                      ],
+                                    ),
+                                    // SvgPicture.asset(
+                                    //   Assets.svg.chevronRight,
+                                    //   alignment: Alignment.centerRight,
+                                    // ),
+                                  ],
                                 ),
                               ),
                             ),
