@@ -29,7 +29,7 @@ void main() {
         (realInvocation) => NodeModel(
             host: "127.0.0.1",
             port: 2000,
-            name: "Stack Default",
+            name: "Some other name",
             id: "node id",
             useSSL: true,
             enabled: true,
@@ -41,7 +41,7 @@ void main() {
         (realInvocation) => NodeModel(
             host: "127.0.0.1",
             port: 2000,
-            name: "Stack Default",
+            name: "Some other name",
             id: "node id",
             useSSL: true,
             enabled: true,
@@ -72,7 +72,7 @@ void main() {
 
     await tester.pumpAndSettle();
     expect(find.text("Node options"), findsOneWidget);
-    expect(find.text("Stack Default"), findsOneWidget);
+    expect(find.text("Some other name"), findsOneWidget);
     expect(find.text("Connected"), findsOneWidget);
     expect(find.byType(SvgPicture), findsNWidgets(2));
     expect(find.text("Details"), findsOneWidget);
@@ -204,7 +204,6 @@ void main() {
 
     await tester.pumpAndSettle();
     expect(find.text("Node options"), findsOneWidget);
-    // expect(find.text("Stack Default"), findsOneWidget);
     expect(find.text("Disconnected"), findsOneWidget);
 
     await tester.tap(find.text("Connect"));
