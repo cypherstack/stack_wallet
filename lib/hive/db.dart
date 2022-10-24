@@ -144,12 +144,16 @@ class DB {
       ]);
       _initialized = true;
 
-      if (get(boxName: boxNamePrefs, key: "familiarity") == null) {
-        await put(boxName: boxNamePrefs, key: "familiarity", value: 0);
+      try {
+        if (_boxPrefs.get("familiarity") == null) {
+          await _boxPrefs.put("familiarity", 0);
+        }
+        int count = _boxPrefs.get("familiarity") as int;
+        await _boxPrefs.put("familiarity", count + 1);
+        Constants.exchangeForExperiencedUsers(count + 1);
+      } catch (e, s) {
+        print("$e $s");
       }
-      int count = get(boxName: boxNamePrefs, key: "familiarity") as int;
-      await put(boxName: boxNamePrefs, key: "familiarity", value: count + 1);
-      Constants.exchangeForExperiencedUsers(count + 1);
     }
   }
 
