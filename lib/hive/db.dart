@@ -9,6 +9,7 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -142,6 +143,13 @@ class DB {
         _loadSharedCoinCacheBoxes(),
       ]);
       _initialized = true;
+
+      if (get(boxName: boxNamePrefs, key: "familiarity") == null) {
+        await put(boxName: boxNamePrefs, key: "familiarity", value: 0);
+      }
+      int count = get(boxName: boxNamePrefs, key: "familiarity") as int;
+      await put(boxName: boxNamePrefs, key: "familiarity", value: count + 1);
+      Constants.exchangeForExperiencedUsers(count + 1);
     }
   }
 
