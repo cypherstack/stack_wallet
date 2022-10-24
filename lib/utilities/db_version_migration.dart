@@ -143,6 +143,18 @@ class DbVersionMigrator {
 
         // try to continue migrating
         return await migrate(2);
+      case 2:
+        await Hive.openBox<dynamic>(DB.boxNamePrefs);
+        final prefs = Prefs.instance;
+        await prefs.init();
+        if (!(await prefs.isExternalCallsSet())) {
+          prefs.externalCalls = true;
+        }
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 3);
+        return await migrate(3);
 
       default:
         // finally return

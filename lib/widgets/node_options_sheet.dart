@@ -306,10 +306,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                         style: status == "Connected"
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context)
+                                .getPrimaryDisabledButtonColor(context)
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryDisabledButtonColor(context),
+                                .getPrimaryEnabledButtonColor(context),
                         onPressed: status == "Connected"
                             ? null
                             : () async {

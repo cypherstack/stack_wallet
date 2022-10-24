@@ -39,6 +39,19 @@ class NodeService extends ChangeNotifier {
             key: savedNode.id,
             value: defaultNode.copyWith(enabled: savedNode.enabled));
       }
+
+      // check if a default node is the primary node for the crypto currency
+      // and update it if needed
+      final coin = coinFromPrettyName(defaultNode.coinName);
+      final primaryNode = getPrimaryNodeFor(coin: coin);
+      if (primaryNode != null && primaryNode.id == defaultNode.id) {
+        await setPrimaryNodeFor(
+          coin: coin,
+          node: defaultNode.copyWith(
+            enabled: primaryNode.enabled,
+          ),
+        );
+      }
     }
   }
 

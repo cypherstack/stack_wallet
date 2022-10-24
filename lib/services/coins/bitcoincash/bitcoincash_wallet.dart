@@ -43,7 +43,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
-const int MINIMUM_CONFIRMATIONS = 3;
+const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 546;
 
 const String GENESIS_HASH_MAINNET =
@@ -265,6 +265,11 @@ class BitcoinCashWallet extends CoinServiceAPI {
   DerivePathType addressType({required String address}) {
     Uint8List? decodeBase58;
     Segwit? decodeBech32;
+    try {
+      if (Bitbox.Address.detectFormat(address) == 0) {
+        address = Bitbox.Address.toLegacyAddress(address);
+      }
+    } catch (e, s) {}
     try {
       decodeBase58 = bs58check.decode(address);
     } catch (err) {
@@ -825,9 +830,6 @@ class BitcoinCashWallet extends CoinServiceAPI {
   /// Refreshes display data for the wallet
   @override
   Future<void> refresh() async {
-    final bchaddr = Bitbox.Address.toCashAddress(await currentReceivingAddress);
-    print("bchaddr: $bchaddr ${await currentReceivingAddress}");
-
     if (refreshMutex) {
       Logging.instance.log("$walletId $walletName refreshMutex denied",
           level: LogLevel.Info);
@@ -1384,7 +1386,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
         initialChangeAddressP2SH, 1, DerivePathType.bip49);
 
     // this._currentReceivingAddress = Future(() => initialReceivingAddress);
-    _currentReceivingAddressP2PKH = Future(() => initialReceivingAddressP2PKH);
+
+    var newaddr = await _getCurrentAddressForChain(0, DerivePathType.bip44);
+    _currentReceivingAddressP2PKH = Future(() => newaddr);
     _currentReceivingAddressP2SH = Future(() => initialReceivingAddressP2SH);
 
     Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
@@ -1521,6 +1525,11 @@ class BitcoinCashWallet extends CoinServiceAPI {
     print("Array key is ${jsonEncode(arrayKey)}");
     final internalChainArray =
         DB.instance.get<dynamic>(boxName: walletId, key: arrayKey);
+    if (derivePathType == DerivePathType.bip44) {
+      if (Bitbox.Address.detectFormat(internalChainArray.last as String) == 1) {
+        return Bitbox.Address.toCashAddress(internalChainArray.last as String);
+      }
+    }
     return internalChainArray.last as String;
   }
 
@@ -1986,6 +1995,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
   /// Returns the scripthash or throws an exception on invalid bch address
   String _convertToScriptHash(String bchAddress, NetworkType network) {
     try {
+      if (Bitbox.Address.detectFormat(bchAddress) == 0) {
+        bchAddress = Bitbox.Address.toLegacyAddress(bchAddress);
+      }
       final output = Address.addressToOutputScript(bchAddress, network);
       final hash = sha256.convert(output.toList(growable: false)).toString();
 
@@ -2058,11 +2070,27 @@ class BitcoinCashWallet extends CoinServiceAPI {
   }
 
   Future<TransactionData> _fetchTransactionData() async {
-    final List<String> allAddresses = await _fetchAllOwnAddresses();
+    List<String> allAddressesOld = await _fetchAllOwnAddresses();
+    List<String> allAddresses = [];
+    for (String address in allAddressesOld) {
+      if (Bitbox.Address.detectFormat(address) == 1) {
+        allAddresses.add(Bitbox.Address.toCashAddress(address));
+      } else {
+        allAddresses.add(address);
+      }
+    }
 
-    final changeAddressesP2PKH =
+    var changeAddressesP2PKHOld =
         DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddressesP2PKH')
             as List<dynamic>;
+    List<dynamic> changeAddressesP2PKH = [];
+    for (var address in changeAddressesP2PKHOld) {
+      if (Bitbox.Address.detectFormat(address as String) == 1) {
+        changeAddressesP2PKH.add(Bitbox.Address.toCashAddress(address));
+      } else {
+        changeAddressesP2PKH.add(address);
+      }
+    }
 
     final List<Map<String, dynamic>> allTxHashes =
         await _fetchHistory(allAddresses);
@@ -2087,7 +2115,16 @@ class BitcoinCashWallet extends CoinServiceAPI {
         if (txHeight > 0 &&
             txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS) {
           if (unconfirmedCachedTransactions[tx["tx_hash"] as String] == null) {
-            allTxHashes.remove(tx);
+            print(cachedTransactions.findTransaction(tx["tx_hash"] as String));
+            print(unconfirmedCachedTransactions[tx["tx_hash"] as String]);
+            final cachedTx =
+                cachedTransactions.findTransaction(tx["tx_hash"] as String);
+            if (!(cachedTx != null &&
+                addressType(address: cachedTx.address) ==
+                    DerivePathType.bip44 &&
+                Bitbox.Address.detectFormat(cachedTx.address) == 1)) {
+              allTxHashes.remove(tx);
+            }
           }
         }
       }
@@ -2096,7 +2133,6 @@ class BitcoinCashWallet extends CoinServiceAPI {
     List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
-      Logging.instance.log("bch: $txHash", level: LogLevel.Info);
       final tx = await cachedElectrumXClient.getTransaction(
         txHash: txHash["tx_hash"] as String,
         verbose: true,
@@ -2166,7 +2202,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
           .log("recipientsArray: $recipientsArray", level: LogLevel.Info);
 
       final foundInSenders =
-          allAddresses.any((element) => sendersArray.contains(element));
+          allAddresses.any((element) => sendersArray.contains(element)) ||
+              allAddressesOld.any((element) => sendersArray.contains(element));
       Logging.instance
           .log("foundInSenders: $foundInSenders", level: LogLevel.Info);
 
@@ -2228,7 +2265,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
                 .toBigInt()
                 .toInt();
             totalOut += value;
-            if (allAddresses.contains(address)) {
+            if (allAddresses.contains(address) ||
+                allAddressesOld.contains(address)) {
               outputAmtAddressedToWallet += value;
             }
           }
@@ -2743,7 +2781,10 @@ class BitcoinCashWallet extends CoinServiceAPI {
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["addresses"][0] as String;
+            String address = output["scriptPubKey"]["addresses"][0] as String;
+            if (Bitbox.Address.detectFormat(address) == 0) {
+              address = Bitbox.Address.toLegacyAddress(address);
+            }
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
             }
@@ -2772,8 +2813,13 @@ class BitcoinCashWallet extends CoinServiceAPI {
           derivePathType: DerivePathType.bip44,
         );
         for (int i = 0; i < p2pkhLength; i++) {
+          String address = addressesP2PKH[i];
+          if (Bitbox.Address.detectFormat(address) == 0) {
+            address = Bitbox.Address.toLegacyAddress(address);
+          }
+
           // receives
-          final receiveDerivation = receiveDerivations[addressesP2PKH[i]];
+          final receiveDerivation = receiveDerivations[address];
           // if a match exists it will not be null
           if (receiveDerivation != null) {
             final data = P2PKH(
@@ -2783,7 +2829,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
               network: _network,
             ).data;
 
-            for (String tx in addressTxid[addressesP2PKH[i]]!) {
+            for (String tx in addressTxid[address]!) {
               results[tx] = {
                 "output": data.output,
                 "keyPair": ECPair.fromWIF(
@@ -2794,7 +2840,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
             }
           } else {
             // if its not a receive, check change
-            final changeDerivation = changeDerivations[addressesP2PKH[i]];
+            final changeDerivation = changeDerivations[address];
             // if a match exists it will not be null
             if (changeDerivation != null) {
               final data = P2PKH(
@@ -2804,7 +2850,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
                 network: _network,
               ).data;
 
-              for (String tx in addressTxid[addressesP2PKH[i]]!) {
+              for (String tx in addressTxid[address]!) {
                 results[tx] = {
                   "output": data.output,
                   "keyPair": ECPair.fromWIF(
@@ -3377,8 +3423,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
           0,
           DerivePathType
               .bip44); // Add that new receiving address to the array of receiving addresses
-      _currentReceivingAddressP2PKH = Future(() =>
-          newReceivingAddress); // Set the new receiving address that the service
+      var newaddr = await _getCurrentAddressForChain(0, DerivePathType.bip44);
+      _currentReceivingAddressP2PKH = Future(
+          () => newaddr); // Set the new receiving address that the service
 
       return true;
     } catch (e, s) {
