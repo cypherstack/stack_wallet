@@ -25,6 +25,8 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+
 class DebugView extends ConsumerStatefulWidget {
   const DebugView({Key? key}) : super(key: key);
 
@@ -283,6 +285,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             BlueTextButton(
                               text: "Save logs to file",
                               onTap: () async {
+                                final systemfile = StackFileSystem();
+                                await systemfile.prepareStorage();
                                 Directory rootPath =
                                     (await getApplicationDocumentsDirectory());
 
@@ -309,8 +313,9 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 } else {
                                   path = await FilePicker.platform
                                       .getDirectoryPath(
-                                    dialogTitle: "Choose Backup location",
-                                    initialDirectory: dir.path,
+                                    dialogTitle: "Choose Log Save Location",
+                                    initialDirectory:
+                                        systemfile.startPath!.path,
                                     lockParentWindow: true,
                                   );
                                 }
@@ -332,9 +337,17 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                     ),
                                   ));
 
-                                  final filename = await ref
-                                      .read(debugServiceProvider)
-                                      .exportToFile(path, eventBus);
+                                  bool logssaved = true;
+                                  var filename;
+                                  try {
+                                    filename = await ref
+                                        .read(debugServiceProvider)
+                                        .exportToFile(path, eventBus);
+                                  } catch (e, s) {
+                                    logssaved = false;
+                                    Logging.instance
+                                        .log("$e $s", level: LogLevel.Error);
+                                  }
 
                                   shouldPop = true;
 
@@ -346,7 +359,9 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         showDialog(
                                           context: context,
                                           builder: (context) => StackOkDialog(
-                                            title: "Logs saved to",
+                                            title: logssaved
+                                                ? "Logs saved to"
+                                                : "Error Saving Logs",
                                             message: "${path!}/$filename",
                                           ),
                                         ),
@@ -356,7 +371,9 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         showFloatingFlushBar(
                                           type: FlushBarType.info,
                                           context: context,
-                                          message: 'Logs file saved',
+                                          message: logssaved
+                                              ? 'Logs file saved'
+                                              : "Error Saving Logs",
                                         ),
                                       );
                                     }
