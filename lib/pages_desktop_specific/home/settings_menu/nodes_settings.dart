@@ -127,35 +127,41 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                 ),
                                 child: Row(
                                   children: [
-                                    SvgPicture.asset(
-                                      Assets.svg.iconFor(coin: coin),
-                                      width: 24,
-                                      height: 24,
-                                    ),
-                                    const SizedBox(
-                                      width: 12,
-                                    ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    Row(
                                       children: [
-                                        Text(
-                                          "${coin.prettyName} nodes",
-                                          style:
-                                              STextStyles.titleBold12(context),
+                                        SvgPicture.asset(
+                                          Assets.svg.iconFor(coin: coin),
+                                          width: 24,
+                                          height: 24,
                                         ),
-                                        Text(
-                                          count > 1
-                                              ? "$count nodes"
-                                              : "Default",
-                                          style: STextStyles.label(context),
+                                        const SizedBox(
+                                          width: 12,
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "${coin.prettyName} nodes",
+                                              style: STextStyles.titleBold12(
+                                                  context),
+                                            ),
+                                            Text(
+                                              count > 1
+                                                  ? "$count nodes"
+                                                  : "Default",
+                                              style: STextStyles.label(context),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                    // SvgPicture.asset(
-                                    //   Assets.svg.chevronRight,
-                                    //   alignment: Alignment.centerRight,
-                                    // ),
+                                    Expanded(
+                                      child: SvgPicture.asset(
+                                        Assets.svg.chevronRight,
+                                        alignment: Alignment.centerRight,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

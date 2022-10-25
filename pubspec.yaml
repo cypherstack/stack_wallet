@@ -300,6 +300,7 @@ flutter:
     - assets/svg/sun-circle.svg
     - assets/svg/node-circle.svg
     - assets/svg/dark/dark-theme.svg
+    - assets/svg/light/light-mode.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg
