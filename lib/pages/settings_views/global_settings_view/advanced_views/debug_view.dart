@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -24,8 +28,13 @@ import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
+import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+
+import 'package:stackwallet/utilities/clipboard_interface.dart';
 
 class DebugView extends ConsumerStatefulWidget {
   const DebugView({Key? key}) : super(key: key);
@@ -270,17 +279,71 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // BlueTextButton(
-                            //   text: ref.watch(debugServiceProvider
-                            //           .select((value) => value.isPaused))
-                            //       ? "Unpause"
-                            //       : "Pause",
-                            //   onTap: () {
-                            //     ref
-                            //         .read(debugServiceProvider)
-                            //         .togglePauseUiUpdates();
-                            //   },
-                            // ),
+                            BlueTextButton(
+                              text: "Save Debug Info to clipboard",
+                              onTap: () async {
+                                try {
+                                  final packageInfo =
+                                      await PackageInfo.fromPlatform();
+                                  final version = packageInfo.version;
+                                  final build = packageInfo.buildNumber;
+                                  final signature = packageInfo.buildSignature;
+                                  final appName = packageInfo.appName;
+                                  String firoCommit =
+                                      FIRO_VERSIONS.getPluginVersion();
+                                  String epicCashCommit =
+                                      EPIC_VERSIONS.getPluginVersion();
+                                  String moneroCommit =
+                                      MONERO_VERSIONS.getPluginVersion();
+                                  DeviceInfoPlugin deviceInfoPlugin =
+                                      DeviceInfoPlugin();
+                                  final deviceInfo =
+                                      await deviceInfoPlugin.deviceInfo;
+                                  var deviceInfoMap = deviceInfo.toMap();
+                                  deviceInfoMap.remove("systemFeatures");
+
+                                  final logs = filtered(
+                                          ref.watch(debugServiceProvider.select(
+                                              (value) => value.recentLogs)),
+                                          _searchTerm)
+                                      .reversed
+                                      .toList(growable: false);
+                                  List errorLogs = [];
+                                  for (var log in logs) {
+                                    if (log.logLevel == LogLevel.Error ||
+                                        log.logLevel == LogLevel.Fatal) {
+                                      errorLogs.add(
+                                          "${log.logLevel}: ${log.message}");
+                                    }
+                                  }
+
+                                  final finalDebugMap = {
+                                    "version": version,
+                                    "build": build,
+                                    "signature": signature,
+                                    "appName": appName,
+                                    "firoCommit": firoCommit,
+                                    "epicCashCommit": epicCashCommit,
+                                    "moneroCommit": moneroCommit,
+                                    "deviceInfoMap": deviceInfoMap,
+                                    "errorLogs": errorLogs,
+                                  };
+                                  Logging.instance.log(
+                                      json.encode(finalDebugMap),
+                                      level: LogLevel.Info,
+                                      printFullLength: true);
+                                  const ClipboardInterface clipboard =
+                                      ClipboardWrapper();
+                                  await clipboard.setData(
+                                    ClipboardData(
+                                        text: json.encode(finalDebugMap)),
+                                  );
+                                } catch (e, s) {
+                                  Logging.instance
+                                      .log("$e $s", level: LogLevel.Error);
+                                }
+                              },
+                            ),
                             const Spacer(),
                             BlueTextButton(
                               text: "Save logs to file",

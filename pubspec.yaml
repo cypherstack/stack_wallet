@@ -115,6 +115,7 @@ dependencies:
   wakelock: ^0.6.2
   intl: ^0.17.0
   devicelocale: ^0.5.0
+  device_info_plus: ^7.0.1
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
   tuple: ^2.0.0
