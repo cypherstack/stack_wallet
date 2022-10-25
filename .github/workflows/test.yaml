@@ -10,15 +10,15 @@ jobs:
         with:
           flutter-version: '3.3.4'
           channel: 'stable'
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
-      - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: stable
-          components: clippy
-      - name: Checkout submodules
-        run: git submodule update --init --recursive
+#      - name: Install Flutter
+#        uses: subosito/flutter-action@v2
+#      - name: Setup | Rust
+#        uses: ATiltedTree/setup-rust@v1
+#        with:
+#          rust-version: stable
+#          components: clippy
+#      - name: Checkout submodules
+#        run: git submodule update --init --recursive
 #      - name: install dependencies
 #        run: |
 #          cargo install cargo-ndk
@@ -41,8 +41,8 @@ jobs:
 #        run: |
 #          cd crypto_plugins/flutter_libepiccash/scripts/linux/
 #          ./build_all.sh
-      - name: Get dependencies
-        run: flutter pub get
+#      - name: Get dependencies
+#        run: flutter pub get
       - name: Create temp files
         id: secret-file1
         run: |
@@ -114,12 +114,12 @@ jobs:
 #          file: coverage/lcov.info
       - name: Delete temp files
         run: |
-          Remove-Item -Path $env:CHANGE_NOW;
-          Remove-Item -Path $env:BITCOIN_TEST;
-          Remove-Item -Path $env:DOGECOIN_TEST;
-          Remove-Item -Path $env:FIRO_TEST;
-          Remove-Item -Path $env:BITCOINCASH_TEST;
-          Remove-Item -Path $env:NAMECOIN_TEST;
+          Remove-Item -Path $env.CHANGE_NOW;
+          Remove-Item -Path $env.BITCOIN_TEST;
+          Remove-Item -Path $env.DOGECOIN_TEST;
+          Remove-Item -Path $env.FIRO_TEST;
+          Remove-Item -Path $env.BITCOINCASH_TEST;
+          Remove-Item -Path $env.NAMECOIN_TEST;
         shell: pwsh
         if: always()
         env:
