@@ -10,39 +10,39 @@ jobs:
         with:
           flutter-version: '3.3.4'
           channel: 'stable'
-#      - name: Install Flutter
-#        uses: subosito/flutter-action@v2
-#      - name: Setup | Rust
-#        uses: ATiltedTree/setup-rust@v1
-#        with:
-#          rust-version: stable
-#          components: clippy
-#      - name: Checkout submodules
-#        run: git submodule update --init --recursive
-#      - name: install dependencies
-#        run: |
-#          cargo install cargo-ndk
-#          rustup target add x86_64-unknown-linux-gnu
-#          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm
-#          sudo apt install -y debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
-#          sudo apt install -y libc6-dev-i386
-#          sudo apt install -y build-essential cmake git libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev pkg-config llvm
-#          sudo apt install -y build-essential debhelper cmake libclang-dev libncurses5-dev clang libncursesw5-dev cargo rustc opencl-headers libssl-dev pkg-config ocl-icd-opencl-dev
-#          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
-#      - name: Build Lelantus
-#        run: |
-#         cd crypto_plugins/flutter_liblelantus/scripts/linux/
-#         ./build_all.sh
-#      - name: Build Monero
-#        run: |
-#          cd crypto_plugins/flutter_libmonero/scripts/linux/
-#          ./build_monero_all.sh
-#      - name: Build Epic Cash
-#        run: |
-#          cd crypto_plugins/flutter_libepiccash/scripts/linux/
-#          ./build_all.sh
-#      - name: Get dependencies
-#        run: flutter pub get
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+      - name: Setup | Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: stable
+          components: clippy
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: install dependencies
+        run: |
+          cargo install cargo-ndk
+          rustup target add x86_64-unknown-linux-gnu
+          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm
+          sudo apt install -y debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
+          sudo apt install -y libc6-dev-i386
+          sudo apt install -y build-essential cmake git libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev pkg-config llvm
+          sudo apt install -y build-essential debhelper cmake libclang-dev libncurses5-dev clang libncursesw5-dev cargo rustc opencl-headers libssl-dev pkg-config ocl-icd-opencl-dev
+          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
+      - name: Build Lelantus
+        run: |
+         cd crypto_plugins/flutter_liblelantus/scripts/linux/
+         ./build_all.sh
+      - name: Build Monero
+        run: |
+          cd crypto_plugins/flutter_libmonero/scripts/linux/
+          ./build_monero_all.sh
+      - name: Build Epic Cash
+        run: |
+          cd crypto_plugins/flutter_libepiccash/scripts/linux/
+          ./build_all.sh
+      - name: Get dependencies
+        run: flutter pub get
       - name: Create temp files
         id: secret-file1
         run: |
@@ -92,14 +92,14 @@ jobs:
           NAMECOIN_TEST: ${{ secrets.NAMECOIN_TEST }}
 #      - name: Analyze
 #        run: flutter analyze
-#      - name: Test
-#        run: flutter test --coverage
-#      - name: Upload to code coverage
-#        uses: codecov/codecov-action@v1.2.2
-#        if: success() || failure()
-#        with:
-#          token: ${{secrets.CODECOV_TOKEN}}
-#          file: coverage/lcov.info
+      - name: Test
+        run: flutter test --coverage
+      - name: Upload to code coverage
+        uses: codecov/codecov-action@v1.2.2
+        if: success() || failure()
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: coverage/lcov.info
       - name: Delete temp files
         run: |
           $secretFileExchange = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "lib/external_api_keys.dart";
