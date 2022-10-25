@@ -19,28 +19,28 @@ jobs:
           components: clippy
       - name: Checkout submodules
         run: git submodule update --init --recursive
-      - name: install dependencies
-        run: |
-          cargo install cargo-ndk
-          rustup target add x86_64-unknown-linux-gnu
-          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm 
-          sudo apt install -y debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
-          sudo apt install -y libc6-dev-i386
-          sudo apt install -y build-essential cmake git libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev pkg-config llvm
-          sudo apt install -y build-essential debhelper cmake libclang-dev libncurses5-dev clang libncursesw5-dev cargo rustc opencl-headers libssl-dev pkg-config ocl-icd-opencl-dev
-          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
-      - name: Build Lelantus
-        run: |
-         cd crypto_plugins/flutter_liblelantus/scripts/linux/
-         ./build_all.sh
-      - name: Build Monero
-        run: |
-          cd crypto_plugins/flutter_libmonero/scripts/linux/
-          ./build_monero_all.sh
-      - name: Build Epic Cash
-        run: |
-          cd crypto_plugins/flutter_libepiccash/scripts/linux/
-          ./build_all.sh
+#      - name: install dependencies
+#        run: |
+#          cargo install cargo-ndk
+#          rustup target add x86_64-unknown-linux-gnu
+#          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm
+#          sudo apt install -y debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
+#          sudo apt install -y libc6-dev-i386
+#          sudo apt install -y build-essential cmake git libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev pkg-config llvm
+#          sudo apt install -y build-essential debhelper cmake libclang-dev libncurses5-dev clang libncursesw5-dev cargo rustc opencl-headers libssl-dev pkg-config ocl-icd-opencl-dev
+#          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
+#      - name: Build Lelantus
+#        run: |
+#         cd crypto_plugins/flutter_liblelantus/scripts/linux/
+#         ./build_all.sh
+#      - name: Build Monero
+#        run: |
+#          cd crypto_plugins/flutter_libmonero/scripts/linux/
+#          ./build_monero_all.sh
+#      - name: Build Epic Cash
+#        run: |
+#          cd crypto_plugins/flutter_libepiccash/scripts/linux/
+#          ./build_all.sh
       - name: Get dependencies
         run: flutter pub get
       - name: Create temp files
@@ -50,48 +50,48 @@ jobs:
           $encodedBytes = [System.Convert]::FromBase64String($env:CHANGE_NOW);
           Set-Content $secretFileExchange -Value $encodedBytes -AsByteStream;
           $secretFileExchangeHash = Get-FileHash $secretFileExchange;
-          Write-Output "::set-output name=SECRET_FILE_EXCHANGE::$secretFileExchange";
-          Write-Output "::set-output name=SECRET_FILE_EXCHANGE_HASH::$($secretFileExchangeHash.Hash)";
+          Write-Output "SECRET_FILE_EXCHANGE=$secretFileExchange" >> $GITHUB_OUTPUT;
+          Write-Output "SECRET_FILE_EXCHANGE_HASH=$($secretFileExchangeHash.Hash)" >> $GITHUB_OUTPUT;
           Write-Output "Secret file $secretFileExchange has hash $($secretFileExchangeHash.Hash)";
           
           $secretFileBitcoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:BITCOIN_TEST);
           Set-Content $secretFileBitcoin -Value $encodedBytes -AsByteStream;
           $secretFileBitcoinHash = Get-FileHash $secretFileBitcoin;
-          Write-Output "::set-output name=SECRET_FILE_BITCOIN::$secretFileBitcoin";
-          Write-Output "::set-output name=SECRET_FILE_BITCOIN_HASH::$($secretFileBitcoinHash.Hash)";
+          Write-Output "SECRET_FILE_BITCOIN=$secretFileBitcoin" >> $GITHUB_OUTPUT;
+          Write-Output "SECRET_FILE_BITCOIN_HASH=$($secretFileBitcoinHash.Hash)" >> $GITHUB_OUTPUT;
           Write-Output "Secret file $secretFileBitcoin has hash $($secretFileBitcoinHash.Hash)";
           
           $secretFileDogecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:DOGECOIN_TEST);
           Set-Content $secretFileDogecoin -Value $encodedBytes -AsByteStream;
           $secretFileDogecoinHash = Get-FileHash $secretFileDogecoin;
-          Write-Output "::set-output name=SECRET_FILE_DOGECOIN::$secretFileDogecoin";
-          Write-Output "::set-output name=SECRET_FILE_DOGECOIN_HASH::$($secretFileDogecoinHash.Hash)";
+          Write-Output "SECRET_FILE_DOGECOIN=$secretFileDogecoin" >> $GITHUB_OUTPUT;
+          Write-Output "SECRET_FILE_DOGECOIN_HASH=$($secretFileDogecoinHash.Hash)" >> $GITHUB_OUTPUT;
           Write-Output "Secret file $secretFileDogecoin has hash $($secretFileDogecoinHash.Hash)";
           
           $secretFileFiro = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/firo/firo_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:FIRO_TEST);
           Set-Content $secretFileFiro -Value $encodedBytes -AsByteStream;
           $secretFileFiroHash = Get-FileHash $secretFileFiro;
-          Write-Output "::set-output name=SECRET_FILE_FIRO::$secretFileFiro";
-          Write-Output "::set-output name=SECRET_FILE_FIRO_HASH::$($secretFileFiroHash.Hash)";
+          Write-Output "SECRET_FILE_FIRO=$secretFileFiro" >> $GITHUB_OUTPUT;
+          Write-Output "SECRET_FILE_FIRO_HASH=$($secretFileFiroHash.Hash)" >> $GITHUB_OUTPUT;
           Write-Output "Secret file $secretFileFiro has hash $($secretFileFiroHash.Hash)";
           
           $secretFileBitcoinCash = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:BITCOINCASH_TEST);
           Set-Content $secretFileBitcoinCash -Value $encodedBytes -AsByteStream;
           $secretFileBitcoinCashHash = Get-FileHash $secretFileBitcoinCash;
-          Write-Output "::set-output name=SECRET_FILE_BITCOINCASH::$secretFileBitcoinCash";
-          Write-Output "::set-output name=SECRET_FILE_BITCOINCASH_HASH::$($secretFileBitcoinCashHash.Hash)";
+          Write-Output "SECRET_FILE_BITCOINCASH=$secretFileBitcoinCash" >> $GITHUB_OUTPUT;
+          Write-Output "SECRET_FILE_BITCOINCASH_HASH=$($secretFileBitcoinCashHash.Hash)" >> $GITHUB_OUTPUT;
           Write-Output "Secret file $secretFileBitcoinCash has hash $($secretFileBitcoinCashHash.Hash)";
           
           $secretFileNamecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/namecoin/namecoin_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:NAMECOIN_TEST);
           Set-Content $secretFileNamecoin -Value $encodedBytes -AsByteStream;
           $secretFileNamecoinHash = Get-FileHash $secretFileNamecoin;
-          Write-Output "::set-output name=SECRET_FILE_NAMECOIN::$secretFileNamecoin";
-          Write-Output "::set-output name=SECRET_FILE_NAMECOIN_HASH::$($secretFileNamecoinHash.Hash)";
+          Write-Output "SECRET_FILE_NAMECOIN=$secretFileNamecoin" >> $GITHUB_OUTPUT;
+          Write-Output "SECRET_FILE_NAMECOIN_HASH=$($secretFileNamecoinHash.Hash)" >> $GITHUB_OUTPUT;
           Write-Output "Secret file $secretFileNamecoin has hash $($secretFileNamecoinHash.Hash)";
           
         shell: pwsh
@@ -104,14 +104,14 @@ jobs:
           NAMECOIN_TEST: ${{ secrets.NAMECOIN_TEST }}
 #      - name: Analyze
 #        run: flutter analyze
-      - name: Test
-        run: flutter test --coverage
-      - name: Upload to code coverage
-        uses: codecov/codecov-action@v1.2.2
-        if: success() || failure()
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          file: coverage/lcov.info
+#      - name: Test
+#        run: flutter test --coverage
+#      - name: Upload to code coverage
+#        uses: codecov/codecov-action@v1.2.2
+#        if: success() || failure()
+#        with:
+#          token: ${{secrets.CODECOV_TOKEN}}
+#          file: coverage/lcov.info
       - name: Delete temp files
         run: |
           Remove-Item -Path $env:CHANGE_NOW;
