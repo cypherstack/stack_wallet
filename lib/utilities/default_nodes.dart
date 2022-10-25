@@ -216,7 +216,7 @@ abstract class DefaultNodes {
         return namecoin;
 
       case Coin.particl:
-        return namecoin;
+        return particl;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
