@@ -118,10 +118,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
+      case Coin.particlTestNet:
         final client = ElectrumX(
           host: formData.host!,
           port: formData.port!,
@@ -533,10 +535,12 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoincash:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
+      case Coin.particlTestNet:
         return false;
 
       case Coin.epicCash:

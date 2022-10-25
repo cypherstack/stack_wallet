@@ -142,6 +142,8 @@ class _SVG {
   String get monero => "assets/svg/coin_icons/Monero.svg";
   String get wownero => "assets/svg/coin_icons/Wownero.svg";
   String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
+  String get particl =>
+      "assets/svg/coin_icons/Namecoin.svg"; //TODO - Update icon to particl
 
   String get chevronRight => "assets/svg/chevron-right.svg";
   String get minimize => "assets/svg/minimize.svg";
@@ -154,6 +156,8 @@ class _SVG {
   String get bitcoincashTestnet => "assets/svg/coin_icons/Bitcoincash.svg";
   String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
   String get dogecoinTestnet => "assets/svg/coin_icons/Dogecoin.svg";
+  String get particlTestnet =>
+      "assets/svg/coin_icons/Dogecoin.svg"; //TODO - Update icon to particl
 
   String iconFor({required Coin coin}) {
     switch (coin) {
@@ -173,6 +177,8 @@ class _SVG {
         return wownero;
       case Coin.namecoin:
         return namecoin;
+      case Coin.particl:
+        return particl;
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
       case Coin.bitcoincashTestnet:
@@ -181,6 +187,8 @@ class _SVG {
         return firoTestnet;
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
+      case Coin.particlTestNet:
+        return particlTestnet;
     }
   }
 }
@@ -199,6 +207,7 @@ class _PNG {
   String get epicCash => "assets/images/epic-cash.png";
   String get bitcoincash => "assets/images/bitcoincash.png";
   String get namecoin => "assets/images/namecoin.png";
+  String get particl => "assets/images/namecoin.png"; //TODO - use particl png
 
   String imageFor({required Coin coin}) {
     switch (coin) {
@@ -223,6 +232,9 @@ class _PNG {
         return wownero;
       case Coin.namecoin:
         return namecoin;
+      case Coin.particl:
+      case Coin.particlTestNet:
+        return particl;
     }
   }
 }

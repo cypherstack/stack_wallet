@@ -7,6 +7,7 @@ import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
+import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -58,6 +59,8 @@ class AddressUtils {
             RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
       case Coin.namecoin:
         return Address.validateAddress(address, namecoin, namecoin.bech32!);
+      case Coin.particl:
+        return Address.validateAddress(address, particl);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
       case Coin.bitcoincashTestnet:
@@ -66,6 +69,8 @@ class AddressUtils {
         return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:
         return Address.validateAddress(address, dogecointestnet);
+      case Coin.particlTestNet:
+        return Address.validateAddress(address, particltestnet);
     }
   }
 
