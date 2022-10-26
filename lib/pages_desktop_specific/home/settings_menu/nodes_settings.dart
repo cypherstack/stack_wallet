@@ -5,11 +5,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/node_service_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
+import '../../../utilities/constants.dart';
 
 class NodesSettings extends ConsumerStatefulWidget {
   const NodesSettings({Key? key}) : super(key: key);
@@ -37,9 +38,6 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
 
   @override
   Widget build(BuildContext context) {
-    double deviceWidth(BuildContext context) =>
-        MediaQuery.of(context).size.width;
-
     bool showTestNet = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
@@ -108,18 +106,18 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
                                 ),
-                                side: BorderSide(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .shadow),
+                                // side: BorderSide(
+                                //     color: Theme.of(context)
+                                //         .extension<StackColors>()!
+                                //         .shadow),
                               ),
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               onPressed: () {
-                                // Navigator.of(context).pushNamed(
-                                //   CoinNodesView.routeName,
-                                //   arguments: coin,
-                                // );
+                                Navigator.of(context).pushNamed(
+                                  CoinNodesView.routeName,
+                                  arguments: coin,
+                                );
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(
