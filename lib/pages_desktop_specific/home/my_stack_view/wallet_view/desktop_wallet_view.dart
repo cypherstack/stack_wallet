@@ -174,7 +174,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
             Expanded(
               child: Row(
                 children: [
-                  Expanded(
+                  SizedBox(
+                    width: 450,
                     child: MyWallet(
                       walletId: walletId,
                     ),
