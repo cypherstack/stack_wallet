@@ -32,7 +32,6 @@ enum Coin {
   bitcoincashTestnet,
   dogecoinTestNet,
   firoTestNet,
-  particlTestNet
 }
 
 // remove firotestnet for now
@@ -67,8 +66,6 @@ extension CoinExt on Coin {
         return "tFiro";
       case Coin.dogecoinTestNet:
         return "tDogecoin";
-      case Coin.particlTestNet:
-        return "tParticl";
     }
   }
 
@@ -100,8 +97,6 @@ extension CoinExt on Coin {
         return "tFIRO";
       case Coin.dogecoinTestNet:
         return "tDOGE";
-      case Coin.particlTestNet:
-        return "tPART";
     }
   }
 
@@ -134,8 +129,6 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.dogecoinTestNet:
         return "dogecoin";
-      case Coin.particlTestNet:
-        return "particl";
     }
   }
 
@@ -151,7 +144,6 @@ extension CoinExt on Coin {
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
-      case Coin.particlTestNet:
         return true;
 
       case Coin.epicCash:
@@ -186,7 +178,6 @@ extension CoinExt on Coin {
         return xmr.MINIMUM_CONFIRMATIONS;
 
       case Coin.particl:
-      case Coin.particlTestNet:
         return particl.MINIMUM_CONFIRMATIONS;
 
       case Coin.wownero:
@@ -227,7 +218,6 @@ Coin coinFromPrettyName(String name) {
 
     case "Particl":
     case "particl":
-    case "particlTestNet":
       return Coin.particl;
 
     case "Namecoin":
@@ -292,8 +282,6 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.firoTestNet;
     case "tdoge":
       return Coin.dogecoinTestNet;
-    case "tparticl":
-      return Coin.particlTestNet;
     case "wow":
       return Coin.wownero;
     default:

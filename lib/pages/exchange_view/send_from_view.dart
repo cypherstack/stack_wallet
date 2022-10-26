@@ -61,7 +61,6 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
       case Coin.bitcoincashTestnet:
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
-      case Coin.particlTestNet:
         return amount.toStringAsFixed(Constants.decimalPlaces);
       case Coin.monero:
         return amount.toStringAsFixed(Constants.decimalPlacesMonero);

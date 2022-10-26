@@ -187,8 +187,6 @@ class _SVG {
         return firoTestnet;
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
-      case Coin.particlTestNet:
-        return particlTestnet;
     }
   }
 }
@@ -233,7 +231,6 @@ class _PNG {
       case Coin.namecoin:
         return namecoin;
       case Coin.particl:
-      case Coin.particlTestNet:
         return particl;
     }
   }

@@ -33,7 +33,5 @@ Uri getBlockExplorerTransactionUrlFor({
       return Uri.parse("https://chainz.cryptoid.info/nmc/tx.dws?$txid.htm");
     case Coin.particl:
       return Uri.parse("https://chainz.cryptoid.info/part/tx.dws?$txid.htm");
-    case Coin.particlTestNet:
-      return Uri.parse("");
   }
 }

@@ -213,7 +213,6 @@ class CoinThemeColor {
       case Coin.wownero:
         return wownero;
       case Coin.particl:
-      case Coin.particlTestNet:
         return particl;
     }
   }
