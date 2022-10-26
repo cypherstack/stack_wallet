@@ -264,7 +264,12 @@ class _MyWalletState extends State<MyWallet> {
                             walletId: widget.walletId,
                           ),
                         ),
-                        DesktopReceive(),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: DesktopReceive(
+                            walletId: widget.walletId,
+                          ),
+                        ),
                       ],
                     ),
                   ),
