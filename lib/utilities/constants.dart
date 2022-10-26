@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class _LayoutSizing {
   const _LayoutSizing();
@@ -14,7 +15,12 @@ class _LayoutSizing {
 abstract class Constants {
   static const size = _LayoutSizing();
 
-  static final bool enableExchange = !Platform.isIOS;
+  static void exchangeForExperiencedUsers(int count) {
+    enableExchange =
+        Util.isDesktop || Platform.isAndroid || count > 5 || !Platform.isIOS;
+  }
+
+  static bool enableExchange = Util.isDesktop || !Platform.isIOS;
 
   //TODO: correct for monero?
   static const int satsPerCoinMonero = 1000000000000;
@@ -36,7 +42,7 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentHiveDbVersion = 2;
+  static const int currentHiveDbVersion = 3;
 
   static List<int> possibleLengthsForCoin(Coin coin) {
     final List<int> values = [];

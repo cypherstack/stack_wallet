@@ -78,12 +78,12 @@ class PriceAPI {
     }
 
     final externalCalls = Prefs.instance.externalCalls;
-    if (!Logger.isTestEnv && !externalCalls) {
+    if ((!Logger.isTestEnv && !externalCalls) ||
+        !(await Prefs.instance.isExternalCallsSet())) {
       Logging.instance.log("User does not want to use external calls",
           level: LogLevel.Info);
       return _cachedPrices;
     }
-
     Map<Coin, Tuple2<Decimal, double>> result = {};
     try {
       final uri = Uri.parse(
@@ -123,7 +123,8 @@ class PriceAPI {
 
   static Future<List<String>?> availableBaseCurrencies() async {
     final externalCalls = Prefs.instance.externalCalls;
-    if (!Logger.isTestEnv && !externalCalls) {
+    if ((!Logger.isTestEnv && !externalCalls) ||
+        !(await Prefs.instance.isExternalCallsSet())) {
       Logging.instance.log("User does not want to use external calls",
           level: LogLevel.Info);
       return null;

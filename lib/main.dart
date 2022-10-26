@@ -146,7 +146,12 @@ void main() async {
           boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
       0;
   if (dbVersion < Constants.currentHiveDbVersion) {
-    await DbVersionMigrator().migrate(dbVersion);
+    try {
+      await DbVersionMigrator().migrate(dbVersion);
+    } catch (e, s) {
+      Logging.instance.log("Cannot migrate database\n$e $s",
+          level: LogLevel.Error, printFullLength: true);
+    }
   }
 
   monero.onStartup();
@@ -234,7 +239,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     //  unawaited(_nodeService.updateCommunityNodes());
 
     // run without awaiting
-    if (Constants.enableExchange && _prefs.externalCalls) {
+    if (Constants.enableExchange &&
+        _prefs.externalCalls &&
+        await _prefs.isExternalCallsSet()) {
       unawaited(ExchangeDataLoadingService().loadAll(ref));
     }
 

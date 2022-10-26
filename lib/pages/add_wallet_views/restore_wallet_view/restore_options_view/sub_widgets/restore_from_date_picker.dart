@@ -7,10 +7,14 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 class RestoreFromDatePicker extends StatefulWidget {
-  const RestoreFromDatePicker({Key? key, required this.onTap})
-      : super(key: key);
+  const RestoreFromDatePicker({
+    Key? key,
+    required this.onTap,
+    required this.controller,
+  }) : super(key: key);
 
   final VoidCallback onTap;
+  final TextEditingController controller;
 
   @override
   State<RestoreFromDatePicker> createState() => _RestoreFromDatePickerState();
@@ -23,15 +27,9 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
   @override
   void initState() {
     onTap = widget.onTap;
-    _dateController = TextEditingController();
+    _dateController = widget.controller;
 
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _dateController.dispose();
-    super.dispose();
   }
 
   @override
