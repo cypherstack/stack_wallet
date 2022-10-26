@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/receive/desktop_receive.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/send/desktop_send.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -48,6 +50,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     final manager = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId)));
     final coin = manager.coin;
+    final managerProvider = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManagerProvider(walletId)));
 
     return DesktopScaffold(
       appBar: DesktopAppBar(
@@ -120,37 +124,45 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   const SizedBox(
                     width: 10,
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            "TODO: balance",
-                            style: STextStyles.desktopH3(context),
-                          ),
-                          const SizedBox(
-                            width: 8,
-                          ),
-                          Container(
-                            color: Colors.red,
-                            width: 20,
-                            height: 20,
-                          ),
-                        ],
-                      ),
-                      Text(
-                        "todo: fiat balance",
-                        style:
-                            STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
-                        ),
-                      )
-                    ],
+                  DesktopWalletSummary(
+                    walletId: walletId,
+                    managerProvider: managerProvider,
+                    initialSyncStatus: ref.watch(managerProvider
+                            .select((value) => value.isRefreshing))
+                        ? WalletSyncStatus.syncing
+                        : WalletSyncStatus.synced,
                   ),
+                  // Column(
+                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     Row(
+                  //       children: [
+                  //         Text(
+                  //           "TODO: balance",
+                  //           style: STextStyles.desktopH3(context),
+                  //         ),
+                  //         const SizedBox(
+                  //           width: 8,
+                  //         ),
+                  //         Container(
+                  //           color: Colors.red,
+                  //           width: 20,
+                  //           height: 20,
+                  //         ),
+                  //       ],
+                  //     ),
+                  //     Text(
+                  //       "todo: fiat balance",
+                  //       style:
+                  //           STextStyles.desktopTextExtraSmall(context).copyWith(
+                  //         color: Theme.of(context)
+                  //             .extension<StackColors>()!
+                  //             .textSubtitle1,
+                  //       ),
+                  //     )
+                  //   ],
+                  // ),
                   const Spacer(),
                   SecondaryButton(
                     width: 180,
