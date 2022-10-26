@@ -199,15 +199,11 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           height: 32,
         ),
         Center(
-          child: SizedBox(
-            width: 200,
-            height: 200,
-            child: QrImage(
-                data: "${coin.uriScheme}:$receivingAddress",
-                size: MediaQuery.of(context).size.width / 2,
-                foregroundColor: Theme.of(context)
-                    .extension<StackColors>()!
-                    .accentColorDark),
+          child: QrImage(
+            data: "${coin.uriScheme}:$receivingAddress",
+            size: 200,
+            foregroundColor:
+                Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
         ),
         const SizedBox(
