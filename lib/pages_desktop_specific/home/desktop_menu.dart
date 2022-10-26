@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -70,136 +72,197 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
             const SizedBox(
               height: 60,
             ),
-            SizedBox(
-              width: _width == expandedWidth
-                  ? _width - 32 // 16 padding on either side
-                  : _width - 16, // 8 padding on either side
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  DesktopMenuItem(
-                    icon: SvgPicture.asset(
-                      Assets.svg.walletFa,
-                      width: 20,
-                      height: 20,
+            Expanded(
+              child: SizedBox(
+                width: _width == expandedWidth
+                    ? _width - 32 // 16 padding on either side
+                    : _width - 16, // 8 padding on either side
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DesktopMenuItem(
+                      icon: SvgPicture.asset(
+                        Assets.svg.walletDesktop,
+                        width: 20,
+                        height: 20,
+                        color: 0 == selectedMenuItem
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                                .withOpacity(0.8),
+                      ),
+                      label: "My Stack",
+                      value: 0,
+                      group: selectedMenuItem,
+                      onChanged: updateSelectedMenuItem,
+                      iconOnly: _width == minimizedWidth,
                     ),
-                    label: "My Stack",
-                    value: 0,
-                    group: selectedMenuItem,
-                    onChanged: updateSelectedMenuItem,
-                    iconOnly: _width == minimizedWidth,
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  DesktopMenuItem(
-                    icon: SvgPicture.asset(
-                      Assets.svg.exchange3,
-                      width: 20,
-                      height: 20,
+                    const SizedBox(
+                      height: 2,
                     ),
-                    label: "Exchange",
-                    value: 1,
-                    group: selectedMenuItem,
-                    onChanged: updateSelectedMenuItem,
-                    iconOnly: _width == minimizedWidth,
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  DesktopMenuItem(
-                    icon: SvgPicture.asset(
-                      Assets.svg.bell,
-                      width: 20,
-                      height: 20,
+                    DesktopMenuItem(
+                      icon: SvgPicture.asset(
+                        Assets.svg.exchangeDesktop,
+                        width: 20,
+                        height: 20,
+                        color: 1 == selectedMenuItem
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                                .withOpacity(0.8),
+                      ),
+                      label: "Exchange",
+                      value: 1,
+                      group: selectedMenuItem,
+                      onChanged: updateSelectedMenuItem,
+                      iconOnly: _width == minimizedWidth,
                     ),
-                    label: "Notifications",
-                    value: 2,
-                    group: selectedMenuItem,
-                    onChanged: updateSelectedMenuItem,
-                    iconOnly: _width == minimizedWidth,
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  DesktopMenuItem(
-                    icon: SvgPicture.asset(
-                      Assets.svg.addressBook2,
-                      width: 20,
-                      height: 20,
+                    const SizedBox(
+                      height: 2,
                     ),
-                    label: "Address Book",
-                    value: 3,
-                    group: selectedMenuItem,
-                    onChanged: updateSelectedMenuItem,
-                    iconOnly: _width == minimizedWidth,
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  DesktopMenuItem(
-                    icon: SvgPicture.asset(
-                      Assets.svg.gear,
-                      width: 20,
-                      height: 20,
+                    DesktopMenuItem(
+                      icon: SvgPicture.asset(
+                        Assets.svg.bell,
+                        width: 20,
+                        height: 20,
+                        color: 2 == selectedMenuItem
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                                .withOpacity(0.8),
+                      ),
+                      label: "Notifications",
+                      value: 2,
+                      group: selectedMenuItem,
+                      onChanged: updateSelectedMenuItem,
+                      iconOnly: _width == minimizedWidth,
                     ),
-                    label: "Settings",
-                    value: 4,
-                    group: selectedMenuItem,
-                    onChanged: updateSelectedMenuItem,
-                    iconOnly: _width == minimizedWidth,
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  DesktopMenuItem(
-                    icon: SvgPicture.asset(
-                      Assets.svg.messageQuestion,
-                      width: 20,
-                      height: 20,
+                    const SizedBox(
+                      height: 2,
                     ),
-                    label: "Support",
-                    value: 5,
-                    group: selectedMenuItem,
-                    onChanged: updateSelectedMenuItem,
-                    iconOnly: _width == minimizedWidth,
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  DesktopMenuItem(
-                    icon: SvgPicture.asset(
-                      Assets.svg.messageQuestion,
-                      width: 20,
-                      height: 20,
+                    DesktopMenuItem(
+                      icon: SvgPicture.asset(
+                        Assets.svg.addressBookDesktop,
+                        width: 20,
+                        height: 20,
+                        color: 3 == selectedMenuItem
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                                .withOpacity(0.8),
+                      ),
+                      label: "Address Book",
+                      value: 3,
+                      group: selectedMenuItem,
+                      onChanged: updateSelectedMenuItem,
+                      iconOnly: _width == minimizedWidth,
                     ),
-                    label: "About",
-                    value: 6,
-                    group: selectedMenuItem,
-                    onChanged: updateSelectedMenuItem,
-                    iconOnly: _width == minimizedWidth,
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  DesktopMenuItem(
-                    icon: SvgPicture.asset(
-                      Assets.svg.messageQuestion,
-                      width: 20,
-                      height: 20,
+                    const SizedBox(
+                      height: 2,
                     ),
-                    label: "Exit",
-                    value: 7,
-                    group: selectedMenuItem,
-                    onChanged: updateSelectedMenuItem,
-                    iconOnly: _width == minimizedWidth,
-                  ),
-                ],
+                    DesktopMenuItem(
+                      icon: SvgPicture.asset(
+                        Assets.svg.gear,
+                        width: 20,
+                        height: 20,
+                        color: 4 == selectedMenuItem
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                                .withOpacity(0.8),
+                      ),
+                      label: "Settings",
+                      value: 4,
+                      group: selectedMenuItem,
+                      onChanged: updateSelectedMenuItem,
+                      iconOnly: _width == minimizedWidth,
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
+                    DesktopMenuItem(
+                      icon: SvgPicture.asset(
+                        Assets.svg.messageQuestion,
+                        width: 20,
+                        height: 20,
+                        color: 5 == selectedMenuItem
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                                .withOpacity(0.8),
+                      ),
+                      label: "Support",
+                      value: 5,
+                      group: selectedMenuItem,
+                      onChanged: updateSelectedMenuItem,
+                      iconOnly: _width == minimizedWidth,
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
+                    DesktopMenuItem(
+                      icon: SvgPicture.asset(
+                        Assets.svg.aboutDesktop,
+                        width: 20,
+                        height: 20,
+                        color: 6 == selectedMenuItem
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                                .withOpacity(0.8),
+                      ),
+                      label: "About",
+                      value: 6,
+                      group: selectedMenuItem,
+                      onChanged: updateSelectedMenuItem,
+                      iconOnly: _width == minimizedWidth,
+                    ),
+                    const Spacer(),
+                    DesktopMenuItem(
+                      icon: SvgPicture.asset(
+                        Assets.svg.exitDesktop,
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark
+                            .withOpacity(0.8),
+                      ),
+                      label: "Exit",
+                      value: 7,
+                      group: selectedMenuItem,
+                      onChanged: (_) {
+                        // todo: save stuff/ notify before exit?
+                        exit(0);
+                      },
+                      iconOnly: _width == minimizedWidth,
+                    ),
+                  ],
+                ),
               ),
             ),
-            const Spacer(),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 const Spacer(),
                 IconButton(
@@ -212,7 +275,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

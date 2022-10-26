@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/receive/desktop_receive.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/send/desktop_send.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -171,11 +173,14 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
             ),
             Expanded(
               child: Row(
-                children: const [
-                  Expanded(
-                    child: MyWallet(),
-                  ),
+                children: [
                   SizedBox(
+                    width: 450,
+                    child: MyWallet(
+                      walletId: walletId,
+                    ),
+                  ),
+                  const SizedBox(
                     width: 16,
                   ),
                   Expanded(
@@ -192,7 +197,12 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
 }
 
 class MyWallet extends StatefulWidget {
-  const MyWallet({Key? key}) : super(key: key);
+  const MyWallet({
+    Key? key,
+    required this.walletId,
+  }) : super(key: key);
+
+  final String walletId;
 
   @override
   State<MyWallet> createState() => _MyWalletState();
@@ -246,11 +256,21 @@ class _MyWalletState extends State<MyWallet> {
                       Tab(text: "Receive"),
                     ],
                   ),
-                  const Expanded(
+                  Expanded(
                     child: TabBarView(
                       children: [
-                        DesktopSend(),
-                        DesktopReceive(),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: DesktopSend(
+                            walletId: widget.walletId,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: DesktopReceive(
+                            walletId: widget.walletId,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -260,38 +280,6 @@ class _MyWalletState extends State<MyWallet> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class DesktopReceive extends StatefulWidget {
-  const DesktopReceive({Key? key}) : super(key: key);
-
-  @override
-  State<DesktopReceive> createState() => _DesktopReceiveState();
-}
-
-class _DesktopReceiveState extends State<DesktopReceive> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.green,
-    );
-  }
-}
-
-class DesktopSend extends StatefulWidget {
-  const DesktopSend({Key? key}) : super(key: key);
-
-  @override
-  State<DesktopSend> createState() => _DesktopSendState();
-}
-
-class _DesktopSendState extends State<DesktopSend> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.red,
     );
   }
 }

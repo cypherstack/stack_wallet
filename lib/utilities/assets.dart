@@ -139,6 +139,11 @@ class _SVG {
   String get anonymize => "assets/svg/tx-icon-anonymize.svg";
   String get anonymizePending => "assets/svg/tx-icon-anonymize-pending.svg";
   String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
+  String get addressBookDesktop => "assets/svg/address-book-desktop.svg";
+  String get exchangeDesktop => "assets/svg/exchange-desktop.svg";
+  String get aboutDesktop => "assets/svg/about-desktop.svg";
+  String get walletDesktop => "assets/svg/wallet-desktop.svg";
+  String get exitDesktop => "assets/svg/exit-desktop.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";

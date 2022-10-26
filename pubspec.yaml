@@ -301,6 +301,11 @@ flutter:
     - assets/svg/node-circle.svg
     - assets/svg/dark/dark-theme.svg
     - assets/svg/light/light-mode.svg
+    - assets/svg/address-book-desktop.svg
+    - assets/svg/about-desktop.svg
+    - assets/svg/exchange-desktop.svg
+    - assets/svg/wallet-desktop.svg
+    - assets/svg/exit-desktop.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg
