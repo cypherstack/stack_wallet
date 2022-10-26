@@ -43,9 +43,6 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     Container(
       color: Colors.pink,
     ),
-    Container(
-      color: Colors.purple,
-    ),
   ];
 
   void onMenuSelectionChanged(int newIndex) {
