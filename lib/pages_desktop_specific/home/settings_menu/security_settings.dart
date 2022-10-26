@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../utilities/theme/stack_colors.dart';
+import 'enable_backup_dialog.dart';
 
 class SecuritySettings extends ConsumerStatefulWidget {
   const SecuritySettings({Key? key}) : super(key: key);
@@ -17,6 +19,23 @@ class SecuritySettings extends ConsumerStatefulWidget {
 }
 
 class _SecuritySettings extends ConsumerState<SecuritySettings> {
+  Future<void> enableAutoBackup() async {
+    // wait for keyboard to disappear
+    FocusScope.of(context).unfocus();
+    await Future<void>.delayed(
+      const Duration(milliseconds: 100),
+    );
+
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) {
+        return EnableBackupDialog();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -82,8 +101,26 @@ class NewPasswordButton extends ConsumerWidget {
   const NewPasswordButton({
     Key? key,
   }) : super(key: key);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> enableAutoBackup() async {
+      // wait for keyboard to disappear
+      FocusScope.of(context).unfocus();
+      await Future<void>.delayed(
+        const Duration(milliseconds: 100),
+      );
+
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          return EnableBackupDialog();
+        },
+      );
+    }
+
     return SizedBox(
       width: 200,
       height: 48,
@@ -91,7 +128,9 @@ class NewPasswordButton extends ConsumerWidget {
         style: Theme.of(context)
             .extension<StackColors>()!
             .getPrimaryEnabledButtonColor(context),
-        onPressed: () {},
+        onPressed: () {
+          enableAutoBackup();
+        },
         child: Text(
           "Set up new password",
           style: STextStyles.button(context),
