@@ -1,13 +1,14 @@
-import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 
 void main() {
-  testWidgets("Test wiget displays correct text", (widgetTester) async {
-    final eventBus = EventBus();
+  testWidgets("test DesktopDialog builds", (widgetTester) async {
+    final key = UniqueKey();
+
     await widgetTester.pumpWidget(
       MaterialApp(
         theme: ThemeData(
@@ -16,12 +17,14 @@ void main() {
           ],
         ),
         home: Material(
-          child: CustomLoadingOverlay(
-              message: "Updating exchange rate", eventBus: eventBus),
+          child: DesktopDialog(
+            key: key,
+            child: const DesktopDialogCloseButton(),
+          ),
         ),
       ),
     );
 
-    expect(find.text("Updating exchange rate"), findsOneWidget);
+    expect(find.byType(DesktopDialog), findsOneWidget);
   });
 }

@@ -687,179 +687,19 @@ abstract class SWB {
     uiState?.walletStates = walletStates;
 
     List<Future<bool>> restoreStatuses = [];
-    final List<Tuple2<dynamic, Manager>> firoWallets = [];
-    final List<Tuple2<dynamic, Manager>> firoTestnetWallets = [];
-    final List<Tuple2<dynamic, Manager>> epicCashWallets = [];
     // start restoring wallets
     for (final tuple in managers) {
       // check if cancel was requested and restore previous state
       if (_checkShouldCancel(preRestoreState)) {
         return false;
       }
-
-      if (tuple.item2.coin == Coin.firoTestNet) {
-        firoTestnetWallets.add(tuple);
-        continue;
-      } else if (tuple.item2.coin == Coin.firo) {
-        firoWallets.add(tuple);
-        continue;
-      } else if (tuple.item2.coin == Coin.epicCash) {
-        epicCashWallets.add(tuple);
-        continue;
-      }
-      restoreStatuses.add(asyncRestore(tuple, uiState, walletsService));
+      final bools = await asyncRestore(tuple, uiState, walletsService);
+      restoreStatuses.add(Future(() => bools));
     }
 
     // check if cancel was requested and restore previous state
     if (_checkShouldCancel(preRestoreState)) {
       return false;
-    }
-
-    if (firoTestnetWallets.isNotEmpty) {
-      // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
-        return false;
-      }
-
-      for (final wallet in firoTestnetWallets) {
-        uiState?.update(
-          walletId: wallet.item2.walletId,
-          restoringStatus: StackRestoringStatus.restoring,
-        );
-      }
-      // try using node from backup first
-      NodeModel node = nodeService.getPrimaryNodeFor(coin: Coin.firoTestNet) ??
-          DefaultNodes.getNodeFor(Coin.firoTestNet);
-
-      final electrumxNode = ElectrumXNode(
-        address: node.host,
-        port: node.port,
-        name: node.name,
-        id: node.id,
-        useSSL: node.useSSL,
-      );
-
-      final failovers = nodeService.failoverNodesFor(coin: Coin.firoTestNet);
-
-      // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
-        return false;
-      }
-
-      final cachedClient = CachedElectrumX.from(
-        node: electrumxNode,
-        prefs: _prefs,
-        failovers: failovers
-            .map(
-              (e) => ElectrumXNode(
-                address: e.host,
-                port: e.port,
-                name: e.name,
-                id: e.id,
-                useSSL: e.useSSL,
-              ),
-            )
-            .toList(),
-      );
-
-      // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
-        return false;
-      }
-
-      // Anonymity Set often fails when gathering from the server
-      const int maxTries = 5;
-      for (int j = 0; j < maxTries; j++) {
-        // check if cancel was requested and restore previous state
-        if (_checkShouldCancel(preRestoreState)) {
-          return false;
-        }
-
-        try {
-          await cachedClient.getAnonymitySet(
-            groupId: "1",
-            coin: Coin.firoTestNet,
-          );
-          break;
-        } catch (_) {
-          continue;
-        }
-      }
-    }
-    // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState)) {
-      return false;
-    }
-
-    if (firoWallets.isNotEmpty) {
-      for (final wallet in firoWallets) {
-        uiState?.update(
-          walletId: wallet.item2.walletId,
-          restoringStatus: StackRestoringStatus.restoring,
-        );
-      }
-
-      // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
-        return false;
-      }
-
-      // try using node from backup first
-      NodeModel node = nodeService.getPrimaryNodeFor(coin: Coin.firo) ??
-          DefaultNodes.getNodeFor(Coin.firo);
-
-      final electrumxNode = ElectrumXNode(
-        address: node.host,
-        port: node.port,
-        name: node.name,
-        id: node.id,
-        useSSL: node.useSSL,
-      );
-      final failovers = nodeService.failoverNodesFor(coin: Coin.firoTestNet);
-      final cachedClient = CachedElectrumX.from(
-          node: electrumxNode,
-          prefs: _prefs,
-          failovers: failovers
-              .map(
-                (e) => ElectrumXNode(
-                  address: e.host,
-                  port: e.port,
-                  name: e.name,
-                  id: e.id,
-                  useSSL: e.useSSL,
-                ),
-              )
-              .toList());
-
-      // Anonymity Set often fails when gathering from the server
-      const int maxTries = 5;
-      for (int j = 0; j < maxTries; j++) {
-        // check if cancel was requested and restore previous state
-        if (_checkShouldCancel(preRestoreState)) {
-          return false;
-        }
-        try {
-          await cachedClient.getAnonymitySet(
-            groupId: "1",
-            coin: Coin.firo,
-          );
-          break;
-        } catch (_) {
-          continue;
-        }
-      }
-    }
-
-    // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState)) {
-      return false;
-    }
-
-    for (final tuple in firoTestnetWallets) {
-      restoreStatuses.add(asyncRestore(tuple, uiState, walletsService));
-    }
-    for (final tuple in firoWallets) {
-      restoreStatuses.add(asyncRestore(tuple, uiState, walletsService));
     }
 
     for (Future<bool> status in restoreStatuses) {
@@ -869,13 +709,7 @@ abstract class SWB {
       }
       await status;
     }
-    for (int i = 0; i < epicCashWallets.length; i++) {
-      // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
-        return false;
-      }
-      await asyncRestore(epicCashWallets[i], uiState, walletsService);
-    }
+
     if (!Platform.isLinux) await Wakelock.disable();
     // check if cancel was requested and restore previous state
     if (_checkShouldCancel(preRestoreState)) {

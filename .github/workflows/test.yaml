@@ -23,7 +23,7 @@ jobs:
         run: |
           cargo install cargo-ndk
           rustup target add x86_64-unknown-linux-gnu
-          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm 
+          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm
           sudo apt install -y debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
           sudo apt install -y libc6-dev-i386
           sudo apt install -y build-essential cmake git libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev pkg-config llvm
@@ -50,48 +50,36 @@ jobs:
           $encodedBytes = [System.Convert]::FromBase64String($env:CHANGE_NOW);
           Set-Content $secretFileExchange -Value $encodedBytes -AsByteStream;
           $secretFileExchangeHash = Get-FileHash $secretFileExchange;
-          Write-Output "::set-output name=SECRET_FILE_EXCHANGE::$secretFileExchange";
-          Write-Output "::set-output name=SECRET_FILE_EXCHANGE_HASH::$($secretFileExchangeHash.Hash)";
           Write-Output "Secret file $secretFileExchange has hash $($secretFileExchangeHash.Hash)";
           
           $secretFileBitcoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:BITCOIN_TEST);
           Set-Content $secretFileBitcoin -Value $encodedBytes -AsByteStream;
           $secretFileBitcoinHash = Get-FileHash $secretFileBitcoin;
-          Write-Output "::set-output name=SECRET_FILE_BITCOIN::$secretFileBitcoin";
-          Write-Output "::set-output name=SECRET_FILE_BITCOIN_HASH::$($secretFileBitcoinHash.Hash)";
           Write-Output "Secret file $secretFileBitcoin has hash $($secretFileBitcoinHash.Hash)";
           
           $secretFileDogecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:DOGECOIN_TEST);
           Set-Content $secretFileDogecoin -Value $encodedBytes -AsByteStream;
           $secretFileDogecoinHash = Get-FileHash $secretFileDogecoin;
-          Write-Output "::set-output name=SECRET_FILE_DOGECOIN::$secretFileDogecoin";
-          Write-Output "::set-output name=SECRET_FILE_DOGECOIN_HASH::$($secretFileDogecoinHash.Hash)";
           Write-Output "Secret file $secretFileDogecoin has hash $($secretFileDogecoinHash.Hash)";
           
           $secretFileFiro = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/firo/firo_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:FIRO_TEST);
           Set-Content $secretFileFiro -Value $encodedBytes -AsByteStream;
           $secretFileFiroHash = Get-FileHash $secretFileFiro;
-          Write-Output "::set-output name=SECRET_FILE_FIRO::$secretFileFiro";
-          Write-Output "::set-output name=SECRET_FILE_FIRO_HASH::$($secretFileFiroHash.Hash)";
           Write-Output "Secret file $secretFileFiro has hash $($secretFileFiroHash.Hash)";
           
           $secretFileBitcoinCash = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:BITCOINCASH_TEST);
           Set-Content $secretFileBitcoinCash -Value $encodedBytes -AsByteStream;
           $secretFileBitcoinCashHash = Get-FileHash $secretFileBitcoinCash;
-          Write-Output "::set-output name=SECRET_FILE_BITCOINCASH::$secretFileBitcoinCash";
-          Write-Output "::set-output name=SECRET_FILE_BITCOINCASH_HASH::$($secretFileBitcoinCashHash.Hash)";
           Write-Output "Secret file $secretFileBitcoinCash has hash $($secretFileBitcoinCashHash.Hash)";
           
           $secretFileNamecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/namecoin/namecoin_wallet_test_parameters.dart";
           $encodedBytes = [System.Convert]::FromBase64String($env:NAMECOIN_TEST);
           Set-Content $secretFileNamecoin -Value $encodedBytes -AsByteStream;
           $secretFileNamecoinHash = Get-FileHash $secretFileNamecoin;
-          Write-Output "::set-output name=SECRET_FILE_NAMECOIN::$secretFileNamecoin";
-          Write-Output "::set-output name=SECRET_FILE_NAMECOIN_HASH::$($secretFileNamecoinHash.Hash)";
           Write-Output "Secret file $secretFileNamecoin has hash $($secretFileNamecoinHash.Hash)";
           
         shell: pwsh
@@ -114,18 +102,18 @@ jobs:
           file: coverage/lcov.info
       - name: Delete temp files
         run: |
-          Remove-Item -Path $env:CHANGE_NOW;
-          Remove-Item -Path $env:BITCOIN_TEST;
-          Remove-Item -Path $env:DOGECOIN_TEST;
-          Remove-Item -Path $env:FIRO_TEST;
-          Remove-Item -Path $env:BITCOINCASH_TEST;
-          Remove-Item -Path $env:NAMECOIN_TEST;
+          $secretFileExchange = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "lib/external_api_keys.dart";
+          $secretFileBitcoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart";
+          $secretFileDogecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart";
+          $secretFileFiro = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/firo/firo_wallet_test_parameters.dart";
+          $secretFileBitcoinCash = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart";
+          $secretFileNamecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/namecoin/namecoin_wallet_test_parameters.dart";
+
+          Remove-Item -Path $secretFileExchange;
+          Remove-Item -Path $secretFileBitcoin;
+          Remove-Item -Path $secretFileDogecoin;
+          Remove-Item -Path $secretFileFiro;
+          Remove-Item -Path $secretFileBitcoinCash;
+          Remove-Item -Path $secretFileNamecoin;
         shell: pwsh
         if: always()
-        env:
-          CHANGE_NOW: ${{ steps.secret-file1.outputs.SECRET_FILE_EXCHANGE }}
-          BITCOIN_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_BITCOIN }}
-          DOGECOIN_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_DOGECOIN }}
-          FIRO_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_FIRO }}
-          BITCOINCASH_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_BITCOINCASH }}
-          NAMECOIN_TEST: ${{ steps.secret-file1.outputs.SECRET_FILE_NAMECOIN }}
