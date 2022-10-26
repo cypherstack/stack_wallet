@@ -98,7 +98,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
           children: const [
             NetworkInfoButton(),
             SizedBox(
-              width: 12,
+              width: 32,
             ),
             WalletKeysButton(),
             SizedBox(
@@ -467,8 +467,28 @@ class NetworkInfoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Text("todo: sync status"),
+    return GestureDetector(
+      child: Container(
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              Assets.svg.network,
+              width: 24,
+              height: 24,
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorGreen,
+            ),
+            const SizedBox(
+              width: 6,
+            ),
+            Text(
+              "Synchronised",
+              style: STextStyles.desktopMenuItemSelected(context),
+            )
+          ],
+        ),
+      ),
     );
   }
 }
@@ -478,8 +498,29 @@ class WalletKeysButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Text("todo: wallet keys"),
+    return GestureDetector(
+      child: Container(
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              Assets.svg.key,
+              width: 20,
+              height: 20,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondary,
+            ),
+            const SizedBox(
+              width: 6,
+            ),
+            Text(
+              "Wallet keys",
+              style: STextStyles.desktopMenuItemSelected(context),
+            )
+          ],
+        ),
+      ),
     );
   }
 }
