@@ -68,6 +68,9 @@ final openedFromSWBFileStringStateProvider =
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
+  if(Platform.isIOS){
+    Util.libraryPath = await getLibraryDirectory();
+  }
 
   if (Util.isDesktop) {
     setWindowTitle('Stack Wallet');

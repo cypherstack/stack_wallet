@@ -86,7 +86,16 @@ import 'package:stackwallet/pages_desktop_specific/create_password/create_passwo
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -957,11 +966,11 @@ class RouteGenerator {
             builder: (_) => const DesktopHomeView(),
             settings: RouteSettings(name: settings.name));
 
-      // case DesktopSettingsView.routeName:
-      //   return getRoute(
-      //       shouldUseMaterialRoute: useMaterialPageRoute,
-      //       builder: (_) => const DesktopSettingsView(),
-      //       settings: RouteSettings(name: settings.name));
+      case DesktopSettingsView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopSettingsView(),
+            settings: RouteSettings(name: settings.name));
 
       case MyStackView.routeName:
         return getRoute(
@@ -969,12 +978,74 @@ class RouteGenerator {
             builder: (_) => const MyStackView(),
             settings: RouteSettings(name: settings.name));
 
+      case DesktopWalletView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopWalletView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case SettingsMenu.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SettingsMenu(
                   onSelectionChanged: (int) {},
                 ),
+            settings: RouteSettings(name: settings.name));
+
+      case BackupRestoreSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const BackupRestoreSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case SecuritySettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const SecuritySettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case CurrencySettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const CurrencySettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case LanguageOptionSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const LanguageOptionSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case NodesSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const NodesSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case SyncingPreferencesSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const SyncingPreferencesSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case AppearanceOptionSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const AppearanceOptionSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case AdvancedSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const AdvancedSettings(),
             settings: RouteSettings(name: settings.name));
 
       // == End of desktop specific routes =====================================

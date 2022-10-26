@@ -569,6 +569,8 @@ class _TransactionSearchViewState
                           Constants.size.circularBorderRadius,
                         ),
                         child: TextField(
+                          autocorrect: Util.isDesktop ? false : true,
+                          enableSuggestions: Util.isDesktop ? false : true,
                           key: const Key("transactionSearchViewAmountFieldKey"),
                           controller: _amountTextEditingController,
                           focusNode: amountTextFieldFocusNode,
@@ -636,6 +638,8 @@ class _TransactionSearchViewState
                           Constants.size.circularBorderRadius,
                         ),
                         child: TextField(
+                          autocorrect: Util.isDesktop ? false : true,
+                          enableSuggestions: Util.isDesktop ? false : true,
                           key:
                               const Key("transactionSearchViewKeywordFieldKey"),
                           controller: _keywordTextEditingController,

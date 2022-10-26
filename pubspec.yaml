@@ -294,6 +294,20 @@ flutter:
     - assets/svg/Polygon.svg
     - assets/svg/persona-easy-1.svg
     - assets/svg/persona-incognito-1.svg
+    - assets/svg/Button.svg
+    - assets/svg/lock-circle.svg
+    - assets/svg/dollar-sign-circle.svg
+    - assets/svg/language-circle.svg
+    - assets/svg/rotate-circle.svg
+    - assets/svg/sun-circle.svg
+    - assets/svg/node-circle.svg
+    - assets/svg/dark/dark-theme.svg
+    - assets/svg/light/light-mode.svg
+    - assets/svg/address-book-desktop.svg
+    - assets/svg/about-desktop.svg
+    - assets/svg/exchange-desktop.svg
+    - assets/svg/wallet-desktop.svg
+    - assets/svg/exit-desktop.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg

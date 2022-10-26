@@ -21,6 +21,8 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class AllTransactionsView extends ConsumerStatefulWidget {
   const AllTransactionsView({
     Key? key,
@@ -234,6 +236,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                   Constants.size.circularBorderRadius,
                 ),
                 child: TextField(
+                  autocorrect: Util.isDesktop ? false : true,
+                  enableSuggestions: Util.isDesktop ? false : true,
                   controller: _searchController,
                   focusNode: searchFieldFocusNode,
                   onChanged: (value) {
