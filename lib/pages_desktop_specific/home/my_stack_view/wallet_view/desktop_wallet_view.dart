@@ -209,6 +209,8 @@ class MyWallet extends StatefulWidget {
 }
 
 class _MyWalletState extends State<MyWallet> {
+  int _selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -225,53 +227,171 @@ class _MyWalletState extends State<MyWallet> {
         const SizedBox(
           height: 16,
         ),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).extension<StackColors>()!.popupBG,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+          ),
+          child: SendReceiveTabMenu(
+            onChanged: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).extension<StackColors>()!.popupBG,
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+          ),
+          child: IndexedStack(
+            index: _selectedIndex,
+            children: [
+              Padding(
+                key: const Key("desktopSendViewPortKey"),
+                padding: const EdgeInsets.all(20),
+                child: DesktopSend(
+                  walletId: widget.walletId,
+                ),
+              ),
+              Padding(
+                key: const Key("desktopReceiveViewPortKey"),
+                padding: const EdgeInsets.all(20),
+                child: DesktopReceive(
+                  walletId: widget.walletId,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Spacer(),
+      ],
+    );
+  }
+}
+
+class SendReceiveTabMenu extends StatefulWidget {
+  const SendReceiveTabMenu({
+    Key? key,
+    this.initialIndex = 0,
+    this.onChanged,
+  }) : super(key: key);
+
+  final int initialIndex;
+  final void Function(int)? onChanged;
+
+  @override
+  State<SendReceiveTabMenu> createState() => _SendReceiveTabMenuState();
+}
+
+class _SendReceiveTabMenuState extends State<SendReceiveTabMenu> {
+  late int _selectedIndex;
+
+  void _onChanged(int newIndex) {
+    if (_selectedIndex != newIndex) {
+      setState(() {
+        _selectedIndex = newIndex;
+      });
+      widget.onChanged?.call(_selectedIndex);
+    }
+  }
+
+  @override
+  void initState() {
+    _selectedIndex = widget.initialIndex;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
         Expanded(
-          child: RoundedWhiteContainer(
-            padding: const EdgeInsets.all(0),
-            child: DefaultTabController(
-              length: 2,
+          child: GestureDetector(
+            onTap: () => _onChanged(0),
+            child: Container(
+              color: Colors.transparent,
               child: Column(
                 children: [
-                  TabBar(
-                    indicatorColor: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorBlue,
-                    labelStyle: STextStyles.desktopTextExtraSmall(context),
-                    labelColor: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorBlue,
-                    unselectedLabelColor: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
-                    labelPadding: const EdgeInsets.symmetric(
-                      vertical: 6,
-                    ),
-                    splashBorderRadius: BorderRadius.vertical(
-                      top: Radius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                    tabs: const [
-                      Tab(text: "Send"),
-                      Tab(text: "Receive"),
-                    ],
+                  const SizedBox(
+                    height: 16,
                   ),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: DesktopSend(
-                            walletId: widget.walletId,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: DesktopReceive(
-                            walletId: widget.walletId,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    "Send",
+                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: _selectedIndex == 0
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 19,
+                  ),
+                  Container(
+                    height: 2,
+                    decoration: BoxDecoration(
+                      color: _selectedIndex == 0
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => _onChanged(1),
+            child: Container(
+              color: Colors.transparent,
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Text(
+                    "Receive",
+                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: _selectedIndex == 1
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 19,
+                  ),
+                  Container(
+                    height: 2,
+                    decoration: BoxDecoration(
+                      color: _selectedIndex == 1
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                     ),
                   ),
                 ],
