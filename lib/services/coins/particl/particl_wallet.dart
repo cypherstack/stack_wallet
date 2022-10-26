@@ -46,7 +46,7 @@ const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 294;
 
 const String GENESIS_HASH_MAINNET =
-    "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770";
+    "0000ee0784c195317ac95623e22fddb8c7b8825dc3998e0bb924d66866eccf4c";
 const String GENESIS_HASH_TESTNET =
     "0000594ada5310b367443ee0afd4fa3d0bbd5850ea4e33cdc7d6a904a7ec7c90";
 
@@ -883,6 +883,8 @@ class ParticlWallet extends CoinServiceAPI {
 
       if (currentHeight != storedHeight) {
         if (currentHeight != -1) {
+          Logging.instance
+              .log("Can update chain: $currentHeight", level: LogLevel.Info);
           // -1 failed to fetch current height
           unawaited(updateStoredChainHeight(newHeight: currentHeight));
         }
@@ -2221,6 +2223,9 @@ class ParticlWallet extends CoinServiceAPI {
     Logging.instance.log("allTransactions length: ${allTransactions.length}",
         level: LogLevel.Info);
 
+    Logging.instance
+        .log("allTransactions is: $allTransactions", level: LogLevel.Info);
+
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
@@ -2246,9 +2251,12 @@ class ParticlWallet extends CoinServiceAPI {
         final tx = await _cachedElectrumXClient.getTransaction(
             txHash: prevTxid, coin: coin);
 
+        Logging.instance
+            .log("RECEIVED TX IS : ${tx["vout"]}", level: LogLevel.Info);
+
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["addresses"][0] as String?;
+            final address = out["scriptPubKey"]["address"] as String?;
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2259,7 +2267,7 @@ class ParticlWallet extends CoinServiceAPI {
       Logging.instance.log("sendersArray: $sendersArray", level: LogLevel.Info);
 
       for (final output in txObject["vout"] as List) {
-        final address = output["scriptPubKey"]["addresses"][0] as String?;
+        final address = output["scriptPubKey"]["address"] as String?;
         if (address != null) {
           recipientsArray.add(address);
         }
@@ -2300,8 +2308,9 @@ class ParticlWallet extends CoinServiceAPI {
         int totalOutput = 0;
 
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["addresses"][0];
+          final address = output["scriptPubKey"]["address"];
           final value = output["value"];
+
           final _value = (Decimal.parse(value.toString()) *
                   Decimal.fromInt(Constants.satsPerCoin))
               .toBigInt()
@@ -2325,7 +2334,8 @@ class ParticlWallet extends CoinServiceAPI {
 
         // add up received tx value
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["addresses"][0];
+          final address = output["scriptPubKey"]["address"];
+
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
                     Decimal.fromInt(Constants.satsPerCoin))
@@ -3006,7 +3016,7 @@ class ParticlWallet extends CoinServiceAPI {
         .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
     final txb = TransactionBuilder(network: _network);
-    txb.setVersion(1);
+    txb.setVersion(160);
 
     // Add transaction inputs
     for (var i = 0; i < utxosToUse.length; i++) {
