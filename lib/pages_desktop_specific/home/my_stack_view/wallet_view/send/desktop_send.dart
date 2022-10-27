@@ -416,7 +416,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   // }
 
   Future<String?> _firoBalanceFuture(
-      ChangeNotifierProvider<Manager> provider, String locale) async {
+    ChangeNotifierProvider<Manager> provider,
+    String locale,
+  ) async {
     final wallet = ref.read(provider).wallet as FiroWallet?;
 
     if (wallet != null) {
@@ -433,6 +435,203 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
 
     return null;
+  }
+
+  Widget firoBalanceFutureBuilder(
+    BuildContext context,
+    AsyncSnapshot<String?> snapshot,
+  ) {
+    if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
+          "Private") {
+        _privateBalanceString = snapshot.data!;
+      } else {
+        _publicBalanceString = snapshot.data!;
+      }
+    }
+    if (ref.read(publicPrivateBalanceStateProvider.state).state == "Private" &&
+        _privateBalanceString != null) {
+      return Text(
+        "$_privateBalanceString ${coin.ticker}",
+        style: STextStyles.itemSubtitle(context),
+      );
+    } else if (ref.read(publicPrivateBalanceStateProvider.state).state ==
+            "Public" &&
+        _publicBalanceString != null) {
+      return Text(
+        "$_publicBalanceString ${coin.ticker}",
+        style: STextStyles.itemSubtitle(context),
+      );
+    } else {
+      return AnimatedText(
+        stringsToLoopThrough: const [
+          "Loading balance",
+          "Loading balance.",
+          "Loading balance..",
+          "Loading balance...",
+        ],
+        style: STextStyles.itemSubtitle(context),
+      );
+    }
+  }
+
+  Future<void> scanQr() async {
+    try {
+      if (FocusScope.of(context).hasFocus) {
+        FocusScope.of(context).unfocus();
+        await Future<void>.delayed(const Duration(milliseconds: 75));
+      }
+
+      final qrResult = await scanner.scan();
+
+      Logging.instance.log("qrResult content: ${qrResult.rawContent}",
+          level: LogLevel.Info);
+
+      final results = AddressUtils.parseUri(qrResult.rawContent);
+
+      Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
+
+      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
+        // auto fill address
+        _address = results["address"] ?? "";
+        sendToController.text = _address!;
+
+        // autofill notes field
+        if (results["message"] != null) {
+          noteController.text = results["message"]!;
+        } else if (results["label"] != null) {
+          noteController.text = results["label"]!;
+        }
+
+        // autofill amount field
+        if (results["amount"] != null) {
+          final amount = Decimal.parse(results["amount"]!);
+          cryptoAmountController.text = Format.localizedStringAsFixed(
+            value: amount,
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+            decimalPlaces: Constants.decimalPlaces,
+          );
+          amount.toString();
+          _amountToSend = amount;
+        }
+
+        _updatePreviewButtonState(_address, _amountToSend);
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
+
+        // now check for non standard encoded basic address
+      } else if (ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .validateAddress(qrResult.rawContent)) {
+        _address = qrResult.rawContent;
+        sendToController.text = _address ?? "";
+
+        _updatePreviewButtonState(_address, _amountToSend);
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
+      }
+    } on PlatformException catch (e, s) {
+      // here we ignore the exception caused by not giving permission
+      // to use the camera to scan a qr code
+      Logging.instance.log(
+          "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+          level: LogLevel.Warning);
+    }
+  }
+
+  Future<void> pasteAddress() async {
+    final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      String content = data.text!.trim();
+      if (content.contains("\n")) {
+        content = content.substring(0, content.indexOf("\n"));
+      }
+
+      sendToController.text = content;
+      _address = content;
+
+      _updatePreviewButtonState(_address, _amountToSend);
+      setState(() {
+        _addressToggleFlag = sendToController.text.isNotEmpty;
+      });
+    }
+  }
+
+  void fiatTextFieldOnChanged(String baseAmountString) {
+    if (baseAmountString.isNotEmpty &&
+        baseAmountString != "." &&
+        baseAmountString != ",") {
+      final baseAmount = baseAmountString.contains(",")
+          ? Decimal.parse(baseAmountString.replaceFirst(",", "."))
+          : Decimal.parse(baseAmountString);
+
+      var _price =
+          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+
+      if (_price == Decimal.zero) {
+        _amountToSend = Decimal.zero;
+      } else {
+        _amountToSend = baseAmount <= Decimal.zero
+            ? Decimal.zero
+            : (baseAmount / _price)
+                .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces);
+      }
+      if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
+        return;
+      }
+      _cachedAmountToSend = _amountToSend;
+      Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
+          level: LogLevel.Info);
+
+      final amountString = Format.localizedStringAsFixed(
+        value: _amountToSend!,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        decimalPlaces: Constants.decimalPlaces,
+      );
+
+      _cryptoAmountChangeLock = true;
+      cryptoAmountController.text = amountString;
+      _cryptoAmountChangeLock = false;
+    } else {
+      _amountToSend = Decimal.zero;
+      _cryptoAmountChangeLock = true;
+      cryptoAmountController.text = "";
+      _cryptoAmountChangeLock = false;
+    }
+    // setState(() {
+    //   _calculateFeesFuture = calculateFees(
+    //       Format.decimalAmountToSatoshis(
+    //           _amountToSend!));
+    // });
+    _updatePreviewButtonState(_address, _amountToSend);
+  }
+
+  Future<void> sendAllTapped() async {
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      final firoWallet = ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .wallet as FiroWallet;
+      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
+          "Private") {
+        cryptoAmountController.text =
+            (await firoWallet.availablePrivateBalance())
+                .toStringAsFixed(Constants.decimalPlaces);
+      } else {
+        cryptoAmountController.text =
+            (await firoWallet.availablePublicBalance())
+                .toStringAsFixed(Constants.decimalPlaces);
+      }
+    } else {
+      cryptoAmountController.text = (await ref
+              .read(walletsChangeNotifierProvider)
+              .getManager(walletId)
+              .availableBalance)
+          .toStringAsFixed(Constants.decimalPlaces);
+    }
   }
 
   @override
@@ -602,55 +801,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           ),
                           FutureBuilder(
                             future: _firoBalanceFuture(provider, locale),
-                            builder:
-                                (context, AsyncSnapshot<String?> snapshot) {
-                              if (snapshot.connectionState ==
-                                      ConnectionState.done &&
-                                  snapshot.hasData) {
-                                if (ref
-                                        .read(publicPrivateBalanceStateProvider
-                                            .state)
-                                        .state ==
-                                    "Private") {
-                                  _privateBalanceString = snapshot.data!;
-                                } else {
-                                  _publicBalanceString = snapshot.data!;
-                                }
-                              }
-                              if (ref
-                                          .read(
-                                              publicPrivateBalanceStateProvider
-                                                  .state)
-                                          .state ==
-                                      "Private" &&
-                                  _privateBalanceString != null) {
-                                return Text(
-                                  "$_privateBalanceString ${coin.ticker}",
-                                  style: STextStyles.itemSubtitle(context),
-                                );
-                              } else if (ref
-                                          .read(
-                                              publicPrivateBalanceStateProvider
-                                                  .state)
-                                          .state ==
-                                      "Public" &&
-                                  _publicBalanceString != null) {
-                                return Text(
-                                  "$_publicBalanceString ${coin.ticker}",
-                                  style: STextStyles.itemSubtitle(context),
-                                );
-                              } else {
-                                return AnimatedText(
-                                  stringsToLoopThrough: const [
-                                    "Loading balance",
-                                    "Loading balance.",
-                                    "Loading balance..",
-                                    "Loading balance...",
-                                  ],
-                                  style: STextStyles.itemSubtitle(context),
-                                );
-                              }
-                            },
+                            builder: firoBalanceFutureBuilder,
                           ),
                         ],
                       ),
@@ -682,25 +833,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             BlueTextButton(
               text: "Send all ${coin.ticker}",
-              onTap: () async {
-                if (coin == Coin.firo || coin == Coin.firoTestNet) {
-                  final firoWallet = ref.read(provider).wallet as FiroWallet;
-                  if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-                      "Private") {
-                    cryptoAmountController.text =
-                        (await firoWallet.availablePrivateBalance())
-                            .toStringAsFixed(Constants.decimalPlaces);
-                  } else {
-                    cryptoAmountController.text =
-                        (await firoWallet.availablePublicBalance())
-                            .toStringAsFixed(Constants.decimalPlaces);
-                  }
-                } else {
-                  cryptoAmountController.text =
-                      (await ref.read(provider).availableBalance)
-                          .toStringAsFixed(Constants.decimalPlaces);
-                }
-              },
+              onTap: sendAllTapped,
             ),
           ],
         ),
@@ -780,58 +913,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       ? newValue
                       : oldValue),
             ],
-            onChanged: (baseAmountString) {
-              if (baseAmountString.isNotEmpty &&
-                  baseAmountString != "." &&
-                  baseAmountString != ",") {
-                final baseAmount = baseAmountString.contains(",")
-                    ? Decimal.parse(baseAmountString.replaceFirst(",", "."))
-                    : Decimal.parse(baseAmountString);
-
-                var _price = ref
-                    .read(priceAnd24hChangeNotifierProvider)
-                    .getPrice(coin)
-                    .item1;
-
-                if (_price == Decimal.zero) {
-                  _amountToSend = Decimal.zero;
-                } else {
-                  _amountToSend = baseAmount <= Decimal.zero
-                      ? Decimal.zero
-                      : (baseAmount / _price).toDecimal(
-                          scaleOnInfinitePrecision: Constants.decimalPlaces);
-                }
-                if (_cachedAmountToSend != null &&
-                    _cachedAmountToSend == _amountToSend) {
-                  return;
-                }
-                _cachedAmountToSend = _amountToSend;
-                Logging.instance.log(
-                    "it changed $_amountToSend $_cachedAmountToSend",
-                    level: LogLevel.Info);
-
-                final amountString = Format.localizedStringAsFixed(
-                  value: _amountToSend!,
-                  locale: ref.read(localeServiceChangeNotifierProvider).locale,
-                  decimalPlaces: Constants.decimalPlaces,
-                );
-
-                _cryptoAmountChangeLock = true;
-                cryptoAmountController.text = amountString;
-                _cryptoAmountChangeLock = false;
-              } else {
-                _amountToSend = Decimal.zero;
-                _cryptoAmountChangeLock = true;
-                cryptoAmountController.text = "";
-                _cryptoAmountChangeLock = false;
-              }
-              // setState(() {
-              //   _calculateFeesFuture = calculateFees(
-              //       Format.decimalAmountToSatoshis(
-              //           _amountToSend!));
-              // });
-              _updatePreviewButtonState(_address, _amountToSend);
-            },
+            onChanged: fiatTextFieldOnChanged,
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.only(
                 top: 12,
@@ -937,28 +1019,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           : TextFieldIconButton(
                               key: const Key(
                                   "sendViewPasteAddressFieldButtonKey"),
-                              onTap: () async {
-                                final ClipboardData? data = await clipboard
-                                    .getData(Clipboard.kTextPlain);
-                                if (data?.text != null &&
-                                    data!.text!.isNotEmpty) {
-                                  String content = data.text!.trim();
-                                  if (content.contains("\n")) {
-                                    content = content.substring(
-                                        0, content.indexOf("\n"));
-                                  }
-
-                                  sendToController.text = content;
-                                  _address = content;
-
-                                  _updatePreviewButtonState(
-                                      _address, _amountToSend);
-                                  setState(() {
-                                    _addressToggleFlag =
-                                        sendToController.text.isNotEmpty;
-                                  });
-                                }
-                              },
+                              onTap: pasteAddress,
                               child: sendToController.text.isEmpty
                                   ? const ClipboardIcon()
                                   : const XIcon(),
@@ -977,86 +1038,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       if (sendToController.text.isEmpty)
                         TextFieldIconButton(
                           key: const Key("sendViewScanQrButtonKey"),
-                          onTap: () async {
-                            try {
-                              if (FocusScope.of(context).hasFocus) {
-                                FocusScope.of(context).unfocus();
-                                await Future<void>.delayed(
-                                    const Duration(milliseconds: 75));
-                              }
-
-                              final qrResult = await scanner.scan();
-
-                              Logging.instance.log(
-                                  "qrResult content: ${qrResult.rawContent}",
-                                  level: LogLevel.Info);
-
-                              final results =
-                                  AddressUtils.parseUri(qrResult.rawContent);
-
-                              Logging.instance.log("qrResult parsed: $results",
-                                  level: LogLevel.Info);
-
-                              if (results.isNotEmpty &&
-                                  results["scheme"] == coin.uriScheme) {
-                                // auto fill address
-                                _address = results["address"] ?? "";
-                                sendToController.text = _address!;
-
-                                // autofill notes field
-                                if (results["message"] != null) {
-                                  noteController.text = results["message"]!;
-                                } else if (results["label"] != null) {
-                                  noteController.text = results["label"]!;
-                                }
-
-                                // autofill amount field
-                                if (results["amount"] != null) {
-                                  final amount =
-                                      Decimal.parse(results["amount"]!);
-                                  cryptoAmountController.text =
-                                      Format.localizedStringAsFixed(
-                                    value: amount,
-                                    locale: ref
-                                        .read(
-                                            localeServiceChangeNotifierProvider)
-                                        .locale,
-                                    decimalPlaces: Constants.decimalPlaces,
-                                  );
-                                  amount.toString();
-                                  _amountToSend = amount;
-                                }
-
-                                _updatePreviewButtonState(
-                                    _address, _amountToSend);
-                                setState(() {
-                                  _addressToggleFlag =
-                                      sendToController.text.isNotEmpty;
-                                });
-
-                                // now check for non standard encoded basic address
-                              } else if (ref
-                                  .read(walletsChangeNotifierProvider)
-                                  .getManager(walletId)
-                                  .validateAddress(qrResult.rawContent)) {
-                                _address = qrResult.rawContent;
-                                sendToController.text = _address ?? "";
-
-                                _updatePreviewButtonState(
-                                    _address, _amountToSend);
-                                setState(() {
-                                  _addressToggleFlag =
-                                      sendToController.text.isNotEmpty;
-                                });
-                              }
-                            } on PlatformException catch (e, s) {
-                              // here we ignore the exception caused by not giving permission
-                              // to use the camera to scan a qr code
-                              Logging.instance.log(
-                                  "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                  level: LogLevel.Warning);
-                            }
-                          },
+                          onTap: scanQr,
                           child: const QrCodeIcon(),
                         )
                     ],
