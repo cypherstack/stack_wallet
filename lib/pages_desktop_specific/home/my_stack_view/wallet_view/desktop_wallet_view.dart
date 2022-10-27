@@ -4,6 +4,8 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/receive/desktop_receive.dart';
@@ -14,10 +16,12 @@ import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -27,6 +31,7 @@ import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
@@ -88,6 +93,73 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     } else {
       Logging.instance.log("User does not want to use external calls",
           level: LogLevel.Info);
+    }
+  }
+
+  void _onExchangePressed(BuildContext context) async {
+    final managerProvider =
+        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+    unawaited(_cnLoadingService.loadAll(ref));
+
+    final coin = ref.read(managerProvider).coin;
+
+    if (coin == Coin.epicCash) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const StackOkDialog(
+          title: "Exchange not available for Epic Cash",
+        ),
+      );
+    } else if (coin.name.endsWith("TestNet")) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const StackOkDialog(
+          title: "Exchange not available for test net coins",
+        ),
+      );
+    } else {
+      ref.read(currentExchangeNameStateProvider.state).state =
+          ChangeNowExchange.exchangeName;
+      final walletId = ref.read(managerProvider).walletId;
+      ref.read(prefsChangeNotifierProvider).exchangeRateType =
+          ExchangeRateType.estimated;
+
+      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
+      ref.read(exchangeFormStateProvider).exchangeType =
+          ExchangeRateType.estimated;
+
+      final currencies = ref
+          .read(availableChangeNowCurrenciesProvider)
+          .currencies
+          .where((element) =>
+              element.ticker.toLowerCase() == coin.ticker.toLowerCase());
+
+      if (currencies.isNotEmpty) {
+        ref.read(exchangeFormStateProvider).setCurrencies(
+              currencies.first,
+              ref
+                  .read(availableChangeNowCurrenciesProvider)
+                  .currencies
+                  .firstWhere(
+                    (element) =>
+                        element.ticker.toLowerCase() !=
+                        coin.ticker.toLowerCase(),
+                  ),
+            );
+      }
+
+      if (mounted) {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            WalletInitiatedExchangeView.routeName,
+            arguments: Tuple3(
+              walletId,
+              coin,
+              _loadCNData,
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -207,17 +279,33 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   const Spacer(),
                   SecondaryButton(
                     width: 180,
-                    height: 56,
+                    desktopMed: true,
                     onPressed: () {
-                      // todo: go to wallet initiated exchange
+                      _onExchangePressed(context);
                     },
                     label: "Exchange",
                     icon: Container(
-                      color: Colors.red,
-                      width: 20,
-                      height: 20,
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackPrimary
+                            .withOpacity(0.2),
+                      ),
+                      child: Center(
+                        child: SvgPicture.asset(
+                          Assets.svg.arrowRotate2,
+                          width: 14,
+                          height: 14,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondary,
+                        ),
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
