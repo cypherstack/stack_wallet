@@ -306,7 +306,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                           "Search",
                           searchFieldFocusNode,
                           context,
-                          desktopMed: true,
+                          desktopMed: isDesktop,
                         ).copyWith(
                           prefixIcon: Padding(
                             padding: EdgeInsets.symmetric(
@@ -330,6 +330,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                                           onTap: () async {
                                             setState(() {
                                               _searchController.text = "";
+                                              _searchString = "";
                                             });
                                           },
                                         ),
@@ -342,31 +343,45 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  SecondaryButton(
-                    desktopMed: true,
-                    width: 200,
-                    label: "Filter",
-                    icon: SvgPicture.asset(
-                      Assets.svg.filter,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                  if (isDesktop)
+                    const SizedBox(
                       width: 20,
-                      height: 20,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        TransactionSearchFilterView.routeName,
-                        arguments: ref
+                  if (isDesktop)
+                    SecondaryButton(
+                      desktopMed: isDesktop,
+                      width: 200,
+                      label: "Filter",
+                      icon: SvgPicture.asset(
+                        Assets.svg.filter,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () {
+                        final coin = ref
                             .read(walletsChangeNotifierProvider)
                             .getManager(walletId)
-                            .coin,
-                      );
-                    },
-                  ),
+                            .coin;
+                        if (isDesktop) {
+                          showDialog<void>(
+                            context: context,
+                            builder: (context) {
+                              return TransactionSearchFilterView(
+                                coin: coin,
+                              );
+                            },
+                          );
+                        } else {
+                          Navigator.of(context).pushNamed(
+                            TransactionSearchFilterView.routeName,
+                            arguments: coin,
+                          );
+                        }
+                      },
+                    ),
                 ],
               ),
             ),
@@ -402,6 +417,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
 
                         final monthlyList = groupTransactionsByMonth(searched);
                         return ListView.builder(
+                          primary: isDesktop ? false : null,
                           itemCount: monthlyList.length,
                           itemBuilder: (_, index) {
                             final month = monthlyList[index];

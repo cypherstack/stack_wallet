@@ -359,6 +359,7 @@ class _MyWalletState extends State<MyWallet> {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      primary: false,
       children: [
         Text(
           "My wallet",
