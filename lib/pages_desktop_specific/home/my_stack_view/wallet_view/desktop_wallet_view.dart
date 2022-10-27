@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
+import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/receive/desktop_receive.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/send/desktop_send.dart';
@@ -324,8 +325,10 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   const SizedBox(
                     width: 16,
                   ),
-                  const Expanded(
-                    child: RecentDesktopTransactions(),
+                  Expanded(
+                    child: RecentDesktopTransactions(
+                      walletId: walletId,
+                    ),
                   ),
                 ],
               ),
@@ -543,15 +546,21 @@ class _SendReceiveTabMenuState extends State<SendReceiveTabMenu> {
   }
 }
 
-class RecentDesktopTransactions extends StatefulWidget {
-  const RecentDesktopTransactions({Key? key}) : super(key: key);
+class RecentDesktopTransactions extends ConsumerStatefulWidget {
+  const RecentDesktopTransactions({
+    Key? key,
+    required this.walletId,
+  }) : super(key: key);
+
+  final String walletId;
 
   @override
-  State<RecentDesktopTransactions> createState() =>
+  ConsumerState<RecentDesktopTransactions> createState() =>
       _RecentDesktopTransactionsState();
 }
 
-class _RecentDesktopTransactionsState extends State<RecentDesktopTransactions> {
+class _RecentDesktopTransactionsState
+    extends ConsumerState<RecentDesktopTransactions> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -579,9 +588,10 @@ class _RecentDesktopTransactionsState extends State<RecentDesktopTransactions> {
           height: 16,
         ),
         Expanded(
-          child: RoundedWhiteContainer(
-            padding: const EdgeInsets.all(0),
-            child: Container(),
+          child: TransactionsList(
+            managerProvider: ref.watch(walletsChangeNotifierProvider
+                .select((value) => value.getManagerProvider(widget.walletId))),
+            walletId: widget.walletId,
           ),
         ),
       ],
