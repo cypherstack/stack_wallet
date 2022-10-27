@@ -10,6 +10,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 /// [eventBus] should only be set during testing
 class WalletRefreshButton extends ConsumerStatefulWidget {
@@ -70,7 +71,7 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
               _spinController?.stop();
               break;
             case WalletSyncStatus.syncing:
-              _spinController?.repeat();
+              unawaited(_spinController?.repeat());
               break;
           }
         }
@@ -92,10 +93,15 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
+
     return SizedBox(
-      height: 36,
-      width: 36,
+      height: isDesktop ? 22 : 36,
+      width: isDesktop ? 22 : 36,
       child: MaterialButton(
+        color: isDesktop
+            ? Theme.of(context).extension<StackColors>()!.buttonBackSecondary
+            : null,
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         onPressed: () {
           final managerProvider = ref
@@ -110,6 +116,9 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
                 .then((_) => _spinController?.stop());
           }
         },
+        elevation: 0,
+        highlightElevation: 0,
+        hoverElevation: 0,
         padding: EdgeInsets.zero,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
@@ -121,9 +130,13 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
           turns: _spinAnimation,
           child: SvgPicture.asset(
             Assets.svg.arrowRotate,
-            width: 24,
-            height: 24,
-            color: Theme.of(context).extension<StackColors>()!.textFavoriteCard,
+            width: isDesktop ? 12 : 24,
+            height: isDesktop ? 12 : 24,
+            color: isDesktop
+                ? Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultSearchIconRight
+                : Theme.of(context).extension<StackColors>()!.textFavoriteCard,
           ),
         ),
       ),

@@ -1,17 +1,13 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -100,9 +96,9 @@ class _WDesktopWalletSummaryState extends State<DesktopWalletSummary> {
                 final priceTuple = ref.watch(priceAnd24hChangeNotifierProvider
                     .select((value) => value.getPrice(coin)));
 
-                final _showAvailable =
-                    ref.watch(walletBalanceToggleStateProvider.state).state ==
-                        WalletBalanceToggleState.available;
+                final _showAvailable = false;
+                // ref.watch(walletBalanceToggleStateProvider.state).state ==
+                //     WalletBalanceToggleState.available;
 
                 return FutureBuilder(
                   future: _showAvailable
@@ -125,46 +121,46 @@ class _WDesktopWalletSummaryState extends State<DesktopWalletSummary> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          GestureDetector(
-                            onTap: showSheet,
-                            child: Row(
-                              children: [
-                                if (coin == Coin.firo ||
-                                    coin == Coin.firoTestNet)
-                                  Text(
-                                    "${_showAvailable ? "Private" : "Public"} Balance",
-                                    style: STextStyles.subtitle500(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFavoriteCard,
-                                    ),
-                                  ),
-                                if (coin != Coin.firo &&
-                                    coin != Coin.firoTestNet)
-                                  Text(
-                                    "${_showAvailable ? "Available" : "Full"} Balance",
-                                    style: STextStyles.subtitle500(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFavoriteCard,
-                                    ),
-                                  ),
-                                const SizedBox(
-                                  width: 4,
-                                ),
-                                SvgPicture.asset(
-                                  Assets.svg.chevronDown,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFavoriteCard,
-                                  width: 8,
-                                  height: 4,
-                                ),
-                              ],
-                            ),
-                          ),
+                          // GestureDetector(
+                          //   onTap: showSheet,
+                          //   child: Row(
+                          //     children: [
+                          //       if (coin == Coin.firo ||
+                          //           coin == Coin.firoTestNet)
+                          //         Text(
+                          //           "${_showAvailable ? "Private" : "Public"} Balance",
+                          //           style: STextStyles.subtitle500(context)
+                          //               .copyWith(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .textFavoriteCard,
+                          //           ),
+                          //         ),
+                          //       if (coin != Coin.firo &&
+                          //           coin != Coin.firoTestNet)
+                          //         Text(
+                          //           "${_showAvailable ? "Available" : "Full"} Balance",
+                          //           style: STextStyles.subtitle500(context)
+                          //               .copyWith(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .textFavoriteCard,
+                          //           ),
+                          //         ),
+                          //       const SizedBox(
+                          //         width: 4,
+                          //       ),
+                          //       SvgPicture.asset(
+                          //         Assets.svg.chevronDown,
+                          //         color: Theme.of(context)
+                          //             .extension<StackColors>()!
+                          //             .textFavoriteCard,
+                          //         width: 8,
+                          //         height: 4,
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
@@ -196,46 +192,46 @@ class _WDesktopWalletSummaryState extends State<DesktopWalletSummary> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          GestureDetector(
-                            onTap: showSheet,
-                            child: Row(
-                              children: [
-                                if (coin == Coin.firo ||
-                                    coin == Coin.firoTestNet)
-                                  Text(
-                                    "${_showAvailable ? "Private" : "Public"} Balance",
-                                    style: STextStyles.subtitle500(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFavoriteCard,
-                                    ),
-                                  ),
-                                if (coin != Coin.firo &&
-                                    coin != Coin.firoTestNet)
-                                  Text(
-                                    "${_showAvailable ? "Available" : "Full"} Balance",
-                                    style: STextStyles.subtitle500(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFavoriteCard,
-                                    ),
-                                  ),
-                                const SizedBox(
-                                  width: 4,
-                                ),
-                                SvgPicture.asset(
-                                  Assets.svg.chevronDown,
-                                  width: 8,
-                                  height: 4,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFavoriteCard,
-                                ),
-                              ],
-                            ),
-                          ),
+                          // GestureDetector(
+                          //   onTap: showSheet,
+                          //   child: Row(
+                          //     children: [
+                          //       if (coin == Coin.firo ||
+                          //           coin == Coin.firoTestNet)
+                          //         Text(
+                          //           "${_showAvailable ? "Private" : "Public"} Balance",
+                          //           style: STextStyles.subtitle500(context)
+                          //               .copyWith(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .textFavoriteCard,
+                          //           ),
+                          //         ),
+                          //       if (coin != Coin.firo &&
+                          //           coin != Coin.firoTestNet)
+                          //         Text(
+                          //           "${_showAvailable ? "Available" : "Full"} Balance",
+                          //           style: STextStyles.subtitle500(context)
+                          //               .copyWith(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .textFavoriteCard,
+                          //           ),
+                          //         ),
+                          //       const SizedBox(
+                          //         width: 4,
+                          //       ),
+                          //       SvgPicture.asset(
+                          //         Assets.svg.chevronDown,
+                          //         width: 8,
+                          //         height: 4,
+                          //         color: Theme.of(context)
+                          //             .extension<StackColors>()!
+                          //             .textFavoriteCard,
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
                           AnimatedText(
                             stringsToLoopThrough: const [
                               "Loading balance   ",
@@ -250,20 +246,21 @@ class _WDesktopWalletSummaryState extends State<DesktopWalletSummary> {
                                   .textFavoriteCard,
                             ),
                           ),
-                          AnimatedText(
-                            stringsToLoopThrough: const [
-                              "Loading balance   ",
-                              "Loading balance.  ",
-                              "Loading balance.. ",
-                              "Loading balance..."
-                            ],
-                            style: STextStyles.desktopTextExtraSmall(context)
-                                .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
+                          if (externalCalls)
+                            AnimatedText(
+                              stringsToLoopThrough: const [
+                                "Loading balance   ",
+                                "Loading balance.  ",
+                                "Loading balance.. ",
+                                "Loading balance..."
+                              ],
+                              style: STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              ),
                             ),
-                          ),
                         ],
                       );
                     }
@@ -272,6 +269,9 @@ class _WDesktopWalletSummaryState extends State<DesktopWalletSummary> {
               },
             ),
           ],
+        ),
+        const SizedBox(
+          width: 8,
         ),
         WalletRefreshButton(
           walletId: walletId,
