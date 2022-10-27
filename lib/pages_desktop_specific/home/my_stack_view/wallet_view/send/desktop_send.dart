@@ -745,7 +745,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (coin == Coin.firo)
           Text(
             "Send from",
-            style: STextStyles.smallMed12(context),
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
+            ),
             textAlign: TextAlign.left,
           ),
         if (coin == Coin.firo)
@@ -828,7 +832,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           children: [
             Text(
               "Amount",
-              style: STextStyles.smallMed12(context),
+              style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
+              ),
               textAlign: TextAlign.left,
             ),
             BlueTextButton(
@@ -864,12 +872,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ],
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.only(
-              top: 12,
+              top: 22,
               right: 12,
+              bottom: 22,
             ),
             hintText: "0",
-            hintStyle: STextStyles.fieldLabel(context).copyWith(
-              fontSize: 14,
+            hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -916,12 +927,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             onChanged: fiatTextFieldOnChanged,
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.only(
-                top: 12,
+                top: 22,
                 right: 12,
+                bottom: 22,
               ),
               hintText: "0",
-              hintStyle: STextStyles.fieldLabel(context).copyWith(
-                fontSize: 14,
+              hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -944,7 +958,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ),
         Text(
           "Send to",
-          style: STextStyles.smallMed12(context),
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
+          ),
           textAlign: TextAlign.left,
         ),
         const SizedBox(
@@ -981,16 +999,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               });
             },
             focusNode: _addressFocusNode,
-            style: STextStyles.field(context),
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
+              height: 1.8,
+            ),
             decoration: standardInputDecoration(
               "Enter ${coin.ticker} address",
               _addressFocusNode,
               context,
+              desktopMed: true,
             ).copyWith(
               contentPadding: const EdgeInsets.only(
                 left: 16,
-                top: 6,
-                bottom: 8,
+                top: 11,
+                bottom: 12,
                 right: 5,
               ),
               suffixIcon: Padding(
@@ -1083,7 +1107,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ),
         Text(
           "Note (optional)",
-          style: STextStyles.smallMed12(context),
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
+          ),
           textAlign: TextAlign.left,
         ),
         const SizedBox(
@@ -1100,13 +1128,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             enableSuggestions: Util.isDesktop ? false : true,
             controller: noteController,
             focusNode: _noteFocusNode,
-            style: STextStyles.field(context),
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
+              height: 1.8,
+            ),
             onChanged: (_) => setState(() {}),
             decoration: standardInputDecoration(
               "Type something...",
               _noteFocusNode,
               context,
+              desktopMed: true,
             ).copyWith(
+              contentPadding: const EdgeInsets.only(
+                left: 16,
+                top: 11,
+                bottom: 12,
+                right: 5,
+              ),
               suffixIcon: noteController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
