@@ -1173,7 +1173,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           height: 36,
         ),
         PrimaryButton(
-          height: 56,
+          desktopMed: true,
           label: "Preview send",
           enabled: ref.watch(previewTxButtonStateProvider.state).state,
           onPressed: ref.watch(previewTxButtonStateProvider.state).state

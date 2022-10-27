@@ -13,6 +13,7 @@ class PrimaryButton extends StatelessWidget {
     this.icon,
     this.onPressed,
     this.enabled = true,
+    this.desktopMed = false,
   }) : super(key: key);
 
   final double? width;
@@ -21,13 +22,40 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool enabled;
   final Widget? icon;
+  final bool desktopMed;
+
+  TextStyle getStyle(bool isDesktop, BuildContext context) {
+    if (isDesktop) {
+      if (desktopMed) {
+        return STextStyles.desktopTextExtraSmall(context).copyWith(
+          color: enabled
+              ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
+              : Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextPrimaryDisabled,
+        );
+      } else {
+        return enabled
+            ? STextStyles.desktopButtonEnabled(context)
+            : STextStyles.desktopButtonDisabled(context);
+      }
+    } else {
+      return STextStyles.button(context).copyWith(
+        color: enabled
+            ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
+            : Theme.of(context)
+                .extension<StackColors>()!
+                .buttonTextPrimaryDisabled,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
     return CustomTextButtonBase(
-      height: height,
+      height: desktopMed ? 56 : height,
       width: width,
       textButton: TextButton(
         onPressed: enabled ? onPressed : null,
@@ -49,19 +77,7 @@ class PrimaryButton extends StatelessWidget {
             if (label != null)
               Text(
                 label!,
-                style: isDesktop
-                    ? enabled
-                        ? STextStyles.desktopButtonEnabled(context)
-                        : STextStyles.desktopButtonDisabled(context)
-                    : STextStyles.button(context).copyWith(
-                        color: enabled
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextPrimary
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextPrimaryDisabled,
-                      ),
+                style: getStyle(isDesktop, context),
               ),
           ],
         ),
