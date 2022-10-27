@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
+import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
+import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -22,7 +24,6 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -39,9 +40,6 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import '../../../../../pages/send_view/confirm_transaction_view.dart';
-import '../../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -71,7 +69,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
   late TextEditingController noteController;
-  late TextEditingController feeController;
+  // late TextEditingController feeController;
 
   late final SendViewAutoFillData? _data;
 
@@ -91,8 +89,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
-
-  Decimal? _cachedBalance;
 
   Future<void> previewSend() async {
     // wait for keyboard to disappear
@@ -346,78 +342,78 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         (isValidAddress && amount != null && amount > Decimal.zero);
   }
 
-  late Future<String> _calculateFeesFuture;
+  // late Future<String> _calculateFeesFuture;
 
-  Map<int, String> cachedFees = {};
-  Map<int, String> cachedFiroPrivateFees = {};
-  Map<int, String> cachedFiroPublicFees = {};
+  // Map<int, String> cachedFees = {};
+  // Map<int, String> cachedFiroPrivateFees = {};
+  // Map<int, String> cachedFiroPublicFees = {};
 
-  Future<String> calculateFees(int amount) async {
-    if (amount <= 0) {
-      return "0";
-    }
-
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        if (cachedFiroPrivateFees[amount] != null) {
-          return cachedFiroPrivateFees[amount]!;
-        }
-      } else {
-        if (cachedFiroPublicFees[amount] != null) {
-          return cachedFiroPublicFees[amount]!;
-        }
-      }
-    } else if (cachedFees[amount] != null) {
-      return cachedFees[amount]!;
-    }
-
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
-    final feeObject = await manager.fees;
-
-    late final int feeRate;
-
-    switch (ref.read(feeRateTypeStateProvider.state).state) {
-      case FeeRateType.fast:
-        feeRate = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        feeRate = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        feeRate = feeObject.slow;
-        break;
-    }
-
-    int fee;
-
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        fee = await manager.estimateFeeFor(amount, feeRate);
-
-        cachedFiroPrivateFees[amount] = Format.satoshisToAmount(fee)
-            .toStringAsFixed(Constants.decimalPlaces);
-
-        return cachedFiroPrivateFees[amount]!;
-      } else {
-        fee = await (manager.wallet as FiroWallet)
-            .estimateFeeForPublic(amount, feeRate);
-
-        cachedFiroPublicFees[amount] = Format.satoshisToAmount(fee)
-            .toStringAsFixed(Constants.decimalPlaces);
-
-        return cachedFiroPublicFees[amount]!;
-      }
-    } else {
-      fee = await manager.estimateFeeFor(amount, feeRate);
-      cachedFees[amount] =
-          Format.satoshisToAmount(fee).toStringAsFixed(Constants.decimalPlaces);
-
-      return cachedFees[amount]!;
-    }
-  }
+  // Future<String> calculateFees(int amount) async {
+  //   if (amount <= 0) {
+  //     return "0";
+  //   }
+  //
+  //   if (coin == Coin.firo || coin == Coin.firoTestNet) {
+  //     if (ref.read(publicPrivateBalanceStateProvider.state).state ==
+  //         "Private") {
+  //       if (cachedFiroPrivateFees[amount] != null) {
+  //         return cachedFiroPrivateFees[amount]!;
+  //       }
+  //     } else {
+  //       if (cachedFiroPublicFees[amount] != null) {
+  //         return cachedFiroPublicFees[amount]!;
+  //       }
+  //     }
+  //   } else if (cachedFees[amount] != null) {
+  //     return cachedFees[amount]!;
+  //   }
+  //
+  //   final manager =
+  //       ref.read(walletsChangeNotifierProvider).getManager(walletId);
+  //   final feeObject = await manager.fees;
+  //
+  //   late final int feeRate;
+  //
+  //   switch (ref.read(feeRateTypeStateProvider.state).state) {
+  //     case FeeRateType.fast:
+  //       feeRate = feeObject.fast;
+  //       break;
+  //     case FeeRateType.average:
+  //       feeRate = feeObject.medium;
+  //       break;
+  //     case FeeRateType.slow:
+  //       feeRate = feeObject.slow;
+  //       break;
+  //   }
+  //
+  //   int fee;
+  //
+  //   if (coin == Coin.firo || coin == Coin.firoTestNet) {
+  //     if (ref.read(publicPrivateBalanceStateProvider.state).state ==
+  //         "Private") {
+  //       fee = await manager.estimateFeeFor(amount, feeRate);
+  //
+  //       cachedFiroPrivateFees[amount] = Format.satoshisToAmount(fee)
+  //           .toStringAsFixed(Constants.decimalPlaces);
+  //
+  //       return cachedFiroPrivateFees[amount]!;
+  //     } else {
+  //       fee = await (manager.wallet as FiroWallet)
+  //           .estimateFeeForPublic(amount, feeRate);
+  //
+  //       cachedFiroPublicFees[amount] = Format.satoshisToAmount(fee)
+  //           .toStringAsFixed(Constants.decimalPlaces);
+  //
+  //       return cachedFiroPublicFees[amount]!;
+  //     }
+  //   } else {
+  //     fee = await manager.estimateFeeFor(amount, feeRate);
+  //     cachedFees[amount] =
+  //         Format.satoshisToAmount(fee).toStringAsFixed(Constants.decimalPlaces);
+  //
+  //     return cachedFees[amount]!;
+  //   }
+  // }
 
   Future<String?> _firoBalanceFuture(
       ChangeNotifierProvider<Manager> provider, String locale) async {
@@ -443,7 +439,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   void initState() {
     ref.refresh(feeSheetSessionCacheProvider);
 
-    _calculateFeesFuture = calculateFees(0);
+    // _calculateFeesFuture = calculateFees(0);
     _data = widget.autoFillData;
     walletId = widget.walletId;
     coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
@@ -454,7 +450,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
     noteController = TextEditingController();
-    feeController = TextEditingController();
+    // feeController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
@@ -468,35 +464,35 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       _addressToggleFlag = true;
     }
 
-    _cryptoFocus.addListener(() {
-      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(0);
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture =
-                calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-          });
-        }
-      }
-    });
-
-    _baseFocus.addListener(() {
-      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(0);
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture =
-                calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-          });
-        }
-      }
-    });
+    // _cryptoFocus.addListener(() {
+    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+    //     if (_amountToSend == null) {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(0);
+    //       });
+    //     } else {
+    //       setState(() {
+    //         _calculateFeesFuture =
+    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
+    //       });
+    //     }
+    //   }
+    // });
+    //
+    // _baseFocus.addListener(() {
+    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+    //     if (_amountToSend == null) {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(0);
+    //       });
+    //     } else {
+    //       setState(() {
+    //         _calculateFeesFuture =
+    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
+    //       });
+    //     }
+    //   }
+    // });
 
     super.initState();
   }
@@ -509,7 +505,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     noteController.dispose();
-    feeController.dispose();
+    // feeController.dispose();
 
     _noteFocusNode.dispose();
     _addressFocusNode.dispose();
@@ -526,20 +522,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
-        if (_amountToSend == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(0);
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture =
-                calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-          });
-        }
-      });
-    }
+    // if (coin == Coin.firo || coin == Coin.firoTestNet) {
+    //   ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
+    //     if (_amountToSend == null) {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(0);
+    //       });
+    //     } else {
+    //       setState(() {
+    //         _calculateFeesFuture =
+    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
+    //       });
+    //     }
+    //   });
+    // }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
