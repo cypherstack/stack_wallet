@@ -11,6 +11,8 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class RenameWalletView extends ConsumerStatefulWidget {
   const RenameWalletView({
     Key? key,
@@ -74,6 +76,8 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                 Constants.size.circularBorderRadius,
               ),
               child: TextField(
+                autocorrect: Util.isDesktop ? false : true,
+                enableSuggestions: Util.isDesktop ? false : true,
                 controller: _controller,
                 focusNode: _focusNode,
                 style: STextStyles.field(context),

@@ -27,6 +27,8 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 enum AddEditNodeViewType { add, edit }
 
 class AddEditNodeView extends ConsumerStatefulWidget {
@@ -648,6 +650,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             Constants.size.circularBorderRadius,
           ),
           child: TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
             key: const Key("addCustomNodeNodeNameFieldKey"),
             readOnly: widget.readOnly,
             enabled: enableField(_nameController),
@@ -695,6 +699,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   Constants.size.circularBorderRadius,
                 ),
                 child: TextField(
+                  autocorrect: Util.isDesktop ? false : true,
+                  enableSuggestions: Util.isDesktop ? false : true,
                   key: const Key("addCustomNodeNodeAddressFieldKey"),
                   readOnly: widget.readOnly,
                   enabled: enableField(_hostController),
@@ -746,6 +752,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   Constants.size.circularBorderRadius,
                 ),
                 child: TextField(
+                  autocorrect: Util.isDesktop ? false : true,
+                  enableSuggestions: Util.isDesktop ? false : true,
                   key: const Key("addCustomNodeNodePortFieldKey"),
                   readOnly: widget.readOnly,
                   enabled: enableField(_portController),
@@ -797,6 +805,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               Constants.size.circularBorderRadius,
             ),
             child: TextField(
+              autocorrect: Util.isDesktop ? false : true,
+              enableSuggestions: Util.isDesktop ? false : true,
               controller: _usernameController,
               readOnly: widget.readOnly,
               enabled: enableField(_usernameController),
@@ -844,6 +854,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               Constants.size.circularBorderRadius,
             ),
             child: TextField(
+              autocorrect: Util.isDesktop ? false : true,
+              enableSuggestions: Util.isDesktop ? false : true,
               controller: _passwordController,
               readOnly: widget.readOnly,
               enabled: enableField(_passwordController),

@@ -115,6 +115,7 @@ dependencies:
   wakelock: ^0.6.2
   intl: ^0.17.0
   devicelocale: ^0.5.0
+  device_info_plus: ^7.0.1
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
   tuple: ^2.0.0
@@ -132,6 +133,7 @@ dependencies:
   isar: 3.0.0-dev.10
   isar_flutter_libs: 3.0.0-dev.10 # contains the binaries
   dropdown_button2: 1.7.2
+  string_validator: ^0.3.0
 
 dev_dependencies:
   flutter_test:
@@ -292,6 +294,20 @@ flutter:
     - assets/svg/Polygon.svg
     - assets/svg/persona-easy-1.svg
     - assets/svg/persona-incognito-1.svg
+    - assets/svg/Button.svg
+    - assets/svg/lock-circle.svg
+    - assets/svg/dollar-sign-circle.svg
+    - assets/svg/language-circle.svg
+    - assets/svg/rotate-circle.svg
+    - assets/svg/sun-circle.svg
+    - assets/svg/node-circle.svg
+    - assets/svg/dark/dark-theme.svg
+    - assets/svg/light/light-mode.svg
+    - assets/svg/address-book-desktop.svg
+    - assets/svg/about-desktop.svg
+    - assets/svg/exchange-desktop.svg
+    - assets/svg/wallet-desktop.svg
+    - assets/svg/exit-desktop.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg

@@ -41,6 +41,8 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class SendView extends ConsumerStatefulWidget {
   const SendView({
     Key? key,
@@ -885,7 +887,10 @@ class _SendViewState extends ConsumerState<SendView> {
                         if (coin == Coin.firo)
                           Stack(
                             children: [
-                              const TextField(
+                              TextField(
+                                autocorrect: Util.isDesktop ? false : true,
+                                enableSuggestions:
+                                    Util.isDesktop ? false : true,
                                 readOnly: true,
                                 textInputAction: TextInputAction.none,
                               ),
@@ -1061,6 +1066,8 @@ class _SendViewState extends ConsumerState<SendView> {
                           height: 8,
                         ),
                         TextField(
+                          autocorrect: Util.isDesktop ? false : true,
+                          enableSuggestions: Util.isDesktop ? false : true,
                           style: STextStyles.smallMed14(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
@@ -1114,6 +1121,8 @@ class _SendViewState extends ConsumerState<SendView> {
                           ),
                         if (Prefs.instance.externalCalls)
                           TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             style: STextStyles.smallMed14(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
@@ -1238,6 +1247,8 @@ class _SendViewState extends ConsumerState<SendView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: noteController,
                             focusNode: _noteFocusNode,
                             style: STextStyles.field(context),
@@ -1283,6 +1294,8 @@ class _SendViewState extends ConsumerState<SendView> {
                         Stack(
                           children: [
                             TextField(
+                              autocorrect: Util.isDesktop ? false : true,
+                              enableSuggestions: Util.isDesktop ? false : true,
                               controller: feeController,
                               readOnly: true,
                               textInputAction: TextInputAction.none,

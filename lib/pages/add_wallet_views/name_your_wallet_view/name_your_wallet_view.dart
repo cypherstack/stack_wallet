@@ -194,6 +194,8 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               Constants.size.circularBorderRadius,
             ),
             child: TextField(
+              autocorrect: Util.isDesktop ? false : true,
+              enableSuggestions: Util.isDesktop ? false : true,
               onChanged: (string) {
                 if (string.isEmpty) {
                   if (_nextEnabled) {

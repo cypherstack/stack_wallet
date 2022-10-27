@@ -59,6 +59,15 @@ class _SVG {
   String txExchangeFailed(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
+  String get themeLight => "assets/svg/light/light-mode.svg";
+  String get themeDark => "assets/svg/dark/dark-theme.svg";
+  String get circleNode => "assets/svg/node-circle.svg";
+  String get circleSun => "assets/svg/sun-circle.svg";
+  String get circleArrowRotate => "assets/svg/rotate-circle.svg";
+  String get circleLanguage => "assets/svg/language-circle.svg";
+  String get circleDollarSign => "assets/svg/dollar-sign-circle.svg";
+  String get circleLock => "assets/svg/lock-circle.svg";
+  String get disableButton => "assets/svg/Button.svg";
   String get polygon => "assets/svg/Polygon.svg";
   String get personaIncognito => "assets/svg/persona-incognito-1.svg";
   String get personaEasy => "assets/svg/persona-easy-1.svg";
@@ -130,6 +139,11 @@ class _SVG {
   String get anonymize => "assets/svg/tx-icon-anonymize.svg";
   String get anonymizePending => "assets/svg/tx-icon-anonymize-pending.svg";
   String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
+  String get addressBookDesktop => "assets/svg/address-book-desktop.svg";
+  String get exchangeDesktop => "assets/svg/exchange-desktop.svg";
+  String get aboutDesktop => "assets/svg/about-desktop.svg";
+  String get walletDesktop => "assets/svg/wallet-desktop.svg";
+  String get exitDesktop => "assets/svg/exit-desktop.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";

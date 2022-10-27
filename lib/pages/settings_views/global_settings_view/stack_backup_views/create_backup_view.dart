@@ -14,6 +14,7 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -129,6 +130,8 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                           return Container(
                             color: Colors.transparent,
                             child: TextField(
+                              autocorrect: Util.isDesktop ? false : true,
+                              enableSuggestions: Util.isDesktop ? false : true,
                               onTap: Platform.isAndroid
                                   ? null
                                   : () async {
