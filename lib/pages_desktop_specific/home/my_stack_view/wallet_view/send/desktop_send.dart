@@ -873,6 +873,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             Constants.size.circularBorderRadius,
           ),
           child: TextField(
+            minLines: 1,
+            maxLines: 5,
             key: const Key("sendViewAddressFieldKey"),
             controller: sendToController,
             readOnly: false,
@@ -1110,6 +1112,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             Constants.size.circularBorderRadius,
           ),
           child: TextField(
+            minLines: 1,
+            maxLines: 5,
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             controller: noteController,
