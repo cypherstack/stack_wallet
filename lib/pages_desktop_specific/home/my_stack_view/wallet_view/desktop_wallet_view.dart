@@ -8,6 +8,7 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/receive/desktop_receive.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/send/desktop_send.dart';
@@ -579,7 +580,10 @@ class _RecentDesktopTransactionsState
             BlueTextButton(
               text: "See all",
               onTap: () {
-                // todo: show all txns
+                Navigator.of(context).pushNamed(
+                  AllTransactionsView.routeName,
+                  arguments: widget.walletId,
+                );
               },
             ),
           ],
