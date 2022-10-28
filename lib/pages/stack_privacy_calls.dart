@@ -8,16 +8,18 @@ import 'package:stackwallet/pages_desktop_specific/create_password/create_passwo
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 import '../hive/db.dart';
 import '../providers/global/price_provider.dart';
 import '../services/exchange/exchange_data_loading_service.dart';
+import '../widgets/desktop/primary_button.dart';
 
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
@@ -53,155 +55,195 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
+    return MasterScaffold(
+      background: Theme.of(context).extension<StackColors>()!.background,
+      isDesktop: isDesktop,
+      appBar: isDesktop
+          ? const DesktopAppBar(
+              isCompactHeight: false,
+              leading: AppBarBackButton(),
+            )
+          : AppBar(
+              leading: AppBarBackButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(0, 40, 0, 0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Choose your Stack experience",
-                style: STextStyles.pageTitleH1(context),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              Text(
-                "You can change it later in Settings",
-                style: STextStyles.subtitle(context),
-              ),
-              const SizedBox(
-                height: 36,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+          padding: EdgeInsets.fromLTRB(0, isDesktop ? 0 : 40, 0, 0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: isDesktop ? 480 : double.infinity,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Choose your Stack experience",
+                  style: isDesktop
+                      ? STextStyles.desktopH2(context)
+                      : STextStyles.pageTitleH1(context),
                 ),
-                child: PrivacyToggle(
-                  externalCallsEnabled: isEasy,
-                  onChanged: (externalCalls) {
-                    isEasy = externalCalls;
-                    setState(() {
-                      infoToggle = isEasy;
-                    });
-                  },
+                SizedBox(
+                  height: isDesktop ? 16 : 8,
                 ),
-              ),
-              const SizedBox(
-                height: 36,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: RoundedWhiteContainer(
-                  child: Center(
-                    child: RichText(
-                      textAlign: TextAlign.left,
-                      text: TextSpan(
-                        style:
-                            STextStyles.label(context).copyWith(fontSize: 12.0),
-                        children: infoToggle
-                            ? [
-                                const TextSpan(
-                                    text:
-                                        "Exchange data preloaded for a seamless experience."),
-                                const TextSpan(
-                                    text:
-                                        "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
-                                TextSpan(
-                                  text:
-                                      "\n\nRecommended for most crypto users.",
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                Text(
+                  "You can change it later in Settings",
+                  style: isDesktop
+                      ? STextStyles.desktopSubtitleH2(context)
+                      : STextStyles.subtitle(context),
+                ),
+                SizedBox(
+                  height: isDesktop ? 32 : 36,
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isDesktop ? 0 : 16,
+                  ),
+                  child: PrivacyToggle(
+                    externalCallsEnabled: isEasy,
+                    onChanged: (externalCalls) {
+                      isEasy = externalCalls;
+                      setState(() {
+                        infoToggle = isEasy;
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(
+                  height: isDesktop ? 16 : 36,
+                ),
+                Padding(
+                  padding: isDesktop
+                      ? const EdgeInsets.all(0)
+                      : const EdgeInsets.all(16.0),
+                  child: RoundedWhiteContainer(
+                    child: Center(
+                      child: RichText(
+                        textAlign: TextAlign.left,
+                        text: TextSpan(
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                              : STextStyles.label(context).copyWith(
+                                  fontSize: 12.0,
                                 ),
-                              ]
-                            : [
-                                const TextSpan(
+                          children: infoToggle
+                              ? [
+                                  const TextSpan(
+                                      text:
+                                          "Exchange data preloaded for a seamless experience."),
+                                  const TextSpan(
+                                      text:
+                                          "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
+                                  TextSpan(
                                     text:
-                                        "Exchange data not preloaded (slower experience)."),
-                                const TextSpan(
-                                    text:
-                                        "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
-                                TextSpan(
-                                  text:
-                                      "\n\nRecommended for the privacy conscious.",
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                    fontWeight: FontWeight.w600,
+                                        "\n\nRecommended for most crypto users.",
+                                    style: isDesktop
+                                        ? STextStyles
+                                            .desktopTextExtraExtraSmall600(
+                                                context)
+                                        : TextStyle(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                   ),
-                                ),
-                              ],
+                                ]
+                              : [
+                                  const TextSpan(
+                                      text:
+                                          "Exchange data not preloaded (slower experience)."),
+                                  const TextSpan(
+                                      text:
+                                          "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
+                                  TextSpan(
+                                    text:
+                                        "\n\nRecommended for the privacy conscious.",
+                                    style: isDesktop
+                                        ? STextStyles
+                                            .desktopTextExtraExtraSmall600(
+                                                context)
+                                        : TextStyle(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                  ),
+                                ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const Spacer(
-                flex: 4,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ContinueButton(
-                        isDesktop: isDesktop,
-                        label: !widget.isSettings ? "Continue" : "Save changes",
-                        onPressed: () {
-                          ref.read(prefsChangeNotifierProvider).externalCalls =
-                              isEasy;
+                if (!isDesktop)
+                  const Spacer(
+                    flex: 4,
+                  ),
+                if (isDesktop)
+                  const SizedBox(
+                    height: 32,
+                  ),
+                Padding(
+                  padding: isDesktop
+                      ? const EdgeInsets.all(0)
+                      : const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: PrimaryButton(
+                          label:
+                              !widget.isSettings ? "Continue" : "Save changes",
+                          onPressed: () {
+                            ref
+                                .read(prefsChangeNotifierProvider)
+                                .externalCalls = isEasy;
 
-                          DB.instance
-                              .put<dynamic>(
-                                  boxName: DB.boxNamePrefs,
-                                  key: "externalCalls",
-                                  value: isEasy)
-                              .then((_) {
-                            if (isEasy) {
-                              unawaited(
-                                  ExchangeDataLoadingService().loadAll(ref));
-                              ref
-                                  .read(priceAnd24hChangeNotifierProvider)
-                                  .start(true);
-                            }
-                          });
-                          if (!widget.isSettings) {
-                            if (isDesktop) {
-                              Navigator.of(context).pushNamed(
-                                CreatePasswordView.routeName,
-                              );
+                            DB.instance
+                                .put<dynamic>(
+                                    boxName: DB.boxNamePrefs,
+                                    key: "externalCalls",
+                                    value: isEasy)
+                                .then((_) {
+                              if (isEasy) {
+                                unawaited(
+                                    ExchangeDataLoadingService().loadAll(ref));
+                                ref
+                                    .read(priceAnd24hChangeNotifierProvider)
+                                    .start(true);
+                              }
+                            });
+                            if (!widget.isSettings) {
+                              if (isDesktop) {
+                                Navigator.of(context).pushNamed(
+                                  CreatePasswordView.routeName,
+                                );
+                              } else {
+                                Navigator.of(context).pushNamed(
+                                  CreatePinView.routeName,
+                                );
+                              }
                             } else {
-                              Navigator.of(context).pushNamed(
-                                CreatePinView.routeName,
-                              );
+                              Navigator.pop(context);
                             }
-                          } else {
-                            Navigator.pop(context);
-                          }
-                        },
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                if (isDesktop)
+                  const SizedBox(
+                    height: kDesktopAppBarHeight,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -226,8 +268,11 @@ class PrivacyToggle extends StatefulWidget {
 class _PrivacyToggleState extends State<PrivacyToggle> {
   late bool externalCallsEnabled;
 
+  late final bool isDesktop;
+
   @override
   void initState() {
+    isDesktop = Util.isDesktop;
     // initial toggle state
     externalCallsEnabled = widget.externalCallsEnabled;
     super.initState();
@@ -270,24 +315,39 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 10,
+                        ),
                       SvgPicture.asset(
                         Assets.svg.personaEasy,
-                        width: 140,
-                        height: 140,
+                        width: isDesktop ? 120 : 140,
+                        height: isDesktop ? 120 : 140,
                       ),
-                      Center(
-                          child: Text(
-                        "Easy Crypto",
-                        style: STextStyles.label(context).copyWith(
-                          fontWeight: FontWeight.bold,
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 12,
                         ),
-                      )),
+                      Center(
+                        child: Text(
+                          "Easy Crypto",
+                          style: isDesktop
+                              ? STextStyles.desktopTextSmall(context)
+                              : STextStyles.label700(context),
+                        ),
+                      ),
                       Center(
                         child: Text(
                           "Recommended",
-                          style: STextStyles.label(context),
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                              : STextStyles.label(context),
                         ),
                       ),
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 12,
+                        ),
                     ],
                   ),
                   if (externalCallsEnabled)
@@ -360,25 +420,39 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 10,
+                        ),
                       SvgPicture.asset(
                         Assets.svg.personaIncognito,
-                        width: 140,
-                        height: 140,
+                        width: isDesktop ? 120 : 140,
+                        height: isDesktop ? 120 : 140,
                       ),
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 12,
+                        ),
                       Center(
                         child: Text(
                           "Incognito",
-                          style: STextStyles.label(context).copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: isDesktop
+                              ? STextStyles.desktopTextSmall(context)
+                              : STextStyles.label700(context),
                         ),
                       ),
                       Center(
                         child: Text(
                           "Privacy conscious",
-                          style: STextStyles.label(context),
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                              : STextStyles.label(context),
                         ),
                       ),
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 12,
+                        ),
                     ],
                   ),
                   if (!externalCallsEnabled)
@@ -419,49 +493,49 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
   }
 }
 
-class ContinueButton extends ConsumerWidget {
-  const ContinueButton({
-    Key? key,
-    required this.isDesktop,
-    required this.onPressed,
-    required this.label,
-  }) : super(key: key);
-
-  final String label;
-  final bool isDesktop;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (isDesktop) {
-      return SizedBox(
-        width: 328,
-        height: 70,
-        child: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getPrimaryEnabledButtonColor(context),
-          onPressed: onPressed,
-          child: Text(
-            label,
-            style: STextStyles.button(context).copyWith(fontSize: 20),
-          ),
-        ),
-      );
-    } else {
-      return TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: onPressed,
-        child: Text(
-          label,
-          style: STextStyles.button(context),
-        ),
-      );
-    }
-  }
-}
+// class ContinueButton extends ConsumerWidget {
+//   const ContinueButton({
+//     Key? key,
+//     required this.isDesktop,
+//     required this.onPressed,
+//     required this.label,
+//   }) : super(key: key);
+//
+//   final String label;
+//   final bool isDesktop;
+//   final VoidCallback onPressed;
+//
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     if (isDesktop) {
+//       return SizedBox(
+//         width: 328,
+//         height: 70,
+//         child: TextButton(
+//           style: Theme.of(context)
+//               .extension<StackColors>()!
+//               .getPrimaryEnabledButtonColor(context),
+//           onPressed: onPressed,
+//           child: Text(
+//             label,
+//             style: STextStyles.button(context).copyWith(fontSize: 20),
+//           ),
+//         ),
+//       );
+//     } else {
+//       return TextButton(
+//         style: Theme.of(context)
+//             .extension<StackColors>()!
+//             .getPrimaryEnabledButtonColor(context),
+//         onPressed: onPressed,
+//         child: Text(
+//           label,
+//           style: STextStyles.button(context),
+//         ),
+//       );
+//     }
+//   }
+// }
 
 // class CustomRadio extends StatefulWidget {
 //   CustomRadio(this.upperCall, {Key? key}) : super(key: key);

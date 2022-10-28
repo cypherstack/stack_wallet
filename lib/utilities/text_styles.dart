@@ -755,6 +755,25 @@ class STextStyles {
     }
   }
 
+  static TextStyle desktopTextExtraExtraSmall600(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          height: 21 / 14,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          height: 21 / 14,
+        );
+    }
+  }
+
   static TextStyle desktopButtonSmallSecondaryEnabled(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
