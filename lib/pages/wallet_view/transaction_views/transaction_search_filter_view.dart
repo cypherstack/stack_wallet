@@ -68,8 +68,11 @@ class _TransactionSearchViewState
       _selectedFromDate = filterState.from;
       _keywordTextEditingController.text = filterState.keyword;
 
-      _fromDateString = Format.formatDate(_selectedFromDate);
-      _toDateString = Format.formatDate(_selectedToDate);
+      _fromDateString = _selectedFromDate == null
+          ? ""
+          : Format.formatDate(_selectedFromDate!);
+      _toDateString =
+          _selectedToDate == null ? "" : Format.formatDate(_selectedToDate!);
 
       // TODO: Fix XMR (modify Format.funcs to take optional Coin parameter)
       // final amt = Format.satoshisToAmount(widget.coin == Coin.monero ? )
@@ -118,8 +121,8 @@ class _TransactionSearchViewState
     );
   }
 
-  var _selectedFromDate = DateTime(2007);
-  var _selectedToDate = DateTime.now();
+  DateTime? _selectedFromDate = DateTime(2007);
+  DateTime? _selectedToDate = DateTime.now();
 
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
@@ -226,17 +229,22 @@ class _TransactionSearchViewState
                 _selectedFromDate = date;
 
                 // flag to adjust date so from date is always before to date
-                final flag = !_selectedFromDate.isBefore(_selectedToDate);
+                final flag = _selectedToDate != null &&
+                    !_selectedFromDate!.isBefore(_selectedToDate!);
                 if (flag) {
                   _selectedToDate = DateTime.fromMillisecondsSinceEpoch(
-                      _selectedFromDate.millisecondsSinceEpoch);
+                      _selectedFromDate!.millisecondsSinceEpoch);
                 }
 
                 setState(() {
                   if (flag) {
-                    _toDateString = Format.formatDate(_selectedToDate);
+                    _toDateString = _selectedToDate == null
+                        ? ""
+                        : Format.formatDate(_selectedToDate!);
                   }
-                  _fromDateString = Format.formatDate(_selectedFromDate);
+                  _fromDateString = _selectedFromDate == null
+                      ? ""
+                      : Format.formatDate(_selectedFromDate!);
                 });
               }
             },
@@ -333,17 +341,22 @@ class _TransactionSearchViewState
                 _selectedToDate = date;
 
                 // flag to adjust date so from date is always before to date
-                final flag = !_selectedToDate.isAfter(_selectedFromDate);
+                final flag = _selectedFromDate != null &&
+                    !_selectedToDate!.isAfter(_selectedFromDate!);
                 if (flag) {
                   _selectedFromDate = DateTime.fromMillisecondsSinceEpoch(
-                      _selectedToDate.millisecondsSinceEpoch);
+                      _selectedToDate!.millisecondsSinceEpoch);
                 }
 
                 setState(() {
                   if (flag) {
-                    _fromDateString = Format.formatDate(_selectedFromDate);
+                    _fromDateString = _selectedFromDate == null
+                        ? ""
+                        : Format.formatDate(_selectedFromDate!);
                   }
-                  _toDateString = Format.formatDate(_selectedToDate);
+                  _toDateString = _selectedToDate == null
+                      ? ""
+                      : Format.formatDate(_selectedToDate!);
                 });
               }
             },
@@ -975,6 +988,7 @@ class _TransactionSearchViewState
     final TransactionFilter filter = TransactionFilter(
       sent: _isActiveSentCheckbox,
       received: _isActiveReceivedCheckbox,
+      trade: _isActiveTradeCheckbox,
       from: _selectedFromDate,
       to: _selectedToDate,
       amount: amount,

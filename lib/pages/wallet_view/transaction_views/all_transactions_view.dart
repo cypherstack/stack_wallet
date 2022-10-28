@@ -96,8 +96,12 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
       }
 
       final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
-      if (date.millisecondsSinceEpoch > filter.to.millisecondsSinceEpoch ||
-          date.millisecondsSinceEpoch < filter.from.millisecondsSinceEpoch) {
+      if ((filter.to != null &&
+              date.millisecondsSinceEpoch >
+                  filter.to!.millisecondsSinceEpoch) ||
+          (filter.from != null &&
+              date.millisecondsSinceEpoch <
+                  filter.from!.millisecondsSinceEpoch)) {
         return false;
       }
 
@@ -125,13 +129,25 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         .isNotEmpty;
 
     // check if address contains
-    contains |= tx.address.contains(keyword);
+    contains |= tx.address.toLowerCase().contains(keyword);
 
     // check if note contains
-    contains |= notes[tx.txid] != null && notes[tx.txid]!.contains(keyword);
+    contains |= notes[tx.txid] != null &&
+        notes[tx.txid]!.toLowerCase().contains(keyword);
 
     // check if txid contains
-    contains |= tx.txid.contains(keyword);
+    contains |= tx.txid.toLowerCase().contains(keyword);
+
+    // check if subType contains
+    contains |=
+        tx.subType.isNotEmpty && tx.subType.toLowerCase().contains(keyword);
+
+    // check if txType contains
+    contains |= tx.txType.toLowerCase().contains(keyword);
+
+    // check if date contains
+    contains |=
+        Format.extractDateFrom(tx.timestamp).toLowerCase().contains(keyword);
 
     return contains;
   }
@@ -311,7 +327,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                               )
                             : STextStyles.field(context),
                         decoration: standardInputDecoration(
-                          "Search",
+                          "Search...",
                           searchFieldFocusNode,
                           context,
                           desktopMed: isDesktop,
@@ -393,6 +409,22 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                 ],
               ),
             ),
+            if (isDesktop)
+              const SizedBox(
+                height: 8,
+              ),
+            if (isDesktop &&
+                ref.watch(transactionFilterProvider.state).state != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: const [
+                    TransactionFilterOptionBar(),
+                  ],
+                ),
+              ),
             const SizedBox(
               height: 8,
             ),
@@ -463,6 +495,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                                             Padding(
                                           padding: const EdgeInsets.all(4),
                                           child: DesktopTransactionCardRow(
+                                            key: Key(
+                                                "transactionCard_key_${month.item2[index].txid}"),
                                             transaction: month.item2[index],
                                             walletId: walletId,
                                           ),
@@ -500,6 +534,220 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class TransactionFilterOptionBar extends ConsumerStatefulWidget {
+  const TransactionFilterOptionBar({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<TransactionFilterOptionBar> createState() =>
+      _TransactionFilterOptionBarState();
+}
+
+class _TransactionFilterOptionBarState
+    extends ConsumerState<TransactionFilterOptionBar> {
+  final List<TransactionFilterOptionBarItem> items = [];
+  TransactionFilter? _filter;
+
+  @override
+  void initState() {
+    _filter = ref.read(transactionFilterProvider.state).state;
+
+    if (_filter != null) {
+      if (_filter!.sent) {
+        const label = "Sent";
+        final item = TransactionFilterOptionBarItem(
+          label: label,
+          onPressed: (s) {
+            items.removeWhere((e) => e.label == label);
+            if (items.isEmpty) {
+              ref.read(transactionFilterProvider.state).state = null;
+            } else {
+              ref.read(transactionFilterProvider.state).state =
+                  ref.read(transactionFilterProvider.state).state?.copyWith(
+                        sent: false,
+                      );
+              setState(() {});
+            }
+          },
+        );
+        items.add(item);
+      }
+      if (_filter!.received) {
+        const label = ("Received");
+        final item = TransactionFilterOptionBarItem(
+          label: label,
+          onPressed: (s) {
+            items.removeWhere((e) => e.label == label);
+            if (items.isEmpty) {
+              ref.read(transactionFilterProvider.state).state = null;
+            } else {
+              ref.read(transactionFilterProvider.state).state =
+                  ref.read(transactionFilterProvider.state).state?.copyWith(
+                        received: false,
+                      );
+              setState(() {});
+            }
+          },
+        );
+        items.add(item);
+      }
+
+      if (_filter!.to != null) {
+        final label = _filter!.from.toString();
+        final item = TransactionFilterOptionBarItem(
+          label: label,
+          onPressed: (s) {
+            items.removeWhere((e) => e.label == label);
+            if (items.isEmpty) {
+              ref.read(transactionFilterProvider.state).state = null;
+            } else {
+              ref.read(transactionFilterProvider.state).state =
+                  ref.read(transactionFilterProvider.state).state?.copyWith(
+                        to: null,
+                      );
+              setState(() {});
+            }
+          },
+        );
+        items.add(item);
+      }
+      if (_filter!.from != null) {
+        final label2 = _filter!.to.toString();
+        final item2 = TransactionFilterOptionBarItem(
+          label: label2,
+          onPressed: (s) {
+            items.removeWhere((e) => e.label == label2);
+            if (items.isEmpty) {
+              ref.read(transactionFilterProvider.state).state = null;
+            } else {
+              ref.read(transactionFilterProvider.state).state =
+                  ref.read(transactionFilterProvider.state).state?.copyWith(
+                        from: null,
+                      );
+              setState(() {});
+            }
+          },
+        );
+        items.add(item2);
+      }
+
+      if (_filter!.amount != null) {
+        final label = _filter!.amount!.toString();
+        final item = TransactionFilterOptionBarItem(
+          label: label,
+          onPressed: (s) {
+            items.removeWhere((e) => e.label == label);
+            if (items.isEmpty) {
+              ref.read(transactionFilterProvider.state).state = null;
+            } else {
+              ref.read(transactionFilterProvider.state).state =
+                  ref.read(transactionFilterProvider.state).state?.copyWith(
+                        amount: null,
+                      );
+              setState(() {});
+            }
+          },
+        );
+        items.add(item);
+      }
+      if (_filter!.keyword.isNotEmpty) {
+        final label = _filter!.keyword;
+        final item = TransactionFilterOptionBarItem(
+          label: label,
+          onPressed: (s) {
+            items.removeWhere((e) => e.label == label);
+            if (items.isEmpty) {
+              ref.read(transactionFilterProvider.state).state = null;
+            } else {
+              ref.read(transactionFilterProvider.state).state =
+                  ref.read(transactionFilterProvider.state).state?.copyWith(
+                        keyword: "",
+                      );
+              setState(() {});
+            }
+          },
+        );
+        items.add(item);
+      }
+    }
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 32,
+      child: ListView.separated(
+        primary: false,
+        scrollDirection: Axis.horizontal,
+        shrinkWrap: true,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(
+          width: 16,
+        ),
+        itemBuilder: (context, index) => items[index],
+      ),
+    );
+  }
+}
+
+class TransactionFilterOptionBarItem extends StatelessWidget {
+  const TransactionFilterOptionBarItem({
+    Key? key,
+    required this.label,
+    this.onPressed,
+  }) : super(key: key);
+
+  final String label;
+  final void Function(String)? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onPressed?.call(label),
+      child: Container(
+        height: 32,
+        decoration: BoxDecoration(
+            color:
+                Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+            borderRadius: BorderRadius.circular(1000)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: STextStyles.labelExtraExtraSmall(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              XIcon(
+                width: 16,
+                height: 16,
+                color: Theme.of(context).extension<StackColors>()!.textDark,
+              ),
+            ],
+          ),
         ),
       ),
     );
