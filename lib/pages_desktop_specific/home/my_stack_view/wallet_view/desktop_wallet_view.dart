@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
@@ -16,15 +19,19 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_vie
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -786,6 +793,7 @@ class WalletKeysButton extends StatelessWidget {
       onTap: () {
         showDialog<void>(
           context: context,
+          barrierDismissible: false,
           builder: (context) => UnlockWalletKeysDesktop(
             walletId: walletId,
           ),
@@ -998,8 +1006,20 @@ class _UnlockWalletKeysDesktopState
                                 .mnemonic;
                             await showDialog<void>(
                               context: context,
-                              builder: (context) => WalletKeysDesktopPopup(
-                                words: words,
+                              barrierDismissible: false,
+                              builder: (context) => Navigator(
+                                initialRoute: WalletKeysDesktopPopup.routeName,
+                                onGenerateRoute: RouteGenerator.generateRoute,
+                                onGenerateInitialRoutes: (_, __) {
+                                  return [
+                                    RouteGenerator.generateRoute(
+                                      RouteSettings(
+                                        name: WalletKeysDesktopPopup.routeName,
+                                        arguments: words,
+                                      ),
+                                    )
+                                  ];
+                                },
                               ),
                             );
                           }
@@ -1022,9 +1042,13 @@ class WalletKeysDesktopPopup extends StatelessWidget {
   const WalletKeysDesktopPopup({
     Key? key,
     required this.words,
+    this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
 
   final List<String> words;
+  final ClipboardInterface clipboardInterface;
+
+  static const String routeName = "walletKeysDesktopPopup";
 
   @override
   Widget build(BuildContext context) {
@@ -1045,7 +1069,11 @@ class WalletKeysDesktopPopup extends StatelessWidget {
                   style: STextStyles.desktopH3(context),
                 ),
               ),
-              const DesktopDialogCloseButton(),
+              DesktopDialogCloseButton(
+                onPressedOverride: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                },
+              ),
             ],
           ),
           const SizedBox(
@@ -1098,7 +1126,11 @@ class WalletKeysDesktopPopup extends StatelessWidget {
                   child: SecondaryButton(
                     label: "Show QR code",
                     onPressed: () {
-                      // todo show qr code
+                      final String value = AddressUtils.encodeQRSeedData(words);
+                      Navigator.of(context).pushNamed(
+                        QRCodeDesktopPopupContent.routeName,
+                        arguments: value,
+                      );
                     },
                   ),
                 ),
@@ -1108,8 +1140,18 @@ class WalletKeysDesktopPopup extends StatelessWidget {
                 Expanded(
                   child: PrimaryButton(
                     label: "Copy",
-                    onPressed: () {
-                      // todo copy to clipboard
+                    onPressed: () async {
+                      await clipboardInterface.setData(
+                        ClipboardData(text: words.join(" ")),
+                      );
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.info,
+                          message: "Copied to clipboard",
+                          iconAsset: Assets.svg.copy,
+                          context: context,
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -1118,6 +1160,43 @@ class WalletKeysDesktopPopup extends StatelessWidget {
           ),
           const SizedBox(
             height: 32,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class QRCodeDesktopPopupContent extends StatelessWidget {
+  const QRCodeDesktopPopupContent({
+    Key? key,
+    required this.value,
+  }) : super(key: key);
+
+  final String value;
+
+  static const String routeName = "qrCodeDesktopPopupContent";
+
+  @override
+  Widget build(BuildContext context) {
+    return DesktopDialog(
+      maxWidth: 614,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: const [
+              DesktopDialogCloseButton(),
+            ],
+          ),
+          const SizedBox(
+            height: 14,
+          ),
+          QrImage(
+            data: value,
+            size: 300,
+            foregroundColor:
+                Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
         ],
       ),

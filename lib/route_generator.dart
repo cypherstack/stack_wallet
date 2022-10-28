@@ -1048,6 +1048,34 @@ class RouteGenerator {
             builder: (_) => const AdvancedSettings(),
             settings: RouteSettings(name: settings.name));
 
+      case WalletKeysDesktopPopup.routeName:
+        if (args is List<String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletKeysDesktopPopup(
+              words: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case QRCodeDesktopPopupContent.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => QRCodeDesktopPopupContent(
+              value: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       // == End of desktop specific routes =====================================
 
       default:
