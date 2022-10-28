@@ -196,6 +196,7 @@ flutter:
     - assets/images/monero.png
     - assets/images/wownero.png
     - assets/images/firo.png
+    - assets/images/litecoin.png
     - assets/images/doge.png
     - assets/images/bitcoin.png
     - assets/images/epic-cash.png
@@ -311,6 +312,7 @@ flutter:
     - assets/svg/keys.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
+    - assets/svg/coin_icons/Litecoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg
     - assets/svg/coin_icons/Dogecoin.svg
     - assets/svg/coin_icons/EpicCash.svg
