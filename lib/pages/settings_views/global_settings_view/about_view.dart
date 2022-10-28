@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:store_checker/store_checker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const kGithubAPI = "https://api.github.com";
@@ -54,6 +56,66 @@ Future<bool> doesCommitExist(
     Logging.instance.log("$e $s", level: LogLevel.Error);
     return false;
   }
+}
+
+Future<String> getUpdateTag(
+  String organization,
+  String project,
+) async {
+  Logging.instance.log("getUpdateTag", level: LogLevel.Info);
+  final Client client = Client();
+  try {
+    final uri =
+        Uri.parse("$kGithubAPI$kGithubHead/$organization/$project/releases");
+
+    final commitQuery = await client.get(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    final response = jsonDecode(commitQuery.body.toString());
+    Logging.instance
+        .log("getUpdateTag $project $response", level: LogLevel.Info);
+    String updateTag;
+    try {
+      updateTag = response[0]['tag_name'] as String;
+      Logging.instance.log("getUpdateTag $updateTag", level: LogLevel.Info);
+      return updateTag;
+    } catch (e, s) {
+      return "";
+    }
+  } catch (e, s) {
+    Logging.instance.log("$e $s", level: LogLevel.Error);
+    return "";
+  }
+}
+
+Future<bool> isThereUpdate(
+  String organization,
+  String project,
+) async {
+  bool playStore = true;
+  try {
+    Source installationSource = await StoreChecker.getSource;
+    playStore = installationSource == Source.IS_INSTALLED_FROM_PLAY_STORE;
+  } catch (e, s) {}
+  if (Platform.isAndroid && !playStore) {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      String currentBuild = packageInfo.buildNumber;
+      String newTag = await getUpdateTag(organization, project);
+      if (newTag != "" && int.parse(newTag) > int.parse(currentBuild)) {
+        Logging.instance.log("there is a new update", level: LogLevel.Info);
+        return true;
+      }
+    } catch (e, s) {
+      Logging.instance.log("$e $s", level: LogLevel.Error);
+    }
+    Logging.instance.log("there is not a new update", level: LogLevel.Info);
+  } else {
+    Logging.instance.log("not checking for update", level: LogLevel.Info);
+  }
+  return false;
 }
 
 Future<bool> isHeadCommit(
