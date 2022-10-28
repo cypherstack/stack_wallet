@@ -37,7 +37,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get litecoin => NodeModel(
-        host: "electrum1.cipig.net",
+        host: "litecoin.stackwallet.com",
         port: 20063,
         name: defaultName,
         id: _nodeId(Coin.litecoin),
@@ -49,7 +49,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get litecoinTestNet => NodeModel(
-        host: "electrum.ltc.xurious.com",
+        host: "litecoin.stackwallet.com",
         port: 51002,
         name: defaultName,
         id: _nodeId(Coin.litecoinTestNet),
