@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
@@ -30,10 +31,14 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
@@ -246,7 +251,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
             const SizedBox(
               width: 32,
             ),
-            const WalletKeysButton(),
+            WalletKeysButton(
+              walletId: walletId,
+            ),
             const SizedBox(
               width: 32,
             ),
@@ -766,11 +773,24 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 }
 
 class WalletKeysButton extends StatelessWidget {
-  const WalletKeysButton({Key? key}) : super(key: key);
+  const WalletKeysButton({
+    Key? key,
+    required this.walletId,
+  }) : super(key: key);
+
+  final String walletId;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: () {
+        showDialog<void>(
+          context: context,
+          builder: (context) => UnlockWalletKeysDesktop(
+            walletId: walletId,
+          ),
+        );
+      },
       child: Container(
         color: Colors.transparent,
         child: Row(
@@ -792,6 +812,314 @@ class WalletKeysButton extends StatelessWidget {
             )
           ],
         ),
+      ),
+    );
+  }
+}
+
+class UnlockWalletKeysDesktop extends ConsumerStatefulWidget {
+  const UnlockWalletKeysDesktop({
+    Key? key,
+    required this.walletId,
+  }) : super(key: key);
+
+  final String walletId;
+
+  @override
+  ConsumerState<UnlockWalletKeysDesktop> createState() =>
+      _UnlockWalletKeysDesktopState();
+}
+
+class _UnlockWalletKeysDesktopState
+    extends ConsumerState<UnlockWalletKeysDesktop> {
+  late final TextEditingController passwordController;
+
+  late final FocusNode passwordFocusNode;
+
+  bool continueEnabled = false;
+  bool hidePassword = true;
+
+  @override
+  void initState() {
+    passwordController = TextEditingController();
+    passwordFocusNode = FocusNode();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    passwordController.dispose();
+    passwordFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DesktopDialog(
+      maxWidth: 579,
+      maxHeight: double.infinity,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: const [
+              DesktopDialogCloseButton(),
+            ],
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          SvgPicture.asset(
+            Assets.svg.keys,
+            width: 100,
+            height: 58,
+          ),
+          const SizedBox(
+            height: 55,
+          ),
+          Text(
+            "Wallet keys",
+            style: STextStyles.desktopH2(context),
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          Text(
+            "Enter your password",
+            style: STextStyles.desktopTextMedium(context).copyWith(
+              color: Theme.of(context).extension<StackColors>()!.textDark3,
+            ),
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+              child: TextField(
+                key: const Key("enterPasswordUnlockWalletKeysDesktopFieldKey"),
+                focusNode: passwordFocusNode,
+                controller: passwordController,
+                style: STextStyles.desktopTextMedium(context).copyWith(
+                  height: 2,
+                ),
+                obscureText: hidePassword,
+                enableSuggestions: false,
+                autocorrect: false,
+                decoration: standardInputDecoration(
+                  "Enter password",
+                  passwordFocusNode,
+                  context,
+                ).copyWith(
+                  suffixIcon: UnconstrainedBox(
+                    child: SizedBox(
+                      height: 70,
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            key: const Key(
+                                "enterUnlockWalletKeysDesktopFieldShowPasswordButtonKey"),
+                            onTap: () async {
+                              setState(() {
+                                hidePassword = !hidePassword;
+                              });
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(1000),
+                              ),
+                              height: 32,
+                              width: 32,
+                              child: Center(
+                                child: SvgPicture.asset(
+                                  hidePassword
+                                      ? Assets.svg.eye
+                                      : Assets.svg.eyeSlash,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
+                                  width: 24,
+                                  height: 19,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                onChanged: (newValue) {
+                  setState(() {
+                    continueEnabled = newValue.isNotEmpty;
+                  });
+                },
+              ),
+            ),
+          ),
+          const SizedBox(
+            height: 55,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: "Cancel",
+                    onPressed: Navigator.of(context).pop,
+                  ),
+                ),
+                const SizedBox(
+                  width: 16,
+                ),
+                Expanded(
+                  child: PrimaryButton(
+                    label: "Continue",
+                    enabled: continueEnabled,
+                    onPressed: continueEnabled
+                        ? () async {
+                            // todo: check password
+                            Navigator.of(context).pop();
+                            final words = await ref
+                                .read(walletsChangeNotifierProvider)
+                                .getManager(widget.walletId)
+                                .mnemonic;
+                            await showDialog<void>(
+                              context: context,
+                              builder: (context) => WalletKeysDesktopPopup(
+                                words: words,
+                              ),
+                            );
+                          }
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            height: 32,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class WalletKeysDesktopPopup extends StatelessWidget {
+  const WalletKeysDesktopPopup({
+    Key? key,
+    required this.words,
+  }) : super(key: key);
+
+  final List<String> words;
+
+  @override
+  Widget build(BuildContext context) {
+    return DesktopDialog(
+      maxWidth: 614,
+      maxHeight: double.infinity,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                ),
+                child: Text(
+                  "Wallet keys",
+                  style: STextStyles.desktopH3(context),
+                ),
+              ),
+              const DesktopDialogCloseButton(),
+            ],
+          ),
+          const SizedBox(
+            height: 28,
+          ),
+          Text(
+            "Recovery phrase",
+            style: STextStyles.desktopTextMedium(context),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+              ),
+              child: Text(
+                "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
+                style: STextStyles.desktopTextExtraExtraSmall(context),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
+            ),
+            child: MnemonicTable(
+              words: words,
+              isDesktop: true,
+              itemBorderColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonBackSecondary,
+            ),
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: "Show QR code",
+                    onPressed: () {
+                      // todo show qr code
+                    },
+                  ),
+                ),
+                const SizedBox(
+                  width: 16,
+                ),
+                Expanded(
+                  child: PrimaryButton(
+                    label: "Copy",
+                    onPressed: () {
+                      // todo copy to clipboard
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            height: 32,
+          ),
+        ],
       ),
     );
   }
