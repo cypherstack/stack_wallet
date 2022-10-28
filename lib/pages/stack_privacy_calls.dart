@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -6,11 +8,16 @@ import 'package:stackwallet/pages_desktop_specific/create_password/create_passwo
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../hive/db.dart';
+import '../providers/global/price_provider.dart';
+import '../services/exchange/exchange_data_loading_service.dart';
 
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
@@ -160,6 +167,21 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                         onPressed: () {
                           ref.read(prefsChangeNotifierProvider).externalCalls =
                               isEasy;
+
+                          DB.instance
+                              .put<dynamic>(
+                                  boxName: DB.boxNamePrefs,
+                                  key: "externalCalls",
+                                  value: isEasy)
+                              .then((_) {
+                            if (isEasy) {
+                              unawaited(
+                                  ExchangeDataLoadingService().loadAll(ref));
+                              ref
+                                  .read(priceAnd24hChangeNotifierProvider)
+                                  .start(true);
+                            }
+                          });
                           if (!widget.isSettings) {
                             if (isDesktop) {
                               Navigator.of(context).pushNamed(

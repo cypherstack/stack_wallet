@@ -52,11 +52,13 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoincash:
+      case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.epicCash:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:

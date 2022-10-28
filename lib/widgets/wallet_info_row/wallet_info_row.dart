@@ -25,9 +25,13 @@ class WalletInfoRow extends ConsumerWidget {
         .watch(walletsChangeNotifierProvider.notifier)
         .getManagerProvider(walletId));
 
-    return Row(
-      children: Util.isDesktop
-          ? [
+    if (Util.isDesktop) {
+      return GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          color: Colors.transparent,
+          child: Row(
+            children: [
               Expanded(
                 flex: 4,
                 child: Row(
@@ -38,11 +42,9 @@ class WalletInfoRow extends ConsumerWidget {
                     ),
                     Text(
                       manager.walletName,
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
+                      style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color:
+                            Theme.of(context).extension<StackColors>()!.textDark,
                       ),
                     ),
                   ],
@@ -70,29 +72,35 @@ class WalletInfoRow extends ConsumerWidget {
                   ],
                 ),
               )
-            ]
-          : [
-              WalletInfoCoinIcon(coin: manager.coin),
-              const SizedBox(
-                width: 12,
-              ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      manager.walletName,
-                      style: STextStyles.titleBold12(context),
-                    ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    WalletInfoRowBalanceFuture(walletId: walletId),
-                  ],
-                ),
-              ),
             ],
-    );
+          ),
+        ),
+      );
+    } else {
+      return Row(
+        children: [
+          WalletInfoCoinIcon(coin: manager.coin),
+          const SizedBox(
+            width: 12,
+          ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  manager.walletName,
+                  style: STextStyles.titleBold12(context),
+                ),
+                const SizedBox(
+                  height: 2,
+                ),
+                WalletInfoRowBalanceFuture(walletId: walletId),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
   }
 }

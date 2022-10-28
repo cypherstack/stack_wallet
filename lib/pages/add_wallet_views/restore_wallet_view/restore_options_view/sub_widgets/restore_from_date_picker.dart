@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class RestoreFromDatePicker extends StatefulWidget {
   const RestoreFromDatePicker({
     Key? key,
@@ -35,6 +37,8 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
     return Container(
       color: Colors.transparent,
       child: TextField(
+        autocorrect: Util.isDesktop ? false : true,
+        enableSuggestions: Util.isDesktop ? false : true,
         onTap: onTap,
         controller: _dateController,
         style: STextStyles.field(context),

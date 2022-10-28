@@ -27,6 +27,8 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class CreateAutoBackupView extends ConsumerStatefulWidget {
   const CreateAutoBackupView({
     Key? key,
@@ -146,6 +148,8 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                     ),
                     if (!Platform.isAndroid)
                       TextField(
+                        autocorrect: Util.isDesktop ? false : true,
+                        enableSuggestions: Util.isDesktop ? false : true,
                         onTap: Platform.isAndroid
                             ? null
                             : () async {
@@ -411,7 +415,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                     ),
                     Stack(
                       children: [
-                        const TextField(
+                        TextField(
+                          autocorrect: Util.isDesktop ? false : true,
+                          enableSuggestions: Util.isDesktop ? false : true,
                           readOnly: true,
                           textInputAction: TextInputAction.none,
                         ),

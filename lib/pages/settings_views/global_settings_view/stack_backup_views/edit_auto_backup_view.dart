@@ -27,6 +27,8 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
+import '../../../../utilities/util.dart';
+
 class EditAutoBackupView extends ConsumerStatefulWidget {
   const EditAutoBackupView({
     Key? key,
@@ -148,6 +150,8 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                     ),
                     if (!Platform.isAndroid)
                       TextField(
+                        autocorrect: Util.isDesktop ? false : true,
+                        enableSuggestions: Util.isDesktop ? false : true,
                         onTap: Platform.isAndroid
                             ? null
                             : () async {
@@ -413,7 +417,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                     ),
                     Stack(
                       children: [
-                        const TextField(
+                        TextField(
+                          autocorrect: Util.isDesktop ? false : true,
+                          enableSuggestions: Util.isDesktop ? false : true,
                           readOnly: true,
                           textInputAction: TextInputAction.none,
                         ),

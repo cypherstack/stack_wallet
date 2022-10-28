@@ -36,6 +36,8 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class DebugView extends ConsumerStatefulWidget {
   const DebugView({Key? key}) : super(key: key);
 
@@ -228,6 +230,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: _searchController,
                             focusNode: _searchFocusNode,
                             onChanged: (newString) {

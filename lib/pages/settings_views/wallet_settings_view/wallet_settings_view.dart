@@ -30,6 +30,8 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 /// [eventBus] should only be set during testing
 class WalletSettingsView extends StatefulWidget {
   const WalletSettingsView({
@@ -374,6 +376,8 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
             controller: hostController,
             decoration: const InputDecoration(hintText: "Host"),
           ),
@@ -381,6 +385,8 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             height: 8,
           ),
           TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
             controller: portController,
             decoration: const InputDecoration(hintText: "Port"),
             keyboardType: const TextInputType.numberWithOptions(),
