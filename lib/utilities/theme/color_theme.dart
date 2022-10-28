@@ -181,6 +181,7 @@ class CoinThemeColor {
   const CoinThemeColor();
 
   Color get bitcoin => const Color(0xFFFCC17B);
+  Color get litecoin => const Color(0xFF7FA6E1);
   Color get bitcoincash => const Color(0xFF7BCFB8);
   Color get firo => const Color(0xFFFF897A);
   Color get dogecoin => const Color(0xFFFFE079);
@@ -194,6 +195,9 @@ class CoinThemeColor {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return litecoin;
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
         return bitcoincash;
