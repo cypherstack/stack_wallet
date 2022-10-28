@@ -15,6 +15,8 @@ import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
+import 'litecoin/litecoin_wallet.dart';
+
 abstract class CoinServiceAPI {
   CoinServiceAPI();
 
@@ -82,6 +84,26 @@ abstract class CoinServiceAPI {
 
       case Coin.bitcoin:
         return BitcoinWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
+
+      case Coin.litecoin:
+        return LitecoinWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
+
+      case Coin.litecoinTestNet:
+        return LitecoinWallet(
           walletId: walletId,
           walletName: walletName,
           coin: coin,
