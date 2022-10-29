@@ -23,6 +23,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -865,16 +866,31 @@ class _DesktopTransactionCardRowState
             );
             return;
           }
-          unawaited(
-            Navigator.of(context).pushNamed(
-              TransactionDetailsView.routeName,
-              arguments: Tuple3(
-                _transaction,
-                coin,
-                walletId,
+          if (Util.isDesktop) {
+            await showDialog<void>(
+              context: context,
+              builder: (context) => DesktopDialog(
+                maxHeight: MediaQuery.of(context).size.height - 64,
+                maxWidth: 580,
+                child: TransactionDetailsView(
+                  transaction: _transaction,
+                  coin: coin,
+                  walletId: walletId,
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            unawaited(
+              Navigator.of(context).pushNamed(
+                TransactionDetailsView.routeName,
+                arguments: Tuple3(
+                  _transaction,
+                  coin,
+                  walletId,
+                ),
+              ),
+            );
+          }
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(
