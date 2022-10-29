@@ -206,7 +206,6 @@ class _AddWalletViewState extends State<AddWalletView> {
                 Expanded(
                   child: MobileCoinList(
                     coins: coins,
-                    isDesktop: false,
                   ),
                 ),
                 const SizedBox(
