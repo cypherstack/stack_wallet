@@ -1,6 +1,4 @@
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as btc;
-import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
-    as ltc;
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
     as bch;
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
@@ -8,6 +6,8 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
+import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
+    as ltc;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
     as nmc;
@@ -19,12 +19,12 @@ enum Coin {
   dogecoin,
   epicCash,
   firo,
+  litecoin,
   monero,
-  wownero,
   namecoin,
+  wownero,
 
   ///
-  litecoin,
 
   ///
   ///
@@ -37,7 +37,7 @@ enum Coin {
 }
 
 // remove firotestnet for now
-const int kTestNetCoinCount = 3;
+const int kTestNetCoinCount = 4;
 
 extension CoinExt on Coin {
   String get prettyName {
@@ -268,7 +268,10 @@ Coin coinFromPrettyName(String name) {
 
     default:
       throw ArgumentError.value(
-          name, "name", "No Coin enum value with that prettyName");
+        name,
+        "name",
+        "No Coin enum value with that prettyName",
+      );
   }
 }
 
@@ -290,6 +293,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.monero;
     case "nmc":
       return Coin.namecoin;
+    case "tltc":
+      return Coin.litecoinTestNet;
     case "tbtc":
       return Coin.bitcoinTestNet;
     case "tbch":
