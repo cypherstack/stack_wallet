@@ -2,11 +2,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/restore_backup_dialog.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'enable_backup_dialog.dart';
 
 class BackupRestoreSettings extends ConsumerStatefulWidget {
   const BackupRestoreSettings({Key? key}) : super(key: key);
@@ -199,7 +202,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       padding: EdgeInsets.all(
                         10,
                       ),
-                      child: ManualBackupButton(),
+                      child: RestoreBackupButton(),
                     ),
                   ],
                 ),
@@ -218,6 +221,17 @@ class AutoBackupButton extends ConsumerWidget {
   }) : super(key: key);
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> enableAutoBackup() async {
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          return const EnableBackupDialog();
+        },
+      );
+    }
+
     return SizedBox(
       width: 200,
       height: 48,
@@ -225,7 +239,9 @@ class AutoBackupButton extends ConsumerWidget {
         style: Theme.of(context)
             .extension<StackColors>()!
             .getPrimaryEnabledButtonColor(context),
-        onPressed: () {},
+        onPressed: () {
+          enableAutoBackup();
+        },
         child: Text(
           "Enable auto backup",
           style: STextStyles.button(context),
@@ -264,6 +280,17 @@ class RestoreBackupButton extends ConsumerWidget {
   }) : super(key: key);
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> restoreBackup() async {
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          return const RestoreBackupDialog();
+        },
+      );
+    }
+
     return SizedBox(
       width: 200,
       height: 48,
@@ -271,9 +298,11 @@ class RestoreBackupButton extends ConsumerWidget {
         style: Theme.of(context)
             .extension<StackColors>()!
             .getPrimaryEnabledButtonColor(context),
-        onPressed: () {},
+        onPressed: () {
+          restoreBackup();
+        },
         child: Text(
-          "Restore backup",
+          "Restore",
           style: STextStyles.button(context),
         ),
       ),
