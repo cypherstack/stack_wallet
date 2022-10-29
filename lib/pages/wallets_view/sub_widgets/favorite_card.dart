@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -11,6 +12,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:tuple/tuple.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
@@ -54,13 +56,20 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pushNamed(
-          WalletView.routeName,
-          arguments: Tuple2(
-            walletId,
-            managerProvider,
-          ),
-        );
+        if (Util.isDesktop) {
+          Navigator.of(context).pushNamed(
+            DesktopWalletView.routeName,
+            arguments: walletId,
+          );
+        } else {
+          Navigator.of(context).pushNamed(
+            WalletView.routeName,
+            arguments: Tuple2(
+              walletId,
+              managerProvider,
+            ),
+          );
+        }
       },
       child: SizedBox(
         width: widget.width,
