@@ -43,6 +43,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/hover_text_field.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -66,6 +67,7 @@ class DesktopWalletView extends ConsumerStatefulWidget {
 }
 
 class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
+  late final TextEditingController controller;
   late final String walletId;
   late final EventBus eventBus;
 
@@ -179,9 +181,12 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
 
   @override
   void initState() {
+    controller = TextEditingController();
     walletId = widget.walletId;
     final managerProvider =
         ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+
+    controller.text = ref.read(managerProvider).walletName;
 
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
@@ -211,61 +216,110 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     return DesktopScaffold(
       appBar: DesktopAppBar(
         background: Theme.of(context).extension<StackColors>()!.popupBG,
-        leading: Row(
-          children: [
-            const SizedBox(
-              width: 32,
-            ),
-            AppBarIconButton(
-              size: 32,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultBG,
-              shadows: const [],
-              icon: SvgPicture.asset(
-                Assets.svg.arrowLeft,
-                width: 18,
-                height: 18,
+        leading: Expanded(
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 32,
+              ),
+              AppBarIconButton(
+                size: 32,
                 color: Theme.of(context)
                     .extension<StackColors>()!
-                    .topNavIconPrimary,
+                    .textFieldDefaultBG,
+                shadows: const [],
+                icon: SvgPicture.asset(
+                  Assets.svg.arrowLeft,
+                  width: 18,
+                  height: 18,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
+                ),
+                onPressed: onBackPressed,
               ),
-              onPressed: onBackPressed,
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            SvgPicture.asset(
-              Assets.svg.iconFor(coin: coin),
-              width: 32,
-              height: 32,
-            ),
-            const SizedBox(
-              width: 12,
-            ),
-            Text(
-              manager.walletName,
-              style: STextStyles.desktopH3(context),
-            ),
-          ],
+              const SizedBox(
+                width: 15,
+              ),
+              SvgPicture.asset(
+                Assets.svg.iconFor(coin: coin),
+                width: 32,
+                height: 32,
+              ),
+              const SizedBox(
+                width: 12,
+              ),
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: 48,
+                ),
+                child: IntrinsicWidth(
+                  child: HoverTextField(
+                    controller: controller,
+                    style: STextStyles.desktopH3(context),
+                    readOnly: true,
+                    onDone: () async {
+                      final currentWalletName =
+                          ref.read(managerProvider).walletName;
+                      final newName = controller.text;
+                      if (newName != currentWalletName) {
+                        final success = await ref
+                            .read(walletsServiceChangeNotifierProvider)
+                            .renameWallet(
+                              from: currentWalletName,
+                              to: newName,
+                              shouldNotifyListeners: true,
+                            );
+                        if (success) {
+                          ref
+                              .read(walletsChangeNotifierProvider)
+                              .getManager(walletId)
+                              .walletName = newName;
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.success,
+                              message: "Wallet renamed",
+                              context: context,
+                            ),
+                          );
+                        } else {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message:
+                                  "Wallet named \"$newName\" already exists",
+                              context: context,
+                            ),
+                          );
+                          controller.text = currentWalletName;
+                        }
+                      }
+                    },
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  NetworkInfoButton(
+                    walletId: walletId,
+                    eventBus: eventBus,
+                  ),
+                  const SizedBox(
+                    width: 32,
+                  ),
+                  WalletKeysButton(
+                    walletId: walletId,
+                  ),
+                  const SizedBox(
+                    width: 32,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        trailing: Row(
-          children: [
-            NetworkInfoButton(
-              walletId: walletId,
-              eventBus: eventBus,
-            ),
-            const SizedBox(
-              width: 32,
-            ),
-            WalletKeysButton(
-              walletId: walletId,
-            ),
-            const SizedBox(
-              width: 32,
-            ),
-          ],
-        ),
+        useSpacers: false,
         isCompactHeight: true,
       ),
       body: Padding(
