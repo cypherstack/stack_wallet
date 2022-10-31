@@ -5,6 +5,11 @@ enum ExpandableState {
   collapsed,
 }
 
+class ExpandableController {
+  VoidCallback? toggle;
+  ExpandableState state = ExpandableState.collapsed;
+}
+
 class Expandable extends StatefulWidget {
   const Expandable({
     Key? key,
@@ -14,6 +19,7 @@ class Expandable extends StatefulWidget {
     this.animation,
     this.animationDurationMultiplier = 1.0,
     this.onExpandChanged,
+    this.controller,
   }) : super(key: key);
 
   final Widget header;
@@ -22,6 +28,7 @@ class Expandable extends StatefulWidget {
   final Animation<double>? animation;
   final double animationDurationMultiplier;
   final void Function(ExpandableState)? onExpandChanged;
+  final ExpandableController? controller;
 
   @override
   State<Expandable> createState() => _ExpandableState();
@@ -31,19 +38,28 @@ class _ExpandableState extends State<Expandable> with TickerProviderStateMixin {
   late final AnimationController animationController;
   late final Animation<double> animation;
   late final Duration duration;
+  late final ExpandableController? controller;
+
+  ExpandableState _toggleState = ExpandableState.collapsed;
 
   Future<void> toggle() async {
     if (animation.isDismissed) {
       await animationController.forward();
-      widget.onExpandChanged?.call(ExpandableState.collapsed);
+      _toggleState = ExpandableState.collapsed;
+      widget.onExpandChanged?.call(_toggleState);
     } else if (animation.isCompleted) {
       await animationController.reverse();
-      widget.onExpandChanged?.call(ExpandableState.expanded);
+      _toggleState = ExpandableState.expanded;
+      widget.onExpandChanged?.call(_toggleState);
     }
+    controller?.state = _toggleState;
   }
 
   @override
   void initState() {
+    controller = widget.controller;
+    controller?.toggle = toggle;
+
     duration = Duration(
       milliseconds: (500 * widget.animationDurationMultiplier).toInt(),
     );
