@@ -310,6 +310,7 @@ flutter:
     - assets/svg/wallet-desktop.svg
     - assets/svg/exit-desktop.svg
     - assets/svg/keys.svg
+    - assets/svg/arrow-down.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Litecoin.svg

@@ -37,6 +37,7 @@ import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
@@ -947,6 +948,21 @@ class RouteGenerator {
               amount: args.item2,
               trade: args.item4,
               address: args.item3,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case GenerateUriQrCodeView.routeName:
+        if (args is Tuple2<Coin, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => GenerateUriQrCodeView(
+              coin: args.item1,
+              receivingAddress: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,
