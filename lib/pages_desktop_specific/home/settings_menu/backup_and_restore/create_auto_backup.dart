@@ -34,7 +34,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
 
   String _currentDropDownValue = "Every 10 minutes";
 
-  final List<String> _dropDOwnItems = [
+  final List<String> _dropDownItems = [
     "Every 10 minutes",
     "Every 20 minutes",
     "Every 30 minutes",
@@ -352,25 +352,44 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
           const SizedBox(
             height: 10,
           ),
-          DropdownButton(
-            value: _currentDropDownValue,
-            items: _dropDOwnItems
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              if (value is String) {
-                setState(() {
-                  _currentDropDownValue = value;
-                });
-              }
-            },
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 32,
+              right: 32,
+            ),
+            child: DropdownButtonFormField(
+              isExpanded: true,
+              elevation: 0,
+              style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark,
+              ),
+              icon: SvgPicture.asset(
+                Assets.svg.chevronDown,
+                width: 10,
+                height: 5,
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+              dropdownColor:
+                  Theme.of(context).extension<StackColors>()!.textFieldActiveBG,
+              // focusColor: ,
+              value: _currentDropDownValue,
+              items: _dropDownItems
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e,
+                      child: Text(e),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value is String) {
+                  setState(() {
+                    _currentDropDownValue = value;
+                  });
+                }
+              },
+            ),
           ),
-          const Spacer(),
           Padding(
             padding: const EdgeInsets.all(32),
             child: Row(
