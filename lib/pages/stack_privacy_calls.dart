@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/price_provider.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -14,12 +17,8 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../hive/db.dart';
-import '../providers/global/price_provider.dart';
-import '../services/exchange/exchange_data_loading_service.dart';
-import '../widgets/desktop/primary_button.dart';
 
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
@@ -90,7 +89,9 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                   height: isDesktop ? 16 : 8,
                 ),
                 Text(
-    !widget.isSettings ? "You can change it later in Settings" : "",
+                  !widget.isSettings
+                      ? "You can change it later in Settings"
+                      : "",
                   style: isDesktop
                       ? STextStyles.desktopSubtitleH2(context)
                       : STextStyles.subtitle(context),
