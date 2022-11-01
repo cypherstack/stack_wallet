@@ -32,13 +32,27 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
   bool get fieldsMatch =>
       passphraseController.text == passphraseRepeatController.text;
 
-  List<DropdownMenuItem<String>> get dropdownItems {
-    List<DropdownMenuItem<String>> menuItems = [
-      DropdownMenuItem(
-          child: Text("Every 10 minutes"), value: "Every 10 minutes"),
-    ];
-    return menuItems;
-  }
+  String _currentDropDownValue = "Every 10 minutes";
+
+  final List<String> _dropDOwnItems = [
+    "Every 10 minutes",
+    "Every 20 minutes",
+    "Every 30 minutes",
+  ];
+
+  // List<DropdownMenuItem<String>> get dropdownItems {
+  //   List<DropdownMenuItem<String>> menuItems = [
+  //     const DropdownMenuItem(
+  //       value: "Every 10 minutes",
+  //       child: Text("Every 10 minutes"),
+  //     ),
+  //     const DropdownMenuItem(
+  //       value: "Every 20 minutes",
+  //       child: Text("Every 20 minutes"),
+  //     ),
+  //   ];
+  //   return menuItems;
+  // }
 
   @override
   void initState() {
@@ -50,7 +64,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
     passphraseFocusNode = FocusNode();
     passphraseRepeatFocusNode = FocusNode();
 
-    // super.initState();
+    super.initState();
   }
 
   @override
@@ -63,7 +77,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
     passphraseFocusNode.dispose();
     passphraseRepeatFocusNode.dispose();
 
-    // super.dispose();
+    super.dispose();
   }
 
   @override
@@ -114,7 +128,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
           ),
           Container(
             alignment: Alignment.centerLeft,
-            padding: EdgeInsets.only(left: 32),
+            padding: const EdgeInsets.only(left: 32),
             child: Text(
               "Choose file location",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -123,7 +137,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
               textAlign: TextAlign.left,
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 10,
           ),
           Padding(
@@ -177,12 +191,12 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
               ),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 24,
           ),
           Container(
             alignment: Alignment.centerLeft,
-            padding: EdgeInsets.only(left: 32),
+            padding: const EdgeInsets.only(left: 32),
             child: Text(
               "Create a passphrase",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -191,11 +205,11 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
               textAlign: TextAlign.left,
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 10,
           ),
           Padding(
-            padding: EdgeInsets.only(
+            padding: const EdgeInsets.only(
               left: 32,
               right: 32,
             ),
@@ -338,11 +352,24 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
           const SizedBox(
             height: 10,
           ),
-          // DropdownButton(
-          //   value: dropdownItems,
-          //   items: dropdownItems,
-          //   onChanged: null,
-          // ),
+          DropdownButton(
+            value: _currentDropDownValue,
+            items: _dropDOwnItems
+                .map(
+                  (e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              if (value is String) {
+                setState(() {
+                  _currentDropDownValue = value;
+                });
+              }
+            },
+          ),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.all(32),
