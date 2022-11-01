@@ -39,6 +39,7 @@ import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
+import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
@@ -773,6 +774,21 @@ class RouteGenerator {
               walletId: args.item1,
               coin: args.item2,
               autoFillData: args.item3,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ConfirmTransactionView.routeName:
+        if (args is Tuple2<Map<String, dynamic>, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ConfirmTransactionView(
+              transactionInfo: args.item1,
+              walletId: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,

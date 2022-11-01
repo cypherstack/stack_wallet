@@ -40,9 +40,9 @@ import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:tuple/tuple.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -280,12 +280,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
-          return BuildingTransactionDialog(
-            onCancel: () {
-              wasCancelled = true;
+          return DesktopDialog(
+            maxWidth: 400,
+            maxHeight: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: BuildingTransactionDialog(
+                onCancel: () {
+                  wasCancelled = true;
 
-              Navigator.of(context).pop();
-            },
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
           );
         },
       ));
@@ -310,54 +317,103 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       if (!wasCancelled && mounted) {
         // pop building dialog
-        Navigator.of(context).pop();
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pop();
         txData["note"] = noteController.text;
         txData["address"] = _address;
 
-        unawaited(Navigator.of(context).push(
-          RouteGenerator.getRoute(
-            shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-            builder: (_) => ConfirmTransactionView(
-              transactionInfo: txData,
-              walletId: walletId,
-            ),
-            settings: const RouteSettings(
-              name: ConfirmTransactionView.routeName,
+        unawaited(
+          showDialog(
+            context: context,
+            builder: (context) => DesktopDialog(
+              maxHeight: double.infinity,
+              maxWidth: 580,
+                  child: ConfirmTransactionView(
+                    transactionInfo: txData,
+                    walletId: walletId,
+                  ),
             ),
           ),
-        ));
+        );
       }
     } catch (e) {
       if (mounted) {
         // pop building dialog
-        Navigator.of(context).pop();
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pop();
 
-        unawaited(showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) {
-            return StackDialog(
-              title: "Transaction failed",
-              message: e.toString(),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context),
-                child: Text(
-                  "Ok",
-                  style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (context) {
+              return DesktopDialog(
+                maxWidth: 450,
+                maxHeight: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 32,
+                    bottom: 32,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Transaction failed",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                          const DesktopDialogCloseButton(),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          right: 32,
+                        ),
+                        child: Text(
+                          e.toString(),
+                          textAlign: TextAlign.left,
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 40,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          right: 32,
+                        ),
+                        child: Expanded(
+                          child: SecondaryButton(
+                            desktopMed: true,
+                            label: "Yes",
+                            onPressed: () {
+                              Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).pop();
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            );
-          },
-        ));
+              );
+            },
+          ),
+        );
       }
     }
   }
