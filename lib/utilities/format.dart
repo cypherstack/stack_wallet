@@ -4,13 +4,39 @@ import 'package:decimal/decimal.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 import 'package:stackwallet/utilities/constants.dart';
-
-import 'enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class Format {
-  static Decimal satoshisToAmount(int sats) =>
-      (Decimal.fromInt(sats) / Decimal.fromInt(Constants.satsPerCoin))
-          .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces);
+  static Decimal satoshisToAmount(int sats, {Coin? coin}) {
+    late final int satsPerCoin;
+
+    switch (coin) {
+      case Coin.wownero:
+        satsPerCoin = Constants.satsPerCoinWownero;
+        break;
+      case Coin.monero:
+        satsPerCoin = Constants.satsPerCoinMonero;
+        break;
+      case Coin.bitcoin:
+      case Coin.bitcoincash:
+      case Coin.dogecoin:
+      case Coin.epicCash:
+      case Coin.firo:
+      case Coin.litecoin:
+      case Coin.namecoin:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoinTestNet:
+      case Coin.firoTestNet:
+      default:
+        satsPerCoin = Constants.satsPerCoin;
+    }
+
+    return (Decimal.fromInt(sats) / Decimal.fromInt(satsPerCoin))
+        .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces);
+  }
 
   ///
   static String satoshiAmountToPrettyString(int sats, String locale) {
