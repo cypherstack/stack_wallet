@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -255,6 +255,7 @@
 				"${BUILT_PRODUCTS_DIR}/cw_monero/cw_monero.framework",
 				"${BUILT_PRODUCTS_DIR}/cw_shared_external/cw_shared_external.framework",
 				"${BUILT_PRODUCTS_DIR}/cw_wownero/cw_wownero.framework",
+				"${BUILT_PRODUCTS_DIR}/device_info_plus/device_info_plus.framework",
 				"${BUILT_PRODUCTS_DIR}/devicelocale/devicelocale.framework",
 				"${BUILT_PRODUCTS_DIR}/file_picker/file_picker.framework",
 				"${BUILT_PRODUCTS_DIR}/flutter_libmonero/flutter_libmonero.framework",
@@ -288,6 +289,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cw_monero.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cw_shared_external.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cw_wownero.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/device_info_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/devicelocale.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/file_picker.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_libmonero.framework",
@@ -454,7 +456,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 79;
+				CURRENT_PROJECT_VERSION = 83;
 				DEVELOPMENT_TEAM = 4DQKUWSG6C;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -508,7 +510,7 @@
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
-				MARKETING_VERSION = 1.5.9;
+				MARKETING_VERSION = 1.5.11;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -641,7 +643,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 79;
+				CURRENT_PROJECT_VERSION = 83;
 				DEVELOPMENT_TEAM = 4DQKUWSG6C;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -695,7 +697,7 @@
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
-				MARKETING_VERSION = 1.5.9;
+				MARKETING_VERSION = 1.5.11;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -720,7 +722,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 79;
+				CURRENT_PROJECT_VERSION = 83;
 				DEVELOPMENT_TEAM = 4DQKUWSG6C;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -774,7 +776,7 @@
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
-				MARKETING_VERSION = 1.5.9;
+				MARKETING_VERSION = 1.5.11;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";

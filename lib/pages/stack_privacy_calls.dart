@@ -90,7 +90,7 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                   height: isDesktop ? 16 : 8,
                 ),
                 Text(
-                  "You can change it later in Settings",
+    !widget.isSettings ? "You can change it later in Settings" : "",
                   style: isDesktop
                       ? STextStyles.desktopSubtitleH2(context)
                       : STextStyles.subtitle(context),
