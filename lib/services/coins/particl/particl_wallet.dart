@@ -430,7 +430,8 @@ class ParticlWallet extends CoinServiceAPI {
                     data: PaymentData(
                         redeem: P2WPKH(
                                 data: PaymentData(pubkey: node.publicKey),
-                                network: _network)
+                                network: _network,
+                                overridePrefix: particl.bech32!)
                             .data),
                     network: _network)
                 .data
@@ -1200,7 +1201,7 @@ class ParticlWallet extends CoinServiceAPI {
 
   @override
   bool validateAddress(String address) {
-    return Address.validateAddress(address, _network);
+    return Address.validateAddress(address, _network, particl.bech32!);
   }
 
   @override
@@ -1480,7 +1481,11 @@ class ParticlWallet extends CoinServiceAPI {
       case DerivePathType.bip49:
         address = P2SH(
                 data: PaymentData(
-                    redeem: P2WPKH(data: data, network: _network).data),
+                    redeem: P2WPKH(
+                            data: data,
+                            network: _network,
+                            overridePrefix: particl.bech32!)
+                        .data),
                 network: _network)
             .data
             .address!;
@@ -2223,9 +2228,6 @@ class ParticlWallet extends CoinServiceAPI {
     Logging.instance.log("allTransactions length: ${allTransactions.length}",
         level: LogLevel.Info);
 
-    Logging.instance
-        .log("allTransactions is: $allTransactions", level: LogLevel.Info);
-
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
@@ -2516,14 +2518,6 @@ class ParticlWallet extends CoinServiceAPI {
     spendableOutputs.sort(
         (a, b) => b.status.confirmations.compareTo(a.status.confirmations));
 
-    Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
-        level: LogLevel.Info);
-    Logging.instance
-        .log("spendableOutputs: $spendableOutputs", level: LogLevel.Info);
-    Logging.instance.log("spendableSatoshiValue: $spendableSatoshiValue",
-        level: LogLevel.Info);
-    Logging.instance
-        .log("satoshiAmountToSend: $satoshiAmountToSend", level: LogLevel.Info);
     // If the amount the user is trying to send is smaller than the amount that they have spendable,
     // then return 1, which indicates that they have an insufficient balance.
     if (spendableSatoshiValue < satoshiAmountToSend) {
@@ -2557,13 +2551,6 @@ class ParticlWallet extends CoinServiceAPI {
       satoshisBeingUsed += spendableOutputs[inputsBeingConsumed].value;
       inputsBeingConsumed += 1;
     }
-
-    Logging.instance
-        .log("satoshisBeingUsed: $satoshisBeingUsed", level: LogLevel.Info);
-    Logging.instance
-        .log("inputsBeingConsumed: $inputsBeingConsumed", level: LogLevel.Info);
-    Logging.instance
-        .log('utxoObjectsToUse: $utxoObjectsToUse', level: LogLevel.Info);
 
     // numberOfOutputs' length must always be equal to that of recipientsArray and recipientsAmtArray
     List<String> recipientsArray = [_recipientAddress];
@@ -2851,7 +2838,9 @@ class ParticlWallet extends CoinServiceAPI {
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["address"] as String;
+            Logging.instance.log("THIS OUTPUT IS  ${output["scriptPubKey"]}",
+                level: LogLevel.Info, printFullLength: true);
+            final address = output["scriptPubKey"]["addresses"][0] as String;
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
             }
@@ -2870,6 +2859,9 @@ class ParticlWallet extends CoinServiceAPI {
 
       // p2pkh / bip44
       final p2pkhLength = addressesP2PKH.length;
+      Logging.instance
+          .log("THE BIP44 LENGTH IS $p2pkhLength", level: LogLevel.Info);
+
       if (p2pkhLength > 0) {
         final receiveDerivations = await _fetchDerivations(
           chain: 0,
@@ -2928,6 +2920,8 @@ class ParticlWallet extends CoinServiceAPI {
 
       // p2sh / bip49
       final p2shLength = addressesP2SH.length;
+      Logging.instance
+          .log("THE BIP49 LENGTH IS $p2pkhLength", level: LogLevel.Info);
       if (p2shLength > 0) {
         final receiveDerivations = await _fetchDerivations(
           chain: 0,
@@ -2946,7 +2940,8 @@ class ParticlWallet extends CoinServiceAPI {
                     data: PaymentData(
                         pubkey: Format.stringToUint8List(
                             receiveDerivation["pubKey"] as String)),
-                    network: _network)
+                    network: _network,
+                    overridePrefix: particl.bech32!)
                 .data;
 
             final redeemScript = p2wpkh.output;
@@ -3027,19 +3022,20 @@ class ParticlWallet extends CoinServiceAPI {
 
     // Add transaction output
     for (var i = 0; i < recipients.length; i++) {
-      txb.addOutput(recipients[i], satoshiAmounts[i]);
+      txb.addOutput(recipients[i], satoshiAmounts[i], particl.bech32!);
     }
 
     try {
       // Sign the transaction accordingly
       for (var i = 0; i < utxosToUse.length; i++) {
         final txid = utxosToUse[i].txid;
+
         txb.sign(
-          vin: i,
-          keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
-          witnessValue: utxosToUse[i].value,
-          redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
-        );
+            vin: i,
+            keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
+            witnessValue: utxosToUse[i].value,
+            redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
+            overridePrefix: particl.bech32!);
       }
     } catch (e, s) {
       Logging.instance.log("Caught exception while signing transaction: $e\n$s",
@@ -3047,7 +3043,8 @@ class ParticlWallet extends CoinServiceAPI {
       rethrow;
     }
 
-    final builtTx = txb.build();
+    final builtTx = txb.build(particl.bech32!);
+    print("BUILT TX IS $builtTx");
     final vSize = builtTx.virtualSize();
 
     return {"hex": builtTx.toHex(), "vSize": vSize};
