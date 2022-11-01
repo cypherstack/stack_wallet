@@ -26,7 +26,7 @@ class CreateAutoBackup extends StatelessWidget {
     chooseFileLocation = FocusNode();
     // passwordRepeatFocusNode = FocusNode();
 
-    super.initState();
+    // super.initState();
   }
 
   @override
@@ -37,7 +37,7 @@ class CreateAutoBackup extends StatelessWidget {
     chooseFileLocation.dispose();
     // passwordRepeatFocusNode.dispose();
 
-    super.dispose();
+    // super.dispose();
   }
 
   @override
