@@ -5,17 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
-import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -42,7 +42,6 @@ import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-import 'package:tuple/tuple.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -330,10 +329,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             builder: (context) => DesktopDialog(
               maxHeight: double.infinity,
               maxWidth: 580,
-                  child: ConfirmTransactionView(
-                    transactionInfo: txData,
-                    walletId: walletId,
-                  ),
+              child: ConfirmTransactionView(
+                transactionInfo: txData,
+                walletId: walletId,
+              ),
             ),
           ),
         );
@@ -1184,11 +1183,34 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       if (sendToController.text.isEmpty)
                         TextFieldIconButton(
                           key: const Key("sendViewAddressBookButtonKey"),
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                              AddressBookView.routeName,
-                              arguments: coin,
+                          onTap: () async {
+                            final entry =
+                                await showDialog<ContactAddressEntry?>(
+                              context: context,
+                              builder: (context) => DesktopDialog(
+                                maxWidth: 696,
+                                maxHeight: 600,
+                                child: AddressBookAddressChooser(
+                                  coin: coin,
+                                ),
+                              ),
                             );
+
+                            if (entry != null) {
+                              sendToController.text =
+                                  entry.other ?? entry.label;
+
+                              _address = entry.address;
+
+                              _updatePreviewButtonState(
+                                _address,
+                                _amountToSend,
+                              );
+
+                              setState(() {
+                                _addressToggleFlag = true;
+                              });
+                            }
                           },
                           child: const AddressBookIcon(),
                         ),
