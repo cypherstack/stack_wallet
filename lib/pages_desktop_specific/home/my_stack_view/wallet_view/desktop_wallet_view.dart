@@ -1,47 +1,193 @@
+import 'dart:async';
+
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_summary.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/receive/desktop_receive.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/send/desktop_send.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/my_wallet.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/network_info_button.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/recent_desktop_transactions.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_button.dart';
+import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/hover_text_field.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:tuple/tuple.dart';
 
+/// [eventBus] should only be set during testing
 class DesktopWalletView extends ConsumerStatefulWidget {
   const DesktopWalletView({
     Key? key,
     required this.walletId,
+    this.eventBus,
   }) : super(key: key);
 
   static const String routeName = "/desktopWalletView";
 
   final String walletId;
+  final EventBus? eventBus;
 
   @override
   ConsumerState<DesktopWalletView> createState() => _DesktopWalletViewState();
 }
 
 class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
+  late final TextEditingController controller;
   late final String walletId;
+  late final EventBus eventBus;
+
+  late final bool _shouldDisableAutoSyncOnLogOut;
+
+  final _cnLoadingService = ExchangeDataLoadingService();
 
   Future<void> onBackPressed() async {
-    // TODO log out and close wallet before popping back
-    Navigator.of(context).pop();
+    await _logout();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> _logout() async {
+    final managerProvider =
+        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+    if (_shouldDisableAutoSyncOnLogOut) {
+      // disable auto sync if it was enabled only when loading wallet
+      ref.read(managerProvider).shouldAutoSync = false;
+    }
+    ref.read(managerProvider.notifier).isActiveWallet = false;
+    ref.read(transactionFilterProvider.state).state = null;
+    if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
+        ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
+            BackupFrequencyType.afterClosingAWallet) {
+      unawaited(ref.read(autoSWBServiceProvider).doBackup());
+    }
+  }
+
+  void _loadCNData() {
+    // unawaited future
+    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
+      _cnLoadingService.loadAll(ref,
+          coin: ref
+              .read(walletsChangeNotifierProvider)
+              .getManager(walletId)
+              .coin);
+    } else {
+      Logging.instance.log("User does not want to use external calls",
+          level: LogLevel.Info);
+    }
+  }
+
+  void _onExchangePressed(BuildContext context) async {
+    final managerProvider =
+        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+    unawaited(_cnLoadingService.loadAll(ref));
+
+    final coin = ref.read(managerProvider).coin;
+
+    if (coin == Coin.epicCash) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const StackOkDialog(
+          title: "Exchange not available for Epic Cash",
+        ),
+      );
+    } else if (coin.name.endsWith("TestNet")) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const StackOkDialog(
+          title: "Exchange not available for test net coins",
+        ),
+      );
+    } else {
+      ref.read(currentExchangeNameStateProvider.state).state =
+          ChangeNowExchange.exchangeName;
+      final walletId = ref.read(managerProvider).walletId;
+      ref.read(prefsChangeNotifierProvider).exchangeRateType =
+          ExchangeRateType.estimated;
+
+      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
+      ref.read(exchangeFormStateProvider).exchangeType =
+          ExchangeRateType.estimated;
+
+      final currencies = ref
+          .read(availableChangeNowCurrenciesProvider)
+          .currencies
+          .where((element) =>
+              element.ticker.toLowerCase() == coin.ticker.toLowerCase());
+
+      if (currencies.isNotEmpty) {
+        ref.read(exchangeFormStateProvider).setCurrencies(
+              currencies.first,
+              ref
+                  .read(availableChangeNowCurrenciesProvider)
+                  .currencies
+                  .firstWhere(
+                    (element) =>
+                        element.ticker.toLowerCase() !=
+                        coin.ticker.toLowerCase(),
+                  ),
+            );
+      }
+
+      if (mounted) {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            WalletInitiatedExchangeView.routeName,
+            arguments: Tuple3(
+              walletId,
+              coin,
+              _loadCNData,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
   void initState() {
+    controller = TextEditingController();
     walletId = widget.walletId;
+    final managerProvider =
+        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+
+    controller.text = ref.read(managerProvider).walletName;
+
+    eventBus =
+        widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
+
+    ref.read(managerProvider).isActiveWallet = true;
+    if (!ref.read(managerProvider).shouldAutoSync) {
+      // enable auto sync if it wasn't enabled when loading wallet
+      ref.read(managerProvider).shouldAutoSync = true;
+      _shouldDisableAutoSyncOnLogOut = true;
+    } else {
+      _shouldDisableAutoSyncOnLogOut = false;
+    }
+
+    ref.read(managerProvider).refresh();
+
     super.initState();
   }
 
@@ -56,56 +202,110 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     return DesktopScaffold(
       appBar: DesktopAppBar(
         background: Theme.of(context).extension<StackColors>()!.popupBG,
-        leading: Row(
-          children: [
-            const SizedBox(
-              width: 32,
-            ),
-            AppBarIconButton(
-              size: 32,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultBG,
-              shadows: const [],
-              icon: SvgPicture.asset(
-                Assets.svg.arrowLeft,
-                width: 18,
-                height: 18,
+        leading: Expanded(
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 32,
+              ),
+              AppBarIconButton(
+                size: 32,
                 color: Theme.of(context)
                     .extension<StackColors>()!
-                    .topNavIconPrimary,
+                    .textFieldDefaultBG,
+                shadows: const [],
+                icon: SvgPicture.asset(
+                  Assets.svg.arrowLeft,
+                  width: 18,
+                  height: 18,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
+                ),
+                onPressed: onBackPressed,
               ),
-              onPressed: onBackPressed,
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            SvgPicture.asset(
-              Assets.svg.iconFor(coin: coin),
-              width: 32,
-              height: 32,
-            ),
-            const SizedBox(
-              width: 12,
-            ),
-            Text(
-              manager.walletName,
-              style: STextStyles.desktopH3(context),
-            ),
-          ],
+              const SizedBox(
+                width: 15,
+              ),
+              SvgPicture.asset(
+                Assets.svg.iconFor(coin: coin),
+                width: 32,
+                height: 32,
+              ),
+              const SizedBox(
+                width: 12,
+              ),
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: 48,
+                ),
+                child: IntrinsicWidth(
+                  child: HoverTextField(
+                    controller: controller,
+                    style: STextStyles.desktopH3(context),
+                    readOnly: true,
+                    onDone: () async {
+                      final currentWalletName =
+                          ref.read(managerProvider).walletName;
+                      final newName = controller.text;
+                      if (newName != currentWalletName) {
+                        final success = await ref
+                            .read(walletsServiceChangeNotifierProvider)
+                            .renameWallet(
+                              from: currentWalletName,
+                              to: newName,
+                              shouldNotifyListeners: true,
+                            );
+                        if (success) {
+                          ref
+                              .read(walletsChangeNotifierProvider)
+                              .getManager(walletId)
+                              .walletName = newName;
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.success,
+                              message: "Wallet renamed",
+                              context: context,
+                            ),
+                          );
+                        } else {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message:
+                                  "Wallet named \"$newName\" already exists",
+                              context: context,
+                            ),
+                          );
+                          controller.text = currentWalletName;
+                        }
+                      }
+                    },
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  NetworkInfoButton(
+                    walletId: walletId,
+                    eventBus: eventBus,
+                  ),
+                  const SizedBox(
+                    width: 32,
+                  ),
+                  WalletKeysButton(
+                    walletId: walletId,
+                  ),
+                  const SizedBox(
+                    width: 32,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        trailing: Row(
-          children: const [
-            NetworkInfoButton(),
-            SizedBox(
-              width: 32,
-            ),
-            WalletKeysButton(),
-            SizedBox(
-              width: 32,
-            ),
-          ],
-        ),
+        useSpacers: false,
         isCompactHeight: true,
       ),
       body: Padding(
@@ -132,51 +332,36 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                         ? WalletSyncStatus.syncing
                         : WalletSyncStatus.synced,
                   ),
-                  // Column(
-                  //   crossAxisAlignment: CrossAxisAlignment.start,
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: [
-                  //     Row(
-                  //       children: [
-                  //         Text(
-                  //           "TODO: balance",
-                  //           style: STextStyles.desktopH3(context),
-                  //         ),
-                  //         const SizedBox(
-                  //           width: 8,
-                  //         ),
-                  //         Container(
-                  //           color: Colors.red,
-                  //           width: 20,
-                  //           height: 20,
-                  //         ),
-                  //       ],
-                  //     ),
-                  //     Text(
-                  //       "todo: fiat balance",
-                  //       style:
-                  //           STextStyles.desktopTextExtraSmall(context).copyWith(
-                  //         color: Theme.of(context)
-                  //             .extension<StackColors>()!
-                  //             .textSubtitle1,
-                  //       ),
-                  //     )
-                  //   ],
-                  // ),
                   const Spacer(),
                   SecondaryButton(
                     width: 180,
-                    height: 56,
+                    desktopMed: true,
                     onPressed: () {
-                      // todo: go to wallet initiated exchange
+                      _onExchangePressed(context);
                     },
                     label: "Exchange",
                     icon: Container(
-                      color: Colors.red,
-                      width: 20,
-                      height: 20,
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackPrimary
+                            .withOpacity(0.2),
+                      ),
+                      child: Center(
+                        child: SvgPicture.asset(
+                          Assets.svg.arrowRotate2,
+                          width: 14,
+                          height: 14,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondary,
+                        ),
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -196,328 +381,13 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     width: 16,
                   ),
                   Expanded(
-                    child: RecentDesktopTransactions(),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class MyWallet extends StatefulWidget {
-  const MyWallet({
-    Key? key,
-    required this.walletId,
-  }) : super(key: key);
-
-  final String walletId;
-
-  @override
-  State<MyWallet> createState() => _MyWalletState();
-}
-
-class _MyWalletState extends State<MyWallet> {
-  int _selectedIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "My wallet",
-          style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconLeft,
-          ),
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).extension<StackColors>()!.popupBG,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-          ),
-          child: SendReceiveTabMenu(
-            onChanged: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).extension<StackColors>()!.popupBG,
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-          ),
-          child: IndexedStack(
-            index: _selectedIndex,
-            children: [
-              Padding(
-                key: const Key("desktopSendViewPortKey"),
-                padding: const EdgeInsets.all(20),
-                child: DesktopSend(
-                  walletId: widget.walletId,
-                ),
-              ),
-              Padding(
-                key: const Key("desktopReceiveViewPortKey"),
-                padding: const EdgeInsets.all(20),
-                child: DesktopReceive(
-                  walletId: widget.walletId,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Spacer(),
-      ],
-    );
-  }
-}
-
-class SendReceiveTabMenu extends StatefulWidget {
-  const SendReceiveTabMenu({
-    Key? key,
-    this.initialIndex = 0,
-    this.onChanged,
-  }) : super(key: key);
-
-  final int initialIndex;
-  final void Function(int)? onChanged;
-
-  @override
-  State<SendReceiveTabMenu> createState() => _SendReceiveTabMenuState();
-}
-
-class _SendReceiveTabMenuState extends State<SendReceiveTabMenu> {
-  late int _selectedIndex;
-
-  void _onChanged(int newIndex) {
-    if (_selectedIndex != newIndex) {
-      setState(() {
-        _selectedIndex = newIndex;
-      });
-      widget.onChanged?.call(_selectedIndex);
-    }
-  }
-
-  @override
-  void initState() {
-    _selectedIndex = widget.initialIndex;
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () => _onChanged(0),
-            child: Container(
-              color: Colors.transparent,
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  Text(
-                    "Send",
-                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: _selectedIndex == 0
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 19,
-                  ),
-                  Container(
-                    height: 2,
-                    decoration: BoxDecoration(
-                      color: _selectedIndex == 0
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
+                    child: RecentDesktopTransactions(
+                      walletId: walletId,
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ),
-        Expanded(
-          child: GestureDetector(
-            onTap: () => _onChanged(1),
-            child: Container(
-              color: Colors.transparent,
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  Text(
-                    "Receive",
-                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: _selectedIndex == 1
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 19,
-                  ),
-                  Container(
-                    height: 2,
-                    decoration: BoxDecoration(
-                      color: _selectedIndex == 1
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class RecentDesktopTransactions extends StatefulWidget {
-  const RecentDesktopTransactions({Key? key}) : super(key: key);
-
-  @override
-  State<RecentDesktopTransactions> createState() =>
-      _RecentDesktopTransactionsState();
-}
-
-class _RecentDesktopTransactionsState extends State<RecentDesktopTransactions> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Recent transactions",
-              style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveSearchIconLeft,
-              ),
-            ),
-            BlueTextButton(
-              text: "See all",
-              onTap: () {
-                // todo: show all txns
-              },
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Expanded(
-          child: RoundedWhiteContainer(
-            padding: const EdgeInsets.all(0),
-            child: Container(),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class NetworkInfoButton extends StatelessWidget {
-  const NetworkInfoButton({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      child: Container(
-        color: Colors.transparent,
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              Assets.svg.network,
-              width: 24,
-              height: 24,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorGreen,
-            ),
-            const SizedBox(
-              width: 6,
-            ),
-            Text(
-              "Synchronised",
-              style: STextStyles.desktopMenuItemSelected(context),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class WalletKeysButton extends StatelessWidget {
-  const WalletKeysButton({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      child: Container(
-        color: Colors.transparent,
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              Assets.svg.key,
-              width: 20,
-              height: 20,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonTextSecondary,
-            ),
-            const SizedBox(
-              width: 6,
-            ),
-            Text(
-              "Wallet keys",
-              style: STextStyles.desktopMenuItemSelected(context),
-            )
           ],
         ),
       ),

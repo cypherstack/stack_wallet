@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/enable_backup_dialog.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../utilities/theme/stack_colors.dart';
-import 'enable_backup_dialog.dart';
 
 class SecuritySettings extends ConsumerStatefulWidget {
   const SecuritySettings({Key? key}) : super(key: key);
@@ -104,23 +103,6 @@ class NewPasswordButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Future<void> enableAutoBackup() async {
-      // wait for keyboard to disappear
-      FocusScope.of(context).unfocus();
-      await Future<void>.delayed(
-        const Duration(milliseconds: 100),
-      );
-
-      await showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return EnableBackupDialog();
-        },
-      );
-    }
-
     return SizedBox(
       width: 200,
       height: 48,
@@ -129,7 +111,27 @@ class NewPasswordButton extends ConsumerWidget {
             .extension<StackColors>()!
             .getPrimaryEnabledButtonColor(context),
         onPressed: () {
-          enableAutoBackup();
+          // Expandable(
+          //   header: Row(
+          //     mainAxisAlignment: MainAxisAlignment.start,
+          //     children: [
+          //       NewPasswordButton(),
+          //     ],
+          //   ),
+          //   body: Column(
+          //     mainAxisAlignment: MainAxisAlignment.start,
+          //     children: [
+          //       Text(
+          //         "Current Password",
+          //         style: STextStyles.desktopTextExtraSmall(context).copyWith(
+          //           color:
+          //               Theme.of(context).extension<StackColors>()!.textDark3,
+          //         ),
+          //         textAlign: TextAlign.left,
+          //       ),
+          //     ],
+          //   ),
+          // );
         },
         child: Text(
           "Set up new password",

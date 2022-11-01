@@ -16,10 +16,13 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:tuple/tuple.dart';
 
 class DesktopReceive extends ConsumerStatefulWidget {
   const DesktopReceive({
@@ -150,8 +153,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                         children: [
                           SvgPicture.asset(
                             Assets.svg.copy,
-                            width: 10,
-                            height: 10,
+                            width: 15,
+                            height: 15,
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .infoItemIcons,
@@ -168,14 +171,19 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     ],
                   ),
                   const SizedBox(
-                    height: 4,
+                    height: 8,
                   ),
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           receivingAddress,
-                          style: STextStyles.itemSubtitle12(context),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                         ),
                       ),
                     ],
@@ -191,7 +199,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           ),
         if (coin != Coin.epicCash)
           SecondaryButton(
-            height: 56,
+            desktopMed: true,
             onPressed: generateNewAddress,
             label: "Generate new address",
           ),
@@ -209,10 +217,47 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         const SizedBox(
           height: 32,
         ),
-        Center(
-          child: BlueTextButton(
-            text: "Create new QR code",
-            onTap: () async {
+        // TODO: create transparent button class to account for hover
+        GestureDetector(
+          onTap: () async {
+            if (Util.isDesktop) {
+              await showDialog<void>(
+                context: context,
+                builder: (context) => DesktopDialog(
+                  maxHeight: double.infinity,
+                  maxWidth: 580,
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const AppBarBackButton(
+                            size: 40,
+                            iconSize: 24,
+                          ),
+                          Text(
+                            "Generate QR code",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ],
+                      ),
+                      IntrinsicHeight(
+                        child: Navigator(
+                          onGenerateRoute: RouteGenerator.generateRoute,
+                          onGenerateInitialRoutes: (_, __) => [
+                            RouteGenerator.generateRoute(
+                              RouteSettings(
+                                name: GenerateUriQrCodeView.routeName,
+                                arguments: Tuple2(coin, receivingAddress),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            } else {
               unawaited(
                 Navigator.of(context).push(
                   RouteGenerator.getRoute(
@@ -227,7 +272,38 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                   ),
                 ),
               );
-            },
+            }
+          },
+          child: Container(
+            color: Colors.transparent,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  Assets.svg.qrcode,
+                  width: 14,
+                  height: 16,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorBlue,
+                ),
+                const SizedBox(
+                  width: 8,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Text(
+                    "Create new QR code",
+                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorBlue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

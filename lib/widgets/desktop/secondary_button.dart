@@ -13,6 +13,7 @@ class SecondaryButton extends StatelessWidget {
     this.icon,
     this.onPressed,
     this.enabled = true,
+    this.desktopMed = false,
   }) : super(key: key);
 
   final double? width;
@@ -21,13 +22,40 @@ class SecondaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool enabled;
   final Widget? icon;
+  final bool desktopMed;
+
+  TextStyle getStyle(bool isDesktop, BuildContext context) {
+    if (isDesktop) {
+      if (desktopMed) {
+        return STextStyles.desktopTextExtraSmall(context).copyWith(
+          color: enabled
+              ? Theme.of(context).extension<StackColors>()!.buttonTextSecondary
+              : Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondaryDisabled,
+        );
+      } else {
+        return enabled
+            ? STextStyles.desktopButtonSecondaryEnabled(context)
+            : STextStyles.desktopButtonSecondaryDisabled(context);
+      }
+    } else {
+      return STextStyles.button(context).copyWith(
+        color: enabled
+            ? Theme.of(context).extension<StackColors>()!.buttonTextSecondary
+            : Theme.of(context)
+                .extension<StackColors>()!
+                .buttonTextSecondaryDisabled,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
     return CustomTextButtonBase(
-      height: height,
+      height: desktopMed ? 56 : height,
       width: width,
       textButton: TextButton(
         onPressed: enabled ? onPressed : null,
@@ -49,19 +77,7 @@ class SecondaryButton extends StatelessWidget {
             if (label != null)
               Text(
                 label!,
-                style: isDesktop
-                    ? enabled
-                        ? STextStyles.desktopButtonSecondaryEnabled(context)
-                        : STextStyles.desktopButtonSecondaryDisabled(context)
-                    : STextStyles.button(context).copyWith(
-                        color: enabled
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextSecondary
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextSecondaryDisabled,
-                      ),
+                style: getStyle(isDesktop, context),
               ),
           ],
         ),

@@ -10,6 +10,7 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
@@ -67,6 +68,65 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
     );
   }
 
+  Widget itemBuilder(
+      BuildContext context, Transaction tx, BorderRadius? radius) {
+    final matchingTrades = ref
+        .read(tradesServiceProvider)
+        .trades
+        .where((e) => e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
+    if (tx.txType == "Sent" && matchingTrades.isNotEmpty) {
+      final trade = matchingTrades.first;
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          borderRadius: radius,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TransactionCard(
+              // this may mess with combined firo transactions
+              key: Key(tx.toString()), //
+              transaction: tx,
+              walletId: widget.walletId,
+            ),
+            TradeCard(
+              // this may mess with combined firo transactions
+              key: Key(tx.toString() + trade.uuid), //
+              trade: trade,
+              onTap: () {
+                unawaited(
+                  Navigator.of(context).pushNamed(
+                    TradeDetailsView.routeName,
+                    arguments: Tuple4(
+                      trade.tradeId,
+                      tx,
+                      widget.walletId,
+                      ref.read(managerProvider).walletName,
+                    ),
+                  ),
+                );
+              },
+            )
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          borderRadius: radius,
+        ),
+        child: TransactionCard(
+          // this may mess with combined firo transactions
+          key: Key(tx.toString()), //
+          transaction: tx,
+          walletId: widget.walletId,
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     managerProvider = widget.managerProvider;
@@ -119,77 +179,42 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                 unawaited(ref.read(managerProvider).refresh());
               }
             },
-            child: ListView.builder(
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                BorderRadius? radius;
-                if (index == list.length - 1) {
-                  radius = _borderRadiusLast;
-                } else if (index == 0) {
-                  radius = _borderRadiusFirst;
-                }
-                final tx = list[index];
-
-                final matchingTrades = ref
-                    .read(tradesServiceProvider)
-                    .trades
-                    .where((e) =>
-                        e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
-                if (tx.txType == "Sent" && matchingTrades.isNotEmpty) {
-                  final trade = matchingTrades.first;
-                  return Container(
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      borderRadius: radius,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TransactionCard(
-                          // this may mess with combined firo transactions
-                          key: Key(tx.toString()), //
-                          transaction: tx,
-                          walletId: widget.walletId,
-                        ),
-                        TradeCard(
-                          // this may mess with combined firo transactions
-                          key: Key(tx.toString() + trade.uuid), //
-                          trade: trade,
-                          onTap: () {
-                            unawaited(
-                              Navigator.of(context).pushNamed(
-                                TradeDetailsView.routeName,
-                                arguments: Tuple4(
-                                  trade.tradeId,
-                                  tx,
-                                  widget.walletId,
-                                  ref.read(managerProvider).walletName,
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      ],
-                    ),
-                  );
-                } else {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      borderRadius: radius,
-                    ),
-                    child: TransactionCard(
-                      // this may mess with combined firo transactions
-                      key: Key(tx.toString()), //
-                      transaction: tx,
-                      walletId: widget.walletId,
-                    ),
-                  );
-                }
-              },
-            ),
+            child: Util.isDesktop
+                ? ListView.separated(
+                    itemBuilder: (context, index) {
+                      BorderRadius? radius;
+                      if (index == list.length - 1) {
+                        radius = _borderRadiusLast;
+                      } else if (index == 0) {
+                        radius = _borderRadiusFirst;
+                      }
+                      final tx = list[index];
+                      return itemBuilder(context, tx, radius);
+                    },
+                    separatorBuilder: (context, index) {
+                      return Container(
+                        width: double.infinity,
+                        height: 2,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                      );
+                    },
+                    itemCount: list.length,
+                  )
+                : ListView.builder(
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      BorderRadius? radius;
+                      if (index == list.length - 1) {
+                        radius = _borderRadiusLast;
+                      } else if (index == 0) {
+                        radius = _borderRadiusFirst;
+                      }
+                      final tx = list[index];
+                      return itemBuilder(context, tx, radius);
+                    },
+                  ),
           );
         }
       },

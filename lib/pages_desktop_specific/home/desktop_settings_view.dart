@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
