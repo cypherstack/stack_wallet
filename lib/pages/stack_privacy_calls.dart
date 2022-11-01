@@ -8,7 +8,6 @@ import 'package:stackwallet/pages_desktop_specific/create_password/create_passwo
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -76,7 +75,7 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                 height: 8,
               ),
               Text(
-                "You can change it later in Settings",
+                !widget.isSettings ? "You can change it later in Settings" : "",
                 style: STextStyles.subtitle(context),
               ),
               const SizedBox(
