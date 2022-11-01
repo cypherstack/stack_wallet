@@ -50,7 +50,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
     passphraseFocusNode = FocusNode();
     passphraseRepeatFocusNode = FocusNode();
 
-    super.initState();
+    // super.initState();
   }
 
   @override
@@ -63,7 +63,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
     passphraseFocusNode.dispose();
     passphraseRepeatFocusNode.dispose();
 
-    super.dispose();
+    // super.dispose();
   }
 
   @override

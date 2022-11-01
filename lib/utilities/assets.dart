@@ -145,11 +145,13 @@ class _SVG {
   String get walletDesktop => "assets/svg/wallet-desktop.svg";
   String get exitDesktop => "assets/svg/exit-desktop.svg";
   String get keys => "assets/svg/keys.svg";
+  String get arrowDown => "assets/svg/arrow-down.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
 
   String get bitcoin => "assets/svg/coin_icons/Bitcoin.svg";
+  String get litecoin => "assets/svg/coin_icons/Litecoin.svg";
   String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
   String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
@@ -174,6 +176,9 @@ class _SVG {
     switch (coin) {
       case Coin.bitcoin:
         return bitcoin;
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return litecoin;
       case Coin.bitcoincash:
         return bitcoincash;
       case Coin.dogecoin:
@@ -211,6 +216,7 @@ class _PNG {
   String get firo => "assets/images/firo.png";
   String get dogecoin => "assets/images/doge.png";
   String get bitcoin => "assets/images/bitcoin.png";
+  String get litecoin => "assets/images/litecoin.png";
   String get epicCash => "assets/images/epic-cash.png";
   String get bitcoincash => "assets/images/bitcoincash.png";
   String get namecoin => "assets/images/namecoin.png";
@@ -220,6 +226,9 @@ class _PNG {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return litecoin;
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
         return bitcoincash;

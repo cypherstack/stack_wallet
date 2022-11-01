@@ -32,7 +32,10 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -107,23 +110,55 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         useSafeArea: false,
         barrierDismissible: true,
         builder: (context) {
-          return StackDialog(
-            title: "Transaction failed",
-            message: "Sending to self is currently disabled",
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.button(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark),
+          return DesktopDialog(
+            maxWidth: 400,
+            maxHeight: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 32,
+                bottom: 32,
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Transaction failed",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                      const DesktopDialogCloseButton(),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Text(
+                    "Sending to self is currently disabled",
+                    textAlign: TextAlign.left,
+                    style: STextStyles.desktopTextExtraExtraSmall(context)
+                        .copyWith(
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 40,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      right: 32,
+                    ),
+                    child: SecondaryButton(
+                      desktopMed: true,
+                      label: "Ok",
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -154,36 +189,78 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         useSafeArea: false,
         barrierDismissible: true,
         builder: (context) {
-          return StackDialog(
-            title: "Confirm send all",
-            message:
-                "You are about to send your entire balance. Would you like to continue?",
-            leftButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
-              child: Text(
-                "Cancel",
-                style: STextStyles.button(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark),
+          return DesktopDialog(
+            maxWidth: 450,
+            maxHeight: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 32,
+                bottom: 32,
               ),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonColor(context),
-              child: Text(
-                "Yes",
-                style: STextStyles.button(context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Confirm send all",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                      const DesktopDialogCloseButton(),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      right: 32,
+                    ),
+                    child: Text(
+                      "You are about to send your entire balance. Would you like to continue?",
+                      textAlign: TextAlign.left,
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 40,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      right: 32,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            desktopMed: true,
+                            label: "Cancel",
+                            onPressed: () {
+                              Navigator.of(context).pop(false);
+                            },
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        Expanded(
+                          child: PrimaryButton(
+                            desktopMed: true,
+                            label: "Yes",
+                            onPressed: () {
+                              Navigator.of(context).pop(true);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
             ),
           );
         },

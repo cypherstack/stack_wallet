@@ -117,10 +117,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
       case Coin.bitcoin:
       case Coin.bitcoincash:
+      case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -531,11 +533,13 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     // TODO: which coin servers can have username and password?
     switch (coin) {
       case Coin.bitcoin:
+      case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:

@@ -102,12 +102,14 @@ class NodeOptionsSheet extends ConsumerWidget {
         break;
 
       case Coin.bitcoin:
+      case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
       case Coin.bitcoincash:
+      case Coin.litecoinTestNet:
       case Coin.namecoin:
       case Coin.bitcoincashTestnet:
         final client = ElectrumX(

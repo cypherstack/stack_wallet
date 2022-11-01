@@ -37,6 +37,7 @@ import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
@@ -87,6 +88,8 @@ import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
@@ -945,6 +948,21 @@ class RouteGenerator {
               amount: args.item2,
               trade: args.item4,
               address: args.item3,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case GenerateUriQrCodeView.routeName:
+        if (args is Tuple2<Coin, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => GenerateUriQrCodeView(
+              coin: args.item1,
+              receivingAddress: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,

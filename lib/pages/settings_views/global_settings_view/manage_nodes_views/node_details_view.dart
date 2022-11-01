@@ -98,6 +98,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
         break;
 
       case Coin.bitcoin:
+      case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.bitcoinTestNet:
@@ -105,6 +106,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.dogecoinTestNet:
       case Coin.bitcoincash:
       case Coin.namecoin:
+      case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
         final client = ElectrumX(
           host: node!.host,
