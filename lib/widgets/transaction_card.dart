@@ -102,15 +102,13 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             .select((value) => value.getPrice(coin)))
         .item1;
 
-    late final String prefix;
+    String prefix = "";
     if (Util.isDesktop) {
       if (_transaction.txType == "Sent") {
         prefix = "-";
       } else if (_transaction.txType == "Received") {
         prefix = "+";
       }
-    } else {
-      prefix = "";
     }
 
     return Material(

@@ -1190,8 +1190,32 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                               builder: (context) => DesktopDialog(
                                 maxWidth: 696,
                                 maxHeight: 600,
-                                child: AddressBookAddressChooser(
-                                  coin: coin,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 32,
+                                          ),
+                                          child: Text(
+                                            "Address book",
+                                            style:
+                                                STextStyles.desktopH3(context),
+                                          ),
+                                        ),
+                                        const DesktopDialogCloseButton(),
+                                      ],
+                                    ),
+                                    Expanded(
+                                      child: AddressBookAddressChooser(
+                                        coin: coin,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );

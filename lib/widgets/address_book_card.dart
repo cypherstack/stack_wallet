@@ -13,9 +13,14 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class AddressBookCard extends ConsumerStatefulWidget {
-  const AddressBookCard({Key? key, required this.contactId}) : super(key: key);
+  const AddressBookCard({
+    Key? key,
+    required this.contactId,
+    this.indicatorDown,
+  }) : super(key: key);
 
   final String contactId;
+  final bool? indicatorDown;
 
   @override
   ConsumerState<AddressBookCard> createState() => _AddressBookCardState();
@@ -122,7 +127,17 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                   style: STextStyles.label(context),
                 ),
               ],
-            )
+            ),
+          if (isDesktop) const Spacer(),
+          if (isDesktop)
+            SvgPicture.asset(
+              widget.indicatorDown == true
+                  ? Assets.svg.chevronDown
+                  : Assets.svg.chevronUp,
+              width: 10,
+              height: 5,
+              color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
+            ),
         ],
       ),
       builder: (child) => RoundedWhiteContainer(
