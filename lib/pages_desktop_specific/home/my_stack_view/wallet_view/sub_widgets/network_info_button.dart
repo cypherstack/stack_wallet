@@ -157,7 +157,7 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
           showDialog<void>(
             context: context,
             builder: (context) => DesktopDialog(
-              maxHeight: 600,
+              maxHeight: MediaQuery.of(context).size.height - 64,
               maxWidth: 580,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
