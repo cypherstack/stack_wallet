@@ -10,7 +10,7 @@ import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
 
-class ContactListItem extends ConsumerWidget {
+class ContactListItem extends ConsumerStatefulWidget {
   const ContactListItem({
     Key? key,
     required this.contactId,
@@ -21,7 +21,24 @@ class ContactListItem extends ConsumerWidget {
   final Coin? filterByCoin;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ContactListItem> createState() => _ContactListItemState();
+}
+
+class _ContactListItemState extends ConsumerState<ContactListItem> {
+  late final String contactId;
+  late final Coin? filterByCoin;
+
+  ExpandableState _state = ExpandableState.collapsed;
+
+  @override
+  void initState() {
+    contactId = widget.contactId;
+    filterByCoin = widget.filterByCoin;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final contact = ref.watch(addressBookServiceProvider
         .select((value) => value.getContactById(contactId)));
 
@@ -29,6 +46,11 @@ class ContactListItem extends ConsumerWidget {
       padding: const EdgeInsets.all(0),
       borderColor: Theme.of(context).extension<StackColors>()!.background,
       child: Expandable(
+        onExpandChanged: (state) {
+          setState(() {
+            _state = state;
+          });
+        },
         header: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 20,
@@ -36,6 +58,7 @@ class ContactListItem extends ConsumerWidget {
           ),
           child: AddressBookCard(
             contactId: contactId,
+            indicatorDown: _state == ExpandableState.expanded,
           ),
         ),
         body: Column(

@@ -232,6 +232,7 @@ flutter:
     - assets/svg/gear-3.svg
     - assets/svg/swap.svg
     - assets/svg/chevron-down.svg
+    - assets/svg/chevron-up.svg
     - assets/svg/lock-keyhole.svg
     - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg

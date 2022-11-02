@@ -96,6 +96,7 @@ class _SVG {
   String get qrcode => "assets/svg/qrcode1.svg";
   String get ellipsis => "assets/svg/gear-3.svg";
   String get chevronDown => "assets/svg/chevron-down.svg";
+  String get chevronUp => "assets/svg/chevron-up.svg";
   String get swap => "assets/svg/swap.svg";
   String get downloadFolder => "assets/svg/folder-down.svg";
   String get lock => "assets/svg/lock-keyhole.svg";
