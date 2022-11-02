@@ -91,11 +91,10 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_v
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
-import 'package:stackwallet/pages_desktop_specific/home/advanced_settings/advanced_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings/advanced_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
@@ -106,6 +105,8 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
+
+import 'pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
 
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;
