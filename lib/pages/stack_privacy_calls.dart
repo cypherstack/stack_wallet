@@ -285,6 +285,7 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
       children: [
         Expanded(
           child: RawMaterialButton(
+            elevation: 0,
             fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
             shape: RoundedRectangleBorder(
               side: !externalCallsEnabled
