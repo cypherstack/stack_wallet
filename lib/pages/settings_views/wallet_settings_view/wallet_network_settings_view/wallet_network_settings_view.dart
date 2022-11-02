@@ -23,7 +23,9 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
@@ -75,17 +77,19 @@ class _WalletNetworkSettingsViewState
   late int _blocksRemaining;
 
   Future<void> _attemptRescan() async {
-    if (!Platform.isLinux) Wakelock.enable();
+    if (!Platform.isLinux) await Wakelock.enable();
 
     int maxUnusedAddressGap = 20;
 
     const int maxNumberOfIndexesToCheck = 1000;
 
-    showDialog<dynamic>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: false,
-      builder: (context) => const RescanningDialog(),
+    unawaited(
+      showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: false,
+        builder: (context) => const RescanningDialog(),
+      ),
     );
 
     try {
@@ -131,7 +135,7 @@ class _WalletNetworkSettingsViewState
         );
       }
     } catch (e) {
-      if (!Platform.isLinux) Wakelock.disable();
+      if (!Platform.isLinux) await Wakelock.disable();
 
       if (mounted) {
         // pop rescanning dialog
@@ -162,7 +166,7 @@ class _WalletNetworkSettingsViewState
       }
     }
 
-    if (!Platform.isLinux) Wakelock.disable();
+    if (!Platform.isLinux) await Wakelock.disable();
   }
 
   String _percentString(double value) {
@@ -262,9 +266,11 @@ class _WalletNetworkSettingsViewState
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final bool isDesktop = Util.isDesktop;
 
-    final progressLength =
-        screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
+    final progressLength = isDesktop
+        ? 450.0
+        : screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
 
     final coin = ref
         .read(walletsChangeNotifierProvider)
@@ -300,443 +306,464 @@ class _WalletNetworkSettingsViewState
       }
     }
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: Text(
-          "Network",
-          style: STextStyles.navBarTitle(context),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 10,
-              bottom: 10,
-              right: 10,
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) {
+        return Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: AppBarIconButton(
-                key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
-                size: 36,
-                shadows: const [],
-                color: Theme.of(context).extension<StackColors>()!.background,
-                icon: SvgPicture.asset(
-                  Assets.svg.verticalEllipsis,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                  width: 20,
-                  height: 20,
+            title: Text(
+              "Network",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
                 ),
-                onPressed: () {
-                  showDialog<dynamic>(
-                    barrierColor: Colors.transparent,
-                    barrierDismissible: true,
-                    context: context,
-                    builder: (_) {
-                      return Stack(
-                        children: [
-                          Positioned(
-                            top: 9,
-                            right: 10,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .popupBG,
-                                borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius),
-                                // boxShadow: [CFColors.standardBoxShadow],
-                                boxShadow: const [],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context).pop();
-                                      showDialog<dynamic>(
-                                        context: context,
-                                        useSafeArea: false,
-                                        barrierDismissible: true,
-                                        builder: (context) {
-                                          return ConfirmFullRescanDialog(
-                                            onConfirm: _attemptRescan,
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
+                    size: 36,
+                    shadows: const [],
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.verticalEllipsis,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                      width: 20,
+                      height: 20,
+                    ),
+                    onPressed: () {
+                      showDialog<dynamic>(
+                        barrierColor: Colors.transparent,
+                        barrierDismissible: true,
+                        context: context,
+                        builder: (_) {
+                          return Stack(
+                            children: [
+                              Positioned(
+                                top: 9,
+                                right: 10,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .popupBG,
+                                    borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius),
+                                    // boxShadow: [CFColors.standardBoxShadow],
+                                    boxShadow: const [],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).pop();
+                                          showDialog<dynamic>(
+                                            context: context,
+                                            useSafeArea: false,
+                                            barrierDismissible: true,
+                                            builder: (context) {
+                                              return ConfirmFullRescanDialog(
+                                                onConfirm: _attemptRescan,
+                                              );
+                                            },
                                           );
                                         },
-                                      );
-                                    },
-                                    child: RoundedWhiteContainer(
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: Text(
-                                          "Rescan blockchain",
-                                          style: STextStyles.baseXS(context),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: EdgeInsets.only(
-          top: 12,
-          left: _padding,
-          right: _padding,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Blockchain status",
-                        textAlign: TextAlign.left,
-                        style: STextStyles.smallMed12(context),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          ref
-                              .read(walletsChangeNotifierProvider)
-                              .getManager(widget.walletId)
-                              .refresh();
-                        },
-                        child: Text(
-                          "Resync",
-                          style: STextStyles.link2(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 9,
-                  ),
-                  if (_currentSyncStatus == WalletSyncStatus.synced)
-                    RoundedWhiteContainer(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: _iconSize,
-                            height: _iconSize,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorGreen
-                                  .withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(_iconSize),
-                            ),
-                            child: Center(
-                              child: SvgPicture.asset(
-                                Assets.svg.radio,
-                                height: 14,
-                                width: 14,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: _boxPadding,
-                          ),
-                          Column(
-                            children: [
-                              SizedBox(
-                                width: progressLength,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Synchronized",
-                                      style: STextStyles.w600_10(context),
-                                    ),
-                                    Text(
-                                      "100%",
-                                      style: STextStyles.syncPercent(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorGreen,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 4,
-                              ),
-                              ProgressBar(
-                                width: progressLength,
-                                height: 5,
-                                fillColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen,
-                                backgroundColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldDefaultBG,
-                                percent: 1,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (_currentSyncStatus == WalletSyncStatus.syncing)
-                    RoundedWhiteContainer(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: _iconSize,
-                            height: _iconSize,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorYellow
-                                  .withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(_iconSize),
-                            ),
-                            child: Center(
-                              child: SvgPicture.asset(
-                                Assets.svg.radioSyncing,
-                                height: 14,
-                                width: 14,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorYellow,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: _boxPadding,
-                          ),
-                          Column(
-                            children: [
-                              SizedBox(
-                                width: progressLength,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    AnimatedText(
-                                      style: STextStyles.w600_10(context),
-                                      stringsToLoopThrough: const [
-                                        "Synchronizing",
-                                        "Synchronizing.",
-                                        "Synchronizing..",
-                                        "Synchronizing...",
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          _percentString(_percent),
-                                          style:
-                                              STextStyles.syncPercent(context)
-                                                  .copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorYellow,
-                                          ),
-                                        ),
-                                        if (coin == Coin.monero ||
-                                            coin == Coin.wownero ||
-                                            coin == Coin.epicCash)
-                                          Text(
-                                            " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
-                                            style:
-                                                STextStyles.syncPercent(context)
-                                                    .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorYellow,
+                                        child: RoundedWhiteContainer(
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: Text(
+                                              "Rescan blockchain",
+                                              style:
+                                                  STextStyles.baseXS(context),
                                             ),
                                           ),
-                                      ],
-                                    )
-                                  ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              const SizedBox(
-                                height: 4,
-                              ),
-                              ProgressBar(
-                                width: progressLength,
-                                height: 5,
-                                fillColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorYellow,
-                                backgroundColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldDefaultBG,
-                                percent: _percent,
-                              ),
                             ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (_currentSyncStatus == WalletSyncStatus.unableToSync)
-                    RoundedWhiteContainer(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: _iconSize,
-                            height: _iconSize,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorRed
-                                  .withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(_iconSize),
-                            ),
-                            child: Center(
-                              child: SvgPicture.asset(
-                                Assets.svg.radioProblem,
-                                height: 14,
-                                width: 14,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorRed,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: _boxPadding,
-                          ),
-                          Column(
-                            children: [
-                              SizedBox(
-                                width: progressLength,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Unable to synchronize",
-                                      style:
-                                          STextStyles.w600_10(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorRed,
-                                      ),
-                                    ),
-                                    Text(
-                                      "0%",
-                                      style: STextStyles.syncPercent(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorRed,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 4,
-                              ),
-                              ProgressBar(
-                                width: progressLength,
-                                height: 5,
-                                fillColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorRed,
-                                backgroundColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldDefaultBG,
-                                percent: 0,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (_currentSyncStatus == WalletSyncStatus.unableToSync)
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: 12,
-                      ),
-                      child: RoundedContainer(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningBackground,
-                        child: Text(
-                          "Please check your internet connection and make sure your current node is not having issues.",
-                          style: STextStyles.baseXS(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .warningForeground,
-                          ),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "${ref.watch(walletsChangeNotifierProvider.select((value) => value.getManager(widget.walletId).coin)).prettyName} nodes",
-                        textAlign: TextAlign.left,
-                        style: STextStyles.smallMed12(context),
-                      ),
-                      BlueTextButton(
-                        text: "Add new node",
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            AddEditNodeView.routeName,
-                            arguments: Tuple4(
-                              AddEditNodeViewType.add,
-                              ref
-                                  .read(walletsChangeNotifierProvider)
-                                  .getManager(widget.walletId)
-                                  .coin,
-                              null,
-                              WalletNetworkSettingsView.routeName,
-                            ),
                           );
                         },
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  NodesList(
-                    coin: ref.watch(walletsChangeNotifierProvider.select(
-                        (value) => value.getManager(widget.walletId).coin)),
-                    popBackToRoute: WalletNetworkSettingsView.routeName,
-                  ),
-                ],
+                ),
               ),
             ],
           ),
-        ),
+          body: Padding(
+            padding: EdgeInsets.only(
+              top: 12,
+              left: _padding,
+              right: _padding,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  child,
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Blockchain status",
+                textAlign: TextAlign.left,
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.smallMed12(context),
+              ),
+              GestureDetector(
+                onTap: () {
+                  ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(widget.walletId)
+                      .refresh();
+                },
+                child: Text(
+                  "Resync",
+                  style: STextStyles.link2(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 9,
+          ),
+          if (_currentSyncStatus == WalletSyncStatus.synced)
+            RoundedWhiteContainer(
+              child: Row(
+                children: [
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen
+                          .withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.radio,
+                        height: 14,
+                        width: 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: _boxPadding,
+                  ),
+                  Column(
+                    children: [
+                      SizedBox(
+                        width: progressLength,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Synchronized",
+                              style: STextStyles.w600_10(context),
+                            ),
+                            Text(
+                              "100%",
+                              style: STextStyles.syncPercent(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorGreen,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      ProgressBar(
+                        width: progressLength,
+                        height: 5,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
+                        backgroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
+                        percent: 1,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          if (_currentSyncStatus == WalletSyncStatus.syncing)
+            RoundedWhiteContainer(
+              child: Row(
+                children: [
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorYellow
+                          .withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.radioSyncing,
+                        height: 14,
+                        width: 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorYellow,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: _boxPadding,
+                  ),
+                  Column(
+                    children: [
+                      SizedBox(
+                        width: progressLength,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            AnimatedText(
+                              style: STextStyles.w600_10(context),
+                              stringsToLoopThrough: const [
+                                "Synchronizing",
+                                "Synchronizing.",
+                                "Synchronizing..",
+                                "Synchronizing...",
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  _percentString(_percent),
+                                  style:
+                                      STextStyles.syncPercent(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorYellow,
+                                  ),
+                                ),
+                                if (coin == Coin.monero ||
+                                    coin == Coin.wownero ||
+                                    coin == Coin.epicCash)
+                                  Text(
+                                    " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
+                                    style: STextStyles.syncPercent(context)
+                                        .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorYellow,
+                                    ),
+                                  ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      ProgressBar(
+                        width: progressLength,
+                        height: 5,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorYellow,
+                        backgroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
+                        percent: _percent,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          if (_currentSyncStatus == WalletSyncStatus.unableToSync)
+            RoundedWhiteContainer(
+              child: Row(
+                children: [
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorRed
+                          .withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.radioProblem,
+                        height: 14,
+                        width: 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorRed,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: _boxPadding,
+                  ),
+                  Column(
+                    children: [
+                      SizedBox(
+                        width: progressLength,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Unable to synchronize",
+                              style: STextStyles.w600_10(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed,
+                              ),
+                            ),
+                            Text(
+                              "0%",
+                              style: STextStyles.syncPercent(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      ProgressBar(
+                        width: progressLength,
+                        height: 5,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorRed,
+                        backgroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
+                        percent: 0,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          if (_currentSyncStatus == WalletSyncStatus.unableToSync)
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 12,
+              ),
+              child: RoundedContainer(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .warningBackground,
+                child: Text(
+                  "Please check your internet connection and make sure your current node is not having issues.",
+                  style: STextStyles.baseXS(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .warningForeground,
+                  ),
+                ),
+              ),
+            ),
+          const SizedBox(
+            height: 20,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "${ref.watch(walletsChangeNotifierProvider.select((value) => value.getManager(widget.walletId).coin)).prettyName} nodes",
+                textAlign: TextAlign.left,
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.smallMed12(context),
+              ),
+              BlueTextButton(
+                text: "Add new node",
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    AddEditNodeView.routeName,
+                    arguments: Tuple4(
+                      AddEditNodeViewType.add,
+                      ref
+                          .read(walletsChangeNotifierProvider)
+                          .getManager(widget.walletId)
+                          .coin,
+                      null,
+                      WalletNetworkSettingsView.routeName,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          NodesList(
+            coin: ref.watch(walletsChangeNotifierProvider
+                .select((value) => value.getManager(widget.walletId).coin)),
+            popBackToRoute: WalletNetworkSettingsView.routeName,
+          ),
+          if (isDesktop)
+            const SizedBox(
+              height: 20,
+            ),
+          if (isDesktop)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  "Advanced",
+                  textAlign: TextAlign.left,
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }

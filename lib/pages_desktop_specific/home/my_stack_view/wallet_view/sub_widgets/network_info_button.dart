@@ -12,6 +12,9 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:tuple/tuple.dart';
 
 class NetworkInfoButton extends ConsumerStatefulWidget {
@@ -150,14 +153,57 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pushNamed(
-          WalletNetworkSettingsView.routeName,
-          arguments: Tuple3(
-            walletId,
-            _currentSyncStatus,
-            _currentNodeStatus,
-          ),
-        );
+        if (Util.isDesktop) {
+          showDialog<void>(
+            context: context,
+            builder: (context) => DesktopDialog(
+              maxHeight: 600,
+              maxWidth: 580,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 32,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Network",
+                          style: STextStyles.desktopH3(context),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 16,
+                      left: 32,
+                      right: 32,
+                      bottom: 32,
+                    ),
+                    child: WalletNetworkSettingsView(
+                      walletId: walletId,
+                      initialSyncStatus: _currentSyncStatus,
+                      initialNodeStatus: _currentNodeStatus,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        } else {
+          Navigator.of(context).pushNamed(
+            WalletNetworkSettingsView.routeName,
+            arguments: Tuple3(
+              walletId,
+              _currentSyncStatus,
+              _currentNodeStatus,
+            ),
+          );
+        }
       },
       child: Container(
         color: Colors.transparent,
