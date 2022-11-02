@@ -96,7 +96,7 @@ class _CurrencyDialog extends ConsumerState<CurrencyDialog> {
   @override
   Widget build(BuildContext context) {
     current = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.language));
+        .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
     currenciesWithoutSelected = ref
         .watch(baseCurrenciesProvider.select((value) => value.map))
