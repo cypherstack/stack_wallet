@@ -481,8 +481,8 @@ class _WalletNetworkSettingsViewState
                     child: Center(
                       child: SvgPicture.asset(
                         Assets.svg.radio,
-                        height: 14,
-                        width: 14,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .accentColorGreen,
