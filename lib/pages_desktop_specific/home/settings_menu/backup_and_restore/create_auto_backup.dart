@@ -40,20 +40,6 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
     "Every 30 minutes",
   ];
 
-  // List<DropdownMenuItem<String>> get dropdownItems {
-  //   List<DropdownMenuItem<String>> menuItems = [
-  //     const DropdownMenuItem(
-  //       value: "Every 10 minutes",
-  //       child: Text("Every 10 minutes"),
-  //     ),
-  //     const DropdownMenuItem(
-  //       value: "Every 20 minutes",
-  //       child: Text("Every 20 minutes"),
-  //     ),
-  //   ];
-  //   return menuItems;
-  // }
-
   @override
   void initState() {
     fileLocationController = TextEditingController();

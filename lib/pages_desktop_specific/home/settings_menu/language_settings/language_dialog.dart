@@ -125,6 +125,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
             ],
           ),
           Expanded(
+            flex: 24,
             child: NestedScrollView(
               floatHeaderSlivers: true,
               headerSliverBuilder: (context, innerBoxIsScrolled) {
