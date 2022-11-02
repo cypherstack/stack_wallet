@@ -3,21 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/price_provider.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-
-import '../../../hive/db.dart';
-import '../../../providers/global/prefs_provider.dart';
-import '../../../providers/global/price_provider.dart';
-import '../../../services/exchange/exchange_data_loading_service.dart';
-import '../../../utilities/assets.dart';
-import '../../../utilities/constants.dart';
-import '../../../utilities/theme/stack_colors.dart';
-import '../../../utilities/util.dart';
-import '../../../widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class StackPrivacyDialog extends ConsumerStatefulWidget {
   const StackPrivacyDialog({Key? key}) : super(key: key);
