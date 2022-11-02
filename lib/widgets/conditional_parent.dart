@@ -4,13 +4,13 @@ class ConditionalParent extends StatelessWidget {
   const ConditionalParent({
     Key? key,
     required this.condition,
-    required this.child,
     required this.builder,
+    required this.child,
   }) : super(key: key);
 
   final bool condition;
-  final Widget child;
   final Widget Function(Widget) builder;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {

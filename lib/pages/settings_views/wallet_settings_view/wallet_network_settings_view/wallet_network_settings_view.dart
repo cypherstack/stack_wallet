@@ -28,6 +28,7 @@ import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -61,7 +62,7 @@ class _WalletNetworkSettingsViewState
     extends ConsumerState<WalletNetworkSettingsView> {
   final double _padding = 16;
   final double _boxPadding = 12;
-  final double _iconSize = 28;
+  final double _iconSize = Util.isDesktop ? 40 : 28;
 
   late final EventBus eventBus;
 
@@ -75,6 +76,7 @@ class _WalletNetworkSettingsViewState
 
   late double _percent;
   late int _blocksRemaining;
+  bool _advancedIsExpanded = true;
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -269,7 +271,7 @@ class _WalletNetworkSettingsViewState
     final bool isDesktop = Util.isDesktop;
 
     final progressLength = isDesktop
-        ? 450.0
+        ? 430.0
         : screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
 
     final coin = ref
@@ -373,7 +375,7 @@ class _WalletNetworkSettingsViewState
                                       GestureDetector(
                                         onTap: () {
                                           Navigator.of(context).pop();
-                                          showDialog<dynamic>(
+                                          showDialog<void>(
                                             context: context,
                                             useSafeArea: false,
                                             barrierDismissible: true,
@@ -453,11 +455,17 @@ class _WalletNetworkSettingsViewState
               ),
             ],
           ),
-          const SizedBox(
-            height: 9,
+          SizedBox(
+            height: isDesktop ? 12 : 9,
           ),
           if (_currentSyncStatus == WalletSyncStatus.synced)
             RoundedWhiteContainer(
+              borderColor: isDesktop
+                  ? Theme.of(context).extension<StackColors>()!.background
+                  : null,
+              padding: isDesktop
+                  ? const EdgeInsets.all(16)
+                  : const EdgeInsets.all(12),
               child: Row(
                 children: [
                   Container(
@@ -527,6 +535,12 @@ class _WalletNetworkSettingsViewState
             ),
           if (_currentSyncStatus == WalletSyncStatus.syncing)
             RoundedWhiteContainer(
+              borderColor: isDesktop
+                  ? Theme.of(context).extension<StackColors>()!.background
+                  : null,
+              padding: isDesktop
+                  ? const EdgeInsets.all(16)
+                  : const EdgeInsets.all(12),
               child: Row(
                 children: [
                   Container(
@@ -618,6 +632,12 @@ class _WalletNetworkSettingsViewState
             ),
           if (_currentSyncStatus == WalletSyncStatus.unableToSync)
             RoundedWhiteContainer(
+              borderColor: isDesktop
+                  ? Theme.of(context).extension<StackColors>()!.background
+                  : null,
+              padding: isDesktop
+                  ? const EdgeInsets.all(16)
+                  : const EdgeInsets.all(12),
               child: Row(
                 children: [
                   Container(
@@ -708,8 +728,8 @@ class _WalletNetworkSettingsViewState
                 ),
               ),
             ),
-          const SizedBox(
-            height: 20,
+          SizedBox(
+            height: isDesktop ? 32 : 20,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -740,8 +760,8 @@ class _WalletNetworkSettingsViewState
               ),
             ],
           ),
-          const SizedBox(
-            height: 8,
+          SizedBox(
+            height: isDesktop ? 12 : 8,
           ),
           NodesList(
             coin: ref.watch(walletsChangeNotifierProvider
@@ -750,18 +770,125 @@ class _WalletNetworkSettingsViewState
           ),
           if (isDesktop)
             const SizedBox(
-              height: 20,
+              height: 32,
             ),
           if (isDesktop)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  "Advanced",
-                  textAlign: TextAlign.left,
-                  style: STextStyles.desktopTextExtraExtraSmall(context),
+            Padding(
+              padding: const EdgeInsets.only(
+                bottom: 12,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    "Advanced",
+                    textAlign: TextAlign.left,
+                    style: STextStyles.desktopTextExtraExtraSmall(context),
+                  ),
+                ],
+              ),
+            ),
+          if (isDesktop)
+            RoundedWhiteContainer(
+              borderColor: isDesktop
+                  ? Theme.of(context).extension<StackColors>()!.background
+                  : null,
+              padding: isDesktop
+                  ? const EdgeInsets.all(16)
+                  : const EdgeInsets.all(12),
+              child: Expandable(
+                onExpandChanged: (state) {
+                  setState(() {
+                    _advancedIsExpanded = state == ExpandableState.expanded;
+                  });
+                },
+                header: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: _iconSize,
+                          height: _iconSize,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultBG,
+                            borderRadius: BorderRadius.circular(_iconSize),
+                          ),
+                          child: Center(
+                            child: SvgPicture.asset(
+                              Assets.svg.networkWired,
+                              width: 24,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Advanced",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                            ),
+                            Text(
+                              "Rescan blockchain",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                  context),
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                    SvgPicture.asset(
+                      _advancedIsExpanded
+                          ? Assets.svg.chevronDown
+                          : Assets.svg.chevronUp,
+                      width: 12,
+                      height: 6,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
+                    ),
+                  ],
                 ),
-              ],
+                body: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 50,
+                        top: 16,
+                        bottom: 6,
+                      ),
+                      child: BlueTextButton(
+                        text: "Rescan",
+                        onTap: () async {
+                          await showDialog<dynamic>(
+                            context: context,
+                            builder: (context) {
+                              return ConfirmFullRescanDialog(
+                                onConfirm: _attemptRescan,
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
         ],
       ),
