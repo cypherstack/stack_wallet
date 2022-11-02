@@ -10,6 +10,7 @@ import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/confirm_full_rescan.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
@@ -875,14 +876,22 @@ class _WalletNetworkSettingsViewState
                       child: BlueTextButton(
                         text: "Rescan",
                         onTap: () async {
-                          await showDialog<dynamic>(
-                            context: context,
-                            builder: (context) {
-                              return ConfirmFullRescanDialog(
+                          await Navigator.of(context).push(
+                             FadePageRoute<void>(
+                              ConfirmFullRescanDialog(
                                 onConfirm: _attemptRescan,
-                              );
-                            },
+                              ),
+                             const RouteSettings(),
+                            ),
                           );
+                          // await showDialog<dynamic>(
+                          //   context: context,
+                          //   builder: (context) {
+                          //     return ConfirmFullRescanDialog(
+                          //       onConfirm: _attemptRescan,
+                          //     );
+                          //   },
+                          // );
                         },
                       ),
                     ),

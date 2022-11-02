@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -21,6 +20,8 @@ class UnlockWalletKeysDesktop extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   final String walletId;
+
+  static const String routeName = "/desktopUnlockWalletKeys";
 
   @override
   ConsumerState<UnlockWalletKeysDesktop> createState() =>
@@ -59,8 +60,13 @@ class _UnlockWalletKeysDesktopState
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: const [
-              DesktopDialogCloseButton(),
+            children: [
+              DesktopDialogCloseButton(
+                onPressedOverride: Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pop,
+              ),
             ],
           ),
           const SizedBox(
@@ -175,7 +181,10 @@ class _UnlockWalletKeysDesktopState
                 Expanded(
                   child: SecondaryButton(
                     label: "Cancel",
-                    onPressed: Navigator.of(context).pop,
+                    onPressed: Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop,
                   ),
                 ),
                 const SizedBox(
@@ -188,29 +197,35 @@ class _UnlockWalletKeysDesktopState
                     onPressed: continueEnabled
                         ? () async {
                             // todo: check password
-                            Navigator.of(context).pop();
+                            // Navigator.of(context).pop();
                             final words = await ref
                                 .read(walletsChangeNotifierProvider)
                                 .getManager(widget.walletId)
                                 .mnemonic;
-                            await showDialog<void>(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (context) => Navigator(
-                                initialRoute: WalletKeysDesktopPopup.routeName,
-                                onGenerateRoute: RouteGenerator.generateRoute,
-                                onGenerateInitialRoutes: (_, __) {
-                                  return [
-                                    RouteGenerator.generateRoute(
-                                      RouteSettings(
-                                        name: WalletKeysDesktopPopup.routeName,
-                                        arguments: words,
-                                      ),
-                                    )
-                                  ];
-                                },
-                              ),
+
+                            await Navigator.of(context).pushReplacementNamed(
+                              WalletKeysDesktopPopup.routeName,
+                              arguments: words,
                             );
+                            //
+                            // await showDialog<void>(
+                            //   context: context,
+                            //   barrierDismissible: false,
+                            //   builder: (context) => Navigator(
+                            //     initialRoute: WalletKeysDesktopPopup.routeName,
+                            //     onGenerateRoute: RouteGenerator.generateRoute,
+                            //     onGenerateInitialRoutes: (_, __) {
+                            //       return [
+                            //         RouteGenerator.generateRoute(
+                            //           RouteSettings(
+                            //             name: WalletKeysDesktopPopup.routeName,
+                            //             arguments: words,
+                            //           ),
+                            //         )
+                            //       ];
+                            //     },
+                            //   ),
+                            // );
                           }
                         : null,
                   ),

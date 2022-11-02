@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -154,44 +155,103 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
     return GestureDetector(
       onTap: () {
         if (Util.isDesktop) {
+          // showDialog<void>(
+          //   context: context,
+          //   builder: (context) => DesktopDialog(
+          //     maxHeight: MediaQuery.of(context).size.height - 64,
+          //     maxWidth: 580,
+          //     child: Column(
+          //       mainAxisSize: MainAxisSize.min,
+          //       children: [
+          //         Padding(
+          //           padding: const EdgeInsets.only(
+          //             left: 32,
+          //           ),
+          //           child: Row(
+          //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //             children: [
+          //               Text(
+          //                 "Network",
+          //                 style: STextStyles.desktopH3(context),
+          //               ),
+          //               const DesktopDialogCloseButton(),
+          //             ],
+          //           ),
+          //         ),
+          //         Padding(
+          //           padding: const EdgeInsets.only(
+          //             top: 16,
+          //             left: 32,
+          //             right: 32,
+          //             bottom: 32,
+          //           ),
+          //           child: WalletNetworkSettingsView(
+          //             walletId: walletId,
+          //             initialSyncStatus: _currentSyncStatus,
+          //             initialNodeStatus: _currentNodeStatus,
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // );
+
           showDialog<void>(
             context: context,
-            builder: (context) => DesktopDialog(
-              maxHeight: MediaQuery.of(context).size.height - 64,
-              maxWidth: 580,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 32,
+            builder: (context) => Navigator(
+              initialRoute: WalletNetworkSettingsView.routeName,
+              onGenerateRoute: RouteGenerator.generateRoute,
+              onGenerateInitialRoutes: (_, __) {
+                return [
+                  FadePageRoute(
+                    DesktopDialog(
+                      maxHeight: MediaQuery.of(context).size.height - 64,
+                      maxWidth: 580,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 32,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Network",
+                                  style: STextStyles.desktopH3(context),
+                                ),
+                                DesktopDialogCloseButton(
+                                  onPressedOverride: Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              top: 16,
+                              left: 32,
+                              right: 32,
+                              bottom: 32,
+                            ),
+                            child: WalletNetworkSettingsView(
+                              walletId: walletId,
+                              initialSyncStatus: _currentSyncStatus,
+                              initialNodeStatus: _currentNodeStatus,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Network",
-                          style: STextStyles.desktopH3(context),
-                        ),
-                        const DesktopDialogCloseButton(),
-                      ],
+                    const RouteSettings(
+                      name: WalletNetworkSettingsView.routeName,
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 16,
-                      left: 32,
-                      right: 32,
-                      bottom: 32,
-                    ),
-                    child: WalletNetworkSettingsView(
-                      walletId: walletId,
-                      initialSyncStatus: _currentSyncStatus,
-                      initialNodeStatus: _currentNodeStatus,
-                    ),
-                  ),
-                ],
-              ),
+                ];
+              },
             ),
           );
         } else {

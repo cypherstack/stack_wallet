@@ -106,6 +106,7 @@ import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
 
+import 'pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import 'pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
 
 class RouteGenerator {
@@ -1085,29 +1086,67 @@ class RouteGenerator {
 
       case WalletKeysDesktopPopup.routeName:
         if (args is List<String>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => WalletKeysDesktopPopup(
+          return FadePageRoute(
+            WalletKeysDesktopPopup(
               words: args,
             ),
-            settings: RouteSettings(
+            RouteSettings(
               name: settings.name,
             ),
           );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => WalletKeysDesktopPopup(
+          //     words: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case UnlockWalletKeysDesktop.routeName:
+        if (args is String) {
+          return FadePageRoute(
+            UnlockWalletKeysDesktop(
+              walletId: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => WalletKeysDesktopPopup(
+          //     words: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case QRCodeDesktopPopupContent.routeName:
         if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => QRCodeDesktopPopupContent(
+          return FadePageRoute(
+            QRCodeDesktopPopupContent(
               value: args,
             ),
-            settings: RouteSettings(
+            RouteSettings(
               name: settings.name,
             ),
           );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => QRCodeDesktopPopupContent(
+          //     value: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
@@ -1180,4 +1219,38 @@ class RouteGenerator {
         shouldUseMaterialRoute: useMaterialPageRoute,
         builder: (_) => errorView);
   }
+}
+
+class FadePageRoute<T> extends PageRoute<T> {
+  FadePageRoute(this.child, RouteSettings settings) : _settings = settings;
+
+  final Widget child;
+  final RouteSettings _settings;
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  String? get barrierLabel => null;
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return FadeTransition(
+      opacity: animation,
+      child: child,
+    );
+  }
+
+  @override
+  bool get maintainState => true;
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 100);
+
+  @override
+  RouteSettings get settings => _settings;
 }
