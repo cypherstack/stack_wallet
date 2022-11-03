@@ -237,6 +237,7 @@ flutter:
     - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
+    - assets/svg/network-wired-2.svg
     - assets/svg/address-book.svg
     - assets/svg/address-book2.svg
     - assets/svg/arrow-right.svg

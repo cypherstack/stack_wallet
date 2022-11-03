@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/home/advanced_settings/stack_privacy_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings/stack_privacy_dialog.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -165,7 +166,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                     .textDark),
                         textAlign: TextAlign.left,
                       ),
-                      const ShowLogsButton(),
+                      ShowLogsButton(),
                     ],
                   ),
                 ),
@@ -190,7 +191,7 @@ class StackPrivacyButton extends ConsumerWidget {
         useSafeArea: false,
         barrierDismissible: true,
         builder: (context) {
-          return const StackPrivacyDialog();
+          return StackPrivacyDialog();
         },
       );
     }
@@ -223,20 +224,19 @@ class ShowLogsButton extends ConsumerWidget {
   const ShowLogsButton({
     Key? key,
   }) : super(key: key);
-
-  Future<void> viewDebugLogs() async {
-    // await showDialog<dynamic>(
-    //   context: context,
-    //   useSafeArea: false,
-    //   barrierDismissible: true,
-    //   builder: (context) {
-    //     return const DebugInfoDialog();
-    //   },
-    // );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Future<void> viewDebugLogs() async {
+    //   await showDialog<dynamic>(
+    //     context: context,
+    //     useSafeArea: false,
+    //     barrierDismissible: true,
+    //     builder: (context) {
+    //       return const DebugInfoDialog();
+    //     },
+    //   );
+    // }
+
     return SizedBox(
       width: 101,
       height: 37,
@@ -246,7 +246,7 @@ class ShowLogsButton extends ConsumerWidget {
             .getPrimaryEnabledButtonColor(context),
         onPressed: () {
           //
-          viewDebugLogs();
+          // viewDebugLogs();
         },
         child: Text(
           "Show logs",

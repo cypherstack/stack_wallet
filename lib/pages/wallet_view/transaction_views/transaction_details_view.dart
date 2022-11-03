@@ -25,6 +25,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -260,11 +261,19 @@ class _TransactionDetailsViewState
                         bottom: 32,
                       )
                     : const EdgeInsets.all(0),
-                child: RoundedWhiteContainer(
-                  borderColor: isDesktop
-                      ? Theme.of(context).extension<StackColors>()!.background
-                      : null,
-                  padding: const EdgeInsets.all(0),
+                child: ConditionalParent(
+                  condition: isDesktop,
+                  builder: (child) {
+                    return RoundedWhiteContainer(
+                      borderColor: isDesktop
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .background
+                          : null,
+                      padding: const EdgeInsets.all(0),
+                      child: child,
+                    );
+                  },
                   child: SingleChildScrollView(
                     primary: isDesktop ? false : null,
                     child: Padding(
