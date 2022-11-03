@@ -1468,6 +1468,20 @@ class StackColors extends ThemeExtension<StackColors> {
     }
   }
 
+  ButtonStyle? getDeleteEnabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              textFieldErrorBG,
+            ),
+          );
+
+  ButtonStyle? getDeleteDisabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              buttonBackSecondaryDisabled,
+            ),
+          );
+
   ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(

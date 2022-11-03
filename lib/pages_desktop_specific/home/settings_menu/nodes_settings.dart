@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:stackwallet/providers/global/node_service_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -167,8 +168,22 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                             onPressed: () {
                               showDialog<void>(
                                 context: context,
-                                builder: (context) => CoinNodesView(
-                                  coin: coin,
+                                builder: (context) => Navigator(
+                                  initialRoute: CoinNodesView.routeName,
+                                  onGenerateRoute: RouteGenerator.generateRoute,
+                                  onGenerateInitialRoutes: (_, __) {
+                                    return [
+                                      FadePageRoute(
+                                        CoinNodesView(
+                                          coin: coin,
+                                          rootNavigator: true,
+                                        ),
+                                        const RouteSettings(
+                                          name: CoinNodesView.routeName,
+                                        ),
+                                      ),
+                                    ];
+                                  },
                                 ),
                               );
                             },
