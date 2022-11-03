@@ -90,6 +90,11 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                       ),
                       RoundedWhiteContainer(
                         padding: const EdgeInsets.all(0),
+                        borderColor: !isDesktop
+                            ? Colors.transparent
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .background,
                         child: Column(
                           children: [
                             ...managers.map(
