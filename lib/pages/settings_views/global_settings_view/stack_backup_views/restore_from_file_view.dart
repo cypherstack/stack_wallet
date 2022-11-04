@@ -8,6 +8,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/restore_backup_dialog.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -18,6 +19,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:tuple/tuple.dart';
@@ -41,6 +44,17 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
   late final StackFileSystem stackFileSystem;
 
   bool hidePassword = true;
+
+  Future<void> restoreBackupPopup(BuildContext context) async {
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) {
+        return const RestoreBackupDialog();
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -114,15 +128,41 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
           condition: isDesktop,
           builder: (child) {
             return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Choose file location",
-                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textDark3),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Text(
+                    "Choose file location",
+                    style: STextStyles.desktopTextExtraExtraSmall(context)
+                        .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3),
+                    textAlign: TextAlign.left,
+                  ),
                 ),
                 // child,
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    PrimaryButton(
+                      desktopMed: true,
+                      width: 200,
+                      label: "Restore",
+                      onPressed: () {
+                        restoreBackupPopup(context);
+                      },
+                    ),
+                    const SizedBox(width: 16),
+                    SecondaryButton(
+                      desktopMed: true,
+                      width: 200,
+                      label: "Cancel",
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
               ],
             );
           },

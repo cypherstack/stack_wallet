@@ -17,6 +17,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -142,14 +144,38 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
         condition: isDesktop,
         builder: (child) {
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Choose file location",
-                style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(
+                  "Choose file location",
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark3),
+                ),
               ),
               // child,
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  PrimaryButton(
+                    desktopMed: true,
+                    width: 200,
+                    label: "Create backup",
+                    onPressed: () {},
+                  ),
+                  const SizedBox(width: 16),
+                  SecondaryButton(
+                    desktopMed: true,
+                    width: 200,
+                    label: "Cancel",
+                    onPressed: () {},
+                  ),
+                ],
+              ),
             ],
           );
         },
