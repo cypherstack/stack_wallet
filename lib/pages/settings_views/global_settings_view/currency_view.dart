@@ -7,13 +7,17 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
-import 'package:stackwallet/utilities/util.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class BaseCurrencySettingsView extends ConsumerStatefulWidget {
   const BaseCurrencySettingsView({Key? key}) : super(key: key);
@@ -102,31 +106,90 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
       currenciesWithoutSelected.insert(0, current);
     }
     currenciesWithoutSelected = _filtered();
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () async {
-            if (FocusScope.of(context).hasFocus) {
-              FocusScope.of(context).unfocus();
-              await Future<void>.delayed(const Duration(milliseconds: 75));
-            }
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        title: Text(
-          "Currency",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.only(
-          top: 12,
-          left: 16,
-          right: 16,
-        ),
+    final isDesktop = Util.isDesktop;
+
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) {
+        return Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Currency",
+              style: STextStyles.navBarTitle(context),
+            ),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.only(
+              top: 12,
+              left: 16,
+              right: 16,
+            ),
+            child: child,
+          ),
+        );
+      },
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) {
+          return Padding(
+            padding: const EdgeInsets.only(
+              top: 16,
+              bottom: 32,
+              left: 32,
+              right: 32,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(20),
+                    borderColor:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    child: child,
+                  ),
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SecondaryButton(
+                        label: "Cancel",
+                        desktopMed: true,
+                        onPressed: Navigator.of(context).pop,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Expanded(
+                      child: PrimaryButton(
+                        label: "Save changes",
+                        desktopMed: true,
+                        onPressed: Navigator.of(context).pop,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
         child: NestedScrollView(
           floatHeaderSlivers: true,
           headerSliverBuilder: (context, innerBoxIsScrolled) {

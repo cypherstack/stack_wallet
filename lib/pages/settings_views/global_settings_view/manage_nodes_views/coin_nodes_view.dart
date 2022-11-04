@@ -9,6 +9,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:tuple/tuple.dart';
@@ -17,11 +18,13 @@ class CoinNodesView extends ConsumerStatefulWidget {
   const CoinNodesView({
     Key? key,
     required this.coin,
+    this.rootNavigator = false,
   }) : super(key: key);
 
   static const String routeName = "/coinNodes";
 
   final Coin coin;
+  final bool rootNavigator;
 
   @override
   ConsumerState<CoinNodesView> createState() => _CoinNodesViewState();
@@ -63,12 +66,17 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                   textAlign: TextAlign.center,
                 ),
                 Expanded(
-                  child: const DesktopDialogCloseButton(),
+                  child: DesktopDialogCloseButton(
+                    onPressedOverride: Navigator.of(
+                      context,
+                      rootNavigator: widget.rootNavigator,
+                    ).pop,
+                  ),
                 ),
               ],
             ),
             Padding(
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 left: 32,
                 right: 32,
               ),
@@ -83,14 +91,19 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                     ),
                     textAlign: TextAlign.left,
                   ),
-                  RichText(
-                    text: TextSpan(
-                      text: 'Add new nodes',
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Colors.blueAccent,
-                      ),
-                    ),
+                  BlueTextButton(
+                    text: "Add new node",
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        AddEditNodeView.routeName,
+                        arguments: Tuple4(
+                          AddEditNodeViewType.add,
+                          widget.coin,
+                          null,
+                          CoinNodesView.routeName,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

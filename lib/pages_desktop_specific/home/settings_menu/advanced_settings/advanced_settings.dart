@@ -10,6 +10,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+import 'debug_info_dialog.dart';
+
 class AdvancedSettings extends ConsumerStatefulWidget {
   const AdvancedSettings({Key? key}) : super(key: key);
 
@@ -226,16 +228,16 @@ class ShowLogsButton extends ConsumerWidget {
   }) : super(key: key);
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Future<void> viewDebugLogs() async {
-    //   await showDialog<dynamic>(
-    //     context: context,
-    //     useSafeArea: false,
-    //     barrierDismissible: true,
-    //     builder: (context) {
-    //       return const DebugInfoDialog();
-    //     },
-    //   );
-    // }
+    Future<void> viewDebugLogs() async {
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          return const DebugInfoDialog();
+        },
+      );
+    }
 
     return SizedBox(
       width: 101,
@@ -245,8 +247,7 @@ class ShowLogsButton extends ConsumerWidget {
             .extension<StackColors>()!
             .getPrimaryEnabledButtonColor(context),
         onPressed: () {
-          //
-          // viewDebugLogs();
+          viewDebugLogs();
         },
         child: Text(
           "Show logs",
