@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings/language_dialog.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -85,6 +85,18 @@ class ChangeLanguageButton extends ConsumerWidget {
   const ChangeLanguageButton({
     Key? key,
   }) : super(key: key);
+
+  Future<void> chooseLanguage(BuildContext context) async {
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) {
+        return const LanguageDialog();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
@@ -94,7 +106,9 @@ class ChangeLanguageButton extends ConsumerWidget {
         style: Theme.of(context)
             .extension<StackColors>()!
             .getPrimaryEnabledButtonColor(context),
-        onPressed: () {},
+        onPressed: () {
+          chooseLanguage(context);
+        },
         child: Text(
           "Change language",
           style: STextStyles.button(context),

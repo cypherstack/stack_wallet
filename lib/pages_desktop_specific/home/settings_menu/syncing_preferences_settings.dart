@@ -7,6 +7,8 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+import '../../../pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
+
 class SyncingPreferencesSettings extends ConsumerStatefulWidget {
   const SyncingPreferencesSettings({Key? key}) : super(key: key);
 
@@ -60,6 +62,13 @@ class _SyncingPreferencesSettings
                         ),
                       ),
                     ),
+                  ],
+                ),
+
+                ///TODO: ONLY SHOW SYNC OPTIONS ON BUTTON PRESS
+                Column(
+                  children: [
+                    SyncingOptionsView(),
                   ],
                 ),
                 Column(

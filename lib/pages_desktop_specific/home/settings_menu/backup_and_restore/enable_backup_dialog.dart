@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/create_auto_backup.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -11,7 +12,20 @@ class EnableBackupDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> createAutoBackup() async {
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          return CreateAutoBackup();
+        },
+      );
+    }
+
     return DesktopDialog(
+      maxHeight: 300,
+      maxWidth: 570,
       child: Column(
         children: [
           Row(
@@ -47,7 +61,8 @@ class EnableBackupDialog extends StatelessWidget {
                   child: SecondaryButton(
                     label: "Cancel",
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      int count = 0;
+                      Navigator.of(context).popUntil((_) => count++ >= 2);
                     },
                   ),
                 ),
@@ -58,8 +73,7 @@ class EnableBackupDialog extends StatelessWidget {
                   child: PrimaryButton(
                     label: "Continue",
                     onPressed: () {
-                      // Navigator.of(context).pop();
-                      // onConfirm.call();
+                      createAutoBackup();
                     },
                   ),
                 )

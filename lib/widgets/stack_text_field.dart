@@ -4,7 +4,11 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 InputDecoration standardInputDecoration(
-    String? labelText, FocusNode textFieldFocusNode, BuildContext context) {
+  String? labelText,
+  FocusNode textFieldFocusNode,
+  BuildContext context, {
+  bool desktopMed = false,
+}) {
   final isDesktop = Util.isDesktop;
 
   return InputDecoration(
@@ -13,10 +17,20 @@ InputDecoration standardInputDecoration(
         ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
         : Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
     labelStyle: isDesktop
-        ? STextStyles.desktopTextFieldLabel(context)
+        ? desktopMed
+            ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText)
+            : STextStyles.desktopTextFieldLabel(context)
         : STextStyles.fieldLabel(context),
     hintStyle: isDesktop
-        ? STextStyles.desktopTextFieldLabel(context)
+        ? desktopMed
+            ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText)
+            : STextStyles.desktopTextFieldLabel(context)
         : STextStyles.fieldLabel(context),
     enabledBorder: InputBorder.none,
     focusedBorder: InputBorder.none,

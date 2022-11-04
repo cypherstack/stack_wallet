@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.9+79
+version: 1.5.14+86
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -196,6 +196,7 @@ flutter:
     - assets/images/monero.png
     - assets/images/wownero.png
     - assets/images/firo.png
+    - assets/images/litecoin.png
     - assets/images/doge.png
     - assets/images/bitcoin.png
     - assets/images/epic-cash.png
@@ -231,10 +232,12 @@ flutter:
     - assets/svg/gear-3.svg
     - assets/svg/swap.svg
     - assets/svg/chevron-down.svg
+    - assets/svg/chevron-up.svg
     - assets/svg/lock-keyhole.svg
     - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
+    - assets/svg/network-wired-2.svg
     - assets/svg/address-book.svg
     - assets/svg/address-book2.svg
     - assets/svg/arrow-right.svg
@@ -308,8 +311,11 @@ flutter:
     - assets/svg/exchange-desktop.svg
     - assets/svg/wallet-desktop.svg
     - assets/svg/exit-desktop.svg
+    - assets/svg/keys.svg
+    - assets/svg/arrow-down.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
+    - assets/svg/coin_icons/Litecoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg
     - assets/svg/coin_icons/Dogecoin.svg
     - assets/svg/coin_icons/EpicCash.svg

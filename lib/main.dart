@@ -68,7 +68,7 @@ final openedFromSWBFileStringStateProvider =
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
-  if(Platform.isIOS){
+  if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
   }
 
@@ -209,56 +209,59 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   bool didLoad = false;
 
   Future<void> load() async {
-    if (didLoad) {
-      return;
-    }
-    didLoad = true;
-
-    await DB.instance.init();
-    await _prefs.init();
-
-    _notificationsService = ref.read(notificationsProvider);
-    _nodeService = ref.read(nodeServiceChangeNotifierProvider);
-    _tradesService = ref.read(tradesServiceProvider);
-
-    NotificationApi.prefs = _prefs;
-    NotificationApi.notificationsService = _notificationsService;
-
-    unawaited(ref.read(baseCurrenciesProvider).update());
-
-    await _nodeService.updateDefaults();
-    await _notificationsService.init(
-      nodeService: _nodeService,
-      tradesService: _tradesService,
-      prefs: _prefs,
-    );
-    ref.read(priceAnd24hChangeNotifierProvider).start(true);
-    await _wallets.load(_prefs);
-    loadingCompleter.complete();
-    // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
-    //  unawaited(_nodeService.updateCommunityNodes());
-
-    // run without awaiting
-    if (Constants.enableExchange &&
-        _prefs.externalCalls &&
-        await _prefs.isExternalCallsSet()) {
-      unawaited(ExchangeDataLoadingService().loadAll(ref));
-    }
-
-    if (_prefs.isAutoBackupEnabled) {
-      switch (_prefs.backupFrequencyType) {
-        case BackupFrequencyType.everyTenMinutes:
-          ref
-              .read(autoSWBServiceProvider)
-              .startPeriodicBackupTimer(duration: const Duration(minutes: 10));
-          break;
-        case BackupFrequencyType.everyAppStart:
-          unawaited(ref.read(autoSWBServiceProvider).doBackup());
-          break;
-        case BackupFrequencyType.afterClosingAWallet:
-          // ignore this case here
-          break;
+    try {
+      if (didLoad) {
+        return;
       }
+      didLoad = true;
+
+      await DB.instance.init();
+      await _prefs.init();
+
+      _notificationsService = ref.read(notificationsProvider);
+      _nodeService = ref.read(nodeServiceChangeNotifierProvider);
+      _tradesService = ref.read(tradesServiceProvider);
+
+      NotificationApi.prefs = _prefs;
+      NotificationApi.notificationsService = _notificationsService;
+
+      unawaited(ref.read(baseCurrenciesProvider).update());
+
+      await _nodeService.updateDefaults();
+      await _notificationsService.init(
+        nodeService: _nodeService,
+        tradesService: _tradesService,
+        prefs: _prefs,
+      );
+      ref.read(priceAnd24hChangeNotifierProvider).start(true);
+      await _wallets.load(_prefs);
+      loadingCompleter.complete();
+      // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
+      //  unawaited(_nodeService.updateCommunityNodes());
+
+      // run without awaiting
+      if (Constants.enableExchange &&
+          _prefs.externalCalls &&
+          await _prefs.isExternalCallsSet()) {
+        unawaited(ExchangeDataLoadingService().loadAll(ref));
+      }
+
+      if (_prefs.isAutoBackupEnabled) {
+        switch (_prefs.backupFrequencyType) {
+          case BackupFrequencyType.everyTenMinutes:
+            ref.read(autoSWBServiceProvider).startPeriodicBackupTimer(
+                duration: const Duration(minutes: 10));
+            break;
+          case BackupFrequencyType.everyAppStart:
+            unawaited(ref.read(autoSWBServiceProvider).doBackup());
+            break;
+          case BackupFrequencyType.afterClosingAWallet:
+            // ignore this case here
+            break;
+        }
+      }
+    } catch (e, s) {
+      Logger.print("$e $s", normalLength: false);
     }
   }
 

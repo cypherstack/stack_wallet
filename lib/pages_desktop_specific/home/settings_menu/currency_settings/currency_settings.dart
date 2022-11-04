@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class CurrencySettings extends ConsumerStatefulWidget {
@@ -82,6 +84,49 @@ class NewPasswordButton extends ConsumerWidget {
   const NewPasswordButton({
     Key? key,
   }) : super(key: key);
+  Future<void> chooseCurrency(BuildContext context) async {
+    // await showDialog<dynamic>(
+    //   context: context,
+    //   useSafeArea: false,
+    //   barrierDismissible: true,
+    //   builder: (context) {
+    //     return CurrencyDialog();
+    //   },
+    // );
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) {
+        return DesktopDialog(
+          maxHeight: 800,
+          maxWidth: 600,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(
+                      "Select currency",
+                      style: STextStyles.desktopH3(context),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
+              const Expanded(
+                child: BaseCurrencySettingsView(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
@@ -91,9 +136,11 @@ class NewPasswordButton extends ConsumerWidget {
         style: Theme.of(context)
             .extension<StackColors>()!
             .getPrimaryEnabledButtonColor(context),
-        onPressed: () {},
+        onPressed: () {
+          chooseCurrency(context);
+        },
         child: Text(
-          "Set up new password",
+          "Change currency",
           style: STextStyles.button(context),
         ),
       ),

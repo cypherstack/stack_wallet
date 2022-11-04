@@ -8,7 +8,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/global/node_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -20,14 +19,17 @@ import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:stackwallet/utilities/util.dart';
 
 enum AddEditNodeViewType { add, edit }
 
@@ -59,6 +61,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   late final AddEditNodeViewType viewType;
   late final Coin coin;
   late final String? nodeId;
+  late final bool isDesktop;
 
   late bool saveEnabled;
   late bool testConnectionEnabled;
@@ -117,10 +120,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
       case Coin.bitcoin:
       case Coin.bitcoincash:
+      case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -160,8 +165,198 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     return testPassed;
   }
 
+  Future<void> attemptSave() async {
+    final canConnect = await _testConnection(showFlushBar: false);
+
+    bool? shouldSave;
+
+    if (!canConnect) {
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: true,
+        barrierDismissible: true,
+        builder: (_) => isDesktop
+            ? DesktopDialog(
+                maxWidth: 440,
+                maxHeight: 300,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 32,
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                            width: 32,
+                          ),
+                          Text(
+                            "Server currently unreachable",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          top: 16,
+                          bottom: 32,
+                        ),
+                        child: Column(
+                          children: [
+                            const Spacer(),
+                            Text(
+                              "Would you like to save this node anyways?",
+                              style: STextStyles.desktopTextMedium(context),
+                            ),
+                            const Spacer(
+                              flex: 2,
+                            ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SecondaryButton(
+                                    label: "Cancel",
+                                    desktopMed: true,
+                                    onPressed: () => Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).pop(false),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 16,
+                                ),
+                                Expanded(
+                                  child: PrimaryButton(
+                                    label: "Save",
+                                    desktopMed: true,
+                                    onPressed: () => Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).pop(true),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : StackDialog(
+                title: "Server currently unreachable",
+                message: "Would you like to save this node anyways?",
+                leftButton: TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop(false);
+                  },
+                  child: Text(
+                    "Cancel",
+                    style: STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark),
+                  ),
+                ),
+                rightButton: TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop(true);
+                  },
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonColor(context),
+                  child: Text(
+                    "Save",
+                    style: STextStyles.button(context),
+                  ),
+                ),
+              ),
+      ).then((value) {
+        if (value is bool && value) {
+          shouldSave = true;
+        } else {
+          shouldSave = false;
+        }
+      });
+    }
+
+    if (!canConnect && !shouldSave!) {
+      // return without saving
+      return;
+    }
+
+    final formData = ref.read(nodeFormDataProvider);
+
+    // strip unused path
+    String address = formData.host!;
+    if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
+      if (address.startsWith("http")) {
+        final uri = Uri.parse(address);
+        address = "${uri.scheme}://${uri.host}";
+      }
+    }
+
+    switch (viewType) {
+      case AddEditNodeViewType.add:
+        NodeModel node = NodeModel(
+          host: address,
+          port: formData.port!,
+          name: formData.name!,
+          id: const Uuid().v1(),
+          useSSL: formData.useSSL!,
+          loginName: formData.login,
+          enabled: true,
+          coinName: coin.name,
+          isFailover: formData.isFailover!,
+          isDown: false,
+        );
+
+        await ref.read(nodeServiceChangeNotifierProvider).add(
+              node,
+              formData.password,
+              true,
+            );
+        if (mounted) {
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
+        }
+        break;
+      case AddEditNodeViewType.edit:
+        NodeModel node = NodeModel(
+          host: address,
+          port: formData.port!,
+          name: formData.name!,
+          id: nodeId!,
+          useSSL: formData.useSSL!,
+          loginName: formData.login,
+          enabled: true,
+          coinName: coin.name,
+          isFailover: formData.isFailover!,
+          isDown: false,
+        );
+
+        await ref.read(nodeServiceChangeNotifierProvider).add(
+              node,
+              formData.password,
+              true,
+            );
+        if (mounted) {
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
+        }
+        break;
+    }
+  }
+
   @override
   void initState() {
+    isDesktop = Util.isDesktop;
     ref.refresh(nodeFormDataProvider);
 
     viewType = widget.viewType;
@@ -194,279 +389,203 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                 .select((value) => value.getNodeById(id: nodeId!)))
             : null;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () async {
-            if (FocusScope.of(context).hasFocus) {
-              FocusScope.of(context).unfocus();
-              await Future<void>.delayed(const Duration(milliseconds: 75));
-            }
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        title: Text(
-          viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
-          style: STextStyles.navBarTitle(context),
-        ),
-        actions: [
-          if (viewType == AddEditNodeViewType.edit)
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("deleteNodeAppBarButtonKey"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    Assets.svg.trash,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
-                    width: 20,
-                    height: 20,
-                  ),
-                  onPressed: () async {
-                    Navigator.popUntil(context,
-                        ModalRoute.withName(widget.routeOnSuccessOrDelete));
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) => Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () async {
+              if (FocusScope.of(context).hasFocus) {
+                FocusScope.of(context).unfocus();
+                await Future<void>.delayed(const Duration(milliseconds: 75));
+              }
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          title: Text(
+            viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
+            style: STextStyles.navBarTitle(context),
+          ),
+          actions: [
+            if (viewType == AddEditNodeViewType.edit)
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("deleteNodeAppBarButtonKey"),
+                    size: 36,
+                    shadows: const [],
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.trash,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                      width: 20,
+                      height: 20,
+                    ),
+                    onPressed: () async {
+                      Navigator.popUntil(context,
+                          ModalRoute.withName(widget.routeOnSuccessOrDelete));
 
-                    await ref.read(nodeServiceChangeNotifierProvider).delete(
-                          nodeId!,
-                          true,
-                        );
-                  },
+                      await ref.read(nodeServiceChangeNotifierProvider).delete(
+                            nodeId!,
+                            true,
+                          );
+                    },
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.only(
-          top: 12,
-          left: 12,
-          right: 12,
-          bottom: 12,
+          ],
         ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: ConstrainedBox(
-                  constraints:
-                      BoxConstraints(minHeight: constraints.maxHeight - 8),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        NodeForm(
-                          node: node,
-                          secureStore: widget.secureStore,
-                          readOnly: false,
-                          coin: widget.coin,
-                          onChanged: (canSave, canTest) {
-                            if (canSave != saveEnabled &&
-                                canTest != testConnectionEnabled) {
-                              setState(() {
-                                saveEnabled = canSave;
-                                testConnectionEnabled = canTest;
-                              });
-                            } else if (canSave != saveEnabled) {
-                              setState(() {
-                                saveEnabled = canSave;
-                              });
-                            } else if (canTest != testConnectionEnabled) {
-                              setState(() {
-                                testConnectionEnabled = canTest;
-                              });
-                            }
-                          },
-                        ),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: testConnectionEnabled
-                              ? () async {
-                                  await _testConnection();
-                                }
-                              : null,
-                          style: Theme.of(context)
-                              .extension<StackColors>()!
-                              .getSecondaryEnabledButtonColor(context),
-                          child: Text(
-                            "Test connection",
-                            style: STextStyles.button(context).copyWith(
-                              color: testConnectionEnabled
-                                  ? Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark
-                                  : Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textWhite,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextButton(
-                          style: saveEnabled
-                              ? Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryEnabledButtonColor(context)
-                              : Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryDisabledButtonColor(context),
-                          onPressed: saveEnabled
-                              ? () async {
-                                  final canConnect = await _testConnection(
-                                      showFlushBar: false);
-
-                                  bool? shouldSave;
-
-                                  if (!canConnect) {
-                                    await showDialog<dynamic>(
-                                      context: context,
-                                      useSafeArea: true,
-                                      barrierDismissible: true,
-                                      builder: (_) => StackDialog(
-                                        title: "Server currently unreachable",
-                                        message:
-                                            "Would you like to save this node anyways?",
-                                        leftButton: TextButton(
-                                          onPressed: () async {
-                                            Navigator.of(context).pop(false);
-                                          },
-                                          child: Text(
-                                            "Cancel",
-                                            style: STextStyles.button(context)
-                                                .copyWith(
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .accentColorDark),
-                                          ),
-                                        ),
-                                        rightButton: TextButton(
-                                          onPressed: () async {
-                                            Navigator.of(context).pop(true);
-                                          },
-                                          style: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .getPrimaryEnabledButtonColor(
-                                                  context),
-                                          child: Text(
-                                            "Save",
-                                            style: STextStyles.button(context),
-                                          ),
-                                        ),
-                                      ),
-                                    ).then((value) {
-                                      if (value is bool && value) {
-                                        shouldSave = true;
-                                      } else {
-                                        shouldSave = false;
-                                      }
-                                    });
-                                  }
-
-                                  if (!canConnect && !shouldSave!) {
-                                    // return without saving
-                                    return;
-                                  }
-
-                                  final formData =
-                                      ref.read(nodeFormDataProvider);
-
-                                  // strip unused path
-                                  String address = formData.host!;
-                                  if (coin == Coin.monero ||
-                                      coin == Coin.wownero ||
-                                      coin == Coin.epicCash) {
-                                    if (address.startsWith("http")) {
-                                      final uri = Uri.parse(address);
-                                      address = "${uri.scheme}://${uri.host}";
-                                    }
-                                  }
-
-                                  switch (viewType) {
-                                    case AddEditNodeViewType.add:
-                                      NodeModel node = NodeModel(
-                                        host: address,
-                                        port: formData.port!,
-                                        name: formData.name!,
-                                        id: const Uuid().v1(),
-                                        useSSL: formData.useSSL!,
-                                        loginName: formData.login,
-                                        enabled: true,
-                                        coinName: coin.name,
-                                        isFailover: formData.isFailover!,
-                                        isDown: false,
-                                      );
-
-                                      await ref
-                                          .read(
-                                              nodeServiceChangeNotifierProvider)
-                                          .add(
-                                            node,
-                                            formData.password,
-                                            true,
-                                          );
-                                      if (mounted) {
-                                        Navigator.of(context).popUntil(
-                                            ModalRoute.withName(
-                                                widget.routeOnSuccessOrDelete));
-                                      }
-                                      break;
-                                    case AddEditNodeViewType.edit:
-                                      NodeModel node = NodeModel(
-                                        host: address,
-                                        port: formData.port!,
-                                        name: formData.name!,
-                                        id: nodeId!,
-                                        useSSL: formData.useSSL!,
-                                        loginName: formData.login,
-                                        enabled: true,
-                                        coinName: coin.name,
-                                        isFailover: formData.isFailover!,
-                                        isDown: false,
-                                      );
-
-                                      await ref
-                                          .read(
-                                              nodeServiceChangeNotifierProvider)
-                                          .add(
-                                            node,
-                                            formData.password,
-                                            true,
-                                          );
-                                      if (mounted) {
-                                        Navigator.of(context).popUntil(
-                                            ModalRoute.withName(
-                                                widget.routeOnSuccessOrDelete));
-                                      }
-                                      break;
-                                  }
-                                }
-                              : null,
-                          child: Text(
-                            "Save",
-                            style: STextStyles.button(context),
-                          ),
-                        ),
-                      ],
+        body: Padding(
+          padding: const EdgeInsets.only(
+            top: 12,
+            left: 12,
+            right: 12,
+            bottom: 12,
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight - 8),
+                    child: IntrinsicHeight(
+                      child: child,
                     ),
                   ),
                 ),
+              );
+            },
+          ),
+        ),
+      ),
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) => DesktopDialog(
+          maxWidth: 580,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  const AppBarBackButton(
+                    iconSize: 24,
+                    size: 40,
+                  ),
+                  Text(
+                    "Add new node",
+                    style: STextStyles.desktopH3(context),
+                  )
+                ],
               ),
-            );
-          },
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  top: 16,
+                  bottom: 32,
+                ),
+                child: child,
+              ),
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            NodeForm(
+              node: node,
+              secureStore: widget.secureStore,
+              readOnly: false,
+              coin: widget.coin,
+              onChanged: (canSave, canTest) {
+                if (canSave != saveEnabled &&
+                    canTest != testConnectionEnabled) {
+                  setState(() {
+                    saveEnabled = canSave;
+                    testConnectionEnabled = canTest;
+                  });
+                } else if (canSave != saveEnabled) {
+                  setState(() {
+                    saveEnabled = canSave;
+                  });
+                } else if (canTest != testConnectionEnabled) {
+                  setState(() {
+                    testConnectionEnabled = canTest;
+                  });
+                }
+              },
+            ),
+            if (!isDesktop) const Spacer(),
+            if (isDesktop)
+              const SizedBox(
+                height: 78,
+              ),
+            Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: "Test connection",
+                    enabled: testConnectionEnabled,
+                    desktopMed: true,
+                    onPressed: testConnectionEnabled
+                        ? () async {
+                            await _testConnection();
+                          }
+                        : null,
+                  ),
+                ),
+                if (isDesktop)
+                  const SizedBox(
+                    width: 16,
+                  ),
+                if (isDesktop)
+                  Expanded(
+                    child: PrimaryButton(
+                      label: "Save",
+                      enabled: saveEnabled,
+                      desktopMed: true,
+                      onPressed: saveEnabled ? attemptSave : null,
+                    ),
+                  ),
+              ],
+            ),
+            if (!isDesktop)
+              const SizedBox(
+                height: 16,
+              ),
+            if (!isDesktop)
+              TextButton(
+                style: saveEnabled
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonColor(context)
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryDisabledButtonColor(context),
+                onPressed: saveEnabled ? attemptSave : null,
+                child: Text(
+                  "Save",
+                  style: STextStyles.button(context),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -531,11 +650,13 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     // TODO: which coin servers can have username and password?
     switch (coin) {
       case Coin.bitcoin:
+      case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:

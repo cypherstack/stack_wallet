@@ -7,6 +7,7 @@ import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class TradeCard extends ConsumerWidget {
@@ -84,7 +85,7 @@ class TradeCard extends ConsumerWidget {
                         style: STextStyles.itemSubtitle12(context),
                       ),
                       Text(
-                        "${Decimal.tryParse(trade.payInAmount) ?? "..."} ${trade.payInCurrency.toUpperCase()}",
+                        "${Util.isDesktop ? "-" : ""}${Decimal.tryParse(trade.payInAmount) ?? "..."} ${trade.payInCurrency.toUpperCase()}",
                         style: STextStyles.itemSubtitle12(context),
                       ),
                     ],
