@@ -1162,7 +1162,17 @@ class BitcoinCashWallet extends CoinServiceAPI {
       if (kDebugMode) {
         print("format $format");
       }
-      return true;
+
+      if (format == bitbox.Address.formatCashAddr) {
+        String addr = address;
+        if (address.contains(":")) {
+          addr = address.split(":").last;
+        }
+
+        return addr.startsWith("q");
+      } else {
+        return address.startsWith("1");
+      }
     } catch (e) {
       return false;
     }
