@@ -21,6 +21,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -302,68 +303,78 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
               padding: const EdgeInsets.all(4),
               child: Row(
                 children: [
-                  SizedBox(
-                    width: isDesktop ? 570 : null,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
+                  ConditionalParent(
+                    condition: isDesktop,
+                    builder: (child) => SizedBox(
+                      width: 570,
+                      child: child,
+                    ),
+                    child: ConditionalParent(
+                      condition: !isDesktop,
+                      builder: (child) => Expanded(
+                        child: child,
                       ),
-                      child: TextField(
-                        autocorrect: !isDesktop,
-                        enableSuggestions: !isDesktop,
-                        controller: _searchController,
-                        focusNode: searchFieldFocusNode,
-                        onChanged: (value) {
-                          setState(() {
-                            _searchString = value;
-                          });
-                        },
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraSmall(context)
-                                .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveText,
-                                height: 1.8,
-                              )
-                            : STextStyles.field(context),
-                        decoration: standardInputDecoration(
-                          "Search...",
-                          searchFieldFocusNode,
-                          context,
-                          desktopMed: isDesktop,
-                        ).copyWith(
-                          prefixIcon: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isDesktop ? 12 : 10,
-                              vertical: isDesktop ? 18 : 16,
-                            ),
-                            child: SvgPicture.asset(
-                              Assets.svg.search,
-                              width: isDesktop ? 20 : 16,
-                              height: isDesktop ? 20 : 16,
-                            ),
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(() {
-                                              _searchController.text = "";
-                                              _searchString = "";
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                        child: TextField(
+                          autocorrect: !isDesktop,
+                          enableSuggestions: !isDesktop,
+                          controller: _searchController,
+                          focusNode: searchFieldFocusNode,
+                          onChanged: (value) {
+                            setState(() {
+                              _searchString = value;
+                            });
+                          },
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveText,
+                                  height: 1.8,
                                 )
-                              : null,
+                              : STextStyles.field(context),
+                          decoration: standardInputDecoration(
+                            "Search...",
+                            searchFieldFocusNode,
+                            context,
+                            desktopMed: isDesktop,
+                          ).copyWith(
+                            prefixIcon: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isDesktop ? 12 : 10,
+                                vertical: isDesktop ? 18 : 16,
+                              ),
+                              child: SvgPicture.asset(
+                                Assets.svg.search,
+                                width: isDesktop ? 20 : 16,
+                                height: isDesktop ? 20 : 16,
+                              ),
+                            ),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _searchController.text = "";
+                                                _searchString = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : null,
+                          ),
                         ),
                       ),
                     ),
