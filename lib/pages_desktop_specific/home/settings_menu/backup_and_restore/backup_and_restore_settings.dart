@@ -5,10 +5,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/enable_backup_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/restore_backup_dialog.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -23,6 +22,20 @@ class BackupRestoreSettings extends ConsumerStatefulWidget {
 }
 
 class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
+  late bool createBackup = false;
+  late bool restoreBackup = false;
+
+  Future<void> enableAutoBackup(BuildContext context) async {
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) {
+        return const EnableBackupDialog();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -97,12 +110,19 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Padding(
                                 padding: EdgeInsets.all(
                                   10,
                                 ),
-                                child: AutoBackupButton(),
+                                child: PrimaryButton(
+                                  desktopMed: true,
+                                  width: 200,
+                                  label: "Enable auto backup",
+                                  onPressed: () {
+                                    enableAutoBackup(context);
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -154,12 +174,23 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Padding(
                                 padding: EdgeInsets.all(
                                   10,
                                 ),
-                                child: CreateBackupView(),
+                                child: createBackup
+                                    ? const CreateBackupView()
+                                    : PrimaryButton(
+                                        desktopMed: true,
+                                        width: 200,
+                                        label: "Create manual backup",
+                                        onPressed: () {
+                                          setState(() {
+                                            createBackup = true;
+                                          });
+                                        },
+                                      ),
                               ),
                             ],
                           ),
@@ -173,6 +204,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                   Padding(
                     padding: const EdgeInsets.only(
                       right: 30,
+                      bottom: 40,
                     ),
                     child: RoundedWhiteContainer(
                       child: Column(
@@ -210,12 +242,23 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Padding(
                                 padding: EdgeInsets.all(
                                   10,
                                 ),
-                                child: RestoreFromFileView(),
+                                child: restoreBackup
+                                    ? RestoreFromFileView()
+                                    : PrimaryButton(
+                                        desktopMed: true,
+                                        width: 200,
+                                        label: "Restore backup",
+                                        onPressed: () {
+                                          setState(() {
+                                            restoreBackup = true;
+                                          });
+                                        },
+                                      ),
                               ),
                             ],
                           ),
@@ -228,100 +271,5 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
             ),
           ));
     });
-  }
-}
-
-class AutoBackupButton extends ConsumerWidget {
-  const AutoBackupButton({
-    Key? key,
-  }) : super(key: key);
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    Future<void> enableAutoBackup() async {
-      await showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return const EnableBackupDialog();
-        },
-      );
-    }
-
-    return SizedBox(
-      width: 200,
-      height: 48,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {
-          enableAutoBackup();
-        },
-        child: Text(
-          "Enable auto backup",
-          style: STextStyles.button(context),
-        ),
-      ),
-    );
-  }
-}
-
-class ManualBackupButton extends ConsumerWidget {
-  const ManualBackupButton({
-    Key? key,
-  }) : super(key: key);
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: 200,
-      height: 48,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {},
-        child: Text(
-          "Create manual backup",
-          style: STextStyles.button(context),
-        ),
-      ),
-    );
-  }
-}
-
-class RestoreBackupButton extends ConsumerWidget {
-  const RestoreBackupButton({
-    Key? key,
-  }) : super(key: key);
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    Future<void> restoreBackup() async {
-      await showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return const RestoreBackupDialog();
-        },
-      );
-    }
-
-    return SizedBox(
-      width: 200,
-      height: 48,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {
-          restoreBackup();
-        },
-        child: Text(
-          "Restore",
-          style: STextStyles.button(context),
-        ),
-      ),
-    );
   }
 }
