@@ -23,6 +23,19 @@ class AppearanceOptionSettings extends ConsumerStatefulWidget {
 
 class _AppearanceOptionSettings
     extends ConsumerState<AppearanceOptionSettings> {
+  // late bool isLight;
+
+  // @override
+  // void initState() {
+  //
+  //   super.initState();
+  // }
+  //
+  // @override
+  // void dispose() {
+  //   super.dispose();
+  // }
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -127,13 +140,7 @@ class _AppearanceOptionSettings
                     ],
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(
-                    left: 10,
-                    right: 10,
-                  ),
-                  child: ThemeToggle(),
-                ),
+                ThemeToggle(),
               ],
             ),
           ),
@@ -169,70 +176,86 @@ class _ThemeToggle extends State<ThemeToggle> {
             elevation: 0,
             hoverColor: Colors.transparent,
             shape: RoundedRectangleBorder(
+              side: BorderSide(
+                color:
+                    Theme.of(context).extension<StackColors>()!.infoItemIcons,
+                width: 2,
+              ),
+              // side: !externalCallsEnabled
+              //     ? BorderSide.none
+              //     : BorderSide(
+              //         color: Theme.of(context)
+              //             .extension<StackColors>()!
+              //             .infoItemIcons,
+              //         width: 2,
+              //       ),
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius * 2,
               ),
             ),
             onPressed: () {}, //onPressed
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 24,
-                      ),
-                      child: SvgPicture.asset(
-                        Assets.svg.themeLight,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 50,
-                        top: 12,
-                      ),
-                      child: Text(
-                        "Light",
-                        style:
-                            STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 24,
+                        ),
+                        child: SvgPicture.asset(
+                          Assets.svg.themeLight,
                         ),
                       ),
-                    )
-                  ],
-                ),
-                // if (externalCallsEnabled)
-                Positioned(
-                  bottom: 0,
-                  left: 6,
-                  child: SvgPicture.asset(
-                    Assets.svg.checkCircle,
-                    width: 20,
-                    height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .infoItemIcons,
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 50,
+                          top: 12,
+                        ),
+                        child: Text(
+                          "Light",
+                          style: STextStyles.desktopTextExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
+                        ),
+                      )
+                    ],
                   ),
-                ),
-                // if (!externalCallsEnabled)
-                //   Positioned(
-                //     top: 4,
-                //     right: 4,
-                //     child: Container(
-                //       width: 20,
-                //       height: 20,
-                //       decoration: BoxDecoration(
-                //         borderRadius: BorderRadius.circular(1000),
-                //         color: Theme.of(context)
-                //             .extension<StackColors>()!
-                //             .textFieldDefaultBG,
-                //       ),
-                //     ),
-                //   ),
-              ],
+                  // if (externalCallsEnabled)
+                  Positioned(
+                    bottom: 0,
+                    left: 6,
+                    child: SvgPicture.asset(
+                      Assets.svg.checkCircle,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemIcons,
+                    ),
+                  ),
+                  // if (!externalCallsEnabled)
+                  //   Positioned(
+                  //     bottom: 0,
+                  //     left: 6,
+                  //     child: Container(
+                  //       width: 20,
+                  //       height: 20,
+                  //       decoration: BoxDecoration(
+                  //         borderRadius: BorderRadius.circular(1000),
+                  //         color: Theme.of(context)
+                  //             .extension<StackColors>()!
+                  //             .textFieldDefaultBG,
+                  //       ),
+                  //     ),
+                  //   ),
+                ],
+              ),
             ),
           ),
         ),
@@ -246,65 +269,76 @@ class _ThemeToggle extends State<ThemeToggle> {
               elevation: 0,
               hoverColor: Colors.transparent,
               shape: RoundedRectangleBorder(
+                // side: !externalCallsEnabled
+                //     ? BorderSide.none
+                //     : BorderSide(
+                //         color: Theme.of(context)
+                //             .extension<StackColors>()!
+                //             .infoItemIcons,
+                //         width: 2,
+                //       ),
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius * 2,
                 ),
               ),
               onPressed: () {}, //onPressed
-              child: Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SvgPicture.asset(
-                        Assets.svg.themeDark,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 50,
-                          top: 12,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Stack(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SvgPicture.asset(
+                          Assets.svg.themeDark,
                         ),
-                        child: Text(
-                          "Dark",
-                          style: STextStyles.desktopTextExtraSmall(context)
-                              .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 45,
+                            top: 12,
+                          ),
+                          child: Text(
+                            "Dark",
+                            style: STextStyles.desktopTextExtraSmall(context)
+                                .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  // if (externalCallsEnabled)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    child: SvgPicture.asset(
-                      Assets.svg.checkCircle,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
+                      ],
                     ),
-                  ),
-                  // if (!externalCallsEnabled)
-                  //   Positioned(
-                  //     top: 4,
-                  //     right: 4,
-                  //     child: Container(
-                  //       width: 20,
-                  //       height: 20,
-                  //       decoration: BoxDecoration(
-                  //         borderRadius: BorderRadius.circular(1000),
-                  //         color: Theme.of(context)
-                  //             .extension<StackColors>()!
-                  //             .textFieldDefaultBG,
-                  //       ),
-                  //     ),
-                  //   ),
-                ],
+                    // if (externalCallsEnabled)
+                    //   Positioned(
+                    //     bottom: 0,
+                    //     left: 0,
+                    //     child: SvgPicture.asset(
+                    //       Assets.svg.checkCircle,
+                    //       width: 20,
+                    //       height: 20,
+                    //       color: Theme.of(context)
+                    //           .extension<StackColors>()!
+                    //           .infoItemIcons,
+                    //     ),
+                    //   ),
+                    // if (!externalCallsEnabled)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(1000),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
