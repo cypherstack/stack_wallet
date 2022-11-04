@@ -266,7 +266,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
     Uint8List? decodeBase58;
     Segwit? decodeBech32;
     try {
-      if (bitbox.Address.detectFormat(address) == 0) {
+      if (bitbox.Address.detectFormat(address) ==
+          bitbox.Address.formatCashAddr) {
         address = bitbox.Address.toLegacyAddress(address);
       }
     } catch (e, s) {}
@@ -1540,7 +1541,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
     final internalChainArray =
         DB.instance.get<dynamic>(boxName: walletId, key: arrayKey);
     if (derivePathType == DerivePathType.bip44) {
-      if (bitbox.Address.detectFormat(internalChainArray.last as String) == 1) {
+      if (bitbox.Address.detectFormat(internalChainArray.last as String) ==
+          bitbox.Address.formatLegacy) {
         return bitbox.Address.toCashAddress(internalChainArray.last as String);
       }
     }
@@ -2019,7 +2021,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
   /// Returns the scripthash or throws an exception on invalid bch address
   String _convertToScriptHash(String bchAddress, NetworkType network) {
     try {
-      if (bitbox.Address.detectFormat(bchAddress) == 0) {
+      if (bitbox.Address.detectFormat(bchAddress) ==
+          bitbox.Address.formatCashAddr) {
         bchAddress = bitbox.Address.toLegacyAddress(bchAddress);
       }
       final output = Address.addressToOutputScript(bchAddress, network);
@@ -2097,7 +2100,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     List<String> allAddressesOld = await _fetchAllOwnAddresses();
     List<String> allAddresses = [];
     for (String address in allAddressesOld) {
-      if (bitbox.Address.detectFormat(address) == 1) {
+      if (bitbox.Address.detectFormat(address) == bitbox.Address.formatLegacy) {
         allAddresses.add(bitbox.Address.toCashAddress(address));
       } else {
         allAddresses.add(address);
@@ -2109,7 +2112,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
             as List<dynamic>;
     List<dynamic> changeAddressesP2PKH = [];
     for (var address in changeAddressesP2PKHOld) {
-      if (bitbox.Address.detectFormat(address as String) == 1) {
+      if (bitbox.Address.detectFormat(address as String) ==
+          bitbox.Address.formatLegacy) {
         changeAddressesP2PKH.add(bitbox.Address.toCashAddress(address));
       } else {
         changeAddressesP2PKH.add(address);
@@ -2151,7 +2155,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
             if (!(cachedTx != null &&
                 addressType(address: cachedTx.address) ==
                     DerivePathType.bip44 &&
-                bitbox.Address.detectFormat(cachedTx.address) == 1)) {
+                bitbox.Address.detectFormat(cachedTx.address) ==
+                    bitbox.Address.formatLegacy)) {
               allTxHashes.remove(tx);
             }
           }
@@ -2811,7 +2816,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
             String address = output["scriptPubKey"]["addresses"][0] as String;
-            if (bitbox.Address.detectFormat(address) == 0) {
+            if (bitbox.Address.detectFormat(address) ==
+                bitbox.Address.formatCashAddr) {
               address = bitbox.Address.toLegacyAddress(address);
             }
             if (!addressTxid.containsKey(address)) {
@@ -2843,7 +2849,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
         );
         for (int i = 0; i < p2pkhLength; i++) {
           String address = addressesP2PKH[i];
-          if (bitbox.Address.detectFormat(address) == 0) {
+          if (bitbox.Address.detectFormat(address) ==
+              bitbox.Address.formatCashAddr) {
             address = bitbox.Address.toLegacyAddress(address);
           }
 
