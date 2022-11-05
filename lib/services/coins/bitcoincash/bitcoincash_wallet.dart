@@ -3376,9 +3376,10 @@ class BitcoinCashWallet extends CoinServiceAPI {
       return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
           as bool;
     } catch (e, s) {
-      Logging.instance
-          .log("isFavorite fetch failed: $e\n$s", level: LogLevel.Error);
-      rethrow;
+      Logging.instance.log(
+          "isFavorite fetch failed (returning false by default): $e\n$s",
+          level: LogLevel.Error);
+      return false;
     }
   }
 
