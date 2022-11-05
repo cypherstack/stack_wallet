@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
+import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -18,7 +20,7 @@ import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
-class CreatePasswordView extends StatefulWidget {
+class CreatePasswordView extends ConsumerStatefulWidget {
   const CreatePasswordView({
     Key? key,
     this.secureStore = const SecureStorageWrapper(
@@ -31,10 +33,10 @@ class CreatePasswordView extends StatefulWidget {
   final FlutterSecureStorageInterface secureStore;
 
   @override
-  State<CreatePasswordView> createState() => _CreatePasswordViewState();
+  ConsumerState<CreatePasswordView> createState() => _CreatePasswordViewState();
 }
 
-class _CreatePasswordViewState extends State<CreatePasswordView> {
+class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
   late final TextEditingController passwordController;
   late final TextEditingController passwordRepeatController;
 
@@ -76,8 +78,16 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
       return;
     }
 
-    await widget.secureStore
-        .write(key: "stackDesktopPassword", value: passphrase);
+    try {
+      await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
+    } catch (e) {
+      unawaited(showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: "Error: $e",
+        context: context,
+      ));
+      return;
+    }
 
     if (mounted) {
       unawaited(Navigator.of(context)

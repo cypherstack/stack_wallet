@@ -30,7 +30,8 @@ import 'package:stackwallet/pages/loading_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_login_view.dart';
+import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
@@ -207,6 +208,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   late final Completer<void> loadingCompleter;
 
   bool didLoad = false;
+  bool _desktopHasPassword = false;
 
   Future<void> load() async {
     try {
@@ -217,6 +219,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
       await DB.instance.init();
       await _prefs.init();
+
+      if (Util.isDesktop) {
+        _desktopHasPassword =
+            await ref.read(storageCryptoHandlerProvider).hasPassword();
+      }
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
@@ -545,21 +552,23 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             // FlutterNativeSplash.remove();
-            if (_wallets.hasWallets || _prefs.hasPin) {
-              // return HomeView();
-
+            if (Util.isDesktop &&
+                (_wallets.hasWallets || _desktopHasPassword)) {
               String? startupWalletId;
               if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
                 startupWalletId =
                     ref.read(prefsChangeNotifierProvider).startupWalletId;
               }
 
-              // TODO proper desktop auth view
-              if (Util.isDesktop) {
-                Future<void>.delayed(Duration.zero).then((value) =>
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        DesktopHomeView.routeName, (route) => false));
-                return Container();
+              return DesktopLoginView(startupWalletId: startupWalletId);
+            } else if (!Util.isDesktop &&
+                (_wallets.hasWallets || _prefs.hasPin)) {
+              // return HomeView();
+
+              String? startupWalletId;
+              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
+                startupWalletId =
+                    ref.read(prefsChangeNotifierProvider).startupWalletId;
               }
 
               return LockscreenView(

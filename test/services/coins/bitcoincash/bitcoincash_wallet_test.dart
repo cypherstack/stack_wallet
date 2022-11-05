@@ -1,4 +1,3 @@
-import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -140,7 +139,7 @@ void main() {
     test("invalid mainnet bitcoincash legacy/p2pkh address", () {
       expect(
           mainnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
-          true);
+          false);
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);

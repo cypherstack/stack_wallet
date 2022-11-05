@@ -471,75 +471,80 @@ class _TransactionDetailsViewState
                                     MainAxisAlignment.spaceBetween,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _transaction.txType.toLowerCase() ==
+                                                  "sent"
+                                              ? "Sent to"
+                                              : "Receiving address",
+                                          style: isDesktop
+                                              ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              : STextStyles.itemSubtitle(
+                                                  context),
+                                        ),
+                                        const SizedBox(
+                                          height: 8,
+                                        ),
                                         _transaction.txType.toLowerCase() ==
-                                                "sent"
-                                            ? "Sent to"
-                                            : "Receiving address",
-                                        style: isDesktop
-                                            ? STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                                    context)
-                                            : STextStyles.itemSubtitle(context),
-                                      ),
-                                      const SizedBox(
-                                        height: 8,
-                                      ),
-                                      _transaction.txType.toLowerCase() ==
-                                              "received"
-                                          ? FutureBuilder(
-                                              future: fetchContactNameFor(
-                                                  _transaction.address),
-                                              builder: (builderContext,
-                                                  AsyncSnapshot<String>
-                                                      snapshot) {
-                                                String addressOrContactName =
-                                                    _transaction.address;
-                                                if (snapshot.connectionState ==
-                                                        ConnectionState.done &&
-                                                    snapshot.hasData) {
-                                                  addressOrContactName =
-                                                      snapshot.data!;
-                                                }
-                                                return SelectableText(
-                                                  addressOrContactName,
-                                                  style: isDesktop
-                                                      ? STextStyles
-                                                              .desktopTextExtraExtraSmall(
-                                                                  context)
-                                                          .copyWith(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark,
-                                                        )
-                                                      : STextStyles
-                                                          .itemSubtitle12(
-                                                              context),
-                                                );
-                                              },
-                                            )
-                                          : SelectableText(
-                                              _transaction.address,
-                                              style: isDesktop
-                                                  ? STextStyles
-                                                          .desktopTextExtraExtraSmall(
-                                                              context)
-                                                      .copyWith(
-                                                      color: Theme.of(context)
-                                                          .extension<
-                                                              StackColors>()!
-                                                          .textDark,
-                                                    )
-                                                  : STextStyles.itemSubtitle12(
-                                                      context),
-                                            ),
-                                    ],
+                                                "received"
+                                            ? FutureBuilder(
+                                                future: fetchContactNameFor(
+                                                    _transaction.address),
+                                                builder: (builderContext,
+                                                    AsyncSnapshot<String>
+                                                        snapshot) {
+                                                  String addressOrContactName =
+                                                      _transaction.address;
+                                                  if (snapshot.connectionState ==
+                                                          ConnectionState
+                                                              .done &&
+                                                      snapshot.hasData) {
+                                                    addressOrContactName =
+                                                        snapshot.data!;
+                                                  }
+                                                  return SelectableText(
+                                                    addressOrContactName,
+                                                    style: isDesktop
+                                                        ? STextStyles
+                                                                .desktopTextExtraExtraSmall(
+                                                                    context)
+                                                            .copyWith(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .extension<
+                                                                    StackColors>()!
+                                                                .textDark,
+                                                          )
+                                                        : STextStyles
+                                                            .itemSubtitle12(
+                                                                context),
+                                                  );
+                                                },
+                                              )
+                                            : SelectableText(
+                                                _transaction.address,
+                                                style: isDesktop
+                                                    ? STextStyles
+                                                            .desktopTextExtraExtraSmall(
+                                                                context)
+                                                        .copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textDark,
+                                                      )
+                                                    : STextStyles
+                                                        .itemSubtitle12(
+                                                            context),
+                                              ),
+                                      ],
+                                    ),
                                   ),
                                   if (isDesktop)
                                     IconCopyButton(
