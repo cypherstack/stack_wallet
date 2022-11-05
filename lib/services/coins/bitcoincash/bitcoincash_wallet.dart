@@ -1163,6 +1163,10 @@ class BitcoinCashWallet extends CoinServiceAPI {
         print("format $format");
       }
 
+      if (_coin == Coin.bitcoincashTestnet) {
+        return true;
+      }
+
       if (format == bitbox.Address.formatCashAddr) {
         String addr = address;
         if (address.contains(":")) {
