@@ -1406,6 +1406,9 @@ class StackColors extends ThemeExtension<StackColors> {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return _coin.bitcoin;
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return _coin.litecoin;
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
         return _coin.bitcoincash;
@@ -1465,6 +1468,20 @@ class StackColors extends ThemeExtension<StackColors> {
     }
   }
 
+  ButtonStyle? getDeleteEnabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              textFieldErrorBG,
+            ),
+          );
+
+  ButtonStyle? getDeleteDisabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              buttonBackSecondaryDisabled,
+            ),
+          );
+
   ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
@@ -1518,6 +1535,9 @@ class StackColors extends ThemeExtension<StackColors> {
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               background,
+            ),
+            overlayColor: MaterialStateProperty.all<Color>(
+              Colors.transparent,
             ),
           );
 }

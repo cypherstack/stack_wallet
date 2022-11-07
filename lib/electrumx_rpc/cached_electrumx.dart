@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:string_validator/string_validator.dart';
 
 class CachedElectrumX {
   final ElectrumX? electrumXClient;
@@ -94,10 +97,32 @@ class CachedElectrumX {
 
       // update set with new data
       if (newSet["setHash"] != "" && set["setHash"] != newSet["setHash"]) {
-        set["setHash"] = newSet["setHash"];
-        set["blockHash"] = newSet["blockHash"];
+        set["setHash"] = !isHexadecimal(newSet["setHash"] as String)
+            ? base64ToReverseHex(newSet["setHash"] as String)
+            : newSet["setHash"];
+        set["blockHash"] = !isHexadecimal(newSet["blockHash"] as String)
+            ? base64ToHex(newSet["blockHash"] as String)
+            : newSet["blockHash"];
         for (int i = (newSet["coins"] as List).length - 1; i >= 0; i--) {
-          set["coins"].insert(0, newSet["coins"][i]);
+          dynamic newCoin = newSet["coins"][i];
+          List translatedCoin = [];
+          translatedCoin.add(!isHexadecimal(newCoin[0] as String)
+              ? base64ToHex(newCoin[0] as String)
+              : newCoin[0]);
+          translatedCoin.add(!isHexadecimal(newCoin[1] as String)
+              ? base64ToReverseHex(newCoin[1] as String)
+              : newCoin[1]);
+          try {
+            translatedCoin.add(!isHexadecimal(newCoin[2] as String)
+                ? base64ToHex(newCoin[2] as String)
+                : newCoin[2]);
+          } catch (e, s) {
+            translatedCoin.add(newCoin[2]);
+          }
+          translatedCoin.add(!isHexadecimal(newCoin[3] as String)
+              ? base64ToReverseHex(newCoin[3] as String)
+              : newCoin[3]);
+          set["coins"].insert(0, translatedCoin);
         }
         // save set to db
         await DB.instance.put<dynamic>(
@@ -117,6 +142,17 @@ class CachedElectrumX {
       rethrow;
     }
   }
+
+  String base64ToHex(String source) =>
+      base64Decode(LineSplitter.split(source).join())
+          .map((e) => e.toRadixString(16).padLeft(2, '0'))
+          .join();
+
+  String base64ToReverseHex(String source) =>
+      base64Decode(LineSplitter.split(source).join())
+          .reversed
+          .map((e) => e.toRadixString(16).padLeft(2, '0'))
+          .join();
 
   /// Call electrumx getTransaction on a per coin basis, storing the result in local db if not already there.
   ///
@@ -189,7 +225,15 @@ class CachedElectrumX {
           );
 
       final serials = await client.getUsedCoinSerials(startNumber: startNumber);
-      cachedSerials.addAll(serials["serials"] as List);
+      List newSerials = [];
+      for (var element in (serials["serials"] as List)) {
+        if (!isHexadecimal(element as String)) {
+          newSerials.add(base64ToHex(element));
+        } else {
+          newSerials.add(element);
+        }
+      }
+      cachedSerials.addAll(newSerials);
 
       await DB.instance.put<dynamic>(
           boxName: DB.instance.boxNameUsedSerialsCache(coin: coin),

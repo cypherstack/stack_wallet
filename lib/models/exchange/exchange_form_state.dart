@@ -276,6 +276,12 @@ class ExchangeFormState extends ChangeNotifier {
 
   void _onExchangeRateTypeChanged() {
     print("_onExchangeRateTypeChanged");
+    updateRanges(shouldNotifyListeners: true).then(
+      (_) => updateEstimate(
+        shouldNotifyListeners: true,
+        reversed: reversed,
+      ),
+    );
   }
 
   void _onExchangeTypeChanged() {

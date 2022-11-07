@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/node_card.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';
 
@@ -82,7 +83,7 @@ void main() {
         (realInvocation) => NodeModel(
             host: "127.0.0.1",
             port: 2000,
-            name: "Stack Default",
+            name: "Some other node name",
             id: "node id",
             useSSL: true,
             enabled: true,
@@ -94,7 +95,7 @@ void main() {
         NodeModel(
             host: "127.0.0.1",
             port: 2000,
-            name: "Stack Default",
+            name: "Some other node name",
             id: "node id",
             useSSL: true,
             enabled: true,
@@ -122,7 +123,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text("Stack Default"), findsOneWidget);
+    expect(find.text("Some other node name"), findsOneWidget);
     expect(find.text("Connected"), findsOneWidget);
     expect(find.byType(Text), findsNWidgets(2));
     expect(find.byType(SvgPicture), findsWidgets);
@@ -190,13 +191,22 @@ void main() {
     await tester.tap(find.byType(NodeCard));
     await tester.pumpAndSettle();
 
-    expect(find.text("Connect"), findsOneWidget);
-    expect(find.text("Details"), findsOneWidget);
-    expect(find.byType(NodeOptionsSheet), findsOneWidget);
-    expect(find.byType(Text), findsNWidgets(7));
+    if (Util.isDesktop) {
+      expect(find.text("Connect"), findsNothing);
+      expect(find.text("Details"), findsNothing);
 
-    verify(nodeService.getPrimaryNodeFor(coin: Coin.bitcoin)).called(2);
-    verify(nodeService.getNodeById(id: "node id")).called(2);
+      verify(nodeService.getPrimaryNodeFor(coin: Coin.bitcoin)).called(1);
+      verify(nodeService.getNodeById(id: "node id")).called(1);
+    } else {
+      expect(find.text("Connect"), findsOneWidget);
+      expect(find.text("Details"), findsOneWidget);
+      expect(find.byType(NodeOptionsSheet), findsOneWidget);
+      expect(find.byType(Text), findsNWidgets(7));
+
+      verify(nodeService.getPrimaryNodeFor(coin: Coin.bitcoin)).called(2);
+      verify(nodeService.getNodeById(id: "node id")).called(2);
+    }
+
     verify(nodeService.addListener(any)).called(1);
 
     verifyNoMoreInteractions(nodeService);

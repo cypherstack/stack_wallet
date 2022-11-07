@@ -9,16 +9,19 @@ class MnemonicTableItem extends StatelessWidget {
     required this.number,
     required this.word,
     required this.isDesktop,
+    this.borderColor,
   }) : super(key: key);
 
   final int number;
   final String word;
   final bool isDesktop;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return RoundedWhiteContainer(
+      borderColor: borderColor,
       padding: isDesktop
           ? const EdgeInsets.symmetric(horizontal: 12, vertical: 9)
           : const EdgeInsets.all(8),

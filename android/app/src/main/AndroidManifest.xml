@@ -20,6 +20,7 @@
     <application
         android:name="${applicationName}"
         android:label="Stack Wallet"
+        android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:fullBackupContent="false">

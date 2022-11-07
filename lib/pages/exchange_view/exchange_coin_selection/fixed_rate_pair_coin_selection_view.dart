@@ -16,6 +16,8 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class FixedRateMarketPairCoinSelectionView extends ConsumerStatefulWidget {
   const FixedRateMarketPairCoinSelectionView({
     Key? key,
@@ -152,6 +154,8 @@ class _FixedRateMarketPairCoinSelectionViewState
                 Constants.size.circularBorderRadius,
               ),
               child: TextField(
+                autocorrect: Util.isDesktop ? false : true,
+                enableSuggestions: Util.isDesktop ? false : true,
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 onChanged: filter,

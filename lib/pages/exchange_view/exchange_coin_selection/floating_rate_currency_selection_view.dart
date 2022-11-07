@@ -13,6 +13,8 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class FloatingRateCurrencySelectionView extends StatefulWidget {
   const FloatingRateCurrencySelectionView({
     Key? key,
@@ -108,6 +110,8 @@ class _FloatingRateCurrencySelectionViewState
                 Constants.size.circularBorderRadius,
               ),
               child: TextField(
+                autocorrect: Util.isDesktop ? false : true,
+                enableSuggestions: Util.isDesktop ? false : true,
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 onChanged: filter,

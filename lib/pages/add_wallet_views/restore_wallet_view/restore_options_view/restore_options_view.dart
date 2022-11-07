@@ -144,6 +144,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   Future<void> chooseDate() async {
     final height = MediaQuery.of(context).size.height;
+    final fetchedColor =
+        Theme.of(context).extension<StackColors>()!.accentColorDark;
     // check and hide keyboard
     if (FocusScope.of(context).hasFocus) {
       FocusScope.of(context).unfocus();
@@ -155,8 +157,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       initialDate: DateTime.now(),
       height: height * 0.5,
       theme: ThemeData(
-        primarySwatch: Util.createMaterialColor(
-            Theme.of(context).extension<StackColors>()!.accentColorDark),
+        primarySwatch: Util.createMaterialColor(fetchedColor),
       ),
       //TODO pick a better initial date
       // 2007 chosen as that is just before bitcoin launched
@@ -272,6 +273,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 // if (!isDesktop)
                 RestoreFromDatePicker(
                   onTap: chooseDate,
+                  controller: _dateController,
                 ),
 
               // if (isDesktop)

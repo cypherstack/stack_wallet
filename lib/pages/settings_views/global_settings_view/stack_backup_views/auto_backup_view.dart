@@ -19,6 +19,8 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class AutoBackupView extends ConsumerStatefulWidget {
   const AutoBackupView({Key? key}) : super(key: key);
 
@@ -423,6 +425,8 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                     height: 10,
                   ),
                   TextField(
+                    autocorrect: Util.isDesktop ? false : true,
+                    enableSuggestions: Util.isDesktop ? false : true,
                     key: const Key("backupFrequencyFieldKey"),
                     controller: frequencyController,
                     enabled: false,

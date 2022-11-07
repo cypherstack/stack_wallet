@@ -37,7 +37,9 @@ import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
+import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
@@ -86,13 +88,26 @@ import 'package:stackwallet/pages_desktop_specific/create_password/create_passwo
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings/advanced_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings/currency_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
+
+import 'pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
+import 'pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
 
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;
@@ -769,6 +784,21 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case ConfirmTransactionView.routeName:
+        if (args is Tuple2<Map<String, dynamic>, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ConfirmTransactionView(
+              transactionInfo: args.item1,
+              walletId: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case WalletInitiatedExchangeView.routeName:
         if (args is Tuple3<String, Coin, VoidCallback>) {
           return getRoute(
@@ -944,6 +974,21 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case GenerateUriQrCodeView.routeName:
+        if (args is Tuple2<Coin, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => GenerateUriQrCodeView(
+              coin: args.item1,
+              receivingAddress: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       // == Desktop specific routes ============================================
       case CreatePasswordView.routeName:
         return getRoute(
@@ -957,17 +1002,31 @@ class RouteGenerator {
             builder: (_) => const DesktopHomeView(),
             settings: RouteSettings(name: settings.name));
 
-      // case DesktopSettingsView.routeName:
-      //   return getRoute(
-      //       shouldUseMaterialRoute: useMaterialPageRoute,
-      //       builder: (_) => const DesktopSettingsView(),
-      //       settings: RouteSettings(name: settings.name));
+      case DesktopSettingsView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopSettingsView(),
+            settings: RouteSettings(name: settings.name));
 
       case MyStackView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const MyStackView(),
             settings: RouteSettings(name: settings.name));
+
+      case DesktopWalletView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopWalletView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SettingsMenu.routeName:
         return getRoute(
@@ -976,6 +1035,120 @@ class RouteGenerator {
                   onSelectionChanged: (int) {},
                 ),
             settings: RouteSettings(name: settings.name));
+
+      case BackupRestoreSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const BackupRestoreSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case SecuritySettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const SecuritySettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case CurrencySettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const CurrencySettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case LanguageOptionSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const LanguageOptionSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case NodesSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const NodesSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case SyncingPreferencesSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const SyncingPreferencesSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case AppearanceOptionSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const AppearanceOptionSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case AdvancedSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const AdvancedSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case WalletKeysDesktopPopup.routeName:
+        if (args is List<String>) {
+          return FadePageRoute(
+            WalletKeysDesktopPopup(
+              words: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => WalletKeysDesktopPopup(
+          //     words: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case UnlockWalletKeysDesktop.routeName:
+        if (args is String) {
+          return FadePageRoute(
+            UnlockWalletKeysDesktop(
+              walletId: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => WalletKeysDesktopPopup(
+          //     words: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case QRCodeDesktopPopupContent.routeName:
+        if (args is String) {
+          return FadePageRoute(
+            QRCodeDesktopPopupContent(
+              value: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => QRCodeDesktopPopupContent(
+          //     value: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       // == End of desktop specific routes =====================================
 
@@ -1046,4 +1219,38 @@ class RouteGenerator {
         shouldUseMaterialRoute: useMaterialPageRoute,
         builder: (_) => errorView);
   }
+}
+
+class FadePageRoute<T> extends PageRoute<T> {
+  FadePageRoute(this.child, RouteSettings settings) : _settings = settings;
+
+  final Widget child;
+  final RouteSettings _settings;
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  String? get barrierLabel => null;
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return FadeTransition(
+      opacity: animation,
+      child: child,
+    );
+  }
+
+  @override
+  bool get maintainState => true;
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 100);
+
+  @override
+  RouteSettings get settings => _settings;
 }

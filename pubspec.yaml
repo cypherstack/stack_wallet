@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.8+78
+version: 1.5.14+86
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -54,7 +54,7 @@ dependencies:
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: b7b184ec36466f2a24104a7056de88881cb0c1e9
+      ref: 011dc9ce3d29f5fdeeaf711d58b5122f055c146d
 
   # Utility plugins
 #  provider: ^6.0.1
@@ -115,6 +115,7 @@ dependencies:
   wakelock: ^0.6.2
   intl: ^0.17.0
   devicelocale: ^0.5.0
+  device_info_plus: ^7.0.1
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
   tuple: ^2.0.0
@@ -132,6 +133,7 @@ dependencies:
   isar: 3.0.0-dev.10
   isar_flutter_libs: 3.0.0-dev.10 # contains the binaries
   dropdown_button2: 1.7.2
+  string_validator: ^0.3.0
 
 dev_dependencies:
   flutter_test:
@@ -194,6 +196,7 @@ flutter:
     - assets/images/monero.png
     - assets/images/wownero.png
     - assets/images/firo.png
+    - assets/images/litecoin.png
     - assets/images/doge.png
     - assets/images/bitcoin.png
     - assets/images/epic-cash.png
@@ -229,10 +232,12 @@ flutter:
     - assets/svg/gear-3.svg
     - assets/svg/swap.svg
     - assets/svg/chevron-down.svg
+    - assets/svg/chevron-up.svg
     - assets/svg/lock-keyhole.svg
     - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
+    - assets/svg/network-wired-2.svg
     - assets/svg/address-book.svg
     - assets/svg/address-book2.svg
     - assets/svg/arrow-right.svg
@@ -292,8 +297,25 @@ flutter:
     - assets/svg/Polygon.svg
     - assets/svg/persona-easy-1.svg
     - assets/svg/persona-incognito-1.svg
+    - assets/svg/Button.svg
+    - assets/svg/lock-circle.svg
+    - assets/svg/dollar-sign-circle.svg
+    - assets/svg/language-circle.svg
+    - assets/svg/rotate-circle.svg
+    - assets/svg/sun-circle.svg
+    - assets/svg/node-circle.svg
+    - assets/svg/dark/dark-theme.svg
+    - assets/svg/light/light-mode.svg
+    - assets/svg/address-book-desktop.svg
+    - assets/svg/about-desktop.svg
+    - assets/svg/exchange-desktop.svg
+    - assets/svg/wallet-desktop.svg
+    - assets/svg/exit-desktop.svg
+    - assets/svg/keys.svg
+    - assets/svg/arrow-down.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
+    - assets/svg/coin_icons/Litecoin.svg
     - assets/svg/coin_icons/Bitcoincash.svg
     - assets/svg/coin_icons/Dogecoin.svg
     - assets/svg/coin_icons/EpicCash.svg
@@ -316,6 +338,8 @@ flutter:
     - assets/svg/message-question-1.svg
     - assets/svg/drd-icon.svg
     - assets/svg/box-auto.svg
+    - assets/svg/framed-address-book.svg
+    - assets/svg/framed-gear.svg
     # exchange icons
     - assets/svg/exchange_icons/change_now_logo_1.svg
     - assets/svg/exchange_icons/simpleswap-icon.svg

@@ -1,3 +1,4 @@
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
@@ -6,8 +7,7 @@ import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 
 void main() {
   testWidgets("Test wiget displays correct text", (widgetTester) async {
-    const customLoadingOverlay =
-        CustomLoadingOverlay(message: "Updating exchange rate", eventBus: null);
+    final eventBus = EventBus();
     await widgetTester.pumpWidget(
       MaterialApp(
         theme: ThemeData(
@@ -15,8 +15,9 @@ void main() {
             StackColors.fromStackColorTheme(LightColors()),
           ],
         ),
-        home: const Material(
-          child: customLoadingOverlay,
+        home: Material(
+          child: CustomLoadingOverlay(
+              message: "Updating exchange rate", eventBus: eventBus),
         ),
       ),
     );

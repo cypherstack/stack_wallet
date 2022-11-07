@@ -30,7 +30,8 @@ import 'package:stackwallet/pages/loading_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_login_view.dart';
+import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
@@ -68,6 +69,9 @@ final openedFromSWBFileStringStateProvider =
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
+  if (Platform.isIOS) {
+    Util.libraryPath = await getLibraryDirectory();
+  }
 
   if (Util.isDesktop) {
     setWindowTitle('Stack Wallet');
@@ -143,7 +147,12 @@ void main() async {
           boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
       0;
   if (dbVersion < Constants.currentHiveDbVersion) {
-    await DbVersionMigrator().migrate(dbVersion);
+    try {
+      await DbVersionMigrator().migrate(dbVersion);
+    } catch (e, s) {
+      Logging.instance.log("Cannot migrate database\n$e $s",
+          level: LogLevel.Error, printFullLength: true);
+    }
   }
 
   monero.onStartup();
@@ -199,56 +208,67 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   late final Completer<void> loadingCompleter;
 
   bool didLoad = false;
+  bool _desktopHasPassword = false;
 
   Future<void> load() async {
-    if (didLoad) {
-      return;
-    }
-    didLoad = true;
-
-    await DB.instance.init();
-    await _prefs.init();
-
-    _notificationsService = ref.read(notificationsProvider);
-    _nodeService = ref.read(nodeServiceChangeNotifierProvider);
-    _tradesService = ref.read(tradesServiceProvider);
-
-    NotificationApi.prefs = _prefs;
-    NotificationApi.notificationsService = _notificationsService;
-
-    unawaited(ref.read(baseCurrenciesProvider).update());
-
-    await _nodeService.updateDefaults();
-    await _notificationsService.init(
-      nodeService: _nodeService,
-      tradesService: _tradesService,
-      prefs: _prefs,
-    );
-    ref.read(priceAnd24hChangeNotifierProvider).start(true);
-    await _wallets.load(_prefs);
-    loadingCompleter.complete();
-    // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
-    //  unawaited(_nodeService.updateCommunityNodes());
-
-    // run without awaiting
-    if (Constants.enableExchange && _prefs.externalCalls) {
-      unawaited(ExchangeDataLoadingService().loadAll(ref));
-    }
-
-    if (_prefs.isAutoBackupEnabled) {
-      switch (_prefs.backupFrequencyType) {
-        case BackupFrequencyType.everyTenMinutes:
-          ref
-              .read(autoSWBServiceProvider)
-              .startPeriodicBackupTimer(duration: const Duration(minutes: 10));
-          break;
-        case BackupFrequencyType.everyAppStart:
-          unawaited(ref.read(autoSWBServiceProvider).doBackup());
-          break;
-        case BackupFrequencyType.afterClosingAWallet:
-          // ignore this case here
-          break;
+    try {
+      if (didLoad) {
+        return;
       }
+      didLoad = true;
+
+      await DB.instance.init();
+      await _prefs.init();
+
+      if (Util.isDesktop) {
+        _desktopHasPassword =
+            await ref.read(storageCryptoHandlerProvider).hasPassword();
+      }
+
+      _notificationsService = ref.read(notificationsProvider);
+      _nodeService = ref.read(nodeServiceChangeNotifierProvider);
+      _tradesService = ref.read(tradesServiceProvider);
+
+      NotificationApi.prefs = _prefs;
+      NotificationApi.notificationsService = _notificationsService;
+
+      unawaited(ref.read(baseCurrenciesProvider).update());
+
+      await _nodeService.updateDefaults();
+      await _notificationsService.init(
+        nodeService: _nodeService,
+        tradesService: _tradesService,
+        prefs: _prefs,
+      );
+      ref.read(priceAnd24hChangeNotifierProvider).start(true);
+      await _wallets.load(_prefs);
+      loadingCompleter.complete();
+      // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
+      //  unawaited(_nodeService.updateCommunityNodes());
+
+      // run without awaiting
+      if (Constants.enableExchange &&
+          _prefs.externalCalls &&
+          await _prefs.isExternalCallsSet()) {
+        unawaited(ExchangeDataLoadingService().loadAll(ref));
+      }
+
+      if (_prefs.isAutoBackupEnabled) {
+        switch (_prefs.backupFrequencyType) {
+          case BackupFrequencyType.everyTenMinutes:
+            ref.read(autoSWBServiceProvider).startPeriodicBackupTimer(
+                duration: const Duration(minutes: 10));
+            break;
+          case BackupFrequencyType.everyAppStart:
+            unawaited(ref.read(autoSWBServiceProvider).doBackup());
+            break;
+          case BackupFrequencyType.afterClosingAWallet:
+            // ignore this case here
+            break;
+        }
+      }
+    } catch (e, s) {
+      Logger.print("$e $s", normalLength: false);
     }
   }
 
@@ -532,21 +552,23 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             // FlutterNativeSplash.remove();
-            if (_wallets.hasWallets || _prefs.hasPin) {
-              // return HomeView();
-
+            if (Util.isDesktop &&
+                (_wallets.hasWallets || _desktopHasPassword)) {
               String? startupWalletId;
               if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
                 startupWalletId =
                     ref.read(prefsChangeNotifierProvider).startupWalletId;
               }
 
-              // TODO proper desktop auth view
-              if (Util.isDesktop) {
-                Future<void>.delayed(Duration.zero).then((value) =>
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        DesktopHomeView.routeName, (route) => false));
-                return Container();
+              return DesktopLoginView(startupWalletId: startupWalletId);
+            } else if (!Util.isDesktop &&
+                (_wallets.hasWallets || _prefs.hasPin)) {
+              // return HomeView();
+
+              String? startupWalletId;
+              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
+                startupWalletId =
+                    ref.read(prefsChangeNotifierProvider).startupWalletId;
               }
 
               return LockscreenView(

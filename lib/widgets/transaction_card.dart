@@ -13,6 +13,8 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:tuple/tuple.dart';
 
 class TransactionCard extends ConsumerStatefulWidget {
@@ -100,6 +102,15 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             .select((value) => value.getPrice(coin)))
         .item1;
 
+    String prefix = "";
+    if (Util.isDesktop) {
+      if (_transaction.txType == "Sent") {
+        prefix = "-";
+      } else if (_transaction.txType == "Received") {
+        prefix = "+";
+      }
+    }
+
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       elevation: 0,
@@ -126,14 +137,31 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
               ));
               return;
             }
-            unawaited(Navigator.of(context).pushNamed(
-              TransactionDetailsView.routeName,
-              arguments: Tuple3(
-                _transaction,
-                coin,
-                walletId,
-              ),
-            ));
+            if (Util.isDesktop) {
+              await showDialog<void>(
+                context: context,
+                builder: (context) => DesktopDialog(
+                  maxHeight: MediaQuery.of(context).size.height - 64,
+                  maxWidth: 580,
+                  child: TransactionDetailsView(
+                    transaction: _transaction,
+                    coin: coin,
+                    walletId: walletId,
+                  ),
+                ),
+              );
+            } else {
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  TransactionDetailsView.routeName,
+                  arguments: Tuple3(
+                    _transaction,
+                    coin,
+                    walletId,
+                  ),
+                ),
+              );
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(8),
@@ -176,7 +204,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                           ? (_transaction.amount ~/ 1000)
                                           : _transaction.amount;
                                   return Text(
-                                    "${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
+                                    "$prefix${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
                                     style:
                                         STextStyles.itemSubtitle12_600(context),
                                   );
@@ -223,7 +251,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                     }
 
                                     return Text(
-                                      "${Format.localizedStringAsFixed(
+                                      "$prefix${Format.localizedStringAsFixed(
                                         value: Format.satoshisToAmount(value) *
                                             price,
                                         locale: locale,

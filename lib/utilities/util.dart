@@ -1,9 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 abstract class Util {
+  static Directory? libraryPath;
   static bool get isDesktop {
+    if(Platform.isIOS && libraryPath != null && !libraryPath!.path.contains("/var/mobile/")){
+      return true;
+    }
     return Platform.isLinux || Platform.isMacOS || Platform.isWindows;
   }
 

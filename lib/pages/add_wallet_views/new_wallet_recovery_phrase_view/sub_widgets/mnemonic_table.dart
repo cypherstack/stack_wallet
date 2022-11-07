@@ -6,10 +6,12 @@ class MnemonicTable extends StatelessWidget {
     Key? key,
     required this.words,
     required this.isDesktop,
+    this.itemBorderColor,
   }) : super(key: key);
 
   final List<String> words;
   final bool isDesktop;
+  final Color? itemBorderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +42,7 @@ class MnemonicTable extends StatelessWidget {
                       number: ++index,
                       word: words[index - 1],
                       isDesktop: isDesktop,
+                      borderColor: itemBorderColor,
                     ),
                   ),
                 ],
@@ -61,6 +64,7 @@ class MnemonicTable extends StatelessWidget {
                       number: i + 1,
                       word: words[i],
                       isDesktop: isDesktop,
+                      borderColor: itemBorderColor,
                     ),
                   ),
                 ],

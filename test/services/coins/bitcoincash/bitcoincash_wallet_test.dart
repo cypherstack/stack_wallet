@@ -1,4 +1,3 @@
-import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -26,7 +25,7 @@ import 'bitcoincash_wallet_test_parameters.dart';
 void main() {
   group("bitcoincash constants", () {
     test("bitcoincash minimum confirmations", () async {
-      expect(MINIMUM_CONFIRMATIONS, 3);
+      expect(MINIMUM_CONFIRMATIONS, 1);
     });
     test("bitcoincash dust limit", () async {
       expect(DUST_LIMIT, 546);
@@ -140,7 +139,7 @@ void main() {
     test("invalid mainnet bitcoincash legacy/p2pkh address", () {
       expect(
           mainnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
-          true);
+          false);
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -831,18 +830,9 @@ void main() {
 
       await bch?.initializeNew();
       await bch?.initializeExisting();
-      expect(
-          Address.validateAddress(
-              await bch!.currentReceivingAddress, bitcoincashtestnet),
-          true);
-      expect(
-          Address.validateAddress(
-              await bch!.currentReceivingAddress, bitcoincashtestnet),
-          true);
-      expect(
-          Address.validateAddress(
-              await bch!.currentReceivingAddress, bitcoincashtestnet),
-          true);
+      expect(bch?.validateAddress(await bch!.currentReceivingAddress), true);
+      expect(bch?.validateAddress(await bch!.currentReceivingAddress), true);
+      expect(bch?.validateAddress(await bch!.currentReceivingAddress), true);
 
       verifyNever(client?.ping()).called(0);
       verify(client?.getServerFeatures()).called(1);
@@ -884,8 +874,7 @@ void main() {
       expect(addresses?.length, 2);
 
       for (int i = 0; i < 2; i++) {
-        expect(
-            Address.validateAddress(addresses![i], bitcoincashtestnet), true);
+        expect(bch?.validateAddress(addresses![i]), true);
       }
 
       verifyNever(client?.ping()).called(0);

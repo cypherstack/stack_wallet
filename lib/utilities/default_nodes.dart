@@ -9,6 +9,7 @@ abstract class DefaultNodes {
 
   static List<NodeModel> get all => [
         bitcoin,
+        litecoin,
         dogecoin,
         firo,
         monero,
@@ -17,6 +18,7 @@ abstract class DefaultNodes {
         namecoin,
         wownero,
         bitcoinTestnet,
+        litecoinTestNet,
         bitcoincashTestnet,
         dogecoinTestnet,
         firoTestnet,
@@ -30,6 +32,30 @@ abstract class DefaultNodes {
         useSSL: true,
         enabled: true,
         coinName: Coin.bitcoin.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get litecoin => NodeModel(
+        host: "litecoin.stackwallet.com",
+        port: 20063,
+        name: defaultName,
+        id: _nodeId(Coin.litecoin),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.litecoin.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get litecoinTestNet => NodeModel(
+        host: "litecoin.stackwallet.com",
+        port: 51002,
+        name: defaultName,
+        id: _nodeId(Coin.litecoinTestNet),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.litecoinTestNet.name,
         isFailover: true,
         isDown: false,
       );
@@ -70,28 +96,24 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
-  // TODO: eventually enable ssl and set scheme to https
-  // currently get certificate failure
   static NodeModel get monero => NodeModel(
-        host: "http://monero.stackwallet.com",
+        host: "https://monero.stackwallet.com",
         port: 18081,
         name: defaultName,
         id: _nodeId(Coin.monero),
-        useSSL: false,
+        useSSL: true,
         enabled: true,
         coinName: Coin.monero.name,
         isFailover: true,
         isDown: false,
       );
 
-  // TODO: eventually enable ssl and set scheme to https
-  // currently get certificate failure
   static NodeModel get wownero => NodeModel(
-        host: "http://eu-west-2.wow.xmr.pm",
+        host: "https://wownero.stackwallet.com",
         port: 34568,
         name: defaultName,
         id: _nodeId(Coin.wownero),
-        useSSL: false,
+        useSSL: true,
         enabled: true,
         coinName: Coin.wownero.name,
         isFailover: true,
@@ -175,6 +197,9 @@ abstract class DefaultNodes {
       case Coin.bitcoin:
         return bitcoin;
 
+      case Coin.litecoin:
+        return litecoin;
+
       case Coin.bitcoincash:
         return bitcoincash;
 
@@ -198,6 +223,9 @@ abstract class DefaultNodes {
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
+
+      case Coin.litecoinTestNet:
+        return litecoinTestNet;
 
       case Coin.bitcoincashTestnet:
         return bitcoincashTestnet;
