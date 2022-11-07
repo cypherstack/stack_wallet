@@ -12,3 +12,11 @@ var mainnetTestData14 = [
     'WW2KQLLt6gjC9gRsC4NGehbAZX6UPU7sK89UQFwSg3NKj3MXPwnjh5BiJVqYYNQb6JNsfa7oP7eDjLagtLa2H6YP11RhUNQqw'
   ]
 ];
+
+String testMnemonic25 =
+    'myth byline benches sadness nylon tamper guide giving match angled lurk rally makeup alarms river soapy dolphin woven ticket maul examine public luggage mammal alarms';
+var mainnetTestData25 = [
+  [
+    'Wo3piMnt1ztjLktFJNsfs9ce6N1tyHk7DB93cNqTGPJ7To3RS7W2q5DdxgQAG5E6RQXQhchQD7ip8WWL3fD8Ww5K2XmAXYxta'
+  ]
+];

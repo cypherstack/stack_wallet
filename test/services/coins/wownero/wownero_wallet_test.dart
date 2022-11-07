@@ -83,8 +83,10 @@ void main() async {
   _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
   walletService = wownero.createWowneroWalletService(_walletInfoSource);
 
+  /*
   group("Wownero 14 word tests", () {
     setUp(() async {
+      bool hasThrown = false;
       try {
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
@@ -113,7 +115,9 @@ void main() async {
       } catch (e, s) {
         print(e);
         print(s);
+        hasThrown = true;
       }
+      expect(hasThrown, false);
     });
 
     test("Test mainnet address generation from 14 word seed", () async {
@@ -147,6 +151,109 @@ void main() async {
       walletBase?.close();
       walletBase = wallet as WowneroWalletBase;
     });
+    
+    // TODO delete left over wallet file with name: name
+  });
+   */
+
+  group("Wownero 25 word tests", () {
+    setUp(() async {
+      bool hasThrown = false;
+      try {
+        final dirPath = await pathForWalletDir(name: name, type: type);
+        path = await pathForWallet(name: name, type: type);
+        credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
+            name: name, height: 465760, mnemonic: testMnemonic25);
+
+        walletInfo = WalletInfo.external(
+            id: WalletBase.idFor(name, type),
+            name: name,
+            type: type,
+            isRecovery: false,
+            restoreHeight: credentials.height ?? 0,
+            date: DateTime.now(),
+            path: path,
+            address: "",
+            dirPath: dirPath);
+        credentials.walletInfo = walletInfo;
+
+        _walletCreationService = WalletCreationService(
+          secureStorage: storage,
+          sharedPreferences: prefs,
+          walletService: walletService,
+          keyService: keysStorage,
+        );
+        _walletCreationService.changeWalletType();
+      } catch (e, s) {
+        print(e);
+        print(s);
+        hasThrown = true;
+      }
+      expect(hasThrown, false);
+    });
+
+    test("Test mainnet address generation from 25 word seed", () async {
+      bool hasThrown = false;
+      try {
+        name = 'namee${Random().nextInt(10000000)}';
+        final dirPath = await pathForWalletDir(name: name, type: type);
+        path = await pathForWallet(name: name, type: type);
+        try {
+          credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
+              name: name, height: 465760, mnemonic: testMnemonic25);
+        } catch (e, s) {
+          print(e);
+          print(s);
+          hasThrown = true;
+        }
+        expect(hasThrown, false);
+
+        walletInfo = WalletInfo.external(
+            id: WalletBase.idFor(name, type),
+            name: name,
+            type: type,
+            isRecovery: false,
+            restoreHeight: credentials.height ?? 0,
+            date: DateTime.now(),
+            path: path,
+            address: "",
+            dirPath: dirPath);
+        credentials.walletInfo = walletInfo;
+
+        _walletCreationService = WalletCreationService(
+          secureStorage: storage,
+          sharedPreferences: prefs,
+          walletService: walletService,
+          keyService: keysStorage,
+        );
+        _walletCreationService.changeWalletType();
+      } catch (e, s) {
+        print(e);
+        print(s);
+        hasThrown = true;
+      }
+      expect(hasThrown, false);
+
+      final wallet = await _walletCreationService.restoreFromSeed(credentials);
+      walletInfo.address = wallet.walletAddresses.address;
+
+      hasThrown = false;
+      try {
+        await _walletInfoSource.add(walletInfo);
+        walletBase?.close();
+        walletBase = wallet as WowneroWalletBase;
+
+        expect(walletInfo.address, mainnetTestData25[0][0]);
+      } catch (_) {
+        hasThrown = true;
+      }
+      expect(hasThrown, false);
+
+      walletBase?.close();
+      walletBase = wallet as WowneroWalletBase;
+    });
+
+    // TODO delete left over wallet file with name: name
   });
 }
 
