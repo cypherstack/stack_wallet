@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/support_view.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-
-import '../../../pages/settings_views/global_settings_view/support_view.dart';
 
 class DesktopSupportView extends ConsumerStatefulWidget {
   const DesktopSupportView({Key? key}) : super(key: key);
@@ -38,10 +37,18 @@ class _DesktopSupportView extends ConsumerState<DesktopSupportView> {
         ),
       ),
       body: Column(
-        children: const [
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(24, 10, 377, 270),
-            child: SupportView(),
+            padding: const EdgeInsets.fromLTRB(24, 10, 0, 0),
+            child: Row(
+              children: const [
+                SizedBox(
+                  width: 576,
+                  child: SupportView(),
+                ),
+              ],
+            ),
           ),
         ],
       ),
