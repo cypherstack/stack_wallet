@@ -157,7 +157,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                               .textDark3),
                 ),
               ),
-              // child,
+              child,
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -442,7 +442,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
             const SizedBox(
               height: 16,
             ),
-            const Spacer(),
+            if (!isDesktop) const Spacer(),
             TextButton(
               style: shouldEnableCreate
                   ? Theme.of(context)

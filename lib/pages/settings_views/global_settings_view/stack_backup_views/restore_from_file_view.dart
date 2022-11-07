@@ -142,7 +142,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                     textAlign: TextAlign.left,
                   ),
                 ),
-                // child,
+                child,
                 const SizedBox(height: 20),
                 Row(
                   children: [
@@ -285,7 +285,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
               const SizedBox(
                 height: 16,
               ),
-              const Spacer(),
+              if (!isDesktop) const Spacer(),
               TextButton(
                 style: passwordController.text.isEmpty ||
                         fileLocationController.text.isEmpty
