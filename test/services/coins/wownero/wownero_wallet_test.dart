@@ -83,7 +83,6 @@ void main() async {
   _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
   walletService = wownero.createWowneroWalletService(_walletInfoSource);
 
-  /*
   group("Wownero 14 word tests", () {
     setUp(() async {
       bool hasThrown = false;
@@ -91,7 +90,9 @@ void main() async {
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
         credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
-            name: name, height: 465760, mnemonic: testMnemonic14); // TODO catch failure
+            name: name,
+            height: 465760,
+            mnemonic: testMnemonic14); // TODO catch failure
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -128,21 +129,21 @@ void main() async {
       try {
         await _walletInfoSource.add(walletInfo);
         walletBase?.close();
-          walletBase = wallet as WowneroWalletBase;
+        walletBase = wallet as WowneroWalletBase;
 
         expect(walletInfo.address, mainnetTestData14[0][0]);
-        expect(
-            await walletBase!.getTransactionAddress(0, 0), mainnetTestData14[0][0]);
-        expect(
-            await walletBase!.getTransactionAddress(0, 1), mainnetTestData14[0][1]);
-        expect(
-            await walletBase!.getTransactionAddress(0, 2), mainnetTestData14[0][2]);
-        expect(
-            await walletBase!.getTransactionAddress(1, 0), mainnetTestData14[1][0]);
-        expect(
-            await walletBase!.getTransactionAddress(1, 1), mainnetTestData14[1][1]);
-        expect(
-            await walletBase!.getTransactionAddress(1, 2), mainnetTestData14[1][2]);
+        expect(await walletBase!.getTransactionAddress(0, 0),
+            mainnetTestData14[0][0]);
+        expect(await walletBase!.getTransactionAddress(0, 1),
+            mainnetTestData14[0][1]);
+        expect(await walletBase!.getTransactionAddress(0, 2),
+            mainnetTestData14[0][2]);
+        expect(await walletBase!.getTransactionAddress(1, 0),
+            mainnetTestData14[1][0]);
+        expect(await walletBase!.getTransactionAddress(1, 1),
+            mainnetTestData14[1][1]);
+        expect(await walletBase!.getTransactionAddress(1, 2),
+            mainnetTestData14[1][2]);
       } catch (_) {
         hasThrown = true;
       }
@@ -151,19 +152,21 @@ void main() async {
       walletBase?.close();
       walletBase = wallet as WowneroWalletBase;
     });
-    
+
     // TODO delete left over wallet file with name: name
   });
-   */
 
   group("Wownero 25 word tests", () {
     setUp(() async {
       bool hasThrown = false;
       try {
+        name = 'namee${Random().nextInt(10000000)}';
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
         credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
-            name: name, height: 465760, mnemonic: testMnemonic25); // TODO catch failure
+            name: name,
+            height: 465760,
+            mnemonic: testMnemonic25); // TODO catch failure
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -195,7 +198,6 @@ void main() async {
     test("Test mainnet address generation from 25 word seed", () async {
       bool hasThrown = false;
       try {
-        name = 'namee${Random().nextInt(10000000)}';
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
 
