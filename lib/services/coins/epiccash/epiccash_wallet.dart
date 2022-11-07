@@ -2259,6 +2259,14 @@ class EpicCashWallet extends CoinServiceAPI {
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
 
+  // not used in epic
+  TransactionData? cachedTxData;
+
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    // not used in epic
+  }
+
   @override
   Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
 

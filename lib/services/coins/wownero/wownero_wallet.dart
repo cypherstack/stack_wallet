@@ -1195,6 +1195,14 @@ class WowneroWallet extends CoinServiceAPI {
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
 
+  // not used in wownero
+  TransactionData? cachedTxData;
+
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    // not used in wownero
+  }
+
   Future<TransactionData> _fetchTransactionData() async {
     final transactions = walletBase?.transactionHistory!.transactions;
 
