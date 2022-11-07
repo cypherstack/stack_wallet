@@ -713,8 +713,12 @@ class WowneroWallet extends CoinServiceAPI {
       final wallet = await _walletCreationService?.create(credentials);
 
       // subtract a couple days to ensure we have a buffer for SWB
+      // 14 words
+      //final bufferedCreateHeight = getSeedHeightSync(wallet?.seed.trim() as String);
+
+      // 25 words
       final bufferedCreateHeight = 0;
-      //final bufferedCreateHeight = getSeedHeightSync(wallet?.seed.trim() as String); // TODO use an alternative to wow_seed's get_seed_height
+      // TODO use an alternative to wow_seed's get_seed_height
 
       await DB.instance.put<dynamic>(
           boxName: walletId, key: "restoreHeight", value: bufferedCreateHeight);
