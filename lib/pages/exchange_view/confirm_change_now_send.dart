@@ -10,6 +10,7 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -27,6 +28,7 @@ class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
     required this.trade,
+    this.shouldSendPublicFiroFunds,
   }) : super(key: key);
 
   static const String routeName = "/confirmChangeNowSend";
@@ -35,6 +37,7 @@ class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
   final String walletId;
   final String routeOnSuccessName;
   final Trade trade;
+  final bool? shouldSendPublicFiroFunds;
 
   @override
   ConsumerState<ConfirmChangeNowSendView> createState() =>
@@ -63,7 +66,15 @@ class _ConfirmChangeNowSendViewState
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     try {
-      final txid = await manager.confirmSend(txData: transactionInfo);
+      late final String txid;
+
+      if (widget.shouldSendPublicFiroFunds == true) {
+        txid = await (manager.wallet as FiroWallet)
+            .confirmSendPublic(txData: transactionInfo);
+      } else {
+        txid = await manager.confirmSend(txData: transactionInfo);
+      }
+
       unawaited(manager.refresh());
 
       // save note
