@@ -99,6 +99,7 @@ import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_sett
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_support_view.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -1082,6 +1083,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const AdvancedSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case DesktopSupportView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopSupportView(),
             settings: RouteSettings(name: settings.name));
 
       case WalletKeysDesktopPopup.routeName:
