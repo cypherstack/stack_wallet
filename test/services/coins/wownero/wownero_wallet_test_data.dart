@@ -1,6 +1,6 @@
-String testMnemonic =
+String testMnemonic14 =
     'weather cruise school such silly profit clerk wage reduce obtain ill sand episode shadow';
-var mainnetTestData = [
+var mainnetTestData14 = [
   [
     'Wo3jmHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmsEi',
     'WW3K54QzmMFB1uTZh3LVvgQYqANLmX1FkJHLJ4sU1E7BQmp8nGizyBnjNXSgsjCa4BQ3Rw3GG5jw1ByUkaUjSywm2KmHAbFvK',

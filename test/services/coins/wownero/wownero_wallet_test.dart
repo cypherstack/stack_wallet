@@ -83,13 +83,13 @@ void main() async {
   _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
   walletService = wownero.createWowneroWalletService(_walletInfoSource);
 
-  group("Wownero tests", () {
+  group("Wownero 14 word tests", () {
     setUp(() async {
       try {
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
         credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
-            name: name, height: 465760, mnemonic: testMnemonic);
+            name: name, height: 465760, mnemonic: testMnemonic14);
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -116,27 +116,36 @@ void main() async {
       }
     });
 
-    test("Test mainnet address generation from seed", () async {
+    test("Test mainnet address generation from 14 word seed", () async {
       final wallet = await _walletCreationService.restoreFromSeed(credentials);
       walletInfo.address = wallet.walletAddresses.address;
 
-      await _walletInfoSource.add(walletInfo);
+      bool hasThrown = false;
+      try {
+        await _walletInfoSource.add(walletInfo);
+        walletBase?.close();
+          walletBase = wallet as WowneroWalletBase;
+
+        expect(walletInfo.address, mainnetTestData14[0][0]);
+        expect(
+            await walletBase!.getTransactionAddress(0, 0), mainnetTestData14[0][0]);
+        expect(
+            await walletBase!.getTransactionAddress(0, 1), mainnetTestData14[0][1]);
+        expect(
+            await walletBase!.getTransactionAddress(0, 2), mainnetTestData14[0][2]);
+        expect(
+            await walletBase!.getTransactionAddress(1, 0), mainnetTestData14[1][0]);
+        expect(
+            await walletBase!.getTransactionAddress(1, 1), mainnetTestData14[1][1]);
+        expect(
+            await walletBase!.getTransactionAddress(1, 2), mainnetTestData14[1][2]);
+      } catch (_) {
+        hasThrown = true;
+      }
+      expect(hasThrown, false);
+
       walletBase?.close();
       walletBase = wallet as WowneroWalletBase;
-
-      expect(walletInfo.address, mainnetTestData[0][0]);
-      expect(
-          await walletBase!.getTransactionAddress(0, 0), mainnetTestData[0][0]);
-      expect(
-          await walletBase!.getTransactionAddress(0, 1), mainnetTestData[0][1]);
-      expect(
-          await walletBase!.getTransactionAddress(0, 2), mainnetTestData[0][2]);
-      expect(
-          await walletBase!.getTransactionAddress(1, 0), mainnetTestData[1][0]);
-      expect(
-          await walletBase!.getTransactionAddress(1, 1), mainnetTestData[1][1]);
-      expect(
-          await walletBase!.getTransactionAddress(1, 2), mainnetTestData[1][2]);
     });
   });
 }
