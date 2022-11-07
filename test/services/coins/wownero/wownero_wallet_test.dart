@@ -91,7 +91,7 @@ void main() async {
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
         credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
-            name: name, height: 465760, mnemonic: testMnemonic14);
+            name: name, height: 465760, mnemonic: testMnemonic14); // TODO catch failure
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -163,7 +163,7 @@ void main() async {
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
         credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
-            name: name, height: 465760, mnemonic: testMnemonic25);
+            name: name, height: 465760, mnemonic: testMnemonic25); // TODO catch failure
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -198,15 +198,6 @@ void main() async {
         name = 'namee${Random().nextInt(10000000)}';
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
-        try {
-          credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
-              name: name, height: 465760, mnemonic: testMnemonic25);
-        } catch (e, s) {
-          print(e);
-          print(s);
-          hasThrown = true;
-        }
-        expect(hasThrown, false);
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
