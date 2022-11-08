@@ -272,6 +272,8 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                   passwordFocusNode,
                   context,
                 ).copyWith(
+                  labelStyle:
+                      isDesktop ? STextStyles.fieldLabel(context) : null,
                   suffixIcon: UnconstrainedBox(
                     child: Row(
                       children: [
@@ -403,6 +405,8 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                   passwordRepeatFocusNode,
                   context,
                 ).copyWith(
+                  labelStyle:
+                      isDesktop ? STextStyles.fieldLabel(context) : null,
                   suffixIcon: UnconstrainedBox(
                     child: Row(
                       children: [

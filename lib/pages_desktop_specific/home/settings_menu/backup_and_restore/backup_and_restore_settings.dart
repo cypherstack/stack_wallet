@@ -269,7 +269,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: EdgeInsets.all(
+                                padding: const EdgeInsets.all(
                                   10,
                                 ),
                                 child: restoreBackup

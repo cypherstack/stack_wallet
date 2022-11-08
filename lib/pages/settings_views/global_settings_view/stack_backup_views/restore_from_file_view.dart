@@ -245,6 +245,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                     passwordFocusNode,
                     context,
                   ).copyWith(
+                    labelStyle:
+                        isDesktop ? STextStyles.fieldLabel(context) : null,
                     suffixIcon: UnconstrainedBox(
                       child: Row(
                         children: [
