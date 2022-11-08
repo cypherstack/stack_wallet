@@ -8,6 +8,7 @@ import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
+import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -149,12 +150,16 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     super.dispose();
   }
 
-  // TODO: check for wownero wordlist?
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
     if (widget.coin == Coin.monero) {
       var moneroWordList = monero.getMoneroWordList("English");
       return moneroWordList.contains(word);
+    }
+    if (widget.coin == Coin.wownero) {
+      var wowneroWordList = wownero.getWowneroWordList("English",
+          seedWordsLength: widget.seedWordsLength);
+      return wowneroWordList.contains(word);
     }
     return _wordListHashSet.contains(word);
   }
