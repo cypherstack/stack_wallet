@@ -10,11 +10,13 @@ class BlueTextButton extends ConsumerStatefulWidget {
     required this.text,
     this.onTap,
     this.enabled = true,
+    this.textSize,
   }) : super(key: key);
 
   final String text;
   final VoidCallback? onTap;
   final bool enabled;
+  final double? textSize;
 
   @override
   ConsumerState<BlueTextButton> createState() => _BlueTextButtonState();
@@ -67,7 +69,14 @@ class _BlueTextButtonState extends ConsumerState<BlueTextButton>
       textAlign: TextAlign.center,
       text: TextSpan(
         text: widget.text,
-        style: STextStyles.link2(context).copyWith(color: color),
+        style: widget.textSize == null
+            ? STextStyles.link2(context).copyWith(
+                color: color,
+              )
+            : STextStyles.link2(context).copyWith(
+                color: color,
+                fontSize: widget.textSize,
+              ),
         recognizer: widget.enabled
             ? (TapGestureRecognizer()
               ..onTap = () {

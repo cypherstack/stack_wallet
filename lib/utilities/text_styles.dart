@@ -508,6 +508,25 @@ class STextStyles {
 
 // Desktop
 
+  static TextStyle desktopH1(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 40,
+          height: 40 / 40,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 40,
+          height: 40 / 40,
+        );
+    }
+  }
+
   static TextStyle desktopH2(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
