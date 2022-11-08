@@ -110,7 +110,29 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               ref.read(nodeFormDataProvider).useSSL = false;
             }
 
-            testPassed = await testMoneroNodeConnection(Uri.parse(uriString));
+            final response = await testMoneroNodeConnection(
+              Uri.parse(uriString),
+              false,
+            );
+
+            if (response.cert != null) {
+              if (mounted) {
+                final shouldAllowBadCert = await showBadX509CertificateDialog(
+                  response.cert!,
+                  response.url!,
+                  response.port!,
+                  context,
+                );
+
+                if (shouldAllowBadCert) {
+                  final response = await testMoneroNodeConnection(
+                      Uri.parse(uriString), true);
+                  testPassed = response.success;
+                }
+              }
+            } else {
+              testPassed = response.success;
+            }
           }
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
