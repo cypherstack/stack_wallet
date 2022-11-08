@@ -147,7 +147,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.all(10.0),
+                padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
                   "Choose file location",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
@@ -158,24 +158,6 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                 ),
               ),
               child,
-              // const SizedBox(height: 20),
-              // Row(
-              //   children: [
-              //     PrimaryButton(
-              //       desktopMed: true,
-              //       width: 200,
-              //       label: "Create backup",
-              //       onPressed: () {},
-              //     ),
-              //     const SizedBox(width: 16),
-              //     SecondaryButton(
-              //       desktopMed: true,
-              //       width: 200,
-              //       label: "Cancel",
-              //       onPressed: () {},
-              //     ),
-              //   ],
-              // ),
             ],
           );
         },
@@ -252,8 +234,21 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                 );
               }),
             if (!Platform.isAndroid)
-              const SizedBox(
-                height: 8,
+              SizedBox(
+                height: !isDesktop ? 8 : 24,
+              ),
+            if (isDesktop)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10.0),
+                child: Text(
+                  "Create a passphrase",
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark3),
+                  textAlign: TextAlign.left,
+                ),
               ),
             ClipRRect(
               borderRadius: BorderRadius.circular(
