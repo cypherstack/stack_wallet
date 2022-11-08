@@ -84,13 +84,23 @@ Future<bool> showBadX509CertificateDialog(
   int port,
   BuildContext context,
 ) async {
+  final chars = Format.uint8listToString(cert.sha1)
+      .toUpperCase()
+      .characters
+      .toList(growable: false);
+
+  String sha1 = chars.sublist(0, 2).join();
+  for (int i = 2; i < chars.length; i += 2) {
+    sha1 += ":${chars.sublist(i, i + 2).join()}";
+  }
+
   final result = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (context) {
       return StackDialog(
         title: "Untrusted X509Certificate",
-        message: "SHA1: ${Format.uint8listToString(cert.sha1)}",
+        message: "SHA1:\n$sha1",
         leftButton: SecondaryButton(
           label: "Cancel",
           onPressed: () {
