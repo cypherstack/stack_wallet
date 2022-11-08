@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/forgot_password_desktop_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -168,7 +169,9 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                   text: "Forgot password?",
                   textSize: 20,
                   onTap: () {
-                    // todo: new screen
+                    Navigator.of(context).pushNamed(
+                      ForgotPasswordDesktopView.routeName,
+                    );
                   },
                 ),
               ],
