@@ -46,7 +46,7 @@ dynamic _walletInfoSource;
 
 String path = '';
 
-String name = 'namee${Random().nextInt(10000000)}';
+String name = '';
 int nettype = 0;
 WalletType type = WalletType.wownero;
 
@@ -83,10 +83,75 @@ void main() async {
   _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
   walletService = wownero.createWowneroWalletService(_walletInfoSource);
 
-  group("Wownero 14 word tests", () {
+  group("Wownero 14 word seed generation", () {
     setUp(() async {
       bool hasThrown = false;
       try {
+        name = 'namee${Random().nextInt(10000000)}';
+        final dirPath = await pathForWalletDir(name: name, type: type);
+        path = await pathForWallet(name: name, type: type);
+        credentials = wownero.createWowneroNewWalletCredentials(
+            name: name,
+            language: "English",
+            seedWordsLength: 14); // TODO catch failure
+
+        walletInfo = WalletInfo.external(
+            id: WalletBase.idFor(name, type),
+            name: name,
+            type: type,
+            isRecovery: false,
+            restoreHeight: credentials.height ?? 0,
+            date: DateTime.now(),
+            path: path,
+            address: "",
+            dirPath: dirPath);
+        credentials.walletInfo = walletInfo;
+
+        _walletCreationService = WalletCreationService(
+          secureStorage: storage,
+          sharedPreferences: prefs,
+          walletService: walletService,
+          keyService: keysStorage,
+        );
+        _walletCreationService.changeWalletType();
+      } catch (e, s) {
+        print(e);
+        print(s);
+        hasThrown = true;
+      }
+      expect(hasThrown, false);
+    });
+
+    test("Wownero 14 word seed address generation", () async {
+      final wallet = await _walletCreationService.create(credentials);
+      // TODO validate mnemonic
+      walletInfo.address = wallet.walletAddresses.address;
+
+      bool hasThrown = false;
+      try {
+        await _walletInfoSource.add(walletInfo);
+        walletBase?.close();
+        walletBase = wallet as WowneroWalletBase;
+
+        // TODO validate
+        //expect(walletInfo.address, mainnetTestData14[0][0]);
+      } catch (_) {
+        hasThrown = true;
+      }
+      expect(hasThrown, false);
+
+      walletBase?.close();
+      walletBase = wallet as WowneroWalletBase;
+    });
+
+    // TODO delete left over wallet file with name: name
+  });
+
+  group("Wownero 14 word seed restoration", () {
+    setUp(() async {
+      bool hasThrown = false;
+      try {
+        name = 'namee${Random().nextInt(10000000)}';
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
         credentials = wownero.createWowneroRestoreWalletFromSeedCredentials(
@@ -121,7 +186,7 @@ void main() async {
       expect(hasThrown, false);
     });
 
-    test("Test mainnet address generation from 14 word seed", () async {
+    test("Wownero 14 word seed address generation", () async {
       final wallet = await _walletCreationService.restoreFromSeed(credentials);
       walletInfo.address = wallet.walletAddresses.address;
 
@@ -156,7 +221,71 @@ void main() async {
     // TODO delete left over wallet file with name: name
   });
 
-  group("Wownero 25 word tests", () {
+  group("Wownero 25 word seed generation", () {
+    setUp(() async {
+      bool hasThrown = false;
+      try {
+        name = 'namee${Random().nextInt(10000000)}';
+        final dirPath = await pathForWalletDir(name: name, type: type);
+        path = await pathForWallet(name: name, type: type);
+        credentials = wownero.createWowneroNewWalletCredentials(
+            name: name,
+            language: "English",
+            seedWordsLength: 25); // TODO catch failure
+
+        walletInfo = WalletInfo.external(
+            id: WalletBase.idFor(name, type),
+            name: name,
+            type: type,
+            isRecovery: false,
+            restoreHeight: credentials.height ?? 0,
+            date: DateTime.now(),
+            path: path,
+            address: "",
+            dirPath: dirPath);
+        credentials.walletInfo = walletInfo;
+
+        _walletCreationService = WalletCreationService(
+          secureStorage: storage,
+          sharedPreferences: prefs,
+          walletService: walletService,
+          keyService: keysStorage,
+        );
+        _walletCreationService.changeWalletType();
+      } catch (e, s) {
+        print(e);
+        print(s);
+        hasThrown = true;
+      }
+      expect(hasThrown, false);
+    });
+
+    test("Wownero 25 word seed address generation", () async {
+      final wallet = await _walletCreationService.create(credentials);
+      // TODO validate mnemonic
+      walletInfo.address = wallet.walletAddresses.address;
+
+      bool hasThrown = false;
+      try {
+        await _walletInfoSource.add(walletInfo);
+        walletBase?.close();
+        walletBase = wallet as WowneroWalletBase;
+
+        // TODO validate
+        //expect(walletInfo.address, mainnetTestData14[0][0]);
+      } catch (_) {
+        hasThrown = true;
+      }
+      expect(hasThrown, false);
+
+      walletBase?.close();
+      walletBase = wallet as WowneroWalletBase;
+    });
+
+    // TODO delete left over wallet file with name: name
+  });
+
+  group("Wownero 25 word seed restoration", () {
     setUp(() async {
       bool hasThrown = false;
       try {
@@ -195,42 +324,11 @@ void main() async {
       expect(hasThrown, false);
     });
 
-    test("Test mainnet address generation from 25 word seed", () async {
-      bool hasThrown = false;
-      try {
-        final dirPath = await pathForWalletDir(name: name, type: type);
-        path = await pathForWallet(name: name, type: type);
-
-        walletInfo = WalletInfo.external(
-            id: WalletBase.idFor(name, type),
-            name: name,
-            type: type,
-            isRecovery: false,
-            restoreHeight: credentials.height ?? 0,
-            date: DateTime.now(),
-            path: path,
-            address: "",
-            dirPath: dirPath);
-        credentials.walletInfo = walletInfo;
-
-        _walletCreationService = WalletCreationService(
-          secureStorage: storage,
-          sharedPreferences: prefs,
-          walletService: walletService,
-          keyService: keysStorage,
-        );
-        _walletCreationService.changeWalletType();
-      } catch (e, s) {
-        print(e);
-        print(s);
-        hasThrown = true;
-      }
-      expect(hasThrown, false);
-
+    test("Wownero 25 word seed address generation", () async {
       final wallet = await _walletCreationService.restoreFromSeed(credentials);
       walletInfo.address = wallet.walletAddresses.address;
 
-      hasThrown = false;
+      bool hasThrown = false;
       try {
         await _walletInfoSource.add(walletInfo);
         walletBase?.close();

@@ -647,7 +647,7 @@ class WowneroWallet extends CoinServiceAPI {
   }
 
   //TODO: take in the default language when creating wallet.
-  Future<void> _generateNewWallet() async {
+  Future<void> _generateNewWallet({int seedWordsLength = 14}) async {
     Logging.instance
         .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
     // TODO: ping wownero server and make sure the genesis hash matches
@@ -687,6 +687,7 @@ class WowneroWallet extends CoinServiceAPI {
       credentials = wownero.createWowneroNewWalletCredentials(
         name: name,
         language: "English",
+        seedWordsLength: seedWordsLength
       );
 
       walletInfo = WalletInfo.external(
@@ -713,12 +714,12 @@ class WowneroWallet extends CoinServiceAPI {
       final wallet = await _walletCreationService?.create(credentials);
 
       // subtract a couple days to ensure we have a buffer for SWB
-      // 14 words
-      //final bufferedCreateHeight = getSeedHeightSync(wallet?.seed.trim() as String);
-
-      // 25 words
-      final bufferedCreateHeight = 0;
-      // TODO use an alternative to wow_seed's get_seed_height
+      if (seedWordsLength == 14) {
+        final bufferedCreateHeight = getSeedHeightSync(wallet?.seed.trim() as String);
+      } else {
+        final bufferedCreateHeight = 0;
+        // TODO use an alternative to wow_seed's get_seed_height
+      }
 
       await DB.instance.put<dynamic>(
           boxName: walletId, key: "restoreHeight", value: bufferedCreateHeight);
@@ -726,6 +727,7 @@ class WowneroWallet extends CoinServiceAPI {
 
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: wallet?.seed.trim());
+
       walletInfo.address = wallet?.walletAddresses.address;
       await DB.instance
           .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
@@ -782,7 +784,7 @@ class WowneroWallet extends CoinServiceAPI {
 
   @override
   // TODO: implement initializeWallet
-  Future<bool> initializeNew() async {
+  Future<bool> initializeNew({int seedWordsLength = 14}) async {
     await _prefs.init();
     // TODO: ping actual wownero network
     // try {
@@ -800,7 +802,7 @@ class WowneroWallet extends CoinServiceAPI {
     prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(storage!);
 
-    await _generateNewWallet();
+    await _generateNewWallet(seedWordsLength: seedWordsLength);
     // var password;
     // try {
     //   password =
