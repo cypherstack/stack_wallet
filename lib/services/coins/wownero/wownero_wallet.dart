@@ -942,6 +942,11 @@ class WowneroWallet extends CoinServiceAPI {
     required int maxNumberOfIndexesToCheck,
     required int height,
   }) async {
+    final int seedLength = mnemonic.trim().split(" ").length;
+    if (!(seedLength == 14 || seedLength == 25)) {
+      throw Exception("Invalid wownero mnemonic length found: $seedLength");
+    }
+
     await _prefs.init();
     longMutex = true;
     final start = DateTime.now();
@@ -969,7 +974,10 @@ class WowneroWallet extends CoinServiceAPI {
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
 
-      height = getSeedHeightSync(mnemonic.trim());
+      // extract seed height from 14 word seed
+      if (seedLength == 14) {
+        height = getSeedHeightSync(mnemonic.trim());
+      }
 
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
@@ -1194,6 +1202,14 @@ class WowneroWallet extends CoinServiceAPI {
   Future<TransactionData> get transactionData =>
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
+
+  // not used in wownero
+  TransactionData? cachedTxData;
+
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    // not used in wownero
+  }
 
   Future<TransactionData> _fetchTransactionData() async {
     final transactions = walletBase?.transactionHistory!.transactions;

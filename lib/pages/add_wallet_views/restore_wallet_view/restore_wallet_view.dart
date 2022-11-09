@@ -149,6 +149,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     super.dispose();
   }
 
+  // TODO: check for wownero wordlist?
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
     if (widget.coin == Coin.monero) {
@@ -181,6 +182,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       if (widget.coin == Coin.monero) {
         height = monero.getHeigthByDate(date: widget.restoreFromDate);
       }
+      // todo: wait until this implemented
+      // else if (widget.coin == Coin.wownero) {
+      //   height = wownero.getHeightByDate(date: widget.restoreFromDate);
+      // }
 
       // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
       if (widget.coin == Coin.epicCash) {

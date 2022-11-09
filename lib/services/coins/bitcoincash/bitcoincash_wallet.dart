@@ -11,6 +11,7 @@ import 'package:bitcoindart/bitcoindart.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
+import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
@@ -207,9 +208,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
           _getCurrentAddressForChain(0, DerivePathType.bip44);
   Future<String>? _currentReceivingAddressP2PKH;
 
-  Future<String> get currentReceivingAddressP2SH =>
-      _currentReceivingAddressP2SH ??=
-          _getCurrentAddressForChain(0, DerivePathType.bip49);
+  // Future<String> get currentReceivingAddressP2SH =>
+  //     _currentReceivingAddressP2SH ??=
+  //         _getCurrentAddressForChain(0, DerivePathType.bip49);
   Future<String>? _currentReceivingAddressP2SH;
 
   @override
@@ -268,7 +269,11 @@ class BitcoinCashWallet extends CoinServiceAPI {
     try {
       if (bitbox.Address.detectFormat(address) ==
           bitbox.Address.formatCashAddr) {
-        address = bitbox.Address.toLegacyAddress(address);
+        if (validateCashAddr(address)) {
+          address = bitbox.Address.toLegacyAddress(address);
+        } else {
+          throw ArgumentError('$address is not currently supported');
+        }
       }
     } catch (e, s) {}
     try {
@@ -293,11 +298,14 @@ class BitcoinCashWallet extends CoinServiceAPI {
       } catch (err) {
         // Bech32 decode fail
       }
-      if (_network.bech32 != decodeBech32!.hrp) {
-        throw ArgumentError('Invalid prefix or Network mismatch');
-      }
-      if (decodeBech32.version != 0) {
-        throw ArgumentError('Invalid address version');
+
+      if (decodeBech32 != null) {
+        if (_network.bech32 != decodeBech32.hrp) {
+          throw ArgumentError('Invalid prefix or Network mismatch');
+        }
+        if (decodeBech32.version != 0) {
+          throw ArgumentError('Invalid address version');
+        }
       }
     }
     throw ArgumentError('$address has no matching Script');
@@ -1154,6 +1162,63 @@ class BitcoinCashWallet extends CoinServiceAPI {
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
 
+  TransactionData? cachedTxData;
+
+  // hack to add tx to txData before refresh completes
+  // required based on current app architecture where we don't properly store
+  // transactions locally in a good way
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    final priceData =
+        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
+    final locale = await Devicelocale.currentLocale;
+    final String worthNow = Format.localizedStringAsFixed(
+        value:
+            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
+                    Decimal.fromInt(Constants.satsPerCoin))
+                .toDecimal(scaleOnInfinitePrecision: 2),
+        decimalPlaces: 2,
+        locale: locale!);
+
+    final tx = models.Transaction(
+      txid: txData["txid"] as String,
+      confirmedStatus: false,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      txType: "Sent",
+      amount: txData["recipientAmt"] as int,
+      worthNow: worthNow,
+      worthAtBlockTimestamp: worthNow,
+      fees: txData["fee"] as int,
+      inputSize: 0,
+      outputSize: 0,
+      inputs: [],
+      outputs: [],
+      address: txData["address"] as String,
+      height: -1,
+      confirmations: 0,
+    );
+
+    if (cachedTxData == null) {
+      final data = await _fetchTransactionData();
+      _transactionData = Future(() => data);
+    }
+
+    final transactions = cachedTxData!.getAllTransactions();
+    transactions[tx.txid] = tx;
+    cachedTxData = models.TransactionData.fromMap(transactions);
+    _transactionData = Future(() => cachedTxData!);
+  }
+
+  bool validateCashAddr(String cashAddr) {
+    String addr = cashAddr;
+    if (cashAddr.contains(":")) {
+      addr = cashAddr.split(":").last;
+    }
+
+    return addr.startsWith("q");
+  }
+
   @override
   bool validateAddress(String address) {
     try {
@@ -1168,12 +1233,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
       }
 
       if (format == bitbox.Address.formatCashAddr) {
-        String addr = address;
-        if (address.contains(":")) {
-          addr = address.split(":").last;
-        }
-
-        return addr.startsWith("q");
+        return validateCashAddr(address);
       } else {
         return address.startsWith("1");
       }
@@ -2036,7 +2096,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
   String _convertToScriptHash(String bchAddress, NetworkType network) {
     try {
       if (bitbox.Address.detectFormat(bchAddress) ==
-          bitbox.Address.formatCashAddr) {
+              bitbox.Address.formatCashAddr &&
+          validateCashAddr(bchAddress)) {
         bchAddress = bitbox.Address.toLegacyAddress(bchAddress);
       }
       final output = Address.addressToOutputScript(bchAddress, network);
@@ -2114,7 +2175,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
     List<String> allAddressesOld = await _fetchAllOwnAddresses();
     List<String> allAddresses = [];
     for (String address in allAddressesOld) {
-      if (bitbox.Address.detectFormat(address) == bitbox.Address.formatLegacy) {
+      if (bitbox.Address.detectFormat(address) == bitbox.Address.formatLegacy &&
+          addressType(address: address) == DerivePathType.bip44) {
         allAddresses.add(bitbox.Address.toCashAddress(address));
       } else {
         allAddresses.add(address);
@@ -2449,6 +2511,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     await DB.instance.put<dynamic>(
         boxName: walletId, key: 'latest_tx_model', value: txModel);
 
+    cachedTxData = txModel;
     return txModel;
   }
 
@@ -2832,7 +2895,12 @@ class BitcoinCashWallet extends CoinServiceAPI {
             String address = output["scriptPubKey"]["addresses"][0] as String;
             if (bitbox.Address.detectFormat(address) ==
                 bitbox.Address.formatCashAddr) {
-              address = bitbox.Address.toLegacyAddress(address);
+              if (validateCashAddr(address)) {
+                address = bitbox.Address.toLegacyAddress(address);
+              } else {
+                throw Exception(
+                    "Unsupported address found during fetchBuildTxData(): $address");
+              }
             }
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
@@ -2863,10 +2931,6 @@ class BitcoinCashWallet extends CoinServiceAPI {
         );
         for (int i = 0; i < p2pkhLength; i++) {
           String address = addressesP2PKH[i];
-          if (bitbox.Address.detectFormat(address) ==
-              bitbox.Address.formatCashAddr) {
-            address = bitbox.Address.toLegacyAddress(address);
-          }
 
           // receives
           final receiveDerivation = receiveDerivations[address];

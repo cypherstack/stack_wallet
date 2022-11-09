@@ -833,10 +833,16 @@ class EpicCashWallet extends CoinServiceAPI {
         final txLogEntryFirst = txLogEntry[0];
         Logger.print("TX_LOG_ENTRY_IS $txLogEntryFirst");
         final wallet = await Hive.openBox<dynamic>(_walletId);
-        final slateToAddresses = (await wallet.get("slate_to_address")) as Map?;
-        slateToAddresses?[txLogEntryFirst['tx_slate_id']] = txData['addresss'];
+        final slateToAddresses =
+            (await wallet.get("slate_to_address")) as Map? ?? {};
+        final slateId = txLogEntryFirst['tx_slate_id'] as String;
+        slateToAddresses[slateId] = txData['addresss'];
         await wallet.put('slate_to_address', slateToAddresses);
-        return txLogEntryFirst['tx_slate_id'] as String;
+        final slatesToCommits = await getSlatesToCommits();
+        String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
+        Logging.instance.log("sent commitId: $commitId", level: LogLevel.Info);
+        return commitId!;
+        // return txLogEntryFirst['tx_slate_id'] as String;
       }
     } catch (e, s) {
       Logging.instance.log("Error sending $e - $s", level: LogLevel.Error);
@@ -2155,8 +2161,9 @@ class EpicCashWallet extends CoinServiceAPI {
               as String? ??
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
-      Logging.instance
-          .log("commitId: $commitId $slateId", level: LogLevel.Info);
+      Logging.instance.log(
+          "commitId: $commitId, slateId: $slateId, id: ${tx["id"]}",
+          level: LogLevel.Info);
 
       bool isCancelled = tx["tx_type"] == "TxSentCancelled" ||
           tx["tx_type"] == "TxReceivedCancelled";
@@ -2258,6 +2265,14 @@ class EpicCashWallet extends CoinServiceAPI {
   Future<TransactionData> get transactionData =>
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
+
+  // not used in epic
+  TransactionData? cachedTxData;
+
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    // not used in epic
+  }
 
   @override
   Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();

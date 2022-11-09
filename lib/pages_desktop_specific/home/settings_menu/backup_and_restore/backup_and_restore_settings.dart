@@ -64,48 +64,56 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                             height: 48,
                           ),
                           Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: RichText(
-                                textAlign: TextAlign.start,
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: "Auto Backup",
-                                      style:
-                                          STextStyles.desktopTextSmall(context),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: RichText(
+                                      textAlign: TextAlign.start,
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: "Auto Backup",
+                                            style: STextStyles.desktopTextSmall(
+                                                context),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                "\n\nAuto backup is a custom Stack Wallet feature that offers a convenient backup of your data."
+                                                "To ensure maximum security, we recommend using a unique password that you haven't used anywhere "
+                                                "else on the internet before. Your password is not stored.",
+                                            style: STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                    context),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                "\n\nFor more information, please see our website ",
+                                            style: STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                    context),
+                                          ),
+                                          TextSpan(
+                                            text: "stackwallet.com",
+                                            style: STextStyles.richLink(context)
+                                                .copyWith(fontSize: 14),
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () {
+                                                launchUrl(
+                                                  Uri.parse(
+                                                      "https://stackwallet.com/"),
+                                                  mode: LaunchMode
+                                                      .externalApplication,
+                                                );
+                                              },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    TextSpan(
-                                      text:
-                                          "\n\nAuto backup is a custom Stack Wallet feature that offers a convenient backup of your data."
-                                          "To ensure maximum security, we recommend using a unique password that you haven't used anywhere "
-                                          "else on the internet before. Your password is not stored.",
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(context),
-                                    ),
-                                    TextSpan(
-                                      text:
-                                          "\n\nFor more information, please see our website ",
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(context),
-                                    ),
-                                    TextSpan(
-                                      text: "stackwallet.com",
-                                      style: STextStyles.richLink(context)
-                                          .copyWith(fontSize: 14),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          launchUrl(
-                                            Uri.parse(
-                                                "https://stackwallet.com/"),
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        },
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                           Column(
@@ -148,39 +156,49 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                             alignment: Alignment.topLeft,
                           ),
                           Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: RichText(
-                                textAlign: TextAlign.start,
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: "Manual Backup",
-                                      style:
-                                          STextStyles.desktopTextSmall(context),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: RichText(
+                                      textAlign: TextAlign.start,
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: "Manual Backup",
+                                            style: STextStyles.desktopTextSmall(
+                                                context),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                "\n\nCreate manual backup to easily transfer your data between devices. "
+                                                "You will create a backup file that can be later used in the Restore option. "
+                                                "Use a strong password to encrypt your data.",
+                                            style: STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                    context),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    TextSpan(
-                                      text:
-                                          "\n\nCreate manual backup to easily transfer your data between devices. "
-                                          "You will create a backup file that can be later used in the Restore option. "
-                                          "Use a strong password to encrypt your data.",
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(context),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: EdgeInsets.all(
+                                padding: const EdgeInsets.all(
                                   10,
                                 ),
                                 child: createBackup
-                                    ? const CreateBackupView()
+                                    ? const SizedBox(
+                                        width: 512,
+                                        child: CreateBackupView(),
+                                      )
                                     : PrimaryButton(
                                         desktopMed: true,
                                         width: 200,
@@ -217,38 +235,48 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                             alignment: Alignment.topLeft,
                           ),
                           Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: RichText(
-                                textAlign: TextAlign.start,
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: "Restore Backup",
-                                      style:
-                                          STextStyles.desktopTextSmall(context),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: RichText(
+                                      textAlign: TextAlign.start,
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: "Restore Backup",
+                                            style: STextStyles.desktopTextSmall(
+                                                context),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                "\n\nUse your Stack Wallet backup file to restore your wallets, address book "
+                                                "and wallet preferences.",
+                                            style: STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                    context),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    TextSpan(
-                                      text:
-                                          "\n\nUse your Stack Wallet backup file to restore your wallets, address book "
-                                          "and wallet preferences.",
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(context),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: EdgeInsets.all(
+                                padding: const EdgeInsets.all(
                                   10,
                                 ),
                                 child: restoreBackup
-                                    ? RestoreFromFileView()
+                                    ? const SizedBox(
+                                        width: 512,
+                                        child: RestoreFromFileView(),
+                                      )
                                     : PrimaryButton(
                                         desktopMed: true,
                                         width: 200,

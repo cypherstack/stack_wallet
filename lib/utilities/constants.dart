@@ -35,10 +35,6 @@ abstract class Constants {
 
   static const int pinLength = 4;
 
-  // enable testnet
-  // TODO: currently unused
-  static const bool allowTestnets = true;
-
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
@@ -67,6 +63,8 @@ abstract class Constants {
         break;
       case Coin.wownero:
         values.addAll([14]);
+        // todo: uncomment when wownero 25 word seeds implemented
+        // values.addAll([14, 25]);
         break;
     }
     return values;
