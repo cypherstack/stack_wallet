@@ -60,6 +60,7 @@ import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
@@ -568,50 +569,56 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
         ),
       ),
-      home: FutureBuilder(
-        future: load(),
-        builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // FlutterNativeSplash.remove();
-            if (Util.isDesktop &&
-                (_wallets.hasWallets || _desktopHasPassword)) {
-              String? startupWalletId;
-              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
-                startupWalletId =
-                    ref.read(prefsChangeNotifierProvider).startupWalletId;
-              }
-
-              return DesktopLoginView(startupWalletId: startupWalletId);
-            } else if (!Util.isDesktop &&
-                (_wallets.hasWallets || _prefs.hasPin)) {
-              // return HomeView();
-
-              String? startupWalletId;
-              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
-                startupWalletId =
-                    ref.read(prefsChangeNotifierProvider).startupWalletId;
-              }
-
-              return LockscreenView(
-                isInitialAppLogin: true,
-                routeOnSuccess: HomeView.routeName,
-                routeOnSuccessArguments: startupWalletId,
-                biometricsAuthenticationTitle: "Unlock Stack",
-                biometricsLocalizedReason:
-                    "Unlock your stack wallet using biometrics",
-                biometricsCancelButtonString: "Cancel",
-              );
-            } else {
-              return const IntroView();
-            }
-          } else {
-            // CURRENTLY DISABLED as cannot be animated
-            // technically not needed as FlutterNativeSplash will overlay
-            // anything returned here until the future completes but
-            // FutureBuilder requires you to return something
-            return const LoadingView();
-          }
+      home: ConditionalParent(
+        condition: Util.isDesktop,
+        builder: (child) {
+          return child;
         },
+        child: FutureBuilder(
+          future: load(),
+          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              // FlutterNativeSplash.remove();
+              if (Util.isDesktop &&
+                  (_wallets.hasWallets || _desktopHasPassword)) {
+                String? startupWalletId;
+                if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
+                  startupWalletId =
+                      ref.read(prefsChangeNotifierProvider).startupWalletId;
+                }
+
+                return DesktopLoginView(startupWalletId: startupWalletId);
+              } else if (!Util.isDesktop &&
+                  (_wallets.hasWallets || _prefs.hasPin)) {
+                // return HomeView();
+
+                String? startupWalletId;
+                if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
+                  startupWalletId =
+                      ref.read(prefsChangeNotifierProvider).startupWalletId;
+                }
+
+                return LockscreenView(
+                  isInitialAppLogin: true,
+                  routeOnSuccess: HomeView.routeName,
+                  routeOnSuccessArguments: startupWalletId,
+                  biometricsAuthenticationTitle: "Unlock Stack",
+                  biometricsLocalizedReason:
+                      "Unlock your stack wallet using biometrics",
+                  biometricsCancelButtonString: "Cancel",
+                );
+              } else {
+                return const IntroView();
+              }
+            } else {
+              // CURRENTLY DISABLED as cannot be animated
+              // technically not needed as FlutterNativeSplash will overlay
+              // anything returned here until the future completes but
+              // FutureBuilder requires you to return something
+              return const LoadingView();
+            }
+          },
+        ),
       ),
     );
   }
