@@ -131,7 +131,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(10.0),
+                  padding: const EdgeInsets.only(bottom: 10.0),
                   child: Text(
                     "Choose file location",
                     style: STextStyles.desktopTextExtraExtraSmall(context)
@@ -142,27 +142,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                     textAlign: TextAlign.left,
                   ),
                 ),
-                // child,
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    PrimaryButton(
-                      desktopMed: true,
-                      width: 200,
-                      label: "Restore",
-                      onPressed: () {
-                        restoreBackupPopup(context);
-                      },
-                    ),
-                    const SizedBox(width: 16),
-                    SecondaryButton(
-                      desktopMed: true,
-                      width: 200,
-                      label: "Cancel",
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
+                child,
               ],
             );
           },
@@ -225,9 +205,22 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                 ),
                 onChanged: (newValue) {},
               ),
-              const SizedBox(
-                height: 8,
+              SizedBox(
+                height: !isDesktop ? 8 : 24,
               ),
+              if (isDesktop)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  child: Text(
+                    "Enter passphrase",
+                    style: STextStyles.desktopTextExtraExtraSmall(context)
+                        .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
@@ -245,6 +238,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                     passwordFocusNode,
                     context,
                   ).copyWith(
+                    labelStyle:
+                        isDesktop ? STextStyles.fieldLabel(context) : null,
                     suffixIcon: UnconstrainedBox(
                       child: Row(
                         children: [
@@ -285,114 +280,237 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
               const SizedBox(
                 height: 16,
               ),
-              const Spacer(),
-              TextButton(
-                style: passwordController.text.isEmpty ||
-                        fileLocationController.text.isEmpty
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryDisabledButtonColor(context)
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryEnabledButtonColor(context),
-                onPressed: passwordController.text.isEmpty ||
-                        fileLocationController.text.isEmpty
-                    ? null
-                    : () async {
-                        final String fileToRestore =
-                            fileLocationController.text;
-                        final String passphrase = passwordController.text;
+              if (!isDesktop) const Spacer(),
+              !isDesktop
+                  ? TextButton(
+                      style: passwordController.text.isEmpty ||
+                              fileLocationController.text.isEmpty
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryDisabledButtonColor(context)
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonColor(context),
+                      onPressed: passwordController.text.isEmpty ||
+                              fileLocationController.text.isEmpty
+                          ? null
+                          : () async {
+                              final String fileToRestore =
+                                  fileLocationController.text;
+                              final String passphrase = passwordController.text;
 
-                        if (FocusScope.of(context).hasFocus) {
-                          FocusScope.of(context).unfocus();
-                          await Future<void>.delayed(
-                              const Duration(milliseconds: 75));
-                        }
+                              if (FocusScope.of(context).hasFocus) {
+                                FocusScope.of(context).unfocus();
+                                await Future<void>.delayed(
+                                    const Duration(milliseconds: 75));
+                              }
 
-                        if (!(await File(fileToRestore).exists())) {
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: "Backup file does not exist",
-                            context: context,
-                          );
-                          return;
-                        }
+                              if (!(await File(fileToRestore).exists())) {
+                                await showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "Backup file does not exist",
+                                  context: context,
+                                );
+                                return;
+                              }
 
-                        bool shouldPop = false;
-                        showDialog<dynamic>(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (_) => WillPopScope(
-                            onWillPop: () async {
-                              return shouldPop;
-                            },
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Center(
-                                    child: Text(
-                                      "Decrypting Stack backup file",
-                                      style: STextStyles.pageTitleH2(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textWhite,
+                              bool shouldPop = false;
+                              await showDialog<dynamic>(
+                                barrierDismissible: false,
+                                context: context,
+                                builder: (_) => WillPopScope(
+                                  onWillPop: () async {
+                                    return shouldPop;
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: Center(
+                                          child: Text(
+                                            "Decrypting Stack backup file",
+                                            style:
+                                                STextStyles.pageTitleH2(context)
+                                                    .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textWhite,
+                                            ),
+                                          ),
+                                        ),
                                       ),
+                                      const SizedBox(
+                                        height: 64,
+                                      ),
+                                      const Center(
+                                        child: LoadingIndicator(
+                                          width: 100,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+
+                              final String? jsonString = await compute(
+                                SWB.decryptStackWalletWithPassphrase,
+                                Tuple2(fileToRestore, passphrase),
+                                debugLabel: "stack wallet decryption compute",
+                              );
+
+                              if (mounted) {
+                                // pop LoadingIndicator
+                                shouldPop = true;
+                                Navigator.of(context).pop();
+
+                                passwordController.text = "";
+
+                                if (jsonString == null) {
+                                  await showFloatingFlushBar(
+                                    type: FlushBarType.warning,
+                                    message: "Failed to decrypt backup file",
+                                    context: context,
+                                  );
+                                  return;
+                                }
+
+                                await Navigator.of(context).push(
+                                  RouteGenerator.getRoute(
+                                    builder: (_) => StackRestoreProgressView(
+                                      jsonString: jsonString,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(
-                                  height: 64,
-                                ),
-                                const Center(
-                                  child: LoadingIndicator(
-                                    width: 100,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+                                );
+                              }
+                            },
+                      child: Text(
+                        "Restore",
+                        style: STextStyles.button(context),
+                      ),
+                    )
+                  : Row(
+                      children: [
+                        PrimaryButton(
+                          width: 183,
+                          desktopMed: true,
+                          label: "Restore",
+                          enabled: !(passwordController.text.isEmpty ||
+                              fileLocationController.text.isEmpty),
+                          onPressed: passwordController.text.isEmpty ||
+                                  fileLocationController.text.isEmpty
+                              ? null
+                              : () async {
+                                  final String fileToRestore =
+                                      fileLocationController.text;
+                                  final String passphrase =
+                                      passwordController.text;
 
-                        final String? jsonString = await compute(
-                          SWB.decryptStackWalletWithPassphrase,
-                          Tuple2(fileToRestore, passphrase),
-                          debugLabel: "stack wallet decryption compute",
-                        );
+                                  if (FocusScope.of(context).hasFocus) {
+                                    FocusScope.of(context).unfocus();
+                                    await Future<void>.delayed(
+                                        const Duration(milliseconds: 75));
+                                  }
 
-                        if (mounted) {
-                          // pop LoadingIndicator
-                          shouldPop = true;
-                          Navigator.of(context).pop();
+                                  if (!(await File(fileToRestore).exists())) {
+                                    await showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: "Backup file does not exist",
+                                      context: context,
+                                    );
+                                    return;
+                                  }
 
-                          passwordController.text = "";
+                                  bool shouldPop = false;
+                                  await showDialog<dynamic>(
+                                    barrierDismissible: false,
+                                    context: context,
+                                    builder: (_) => WillPopScope(
+                                      onWillPop: () async {
+                                        return shouldPop;
+                                      },
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Material(
+                                            color: Colors.transparent,
+                                            child: Center(
+                                              child: Text(
+                                                "Decrypting Stack backup file",
+                                                style: STextStyles.pageTitleH2(
+                                                        context)
+                                                    .copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textWhite,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 64,
+                                          ),
+                                          const Center(
+                                            child: LoadingIndicator(
+                                              width: 100,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
 
-                          if (jsonString == null) {
-                            showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message: "Failed to decrypt backup file",
-                              context: context,
-                            );
-                            return;
-                          }
+                                  final String? jsonString = await compute(
+                                    SWB.decryptStackWalletWithPassphrase,
+                                    Tuple2(fileToRestore, passphrase),
+                                    debugLabel:
+                                        "stack wallet decryption compute",
+                                  );
 
-                          Navigator.of(context).push(
-                            RouteGenerator.getRoute(
-                              builder: (_) => StackRestoreProgressView(
-                                jsonString: jsonString,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                child: Text(
-                  "Restore",
-                  style: STextStyles.button(context),
-                ),
-              ),
+                                  if (mounted) {
+                                    // pop LoadingIndicator
+                                    shouldPop = true;
+                                    Navigator.of(context).pop();
+
+                                    passwordController.text = "";
+
+                                    if (jsonString == null) {
+                                      await showFloatingFlushBar(
+                                        type: FlushBarType.warning,
+                                        message:
+                                            "Failed to decrypt backup file",
+                                        context: context,
+                                      );
+                                      return;
+                                    }
+
+                                    await Navigator.of(context).push(
+                                      RouteGenerator.getRoute(
+                                        builder: (_) =>
+                                            StackRestoreProgressView(
+                                          jsonString: jsonString,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                        ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        SecondaryButton(
+                          width: 183,
+                          desktopMed: true,
+                          label: "Cancel",
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
             ],
           ),
         ));

@@ -9,8 +9,8 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
+import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -277,4 +277,7 @@ abstract class CoinServiceAPI {
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate);
 
   Future<bool> generateNewAddress();
+
+  // used for electrumx coins
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData);
 }

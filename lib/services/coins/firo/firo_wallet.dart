@@ -821,9 +821,10 @@ class FiroWallet extends CoinServiceAPI {
       return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
           as bool;
     } catch (e, s) {
-      Logging.instance
-          .log("isFavorite fetch failed: $e\n$s", level: LogLevel.Error);
-      rethrow;
+      Logging.instance.log(
+          "isFavorite fetch failed (returning false by default): $e\n$s",
+          level: LogLevel.Error);
+      return false;
     }
   }
 
@@ -906,6 +907,52 @@ class FiroWallet extends CoinServiceAPI {
   Future<models.TransactionData>? _transactionData;
   Future<models.TransactionData> get _txnData =>
       _transactionData ??= _fetchTransactionData();
+
+  models.TransactionData? cachedTxData;
+
+  // hack to add tx to txData before refresh completes
+  // required based on current app architecture where we don't properly store
+  // transactions locally in a good way
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    final currentPrice = await firoPrice;
+    final locale = await Devicelocale.currentLocale;
+    final String worthNow = Format.localizedStringAsFixed(
+        value:
+            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
+                    Decimal.fromInt(Constants.satsPerCoin))
+                .toDecimal(scaleOnInfinitePrecision: 2),
+        decimalPlaces: 2,
+        locale: locale!);
+
+    final tx = models.Transaction(
+      txid: txData["txid"] as String,
+      confirmedStatus: false,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      txType: "Sent",
+      amount: txData["recipientAmt"] as int,
+      worthNow: worthNow,
+      worthAtBlockTimestamp: worthNow,
+      fees: txData["fee"] as int,
+      inputSize: 0,
+      outputSize: 0,
+      inputs: [],
+      outputs: [],
+      address: txData["address"] as String,
+      height: -1,
+      confirmations: 0,
+    );
+
+    if (cachedTxData == null) {
+      final data = await _fetchTransactionData();
+      _transactionData = Future(() => data);
+    }
+
+    final transactions = cachedTxData!.getAllTransactions();
+    transactions[tx.txid] = tx;
+    cachedTxData = models.TransactionData.fromMap(transactions);
+    _transactionData = Future(() => cachedTxData!);
+  }
 
   /// Holds wallet lelantus transaction data
   Future<models.TransactionData>? _lelantusTransactionData;
@@ -1109,6 +1156,9 @@ class FiroWallet extends CoinServiceAPI {
       final txHash = await _electrumXClient.broadcastTransaction(
           rawTx: txData["hex"] as String);
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+      txData["txid"] = txHash;
+      // dirty ui update hack
+      await updateSentCachedTxData(txData as Map<String, dynamic>);
       return txHash;
     } catch (e, s) {
       Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
@@ -3464,6 +3514,7 @@ class FiroWallet extends CoinServiceAPI {
     await DB.instance.put<dynamic>(
         boxName: walletId, key: 'latest_tx_model', value: txModel);
 
+    cachedTxData = txModel;
     return txModel;
   }
 

@@ -182,4 +182,10 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
     // TODO: implement generateNewAddress
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) {
+    // TODO: implement updateSentCachedTxData
+    throw UnimplementedError();
+  }
 }

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_about_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_support_view.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
@@ -37,11 +39,15 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: DesktopSettingsView.routeName,
     ),
-    Container(
-      color: Colors.blue,
+    const Navigator(
+      key: Key("desktopSupportHomeKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: DesktopSupportView.routeName,
     ),
-    Container(
-      color: Colors.pink,
+    const Navigator(
+      key: Key("desktopAboutHomeKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: DesktopAboutView.routeName,
     ),
   ];
 

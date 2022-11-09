@@ -87,12 +87,12 @@ class _ConfirmTransactionViewState
         txid = await manager.confirmSend(txData: transactionInfo);
       }
 
-      unawaited(manager.refresh());
-
       // save note
       await ref
           .read(notesServiceChangeNotifierProvider(walletId))
           .editOrAddNote(txid: txid, note: note);
+
+      unawaited(manager.refresh());
 
       // pop back to wallet
       if (mounted) {

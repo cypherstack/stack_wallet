@@ -108,6 +108,9 @@ class Manager with ChangeNotifier {
     try {
       final txid = await _currentWallet.confirmSend(txData: txData);
 
+      txData["txid"] = txid;
+      await _currentWallet.updateSentCachedTxData(txData);
+
       notifyListeners();
       return txid;
     } catch (e) {
