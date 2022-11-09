@@ -1,11 +1,14 @@
 import 'dart:io';
 
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/log_level_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -19,14 +22,14 @@ import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
-class CreateAutoBackup extends StatefulWidget {
+class CreateAutoBackup extends ConsumerStatefulWidget {
   const CreateAutoBackup({Key? key}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _CreateAutoBackup();
+  ConsumerState<CreateAutoBackup> createState() => _CreateAutoBackup();
 }
 
-class _CreateAutoBackup extends State<CreateAutoBackup> {
+class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
   late final TextEditingController fileLocationController;
   late final TextEditingController passphraseController;
   late final TextEditingController passphraseRepeatController;
@@ -52,12 +55,13 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
   bool get fieldsMatch =>
       passphraseController.text == passphraseRepeatController.text;
 
-  String _currentDropDownValue = "Every 10 minutes";
+  BackupFrequencyType _currentDropDownValue =
+      BackupFrequencyType.everyTenMinutes;
 
-  final List<String> _dropDownItems = [
-    "Every 10 minutes",
-    "Every 20 minutes",
-    "Every 30 minutes",
+  final List<BackupFrequencyType> _dropDownItems = [
+    BackupFrequencyType.everyTenMinutes,
+    BackupFrequencyType.everyAppStart,
+    BackupFrequencyType.afterClosingAWallet,
   ];
 
   @override
@@ -100,6 +104,9 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
+
+    bool isEnabledAutoBackup = ref.watch(prefsChangeNotifierProvider
+        .select((value) => value.isAutoBackupEnabled));
 
     String? selectedItem = "Every 10 minutes";
     final isDesktop = Util.isDesktop;
@@ -225,9 +232,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
                           paste: false,
                           selectAll: false,
                         ),
-                        onChanged: (newValue) {
-                          // ref.read(addressEntryDataProvider(widget.id)).address = newValue;
-                        },
+                        onChanged: (newValue) {},
                       ),
                     );
                   }),
@@ -361,7 +366,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
                     ),
                     child: ProgressBar(
                       key: const Key("createStackBackUpProgressBar"),
-                      width: 510,
+                      width: 512,
                       height: 5,
                       fillColor: passwordStrength < 0.51
                           ? Theme.of(context)
@@ -465,38 +470,83 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
               left: 32,
               right: 32,
             ),
-            child: DropdownButtonFormField(
-              isExpanded: true,
-              elevation: 0,
-              style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context).extension<StackColors>()!.textDark,
-              ),
-              icon: SvgPicture.asset(
-                Assets.svg.chevronDown,
-                width: 10,
-                height: 5,
-                color: Theme.of(context).extension<StackColors>()!.textDark3,
-              ),
-              dropdownColor:
-                  Theme.of(context).extension<StackColors>()!.textFieldActiveBG,
-              // focusColor: ,
-              value: _currentDropDownValue,
-              items: _dropDownItems
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: e,
-                      child: Text(e),
+            child: isDesktop
+                ? DropdownButtonHideUnderline(
+                    child: DropdownButton2(
+                      offset: Offset(0, -10),
+                      isExpanded: true,
+                      dropdownElevation: 0,
+                      value: _currentDropDownValue,
+                      items: [
+                        ..._dropDownItems.map(
+                          (e) {
+                            String message = "";
+                            switch (e) {
+                              case BackupFrequencyType.everyTenMinutes:
+                                message = "Every 10 minutes";
+                                break;
+                              case BackupFrequencyType.everyAppStart:
+                                message = "Every app startup";
+                                break;
+                              case BackupFrequencyType.afterClosingAWallet:
+                                message =
+                                    "After closing a cryptocurrency wallet";
+                                break;
+                            }
+
+                            return DropdownMenuItem(
+                              value: e,
+                              child: Text(message),
+                            );
+                          },
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value is BackupFrequencyType) {
+                          if (ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .backupFrequencyType !=
+                              value) {
+                            ref
+                                .read(prefsChangeNotifierProvider)
+                                .backupFrequencyType = value;
+                          }
+                          setState(() {
+                            _currentDropDownValue = value;
+                          });
+                        }
+                      },
+                      icon: SvgPicture.asset(
+                        Assets.svg.chevronDown,
+                        width: 10,
+                        height: 5,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
+                      ),
+                      buttonPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      buttonDecoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      dropdownDecoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
                     ),
                   )
-                  .toList(),
-              onChanged: (value) {
-                if (value is String) {
-                  setState(() {
-                    _currentDropDownValue = value;
-                  });
-                }
-              },
-            ),
+                : null,
           ),
           const Spacer(),
           Padding(
@@ -518,7 +568,7 @@ class _CreateAutoBackup extends State<CreateAutoBackup> {
                 Expanded(
                   child: PrimaryButton(
                     label: "Enable Auto Backup",
-                    enabled: false,
+                    enabled: shouldEnableCreate,
                     onPressed: () {},
                   ),
                 )
