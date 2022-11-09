@@ -699,7 +699,7 @@ class MoneroWallet extends CoinServiceAPI {
           name: name,
           type: WalletType.monero,
           isRecovery: false,
-          restoreHeight: credentials.height ?? 0,
+          restoreHeight: bufferedCreateHeight,
           date: DateTime.now(),
           path: path,
           dirPath: dirPath,

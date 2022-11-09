@@ -8,6 +8,7 @@ import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
+import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -156,6 +157,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       var moneroWordList = monero.getMoneroWordList("English");
       return moneroWordList.contains(word);
     }
+    if (widget.coin == Coin.wownero) {
+      var wowneroWordList = wownero.getWowneroWordList("English",
+          seedWordsLength: widget.seedWordsLength);
+      return wowneroWordList.contains(word);
+    }
     return _wordListHashSet.contains(word);
   }
 
@@ -181,6 +187,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       if (widget.coin == Coin.monero) {
         height = monero.getHeigthByDate(date: widget.restoreFromDate);
+      } else if (widget.coin == Coin.wownero) {
+        height = wownero.getHeightByDate(date: widget.restoreFromDate);
       }
       // todo: wait until this implemented
       // else if (widget.coin == Coin.wownero) {
