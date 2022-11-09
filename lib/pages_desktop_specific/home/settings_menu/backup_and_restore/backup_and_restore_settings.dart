@@ -2,14 +2,26 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/enable_backup_dialog.dart';
+import 'package:stackwallet/providers/global/locale_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../providers/global/auto_swb_service_provider.dart';
+import '../../../../widgets/custom_buttons/blue_text_button.dart';
 
 class BackupRestoreSettings extends ConsumerStatefulWidget {
   const BackupRestoreSettings({Key? key}) : super(key: key);
@@ -24,6 +36,49 @@ class BackupRestoreSettings extends ConsumerStatefulWidget {
 class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
   late bool createBackup = false;
   late bool restoreBackup = false;
+  // late bool isEnabledAutoBackup;
+
+  final toggleController = DSBController();
+
+  late final TextEditingController fileLocationController;
+  late final TextEditingController passwordController;
+  late final TextEditingController frequencyController;
+
+  late final FocusNode fileLocationFocusNode;
+  late final FocusNode passwordFocusNode;
+
+  String prettySinceLastBackupString(DateTime? time) {
+    if (time == null) {
+      return "-";
+    }
+    final difference = DateTime.now().difference(time);
+    int value;
+    String postfix;
+    if (difference < const Duration(seconds: 60)) {
+      value = difference.inSeconds;
+      postfix = "seconds";
+    } else if (difference < const Duration(minutes: 60)) {
+      value = difference.inMinutes;
+      postfix = "minutes";
+    } else if (difference < const Duration(hours: 24)) {
+      value = difference.inHours;
+      postfix = "hours";
+    } else if (difference.inDays < 8) {
+      value = difference.inDays;
+      postfix = "days";
+    } else {
+      // if greater than a week return the actual date
+      return DateFormat.yMMMMd(
+              ref.read(localeServiceChangeNotifierProvider).locale)
+          .format(time);
+    }
+
+    if (value == 1) {
+      postfix = postfix.substring(0, postfix.length - 1);
+    }
+
+    return "$value $postfix ago";
+  }
 
   Future<void> enableAutoBackup(BuildContext context) async {
     await showDialog<dynamic>(
@@ -36,9 +91,104 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
     );
   }
 
+  Future<void> attemptDisable() async {
+    final result = await showDialog<bool?>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) {
+        return StackDialog(
+          title: "Disable Auto Backup",
+          message:
+              "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
+          leftButton: TextButton(
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonColor(context),
+            child: Text(
+              "Back",
+              style: STextStyles.button(context).copyWith(
+                color:
+                    Theme.of(context).extension<StackColors>()!.accentColorDark,
+              ),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          rightButton: TextButton(
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonColor(context),
+            child: Text(
+              "Disable",
+              style: STextStyles.button(context),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                ref.watch(prefsChangeNotifierProvider).isAutoBackupEnabled =
+                    false;
+              });
+            },
+          ),
+        );
+      },
+    );
+    if (mounted) {
+      if (result is bool && result) {
+        ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled = false;
+        Navigator.of(context).pop();
+      } else {
+        toggleController.activate?.call();
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    fileLocationController = TextEditingController();
+    passwordController = TextEditingController();
+    frequencyController = TextEditingController();
+
+    passwordController.text = "---------------";
+    fileLocationController.text =
+        ref.read(prefsChangeNotifierProvider).autoBackupLocation ?? " ";
+    frequencyController.text = Format.prettyFrequencyType(
+        ref.read(prefsChangeNotifierProvider).backupFrequencyType);
+
+    fileLocationFocusNode = FocusNode();
+    passwordFocusNode = FocusNode();
+
+    // _toggle = ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled;
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    fileLocationController.dispose();
+    passwordController.dispose();
+    frequencyController.dispose();
+
+    fileLocationFocusNode.dispose();
+    passwordFocusNode.dispose();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+
+    bool isEnabledAutoBackup = ref.watch(prefsChangeNotifierProvider
+        .select((value) => value.isAutoBackupEnabled));
+
+    ref.listen(
+        prefsChangeNotifierProvider
+            .select((value) => value.backupFrequencyType),
+        (previous, BackupFrequencyType next) {
+      frequencyController.text = Format.prettyFrequencyType(next);
+    });
 
     return LayoutBuilder(builder: (context, constraints) {
       return SingleChildScrollView(
@@ -120,17 +270,80 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: EdgeInsets.all(
-                                  10,
-                                ),
-                                child: PrimaryButton(
-                                  desktopMed: true,
-                                  width: 200,
-                                  label: "Enable auto backup",
-                                  onPressed: () {
-                                    enableAutoBackup(context);
-                                  },
-                                ),
+                                padding: const EdgeInsets.all(10),
+                                child: !isEnabledAutoBackup
+                                    ? PrimaryButton(
+                                        desktopMed: true,
+                                        width: 200,
+                                        label: "Enable auto backup",
+                                        onPressed: () {
+                                          enableAutoBackup(context);
+                                        },
+                                      )
+                                    : Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 403,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .background,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "Backed up ${prettySinceLastBackupString(ref.watch(prefsChangeNotifierProvider.select((value) => value.lastAutoBackup)))}",
+                                                        style: STextStyles
+                                                            .itemSubtitle(
+                                                                context),
+                                                      ),
+                                                      BlueTextButton(
+                                                        text: "Back up now",
+                                                        onTap: () {
+                                                          ref
+                                                              .read(
+                                                                  autoSWBServiceProvider)
+                                                              .doBackup();
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 20,
+                                          ),
+                                          Row(
+                                            children: [
+                                              PrimaryButton(
+                                                desktopMed: true,
+                                                width: 190,
+                                                label: "Disable auto backup",
+                                                onPressed: () {
+                                                  attemptDisable();
+                                                },
+                                              ),
+                                              const SizedBox(width: 16),
+                                              SecondaryButton(
+                                                desktopMed: true,
+                                                width: 190,
+                                                label: "Edit auto backup",
+                                                onPressed: () {},
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
                               ),
                             ],
                           ),

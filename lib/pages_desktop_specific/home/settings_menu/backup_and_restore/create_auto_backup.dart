@@ -1,15 +1,24 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stack_wallet_backup/stack_wallet_backup.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/log_level_enum.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -19,11 +28,19 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 class CreateAutoBackup extends ConsumerStatefulWidget {
-  const CreateAutoBackup({Key? key}) : super(key: key);
+  const CreateAutoBackup({
+    Key? key,
+    this.secureStore = const SecureStorageWrapper(
+      FlutterSecureStorage(),
+    ),
+  }) : super(key: key);
+
+  final FlutterSecureStorageInterface secureStore;
 
   @override
   ConsumerState<CreateAutoBackup> createState() => _CreateAutoBackup();
@@ -33,6 +50,8 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
   late final TextEditingController fileLocationController;
   late final TextEditingController passphraseController;
   late final TextEditingController passphraseRepeatController;
+
+  late final FlutterSecureStorageInterface secureStore;
 
   late final StackFileSystem stackFileSystem;
   late final FocusNode passphraseFocusNode;
@@ -66,6 +85,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
 
   @override
   void initState() {
+    secureStore = widget.secureStore;
     stackFileSystem = StackFileSystem();
 
     fileLocationController = TextEditingController();
@@ -569,7 +589,163 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                   child: PrimaryButton(
                     label: "Enable Auto Backup",
                     enabled: shouldEnableCreate,
-                    onPressed: () {},
+                    onPressed: !shouldEnableCreate
+                        ? null
+                        : () async {
+                            final String pathToSave =
+                                fileLocationController.text;
+                            final String passphrase = passphraseController.text;
+                            final String repeatPassphrase =
+                                passphraseRepeatController.text;
+
+                            if (pathToSave.isEmpty) {
+                              showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "Directory not chosen",
+                                context: context,
+                              );
+                              return;
+                            }
+                            if (!(await Directory(pathToSave).exists())) {
+                              showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "Directory does not exist",
+                                context: context,
+                              );
+                              return;
+                            }
+                            if (passphrase.isEmpty) {
+                              showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "A passphrase is required",
+                                context: context,
+                              );
+                              return;
+                            }
+                            if (passphrase != repeatPassphrase) {
+                              showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "Passphrase does not match",
+                                context: context,
+                              );
+                              return;
+                            }
+
+                            showDialog<dynamic>(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (_) => const StackDialog(
+                                title: "Encrypting initial backup",
+                                message: "This shouldn't take long",
+                              ),
+                            );
+
+                            // make sure the dialog is able to be displayed for at least some time
+                            final fut = Future<void>.delayed(
+                                const Duration(milliseconds: 300));
+
+                            String adkString;
+                            int adkVersion;
+                            try {
+                              final adk =
+                                  await compute(generateAdk, passphrase);
+                              adkString = Format.uint8listToString(adk.item2);
+                              adkVersion = adk.item1;
+                            } on Exception catch (e, s) {
+                              String err = getErrorMessageFromSWBException(e);
+                              Logging.instance
+                                  .log("$err\n$s", level: LogLevel.Error);
+                              // pop encryption progress dialog
+                              Navigator.of(context).pop();
+                              showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: err,
+                                context: context,
+                              );
+                              return;
+                            } catch (e, s) {
+                              Logging.instance
+                                  .log("$e\n$s", level: LogLevel.Error);
+                              // pop encryption progress dialog
+                              Navigator.of(context).pop();
+                              showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "$e",
+                                context: context,
+                              );
+                              return;
+                            }
+
+                            await secureStore.write(
+                                key: "auto_adk_string", value: adkString);
+                            await secureStore.write(
+                                key: "auto_adk_version_string",
+                                value: adkVersion.toString());
+
+                            final DateTime now = DateTime.now();
+                            final String fileToSave =
+                                createAutoBackupFilename(pathToSave, now);
+
+                            final backup = await SWB.createStackWalletJSON();
+
+                            bool result = await SWB.encryptStackWalletWithADK(
+                              fileToSave,
+                              adkString,
+                              jsonEncode(backup),
+                              adkVersion: adkVersion,
+                            );
+
+                            // this future should already be complete unless there was an error encrypting
+                            await Future.wait([fut]);
+
+                            if (mounted) {
+                              // pop encryption progress dialog
+                              int count = 0;
+                              Navigator.of(context)
+                                  .popUntil((_) => count++ >= 2);
+
+                              if (result) {
+                                ref
+                                    .read(prefsChangeNotifierProvider)
+                                    .autoBackupLocation = pathToSave;
+                                ref
+                                    .read(prefsChangeNotifierProvider)
+                                    .lastAutoBackup = now;
+
+                                ref
+                                    .read(prefsChangeNotifierProvider)
+                                    .isAutoBackupEnabled = true;
+
+                                await showDialog<dynamic>(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => Platform.isAndroid
+                                      ? StackOkDialog(
+                                          title:
+                                              "Stack Auto Backup enabled and saved to:",
+                                          message: fileToSave,
+                                        )
+                                      : const StackOkDialog(
+                                          title: "Stack Auto Backup enabled!"),
+                                );
+                                if (mounted) {
+                                  passphraseController.text = "";
+                                  passphraseRepeatController.text = "";
+
+                                  int count = 0;
+                                  Navigator.of(context)
+                                      .popUntil((_) => count++ >= 2);
+                                }
+                              } else {
+                                await showDialog<dynamic>(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => const StackOkDialog(
+                                      title: "Failed to enable Auto Backup"),
+                                );
+                              }
+                            }
+                          },
                   ),
                 )
               ],
