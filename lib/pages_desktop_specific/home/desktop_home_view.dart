@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
@@ -7,8 +8,6 @@ import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/d
 import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_support_view.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-
-import 'address_book_view/desktop_address_book.dart';
 
 class DesktopHomeView extends ConsumerStatefulWidget {
   const DesktopHomeView({Key? key}) : super(key: key);
