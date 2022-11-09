@@ -6,7 +6,6 @@ import 'dart:isolate';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
@@ -518,14 +517,13 @@ class EpicCashWallet extends CoinServiceAPI {
       required String walletName,
       required Coin coin,
       PriceAPI? priceAPI,
-      FlutterSecureStorageInterface? secureStore}) {
+      required FlutterSecureStorageInterface secureStore}) {
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
-    _secureStore =
-        secureStore ?? const SecureStorageWrapper(FlutterSecureStorage());
+    _secureStore = secureStore;
 
     Logging.instance.log("$walletName isolate length: ${isolates.length}",
         level: LogLevel.Info);
@@ -537,7 +535,8 @@ class EpicCashWallet extends CoinServiceAPI {
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
-    _epicNode = NodeService().getPrimaryNodeFor(coin: coin) ??
+    _epicNode = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
     // TODO notify ui/ fire event for node changed?
 

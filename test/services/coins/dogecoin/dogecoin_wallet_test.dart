@@ -97,7 +97,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     DogecoinWallet? mainnetWallet;
@@ -196,7 +196,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     DogecoinWallet? doge;
@@ -266,7 +266,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     DogecoinWallet? doge;
@@ -489,7 +489,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     DogecoinWallet? doge;

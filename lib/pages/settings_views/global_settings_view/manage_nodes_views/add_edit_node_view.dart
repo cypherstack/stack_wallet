@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -40,9 +40,6 @@ class AddEditNodeView extends ConsumerStatefulWidget {
     required this.coin,
     required this.nodeId,
     required this.routeOnSuccessOrDelete,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
 
   static const String routeName = "/addEditNode";
@@ -51,7 +48,6 @@ class AddEditNodeView extends ConsumerStatefulWidget {
   final Coin coin;
   final String routeOnSuccessOrDelete;
   final String? nodeId;
-  final FlutterSecureStorageInterface secureStore;
 
   @override
   ConsumerState<AddEditNodeView> createState() => _AddEditNodeViewState();
@@ -533,7 +529,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           children: [
             NodeForm(
               node: node,
-              secureStore: widget.secureStore,
+              secureStore: ref.read(secureStoreProvider),
               readOnly: false,
               coin: widget.coin,
               onChanged: (canSave, canTest) {

@@ -12,7 +12,6 @@ import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
@@ -1137,7 +1136,7 @@ class DogecoinWallet extends CoinServiceAPI {
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
     PriceAPI? priceAPI,
-    FlutterSecureStorageInterface? secureStore,
+    required FlutterSecureStorageInterface secureStore,
   }) {
     txTracker = tracker;
     _walletId = walletId;
@@ -1147,13 +1146,12 @@ class DogecoinWallet extends CoinServiceAPI {
     _cachedElectrumXClient = cachedClient;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
-    _secureStore =
-        secureStore ?? const SecureStorageWrapper(FlutterSecureStorage());
+    _secureStore = secureStore;
   }
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
-    final failovers = NodeService()
+    final failovers = NodeService(secureStorageInterface: _secureStore)
         .failoverNodesFor(coin: coin)
         .map((e) => ElectrumXNode(
               address: e.host,
@@ -1191,7 +1189,8 @@ class DogecoinWallet extends CoinServiceAPI {
   }
 
   Future<ElectrumXNode> getCurrentNode() async {
-    final node = NodeService().getPrimaryNodeFor(coin: coin) ??
+    final node = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
 
     return ElectrumXNode(

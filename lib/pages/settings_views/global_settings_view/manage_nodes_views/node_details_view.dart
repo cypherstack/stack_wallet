@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -32,14 +32,10 @@ class NodeDetailsView extends ConsumerStatefulWidget {
     required this.coin,
     required this.nodeId,
     required this.popRouteName,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
 
   static const String routeName = "/nodeDetails";
 
-  final FlutterSecureStorageInterface secureStore;
   final Coin coin;
   final String nodeId;
   final String popRouteName;
@@ -58,7 +54,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
 
   @override
   initState() {
-    secureStore = widget.secureStore;
+    secureStore = ref.read(secureStoreProvider);
     coin = widget.coin;
     nodeId = widget.nodeId;
     popRouteName = widget.popRouteName;

@@ -1,6 +1,6 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hive/hive.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 const String _kKeyBlobKey = "swbKeyBlobKeyStringID";
@@ -24,7 +24,6 @@ String _getMessageFromException(Object exception) {
 
 class DPS {
   StorageCryptoHandler? _handler;
-  final SecureStorageWrapper secureStorageWrapper;
 
   StorageCryptoHandler get handler {
     if (_handler == null) {
@@ -34,11 +33,7 @@ class DPS {
     return _handler!;
   }
 
-  DPS({
-    this.secureStorageWrapper = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
-  });
+  DPS();
 
   Future<void> initFromNew(String passphrase) async {
     if (_handler != null) {
@@ -47,10 +42,14 @@ class DPS {
 
     try {
       _handler = await StorageCryptoHandler.fromNewPassphrase(passphrase);
-      await secureStorageWrapper.write(
+
+      final box = await Hive.openBox<String>(DB.boxNameDesktopData);
+      await DB.instance.put<String>(
+        boxName: DB.boxNameDesktopData,
         key: _kKeyBlobKey,
         value: await _handler!.getKeyBlob(),
       );
+      await box.close();
     } catch (e, s) {
       Logging.instance.log(
         "${_getMessageFromException(e)}\n$s",
@@ -65,7 +64,13 @@ class DPS {
       throw Exception(
           "DPS: attempted to re initialize with existing passphrase");
     }
-    final keyBlob = await secureStorageWrapper.read(key: _kKeyBlobKey);
+
+    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
+    final keyBlob = DB.instance.get<String>(
+      boxName: DB.boxNameDesktopData,
+      key: _kKeyBlobKey,
+    );
+    await box.close();
 
     if (keyBlob == null) {
       throw Exception(
@@ -84,6 +89,12 @@ class DPS {
   }
 
   Future<bool> hasPassword() async {
-    return (await secureStorageWrapper.read(key: _kKeyBlobKey)) != null;
+    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
+    final keyBlob = DB.instance.get<String>(
+      boxName: DB.boxNameDesktopData,
+      key: _kKeyBlobKey,
+    );
+    await box.close();
+    return keyBlob != null;
   }
 }

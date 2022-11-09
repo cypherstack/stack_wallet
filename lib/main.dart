@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
@@ -51,6 +52,7 @@ import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
@@ -143,15 +145,24 @@ void main() async {
   await Hive.initFlutter(appDirectory.path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
-  int dbVersion = DB.instance.get<dynamic>(
-          boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
-      0;
-  if (dbVersion < Constants.currentHiveDbVersion) {
-    try {
-      await DbVersionMigrator().migrate(dbVersion);
-    } catch (e, s) {
-      Logging.instance.log("Cannot migrate database\n$e $s",
-          level: LogLevel.Error, printFullLength: true);
+
+  if (!Util.isDesktop) {
+    int dbVersion = DB.instance.get<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
+        0;
+    if (dbVersion < Constants.currentHiveDbVersion) {
+      try {
+        await DbVersionMigrator().migrate(
+          dbVersion,
+          secureStore: const SecureStorageWrapper(
+            store: FlutterSecureStorage(),
+            isDesktop: false,
+          ),
+        );
+      } catch (e, s) {
+        Logging.instance.log("Cannot migrate database\n$e $s",
+            level: LogLevel.Error, printFullLength: true);
+      }
     }
   }
 

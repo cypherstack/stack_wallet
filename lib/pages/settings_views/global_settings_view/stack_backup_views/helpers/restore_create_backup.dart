@@ -3,10 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
@@ -91,10 +88,13 @@ abstract class SWB {
 
   static bool _shouldCancelRestore = false;
 
-  static bool _checkShouldCancel(PreRestoreState? revertToState) {
+  static bool _checkShouldCancel(
+    PreRestoreState? revertToState,
+    FlutterSecureStorageInterface secureStorageInterface,
+  ) {
     if (_shouldCancelRestore) {
       if (revertToState != null) {
-        _revert(revertToState);
+        _revert(revertToState, secureStorageInterface);
       } else {
         _cancelCompleter!.complete();
         _shouldCancelRestore = false;
@@ -193,15 +193,15 @@ abstract class SWB {
 
   /// [secureStorage] parameter exposed for testing purposes
   static Future<Map<String, dynamic>> createStackWalletJSON({
-    FlutterSecureStorageInterface? secureStorage,
+    required FlutterSecureStorageInterface secureStorage,
   }) async {
     Logging.instance
         .log("Starting createStackWalletJSON...", level: LogLevel.Info);
     final _wallets = Wallets.sharedInstance;
     Map<String, dynamic> backupJson = {};
-    NodeService nodeService = NodeService();
-    final _secureStore =
-        secureStorage ?? const SecureStorageWrapper(FlutterSecureStorage());
+    NodeService nodeService =
+        NodeService(secureStorageInterface: secureStorage);
+    final _secureStore = secureStorage;
 
     Logging.instance.log("createStackWalletJSON awaiting DB.instance.mutex...",
         level: LogLevel.Info);
@@ -448,6 +448,7 @@ abstract class SWB {
     Map<String, dynamic> validJSON,
     StackRestoringUIState? uiState,
     Map<String, String> oldToNewWalletIdMap,
+    FlutterSecureStorageInterface secureStorageInterface,
   ) async {
     Map<String, dynamic> prefs = validJSON["prefs"] as Map<String, dynamic>;
     List<dynamic>? addressBookEntries =
@@ -486,7 +487,11 @@ abstract class SWB {
       "SWB restoring nodes",
       level: LogLevel.Warning,
     );
-    await _restoreNodes(nodes, primaryNodes);
+    await _restoreNodes(
+      nodes,
+      primaryNodes,
+      secureStorageInterface,
+    );
 
     uiState?.nodes = StackRestoringStatus.success;
     uiState?.trades = StackRestoringStatus.restoring;
@@ -543,6 +548,7 @@ abstract class SWB {
   static Future<bool?> restoreStackWalletJSON(
     String jsonBackup,
     StackRestoringUIState? uiState,
+    FlutterSecureStorageInterface secureStorageInterface,
   ) async {
     if (!Platform.isLinux) await Wakelock.enable();
 
@@ -550,7 +556,8 @@ abstract class SWB {
       "SWB creating temp backup",
       level: LogLevel.Warning,
     );
-    final preRestoreJSON = await createStackWalletJSON();
+    final preRestoreJSON =
+        await createStackWalletJSON(secureStorage: secureStorageInterface);
     Logging.instance.log(
       "SWB temp backup created",
       level: LogLevel.Warning,
@@ -587,19 +594,34 @@ abstract class SWB {
 
     // basic cancel check here
     // no reverting required yet as nothing has been written to store
-    if (_checkShouldCancel(null)) {
+    if (_checkShouldCancel(
+      null,
+      secureStorageInterface,
+    )) {
       return false;
     }
 
-    await _restoreEverythingButWallets(validJSON, uiState, oldToNewWalletIdMap);
+    await _restoreEverythingButWallets(
+      validJSON,
+      uiState,
+      oldToNewWalletIdMap,
+      secureStorageInterface,
+    );
 
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+    )) {
       return false;
     }
 
-    final nodeService = NodeService();
-    final walletsService = WalletsService();
+    final nodeService = NodeService(
+      secureStorageInterface: secureStorageInterface,
+    );
+    final walletsService = WalletsService(
+      secureStorageInterface: secureStorageInterface,
+    );
     final _prefs = Prefs.instance;
     await _prefs.init();
 
@@ -609,7 +631,10 @@ abstract class SWB {
 
     for (var walletbackup in wallets) {
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+      )) {
         return false;
       }
 
@@ -647,7 +672,10 @@ abstract class SWB {
       final failovers = nodeService.failoverNodesFor(coin: coin);
 
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+      )) {
         return false;
       }
 
@@ -655,6 +683,7 @@ abstract class SWB {
         coin,
         walletId,
         walletName,
+        secureStorageInterface,
         node,
         txTracker,
         _prefs,
@@ -665,7 +694,10 @@ abstract class SWB {
 
       managers.add(Tuple2(walletbackup, manager));
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+      )) {
         return false;
       }
 
@@ -679,7 +711,10 @@ abstract class SWB {
     }
 
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+    )) {
       return false;
     }
 
@@ -690,7 +725,10 @@ abstract class SWB {
     // start restoring wallets
     for (final tuple in managers) {
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+      )) {
         return false;
       }
       final bools = await asyncRestore(tuple, uiState, walletsService);
@@ -698,13 +736,19 @@ abstract class SWB {
     }
 
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+    )) {
       return false;
     }
 
     for (Future<bool> status in restoreStatuses) {
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+      )) {
         return false;
       }
       await status;
@@ -712,7 +756,10 @@ abstract class SWB {
 
     if (!Platform.isLinux) await Wakelock.disable();
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+    )) {
       return false;
     }
 
@@ -720,7 +767,10 @@ abstract class SWB {
     return true;
   }
 
-  static Future<void> _revert(PreRestoreState revertToState) async {
+  static Future<void> _revert(
+    PreRestoreState revertToState,
+    FlutterSecureStorageInterface secureStorageInterface,
+  ) async {
     Map<String, dynamic> prefs =
         revertToState.validJSON["prefs"] as Map<String, dynamic>;
     List<dynamic>? addressBookEntries =
@@ -788,7 +838,9 @@ abstract class SWB {
     }
 
     // nodes
-    NodeService nodeService = NodeService();
+    NodeService nodeService = NodeService(
+      secureStorageInterface: secureStorageInterface,
+    );
     final currentNodes = nodeService.nodes;
     if (nodes == null) {
       // no pre nodes found so we delete all but defaults
@@ -914,7 +966,8 @@ abstract class SWB {
     }
 
     // finally remove any added wallets
-    final walletsService = WalletsService();
+    final walletsService =
+        WalletsService(secureStorageInterface: secureStorageInterface);
     final namesData = await walletsService.walletNames;
     for (final entry in namesData.entries) {
       if (!revertToState.walletIds.contains(entry.value.walletId)) {
@@ -989,8 +1042,11 @@ abstract class SWB {
   static Future<void> _restoreNodes(
     List<dynamic>? nodes,
     List<dynamic>? primaryNodes,
+    FlutterSecureStorageInterface secureStorageInterface,
   ) async {
-    NodeService nodeService = NodeService();
+    NodeService nodeService = NodeService(
+      secureStorageInterface: secureStorageInterface,
+    );
     if (nodes != null) {
       for (var node in nodes) {
         await nodeService.add(

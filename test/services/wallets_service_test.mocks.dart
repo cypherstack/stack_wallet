@@ -42,7 +42,7 @@ class MockSecureStorageWrapper extends _i1.Mock
   }
 
   @override
-  _i2.FlutterSecureStorage get secureStore => (super.noSuchMethod(
+  _i2.FlutterSecureStorage get _secureStore => (super.noSuchMethod(
         Invocation.getter(#secureStore),
         returnValue: _FakeFlutterSecureStorage_0(
           this,

@@ -33,6 +33,7 @@ class DB {
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
   static const String boxNameDBInfo = "dbInfo";
   static const String boxNameTheme = "theme";
+  static const String boxNameDesktopData = "desktopData";
 
   String boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
   String boxNameSetCache({required Coin coin}) =>
@@ -58,6 +59,7 @@ class DB {
   late final Box<dynamic> _boxPrefs;
   late final Box<TradeWalletLookup> _boxTradeLookup;
   late final Box<dynamic> _boxDBInfo;
+  late final Box<String> _boxDesktopData;
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
 

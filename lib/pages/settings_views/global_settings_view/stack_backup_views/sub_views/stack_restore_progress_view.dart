@@ -10,6 +10,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/stack_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_wallet_card.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -107,6 +108,7 @@ class _StackRestoreProgressViewState
       finished = await SWB.restoreStackWalletJSON(
         widget.jsonString,
         uiState,
+        ref.read(secureStoreProvider),
       );
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Warning);

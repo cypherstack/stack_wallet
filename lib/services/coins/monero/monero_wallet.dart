@@ -72,7 +72,8 @@ class MoneroWallet extends CoinServiceAPI {
   late PriceAPI _priceAPI;
 
   Future<NodeModel> getCurrentNode() async {
-    return NodeService().getPrimaryNodeFor(coin: coin) ??
+    return NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
   }
 
@@ -81,14 +82,13 @@ class MoneroWallet extends CoinServiceAPI {
       required String walletName,
       required Coin coin,
       PriceAPI? priceAPI,
-      FlutterSecureStorageInterface? secureStore}) {
+      required FlutterSecureStorageInterface secureStore}) {
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
-    _secureStore =
-        secureStore ?? const SecureStorageWrapper(FlutterSecureStorage());
+    _secureStore = secureStore;
   }
 
   bool _shouldAutoSync = false;

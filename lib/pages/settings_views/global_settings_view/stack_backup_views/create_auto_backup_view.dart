@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -13,6 +12,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/backup_frequency_type_select_sheet.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -21,25 +21,19 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
-import 'package:stackwallet/utilities/util.dart';
-
 class CreateAutoBackupView extends ConsumerStatefulWidget {
   const CreateAutoBackupView({
     Key? key,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
 
   static const String routeName = "/createAutoBackup";
-
-  final FlutterSecureStorageInterface secureStore;
 
   @override
   ConsumerState<CreateAutoBackupView> createState() =>
@@ -75,7 +69,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
 
   @override
   void initState() {
-    secureStore = widget.secureStore;
+    secureStore = ref.read(secureStoreProvider);
     stackFileSystem = StackFileSystem();
     fileLocationController = TextEditingController();
     passwordController = TextEditingController();
@@ -585,7 +579,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                               final String fileToSave =
                                   createAutoBackupFilename(pathToSave, now);
 
-                              final backup = await SWB.createStackWalletJSON();
+                              final backup = await SWB.createStackWalletJSON(
+                                secureStorage: secureStore,
+                              );
 
                               bool result = await SWB.encryptStackWalletWithADK(
                                 fileToSave,

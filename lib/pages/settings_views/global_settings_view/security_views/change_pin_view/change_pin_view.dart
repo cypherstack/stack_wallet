@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/security_views/security_view.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -11,23 +12,18 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 
-class ChangePinView extends StatefulWidget {
+class ChangePinView extends ConsumerStatefulWidget {
   const ChangePinView({
     Key? key,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
 
   static const String routeName = "/changePin";
 
-  final FlutterSecureStorageInterface secureStore;
-
   @override
-  State<ChangePinView> createState() => _ChangePinViewState();
+  ConsumerState<ChangePinView> createState() => _ChangePinViewState();
 }
 
-class _ChangePinViewState extends State<ChangePinView> {
+class _ChangePinViewState extends ConsumerState<ChangePinView> {
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
       color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
@@ -53,7 +49,7 @@ class _ChangePinViewState extends State<ChangePinView> {
 
   @override
   void initState() {
-    _secureStore = widget.secureStore;
+    _secureStore = ref.read(secureStoreProvider);
     super.initState();
   }
 

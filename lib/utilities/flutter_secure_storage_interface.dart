@@ -1,4 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:isar/isar.dart';
+import 'package:stack_wallet_backup/secure_storage.dart';
 
 abstract class FlutterSecureStorageInterface {
   Future<void> write({
@@ -33,10 +35,49 @@ abstract class FlutterSecureStorageInterface {
   });
 }
 
-class SecureStorageWrapper implements FlutterSecureStorageInterface {
-  final FlutterSecureStorage secureStore;
+class DesktopPWStore {
+  final StorageCryptoHandler handler;
+  late final Isar isar;
 
-  const SecureStorageWrapper(this.secureStore);
+  DesktopPWStore(this.handler);
+
+  Future<void> init() async {}
+
+  Future<String?> read({
+    required String key,
+  }) async {
+    // final String encryptedString =
+
+    return "";
+  }
+
+  Future<void> write({
+    required String key,
+    required String? value,
+  }) async {
+    return;
+  }
+
+  Future<void> delete({
+    required String key,
+  }) async {
+    return;
+  }
+}
+
+/// all *Options params ignored on desktop
+class SecureStorageWrapper implements FlutterSecureStorageInterface {
+  final dynamic _store;
+  final bool _isDesktop;
+
+  const SecureStorageWrapper({
+    required dynamic store,
+    required bool isDesktop,
+  })  : assert(isDesktop
+            ? store is DesktopPWStore
+            : store is FlutterSecureStorage),
+        _store = store,
+        _isDesktop = isDesktop;
 
   @override
   Future<String?> read({
@@ -47,16 +88,20 @@ class SecureStorageWrapper implements FlutterSecureStorageInterface {
     WebOptions? webOptions,
     MacOsOptions? mOptions,
     WindowsOptions? wOptions,
-  }) {
-    return secureStore.read(
-      key: key,
-      iOptions: iOptions,
-      aOptions: aOptions,
-      lOptions: lOptions,
-      webOptions: webOptions,
-      mOptions: mOptions,
-      wOptions: wOptions,
-    );
+  }) async {
+    if (_isDesktop) {
+      return await (_store as DesktopPWStore).read(key: key);
+    } else {
+      return await (_store as FlutterSecureStorage).read(
+        key: key,
+        iOptions: iOptions,
+        aOptions: aOptions,
+        lOptions: lOptions,
+        webOptions: webOptions,
+        mOptions: mOptions,
+        wOptions: wOptions,
+      );
+    }
   }
 
   @override
@@ -69,17 +114,21 @@ class SecureStorageWrapper implements FlutterSecureStorageInterface {
     WebOptions? webOptions,
     MacOsOptions? mOptions,
     WindowsOptions? wOptions,
-  }) {
-    return secureStore.write(
-      key: key,
-      value: value,
-      iOptions: iOptions,
-      aOptions: aOptions,
-      lOptions: lOptions,
-      webOptions: webOptions,
-      mOptions: mOptions,
-      wOptions: wOptions,
-    );
+  }) async {
+    if (_isDesktop) {
+      return await (_store as DesktopPWStore).write(key: key, value: value);
+    } else {
+      return await (_store as FlutterSecureStorage).write(
+        key: key,
+        value: value,
+        iOptions: iOptions,
+        aOptions: aOptions,
+        lOptions: lOptions,
+        webOptions: webOptions,
+        mOptions: mOptions,
+        wOptions: wOptions,
+      );
+    }
   }
 
   @override
@@ -92,15 +141,19 @@ class SecureStorageWrapper implements FlutterSecureStorageInterface {
     MacOsOptions? mOptions,
     WindowsOptions? wOptions,
   }) async {
-    await secureStore.delete(
-      key: key,
-      iOptions: iOptions,
-      aOptions: aOptions,
-      lOptions: lOptions,
-      webOptions: webOptions,
-      mOptions: mOptions,
-      wOptions: wOptions,
-    );
+    if (_isDesktop) {
+      return (_store as DesktopPWStore).delete(key: key);
+    } else {
+      return await (_store as FlutterSecureStorage).delete(
+        key: key,
+        iOptions: iOptions,
+        aOptions: aOptions,
+        lOptions: lOptions,
+        webOptions: webOptions,
+        mOptions: mOptions,
+        wOptions: wOptions,
+      );
+    }
   }
 }
 
