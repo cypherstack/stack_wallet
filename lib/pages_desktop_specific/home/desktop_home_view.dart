@@ -8,6 +8,8 @@ import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/d
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
+import 'address_book_view/desktop_address_book.dart';
+
 class DesktopHomeView extends ConsumerStatefulWidget {
   const DesktopHomeView({Key? key}) : super(key: key);
 
@@ -31,8 +33,10 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     Container(
       color: Colors.red,
     ),
-    Container(
-      color: Colors.orange,
+    const Navigator(
+      key: Key("desktopAddressBookHomeKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: DesktopAddressBook.routeName,
     ),
     const Navigator(
       key: Key("desktopSettingHomeKey"),
