@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cw_core/get_height_by_date.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/node.dart';
 import 'package:cw_core/pending_transaction.dart';
@@ -685,10 +686,7 @@ class WowneroWallet extends CoinServiceAPI {
           await pathForWalletDir(name: name, type: WalletType.wownero);
       final path = await pathForWallet(name: name, type: WalletType.wownero);
       credentials = wownero.createWowneroNewWalletCredentials(
-        name: name,
-        language: "English",
-        seedWordsLength: seedWordsLength
-      );
+          name: name, language: "English", seedWordsLength: seedWordsLength);
 
       walletInfo = WalletInfo.external(
           id: WalletBase.idFor(name, WalletType.wownero),
@@ -713,9 +711,12 @@ class WowneroWallet extends CoinServiceAPI {
       // To restore from a seed
       final wallet = await _walletCreationService?.create(credentials);
 
-      // subtract a couple days to ensure we have a buffer for SWB
-      final bufferedCreateHeight = (seedWordsLength == 14) ? getSeedHeightSync(wallet?.seed.trim() as String) : 0;
-      // TODO use an alternative to wow_seed's get_seed_height instead of 0 above
+      final bufferedCreateHeight = (seedWordsLength == 14)
+          ? getSeedHeightSync(wallet?.seed.trim() as String)
+          : wownero.getHeightByDate(
+              date: DateTime.now().subtract(const Duration(
+                  days:
+                      2))); // subtract a couple days to ensure we have a buffer for SWB
 
       await DB.instance.put<dynamic>(
           boxName: walletId, key: "restoreHeight", value: bufferedCreateHeight);
@@ -979,6 +980,14 @@ class WowneroWallet extends CoinServiceAPI {
       // extract seed height from 14 word seed
       if (seedLength == 14) {
         height = getSeedHeightSync(mnemonic.trim());
+      } else {
+        // 25 word seed. TODO validate
+        if (height == 0) {
+          height = wownero.getHeightByDate(
+              date: DateTime.now().subtract(const Duration(
+                  days:
+                      2))); // subtract a couple days to ensure we have a buffer for SWB\
+        }
       }
 
       await DB.instance
