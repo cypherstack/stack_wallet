@@ -24,7 +24,7 @@ class AutoSWBService extends ChangeNotifier {
   bool _isActiveTimer = false;
   bool get isActivePeriodicTimer => _isActiveTimer;
 
-  final FlutterSecureStorageInterface secureStorageInterface;
+  final SecureStorageInterface secureStorageInterface;
 
   AutoSWBService({required this.secureStorageInterface});
 

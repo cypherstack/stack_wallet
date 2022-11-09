@@ -65,8 +65,7 @@ class NodeModel {
   }
 
   /// convenience getter to retrieve login password
-  Future<String?> getPassword(
-      FlutterSecureStorageInterface secureStorage) async {
+  Future<String?> getPassword(SecureStorageInterface secureStorage) async {
     return await secureStorage.read(key: "${id}_nodePW");
   }
 

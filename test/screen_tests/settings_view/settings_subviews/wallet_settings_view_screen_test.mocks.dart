@@ -139,6 +139,22 @@ class MockCachedElectrumX extends _i1.Mock implements _i6.CachedElectrumX {
             _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i8.Future<Map<String, dynamic>>);
   @override
+  String base64ToHex(String? source) => (super.noSuchMethod(
+        Invocation.method(
+          #base64ToHex,
+          [source],
+        ),
+        returnValue: '',
+      ) as String);
+  @override
+  String base64ToReverseHex(String? source) => (super.noSuchMethod(
+        Invocation.method(
+          #base64ToReverseHex,
+          [source],
+        ),
+        returnValue: '',
+      ) as String);
+  @override
   _i8.Future<Map<String, dynamic>> getTransaction({
     required String? txHash,
     required _i9.Coin? coin,

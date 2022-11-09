@@ -72,6 +72,11 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
     }
 
     try {
+      if (await ref.read(storageCryptoHandlerProvider).hasPassword()) {
+        throw Exception(
+            "Tried creating a new password and attempted to overwrite an existing entry!");
+      }
+
       await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
     } catch (e) {
       unawaited(showFloatingFlushBar(

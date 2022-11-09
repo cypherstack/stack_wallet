@@ -90,7 +90,7 @@ abstract class SWB {
 
   static bool _checkShouldCancel(
     PreRestoreState? revertToState,
-    FlutterSecureStorageInterface secureStorageInterface,
+    SecureStorageInterface secureStorageInterface,
   ) {
     if (_shouldCancelRestore) {
       if (revertToState != null) {
@@ -193,7 +193,7 @@ abstract class SWB {
 
   /// [secureStorage] parameter exposed for testing purposes
   static Future<Map<String, dynamic>> createStackWalletJSON({
-    required FlutterSecureStorageInterface secureStorage,
+    required SecureStorageInterface secureStorage,
   }) async {
     Logging.instance
         .log("Starting createStackWalletJSON...", level: LogLevel.Info);
@@ -448,7 +448,7 @@ abstract class SWB {
     Map<String, dynamic> validJSON,
     StackRestoringUIState? uiState,
     Map<String, String> oldToNewWalletIdMap,
-    FlutterSecureStorageInterface secureStorageInterface,
+    SecureStorageInterface secureStorageInterface,
   ) async {
     Map<String, dynamic> prefs = validJSON["prefs"] as Map<String, dynamic>;
     List<dynamic>? addressBookEntries =
@@ -548,7 +548,7 @@ abstract class SWB {
   static Future<bool?> restoreStackWalletJSON(
     String jsonBackup,
     StackRestoringUIState? uiState,
-    FlutterSecureStorageInterface secureStorageInterface,
+    SecureStorageInterface secureStorageInterface,
   ) async {
     if (!Platform.isLinux) await Wakelock.enable();
 
@@ -769,7 +769,7 @@ abstract class SWB {
 
   static Future<void> _revert(
     PreRestoreState revertToState,
-    FlutterSecureStorageInterface secureStorageInterface,
+    SecureStorageInterface secureStorageInterface,
   ) async {
     Map<String, dynamic> prefs =
         revertToState.validJSON["prefs"] as Map<String, dynamic>;
@@ -1042,7 +1042,7 @@ abstract class SWB {
   static Future<void> _restoreNodes(
     List<dynamic>? nodes,
     List<dynamic>? primaryNodes,
-    FlutterSecureStorageInterface secureStorageInterface,
+    SecureStorageInterface secureStorageInterface,
   ) async {
     NodeService nodeService = NodeService(
       secureStorageInterface: secureStorageInterface,

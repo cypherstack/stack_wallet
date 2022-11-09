@@ -84,7 +84,7 @@ class DPS {
         "${_getMessageFromException(e)}\n$s",
         level: LogLevel.Error,
       );
-      rethrow;
+      throw Exception(_getMessageFromException(e));
     }
   }
 

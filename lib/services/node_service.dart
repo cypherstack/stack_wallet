@@ -12,7 +12,7 @@ import 'package:stackwallet/utilities/logger.dart';
 const kStackCommunityNodesEndpoint = "https://extras.stackwallet.com";
 
 class NodeService extends ChangeNotifier {
-  final FlutterSecureStorageInterface secureStorageInterface;
+  final SecureStorageInterface secureStorageInterface;
 
   /// Exposed [secureStorageInterface] in order to inject mock for tests
   NodeService({

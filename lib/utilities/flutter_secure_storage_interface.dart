@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
+import 'package:stackwallet/models/isar/models/encrypted_string_value.dart';
 
-abstract class FlutterSecureStorageInterface {
+abstract class SecureStorageInterface {
   Future<void> write({
     required String key,
     required String? value,
@@ -35,38 +38,66 @@ abstract class FlutterSecureStorageInterface {
   });
 }
 
-class DesktopPWStore {
+class DesktopSecureStore {
   final StorageCryptoHandler handler;
   late final Isar isar;
 
-  DesktopPWStore(this.handler);
+  DesktopSecureStore(this.handler);
 
-  Future<void> init() async {}
+  Future<void> init() async {
+    Directory? appDirectory;
+    if (Platform.isLinux) {
+      appDirectory = Directory("${Platform.environment['HOME']}/.stackwallet");
+      await appDirectory.create();
+    }
+    isar = await Isar.open(
+      [EncryptedStringValueSchema],
+      directory: appDirectory!.path,
+      inspector: false,
+    );
+  }
 
   Future<String?> read({
     required String key,
   }) async {
-    // final String encryptedString =
+    final value =
+        await isar.encryptedStringValues.filter().keyEqualTo(key).findFirst();
 
-    return "";
+    // value does not exist;
+    if (value == null) {
+      return null;
+    }
+
+    return await handler.decryptValue(key, value.value);
   }
 
   Future<void> write({
     required String key,
     required String? value,
   }) async {
-    return;
+    if (value == null) {
+      // here we assume that a value is to be deleted
+      await isar.encryptedStringValues.deleteByKey(key);
+    } else {
+      // otherwise created encrypted object value
+      final object = EncryptedStringValue();
+      object.key = key;
+      object.value = await handler.encryptValue(key, value);
+
+      // store object value
+      await isar.encryptedStringValues.put(object);
+    }
   }
 
   Future<void> delete({
     required String key,
   }) async {
-    return;
+    await isar.encryptedStringValues.deleteByKey(key);
   }
 }
 
 /// all *Options params ignored on desktop
-class SecureStorageWrapper implements FlutterSecureStorageInterface {
+class SecureStorageWrapper implements SecureStorageInterface {
   final dynamic _store;
   final bool _isDesktop;
 
@@ -74,7 +105,7 @@ class SecureStorageWrapper implements FlutterSecureStorageInterface {
     required dynamic store,
     required bool isDesktop,
   })  : assert(isDesktop
-            ? store is DesktopPWStore
+            ? store is DesktopSecureStore
             : store is FlutterSecureStorage),
         _store = store,
         _isDesktop = isDesktop;
@@ -90,7 +121,7 @@ class SecureStorageWrapper implements FlutterSecureStorageInterface {
     WindowsOptions? wOptions,
   }) async {
     if (_isDesktop) {
-      return await (_store as DesktopPWStore).read(key: key);
+      return await (_store as DesktopSecureStore).read(key: key);
     } else {
       return await (_store as FlutterSecureStorage).read(
         key: key,
@@ -116,7 +147,7 @@ class SecureStorageWrapper implements FlutterSecureStorageInterface {
     WindowsOptions? wOptions,
   }) async {
     if (_isDesktop) {
-      return await (_store as DesktopPWStore).write(key: key, value: value);
+      return await (_store as DesktopSecureStore).write(key: key, value: value);
     } else {
       return await (_store as FlutterSecureStorage).write(
         key: key,
@@ -142,7 +173,7 @@ class SecureStorageWrapper implements FlutterSecureStorageInterface {
     WindowsOptions? wOptions,
   }) async {
     if (_isDesktop) {
-      return (_store as DesktopPWStore).delete(key: key);
+      return (_store as DesktopSecureStore).delete(key: key);
     } else {
       return await (_store as FlutterSecureStorage).delete(
         key: key,
@@ -158,7 +189,7 @@ class SecureStorageWrapper implements FlutterSecureStorageInterface {
 }
 
 // Mock class for testing purposes
-class FakeSecureStorage implements FlutterSecureStorageInterface {
+class FakeSecureStorage implements SecureStorageInterface {
   final Map<String, String?> _store = {};
   int _interactions = 0;
   int get interactions => _interactions;

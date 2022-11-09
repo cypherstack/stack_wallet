@@ -250,7 +250,7 @@ Future<String> _deleteWalletWrapper(String wallet) async {
 
 Future<String> deleteEpicWallet({
   required String walletId,
-  required FlutterSecureStorageInterface secureStore,
+  required SecureStorageInterface secureStore,
 }) async {
   String? config = await secureStore.read(key: '${walletId}_config');
   if (Platform.isIOS) {
@@ -517,7 +517,7 @@ class EpicCashWallet extends CoinServiceAPI {
       required String walletName,
       required Coin coin,
       PriceAPI? priceAPI,
-      required FlutterSecureStorageInterface secureStore}) {
+      required SecureStorageInterface secureStore}) {
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
@@ -658,7 +658,7 @@ class EpicCashWallet extends CoinServiceAPI {
   @override
   Coin get coin => _coin;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 

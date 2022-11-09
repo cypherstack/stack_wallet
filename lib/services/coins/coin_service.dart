@@ -25,7 +25,7 @@ abstract class CoinServiceAPI {
     Coin coin,
     String walletId,
     String walletName,
-    FlutterSecureStorageInterface secureStorageInterface,
+    SecureStorageInterface secureStorageInterface,
     NodeModel node,
     TransactionNotificationTracker tracker,
     Prefs prefs,

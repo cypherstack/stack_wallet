@@ -634,7 +634,7 @@ class NodeForm extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   final NodeModel? node;
-  final FlutterSecureStorageInterface secureStore;
+  final SecureStorageInterface secureStore;
   final bool readOnly;
   final Coin coin;
   final void Function(bool canSave, bool canTestConnection)? onChanged;

@@ -54,7 +54,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
   final TextEditingController _pinPutController2 = TextEditingController();
   final FocusNode _pinPutFocusNode2 = FocusNode();
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
   late Biometrics biometrics;
 
   @override

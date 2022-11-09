@@ -40,7 +40,7 @@ class EditAutoBackupView extends ConsumerStatefulWidget {
 }
 
 class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
-  late final FlutterSecureStorageInterface secureStore;
+  late final SecureStorageInterface secureStore;
 
   late final TextEditingController fileLocationController;
   late final TextEditingController passwordController;

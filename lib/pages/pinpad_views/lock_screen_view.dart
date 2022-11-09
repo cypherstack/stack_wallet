@@ -158,7 +158,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   final _pinTextController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
   late Biometrics biometrics;
 
   Scaffold get _body => Scaffold(

@@ -4,11 +4,11 @@ import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.da
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/util.dart';
 
-final secureStoreProvider = Provider<FlutterSecureStorageInterface>((ref) {
+final secureStoreProvider = Provider<SecureStorageInterface>((ref) {
   if (Util.isDesktop) {
     final handler = ref.read(storageCryptoHandlerProvider).handler;
     return SecureStorageWrapper(
-        store: DesktopPWStore(handler), isDesktop: true);
+        store: DesktopSecureStore(handler), isDesktop: true);
   } else {
     return const SecureStorageWrapper(
       store: FlutterSecureStorage(),

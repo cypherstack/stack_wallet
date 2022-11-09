@@ -16,7 +16,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 class DbVersionMigrator {
   Future<void> migrate(
     int fromVersion, {
-    required FlutterSecureStorageInterface secureStore,
+    required SecureStorageInterface secureStore,
   }) async {
     Logging.instance.log(
       "Running migrate fromVersion $fromVersion",

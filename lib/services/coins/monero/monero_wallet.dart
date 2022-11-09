@@ -67,7 +67,7 @@ class MoneroWallet extends CoinServiceAPI {
   Timer? moneroAutosaveTimer;
   late Coin _coin;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 
@@ -82,7 +82,7 @@ class MoneroWallet extends CoinServiceAPI {
       required String walletName,
       required Coin coin,
       PriceAPI? priceAPI,
-      required FlutterSecureStorageInterface secureStore}) {
+      required SecureStorageInterface secureStore}) {
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;

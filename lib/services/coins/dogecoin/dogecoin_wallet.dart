@@ -1124,7 +1124,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 
@@ -1136,7 +1136,7 @@ class DogecoinWallet extends CoinServiceAPI {
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
     PriceAPI? priceAPI,
-    required FlutterSecureStorageInterface secureStore,
+    required SecureStorageInterface secureStore,
   }) {
     txTracker = tracker;
     _walletId = walletId;

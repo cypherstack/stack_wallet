@@ -45,7 +45,7 @@ class NodeDetailsView extends ConsumerStatefulWidget {
 }
 
 class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
-  late final FlutterSecureStorageInterface secureStore;
+  late final SecureStorageInterface secureStore;
   late final Coin coin;
   late final String nodeId;
   late final String popRouteName;

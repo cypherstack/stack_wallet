@@ -45,7 +45,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
   final TextEditingController _pinPutController2 = TextEditingController();
   final FocusNode _pinPutFocusNode2 = FocusNode();
 
-  late final FlutterSecureStorageInterface _secureStore;
+  late final SecureStorageInterface _secureStore;
 
   @override
   void initState() {

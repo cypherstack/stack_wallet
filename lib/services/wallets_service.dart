@@ -47,14 +47,14 @@ class WalletInfo {
 }
 
 class WalletsService extends ChangeNotifier {
-  late final FlutterSecureStorageInterface _secureStore;
+  late final SecureStorageInterface _secureStore;
 
   Future<Map<String, WalletInfo>>? _walletNames;
   Future<Map<String, WalletInfo>> get walletNames =>
       _walletNames ??= _fetchWalletNames();
 
   WalletsService({
-    required FlutterSecureStorageInterface secureStorageInterface,
+    required SecureStorageInterface secureStorageInterface,
   }) {
     _secureStore = secureStorageInterface;
   }
