@@ -62,7 +62,9 @@ abstract class Constants {
         values.addAll([25]);
         break;
       case Coin.wownero:
-        values.addAll([14, 25]);
+        values.addAll([14]);
+        // todo: uncomment when wownero 25 word seeds implemented
+        // values.addAll([14, 25]);
         break;
     }
     return values;
