@@ -81,19 +81,29 @@ void main() async {
   if (Platform.isIOS) {
     appDir = (await getLibraryDirectory());
   }
-  await Hive.close();
-  Hive.init(appDir.path);
-  Hive.registerAdapter(NodeAdapter());
-  Hive.registerAdapter(WalletInfoAdapter());
-  Hive.registerAdapter(WalletTypeAdapter());
-  Hive.registerAdapter(UnspentCoinsInfoAdapter());
 
   monero.onStartup();
-  _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-  walletService = monero.createMoneroWalletService(_walletInfoSource);
+
+  bool hiveAdaptersRegistered = false;
 
   group("Mainnet tests", () {
     setUp(() async {
+      await setUpTestHive();
+      if (!hiveAdaptersRegistered) {
+        hiveAdaptersRegistered = true;
+
+        Hive.registerAdapter(NodeAdapter());
+        Hive.registerAdapter(WalletInfoAdapter());
+        Hive.registerAdapter(WalletTypeAdapter());
+        Hive.registerAdapter(UnspentCoinsInfoAdapter());
+
+        final wallets = await Hive.openBox('wallets');
+        await wallets.put('currentWalletName', name);
+
+        _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
+        walletService = monero.createMoneroWalletService(_walletInfoSource);
+      }
+
       try {
         // if (name?.isEmpty ?? true) {
         // name = await generateName();

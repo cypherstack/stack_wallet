@@ -72,19 +72,29 @@ void main() async {
   if (Platform.isIOS) {
     appDir = (await getLibraryDirectory());
   }
-  await Hive.close();
-  Hive.init(appDir.path);
-  Hive.registerAdapter(NodeAdapter());
-  Hive.registerAdapter(WalletInfoAdapter());
-  Hive.registerAdapter(WalletTypeAdapter());
-  Hive.registerAdapter(UnspentCoinsInfoAdapter());
 
   wownero.onStartup();
-  _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-  walletService = wownero.createWowneroWalletService(_walletInfoSource);
+
+  bool hiveAdaptersRegistered = false;
 
   group("Wownero 14 word seed generation", () {
     setUp(() async {
+      await setUpTestHive();
+      if (!hiveAdaptersRegistered) {
+        hiveAdaptersRegistered = true;
+
+        Hive.registerAdapter(NodeAdapter());
+        Hive.registerAdapter(WalletInfoAdapter());
+        Hive.registerAdapter(WalletTypeAdapter());
+        Hive.registerAdapter(UnspentCoinsInfoAdapter());
+
+        final wallets = await Hive.openBox('wallets');
+        await wallets.put('currentWalletName', name);
+
+        _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
+        walletService = wownero.createWowneroWalletService(_walletInfoSource);
+      }
+
       bool hasThrown = false;
       try {
         name = 'namee${Random().nextInt(10000000)}';
