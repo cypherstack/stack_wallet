@@ -113,9 +113,14 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       query += "message=$noteString";
     }
 
+    String receivingAddress = widget.receivingAddress;
+    if (widget.coin.ticker == Coin.bitcoincash.ticker) {
+      receivingAddress = receivingAddress.replaceFirst("bitcoincash:", "");
+    }
+
     final uri = Uri(
       scheme: widget.coin.uriScheme,
-      host: widget.receivingAddress,
+      host: receivingAddress,
       query: query.isNotEmpty ? query : null,
     );
 
@@ -229,9 +234,14 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
   @override
   void initState() {
     isDesktop = Util.isDesktop;
+    String receivingAddress = widget.receivingAddress;
+    if (widget.coin.ticker == Coin.bitcoincash.ticker) {
+      receivingAddress = receivingAddress.replaceFirst("bitcoincash:", "");
+    }
+
     _uriString = Uri(
       scheme: widget.coin.uriScheme,
-      host: widget.receivingAddress,
+      host: receivingAddress,
     ).toString().replaceFirst("://", ":");
     amountController = TextEditingController();
     noteController = TextEditingController();
