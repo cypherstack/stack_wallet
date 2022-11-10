@@ -55,12 +55,6 @@ void main() async {
       dirPath: '');
   late WalletCredentials credentials;
 
-  WidgetsFlutterBinding.ensureInitialized();
-  Directory appDir = (await getApplicationDocumentsDirectory());
-  if (Platform.isIOS) {
-    appDir = (await getLibraryDirectory());
-  }
-  
   wownero.onStartup();
 
   bool hiveAdaptersRegistered = false;
@@ -80,7 +74,8 @@ void main() async {
         await wallets.put('currentWalletName', name);
 
         _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-        walletService = wownero.createWowneroWalletService(_walletInfoSource);
+        walletService = wownero
+            .createWowneroWalletService(_walletInfoSource as Box<WalletInfo>);
       }
 
       bool hasThrown = false;
@@ -120,18 +115,6 @@ void main() async {
       expect(hasThrown, false);
     });
 
-    test("Test address validation", () async { // TODO I'd like to refactor/separate this out so I can test addresses alone, without having to first create a wallet.
-      final wallet = await _walletCreationService.restoreFromSeed(credentials);
-      walletBase = wallet as WowneroWalletBase;
-
-      expect(
-          await walletBase!.validateAddress(''), false);
-      expect(
-          await walletBase!.validateAddress('Wo3jmHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmsEi'), true);
-      expect(
-          await walletBase!.validateAddress('WasdfHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmjkl'), false);
-    });
-
     test("Wownero 14 word seed address generation", () async {
       final wallet = await _walletCreationService.create(credentials);
       // TODO validate mnemonic
@@ -143,12 +126,20 @@ void main() async {
         walletBase?.close();
         walletBase = wallet as WowneroWalletBase;
 
-        // TODO validate
-        //expect(walletInfo.address, mainnetTestData14[0][0]);
+        expect(
+            await walletBase!.validateAddress(wallet.walletAddresses.address ?? ''), true);
       } catch (_) {
         hasThrown = true;
       }
       expect(hasThrown, false);
+
+      // Address validation
+      expect(
+          await walletBase!.validateAddress(''), false);
+      expect(
+          await walletBase!.validateAddress('Wo3jmHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmsEi'), true);
+      expect(
+          await walletBase!.validateAddress('WasdfHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmjkl'), false);
 
       walletBase?.close();
       walletBase = wallet as WowneroWalletBase;
@@ -376,6 +367,6 @@ Future<String> pathForWalletDir(
 }
 
 Future<String> pathForWallet(
-        {required String name, required WalletType type}) async =>
+    {required String name, required WalletType type}) async =>
     await pathForWalletDir(name: name, type: type)
         .then((path) => path + '/$name');

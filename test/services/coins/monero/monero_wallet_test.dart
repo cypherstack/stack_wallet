@@ -60,19 +60,11 @@ void main() async {
       dirPath: '');
   late WalletCredentials credentials;
 
-  WidgetsFlutterBinding.ensureInitialized();
-  Directory appDir = (await getApplicationDocumentsDirectory());
-  if (Platform.isIOS) {
-    appDir = (await getLibraryDirectory());
-  }
-
   monero.onStartup();
 
   bool hiveAdaptersRegistered = false;
 
-  bool hiveAdaptersRegistered = false;
-
-  group("Mnemonic recovery", () {
+  group("Mainnet tests", () {
     setUp(() async {
       await setUpTestHive();
       if (!hiveAdaptersRegistered) {
@@ -87,7 +79,8 @@ void main() async {
         await wallets.put('currentWalletName', name);
 
         _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-        walletService = monero.createMoneroWalletService(_walletInfoSource);
+        walletService = monero
+            .createMoneroWalletService(_walletInfoSource as Box<WalletInfo>);
       }
 
       try {
@@ -97,12 +90,12 @@ void main() async {
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
         credentials =
-            // //     creating a new wallet
-            // monero.createMoneroNewWalletCredentials(
-            //     name: name, language: "English");
-            // restoring a previous wallet
-            monero.createMoneroRestoreWalletFromSeedCredentials(
-                name: name, height: 2580000, mnemonic: testMnemonic);
+        // //     creating a new wallet
+        // monero.createMoneroNewWalletCredentials(
+        //     name: name, language: "English");
+        // restoring a previous wallet
+        monero.createMoneroRestoreWalletFromSeedCredentials(
+            name: name, height: 2580000, mnemonic: testMnemonic);
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -129,30 +122,10 @@ void main() async {
       }
     });
 
-    test("Test address validation", () async { // TODO I'd like to refactor/separate this out so I can test addresses alone, without having to first create a wallet.
-      final wallet = await _walletCreationService.restoreFromSeed(credentials);
-      walletBase = wallet as MoneroWalletBase;
-
-      expect(
-          await walletBase!.validateAddress(''), false);
-      expect(
-          await walletBase!.validateAddress('4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'), true);
-      expect(
-          await walletBase!.validateAddress('4asdfkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gpjkl'), false);
-      expect(
-          await walletBase!.validateAddress('8AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'), false);
-      expect(
-          await walletBase!.validateAddress('84kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'), true);
-      expect(
-          await walletBase!.validateAddress('8asdfuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenjkl'), false);
-      expect(
-          await walletBase!.validateAddress('44kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'), false);
-    });
-
     test("Test mainnet address generation from seed", () async {
       final wallet = await
-          // _walletCreationService.create(credentials);
-          _walletCreationService.restoreFromSeed(credentials);
+      // _walletCreationService.create(credentials);
+      _walletCreationService.restoreFromSeed(credentials);
       walletInfo.address = wallet.walletAddresses.address;
       //print(walletInfo.address);
 
@@ -160,6 +133,9 @@ void main() async {
       walletBase?.close();
       walletBase = wallet as MoneroWalletBase;
       //print("${walletBase?.seed}");
+
+      expect(
+          await walletBase!.validateAddress(walletInfo.address ?? ''), true);
 
       // print(walletBase);
       // loggerPrint(walletBase.toString());
@@ -180,6 +156,21 @@ void main() async {
           await walletBase!.getTransactionAddress(1, 1), mainnetTestData[1][1]);
       expect(
           await walletBase!.getTransactionAddress(1, 2), mainnetTestData[1][2]);
+
+      expect(
+          await walletBase!.validateAddress(''), false);
+      expect(
+          await walletBase!.validateAddress('4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'), true);
+      expect(
+          await walletBase!.validateAddress('4asdfkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gpjkl'), false);
+      expect(
+          await walletBase!.validateAddress('8AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'), false);
+      expect(
+          await walletBase!.validateAddress('84kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'), true);
+      expect(
+          await walletBase!.validateAddress('8asdfuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenjkl'), false);
+      expect(
+          await walletBase!.validateAddress('44kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'), false);
     });
   });
   /*
@@ -238,6 +229,6 @@ Future<String> pathForWalletDir(
 }
 
 Future<String> pathForWallet(
-        {required String name, required WalletType type}) async =>
+    {required String name, required WalletType type}) async =>
     await pathForWalletDir(name: name, type: type)
         .then((path) => path + '/$name');
