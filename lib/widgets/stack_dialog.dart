@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class StackDialogBase extends StatelessWidget {
   const StackDialogBase({
@@ -17,7 +18,8 @@ class StackDialogBase extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment:
+            !Util.isDesktop ? MainAxisAlignment.end : MainAxisAlignment.center,
         children: [
           Material(
             borderRadius: BorderRadius.circular(
@@ -179,10 +181,16 @@ class StackOkDialog extends StatelessWidget {
               ),
               Expanded(
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    onOkPressed?.call("OK");
-                  },
+                  onPressed: !Util.isDesktop
+                      ? () {
+                          Navigator.of(context).pop();
+                          onOkPressed?.call("OK");
+                        }
+                      : () {
+                          int count = 0;
+                          Navigator.of(context).popUntil((_) => count++ >= 2);
+                          // onOkPressed?.call("OK");
+                        },
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getPrimaryEnabledButtonColor(context),

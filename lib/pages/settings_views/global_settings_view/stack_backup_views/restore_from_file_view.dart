@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -315,42 +316,45 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               }
 
                               bool shouldPop = false;
-                              await showDialog<dynamic>(
-                                barrierDismissible: false,
-                                context: context,
-                                builder: (_) => WillPopScope(
-                                  onWillPop: () async {
-                                    return shouldPop;
-                                  },
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Material(
-                                        color: Colors.transparent,
-                                        child: Center(
-                                          child: Text(
-                                            "Decrypting Stack backup file",
-                                            style:
-                                                STextStyles.pageTitleH2(context)
-                                                    .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textWhite,
+                              unawaited(
+                                showDialog<dynamic>(
+                                  barrierDismissible: false,
+                                  context: context,
+                                  builder: (_) => WillPopScope(
+                                    onWillPop: () async {
+                                      return shouldPop;
+                                    },
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Material(
+                                          color: Colors.transparent,
+                                          child: Center(
+                                            child: Text(
+                                              "Decrypting Stack backup file",
+                                              style: STextStyles.pageTitleH2(
+                                                      context)
+                                                  .copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textWhite,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(
-                                        height: 64,
-                                      ),
-                                      const Center(
-                                        child: LoadingIndicator(
-                                          width: 100,
+                                        const SizedBox(
+                                          height: 64,
                                         ),
-                                      ),
-                                    ],
+                                        const Center(
+                                          child: LoadingIndicator(
+                                            width: 100,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );
@@ -424,43 +428,47 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   }
 
                                   bool shouldPop = false;
-                                  await showDialog<dynamic>(
-                                    barrierDismissible: false,
-                                    context: context,
-                                    builder: (_) => WillPopScope(
-                                      onWillPop: () async {
-                                        return shouldPop;
-                                      },
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Material(
-                                            color: Colors.transparent,
-                                            child: Center(
-                                              child: Text(
-                                                "Decrypting Stack backup file",
-                                                style: STextStyles.pageTitleH2(
-                                                        context)
-                                                    .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textWhite,
+                                  unawaited(
+                                    showDialog<dynamic>(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder: (_) => WillPopScope(
+                                        onWillPop: () async {
+                                          return shouldPop;
+                                        },
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Material(
+                                              color: Colors.transparent,
+                                              child: Center(
+                                                child: Text(
+                                                  "Decrypting Stack backup file",
+                                                  style:
+                                                      STextStyles.pageTitleH2(
+                                                              context)
+                                                          .copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .textWhite,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(
-                                            height: 64,
-                                          ),
-                                          const Center(
-                                            child: LoadingIndicator(
-                                              width: 100,
+                                            const SizedBox(
+                                              height: 64,
                                             ),
-                                          ),
-                                        ],
+                                            const Center(
+                                              child: LoadingIndicator(
+                                                width: 100,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   );
@@ -475,7 +483,10 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   if (mounted) {
                                     // pop LoadingIndicator
                                     shouldPop = true;
-                                    Navigator.of(context).pop();
+                                    Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).pop();
 
                                     passwordController.text = "";
 

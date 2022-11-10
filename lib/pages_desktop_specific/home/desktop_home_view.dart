@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
@@ -31,8 +32,10 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     Container(
       color: Colors.red,
     ),
-    Container(
-      color: Colors.orange,
+    const Navigator(
+      key: Key("desktopAddressBookHomeKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: DesktopAddressBook.routeName,
     ),
     const Navigator(
       key: Key("desktopSettingHomeKey"),
