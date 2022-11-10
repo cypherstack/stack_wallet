@@ -6,6 +6,8 @@ import 'package:stack_wallet_backup/secure_storage.dart';
 import 'package:stackwallet/models/isar/models/encrypted_string_value.dart';
 
 abstract class SecureStorageInterface {
+  dynamic get store;
+
   Future<void> write({
     required String key,
     required String? value,
@@ -54,6 +56,7 @@ class DesktopSecureStore {
       [EncryptedStringValueSchema],
       directory: appDirectory!.path,
       inspector: false,
+      name: "desktopStore",
     );
   }
 
@@ -77,7 +80,9 @@ class DesktopSecureStore {
   }) async {
     if (value == null) {
       // here we assume that a value is to be deleted
-      await isar.encryptedStringValues.deleteByKey(key);
+      await isar.writeTxn(() async {
+        await isar.encryptedStringValues.deleteByKey(key);
+      });
     } else {
       // otherwise created encrypted object value
       final object = EncryptedStringValue();
@@ -85,14 +90,18 @@ class DesktopSecureStore {
       object.value = await handler.encryptValue(key, value);
 
       // store object value
-      await isar.encryptedStringValues.put(object);
+      await isar.writeTxn(() async {
+        await isar.encryptedStringValues.put(object);
+      });
     }
   }
 
   Future<void> delete({
     required String key,
   }) async {
-    await isar.encryptedStringValues.deleteByKey(key);
+    await isar.writeTxn(() async {
+      await isar.encryptedStringValues.deleteByKey(key);
+    });
   }
 }
 
@@ -100,6 +109,9 @@ class DesktopSecureStore {
 class SecureStorageWrapper implements SecureStorageInterface {
   final dynamic _store;
   final bool _isDesktop;
+
+  @override
+  dynamic get store => _store;
 
   const SecureStorageWrapper({
     required dynamic store,
@@ -245,4 +257,7 @@ class FakeSecureStorage implements SecureStorageInterface {
     _deletes++;
     _store.remove(key);
   }
+
+  @override
+  dynamic get store => throw UnimplementedError();
 }

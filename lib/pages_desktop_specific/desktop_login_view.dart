@@ -7,9 +7,11 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/forgot_password_desktop_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -46,6 +48,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
       await ref
           .read(storageCryptoHandlerProvider)
           .initFromExisting(passwordController.text);
+
+      await (ref.read(secureStoreProvider).store as DesktopSecureStore).init();
 
       await widget.load?.call();
 
