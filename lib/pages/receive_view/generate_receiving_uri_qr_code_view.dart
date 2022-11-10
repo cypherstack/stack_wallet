@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -101,25 +102,28 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       return null;
     }
 
-    String query = "";
+    Map<String, String> queryParams = {};
 
     if (amountString.isNotEmpty) {
-      query += "amount=$amountString";
+      queryParams["amount"] = amountString;
     }
     if (noteString.isNotEmpty) {
-      if (query.isNotEmpty) {
-        query += "&";
-      }
-      query += "message=$noteString";
+      queryParams["message"] = noteString;
     }
 
-    final uri = Uri(
-      scheme: widget.coin.uriScheme,
-      host: widget.receivingAddress,
-      query: query.isNotEmpty ? query : null,
-    );
+    String receivingAddress = widget.receivingAddress;
+    if ((widget.coin == Coin.bitcoincash ||
+            widget.coin == Coin.bitcoincashTestnet) &&
+        receivingAddress.contains(":")) {
+      // remove cash addr prefix
+      receivingAddress = receivingAddress.split(":").sublist(1).join();
+    }
 
-    final uriString = uri.toString().replaceFirst("://", ":");
+    final uriString = AddressUtils.buildUriString(
+      widget.coin,
+      receivingAddress,
+      queryParams,
+    );
 
     Logging.instance.log("Generated receiving QR code for: $uriString",
         level: LogLevel.Info);
@@ -229,10 +233,21 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
   @override
   void initState() {
     isDesktop = Util.isDesktop;
-    _uriString = Uri(
-      scheme: widget.coin.uriScheme,
-      host: widget.receivingAddress,
-    ).toString().replaceFirst("://", ":");
+
+    String receivingAddress = widget.receivingAddress;
+    if ((widget.coin == Coin.bitcoincash ||
+            widget.coin == Coin.bitcoincashTestnet) &&
+        receivingAddress.contains(":")) {
+      // remove cash addr prefix
+      receivingAddress = receivingAddress.split(":").sublist(1).join();
+    }
+
+    _uriString = AddressUtils.buildUriString(
+      widget.coin,
+      receivingAddress,
+      {},
+    );
+
     amountController = TextEditingController();
     noteController = TextEditingController();
     super.initState();
