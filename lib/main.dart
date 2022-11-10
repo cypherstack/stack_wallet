@@ -48,19 +48,16 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
@@ -221,8 +218,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   static const platform = MethodChannel("STACK_WALLET_RESTORE");
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  late final Wallets _wallets;
-  late final Prefs _prefs;
+  // late final Wallets _wallets;
+  // late final Prefs _prefs;
   late final NotificationsService _notificationsService;
   late final NodeService _nodeService;
   late final TradesService _tradesService;
@@ -232,6 +229,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   bool didLoad = false;
   bool _desktopHasPassword = false;
 
+  Future<void> loadShared() async {
+    await DB.instance.init();
+    await ref.read(prefsChangeNotifierProvider).init();
+
+    if (Util.isDesktop) {
+      _desktopHasPassword =
+          await ref.read(storageCryptoHandlerProvider).hasPassword();
+    }
+  }
+
   Future<void> load() async {
     try {
       if (didLoad) {
@@ -239,19 +246,15 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       }
       didLoad = true;
 
-      await DB.instance.init();
-      await _prefs.init();
-
-      if (Util.isDesktop) {
-        _desktopHasPassword =
-            await ref.read(storageCryptoHandlerProvider).hasPassword();
+      if (!Util.isDesktop) {
+        await loadShared();
       }
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
       _tradesService = ref.read(tradesServiceProvider);
 
-      NotificationApi.prefs = _prefs;
+      NotificationApi.prefs = ref.read(prefsChangeNotifierProvider);
       NotificationApi.notificationsService = _notificationsService;
 
       unawaited(ref.read(baseCurrenciesProvider).update());
@@ -260,23 +263,25 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       await _notificationsService.init(
         nodeService: _nodeService,
         tradesService: _tradesService,
-        prefs: _prefs,
+        prefs: ref.read(prefsChangeNotifierProvider),
       );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
-      await _wallets.load(_prefs);
+      await ref
+          .read(walletsChangeNotifierProvider)
+          .load(ref.read(prefsChangeNotifierProvider));
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
       // run without awaiting
       if (Constants.enableExchange &&
-          _prefs.externalCalls &&
-          await _prefs.isExternalCallsSet()) {
+          ref.read(prefsChangeNotifierProvider).externalCalls &&
+          await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
         unawaited(ExchangeDataLoadingService().loadAll(ref));
       }
 
-      if (_prefs.isAutoBackupEnabled) {
-        switch (_prefs.backupFrequencyType) {
+      if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
+        switch (ref.read(prefsChangeNotifierProvider).backupFrequencyType) {
           case BackupFrequencyType.everyTenMinutes:
             ref.read(autoSWBServiceProvider).startPeriodicBackupTimer(
                 duration: const Duration(minutes: 10));
@@ -315,9 +320,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     ref
         .read(localeServiceChangeNotifierProvider.notifier)
         .loadLocale(notify: false);
-
-    _prefs = ref.read(prefsChangeNotifierProvider);
-    _wallets = ref.read(walletsChangeNotifierProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(colorThemeProvider.state).state =
@@ -423,7 +425,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   }
 
   Future<void> goToRestoreSWB(String encrypted) async {
-    if (!_prefs.hasPin) {
+    if (!ref.read(prefsChangeNotifierProvider).hasPin) {
       await Navigator.of(navigatorKey.currentContext!)
           .pushNamed(CreatePinView.routeName, arguments: true)
           .then((value) {
@@ -569,57 +571,70 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
         ),
       ),
-      home: ConditionalParent(
-        condition: Util.isDesktop,
-        builder: (child) {
-          return child;
-        },
-        child: FutureBuilder(
-          future: load(),
-          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              // FlutterNativeSplash.remove();
-              if (Util.isDesktop &&
-                  (_wallets.hasWallets || _desktopHasPassword)) {
-                String? startupWalletId;
-                if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
-                  startupWalletId =
-                      ref.read(prefsChangeNotifierProvider).startupWalletId;
+      home: Util.isDesktop
+          ? FutureBuilder(
+              future: loadShared(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (_desktopHasPassword) {
+                    String? startupWalletId;
+                    if (ref
+                        .read(prefsChangeNotifierProvider)
+                        .gotoWalletOnStartup) {
+                      startupWalletId =
+                          ref.read(prefsChangeNotifierProvider).startupWalletId;
+                    }
+
+                    return DesktopLoginView(
+                      startupWalletId: startupWalletId,
+                      load: load,
+                    );
+                  } else {
+                    return const IntroView();
+                  }
+                } else {
+                  return const LoadingView();
                 }
+              },
+            )
+          : FutureBuilder(
+              future: load(),
+              builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  // FlutterNativeSplash.remove();
+                  if (ref.read(walletsChangeNotifierProvider).hasWallets ||
+                      ref.read(prefsChangeNotifierProvider).hasPin) {
+                    // return HomeView();
 
-                return DesktopLoginView(startupWalletId: startupWalletId);
-              } else if (!Util.isDesktop &&
-                  (_wallets.hasWallets || _prefs.hasPin)) {
-                // return HomeView();
+                    String? startupWalletId;
+                    if (ref
+                        .read(prefsChangeNotifierProvider)
+                        .gotoWalletOnStartup) {
+                      startupWalletId =
+                          ref.read(prefsChangeNotifierProvider).startupWalletId;
+                    }
 
-                String? startupWalletId;
-                if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
-                  startupWalletId =
-                      ref.read(prefsChangeNotifierProvider).startupWalletId;
+                    return LockscreenView(
+                      isInitialAppLogin: true,
+                      routeOnSuccess: HomeView.routeName,
+                      routeOnSuccessArguments: startupWalletId,
+                      biometricsAuthenticationTitle: "Unlock Stack",
+                      biometricsLocalizedReason:
+                          "Unlock your stack wallet using biometrics",
+                      biometricsCancelButtonString: "Cancel",
+                    );
+                  } else {
+                    return const IntroView();
+                  }
+                } else {
+                  // CURRENTLY DISABLED as cannot be animated
+                  // technically not needed as FlutterNativeSplash will overlay
+                  // anything returned here until the future completes but
+                  // FutureBuilder requires you to return something
+                  return const LoadingView();
                 }
-
-                return LockscreenView(
-                  isInitialAppLogin: true,
-                  routeOnSuccess: HomeView.routeName,
-                  routeOnSuccessArguments: startupWalletId,
-                  biometricsAuthenticationTitle: "Unlock Stack",
-                  biometricsLocalizedReason:
-                      "Unlock your stack wallet using biometrics",
-                  biometricsCancelButtonString: "Cancel",
-                );
-              } else {
-                return const IntroView();
-              }
-            } else {
-              // CURRENTLY DISABLED as cannot be animated
-              // technically not needed as FlutterNativeSplash will overlay
-              // anything returned here until the future completes but
-              // FutureBuilder requires you to return something
-              return const LoadingView();
-            }
-          },
-        ),
-      ),
+              },
+            ),
     );
   }
 }

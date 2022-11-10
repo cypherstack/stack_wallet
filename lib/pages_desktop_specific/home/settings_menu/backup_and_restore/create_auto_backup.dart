@@ -5,13 +5,13 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -35,12 +35,7 @@ import 'package:zxcvbn/zxcvbn.dart';
 class CreateAutoBackup extends ConsumerStatefulWidget {
   const CreateAutoBackup({
     Key? key,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
-
-  final FlutterSecureStorageInterface secureStore;
 
   @override
   ConsumerState<CreateAutoBackup> createState() => _CreateAutoBackup();
@@ -51,7 +46,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
   late final TextEditingController passphraseController;
   late final TextEditingController passphraseRepeatController;
 
-  late final FlutterSecureStorageInterface secureStore;
+  late final SecureStorageInterface secureStore;
 
   late final StackFileSystem stackFileSystem;
   late final FocusNode passphraseFocusNode;
@@ -85,7 +80,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
 
   @override
   void initState() {
-    secureStore = widget.secureStore;
+    secureStore = ref.read(secureStoreProvider);
     stackFileSystem = StackFileSystem();
 
     fileLocationController = TextEditingController();
@@ -686,7 +681,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                             final String fileToSave =
                                 createAutoBackupFilename(pathToSave, now);
 
-                            final backup = await SWB.createStackWalletJSON();
+                            final backup = await SWB.createStackWalletJSON(
+                              secureStorage: secureStore,
+                            );
 
                             bool result = await SWB.encryptStackWalletWithADK(
                               fileToSave,

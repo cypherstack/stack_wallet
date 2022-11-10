@@ -43,23 +43,23 @@ class DB {
 
   static bool _initialized = false;
 
-  late final Box<dynamic> _boxAddressBook;
-  late final Box<String> _boxDebugInfo;
-  late final Box<NodeModel> _boxNodeModels;
-  late final Box<NodeModel> _boxPrimaryNodes;
-  late final Box<dynamic> _boxAllWalletsData;
-  late final Box<NotificationModel> _boxNotifications;
-  late final Box<NotificationModel> _boxWatchedTransactions;
-  late final Box<NotificationModel> _boxWatchedTrades;
-  late final Box<ExchangeTransaction> _boxTrades;
-  late final Box<Trade> _boxTradesV2;
-  late final Box<String> _boxTradeNotes;
-  late final Box<String> _boxFavoriteWallets;
-  late final Box<xmr.WalletInfo> _walletInfoSource;
-  late final Box<dynamic> _boxPrefs;
-  late final Box<TradeWalletLookup> _boxTradeLookup;
-  late final Box<dynamic> _boxDBInfo;
-  late final Box<String> _boxDesktopData;
+  Box<dynamic>? _boxAddressBook;
+  Box<String>? _boxDebugInfo;
+  Box<NodeModel>? _boxNodeModels;
+  Box<NodeModel>? _boxPrimaryNodes;
+  Box<dynamic>? _boxAllWalletsData;
+  Box<NotificationModel>? _boxNotifications;
+  Box<NotificationModel>? _boxWatchedTransactions;
+  Box<NotificationModel>? _boxWatchedTrades;
+  Box<ExchangeTransaction>? _boxTrades;
+  Box<Trade>? _boxTradesV2;
+  Box<String>? _boxTradeNotes;
+  Box<String>? _boxFavoriteWallets;
+  Box<xmr.WalletInfo>? _walletInfoSource;
+  Box<dynamic>? _boxPrefs;
+  Box<TradeWalletLookup>? _boxTradeLookup;
+  Box<dynamic>? _boxDBInfo;
+  Box<String>? _boxDesktopData;
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
 
@@ -68,7 +68,7 @@ class DB {
   final Map<Coin, Box<dynamic>> _usedSerialsCacheBoxes = {};
 
   // exposed for monero
-  Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource;
+  Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource!;
 
   // mutex for stack backup
   final mutex = Mutex();
@@ -124,6 +124,12 @@ class DB {
         _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
       }
 
+      if (Hive.isBoxOpen(boxNameDesktopData)) {
+        _boxDesktopData = Hive.box<String>(boxNameDesktopData);
+      } else {
+        _boxDesktopData = await Hive.openBox<String>(boxNameDesktopData);
+      }
+
       _boxNotifications =
           await Hive.openBox<NotificationModel>(boxNameNotifications);
       _boxWatchedTransactions =
@@ -147,11 +153,11 @@ class DB {
       _initialized = true;
 
       try {
-        if (_boxPrefs.get("familiarity") == null) {
-          await _boxPrefs.put("familiarity", 0);
+        if (_boxPrefs!.get("familiarity") == null) {
+          await _boxPrefs!.put("familiarity", 0);
         }
-        int count = _boxPrefs.get("familiarity") as int;
-        await _boxPrefs.put("familiarity", count + 1);
+        int count = _boxPrefs!.get("familiarity") as int;
+        await _boxPrefs!.put("familiarity", count + 1);
         Constants.exchangeForExperiencedUsers(count + 1);
       } catch (e, s) {
         print("$e $s");
@@ -160,7 +166,7 @@ class DB {
   }
 
   Future<void> _loadWalletBoxes() async {
-    final names = _boxAllWalletsData.get("names") as Map? ?? {};
+    final names = _boxAllWalletsData!.get("names") as Map? ?? {};
     names.removeWhere((name, dyn) {
       final jsonObject = Map<String, dynamic>.from(dyn as Map);
       try {

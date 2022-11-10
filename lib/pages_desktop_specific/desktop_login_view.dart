@@ -21,11 +21,13 @@ class DesktopLoginView extends ConsumerStatefulWidget {
   const DesktopLoginView({
     Key? key,
     this.startupWalletId,
+    this.load,
   }) : super(key: key);
 
   static const String routeName = "/desktopLogin";
 
   final String? startupWalletId;
+  final Future<void> Function()? load;
 
   @override
   ConsumerState<DesktopLoginView> createState() => _DesktopLoginViewState();
@@ -38,6 +40,32 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
   bool hidePassword = true;
   bool _continueEnabled = false;
+
+  Future<void> login() async {
+    try {
+      await ref
+          .read(storageCryptoHandlerProvider)
+          .initFromExisting(passwordController.text);
+
+      await widget.load?.call();
+
+      // if no errors passphrase is correct
+      if (mounted) {
+        unawaited(
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            DesktopHomeView.routeName,
+            (route) => false,
+          ),
+        );
+      }
+    } catch (e) {
+      await showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: e.toString(),
+        context: context,
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -159,29 +187,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                 PrimaryButton(
                   label: "Continue",
                   enabled: _continueEnabled,
-                  onPressed: () async {
-                    try {
-                      await ref
-                          .read(storageCryptoHandlerProvider)
-                          .initFromExisting(passwordController.text);
-
-                      // if no errors passphrase is correct
-                      if (mounted) {
-                        unawaited(
-                          Navigator.of(context).pushNamedAndRemoveUntil(
-                            DesktopHomeView.routeName,
-                            (route) => false,
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      await showFloatingFlushBar(
-                        type: FlushBarType.warning,
-                        message: e.toString(),
-                        context: context,
-                      );
-                    }
-                  },
+                  onPressed: login,
                 ),
                 const SizedBox(
                   height: 60,

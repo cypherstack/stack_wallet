@@ -89,12 +89,10 @@ class DPS {
   }
 
   Future<bool> hasPassword() async {
-    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
     final keyBlob = DB.instance.get<String>(
       boxName: DB.boxNameDesktopData,
       key: _kKeyBlobKey,
     );
-    await box.close();
     return keyBlob != null;
   }
 }
