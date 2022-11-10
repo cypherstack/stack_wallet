@@ -122,6 +122,18 @@ void main() async {
       expect(hasThrown, false);
     });
 
+    test("Test address validation", () async { // TODO I'd like to refactor/separate this out so I can test addresses alone, without having to first create a wallet.
+      final wallet = await _walletCreationService.restoreFromSeed(credentials);
+      walletBase = wallet as WowneroWalletBase;
+
+      expect(
+          await walletBase!.validateAddress(''), false);
+      expect(
+          await walletBase!.validateAddress('Wo3jmHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmsEi'), true);
+      expect(
+          await walletBase!.validateAddress('WasdfHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmjkl'), false);
+    });
+
     test("Wownero 14 word seed address generation", () async {
       final wallet = await _walletCreationService.create(credentials);
       // TODO validate mnemonic

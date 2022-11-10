@@ -92,7 +92,7 @@ void main() async {
   _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
   walletService = monero.createMoneroWalletService(_walletInfoSource);
 
-  group("Mainnet tests", () {
+  group("Mnemonic recovery", () {
     setUp(() async {
       try {
         // if (name?.isEmpty ?? true) {
@@ -131,6 +131,26 @@ void main() async {
         print(e);
         print(s);
       }
+    });
+
+    test("Test address validation", () async { // TODO I'd like to refactor/separate this out so I can test addresses alone, without having to first create a wallet.
+      final wallet = await _walletCreationService.restoreFromSeed(credentials);
+      walletBase = wallet as MoneroWalletBase;
+
+      expect(
+          await walletBase!.validateAddress(''), false);
+      expect(
+          await walletBase!.validateAddress('4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'), true);
+      expect(
+          await walletBase!.validateAddress('4asdfkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gpjkl'), false);
+      expect(
+          await walletBase!.validateAddress('8AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'), false);
+      expect(
+          await walletBase!.validateAddress('84kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'), true);
+      expect(
+          await walletBase!.validateAddress('8asdfuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenjkl'), false);
+      expect(
+          await walletBase!.validateAddress('44kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'), false);
     });
 
     test("Test mainnet address generation from seed", () async {
