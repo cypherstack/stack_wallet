@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -101,25 +102,20 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       return null;
     }
 
-    String query = "";
+    Map<String, String> queryParams = {};
 
     if (amountString.isNotEmpty) {
-      query += "amount=$amountString";
+      queryParams["amount"] = amountString;
     }
     if (noteString.isNotEmpty) {
-      if (query.isNotEmpty) {
-        query += "&";
-      }
-      query += "message=$noteString";
+      queryParams["message"] = noteString;
     }
 
-    final uri = Uri(
-      scheme: widget.coin.uriScheme,
-      host: widget.receivingAddress,
-      query: query.isNotEmpty ? query : null,
+    final uriString = AddressUtils.buildUriString(
+      widget.coin,
+      widget.receivingAddress,
+      queryParams,
     );
-
-    final uriString = uri.toString().replaceFirst("://", ":");
 
     Logging.instance.log("Generated receiving QR code for: $uriString",
         level: LogLevel.Info);
