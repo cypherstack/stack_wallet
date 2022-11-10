@@ -1378,10 +1378,8 @@ class WowneroWallet extends CoinServiceAPI {
   Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
 
   @override
-  // TODO: implement validateAddress
   bool validateAddress(String address) {
-    bool valid = RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
-        RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
+    bool valid = walletBase!.validateAddress(address);
     return valid;
   }
 
