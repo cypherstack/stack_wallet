@@ -60,7 +60,15 @@ void main() async {
       dirPath: '');
   late WalletCredentials credentials;
 
+  WidgetsFlutterBinding.ensureInitialized();
+  Directory appDir = (await getApplicationDocumentsDirectory());
+  if (Platform.isIOS) {
+    appDir = (await getLibraryDirectory());
+  }
+
   monero.onStartup();
+
+  bool hiveAdaptersRegistered = false;
 
   bool hiveAdaptersRegistered = false;
 
@@ -79,8 +87,7 @@ void main() async {
         await wallets.put('currentWalletName', name);
 
         _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-        walletService = monero
-            .createMoneroWalletService(_walletInfoSource as Box<WalletInfo>);
+        walletService = monero.createMoneroWalletService(_walletInfoSource);
       }
 
       try {

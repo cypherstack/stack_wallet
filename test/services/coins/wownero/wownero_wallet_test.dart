@@ -55,6 +55,12 @@ void main() async {
       dirPath: '');
   late WalletCredentials credentials;
 
+  WidgetsFlutterBinding.ensureInitialized();
+  Directory appDir = (await getApplicationDocumentsDirectory());
+  if (Platform.isIOS) {
+    appDir = (await getLibraryDirectory());
+  }
+  
   wownero.onStartup();
 
   bool hiveAdaptersRegistered = false;
@@ -74,8 +80,7 @@ void main() async {
         await wallets.put('currentWalletName', name);
 
         _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-        walletService = wownero
-            .createWowneroWalletService(_walletInfoSource as Box<WalletInfo>);
+        walletService = wownero.createWowneroWalletService(_walletInfoSource);
       }
 
       bool hasThrown = false;
