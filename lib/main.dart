@@ -227,9 +227,15 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   late final Completer<void> loadingCompleter;
 
   bool didLoad = false;
+  bool didLoadShared = false;
   bool _desktopHasPassword = false;
 
   Future<void> loadShared() async {
+    if (didLoadShared) {
+      return;
+    }
+    didLoadShared = true;
+
     await DB.instance.init();
     await ref.read(prefsChangeNotifierProvider).init();
 
