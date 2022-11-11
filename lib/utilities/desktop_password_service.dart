@@ -88,6 +88,33 @@ class DPS {
     }
   }
 
+  Future<bool> verifyPassphrase(String passphrase) async {
+    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
+    final keyBlob = DB.instance.get<String>(
+      boxName: DB.boxNameDesktopData,
+      key: _kKeyBlobKey,
+    );
+    await box.close();
+
+    if (keyBlob == null) {
+      // no passphrase key blob found so any passphrase is technically bad
+      return false;
+    }
+
+    try {
+      await StorageCryptoHandler.fromExisting(passphrase, keyBlob);
+      // existing passphrase matches key blob
+      return true;
+    } catch (e, s) {
+      Logging.instance.log(
+        "${_getMessageFromException(e)}\n$s",
+        level: LogLevel.Warning,
+      );
+      // password is wrong or some other error
+      return false;
+    }
+  }
+
   Future<bool> hasPassword() async {
     final keyBlob = DB.instance.get<String>(
       boxName: DB.boxNameDesktopData,
