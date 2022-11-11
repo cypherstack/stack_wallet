@@ -578,7 +578,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                     label: "Cancel",
                     onPressed: () {
                       int count = 0;
-                      Navigator.of(context).popUntil((_) => count++ >= 2);
+                      !isEnabledAutoBackup
+                          ? Navigator.of(context).popUntil((_) => count++ >= 2)
+                          : Navigator.of(context).pop();
                     },
                   ),
                 ),

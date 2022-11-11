@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/create_auto_backup.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/enable_backup_dialog.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -36,7 +37,6 @@ class BackupRestoreSettings extends ConsumerStatefulWidget {
 class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
   late bool createBackup = false;
   late bool restoreBackup = false;
-  // late bool isEnabledAutoBackup;
 
   final toggleController = DSBController();
 
@@ -87,6 +87,17 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
       barrierDismissible: true,
       builder: (context) {
         return const EnableBackupDialog();
+      },
+    );
+  }
+
+  Future<void> createAutoBackup() async {
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) {
+        return CreateAutoBackup();
       },
     );
   }
@@ -208,10 +219,25 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SvgPicture.asset(
-                            Assets.svg.backupAuto,
-                            width: 48,
-                            height: 48,
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                SvgPicture.asset(
+                                  Assets.svg.backupAuto,
+                                  width: 48,
+                                  height: 48,
+                                ),
+                                isEnabledAutoBackup
+                                    ? SvgPicture.asset(
+                                        Assets.svg.enableButton,
+                                      )
+                                    : SvgPicture.asset(
+                                        Assets.svg.disableButton,
+                                      ),
+                              ],
+                            ),
                           ),
                           Center(
                             child: Row(
@@ -338,7 +364,9 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                 desktopMed: true,
                                                 width: 190,
                                                 label: "Edit auto backup",
-                                                onPressed: () {},
+                                                onPressed: () {
+                                                  createAutoBackup();
+                                                },
                                               ),
                                             ],
                                           )
@@ -362,11 +390,14 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SvgPicture.asset(
-                            Assets.svg.backupAdd,
-                            width: 48,
-                            height: 48,
-                            alignment: Alignment.topLeft,
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SvgPicture.asset(
+                              Assets.svg.backupAdd,
+                              width: 48,
+                              height: 48,
+                              alignment: Alignment.topLeft,
+                            ),
                           ),
                           Center(
                             child: Row(
@@ -441,11 +472,14 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SvgPicture.asset(
-                            Assets.svg.backupRestore,
-                            width: 48,
-                            height: 48,
-                            alignment: Alignment.topLeft,
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SvgPicture.asset(
+                              Assets.svg.backupRestore,
+                              width: 48,
+                              height: 48,
+                              alignment: Alignment.topLeft,
+                            ),
                           ),
                           Center(
                             child: Row(

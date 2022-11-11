@@ -69,6 +69,7 @@ class _SVG {
   String get circleLanguage => "assets/svg/language-circle.svg";
   String get circleDollarSign => "assets/svg/dollar-sign-circle.svg";
   String get circleLock => "assets/svg/lock-circle.svg";
+  String get enableButton => "assets/svg/enabled-button.svg";
   String get disableButton => "assets/svg/Button.svg";
   String get polygon => "assets/svg/Polygon.svg";
   String get personaIncognito => "assets/svg/persona-incognito-1.svg";
