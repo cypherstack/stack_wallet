@@ -196,7 +196,7 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       syncingHeight = (walletBase!.syncStatus as SyncingSyncStatus).height;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
     final cachedHeight =
         DB.instance.get<dynamic>(boxName: walletId, key: "storedSyncingHeight")
