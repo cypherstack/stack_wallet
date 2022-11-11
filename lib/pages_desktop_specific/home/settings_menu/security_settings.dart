@@ -7,6 +7,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
@@ -145,15 +146,15 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     child: TextField(
                                       key: const Key(
                                           "desktopSecurityRestoreFromFilePasswordFieldKey"),
-                                      focusNode: passwordFocusNode,
-                                      controller: passwordController,
+                                      focusNode: passwordCurrentFocusNode,
+                                      controller: passwordCurrentController,
                                       style: STextStyles.field(context),
                                       obscureText: hidePassword,
                                       enableSuggestions: false,
                                       autocorrect: false,
                                       decoration: standardInputDecoration(
                                         "Enter current password",
-                                        passwordFocusNode,
+                                        passwordCurrentFocusNode,
                                         context,
                                       ).copyWith(
                                         labelStyle:
@@ -214,15 +215,15 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     child: TextField(
                                       key: const Key(
                                           "desktopSecurityCreateNewPasswordFieldKey1"),
-                                      focusNode: passwordCurrentFocusNode,
-                                      controller: passwordCurrentController,
+                                      focusNode: passwordFocusNode,
+                                      controller: passwordController,
                                       style: STextStyles.field(context),
                                       obscureText: hidePassword,
                                       enableSuggestions: false,
                                       autocorrect: false,
                                       decoration: standardInputDecoration(
                                         "Enter new password",
-                                        passwordCurrentFocusNode,
+                                        passwordFocusNode,
                                         context,
                                       ).copyWith(
                                         labelStyle:
@@ -302,6 +303,57 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                       },
                                     ),
                                   ),
+                                  if (passwordFocusNode.hasFocus ||
+                                      passwordRepeatFocusNode.hasFocus ||
+                                      passwordController.text.isNotEmpty)
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 12,
+                                        right: 12,
+                                        top:
+                                            passwordFeedback.isNotEmpty ? 4 : 0,
+                                      ),
+                                      child: passwordFeedback.isNotEmpty
+                                          ? Text(
+                                              passwordFeedback,
+                                              style: STextStyles.infoSmall(
+                                                  context),
+                                            )
+                                          : null,
+                                    ),
+                                  if (passwordFocusNode.hasFocus ||
+                                      passwordRepeatFocusNode.hasFocus ||
+                                      passwordController.text.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 12,
+                                        right: 12,
+                                        top: 10,
+                                      ),
+                                      child: ProgressBar(
+                                        key: const Key(
+                                            "desktopSecurityCreateStackBackUpProgressBar"),
+                                        width: 450,
+                                        height: 5,
+                                        fillColor: passwordStrength < 0.51
+                                            ? Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorRed
+                                            : passwordStrength < 1
+                                                ? Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorYellow
+                                                : Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorGreen,
+                                        backgroundColor: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .buttonBackSecondary,
+                                        percent: passwordStrength < 0.25
+                                            ? 0.03
+                                            : passwordStrength,
+                                      ),
+                                    ),
                                   const SizedBox(height: 16),
                                   Text(
                                     "Confirm new password",
