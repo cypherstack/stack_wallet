@@ -14,7 +14,9 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -108,42 +110,103 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
       useSafeArea: false,
       barrierDismissible: true,
       builder: (context) {
-        return StackDialog(
-          title: "Disable Auto Backup",
-          message:
-              "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
-          leftButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context),
-            child: Text(
-              "Back",
-              style: STextStyles.button(context).copyWith(
-                color:
-                    Theme.of(context).extension<StackColors>()!.accentColorDark,
-              ),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          rightButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
-            child: Text(
-              "Disable",
-              style: STextStyles.button(context),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() {
-                ref.watch(prefsChangeNotifierProvider).isAutoBackupEnabled =
-                    false;
-              });
-            },
-          ),
-        );
+        return !Util.isDesktop
+            ? StackDialog(
+                title: "Disable Auto Backup",
+                message:
+                    "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
+                leftButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonColor(context),
+                  child: Text(
+                    "Back",
+                    style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonColor(context),
+                  child: Text(
+                    "Disable",
+                    style: STextStyles.button(context),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      ref
+                          .watch(prefsChangeNotifierProvider)
+                          .isAutoBackupEnabled = false;
+                    });
+                  },
+                ),
+              )
+            : DesktopDialog(
+                maxHeight: 270,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20, horizontal: 32),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Disable Auto Backup",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: 600,
+                        child: Text(
+                          "You are turning off Auto Backup. You can turn it back on at any time. "
+                          "Your previous Auto Backup file will not be deleted. Remember to backup your wallets "
+                          "manually so you don't lose important information.",
+                          style: STextStyles.desktopTextSmall(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SecondaryButton(
+                            width: 248,
+                            desktopMed: true,
+                            enabled: true,
+                            label: "Back",
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          PrimaryButton(
+                            width: 248,
+                            desktopMed: true,
+                            enabled: true,
+                            label: "Disable",
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              setState(() {
+                                ref
+                                    .watch(prefsChangeNotifierProvider)
+                                    .isAutoBackupEnabled = false;
+                              });
+                            },
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
       },
     );
     if (mounted) {
