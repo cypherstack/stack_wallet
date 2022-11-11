@@ -154,7 +154,7 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       _height = (walletBase!.syncStatus as SyncingSyncStatus).height;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
 
     int blocksRemaining = -1;
@@ -163,7 +163,7 @@ class MoneroWallet extends CoinServiceAPI {
       blocksRemaining =
           (walletBase!.syncStatus as SyncingSyncStatus).blocksLeft;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
     int currentHeight = _height + blocksRemaining;
     if (_height == -1 || blocksRemaining == -1) {
@@ -419,7 +419,7 @@ class MoneroWallet extends CoinServiceAPI {
       try {
         progress = (walletBase!.syncStatus!).progress();
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Warning);
+        // Logging.instance.log("$e $s", level: LogLevel.Warning);
       }
       await _fetchTransactionData();
 
