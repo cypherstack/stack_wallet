@@ -23,7 +23,6 @@ import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:flutter_libmonero/core/wallet_creation_service.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -670,11 +669,10 @@ class MoneroWallet extends CoinServiceAPI {
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
 
-    storage = const FlutterSecureStorage();
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
     prefs = await SharedPreferences.getInstance();
-    keysStorage = KeyService(storage!);
+    keysStorage = KeyService(_secureStore);
     WalletInfo walletInfo;
     WalletCredentials credentials;
     try {
@@ -708,7 +706,7 @@ class MoneroWallet extends CoinServiceAPI {
       credentials.walletInfo = walletInfo;
 
       _walletCreationService = WalletCreationService(
-        secureStorage: storage,
+        secureStorage: _secureStore,
         sharedPreferences: prefs,
         walletService: walletService,
         keyService: keysStorage,
@@ -787,11 +785,11 @@ class MoneroWallet extends CoinServiceAPI {
     //   Logging.instance.log("Caught in initializeWallet(): $e\n$s");
     //   return false;
     // }
-    storage = const FlutterSecureStorage();
+
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
     prefs = await SharedPreferences.getInstance();
-    keysStorage = KeyService(storage!);
+    keysStorage = KeyService(_secureStore);
 
     await _generateNewWallet();
     // var password;
@@ -833,11 +831,10 @@ class MoneroWallet extends CoinServiceAPI {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
 
-    storage = const FlutterSecureStorage();
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
     prefs = await SharedPreferences.getInstance();
-    keysStorage = KeyService(storage!);
+    keysStorage = KeyService(_secureStore);
 
     await _prefs.init();
     final data =
@@ -889,7 +886,7 @@ class MoneroWallet extends CoinServiceAPI {
   bool longMutex = false;
 
   // TODO: are these needed?
-  FlutterSecureStorage? storage;
+
   WalletService? walletService;
   SharedPreferences? prefs;
   KeyService? keysStorage;
@@ -970,11 +967,10 @@ class MoneroWallet extends CoinServiceAPI {
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
 
-      storage = const FlutterSecureStorage();
       walletService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
       prefs = await SharedPreferences.getInstance();
-      keysStorage = KeyService(storage!);
+      keysStorage = KeyService(_secureStore);
       WalletInfo walletInfo;
       WalletCredentials credentials;
       String name = _walletId;
@@ -1001,7 +997,7 @@ class MoneroWallet extends CoinServiceAPI {
         credentials.walletInfo = walletInfo;
 
         _walletCreationService = WalletCreationService(
-          secureStorage: storage,
+          secureStorage: _secureStore,
           sharedPreferences: prefs,
           walletService: walletService,
           keyService: keysStorage,

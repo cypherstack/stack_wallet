@@ -154,6 +154,7 @@ void main() async {
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
 
+  // todo: db migrate stuff for desktop needs to be handled eventually
   if (!Util.isDesktop) {
     int dbVersion = DB.instance.get<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
