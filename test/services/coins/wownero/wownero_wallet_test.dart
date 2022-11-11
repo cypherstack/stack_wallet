@@ -126,12 +126,20 @@ void main() async {
         walletBase?.close();
         walletBase = wallet as WowneroWalletBase;
 
-        // TODO validate
-        //expect(walletInfo.address, mainnetTestData14[0][0]);
+        expect(
+            await walletBase!.validateAddress(wallet.walletAddresses.address ?? ''), true);
       } catch (_) {
         hasThrown = true;
       }
       expect(hasThrown, false);
+
+      // Address validation
+      expect(
+          await walletBase!.validateAddress(''), false);
+      expect(
+          await walletBase!.validateAddress('Wo3jmHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmsEi'), true);
+      expect(
+          await walletBase!.validateAddress('WasdfHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmjkl'), false);
 
       walletBase?.close();
       walletBase = wallet as WowneroWalletBase;
@@ -359,6 +367,6 @@ Future<String> pathForWalletDir(
 }
 
 Future<String> pathForWallet(
-        {required String name, required WalletType type}) async =>
+    {required String name, required WalletType type}) async =>
     await pathForWalletDir(name: name, type: type)
         .then((path) => path + '/$name');
