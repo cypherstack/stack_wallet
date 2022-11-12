@@ -1,5 +1,4 @@
 import 'dart:core';
-import 'dart:core' as core;
 import 'dart:io';
 import 'dart:math';
 
@@ -21,8 +20,6 @@ import 'package:mockito/annotations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-
-// TODO trim down to the minimum imports above
 
 import 'monero_wallet_test_data.dart';
 
