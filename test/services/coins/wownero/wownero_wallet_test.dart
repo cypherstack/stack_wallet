@@ -19,14 +19,12 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'wownero_wallet_test_data.dart';
 
 FakeSecureStorage? storage;
 WalletService? walletService;
-SharedPreferences? prefs;
 KeyService? keysStorage;
 WowneroWalletBase? walletBase;
 late WalletCreationService _walletCreationService;
@@ -41,7 +39,6 @@ WalletType type = WalletType.wownero;
 @GenerateMocks([])
 void main() async {
   storage = FakeSecureStorage();
-  prefs = await SharedPreferences.getInstance();
   keysStorage = KeyService(storage!);
   WalletInfo walletInfo = WalletInfo.external(
       id: '',
@@ -102,7 +99,6 @@ void main() async {
 
         _walletCreationService = WalletCreationService(
           secureStorage: storage,
-          sharedPreferences: prefs,
           walletService: walletService,
           keyService: keysStorage,
         );
@@ -127,19 +123,24 @@ void main() async {
         walletBase = wallet as WowneroWalletBase;
 
         expect(
-            await walletBase!.validateAddress(wallet.walletAddresses.address ?? ''), true);
+            await walletBase!
+                .validateAddress(wallet.walletAddresses.address ?? ''),
+            true);
       } catch (_) {
         hasThrown = true;
       }
       expect(hasThrown, false);
 
       // Address validation
+      expect(await walletBase!.validateAddress(''), false);
       expect(
-          await walletBase!.validateAddress(''), false);
+          await walletBase!.validateAddress(
+              'Wo3jmHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmsEi'),
+          true);
       expect(
-          await walletBase!.validateAddress('Wo3jmHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmsEi'), true);
-      expect(
-          await walletBase!.validateAddress('WasdfHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmjkl'), false);
+          await walletBase!.validateAddress(
+              'WasdfHvTMLwE6h29fpgcb8PbJSpaKuqM7XTXVfiiu8bLCZsJvrQCbQSJR48Vo3BWNQKsMsXZ4VixndXTH25QtorC27NCjmjkl'),
+          false);
 
       walletBase?.close();
       walletBase = wallet as WowneroWalletBase;
@@ -174,7 +175,6 @@ void main() async {
 
         _walletCreationService = WalletCreationService(
           secureStorage: storage,
-          sharedPreferences: prefs,
           walletService: walletService,
           keyService: keysStorage,
         );
@@ -248,7 +248,6 @@ void main() async {
 
         _walletCreationService = WalletCreationService(
           secureStorage: storage,
-          sharedPreferences: prefs,
           walletService: walletService,
           keyService: keysStorage,
         );
@@ -312,7 +311,6 @@ void main() async {
 
         _walletCreationService = WalletCreationService(
           secureStorage: storage,
-          sharedPreferences: prefs,
           walletService: walletService,
           keyService: keysStorage,
         );
@@ -367,6 +365,6 @@ Future<String> pathForWalletDir(
 }
 
 Future<String> pathForWallet(
-    {required String name, required WalletType type}) async =>
+        {required String name, required WalletType type}) async =>
     await pathForWalletDir(name: name, type: type)
         .then((path) => path + '/$name');

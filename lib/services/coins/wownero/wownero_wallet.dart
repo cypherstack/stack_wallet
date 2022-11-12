@@ -27,7 +27,6 @@ import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -673,7 +672,6 @@ class WowneroWallet extends CoinServiceAPI {
     // TODO: Wallet Service may need to be switched to Wownero
     walletService =
         wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(_secureStore);
     WalletInfo walletInfo;
     WalletCredentials credentials;
@@ -700,7 +698,6 @@ class WowneroWallet extends CoinServiceAPI {
 
       _walletCreationService = WalletCreationService(
         secureStorage: _secureStore,
-        sharedPreferences: prefs,
         walletService: walletService,
         keyService: keysStorage,
       );
@@ -792,7 +789,6 @@ class WowneroWallet extends CoinServiceAPI {
     // }
     walletService =
         wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(_secureStore);
 
     await _generateNewWallet(seedWordsLength: seedWordsLength);
@@ -837,7 +833,6 @@ class WowneroWallet extends CoinServiceAPI {
 
     walletService =
         wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(_secureStore);
 
     await _prefs.init();
@@ -892,7 +887,6 @@ class WowneroWallet extends CoinServiceAPI {
   // TODO: are these needed?
 
   WalletService? walletService;
-  SharedPreferences? prefs;
   KeyService? keysStorage;
   WowneroWalletBase? walletBase;
   WalletCreationService? _walletCreationService;
@@ -990,7 +984,6 @@ class WowneroWallet extends CoinServiceAPI {
 
       walletService =
           wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
-      prefs = await SharedPreferences.getInstance();
       keysStorage = KeyService(_secureStore);
       WalletInfo walletInfo;
       WalletCredentials credentials;
@@ -1019,7 +1012,6 @@ class WowneroWallet extends CoinServiceAPI {
 
         _walletCreationService = WalletCreationService(
           secureStorage: _secureStore,
-          sharedPreferences: prefs,
           walletService: walletService,
           keyService: keysStorage,
         );

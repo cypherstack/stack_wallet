@@ -26,7 +26,6 @@ import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -671,7 +670,6 @@ class MoneroWallet extends CoinServiceAPI {
 
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(_secureStore);
     WalletInfo walletInfo;
     WalletCredentials credentials;
@@ -707,7 +705,6 @@ class MoneroWallet extends CoinServiceAPI {
 
       _walletCreationService = WalletCreationService(
         secureStorage: _secureStore,
-        sharedPreferences: prefs,
         walletService: walletService,
         keyService: keysStorage,
       );
@@ -788,7 +785,6 @@ class MoneroWallet extends CoinServiceAPI {
 
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(_secureStore);
 
     await _generateNewWallet();
@@ -833,7 +829,6 @@ class MoneroWallet extends CoinServiceAPI {
 
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(_secureStore);
 
     await _prefs.init();
@@ -888,7 +883,6 @@ class MoneroWallet extends CoinServiceAPI {
   // TODO: are these needed?
 
   WalletService? walletService;
-  SharedPreferences? prefs;
   KeyService? keysStorage;
   MoneroWalletBase? walletBase;
   WalletCreationService? _walletCreationService;
@@ -969,7 +963,6 @@ class MoneroWallet extends CoinServiceAPI {
 
       walletService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-      prefs = await SharedPreferences.getInstance();
       keysStorage = KeyService(_secureStore);
       WalletInfo walletInfo;
       WalletCredentials credentials;
@@ -998,7 +991,6 @@ class MoneroWallet extends CoinServiceAPI {
 
         _walletCreationService = WalletCreationService(
           secureStorage: _secureStore,
-          sharedPreferences: prefs,
           walletService: walletService,
           keyService: keysStorage,
         );

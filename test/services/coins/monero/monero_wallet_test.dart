@@ -19,7 +19,6 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
@@ -27,10 +26,8 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'monero_wallet_test_data.dart';
 
-//FlutterSecureStorage? storage;
 FakeSecureStorage? storage;
 WalletService? walletService;
-SharedPreferences? prefs;
 KeyService? keysStorage;
 MoneroWalletBase? walletBase;
 late WalletCreationService _walletCreationService;
@@ -46,7 +43,6 @@ WalletType type = WalletType.monero;
 @GenerateMocks([])
 void main() async {
   storage = FakeSecureStorage();
-  prefs = await SharedPreferences.getInstance();
   keysStorage = KeyService(storage!);
   WalletInfo walletInfo = WalletInfo.external(
       id: '',
@@ -90,12 +86,12 @@ void main() async {
         final dirPath = await pathForWalletDir(name: name, type: type);
         path = await pathForWallet(name: name, type: type);
         credentials =
-        // //     creating a new wallet
-        // monero.createMoneroNewWalletCredentials(
-        //     name: name, language: "English");
-        // restoring a previous wallet
-        monero.createMoneroRestoreWalletFromSeedCredentials(
-            name: name, height: 2580000, mnemonic: testMnemonic);
+            // //     creating a new wallet
+            // monero.createMoneroNewWalletCredentials(
+            //     name: name, language: "English");
+            // restoring a previous wallet
+            monero.createMoneroRestoreWalletFromSeedCredentials(
+                name: name, height: 2580000, mnemonic: testMnemonic);
 
         walletInfo = WalletInfo.external(
             id: WalletBase.idFor(name, type),
@@ -111,7 +107,6 @@ void main() async {
 
         _walletCreationService = WalletCreationService(
           secureStorage: storage,
-          sharedPreferences: prefs,
           walletService: walletService,
           keyService: keysStorage,
         );
@@ -124,8 +119,8 @@ void main() async {
 
     test("Test mainnet address generation from seed", () async {
       final wallet = await
-      // _walletCreationService.create(credentials);
-      _walletCreationService.restoreFromSeed(credentials);
+          // _walletCreationService.create(credentials);
+          _walletCreationService.restoreFromSeed(credentials);
       walletInfo.address = wallet.walletAddresses.address;
       //print(walletInfo.address);
 
@@ -134,8 +129,7 @@ void main() async {
       walletBase = wallet as MoneroWalletBase;
       //print("${walletBase?.seed}");
 
-      expect(
-          await walletBase!.validateAddress(walletInfo.address ?? ''), true);
+      expect(await walletBase!.validateAddress(walletInfo.address ?? ''), true);
 
       // print(walletBase);
       // loggerPrint(walletBase.toString());
@@ -157,20 +151,31 @@ void main() async {
       expect(
           await walletBase!.getTransactionAddress(1, 2), mainnetTestData[1][2]);
 
+      expect(await walletBase!.validateAddress(''), false);
       expect(
-          await walletBase!.validateAddress(''), false);
+          await walletBase!.validateAddress(
+              '4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'),
+          true);
       expect(
-          await walletBase!.validateAddress('4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'), true);
+          await walletBase!.validateAddress(
+              '4asdfkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gpjkl'),
+          false);
       expect(
-          await walletBase!.validateAddress('4asdfkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gpjkl'), false);
+          await walletBase!.validateAddress(
+              '8AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'),
+          false);
       expect(
-          await walletBase!.validateAddress('8AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'), false);
+          await walletBase!.validateAddress(
+              '84kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'),
+          true);
       expect(
-          await walletBase!.validateAddress('84kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'), true);
+          await walletBase!.validateAddress(
+              '8asdfuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenjkl'),
+          false);
       expect(
-          await walletBase!.validateAddress('8asdfuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenjkl'), false);
-      expect(
-          await walletBase!.validateAddress('44kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'), false);
+          await walletBase!.validateAddress(
+              '44kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'),
+          false);
     });
   });
   /*
@@ -229,6 +234,6 @@ Future<String> pathForWalletDir(
 }
 
 Future<String> pathForWallet(
-    {required String name, required WalletType type}) async =>
+        {required String name, required WalletType type}) async =>
     await pathForWalletDir(name: name, type: type)
         .then((path) => path + '/$name');
