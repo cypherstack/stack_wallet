@@ -9,7 +9,6 @@ import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -31,6 +30,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:tuple/tuple.dart';
 
@@ -253,14 +253,16 @@ Future<String> deleteEpicWallet({
   required SecureStorageInterface secureStore,
 }) async {
   String? config = await secureStore.read(key: '${walletId}_config');
+  // TODO: why double check for iOS?
   if (Platform.isIOS) {
-    Directory appDir = (await getApplicationDocumentsDirectory());
-    if (Platform.isIOS) {
-      appDir = (await getLibraryDirectory());
-    }
-    if (Platform.isLinux) {
-      appDir = Directory("${appDir.path}/.stackwallet");
-    }
+    Directory appDir = await StackFileSystem.applicationRootDirectory();
+    // todo why double check for ios?
+    // if (Platform.isIOS) {
+    //   appDir = (await getLibraryDirectory());
+    // }
+    // if (Platform.isLinux) {
+    //   appDir = Directory("${appDir.path}/.stackwallet");
+    // }
     final path = "${appDir.path}/epiccash";
     final String name = walletId;
 
@@ -1237,13 +1239,8 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<String> currentWalletDirPath() async {
-    Directory appDir = (await getApplicationDocumentsDirectory());
-    if (Platform.isIOS) {
-      appDir = (await getLibraryDirectory());
-    }
-    if (Platform.isLinux) {
-      appDir = Directory("${appDir.path}/.stackwallet");
-    }
+    Directory appDir = await StackFileSystem.applicationRootDirectory();
+
     final path = "${appDir.path}/epiccash";
     final String name = _walletId.trim();
     return '$path/$name';

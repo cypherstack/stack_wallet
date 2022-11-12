@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -41,7 +41,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
 
   late final FocusNode passwordFocusNode;
   late final FocusNode passwordRepeatFocusNode;
-  late final StackFileSystem stackFileSystem;
+  late final SWBFileSystem stackFileSystem;
   final zxcvbn = Zxcvbn();
 
   String passwordFeedback =
@@ -61,7 +61,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
 
   @override
   void initState() {
-    stackFileSystem = StackFileSystem();
+    stackFileSystem = SWBFileSystem();
     fileLocationController = TextEditingController();
     passwordController = TextEditingController();
     passwordRepeatController = TextEditingController();

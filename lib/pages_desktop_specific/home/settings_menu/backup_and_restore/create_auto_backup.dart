@@ -9,14 +9,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/enums/log_level_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -48,7 +47,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
 
   late final SecureStorageInterface secureStore;
 
-  late final StackFileSystem stackFileSystem;
+  late final SWBFileSystem stackFileSystem;
   late final FocusNode passphraseFocusNode;
   late final FocusNode passphraseRepeatFocusNode;
   final zxcvbn = Zxcvbn();
@@ -81,7 +80,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
   @override
   void initState() {
     secureStore = ref.read(secureStoreProvider);
-    stackFileSystem = StackFileSystem();
+    stackFileSystem = SWBFileSystem();
 
     fileLocationController = TextEditingController();
     passphraseController = TextEditingController();

@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -20,13 +20,12 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 
 class RestoreFromFileView extends ConsumerStatefulWidget {
   const RestoreFromFileView({Key? key}) : super(key: key);
@@ -44,13 +43,13 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
 
   late final FocusNode passwordFocusNode;
 
-  late final StackFileSystem stackFileSystem;
+  late final SWBFileSystem stackFileSystem;
 
   bool hidePassword = true;
 
   @override
   void initState() {
-    stackFileSystem = StackFileSystem();
+    stackFileSystem = SWBFileSystem();
     fileLocationController = TextEditingController();
     passwordController = TextEditingController();
 

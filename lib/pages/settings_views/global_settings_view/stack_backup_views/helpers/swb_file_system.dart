@@ -4,15 +4,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:stackwallet/utilities/util.dart';
 
-class StackFileSystem {
+class SWBFileSystem {
   Directory? rootPath;
   Directory? startPath;
 
   String? filePath;
   String? dirPath;
 
-  final bool isDesktop = !(Platform.isAndroid || Platform.isIOS);
+  final bool isDesktop = Util.isDesktop;
 
   Future<Directory> prepareStorage() async {
     if (Platform.isAndroid) {

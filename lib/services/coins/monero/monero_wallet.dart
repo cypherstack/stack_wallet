@@ -25,7 +25,6 @@ import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -47,6 +46,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
 
@@ -897,14 +897,8 @@ class MoneroWallet extends CoinServiceAPI {
     required String name,
     required WalletType type,
   }) async {
-    Directory root = (await getApplicationDocumentsDirectory());
-    if (Platform.isIOS) {
-      root = (await getLibraryDirectory());
-    }
-    //
-    if (Platform.isLinux) {
-      root = Directory("${root.path}/.stackwallet");
-    }
+    Directory root = await StackFileSystem.applicationRootDirectory();
+
     final prefix = walletTypeToString(type).toLowerCase();
     final walletsDir = Directory('${root.path}/wallets');
     final walletDire = Directory('${walletsDir.path}/$prefix/$name');

@@ -53,6 +53,7 @@ import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
@@ -79,29 +80,11 @@ void main() async {
     setWindowMaxSize(Size.infinite);
   }
 
-  Directory appDirectory = (await getApplicationDocumentsDirectory());
-  if (Platform.isIOS) {
-    appDirectory = (await getLibraryDirectory());
-  }
-
-  if (Logging.isArmLinux) {
-    appDirectory = Directory("${appDirectory.path}/.stackwallet");
-    await appDirectory.create();
-  }
-
-  if (Platform.isLinux) {
-    appDirectory = Directory("${Platform.environment['HOME']}/.stackwallet");
-
-    if (!appDirectory.existsSync()) {
-      await appDirectory.create();
-    }
-  }
-
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   if (!(Logging.isArmLinux || Logging.isTestEnv)) {
     final isar = await Isar.open(
       [LogSchema],
-      directory: appDirectory.path,
+      directory: (await StackFileSystem.applicationIsarDirectory()).path,
       inspector: false,
     );
     await Logging.instance.init(isar);
@@ -150,7 +133,8 @@ void main() async {
   Hive.registerAdapter(WalletTypeAdapter());
 
   Hive.registerAdapter(UnspentCoinsInfoAdapter());
-  await Hive.initFlutter(appDirectory.path);
+  await Hive.initFlutter(
+      (await StackFileSystem.applicationHiveDirectory()).path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
 

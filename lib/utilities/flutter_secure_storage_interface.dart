@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
 import 'package:stackwallet/models/isar/models/encrypted_string_value.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 
 abstract class SecureStorageInterface {
   dynamic get store;
@@ -47,14 +46,9 @@ class DesktopSecureStore {
   DesktopSecureStore(this.handler);
 
   Future<void> init() async {
-    Directory? appDirectory;
-    if (Platform.isLinux) {
-      appDirectory = Directory("${Platform.environment['HOME']}/.stackwallet");
-      await appDirectory.create();
-    }
     isar = await Isar.open(
       [EncryptedStringValueSchema],
-      directory: appDirectory!.path,
+      directory: (await StackFileSystem.applicationIsarDirectory()).path,
       inspector: false,
       name: "desktopStore",
     );
