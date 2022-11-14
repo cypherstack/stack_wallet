@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/notification_card.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -47,10 +48,25 @@ class _DesktopNotificationsViewState
               ),
             )
           : ListView.builder(
+              primary: false,
               itemCount: notifications.length,
               itemBuilder: (context, index) {
-                return NotificationCard(
-                  notification: notifications[index],
+                final notification = notifications[index];
+                if (notification.read == false) {
+                  ref
+                      .read(unreadNotificationsStateProvider.state)
+                      .state
+                      .add(notification.id);
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 5,
+                  ),
+                  child: NotificationCard(
+                    notification: notification,
+                  ),
                 );
               },
             ),

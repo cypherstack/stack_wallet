@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu_item.dart';
+import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -21,10 +22,12 @@ enum DesktopMenuItemId {
 class DesktopMenu extends ConsumerStatefulWidget {
   const DesktopMenu({
     Key? key,
-    required this.onSelectionChanged,
+    this.onSelectionChanged,
+    this.onSelectionWillChange,
   }) : super(key: key);
 
   final void Function(DesktopMenuItemId)? onSelectionChanged;
+  final void Function(DesktopMenuItemId)? onSelectionWillChange;
 
   @override
   ConsumerState<DesktopMenu> createState() => _DesktopMenuState();
@@ -35,12 +38,12 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   static const minimizedWidth = 72.0;
 
   double _width = expandedWidth;
-  DesktopMenuItemId selectedMenuItem = DesktopMenuItemId.myStack;
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
-    setState(() {
-      selectedMenuItem = idKey;
-    });
+    widget.onSelectionWillChange?.call(idKey);
+
+    ref.read(currentDesktopMenuItemProvider.state).state = idKey;
+
     widget.onSelectionChanged?.call(idKey);
   }
 
@@ -95,7 +98,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         Assets.svg.walletDesktop,
                         width: 20,
                         height: 20,
-                        color: DesktopMenuItemId.myStack == selectedMenuItem
+                        color: DesktopMenuItemId.myStack ==
+                                ref
+                                    .watch(currentDesktopMenuItemProvider.state)
+                                    .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark
@@ -106,7 +112,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "My Stack",
                       value: DesktopMenuItemId.myStack,
-                      group: selectedMenuItem,
+                      group:
+                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       iconOnly: _width == minimizedWidth,
                     ),
@@ -118,7 +125,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     //     Assets.svg.exchangeDesktop,
                     //     width: 20,
                     //     height: 20,
-                    //     color: DesktopMenuItemId.exchange == selectedMenuItem
+                    //     color: DesktopMenuItemId.exchange == ref.watch(currentDesktopMenuItemProvider.state).state
                     //         ? Theme.of(context)
                     //             .extension<StackColors>()!
                     //             .textDark
@@ -129,7 +136,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     //   ),
                     //   label: "Exchange",
                     //   value: DesktopMenuItemId.exchange,
-                    //   group: selectedMenuItem,
+                    //   group: ref.watch(currentDesktopMenuItemProvider.state).state,
                     //   onChanged: updateSelectedMenuItem,
                     //   iconOnly: _width == minimizedWidth,
                     // ),
@@ -141,19 +148,22 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         Assets.svg.bell,
                         width: 20,
                         height: 20,
-                        color:
-                            DesktopMenuItemId.notifications == selectedMenuItem
-                                ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark
-                                    .withOpacity(0.8),
+                        color: DesktopMenuItemId.notifications ==
+                                ref
+                                    .watch(currentDesktopMenuItemProvider.state)
+                                    .state
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                                .withOpacity(0.8),
                       ),
                       label: "Notifications",
                       value: DesktopMenuItemId.notifications,
-                      group: selectedMenuItem,
+                      group:
+                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       iconOnly: _width == minimizedWidth,
                     ),
@@ -165,7 +175,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         Assets.svg.addressBookDesktop,
                         width: 20,
                         height: 20,
-                        color: DesktopMenuItemId.addressBook == selectedMenuItem
+                        color: DesktopMenuItemId.addressBook ==
+                                ref
+                                    .watch(currentDesktopMenuItemProvider.state)
+                                    .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark
@@ -176,7 +189,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Address Book",
                       value: DesktopMenuItemId.addressBook,
-                      group: selectedMenuItem,
+                      group:
+                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       iconOnly: _width == minimizedWidth,
                     ),
@@ -188,7 +202,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         Assets.svg.gear,
                         width: 20,
                         height: 20,
-                        color: DesktopMenuItemId.settings == selectedMenuItem
+                        color: DesktopMenuItemId.settings ==
+                                ref
+                                    .watch(currentDesktopMenuItemProvider.state)
+                                    .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark
@@ -199,7 +216,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Settings",
                       value: DesktopMenuItemId.settings,
-                      group: selectedMenuItem,
+                      group:
+                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       iconOnly: _width == minimizedWidth,
                     ),
@@ -211,7 +229,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         Assets.svg.messageQuestion,
                         width: 20,
                         height: 20,
-                        color: DesktopMenuItemId.support == selectedMenuItem
+                        color: DesktopMenuItemId.support ==
+                                ref
+                                    .watch(currentDesktopMenuItemProvider.state)
+                                    .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark
@@ -222,7 +243,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Support",
                       value: DesktopMenuItemId.support,
-                      group: selectedMenuItem,
+                      group:
+                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       iconOnly: _width == minimizedWidth,
                     ),
@@ -234,7 +256,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         Assets.svg.aboutDesktop,
                         width: 20,
                         height: 20,
-                        color: DesktopMenuItemId.about == selectedMenuItem
+                        color: DesktopMenuItemId.about ==
+                                ref
+                                    .watch(currentDesktopMenuItemProvider.state)
+                                    .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark
@@ -245,7 +270,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "About",
                       value: DesktopMenuItemId.about,
-                      group: selectedMenuItem,
+                      group:
+                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       iconOnly: _width == minimizedWidth,
                     ),
@@ -262,7 +288,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Exit",
                       value: 7,
-                      group: selectedMenuItem,
+                      group:
+                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: (_) {
                         // todo: save stuff/ notify before exit?
                         exit(0);
