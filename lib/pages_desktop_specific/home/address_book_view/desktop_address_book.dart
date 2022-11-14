@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/contact.dart';
+import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -11,6 +12,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -42,10 +44,25 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
       useSafeArea: false,
       barrierDismissible: true,
       builder: (context) {
-        return DesktopDialog(
+        return const DesktopDialog(
           maxHeight: 609,
           maxWidth: 576,
           child: AddressBookFilterView(),
+        );
+      },
+    );
+  }
+
+  Future<void> newContact() async {
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) {
+        return const DesktopDialog(
+          maxHeight: 609,
+          maxWidth: 576,
+          child: AddAddressBookEntryView(),
         );
       },
     );
@@ -71,6 +88,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     final hasWallets = ref.watch(walletsChangeNotifierProvider).hasWallets;
+    final size = MediaQuery.of(context).size;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -93,127 +111,132 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
         const SizedBox(height: 53),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: [
-              SizedBox(
-                height: 60,
-                width: 489,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                  child: TextField(
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    onChanged: (newString) {
-                      setState(() => filter = newString);
-                    },
-                    style: STextStyles.field(context),
-                    decoration: standardInputDecoration(
-                      "Search...",
-                      _searchFocusNode,
-                      context,
-                    ).copyWith(
-                      labelStyle: STextStyles.fieldLabel(context)
-                          .copyWith(fontSize: 16),
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 16,
+          child: RoundedContainer(
+            color: Theme.of(context).extension<StackColors>()!.background,
+            child: Row(
+              children: [
+                SizedBox(
+                  height: 60,
+                  width: size.width - 800,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    child: TextField(
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      onChanged: (newString) {
+                        setState(() => filter = newString);
+                      },
+                      style: STextStyles.field(context),
+                      decoration: standardInputDecoration(
+                        "Search...",
+                        _searchFocusNode,
+                        context,
+                      ).copyWith(
+                        labelStyle: STextStyles.fieldLabel(context)
+                            .copyWith(fontSize: 16),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 16,
+                          ),
+                          child: SvgPicture.asset(
+                            Assets.svg.search,
+                            width: 16,
+                            height: 16,
+                          ),
                         ),
-                        child: SvgPicture.asset(
-                          Assets.svg.search,
-                          width: 16,
-                          height: 16,
-                        ),
-                      ),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? Padding(
-                              padding: const EdgeInsets.only(right: 0),
-                              child: UnconstrainedBox(
-                                child: Row(
-                                  children: [
-                                    TextFieldIconButton(
-                                      child: const XIcon(),
-                                      onTap: () async {
-                                        setState(() {
-                                          _searchController.text = "";
-                                          filter = "";
-                                        });
-                                      },
-                                    ),
-                                  ],
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.only(right: 0),
+                                child: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      TextFieldIconButton(
+                                        child: const XIcon(),
+                                        onTap: () async {
+                                          setState(() {
+                                            _searchController.text = "";
+                                            filter = "";
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            )
-                          : null,
+                              )
+                            : null,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 20),
-              TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getDesktopMenuButtonColorSelected(context),
-                onPressed: () {
-                  selectCryptocurrency();
-                },
-                child: SizedBox(
-                  width: 200,
-                  height: 56,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: SvgPicture.asset(Assets.svg.filter),
-                      ),
-                      Text(
-                        "Filter",
-                        style: STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
+                const SizedBox(width: 20),
+                TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getDesktopMenuButtonColorSelected(context),
+                  onPressed: () {
+                    selectCryptocurrency();
+                  },
+                  child: SizedBox(
+                    width: 200,
+                    height: 56,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: SvgPicture.asset(Assets.svg.filter),
                         ),
-                      ),
-                    ],
+                        Text(
+                          "Filter",
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 20),
-              TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
-                onPressed: () {},
-                child: SizedBox(
-                  width: 200,
-                  height: 56,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: SvgPicture.asset(Assets.svg.circlePlus),
-                      ),
-                      Text(
-                        "Add new",
-                        style: STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .popupBG,
+                const SizedBox(width: 20),
+                TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonColor(context),
+                  onPressed: () {
+                    newContact();
+                  },
+                  child: SizedBox(
+                    width: 200,
+                    height: 56,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: SvgPicture.asset(Assets.svg.circlePlus),
                         ),
-                      ),
-                    ],
+                        Text(
+                          "Add new",
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .popupBG,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         Padding(
