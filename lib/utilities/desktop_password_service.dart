@@ -115,6 +115,48 @@ class DPS {
     }
   }
 
+  Future<bool> changePassphrase(
+    String passphraseOld,
+    String passphraseNew,
+  ) async {
+    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
+    final keyBlob = DB.instance.get<String>(
+      boxName: DB.boxNameDesktopData,
+      key: _kKeyBlobKey,
+    );
+    await box.close();
+
+    if (keyBlob == null) {
+      // no passphrase key blob found so any passphrase is technically bad
+      return false;
+    }
+
+    if (!(await verifyPassphrase(passphraseOld))) {
+      return false;
+    }
+
+    try {
+      await _handler!.resetPassphrase(passphraseNew);
+
+      final box = await Hive.openBox<String>(DB.boxNameDesktopData);
+      await DB.instance.put<String>(
+        boxName: DB.boxNameDesktopData,
+        key: _kKeyBlobKey,
+        value: await _handler!.getKeyBlob(),
+      );
+      await box.close();
+
+      // successfully updated passphrase
+      return true;
+    } catch (e, s) {
+      Logging.instance.log(
+        "${_getMessageFromException(e)}\n$s",
+        level: LogLevel.Warning,
+      );
+      return false;
+    }
+  }
+
   Future<bool> hasPassword() async {
     final keyBlob = DB.instance.get<String>(
       boxName: DB.boxNameDesktopData,
