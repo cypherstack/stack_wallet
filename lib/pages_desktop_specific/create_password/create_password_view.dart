@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -23,14 +23,9 @@ import 'package:zxcvbn/zxcvbn.dart';
 class CreatePasswordView extends ConsumerStatefulWidget {
   const CreatePasswordView({
     Key? key,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
 
   static const String routeName = "/createPasswordDesktop";
-
-  final FlutterSecureStorageInterface secureStore;
 
   @override
   ConsumerState<CreatePasswordView> createState() => _CreatePasswordViewState();
@@ -79,7 +74,13 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
     }
 
     try {
+      if (await ref.read(storageCryptoHandlerProvider).hasPassword()) {
+        throw Exception(
+            "Tried creating a new password and attempted to overwrite an existing entry!");
+      }
+
       await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
+      await (ref.read(secureStoreProvider).store as DesktopSecureStore).init();
     } catch (e) {
       unawaited(showFloatingFlushBar(
         type: FlushBarType.warning,

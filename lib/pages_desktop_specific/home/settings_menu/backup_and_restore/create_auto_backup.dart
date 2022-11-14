@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,26 +6,25 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/enums/log_level_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
@@ -35,12 +35,7 @@ import 'package:zxcvbn/zxcvbn.dart';
 class CreateAutoBackup extends ConsumerStatefulWidget {
   const CreateAutoBackup({
     Key? key,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
-
-  final FlutterSecureStorageInterface secureStore;
 
   @override
   ConsumerState<CreateAutoBackup> createState() => _CreateAutoBackup();
@@ -51,9 +46,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
   late final TextEditingController passphraseController;
   late final TextEditingController passphraseRepeatController;
 
-  late final FlutterSecureStorageInterface secureStore;
+  late final SecureStorageInterface secureStore;
 
-  late final StackFileSystem stackFileSystem;
+  late final SWBFileSystem stackFileSystem;
   late final FocusNode passphraseFocusNode;
   late final FocusNode passphraseRepeatFocusNode;
   final zxcvbn = Zxcvbn();
@@ -85,8 +80,8 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
 
   @override
   void initState() {
-    secureStore = widget.secureStore;
-    stackFileSystem = StackFileSystem();
+    secureStore = ref.read(secureStoreProvider);
+    stackFileSystem = SWBFileSystem();
 
     fileLocationController = TextEditingController();
     passphraseController = TextEditingController();
@@ -125,10 +120,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
 
-    bool isEnabledAutoBackup = ref.watch(prefsChangeNotifierProvider
-        .select((value) => value.isAutoBackupEnabled));
+    // bool isEnabledAutoBackup = ref.watch(prefsChangeNotifierProvider
+    //     .select((value) => value.isAutoBackupEnabled));
 
-    String? selectedItem = "Every 10 minutes";
     final isDesktop = Util.isDesktop;
     return DesktopDialog(
       maxHeight: 680,
@@ -146,25 +140,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: AppBarIconButton(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
-                  size: 40,
-                  icon: SvgPicture.asset(
-                    Assets.svg.x,
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                    width: 22,
-                    height: 22,
-                  ),
-                  onPressed: () {
-                    int count = 0;
-                    Navigator.of(context).popUntil((_) => count++ >= 2);
-                  },
-                ),
-              ),
+              const DesktopDialogCloseButton(),
             ],
           ),
           const SizedBox(
@@ -407,7 +383,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                     ),
                   ),
                 const SizedBox(
-                  height: 10,
+                  height: 16,
                 ),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(
@@ -493,7 +469,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
             child: isDesktop
                 ? DropdownButtonHideUnderline(
                     child: DropdownButton2(
-                      offset: Offset(0, -10),
+                      offset: const Offset(0, -10),
                       isExpanded: true,
                       dropdownElevation: 0,
                       value: _currentDropDownValue,
@@ -576,12 +552,8 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Cancel",
-                    onPressed: () {
-                      int count = 0;
-                      !isEnabledAutoBackup
-                          ? Navigator.of(context).popUntil((_) => count++ >= 2)
-                          : Navigator.of(context).pop();
-                    },
+                    desktopMed: true,
+                    onPressed: Navigator.of(context).pop,
                   ),
                 ),
                 const SizedBox(
@@ -589,6 +561,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                 ),
                 Expanded(
                   child: PrimaryButton(
+                    desktopMed: true,
                     label: "Enable Auto Backup",
                     enabled: shouldEnableCreate,
                     onPressed: !shouldEnableCreate
@@ -601,44 +574,89 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                 passphraseRepeatController.text;
 
                             if (pathToSave.isEmpty) {
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Directory not chosen",
-                                context: context,
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "Directory not chosen",
+                                  context: context,
+                                ),
                               );
                               return;
                             }
                             if (!(await Directory(pathToSave).exists())) {
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Directory does not exist",
-                                context: context,
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "Directory does not exist",
+                                  context: context,
+                                ),
                               );
                               return;
                             }
                             if (passphrase.isEmpty) {
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "A passphrase is required",
-                                context: context,
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "A passphrase is required",
+                                  context: context,
+                                ),
                               );
                               return;
                             }
                             if (passphrase != repeatPassphrase) {
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Passphrase does not match",
-                                context: context,
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "Passphrase does not match",
+                                  context: context,
+                                ),
                               );
                               return;
                             }
 
-                            showDialog<dynamic>(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (_) => const StackDialog(
-                                title: "Encrypting initial backup",
-                                message: "This shouldn't take long",
+                            unawaited(
+                              showDialog<dynamic>(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (_) {
+                                  if (Util.isDesktop) {
+                                    return DesktopDialog(
+                                      maxHeight: double.infinity,
+                                      maxWidth: 450,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(
+                                          32,
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Encrypting initial backup",
+                                              style: STextStyles.desktopH3(
+                                                  context),
+                                            ),
+                                            const SizedBox(
+                                              height: 40,
+                                            ),
+                                            Text(
+                                              "This shouldn't take long",
+                                              style: STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    return const StackDialog(
+                                      title: "Encrypting initial backup",
+                                      message: "This shouldn't take long",
+                                    );
+                                  }
+                                },
                               ),
                             );
 
@@ -659,10 +677,12 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                   .log("$err\n$s", level: LogLevel.Error);
                               // pop encryption progress dialog
                               Navigator.of(context).pop();
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: err,
-                                context: context,
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: err,
+                                  context: context,
+                                ),
                               );
                               return;
                             } catch (e, s) {
@@ -670,10 +690,12 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                   .log("$e\n$s", level: LogLevel.Error);
                               // pop encryption progress dialog
                               Navigator.of(context).pop();
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "$e",
-                                context: context,
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "$e",
+                                  context: context,
+                                ),
                               );
                               return;
                             }
@@ -688,7 +710,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                             final String fileToSave =
                                 createAutoBackupFilename(pathToSave, now);
 
-                            final backup = await SWB.createStackWalletJSON();
+                            final backup = await SWB.createStackWalletJSON(
+                              secureStorage: secureStore,
+                            );
 
                             bool result = await SWB.encryptStackWalletWithADK(
                               fileToSave,
@@ -702,9 +726,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
 
                             if (mounted) {
                               // pop encryption progress dialog
-                              int count = 0;
-                              Navigator.of(context)
-                                  .popUntil((_) => count++ >= 2);
+                              Navigator.of(context).pop();
 
                               if (result) {
                                 ref
@@ -721,22 +743,76 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                 await showDialog<dynamic>(
                                   context: context,
                                   barrierDismissible: false,
-                                  builder: (_) => Platform.isAndroid
-                                      ? StackOkDialog(
-                                          title:
-                                              "Stack Auto Backup enabled and saved to:",
-                                          message: fileToSave,
-                                        )
-                                      : const StackOkDialog(
-                                          title: "Stack Auto Backup enabled!"),
+                                  builder: (context) {
+                                    if (Platform.isAndroid) {
+                                      return StackOkDialog(
+                                        title:
+                                            "Stack Auto Backup enabled and saved to:",
+                                        message: fileToSave,
+                                      );
+                                    } else if (Util.isDesktop) {
+                                      return DesktopDialog(
+                                        maxHeight: double.infinity,
+                                        maxWidth: 500,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 32,
+                                            right: 32,
+                                            bottom: 32,
+                                          ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "Stack Auto Backup enabled!",
+                                                    style:
+                                                        STextStyles.desktopH3(
+                                                            context),
+                                                  ),
+                                                  const DesktopDialogCloseButton(),
+                                                ],
+                                              ),
+                                              const SizedBox(
+                                                height: 40,
+                                              ),
+                                              Row(
+                                                children: [
+                                                  const Spacer(),
+                                                  Expanded(
+                                                    child: PrimaryButton(
+                                                      label: "Ok",
+                                                      desktopMed: true,
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      return const StackOkDialog(
+                                        title: "Stack Auto Backup enabled!",
+                                      );
+                                    }
+                                  },
                                 );
                                 if (mounted) {
                                   passphraseController.text = "";
                                   passphraseRepeatController.text = "";
 
-                                  int count = 0;
-                                  Navigator.of(context)
-                                      .popUntil((_) => count++ >= 2);
+                                  Navigator.of(context).pop();
                                 }
                               } else {
                                 await showDialog<dynamic>(

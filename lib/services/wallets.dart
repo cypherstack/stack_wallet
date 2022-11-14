@@ -205,13 +205,14 @@ class Wallets extends ChangeNotifier {
             final txTracker =
                 TransactionNotificationTracker(walletId: walletId);
 
-            final failovers = NodeService().failoverNodesFor(coin: coin);
+            final failovers = nodeService.failoverNodesFor(coin: coin);
 
             // load wallet
             final wallet = CoinServiceAPI.from(
               coin,
               walletId,
               entry.value.name,
+              nodeService.secureStorageInterface,
               node,
               txTracker,
               prefs,

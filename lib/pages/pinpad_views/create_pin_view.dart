@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -20,15 +20,11 @@ class CreatePinView extends ConsumerStatefulWidget {
   const CreatePinView({
     Key? key,
     this.popOnSuccess = false,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
     this.biometrics = const Biometrics(),
   }) : super(key: key);
 
   static const String routeName = "/createPin";
 
-  final FlutterSecureStorageInterface secureStore;
   final Biometrics biometrics;
   final bool popOnSuccess;
 
@@ -58,12 +54,12 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
   final TextEditingController _pinPutController2 = TextEditingController();
   final FocusNode _pinPutFocusNode2 = FocusNode();
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
   late Biometrics biometrics;
 
   @override
   initState() {
-    _secureStore = widget.secureStore;
+    _secureStore = ref.read(secureStoreProvider);
     biometrics = widget.biometrics;
     super.initState();
   }

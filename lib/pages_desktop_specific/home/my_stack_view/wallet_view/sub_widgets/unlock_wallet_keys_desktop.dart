@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
+import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -196,36 +201,32 @@ class _UnlockWalletKeysDesktopState
                     enabled: continueEnabled,
                     onPressed: continueEnabled
                         ? () async {
-                            // todo: check password
-                            // Navigator.of(context).pop();
-                            final words = await ref
-                                .read(walletsChangeNotifierProvider)
-                                .getManager(widget.walletId)
-                                .mnemonic;
+                            final verified = await ref
+                                .read(storageCryptoHandlerProvider)
+                                .verifyPassphrase(passwordController.text);
 
-                            await Navigator.of(context).pushReplacementNamed(
-                              WalletKeysDesktopPopup.routeName,
-                              arguments: words,
-                            );
-                            //
-                            // await showDialog<void>(
-                            //   context: context,
-                            //   barrierDismissible: false,
-                            //   builder: (context) => Navigator(
-                            //     initialRoute: WalletKeysDesktopPopup.routeName,
-                            //     onGenerateRoute: RouteGenerator.generateRoute,
-                            //     onGenerateInitialRoutes: (_, __) {
-                            //       return [
-                            //         RouteGenerator.generateRoute(
-                            //           RouteSettings(
-                            //             name: WalletKeysDesktopPopup.routeName,
-                            //             arguments: words,
-                            //           ),
-                            //         )
-                            //       ];
-                            //     },
-                            //   ),
-                            // );
+                            if (verified) {
+                              final words = await ref
+                                  .read(walletsChangeNotifierProvider)
+                                  .getManager(widget.walletId)
+                                  .mnemonic;
+
+                              if (mounted) {
+                                await Navigator.of(context)
+                                    .pushReplacementNamed(
+                                  WalletKeysDesktopPopup.routeName,
+                                  arguments: words,
+                                );
+                              }
+                            } else {
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "Invalid passphrase!",
+                                  context: context,
+                                ),
+                              );
+                            }
                           }
                         : null,
                   ),

@@ -21,3 +21,27 @@ class ConditionalParent extends StatelessWidget {
     }
   }
 }
+
+class BranchedParent extends StatelessWidget {
+  const BranchedParent({
+    Key? key,
+    required this.condition,
+    required this.conditionBranchBuilder,
+    required this.otherBranchBuilder,
+    required this.children,
+  }) : super(key: key);
+
+  final bool condition;
+  final Widget Function(List<Widget>) conditionBranchBuilder;
+  final Widget Function(List<Widget>) otherBranchBuilder;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    if (condition) {
+      return conditionBranchBuilder(children);
+    } else {
+      return otherBranchBuilder(children);
+    }
+  }
+}

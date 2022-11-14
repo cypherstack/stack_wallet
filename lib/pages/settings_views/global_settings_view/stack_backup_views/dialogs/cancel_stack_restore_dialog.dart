@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class CancelStackRestoreDialog extends StatelessWidget {
@@ -14,38 +19,95 @@ class CancelStackRestoreDialog extends StatelessWidget {
       onWillPop: () async {
         return false;
       },
-      child: StackDialog(
-        title: "Cancel restore process",
-        message:
-            "Cancelling will revert any changes that may have been applied",
-        leftButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getSecondaryEnabledButtonColor(context),
-          child: Text(
-            "Back",
-            style: STextStyles.itemSubtitle12(context),
-          ),
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-        ),
-        rightButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getPrimaryEnabledButtonColor(context),
-          child: Text(
-            "Yes, cancel",
-            style: STextStyles.itemSubtitle12(context).copyWith(
-              color:
-                  Theme.of(context).extension<StackColors>()!.buttonTextPrimary,
+      child: !Util.isDesktop
+          ? StackDialog(
+              title: "Cancel restore process",
+              message:
+                  "Cancelling will revert any changes that may have been applied",
+              leftButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonColor(context),
+                child: Text(
+                  "Back",
+                  style: STextStyles.itemSubtitle12(context),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getPrimaryEnabledButtonColor(context),
+                child: Text(
+                  "Yes, cancel",
+                  style: STextStyles.itemSubtitle12(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextPrimary,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            )
+          : DesktopDialog(
+              maxHeight: 250,
+              maxWidth: 600,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    top: 20, left: 32, right: 32, bottom: 20),
+                child: Column(
+                  children: [
+                    Text(
+                      "Cancel Restore Process",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: 500,
+                      child: RoundedContainer(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .snackBarBackError,
+                        child: Text(
+                          "If you cancel, the restore will not complete, and "
+                          "the wallets will not appear in your Stack.",
+                          style: STextStyles.desktopTextMedium(context),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SecondaryButton(
+                          width: 248,
+                          desktopMed: true,
+                          enabled: true,
+                          label: "Keep restoring",
+                          onPressed: () {
+                            Navigator.of(context).pop(false);
+                          },
+                        ),
+                        const SizedBox(width: 20),
+                        PrimaryButton(
+                          width: 248,
+                          desktopMed: true,
+                          enabled: true,
+                          label: "Cancel anyway",
+                          onPressed: () {
+                            Navigator.of(context).pop(true);
+                          },
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-          onPressed: () {
-            Navigator.of(context).pop(true);
-          },
-        ),
-      ),
     );
   }
 }

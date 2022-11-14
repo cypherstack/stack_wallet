@@ -6,11 +6,9 @@ import 'dart:isolate';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -32,6 +30,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:tuple/tuple.dart';
 
@@ -251,26 +250,29 @@ Future<String> _deleteWalletWrapper(String wallet) async {
 
 Future<String> deleteEpicWallet({
   required String walletId,
-  required FlutterSecureStorageInterface secureStore,
+  required SecureStorageInterface secureStore,
 }) async {
-  String? config = await secureStore.read(key: '${walletId}_config');
-  if (Platform.isIOS) {
-    Directory appDir = (await getApplicationDocumentsDirectory());
-    if (Platform.isIOS) {
-      appDir = (await getLibraryDirectory());
-    }
-    if (Platform.isLinux) {
-      appDir = Directory("${appDir.path}/.stackwallet");
-    }
-    final path = "${appDir.path}/epiccash";
-    final String name = walletId;
-
-    final walletDir = '$path/$name';
-    var editConfig = jsonDecode(config as String);
-
-    editConfig["wallet_dir"] = walletDir;
-    config = jsonEncode(editConfig);
-  }
+  // is this even needed for anything?
+  // String? config = await secureStore.read(key: '${walletId}_config');
+  // // TODO: why double check for iOS?
+  // if (Platform.isIOS) {
+  //   Directory appDir = await StackFileSystem.applicationRootDirectory();
+  //   // todo why double check for ios?
+  //   // if (Platform.isIOS) {
+  //   //   appDir = (await getLibraryDirectory());
+  //   // }
+  //   // if (Platform.isLinux) {
+  //   //   appDir = Directory("${appDir.path}/.stackwallet");
+  //   // }
+  //   final path = "${appDir.path}/epiccash";
+  //   final String name = walletId;
+  //
+  //   final walletDir = '$path/$name';
+  //   var editConfig = jsonDecode(config as String);
+  //
+  //   editConfig["wallet_dir"] = walletDir;
+  //   config = jsonEncode(editConfig);
+  // }
 
   final wallet = await secureStore.read(key: '${walletId}_wallet');
 
@@ -518,14 +520,13 @@ class EpicCashWallet extends CoinServiceAPI {
       required String walletName,
       required Coin coin,
       PriceAPI? priceAPI,
-      FlutterSecureStorageInterface? secureStore}) {
+      required SecureStorageInterface secureStore}) {
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
-    _secureStore =
-        secureStore ?? const SecureStorageWrapper(FlutterSecureStorage());
+    _secureStore = secureStore;
 
     Logging.instance.log("$walletName isolate length: ${isolates.length}",
         level: LogLevel.Info);
@@ -537,7 +538,8 @@ class EpicCashWallet extends CoinServiceAPI {
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
-    _epicNode = NodeService().getPrimaryNodeFor(coin: coin) ??
+    _epicNode = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
     // TODO notify ui/ fire event for node changed?
 
@@ -659,7 +661,7 @@ class EpicCashWallet extends CoinServiceAPI {
   @override
   Coin get coin => _coin;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 
@@ -1238,13 +1240,8 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<String> currentWalletDirPath() async {
-    Directory appDir = (await getApplicationDocumentsDirectory());
-    if (Platform.isIOS) {
-      appDir = (await getLibraryDirectory());
-    }
-    if (Platform.isLinux) {
-      appDir = Directory("${appDir.path}/.stackwallet");
-    }
+    Directory appDir = await StackFileSystem.applicationRootDirectory();
+
     final path = "${appDir.path}/epiccash";
     final String name = _walletId.trim();
     return '$path/$name';

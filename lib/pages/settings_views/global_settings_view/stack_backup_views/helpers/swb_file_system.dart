@@ -4,15 +4,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:stackwallet/utilities/util.dart';
 
-class StackFileSystem {
+class SWBFileSystem {
   Directory? rootPath;
   Directory? startPath;
 
   String? filePath;
   String? dirPath;
 
-  final bool isDesktop = !(Platform.isAndroid || Platform.isIOS);
+  final bool isDesktop = Util.isDesktop;
 
   Future<Directory> prepareStorage() async {
     if (Platform.isAndroid) {
@@ -25,11 +26,20 @@ class StackFileSystem {
     }
     debugPrint(rootPath!.absolute.toString());
 
-    Directory sampleFolder =
-        Directory('${rootPath!.path}Documents/Stack_backups');
+    late Directory sampleFolder;
+
     if (Platform.isIOS) {
       sampleFolder = Directory(rootPath!.path);
+    } else if (Platform.isAndroid) {
+      sampleFolder = Directory('${rootPath!.path}Documents/Stack_backups');
+    } else if (Platform.isLinux) {
+      sampleFolder = Directory('${rootPath!.path}/Stack_backups');
+    } else if (Platform.isWindows) {
+      sampleFolder = Directory('${rootPath!.path}/Stack_backups');
+    } else if (Platform.isMacOS) {
+      sampleFolder = Directory('${rootPath!.path}/Stack_backups');
     }
+
     try {
       if (!sampleFolder.existsSync()) {
         sampleFolder.createSync(recursive: true);

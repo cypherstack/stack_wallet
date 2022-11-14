@@ -1,4 +1,3 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
@@ -17,9 +16,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 class DbVersionMigrator {
   Future<void> migrate(
     int fromVersion, {
-    FlutterSecureStorageInterface secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
+    required SecureStorageInterface secureStore,
   }) async {
     Logging.instance.log(
       "Running migrate fromVersion $fromVersion",
@@ -29,8 +26,9 @@ class DbVersionMigrator {
       case 0:
         await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
         await Hive.openBox<dynamic>(DB.boxNamePrefs);
-        final walletsService = WalletsService();
-        final nodeService = NodeService();
+        final walletsService =
+            WalletsService(secureStorageInterface: secureStore);
+        final nodeService = NodeService(secureStorageInterface: secureStore);
         final prefs = Prefs.instance;
         final walletInfoList = await walletsService.walletNames;
         await prefs.init();
@@ -118,7 +116,7 @@ class DbVersionMigrator {
             boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 1);
 
         // try to continue migrating
-        return await migrate(1);
+        return await migrate(1, secureStore: secureStore);
 
       case 1:
         await Hive.openBox<ExchangeTransaction>(DB.boxNameTrades);
@@ -142,7 +140,7 @@ class DbVersionMigrator {
             boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 2);
 
         // try to continue migrating
-        return await migrate(2);
+        return await migrate(2, secureStore: secureStore);
       case 2:
         await Hive.openBox<dynamic>(DB.boxNamePrefs);
         final prefs = Prefs.instance;
@@ -154,7 +152,7 @@ class DbVersionMigrator {
         // update version
         await DB.instance.put<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 3);
-        return await migrate(3);
+        return await migrate(3, secureStore: secureStore);
 
       default:
         // finally return

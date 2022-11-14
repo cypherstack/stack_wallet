@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -33,9 +33,6 @@ class LockscreenView extends ConsumerStatefulWidget {
     this.popOnSuccess = false,
     this.isInitialAppLogin = false,
     this.routeOnSuccessArguments,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
     this.biometrics = const Biometrics(),
     this.onSuccess,
   }) : super(key: key);
@@ -50,7 +47,6 @@ class LockscreenView extends ConsumerStatefulWidget {
   final String biometricsAuthenticationTitle;
   final String biometricsLocalizedReason;
   final String biometricsCancelButtonString;
-  final FlutterSecureStorageInterface secureStore;
   final Biometrics biometrics;
   final VoidCallback? onSuccess;
 
@@ -134,7 +130,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   void initState() {
     _shakeController = ShakeController();
 
-    _secureStore = widget.secureStore;
+    _secureStore = ref.read(secureStoreProvider);
     biometrics = widget.biometrics;
     _attempts = 0;
     _timeout = Duration.zero;
@@ -162,7 +158,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   final _pinTextController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
   late Biometrics biometrics;
 
   Scaffold get _body => Scaffold(

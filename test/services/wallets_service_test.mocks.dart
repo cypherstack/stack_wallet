@@ -3,12 +3,12 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i3;
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i2;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
-    as _i3;
+    as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -21,43 +21,24 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeFlutterSecureStorage_0 extends _i1.SmartFake
-    implements _i2.FlutterSecureStorage {
-  _FakeFlutterSecureStorage_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
 /// A class which mocks [SecureStorageWrapper].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockSecureStorageWrapper extends _i1.Mock
-    implements _i3.SecureStorageWrapper {
+    implements _i2.SecureStorageWrapper {
   MockSecureStorageWrapper() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i2.FlutterSecureStorage get secureStore => (super.noSuchMethod(
-        Invocation.getter(#secureStore),
-        returnValue: _FakeFlutterSecureStorage_0(
-          this,
-          Invocation.getter(#secureStore),
-        ),
-      ) as _i2.FlutterSecureStorage);
-  @override
-  _i4.Future<String?> read({
+  _i3.Future<String?> read({
     required String? key,
-    _i2.IOSOptions? iOptions,
-    _i2.AndroidOptions? aOptions,
-    _i2.LinuxOptions? lOptions,
-    _i2.WebOptions? webOptions,
-    _i2.MacOsOptions? mOptions,
-    _i2.WindowsOptions? wOptions,
+    _i4.IOSOptions? iOptions,
+    _i4.AndroidOptions? aOptions,
+    _i4.LinuxOptions? lOptions,
+    _i4.WebOptions? webOptions,
+    _i4.MacOsOptions? mOptions,
+    _i4.WindowsOptions? wOptions,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -73,18 +54,18 @@ class MockSecureStorageWrapper extends _i1.Mock
             #wOptions: wOptions,
           },
         ),
-        returnValue: _i4.Future<String?>.value(),
-      ) as _i4.Future<String?>);
+        returnValue: _i3.Future<String?>.value(),
+      ) as _i3.Future<String?>);
   @override
-  _i4.Future<void> write({
+  _i3.Future<void> write({
     required String? key,
     required String? value,
-    _i2.IOSOptions? iOptions,
-    _i2.AndroidOptions? aOptions,
-    _i2.LinuxOptions? lOptions,
-    _i2.WebOptions? webOptions,
-    _i2.MacOsOptions? mOptions,
-    _i2.WindowsOptions? wOptions,
+    _i4.IOSOptions? iOptions,
+    _i4.AndroidOptions? aOptions,
+    _i4.LinuxOptions? lOptions,
+    _i4.WebOptions? webOptions,
+    _i4.MacOsOptions? mOptions,
+    _i4.WindowsOptions? wOptions,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -101,18 +82,18 @@ class MockSecureStorageWrapper extends _i1.Mock
             #wOptions: wOptions,
           },
         ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
   @override
-  _i4.Future<void> delete({
+  _i3.Future<void> delete({
     required String? key,
-    _i2.IOSOptions? iOptions,
-    _i2.AndroidOptions? aOptions,
-    _i2.LinuxOptions? lOptions,
-    _i2.WebOptions? webOptions,
-    _i2.MacOsOptions? mOptions,
-    _i2.WindowsOptions? wOptions,
+    _i4.IOSOptions? iOptions,
+    _i4.AndroidOptions? aOptions,
+    _i4.LinuxOptions? lOptions,
+    _i4.WebOptions? webOptions,
+    _i4.MacOsOptions? mOptions,
+    _i4.WindowsOptions? wOptions,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -128,7 +109,7 @@ class MockSecureStorageWrapper extends _i1.Mock
             #wOptions: wOptions,
           },
         ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
 }

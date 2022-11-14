@@ -7,19 +7,25 @@ import 'package:event_bus/event_bus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -28,15 +34,6 @@ import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
-import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
-import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
-
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
-
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-
-import 'package:stackwallet/utilities/util.dart';
 
 class DebugView extends ConsumerStatefulWidget {
   const DebugView({Key? key}) : super(key: key);
@@ -352,10 +349,10 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             BlueTextButton(
                               text: "Save logs to file",
                               onTap: () async {
-                                final systemfile = StackFileSystem();
+                                final systemfile = SWBFileSystem();
                                 await systemfile.prepareStorage();
-                                Directory rootPath =
-                                    (await getApplicationDocumentsDirectory());
+                                Directory rootPath = await StackFileSystem
+                                    .applicationRootDirectory();
 
                                 if (Platform.isAndroid) {
                                   rootPath = Directory("/storage/emulated/0/");

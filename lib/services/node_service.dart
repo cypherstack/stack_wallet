@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -13,13 +12,11 @@ import 'package:stackwallet/utilities/logger.dart';
 const kStackCommunityNodesEndpoint = "https://extras.stackwallet.com";
 
 class NodeService extends ChangeNotifier {
-  final FlutterSecureStorageInterface secureStorageInterface;
+  final SecureStorageInterface secureStorageInterface;
 
   /// Exposed [secureStorageInterface] in order to inject mock for tests
   NodeService({
-    this.secureStorageInterface = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
+    required this.secureStorageInterface,
   });
 
   Future<void> updateDefaults() async {

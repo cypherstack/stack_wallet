@@ -141,7 +141,8 @@ void main() {
     );
 
     setUp(() async {
-      await NodeService().updateDefaults();
+      await NodeService(secureStorageInterface: FakeSecureStorage())
+          .updateDefaults();
     });
 
     test("setPrimaryNodeFor and getPrimaryNodeFor", () async {

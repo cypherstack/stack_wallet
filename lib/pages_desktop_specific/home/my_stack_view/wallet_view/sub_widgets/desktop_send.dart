@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,8 +10,8 @@ import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
@@ -332,6 +333,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               child: ConfirmTransactionView(
                 transactionInfo: txData,
                 walletId: walletId,
+                routeOnSuccessName: DesktopHomeView.routeName,
               ),
             ),
           ),
@@ -550,13 +552,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Future<String?> _firoBalanceFuture(
     ChangeNotifierProvider<Manager> provider,
     String locale,
+    bool private,
   ) async {
     final wallet = ref.read(provider).wallet as FiroWallet?;
 
     if (wallet != null) {
       Decimal? balance;
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
+      if (private) {
         balance = await wallet.availablePrivateBalance();
       } else {
         balance = await wallet.availablePublicBalance();
@@ -572,24 +574,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Widget firoBalanceFutureBuilder(
     BuildContext context,
     AsyncSnapshot<String?> snapshot,
+    bool private,
   ) {
     if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
+      if (private) {
         _privateBalanceString = snapshot.data!;
       } else {
         _publicBalanceString = snapshot.data!;
       }
     }
-    if (ref.read(publicPrivateBalanceStateProvider.state).state == "Private" &&
-        _privateBalanceString != null) {
+    if (private && _privateBalanceString != null) {
       return Text(
         "$_privateBalanceString ${coin.ticker}",
         style: STextStyles.itemSubtitle(context),
       );
-    } else if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-            "Public" &&
-        _publicBalanceString != null) {
+    } else if (!private && _publicBalanceString != null) {
       return Text(
         "$_publicBalanceString ${coin.ticker}",
         style: STextStyles.itemSubtitle(context),
@@ -889,71 +888,95 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             height: 10,
           ),
         if (coin == Coin.firo)
-          Stack(
-            children: [
-              TextField(
-                autocorrect: Util.isDesktop ? false : true,
-                enableSuggestions: Util.isDesktop ? false : true,
-                readOnly: true,
-                textInputAction: TextInputAction.none,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                ),
-                child: RawMaterialButton(
-                  splashColor:
-                      Theme.of(context).extension<StackColors>()!.highlight,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                  onPressed: () {
-                    showModalBottomSheet<dynamic>(
-                      backgroundColor: Colors.transparent,
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                      ),
-                      builder: (_) => FiroBalanceSelectionSheet(
-                        walletId: walletId,
-                      ),
-                    );
-                  },
+          DropdownButtonHideUnderline(
+            child: DropdownButton2(
+              offset: const Offset(0, -10),
+              isExpanded: true,
+              dropdownElevation: 0,
+              value: ref.watch(publicPrivateBalanceStateProvider.state).state,
+              items: [
+                DropdownMenuItem(
+                  value: "Private",
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          FutureBuilder(
-                            future: _firoBalanceFuture(provider, locale),
-                            builder: firoBalanceFutureBuilder,
-                          ),
-                        ],
+                      Text(
+                        "Private balance",
+                        style: STextStyles.itemSubtitle12(context),
                       ),
-                      SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        width: 8,
-                        height: 4,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle2,
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      FutureBuilder(
+                        future: _firoBalanceFuture(provider, locale, true),
+                        builder: (context, AsyncSnapshot<String?> snapshot) =>
+                            firoBalanceFutureBuilder(
+                          context,
+                          snapshot,
+                          true,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              )
-            ],
+                DropdownMenuItem(
+                  value: "Public",
+                  child: Row(
+                    children: [
+                      Text(
+                        "Public balance",
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      FutureBuilder(
+                        future: _firoBalanceFuture(provider, locale, false),
+                        builder: (context, AsyncSnapshot<String?> snapshot) =>
+                            firoBalanceFutureBuilder(
+                          context,
+                          snapshot,
+                          false,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              onChanged: (value) {
+                if (value is String) {
+                  setState(() {
+                    ref.watch(publicPrivateBalanceStateProvider.state).state =
+                        value;
+                  });
+                }
+              },
+              icon: SvgPicture.asset(
+                Assets.svg.chevronDown,
+                width: 12,
+                height: 6,
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+              buttonPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              buttonDecoration: BoxDecoration(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+              ),
+              dropdownDecoration: BoxDecoration(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+              ),
+            ),
           ),
         if (coin == Coin.firo)
           const SizedBox(

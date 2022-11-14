@@ -32,7 +32,7 @@ void main() {
   });
 
   test("get walletNames", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect((await service.walletNames).toString(),
         '{wallet_id: WalletInfo: {"name":"My Firo Wallet","id":"wallet_id","coin":"bitcoin"}, wallet_id2: WalletInfo: {"name":"wallet2","id":"wallet_id2","coin":"bitcoin"}}');
   });
@@ -40,13 +40,13 @@ void main() {
   test("get null wallet names", () async {
     final wallets = await Hive.openBox<dynamic>('wallets');
     await wallets.put('names', null);
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(await service.walletNames, <String, WalletInfo>{});
     expect((await service.walletNames).toString(), '{}');
   });
 
   test("rename wallet to same name", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(
         await service.renameWallet(
             from: "My Firo Wallet",
@@ -58,7 +58,7 @@ void main() {
   });
 
   test("rename wallet to new name", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(
         await service.renameWallet(
             from: "My Firo Wallet",
@@ -71,7 +71,7 @@ void main() {
   });
 
   test("attempt rename wallet to another existing name", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(
         await service.renameWallet(
             from: "My Firo Wallet",
@@ -83,7 +83,7 @@ void main() {
   });
 
   test("add new wallet name", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(
         await service.addNewWallet(
             name: "wallet3", coin: Coin.bitcoin, shouldNotifyListeners: false),
@@ -92,7 +92,7 @@ void main() {
   });
 
   test("add duplicate wallet name fails", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(
         await service.addNewWallet(
             name: "wallet2", coin: Coin.bitcoin, shouldNotifyListeners: false),
@@ -103,27 +103,27 @@ void main() {
   test("check for duplicates when null names", () async {
     final wallets = await Hive.openBox<dynamic>('wallets');
     await wallets.put('names', null);
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(await service.checkForDuplicate("anything"), false);
   });
 
   test("check for duplicates when some names with no matches", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(await service.checkForDuplicate("anything"), false);
   });
 
   test("check for duplicates when some names with a match", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(await service.checkForDuplicate("wallet2"), true);
   });
 
   test("get existing wallet id", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expect(await service.getWalletId("wallet2"), "wallet_id2");
   });
 
   test("get non existent wallet id", () async {
-    final service = WalletsService();
+    final service = WalletsService(secureStorageInterface: FakeSecureStorage());
     expectLater(await service.getWalletId("wallet 99"), null);
   });
 

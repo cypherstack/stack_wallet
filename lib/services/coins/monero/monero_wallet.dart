@@ -23,11 +23,8 @@ import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:flutter_libmonero/core/wallet_creation_service.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -49,6 +46,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
 
@@ -67,12 +65,13 @@ class MoneroWallet extends CoinServiceAPI {
   Timer? moneroAutosaveTimer;
   late Coin _coin;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 
   Future<NodeModel> getCurrentNode() async {
-    return NodeService().getPrimaryNodeFor(coin: coin) ??
+    return NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
   }
 
@@ -81,14 +80,13 @@ class MoneroWallet extends CoinServiceAPI {
       required String walletName,
       required Coin coin,
       PriceAPI? priceAPI,
-      FlutterSecureStorageInterface? secureStore}) {
+      required SecureStorageInterface secureStore}) {
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
-    _secureStore =
-        secureStore ?? const SecureStorageWrapper(FlutterSecureStorage());
+    _secureStore = secureStore;
   }
 
   bool _shouldAutoSync = false;
@@ -154,7 +152,7 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       _height = (walletBase!.syncStatus as SyncingSyncStatus).height;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
 
     int blocksRemaining = -1;
@@ -163,7 +161,7 @@ class MoneroWallet extends CoinServiceAPI {
       blocksRemaining =
           (walletBase!.syncStatus as SyncingSyncStatus).blocksLeft;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
     int currentHeight = _height + blocksRemaining;
     if (_height == -1 || blocksRemaining == -1) {
@@ -196,7 +194,7 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       syncingHeight = (walletBase!.syncStatus as SyncingSyncStatus).height;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
     final cachedHeight =
         DB.instance.get<dynamic>(boxName: walletId, key: "storedSyncingHeight")
@@ -419,7 +417,7 @@ class MoneroWallet extends CoinServiceAPI {
       try {
         progress = (walletBase!.syncStatus!).progress();
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Warning);
+        // Logging.instance.log("$e $s", level: LogLevel.Warning);
       }
       await _fetchTransactionData();
 
@@ -670,11 +668,9 @@ class MoneroWallet extends CoinServiceAPI {
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
 
-    storage = const FlutterSecureStorage();
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
-    keysStorage = KeyService(storage!);
+    keysStorage = KeyService(_secureStore);
     WalletInfo walletInfo;
     WalletCredentials credentials;
     try {
@@ -708,8 +704,7 @@ class MoneroWallet extends CoinServiceAPI {
       credentials.walletInfo = walletInfo;
 
       _walletCreationService = WalletCreationService(
-        secureStorage: storage,
-        sharedPreferences: prefs,
+        secureStorage: _secureStore,
         walletService: walletService,
         keyService: keysStorage,
       );
@@ -787,11 +782,10 @@ class MoneroWallet extends CoinServiceAPI {
     //   Logging.instance.log("Caught in initializeWallet(): $e\n$s");
     //   return false;
     // }
-    storage = const FlutterSecureStorage();
+
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
-    keysStorage = KeyService(storage!);
+    keysStorage = KeyService(_secureStore);
 
     await _generateNewWallet();
     // var password;
@@ -833,11 +827,9 @@ class MoneroWallet extends CoinServiceAPI {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
 
-    storage = const FlutterSecureStorage();
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
-    keysStorage = KeyService(storage!);
+    keysStorage = KeyService(_secureStore);
 
     await _prefs.init();
     final data =
@@ -889,9 +881,8 @@ class MoneroWallet extends CoinServiceAPI {
   bool longMutex = false;
 
   // TODO: are these needed?
-  FlutterSecureStorage? storage;
+
   WalletService? walletService;
-  SharedPreferences? prefs;
   KeyService? keysStorage;
   MoneroWalletBase? walletBase;
   WalletCreationService? _walletCreationService;
@@ -906,14 +897,8 @@ class MoneroWallet extends CoinServiceAPI {
     required String name,
     required WalletType type,
   }) async {
-    Directory root = (await getApplicationDocumentsDirectory());
-    if (Platform.isIOS) {
-      root = (await getLibraryDirectory());
-    }
-    //
-    if (Platform.isLinux) {
-      root = Directory("${root.path}/.stackwallet");
-    }
+    Directory root = await StackFileSystem.applicationRootDirectory();
+
     final prefix = walletTypeToString(type).toLowerCase();
     final walletsDir = Directory('${root.path}/wallets');
     final walletDire = Directory('${walletsDir.path}/$prefix/$name');
@@ -970,11 +955,9 @@ class MoneroWallet extends CoinServiceAPI {
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
 
-      storage = const FlutterSecureStorage();
       walletService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-      prefs = await SharedPreferences.getInstance();
-      keysStorage = KeyService(storage!);
+      keysStorage = KeyService(_secureStore);
       WalletInfo walletInfo;
       WalletCredentials credentials;
       String name = _walletId;
@@ -1001,8 +984,7 @@ class MoneroWallet extends CoinServiceAPI {
         credentials.walletInfo = walletInfo;
 
         _walletCreationService = WalletCreationService(
-          secureStorage: storage,
-          sharedPreferences: prefs,
+          secureStorage: _secureStore,
           walletService: walletService,
           keyService: keysStorage,
         );

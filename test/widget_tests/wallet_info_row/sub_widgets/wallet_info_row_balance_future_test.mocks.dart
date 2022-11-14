@@ -165,7 +165,7 @@ class _FakeElectrumXNode_11 extends _i1.SmartFake
 }
 
 class _FakeFlutterSecureStorageInterface_12 extends _i1.SmartFake
-    implements _i12.FlutterSecureStorageInterface {
+    implements _i12.SecureStorageInterface {
   _FakeFlutterSecureStorageInterface_12(
     Object parent,
     Invocation parentInvocation,
@@ -680,6 +680,14 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
+  set cachedTxData(_i8.TransactionData? _cachedTxData) => super.noSuchMethod(
+        Invocation.setter(
+          #cachedTxData,
+          _cachedTxData,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get isActive => (super.noSuchMethod(
         Invocation.getter(#isActive),
         returnValue: false,
@@ -1062,6 +1070,16 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
         returnValueForMissingStub: _i16.Future<void>.value(),
       ) as _i16.Future<void>);
   @override
+  _i16.Future<void> updateSentCachedTxData(Map<String, dynamic>? txData) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateSentCachedTxData,
+          [txData],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+  @override
   bool validateAddress(String? address) => (super.noSuchMethod(
         Invocation.method(
           #validateAddress,
@@ -1317,14 +1335,13 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
 /// See the documentation for Mockito's code generation for more information.
 class MockNodeService extends _i1.Mock implements _i3.NodeService {
   @override
-  _i12.FlutterSecureStorageInterface get secureStorageInterface =>
-      (super.noSuchMethod(
+  _i12.SecureStorageInterface get secureStorageInterface => (super.noSuchMethod(
         Invocation.getter(#secureStorageInterface),
         returnValue: _FakeFlutterSecureStorageInterface_12(
           this,
           Invocation.getter(#secureStorageInterface),
         ),
-      ) as _i12.FlutterSecureStorageInterface);
+      ) as _i12.SecureStorageInterface);
   @override
   List<_i20.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
@@ -2228,4 +2245,14 @@ class MockCoinServiceAPI extends _i1.Mock implements _i13.CoinServiceAPI {
         ),
         returnValue: _i16.Future<bool>.value(false),
       ) as _i16.Future<bool>);
+  @override
+  _i16.Future<void> updateSentCachedTxData(Map<String, dynamic>? txData) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateSentCachedTxData,
+          [txData],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
 }

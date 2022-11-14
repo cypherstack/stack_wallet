@@ -8,6 +8,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
@@ -23,6 +24,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -54,22 +57,17 @@ class _ConfirmTransactionViewState
   late final String routeOnSuccessName;
   late final bool isDesktop;
 
-  int _fee = 12;
-  final List<int> _dropDownItems = [
-    12,
-    22,
-    234,
-  ];
-
   Future<void> _attemptSend(BuildContext context) async {
-    unawaited(showDialog<dynamic>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: false,
-      builder: (context) {
-        return const SendingTransactionDialog();
-      },
-    ));
+    unawaited(
+      showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: false,
+        builder: (context) {
+          return const SendingTransactionDialog();
+        },
+      ),
+    );
 
     final note = transactionInfo["note"] as String? ?? "";
     final manager =
@@ -122,25 +120,66 @@ class _ConfirmTransactionViewState
         useSafeArea: false,
         barrierDismissible: true,
         builder: (context) {
-          return StackDialog(
-            title: "Broadcast transaction failed",
-            message: e.toString(),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.button(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark),
+          if (isDesktop) {
+            return DesktopDialog(
+              maxWidth: 450,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Broadcast transaction failed",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    Text(
+                      e.toString(),
+                      style: STextStyles.smallMed14(context),
+                    ),
+                    const SizedBox(
+                      height: 56,
+                    ),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Expanded(
+                          child: PrimaryButton(
+                            desktopMed: true,
+                            label: "Ok",
+                            onPressed: Navigator.of(context).pop,
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          );
+            );
+          } else {
+            return StackDialog(
+              title: "Broadcast transaction failed",
+              message: e.toString(),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonColor(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            );
+          }
         },
       );
     }
@@ -568,32 +607,101 @@ class _ConfirmTransactionViewState
               ),
             if (isDesktop)
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  left: 32,
-                  right: 32,
-                ),
-                child: DropdownButtonFormField(
-                  value: _fee,
-                  items: _dropDownItems
-                      .map(
-                        (e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(
-                            e.toString(),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value is int) {
-                      setState(() {
-                        _fee = value;
-                      });
-                    }
-                  },
-                ),
-              ),
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    left: 32,
+                    right: 32,
+                  ),
+                  child: RoundedContainer(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 18,
+                    ),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    child: Builder(builder: (context) {
+                      final coin = ref
+                          .watch(walletsChangeNotifierProvider
+                              .select((value) => value.getManager(walletId)))
+                          .coin;
+
+                      final fee = Format.satoshisToAmount(
+                        transactionInfo["fee"] as int,
+                        coin: coin,
+                      );
+
+                      return Text(
+                        "${Format.localizedStringAsFixed(
+                          value: fee,
+                          locale: ref.watch(localeServiceChangeNotifierProvider
+                              .select((value) => value.locale)),
+                          decimalPlaces: coin == Coin.monero
+                              ? Constants.decimalPlacesMonero
+                              : coin == Coin.wownero
+                                  ? Constants.decimalPlacesWownero
+                                  : Constants.decimalPlaces,
+                        )} ${coin.ticker}",
+                        style: STextStyles.itemSubtitle(context),
+                      );
+                    }),
+                  )
+                  // DropdownButtonHideUnderline(
+                  //   child: DropdownButton2(
+                  //     offset: const Offset(0, -10),
+                  //     isExpanded: true,
+                  //
+                  //     dropdownElevation: 0,
+                  //     value: _fee,
+                  //     items: [
+                  //       ..._dropDownItems.map(
+                  //         (e) {
+                  //           String message = _fee.toString();
+                  //
+                  //           return DropdownMenuItem(
+                  //             value: e,
+                  //             child: Text(message),
+                  //           );
+                  //         },
+                  //       ),
+                  //     ],
+                  //     onChanged: (value) {
+                  //       if (value is int) {
+                  //         setState(() {
+                  //           _fee = value;
+                  //         });
+                  //       }
+                  //     },
+                  //     icon: SvgPicture.asset(
+                  //       Assets.svg.chevronDown,
+                  //       width: 12,
+                  //       height: 6,
+                  //       color:
+                  //           Theme.of(context).extension<StackColors>()!.textDark3,
+                  //     ),
+                  //     buttonPadding: const EdgeInsets.symmetric(
+                  //       horizontal: 16,
+                  //       vertical: 8,
+                  //     ),
+                  //     buttonDecoration: BoxDecoration(
+                  //       color: Theme.of(context)
+                  //           .extension<StackColors>()!
+                  //           .textFieldDefaultBG,
+                  //       borderRadius: BorderRadius.circular(
+                  //         Constants.size.circularBorderRadius,
+                  //       ),
+                  //     ),
+                  //     dropdownDecoration: BoxDecoration(
+                  //       color: Theme.of(context)
+                  //           .extension<StackColors>()!
+                  //           .textFieldDefaultBG,
+                  //       borderRadius: BorderRadius.circular(
+                  //         Constants.size.circularBorderRadius,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  ),
             if (!isDesktop) const Spacer(),
             SizedBox(
               height: isDesktop ? 23 : 12,
@@ -674,25 +782,56 @@ class _ConfirmTransactionViewState
                 label: "Send",
                 desktopMed: true,
                 onPressed: () async {
-                  final unlocked = await Navigator.push(
-                    context,
-                    RouteGenerator.getRoute(
-                      shouldUseMaterialRoute:
-                          RouteGenerator.useMaterialPageRoute,
-                      builder: (_) => const LockscreenView(
-                        showBackButton: true,
-                        popOnSuccess: true,
-                        routeOnSuccessArguments: true,
-                        routeOnSuccess: "",
-                        biometricsCancelButtonString: "CANCEL",
-                        biometricsLocalizedReason:
-                            "Authenticate to send transaction",
-                        biometricsAuthenticationTitle: "Confirm Transaction",
+                  final dynamic unlocked;
+
+                  if (isDesktop) {
+                    unlocked = await showDialog<bool?>(
+                      context: context,
+                      builder: (context) => DesktopDialog(
+                        maxWidth: 580,
+                        maxHeight: double.infinity,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: const [
+                                DesktopDialogCloseButton(),
+                              ],
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.only(
+                                left: 32,
+                                right: 32,
+                                bottom: 32,
+                              ),
+                              child: DesktopAuthSend(),
+                            ),
+                          ],
+                        ),
                       ),
-                      settings:
-                          const RouteSettings(name: "/confirmsendlockscreen"),
-                    ),
-                  );
+                    );
+                  } else {
+                    unlocked = await Navigator.push(
+                      context,
+                      RouteGenerator.getRoute(
+                        shouldUseMaterialRoute:
+                            RouteGenerator.useMaterialPageRoute,
+                        builder: (_) => const LockscreenView(
+                          showBackButton: true,
+                          popOnSuccess: true,
+                          routeOnSuccessArguments: true,
+                          routeOnSuccess: "",
+                          biometricsCancelButtonString: "CANCEL",
+                          biometricsLocalizedReason:
+                              "Authenticate to send transaction",
+                          biometricsAuthenticationTitle: "Confirm Transaction",
+                        ),
+                        settings:
+                            const RouteSettings(name: "/confirmsendlockscreen"),
+                      ),
+                    );
+                  }
 
                   if (unlocked is bool && unlocked && mounted) {
                     unawaited(_attemptSend(context));

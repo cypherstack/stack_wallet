@@ -1,9 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/forgot_password_desktop_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
+import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -11,27 +19,57 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 
-class DesktopLoginView extends StatefulWidget {
+class DesktopLoginView extends ConsumerStatefulWidget {
   const DesktopLoginView({
     Key? key,
     this.startupWalletId,
+    this.load,
   }) : super(key: key);
 
   static const String routeName = "/desktopLogin";
 
   final String? startupWalletId;
+  final Future<void> Function()? load;
 
   @override
-  State<DesktopLoginView> createState() => _DesktopLoginViewState();
+  ConsumerState<DesktopLoginView> createState() => _DesktopLoginViewState();
 }
 
-class _DesktopLoginViewState extends State<DesktopLoginView> {
+class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
   late final TextEditingController passwordController;
 
   late final FocusNode passwordFocusNode;
 
   bool hidePassword = true;
   bool _continueEnabled = false;
+
+  Future<void> login() async {
+    try {
+      await ref
+          .read(storageCryptoHandlerProvider)
+          .initFromExisting(passwordController.text);
+
+      await (ref.read(secureStoreProvider).store as DesktopSecureStore).init();
+
+      await widget.load?.call();
+
+      // if no errors passphrase is correct
+      if (mounted) {
+        unawaited(
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            DesktopHomeView.routeName,
+            (route) => false,
+          ),
+        );
+      }
+    } catch (e) {
+      await showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: e.toString(),
+        context: context,
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -153,14 +191,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                 PrimaryButton(
                   label: "Continue",
                   enabled: _continueEnabled,
-                  onPressed: () {
-                    // todo auth
-
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      DesktopHomeView.routeName,
-                      (route) => false,
-                    );
-                  },
+                  onPressed: login,
                 ),
                 const SizedBox(
                   height: 60,

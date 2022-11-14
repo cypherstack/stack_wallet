@@ -11,7 +11,6 @@ import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:lelantus/lelantus.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
@@ -1306,7 +1305,7 @@ class FiroWallet extends CoinServiceAPI {
   late CachedElectrumX _cachedElectrumXClient;
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 
@@ -1321,7 +1320,7 @@ class FiroWallet extends CoinServiceAPI {
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
     PriceAPI? priceAPI,
-    FlutterSecureStorageInterface? secureStore,
+    required SecureStorageInterface secureStore,
   }) {
     txTracker = tracker;
     _walletId = walletId;
@@ -1331,8 +1330,7 @@ class FiroWallet extends CoinServiceAPI {
     _cachedElectrumXClient = cachedClient;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
-    _secureStore =
-        secureStore ?? const SecureStorageWrapper(FlutterSecureStorage());
+    _secureStore = secureStore;
 
     Logging.instance.log("$walletName isolates length: ${isolates.length}",
         level: LogLevel.Info);
@@ -1870,7 +1868,7 @@ class FiroWallet extends CoinServiceAPI {
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
-    final failovers = NodeService()
+    final failovers = NodeService(secureStorageInterface: _secureStore)
         .failoverNodesFor(coin: coin)
         .map(
           (e) => ElectrumXNode(
@@ -3071,7 +3069,8 @@ class FiroWallet extends CoinServiceAPI {
   }
 
   Future<ElectrumXNode> _getCurrentNode() async {
-    final node = NodeService().getPrimaryNodeFor(coin: coin) ??
+    final node = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
 
     return ElectrumXNode(
