@@ -94,19 +94,19 @@ void main() {
     test("get contacts", () {
       final service = AddressBookService();
       expect(service.contacts.toString(),
-          [contactA, contactB, contactC].toString());
+          [contactC, contactB, contactA].toString());
     });
 
     test("get addressBookEntries", () async {
       final service = AddressBookService();
       expect((await service.addressBookEntries).toString(),
-          [contactA, contactB, contactC].toString());
+          [contactC, contactB, contactA].toString());
     });
 
     test("search contacts", () async {
       final service = AddressBookService();
       final results = await service.search("j");
-      expect(results.toString(), [contactA, contactB].toString());
+      expect(results.toString(), [contactB, contactA].toString());
 
       final results2 = await service.search("ja");
       expect(results2.toString(), [contactB].toString());
@@ -118,7 +118,7 @@ void main() {
       expect(results4.toString(), <Contact>[].toString());
 
       final results5 = await service.search("");
-      expect(results5.toString(), [contactA, contactB, contactC].toString());
+      expect(results5.toString(), [contactC, contactB, contactA].toString());
 
       final results6 = await service.search("epic address");
       expect(results6.toString(), [contactC].toString());
@@ -140,7 +140,7 @@ void main() {
       expect(result, false);
       expect(service.contacts.length, 3);
       expect(service.contacts.toString(),
-          [contactA, contactB, contactC].toString());
+          [contactC, contactB, contactA].toString());
     });
 
     test("edit contact", () async {
@@ -149,14 +149,14 @@ void main() {
       expect(await service.editContact(editedContact), true);
       expect(service.contacts.length, 3);
       expect(service.contacts.toString(),
-          [contactA, editedContact, contactC].toString());
+          [contactC, contactA, editedContact].toString());
     });
 
     test("remove existing contact", () async {
       final service = AddressBookService();
       await service.removeContact(contactB.id);
       expect(service.contacts.length, 2);
-      expect(service.contacts.toString(), [contactA, contactC].toString());
+      expect(service.contacts.toString(), [contactC, contactA].toString());
     });
 
     test("remove non existing contact", () async {
@@ -164,7 +164,7 @@ void main() {
       await service.removeContact("some id");
       expect(service.contacts.length, 3);
       expect(service.contacts.toString(),
-          [contactA, contactB, contactC].toString());
+          [contactC, contactB, contactA].toString());
     });
 
     tearDown(() async {

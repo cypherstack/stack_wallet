@@ -699,7 +699,7 @@ class MoneroWallet extends CoinServiceAPI {
           name: name,
           type: WalletType.monero,
           isRecovery: false,
-          restoreHeight: credentials.height ?? 0,
+          restoreHeight: bufferedCreateHeight,
           date: DateTime.now(),
           path: path,
           dirPath: dirPath,
@@ -1190,6 +1190,14 @@ class MoneroWallet extends CoinServiceAPI {
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
 
+  // not used in monero
+  TransactionData? cachedTxData;
+
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    // not used in monero
+  }
+
   Future<TransactionData> _fetchTransactionData() async {
     final transactions = walletBase?.transactionHistory!.transactions;
 
@@ -1345,10 +1353,8 @@ class MoneroWallet extends CoinServiceAPI {
   Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
 
   @override
-  // TODO: implement validateAddress
   bool validateAddress(String address) {
-    bool valid = RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
-        RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
+    bool valid = walletBase!.validateAddress(address);
     return valid;
   }
 
@@ -1376,9 +1382,10 @@ class MoneroWallet extends CoinServiceAPI {
       return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
           as bool;
     } catch (e, s) {
-      Logging.instance
-          .log("isFavorite fetch failed: $e\n$s", level: LogLevel.Error);
-      rethrow;
+      Logging.instance.log(
+          "isFavorite fetch failed (returning false by default): $e\n$s",
+          level: LogLevel.Error);
+      return false;
     }
   }
 

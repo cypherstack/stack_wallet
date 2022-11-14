@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.14+86
+version: 1.5.17+89
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -54,7 +54,7 @@ dependencies:
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: b7b184ec36466f2a24104a7056de88881cb0c1e9
+      ref: 011dc9ce3d29f5fdeeaf711d58b5122f055c146d
 
   # Utility plugins
 #  provider: ^6.0.1
@@ -298,6 +298,7 @@ flutter:
     - assets/svg/persona-easy-1.svg
     - assets/svg/persona-incognito-1.svg
     - assets/svg/Button.svg
+    - assets/svg/enabled-button.svg
     - assets/svg/lock-circle.svg
     - assets/svg/dollar-sign-circle.svg
     - assets/svg/language-circle.svg
@@ -338,6 +339,8 @@ flutter:
     - assets/svg/message-question-1.svg
     - assets/svg/drd-icon.svg
     - assets/svg/box-auto.svg
+    - assets/svg/framed-address-book.svg
+    - assets/svg/framed-gear.svg
     # exchange icons
     - assets/svg/exchange_icons/change_now_logo_1.svg
     - assets/svg/exchange_icons/simpleswap-icon.svg

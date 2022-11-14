@@ -1378,8 +1378,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b7b184ec36466f2a24104a7056de88881cb0c1e9
-      resolved-ref: b7b184ec36466f2a24104a7056de88881cb0c1e9
+      ref: "011dc9ce3d29f5fdeeaf711d58b5122f055c146d"
+      resolved-ref: "011dc9ce3d29f5fdeeaf711d58b5122f055c146d"
       url: "https://github.com/cypherstack/stack_wallet_backup.git"
     source: git
     version: "0.0.1"

@@ -85,6 +85,8 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/forgot_password_desktop_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
@@ -99,6 +101,8 @@ import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_sett
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_about_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_support_view.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -996,6 +1000,12 @@ class RouteGenerator {
             builder: (_) => const CreatePasswordView(),
             settings: RouteSettings(name: settings.name));
 
+      case ForgotPasswordDesktopView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const ForgotPasswordDesktopView(),
+            settings: RouteSettings(name: settings.name));
+
       case DesktopHomeView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -1082,6 +1092,24 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const AdvancedSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case DesktopSupportView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopSupportView(),
+            settings: RouteSettings(name: settings.name));
+
+      case DesktopAboutView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopAboutView(),
+            settings: RouteSettings(name: settings.name));
+
+      case DesktopAddressBook.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopAddressBook(),
             settings: RouteSettings(name: settings.name));
 
       case WalletKeysDesktopPopup.routeName:

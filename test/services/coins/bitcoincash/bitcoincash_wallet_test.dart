@@ -1,4 +1,3 @@
-import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -61,7 +60,7 @@ void main() {
     });
   });
 
-  group("validate mainnet bitcoincash addresses", () {
+  group("mainnet bitcoincash addressType", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
@@ -137,10 +136,172 @@ void main() {
       verifyNoMoreInteractions(priceAPI);
     });
 
+    test("P2PKH cashaddr with prefix", () {
+      expect(
+          mainnetWallet?.addressType(
+              address:
+                  "bitcoincash:qrwjyc4pewj9utzrtnh0whkzkuvy5q8wg52n254x6k"),
+          DerivePathType.bip44);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("P2PKH cashaddr without prefix", () {
+      expect(
+          mainnetWallet?.addressType(
+              address: "qrwjyc4pewj9utzrtnh0whkzkuvy5q8wg52n254x6k"),
+          DerivePathType.bip44);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("Multisig cashaddr with prefix", () {
+      expect(
+          () => mainnetWallet?.addressType(
+              address:
+                  "bitcoincash:pzpp3nchmzzf0gr69lj82ymurg5u3ds6kcwr5m07np"),
+          throwsArgumentError);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("Multisig cashaddr without prefix", () {
+      expect(
+          () => mainnetWallet?.addressType(
+              address: "pzpp3nchmzzf0gr69lj82ymurg5u3ds6kcwr5m07np"),
+          throwsArgumentError);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("Multisig/P2SH address", () {
+      expect(
+          mainnetWallet?.addressType(
+              address: "3DYuVEmuKWQFxJcF7jDPhwPiXLTiNnyMFb"),
+          DerivePathType.bip49);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+  });
+
+  group("validate mainnet bitcoincash addresses", () {
+    MockElectrumX? client;
+    MockCachedElectrumX? cachedClient;
+    MockPriceAPI? priceAPI;
+    FakeSecureStorage? secureStore;
+    MockTransactionNotificationTracker? tracker;
+
+    BitcoinCashWallet? mainnetWallet;
+
+    setUp(() {
+      client = MockElectrumX();
+      cachedClient = MockCachedElectrumX();
+      priceAPI = MockPriceAPI();
+      secureStore = FakeSecureStorage();
+      tracker = MockTransactionNotificationTracker();
+
+      mainnetWallet = BitcoinCashWallet(
+        walletId: "validateAddressMainNet",
+        walletName: "validateAddressMainNet",
+        coin: Coin.bitcoincash,
+        client: client!,
+        cachedClient: cachedClient!,
+        tracker: tracker!,
+        priceAPI: priceAPI,
+        secureStore: secureStore,
+      );
+    });
+
+    test("valid mainnet legacy/p2pkh address type", () {
+      expect(
+          mainnetWallet?.validateAddress("1DP3PUePwMa5CoZwzjznVKhzdLsZftjcAT"),
+          true);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("valid mainnet legacy/p2pkh cashaddr with prefix address type", () {
+      expect(
+          mainnetWallet?.validateAddress(
+              "bitcoincash:qrwjyc4pewj9utzrtnh0whkzkuvy5q8wg52n254x6k"),
+          true);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("valid mainnet legacy/p2pkh cashaddr without prefix address type", () {
+      expect(
+          mainnetWallet
+              ?.validateAddress("qrwjyc4pewj9utzrtnh0whkzkuvy5q8wg52n254x6k"),
+          true);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("invalid legacy/p2pkh address type", () {
+      expect(
+          mainnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
+          false);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test(
+        "invalid cashaddr (is valid multisig but bitbox is broken for multisig)",
+        () {
+      expect(
+          mainnetWallet
+              ?.validateAddress("pzpp3nchmzzf0gr69lj82ymurg5u3ds6kcwr5m07np"),
+          false);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("multisig address should fail for bitbox", () {
+      expect(
+          mainnetWallet?.validateAddress("3DYuVEmuKWQFxJcF7jDPhwPiXLTiNnyMFb"),
+          false);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
     test("invalid mainnet bitcoincash legacy/p2pkh address", () {
       expect(
           mainnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
-          true);
+          false);
       expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);

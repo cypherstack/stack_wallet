@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
+import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../providers/global/prefs_provider.dart';
-import '../../../utilities/constants.dart';
-import '../../../widgets/custom_buttons/draggable_switch_button.dart';
 
 class AppearanceOptionSettings extends ConsumerStatefulWidget {
   const AppearanceOptionSettings({Key? key}) : super(key: key);
@@ -23,6 +26,19 @@ class AppearanceOptionSettings extends ConsumerStatefulWidget {
 
 class _AppearanceOptionSettings
     extends ConsumerState<AppearanceOptionSettings> {
+  // late bool isLight;
+
+  // @override
+  // void initState() {
+  //
+  //   super.initState();
+  // }
+  //
+  // @override
+  // void dispose() {
+  //   super.dispose();
+  // }
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -128,10 +144,7 @@ class _AppearanceOptionSettings
                   ),
                 ),
                 const Padding(
-                  padding: EdgeInsets.only(
-                    left: 10,
-                    right: 10,
-                  ),
+                  padding: EdgeInsets.all(10),
                   child: ThemeToggle(),
                 ),
               ],
@@ -143,7 +156,7 @@ class _AppearanceOptionSettings
   }
 }
 
-class ThemeToggle extends StatefulWidget {
+class ThemeToggle extends ConsumerStatefulWidget {
   const ThemeToggle({
     Key? key,
   }) : super(key: key);
@@ -152,160 +165,226 @@ class ThemeToggle extends StatefulWidget {
   // final void Function(bool)? onChanged;
 
   @override
-  State<StatefulWidget> createState() => _ThemeToggle();
+  ConsumerState<ThemeToggle> createState() => _ThemeToggle();
 }
 
-class _ThemeToggle extends State<ThemeToggle> {
+class _ThemeToggle extends ConsumerState<ThemeToggle> {
   // late bool externalCallsEnabled;
+
+  late String _selectedTheme;
+
+  @override
+  void initState() {
+    _selectedTheme =
+        DB.instance.get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme")
+                as String? ??
+            "light";
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: RawMaterialButton(
-            elevation: 0,
-            hoverColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius * 2,
-              ),
+        MaterialButton(
+          splashColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          padding: const EdgeInsets.all(0),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
             ),
-            onPressed: () {}, //onPressed
-            child: Stack(
+          ),
+          onPressed: () {
+            DB.instance.put<dynamic>(
+              boxName: DB.boxNameTheme,
+              key: "colorScheme",
+              value: ThemeType.light.name,
+            );
+            ref.read(colorThemeProvider.state).state =
+                StackColors.fromStackColorTheme(
+              LightColors(),
+            );
+
+            setState(() {
+              _selectedTheme = "light";
+            });
+          },
+          child: SizedBox(
+            width: 200,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 24,
-                      ),
-                      child: SvgPicture.asset(
-                        Assets.svg.themeLight,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 50,
-                        top: 12,
-                      ),
-                      child: Text(
-                        "Light",
-                        style:
-                            STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: Theme.of(context)
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 2.5,
+                      color: _selectedTheme == "light"
+                          ? Theme.of(context)
                               .extension<StackColors>()!
-                              .textDark,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-                // if (externalCallsEnabled)
-                Positioned(
-                  bottom: 0,
-                  left: 6,
+                              .infoItemIcons
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
                   child: SvgPicture.asset(
-                    Assets.svg.checkCircle,
-                    width: 20,
-                    height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .infoItemIcons,
+                    Assets.svg.themeLight,
                   ),
                 ),
-                // if (!externalCallsEnabled)
-                //   Positioned(
-                //     top: 4,
-                //     right: 4,
-                //     child: Container(
-                //       width: 20,
-                //       height: 20,
-                //       decoration: BoxDecoration(
-                //         borderRadius: BorderRadius.circular(1000),
-                //         color: Theme.of(context)
-                //             .extension<StackColors>()!
-                //             .textFieldDefaultBG,
-                //       ),
-                //     ),
-                //   ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Radio(
+                        activeColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .radioButtonIconEnabled,
+                        value: "light",
+                        groupValue: _selectedTheme,
+                        onChanged: (newValue) {
+                          if (newValue is String && newValue == "light") {
+                            DB.instance.put<dynamic>(
+                              boxName: DB.boxNameTheme,
+                              key: "colorScheme",
+                              value: ThemeType.light.name,
+                            );
+                            ref.read(colorThemeProvider.state).state =
+                                StackColors.fromStackColorTheme(
+                              LightColors(),
+                            );
+
+                            setState(() {
+                              _selectedTheme = "light";
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 14,
+                    ),
+                    Text(
+                      "Light",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
         ),
         const SizedBox(
-          width: 1,
+          width: 20,
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RawMaterialButton(
-              elevation: 0,
-              hoverColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius * 2,
-                ),
-              ),
-              onPressed: () {}, //onPressed
-              child: Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SvgPicture.asset(
-                        Assets.svg.themeDark,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 50,
-                          top: 12,
-                        ),
-                        child: Text(
-                          "Dark",
-                          style: STextStyles.desktopTextExtraSmall(context)
-                              .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  // if (externalCallsEnabled)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    child: SvgPicture.asset(
-                      Assets.svg.checkCircle,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
+        MaterialButton(
+          splashColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          padding: const EdgeInsets.all(0),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+          onPressed: () {
+            DB.instance.put<dynamic>(
+              boxName: DB.boxNameTheme,
+              key: "colorScheme",
+              value: ThemeType.dark.name,
+            );
+            ref.read(colorThemeProvider.state).state =
+                StackColors.fromStackColorTheme(
+              DarkColors(),
+            );
+
+            setState(() {
+              _selectedTheme = "dark";
+            });
+          },
+          child: SizedBox(
+            width: 200,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 2.5,
+                      color: _selectedTheme == "dark"
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .infoItemIcons
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
                     ),
                   ),
-                  // if (!externalCallsEnabled)
-                  //   Positioned(
-                  //     top: 4,
-                  //     right: 4,
-                  //     child: Container(
-                  //       width: 20,
-                  //       height: 20,
-                  //       decoration: BoxDecoration(
-                  //         borderRadius: BorderRadius.circular(1000),
-                  //         color: Theme.of(context)
-                  //             .extension<StackColors>()!
-                  //             .textFieldDefaultBG,
-                  //       ),
-                  //     ),
-                  //   ),
-                ],
-              ),
+                  child: SvgPicture.asset(
+                    Assets.svg.themeDark,
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Radio(
+                        activeColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .radioButtonIconEnabled,
+                        value: "dark",
+                        groupValue: _selectedTheme,
+                        onChanged: (newValue) {
+                          if (newValue is String && newValue == "dark") {
+                            DB.instance.put<dynamic>(
+                              boxName: DB.boxNameTheme,
+                              key: "colorScheme",
+                              value: ThemeType.dark.name,
+                            );
+                            ref.read(colorThemeProvider.state).state =
+                                StackColors.fromStackColorTheme(
+                              DarkColors(),
+                            );
+
+                            setState(() {
+                              _selectedTheme = "dark";
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 14,
+                    ),
+                    Text(
+                      "Dark",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

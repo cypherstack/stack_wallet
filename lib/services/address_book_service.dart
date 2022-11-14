@@ -20,10 +20,13 @@ class AddressBookService extends ChangeNotifier {
   List<Contact> get contacts {
     final keys = List<String>.from(
         DB.instance.keys<dynamic>(boxName: DB.boxNameAddressBook));
-    return keys
+    final _contacts = keys
         .map((id) => Contact.fromJson(Map<String, dynamic>.from(DB.instance
             .get<dynamic>(boxName: DB.boxNameAddressBook, key: id) as Map)))
         .toList(growable: false);
+    _contacts
+        .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return _contacts;
   }
 
   Future<List<Contact>>? _addressBookEntries;

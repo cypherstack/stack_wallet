@@ -132,7 +132,7 @@ extension CoinExt on Coin {
       case Coin.litecoinTestNet:
         return "litecoin";
       case Coin.bitcoincashTestnet:
-        return "bitcoincash";
+        return "bchtest";
       case Coin.firoTestNet:
         return "firo";
       case Coin.dogecoinTestNet:

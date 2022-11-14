@@ -10,6 +10,7 @@ import 'package:bitcoindart/bitcoindart.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
+import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
@@ -170,9 +171,10 @@ class NamecoinWallet extends CoinServiceAPI {
       return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
           as bool;
     } catch (e, s) {
-      Logging.instance
-          .log("isFavorite fetch failed: $e\n$s", level: LogLevel.Error);
-      rethrow;
+      Logging.instance.log(
+          "isFavorite fetch failed (returning false by default): $e\n$s",
+          level: LogLevel.Error);
+      return false;
     }
   }
 
@@ -1274,6 +1276,54 @@ class NamecoinWallet extends CoinServiceAPI {
   Future<TransactionData> get transactionData =>
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
+
+  TransactionData? cachedTxData;
+
+  // hack to add tx to txData before refresh completes
+  // required based on current app architecture where we don't properly store
+  // transactions locally in a good way
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    final priceData =
+        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
+    final locale = await Devicelocale.currentLocale;
+    final String worthNow = Format.localizedStringAsFixed(
+        value:
+            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
+                    Decimal.fromInt(Constants.satsPerCoin))
+                .toDecimal(scaleOnInfinitePrecision: 2),
+        decimalPlaces: 2,
+        locale: locale!);
+
+    final tx = models.Transaction(
+      txid: txData["txid"] as String,
+      confirmedStatus: false,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      txType: "Sent",
+      amount: txData["recipientAmt"] as int,
+      worthNow: worthNow,
+      worthAtBlockTimestamp: worthNow,
+      fees: txData["fee"] as int,
+      inputSize: 0,
+      outputSize: 0,
+      inputs: [],
+      outputs: [],
+      address: txData["address"] as String,
+      height: -1,
+      confirmations: 0,
+    );
+
+    if (cachedTxData == null) {
+      final data = await _fetchTransactionData();
+      _transactionData = Future(() => data);
+    }
+
+    final transactions = cachedTxData!.getAllTransactions();
+    transactions[tx.txid] = tx;
+    cachedTxData = models.TransactionData.fromMap(transactions);
+    _transactionData = Future(() => cachedTxData!);
+  }
 
   @override
   bool validateAddress(String address) {
@@ -2672,6 +2722,7 @@ class NamecoinWallet extends CoinServiceAPI {
     await DB.instance.put<dynamic>(
         boxName: walletId, key: 'latest_tx_model', value: txModel);
 
+    cachedTxData = txModel;
     return txModel;
   }
 

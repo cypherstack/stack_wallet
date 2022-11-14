@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cw_core/get_height_by_date.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/node.dart';
 import 'package:cw_core/pending_transaction.dart';
@@ -647,7 +648,7 @@ class WowneroWallet extends CoinServiceAPI {
   }
 
   //TODO: take in the default language when creating wallet.
-  Future<void> _generateNewWallet() async {
+  Future<void> _generateNewWallet({int seedWordsLength = 14}) async {
     Logging.instance
         .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
     // TODO: ping wownero server and make sure the genesis hash matches
@@ -685,9 +686,7 @@ class WowneroWallet extends CoinServiceAPI {
           await pathForWalletDir(name: name, type: WalletType.wownero);
       final path = await pathForWallet(name: name, type: WalletType.wownero);
       credentials = wownero.createWowneroNewWalletCredentials(
-        name: name,
-        language: "English",
-      );
+          name: name, language: "English", seedWordsLength: seedWordsLength);
 
       walletInfo = WalletInfo.external(
           id: WalletBase.idFor(name, WalletType.wownero),
@@ -712,9 +711,12 @@ class WowneroWallet extends CoinServiceAPI {
       // To restore from a seed
       final wallet = await _walletCreationService?.create(credentials);
 
-      // subtract a couple days to ensure we have a buffer for SWB
-      final bufferedCreateHeight =
-          getSeedHeightSync(wallet?.seed.trim() as String);
+      final bufferedCreateHeight = (seedWordsLength == 14)
+          ? getSeedHeightSync(wallet?.seed.trim() as String)
+          : wownero.getHeightByDate(
+              date: DateTime.now().subtract(const Duration(
+                  days:
+                      2))); // subtract a couple days to ensure we have a buffer for SWB
 
       await DB.instance.put<dynamic>(
           boxName: walletId, key: "restoreHeight", value: bufferedCreateHeight);
@@ -722,6 +724,7 @@ class WowneroWallet extends CoinServiceAPI {
 
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: wallet?.seed.trim());
+
       walletInfo.address = wallet?.walletAddresses.address;
       await DB.instance
           .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
@@ -778,7 +781,7 @@ class WowneroWallet extends CoinServiceAPI {
 
   @override
   // TODO: implement initializeWallet
-  Future<bool> initializeNew() async {
+  Future<bool> initializeNew({int seedWordsLength = 14}) async {
     await _prefs.init();
     // TODO: ping actual wownero network
     // try {
@@ -796,7 +799,7 @@ class WowneroWallet extends CoinServiceAPI {
     prefs = await SharedPreferences.getInstance();
     keysStorage = KeyService(storage!);
 
-    await _generateNewWallet();
+    await _generateNewWallet(seedWordsLength: seedWordsLength);
     // var password;
     // try {
     //   password =
@@ -942,6 +945,11 @@ class WowneroWallet extends CoinServiceAPI {
     required int maxNumberOfIndexesToCheck,
     required int height,
   }) async {
+    final int seedLength = mnemonic.trim().split(" ").length;
+    if (!(seedLength == 14 || seedLength == 25)) {
+      throw Exception("Invalid wownero mnemonic length found: $seedLength");
+    }
+
     await _prefs.init();
     longMutex = true;
     final start = DateTime.now();
@@ -969,7 +977,18 @@ class WowneroWallet extends CoinServiceAPI {
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
 
-      height = getSeedHeightSync(mnemonic.trim());
+      // extract seed height from 14 word seed
+      if (seedLength == 14) {
+        height = getSeedHeightSync(mnemonic.trim());
+      } else {
+        // 25 word seed. TODO validate
+        if (height == 0) {
+          height = wownero.getHeightByDate(
+              date: DateTime.now().subtract(const Duration(
+                  days:
+                      2))); // subtract a couple days to ensure we have a buffer for SWB\
+        }
+      }
 
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
@@ -1195,6 +1214,14 @@ class WowneroWallet extends CoinServiceAPI {
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
 
+  // not used in wownero
+  TransactionData? cachedTxData;
+
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    // not used in wownero
+  }
+
   Future<TransactionData> _fetchTransactionData() async {
     final transactions = walletBase?.transactionHistory!.transactions;
 
@@ -1351,10 +1378,8 @@ class WowneroWallet extends CoinServiceAPI {
   Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
 
   @override
-  // TODO: implement validateAddress
   bool validateAddress(String address) {
-    bool valid = RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
-        RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
+    bool valid = walletBase!.validateAddress(address);
     return valid;
   }
 
@@ -1382,9 +1407,10 @@ class WowneroWallet extends CoinServiceAPI {
       return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
           as bool;
     } catch (e, s) {
-      Logging.instance
-          .log("isFavorite fetch failed: $e\n$s", level: LogLevel.Error);
-      rethrow;
+      Logging.instance.log(
+          "isFavorite fetch failed (returning false by default): $e\n$s",
+          level: LogLevel.Error);
+      return false;
     }
   }
 

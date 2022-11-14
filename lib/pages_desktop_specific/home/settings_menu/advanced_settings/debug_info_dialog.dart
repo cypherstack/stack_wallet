@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/log_level_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -105,7 +109,7 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
             ],
           ),
           Expanded(
-            flex: 24,
+            // flex: 24,
             child: NestedScrollView(
               floatHeaderSlivers: true,
               headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -314,7 +318,7 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
               ),
             ),
           ),
-          const Spacer(),
+          // const Spacer(),
           Padding(
             padding: const EdgeInsets.all(32),
             child: Row(
@@ -322,7 +326,18 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Clear logs",
-                    onPressed: () {},
+                    onPressed: () async {
+                      await ref.read(debugServiceProvider).deleteAllMessages();
+                      await ref.read(debugServiceProvider).updateRecentLogs();
+
+                      if (mounted) {
+                        Navigator.pop(context);
+                        unawaited(showFloatingFlushBar(
+                            type: FlushBarType.info,
+                            context: context,
+                            message: 'Logs cleared!'));
+                      }
+                    },
                   ),
                 ),
                 const SizedBox(
