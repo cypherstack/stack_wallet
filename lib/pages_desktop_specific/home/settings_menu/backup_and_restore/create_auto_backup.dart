@@ -383,7 +383,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                     ),
                   ),
                 const SizedBox(
-                  height: 10,
+                  height: 16,
                 ),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(

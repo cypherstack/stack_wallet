@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/edit_auto_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/create_auto_backup.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/enable_backup_dialog.dart';
@@ -102,6 +103,44 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
       builder: (context) {
         return const CreateAutoBackup();
       },
+    );
+  }
+
+  Future<void> editAutoBackup() async {
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) => DesktopDialog(
+        maxWidth: 580,
+        maxHeight: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Edit auto backup",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.only(
+                left: 32,
+                right: 32,
+                bottom: 32,
+              ),
+              child: EditAutoBackupView(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -440,8 +479,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                 width: 190,
                                                 label: "Edit auto backup",
                                                 onPressed: () {
-                                                  // Navigator.of(context).pop();
-                                                  createAutoBackup();
+                                                  editAutoBackup();
                                                 },
                                               ),
                                             ],
