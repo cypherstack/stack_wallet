@@ -18,7 +18,7 @@ class EnableBackupDialog extends StatelessWidget {
         useSafeArea: false,
         barrierDismissible: true,
         builder: (context) {
-          return CreateAutoBackup();
+          return const CreateAutoBackup();
         },
       );
     }
@@ -59,6 +59,7 @@ class EnableBackupDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: SecondaryButton(
+                    desktopMed: true,
                     label: "Cancel",
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -70,8 +71,10 @@ class EnableBackupDialog extends StatelessWidget {
                 ),
                 Expanded(
                   child: PrimaryButton(
+                    desktopMed: true,
                     label: "Continue",
                     onPressed: () {
+                      Navigator.of(context).pop();
                       createAutoBackup();
                     },
                   ),

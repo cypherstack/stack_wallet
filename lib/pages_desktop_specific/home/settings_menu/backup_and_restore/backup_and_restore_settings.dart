@@ -7,6 +7,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/create_auto_backup.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/enable_backup_dialog.dart';
+import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -15,6 +16,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -22,9 +24,6 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../../../../providers/global/auto_swb_service_provider.dart';
-import '../../../../widgets/custom_buttons/blue_text_button.dart';
 
 class BackupRestoreSettings extends ConsumerStatefulWidget {
   const BackupRestoreSettings({Key? key}) : super(key: key);
@@ -99,7 +98,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
       useSafeArea: false,
       barrierDismissible: true,
       builder: (context) {
-        return CreateAutoBackup();
+        return const CreateAutoBackup();
       },
     );
   }
@@ -428,6 +427,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                 width: 190,
                                                 label: "Edit auto backup",
                                                 onPressed: () {
+                                                  Navigator.of(context).pop();
                                                   createAutoBackup();
                                                 },
                                               ),
