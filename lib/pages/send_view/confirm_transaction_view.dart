@@ -54,13 +54,6 @@ class _ConfirmTransactionViewState
   late final String routeOnSuccessName;
   late final bool isDesktop;
 
-  int _fee = 12;
-  final List<int> _dropDownItems = [
-    12,
-    22,
-    234,
-  ];
-
   Future<void> _attemptSend(BuildContext context) async {
     unawaited(showDialog<dynamic>(
       context: context,
@@ -568,32 +561,101 @@ class _ConfirmTransactionViewState
               ),
             if (isDesktop)
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  left: 32,
-                  right: 32,
-                ),
-                child: DropdownButtonFormField(
-                  value: _fee,
-                  items: _dropDownItems
-                      .map(
-                        (e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(
-                            e.toString(),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value is int) {
-                      setState(() {
-                        _fee = value;
-                      });
-                    }
-                  },
-                ),
-              ),
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    left: 32,
+                    right: 32,
+                  ),
+                  child: RoundedContainer(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 18,
+                    ),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    child: Builder(builder: (context) {
+                      final coin = ref
+                          .watch(walletsChangeNotifierProvider
+                              .select((value) => value.getManager(walletId)))
+                          .coin;
+
+                      final fee = Format.satoshisToAmount(
+                        transactionInfo["fee"] as int,
+                        coin: coin,
+                      );
+
+                      return Text(
+                        "${Format.localizedStringAsFixed(
+                          value: fee,
+                          locale: ref.watch(localeServiceChangeNotifierProvider
+                              .select((value) => value.locale)),
+                          decimalPlaces: coin == Coin.monero
+                              ? Constants.decimalPlacesMonero
+                              : coin == Coin.wownero
+                                  ? Constants.decimalPlacesWownero
+                                  : Constants.decimalPlaces,
+                        )} ${coin.ticker}",
+                        style: STextStyles.itemSubtitle(context),
+                      );
+                    }),
+                  )
+                  // DropdownButtonHideUnderline(
+                  //   child: DropdownButton2(
+                  //     offset: const Offset(0, -10),
+                  //     isExpanded: true,
+                  //
+                  //     dropdownElevation: 0,
+                  //     value: _fee,
+                  //     items: [
+                  //       ..._dropDownItems.map(
+                  //         (e) {
+                  //           String message = _fee.toString();
+                  //
+                  //           return DropdownMenuItem(
+                  //             value: e,
+                  //             child: Text(message),
+                  //           );
+                  //         },
+                  //       ),
+                  //     ],
+                  //     onChanged: (value) {
+                  //       if (value is int) {
+                  //         setState(() {
+                  //           _fee = value;
+                  //         });
+                  //       }
+                  //     },
+                  //     icon: SvgPicture.asset(
+                  //       Assets.svg.chevronDown,
+                  //       width: 12,
+                  //       height: 6,
+                  //       color:
+                  //           Theme.of(context).extension<StackColors>()!.textDark3,
+                  //     ),
+                  //     buttonPadding: const EdgeInsets.symmetric(
+                  //       horizontal: 16,
+                  //       vertical: 8,
+                  //     ),
+                  //     buttonDecoration: BoxDecoration(
+                  //       color: Theme.of(context)
+                  //           .extension<StackColors>()!
+                  //           .textFieldDefaultBG,
+                  //       borderRadius: BorderRadius.circular(
+                  //         Constants.size.circularBorderRadius,
+                  //       ),
+                  //     ),
+                  //     dropdownDecoration: BoxDecoration(
+                  //       color: Theme.of(context)
+                  //           .extension<StackColors>()!
+                  //           .textFieldDefaultBG,
+                  //       borderRadius: BorderRadius.circular(
+                  //         Constants.size.circularBorderRadius,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  ),
             if (!isDesktop) const Spacer(),
             SizedBox(
               height: isDesktop ? 23 : 12,
