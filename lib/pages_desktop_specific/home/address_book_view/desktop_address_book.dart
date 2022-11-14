@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/contact.dart';
+import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
@@ -9,11 +10,11 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -36,7 +37,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
 
   late bool hasContacts = false;
 
-  String filter = "";
+  String _searchTerm = "";
 
   Future<void> selectCryptocurrency() async {
     await showDialog<dynamic>(
@@ -123,25 +124,25 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                       Constants.size.circularBorderRadius,
                     ),
                     child: TextField(
-                      autocorrect: false,
-                      enableSuggestions: false,
+                      autocorrect: Util.isDesktop ? false : true,
+                      enableSuggestions: Util.isDesktop ? false : true,
                       controller: _searchController,
                       focusNode: _searchFocusNode,
-                      onChanged: (newString) {
-                        setState(() => filter = newString);
+                      onChanged: (value) {
+                        setState(() {
+                          _searchTerm = value;
+                        });
                       },
                       style: STextStyles.field(context),
                       decoration: standardInputDecoration(
-                        "Search...",
+                        "Search",
                         _searchFocusNode,
                         context,
                       ).copyWith(
-                        labelStyle: STextStyles.fieldLabel(context)
-                            .copyWith(fontSize: 16),
                         prefixIcon: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
-                            vertical: 16,
+                            vertical: 20,
                           ),
                           child: SvgPicture.asset(
                             Assets.svg.search,
@@ -160,7 +161,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                                         onTap: () async {
                                           setState(() {
                                             _searchController.text = "";
-                                            filter = "";
                                           });
                                         },
                                       ),
@@ -243,14 +243,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
           child: SizedBox(
             width: 489,
-            child: RoundedWhiteContainer(
-              child: Center(
-                child: Text(
-                  "Your contacts will appear here",
-                  style: STextStyles.itemSubtitle(context),
-                ),
-              ),
-            ),
+            child: AddressBookView(),
           ),
         ),
       ],
