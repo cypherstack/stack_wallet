@@ -427,7 +427,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                 width: 190,
                                                 label: "Edit auto backup",
                                                 onPressed: () {
-                                                  Navigator.of(context).pop();
+                                                  // Navigator.of(context).pop();
                                                   createAutoBackup();
                                                 },
                                               ),
