@@ -26,11 +26,20 @@ class SWBFileSystem {
     }
     debugPrint(rootPath!.absolute.toString());
 
-    Directory sampleFolder =
-        Directory('${rootPath!.path}Documents/Stack_backups');
+    late Directory sampleFolder;
+
     if (Platform.isIOS) {
       sampleFolder = Directory(rootPath!.path);
+    } else if (Platform.isAndroid) {
+      sampleFolder = Directory('${rootPath!.path}Documents/Stack_backups');
+    } else if (Platform.isLinux) {
+      sampleFolder = Directory('${rootPath!.path}/Stack_backups');
+    } else if (Platform.isWindows) {
+      sampleFolder = Directory('${rootPath!.path}/Stack_backups');
+    } else if (Platform.isMacOS) {
+      sampleFolder = Directory('${rootPath!.path}/Stack_backups');
     }
+
     try {
       if (!sampleFolder.existsSync()) {
         sampleFolder.createSync(recursive: true);
