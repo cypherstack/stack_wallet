@@ -26,9 +26,10 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: MyStackView.routeName,
     ),
-    Container(
-      color: Colors.green,
-    ),
+    // Container(
+    //   // todo: exchange
+    //   color: Colors.green,
+    // ),
     Container(
       color: Colors.red,
     ),

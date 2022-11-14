@@ -103,29 +103,29 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     const SizedBox(
                       height: 2,
                     ),
-                    DesktopMenuItem(
-                      icon: SvgPicture.asset(
-                        Assets.svg.exchangeDesktop,
-                        width: 20,
-                        height: 20,
-                        color: 1 == selectedMenuItem
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark
-                                .withOpacity(0.8),
-                      ),
-                      label: "Exchange",
-                      value: 1,
-                      group: selectedMenuItem,
-                      onChanged: updateSelectedMenuItem,
-                      iconOnly: _width == minimizedWidth,
-                    ),
-                    const SizedBox(
-                      height: 2,
-                    ),
+                    // DesktopMenuItem(
+                    //   icon: SvgPicture.asset(
+                    //     Assets.svg.exchangeDesktop,
+                    //     width: 20,
+                    //     height: 20,
+                    //     color: 1 == selectedMenuItem
+                    //         ? Theme.of(context)
+                    //             .extension<StackColors>()!
+                    //             .textDark
+                    //         : Theme.of(context)
+                    //             .extension<StackColors>()!
+                    //             .textDark
+                    //             .withOpacity(0.8),
+                    //   ),
+                    //   label: "Exchange",
+                    //   value: 1,
+                    //   group: selectedMenuItem,
+                    //   onChanged: updateSelectedMenuItem,
+                    //   iconOnly: _width == minimizedWidth,
+                    // ),
+                    // const SizedBox(
+                    //   height: 2,
+                    // ),
                     DesktopMenuItem(
                       icon: SvgPicture.asset(
                         Assets.svg.bell,
