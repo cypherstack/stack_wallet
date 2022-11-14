@@ -15,14 +15,16 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/emoji_select_sheet.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import 'package:stackwallet/utilities/util.dart';
 
 class AddAddressBookEntryView extends ConsumerStatefulWidget {
   const AddAddressBookEntryView({
@@ -108,395 +110,537 @@ class _AddAddressBookEntryViewState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () async {
-            if (FocusScope.of(context).hasFocus) {
-              FocusScope.of(context).unfocus();
-              await Future<void>.delayed(const Duration(milliseconds: 75));
-            }
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        title: Text(
-          "New contact",
-          style: STextStyles.navBarTitle(context),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 10,
-              bottom: 10,
-              right: 10,
-            ),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: AppBarIconButton(
-                key: const Key("addAddressBookEntryFavoriteButtonKey"),
-                size: 36,
-                shadows: const [],
-                color: Theme.of(context).extension<StackColors>()!.background,
-                icon: SvgPicture.asset(
-                  Assets.svg.star,
-                  color: _isFavorite
-                      ? Theme.of(context)
-                          .extension<StackColors>()!
-                          .favoriteStarActive
-                      : Theme.of(context)
-                          .extension<StackColors>()!
-                          .favoriteStarInactive,
-                  width: 20,
-                  height: 20,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isFavorite = !_isFavorite;
-                  });
+    final isDesktop = Util.isDesktop;
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) {
+        return Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 75));
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
                 },
               ),
-            ),
-          ),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraint) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: SingleChildScrollView(
-              controller: scrollController,
-              padding: const EdgeInsets.only(
-                // top: 8,
-                left: 4,
-                right: 4,
-                bottom: 16,
+              title: Text(
+                "New contact",
+                style: STextStyles.navBarTitle(context),
               ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  // subtract top and bottom padding set in parent
-                  minHeight: constraint.maxHeight - 16, // - 8,
-                ),
-                child: IntrinsicHeight(
-                  child: Column(
-                    children: [
-                      const SizedBox(
-                        height: 4,
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("addAddressBookEntryFavoriteButtonKey"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.star,
+                        color: _isFavorite
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .favoriteStarActive
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .favoriteStarInactive,
+                        width: 20,
+                        height: 20,
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          if (_selectedEmoji != null) {
+                      onPressed: () {
+                        setState(() {
+                          _isFavorite = !_isFavorite;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            body: child);
+      },
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) {
+          return Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Row(
+                      children: [
+                        Text(
+                          "New contact",
+                          style: STextStyles.desktopH3(context),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(width: 10),
+                        AppBarIconButton(
+                          key:
+                              const Key("addAddressBookEntryFavoriteButtonKey"),
+                          size: 36,
+                          shadows: const [],
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                          icon: SvgPicture.asset(
+                            Assets.svg.star,
+                            color: _isFavorite
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .favoriteStarActive
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .favoriteStarInactive,
+                            width: 20,
+                            height: 20,
+                          ),
+                          onPressed: () {
                             setState(() {
-                              _selectedEmoji = null;
+                              _isFavorite = !_isFavorite;
                             });
-                            return;
-                          }
-                          showModalBottomSheet<dynamic>(
-                            backgroundColor: Colors.transparent,
-                            context: context,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(20),
-                              ),
-                            ),
-                            builder: (_) => const EmojiSelectSheet(),
-                          ).then((value) {
-                            if (value is Emoji) {
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
+              Expanded(child: child),
+            ],
+          );
+        },
+        child: LayoutBuilder(
+          builder: (context, constraint) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.only(
+                  // top: 8,
+                  left: 4,
+                  right: 4,
+                  bottom: 16,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    // subtract top and bottom padding set in parent
+                    minHeight: constraint.maxHeight - 16, // - 8,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      children: [
+                        const SizedBox(
+                          height: 4,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            if (_selectedEmoji != null) {
                               setState(() {
-                                _selectedEmoji = value;
+                                _selectedEmoji = null;
                               });
+                              return;
                             }
-                          });
-                        },
-                        child: SizedBox(
-                          height: 48,
-                          width: 48,
-                          child: Stack(
-                            children: [
-                              Container(
-                                height: 48,
-                                width: 48,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(24),
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveBG,
-                                ),
-                                child: Center(
-                                  child: _selectedEmoji == null
-                                      ? SvgPicture.asset(
-                                          Assets.svg.user,
-                                          height: 24,
-                                          width: 24,
-                                        )
-                                      : Text(
-                                          _selectedEmoji!.char,
-                                          style:
-                                              STextStyles.pageTitleH1(context),
+
+                            ///TODO if desktop make dialog
+                            !isDesktop
+                                ? showModalBottomSheet<dynamic>(
+                                    backgroundColor: Colors.transparent,
+                                    context: context,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20),
+                                      ),
+                                    ),
+                                    builder: (_) => const EmojiSelectSheet(),
+                                  ).then((value) {
+                                    if (value is Emoji) {
+                                      setState(() {
+                                        _selectedEmoji = value;
+                                      });
+                                    }
+                                  })
+                                : showDialog<dynamic>(
+                                    context: context,
+                                    builder: (context) {
+                                      return DesktopDialog(
+                                        maxHeight: 700,
+                                        maxWidth: 700,
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(32),
+                                                  child: Text(
+                                                    "Select emoji",
+                                                    style:
+                                                        STextStyles.desktopH3(
+                                                            context),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Expanded(
+                                              child: LayoutBuilder(
+                                                builder:
+                                                    (context, constraints) {
+                                                  return SingleChildScrollView(
+                                                    scrollDirection:
+                                                        Axis.vertical,
+                                                    child: ConstrainedBox(
+                                                      constraints:
+                                                          BoxConstraints(
+                                                        minHeight: constraints
+                                                            .maxHeight,
+                                                        minWidth: constraints
+                                                            .maxWidth,
+                                                      ),
+                                                      child: IntrinsicHeight(
+                                                        child: Column(
+                                                          children: const [
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          32),
+                                                              // child:
+                                                              //     EmojiSelectSheet(),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                ),
-                              ),
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: Container(
-                                  height: 14,
-                                  width: 14,
+                                      );
+                                    }).then((value) {
+                                    if (value is Emoji) {
+                                      setState(() {
+                                        _selectedEmoji = value;
+                                      });
+                                    }
+                                  });
+                          },
+                          child: SizedBox(
+                            height: 48,
+                            width: 48,
+                            child: Stack(
+                              children: [
+                                Container(
+                                  height: 48,
+                                  width: 48,
                                   decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(14),
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
+                                    borderRadius: BorderRadius.circular(24),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldActiveBG,
+                                  ),
                                   child: Center(
                                     child: _selectedEmoji == null
                                         ? SvgPicture.asset(
-                                            Assets.svg.plus,
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textWhite,
-                                            width: 12,
-                                            height: 12,
+                                            Assets.svg.user,
+                                            height: 24,
+                                            width: 24,
                                           )
-                                        : SvgPicture.asset(
-                                            Assets.svg.thickX,
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textWhite,
-                                            width: 8,
-                                            height: 8,
+                                        : Text(
+                                            _selectedEmoji!.char,
+                                            style: STextStyles.pageTitleH1(
+                                                context),
                                           ),
                                   ),
                                 ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        child: TextField(
-                          autocorrect: Util.isDesktop ? false : true,
-                          enableSuggestions: Util.isDesktop ? false : true,
-                          controller: nameController,
-                          focusNode: nameFocusNode,
-                          style: STextStyles.field(context),
-                          decoration: standardInputDecoration(
-                            "Enter contact name",
-                            nameFocusNode,
-                            context,
-                          ).copyWith(
-                            suffixIcon: ref
-                                    .read(contactNameIsNotEmptyStateProvider
-                                        .state)
-                                    .state
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                nameController.text = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Container(
+                                    height: 14,
+                                    width: 14,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(14),
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark),
+                                    child: Center(
+                                      child: _selectedEmoji == null
+                                          ? SvgPicture.asset(
+                                              Assets.svg.plus,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textWhite,
+                                              width: 12,
+                                              height: 12,
+                                            )
+                                          : SvgPicture.asset(
+                                              Assets.svg.thickX,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textWhite,
+                                              width: 8,
+                                              height: 8,
+                                            ),
                                     ),
-                                  )
-                                : null,
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
-                          onChanged: (newValue) {
-                            ref
-                                .read(contactNameIsNotEmptyStateProvider.state)
-                                .state = newValue.isNotEmpty;
-                          },
                         ),
-                      ),
-                      if (forms.length <= 1)
                         const SizedBox(
                           height: 8,
                         ),
-                      if (forms.length <= 1) forms[0],
-                      if (forms.length > 1)
-                        for (int i = 0; i < forms.length; i++)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(
-                                height: 12,
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Address ${i + 1}",
-                                    style: STextStyles.smallMed12(context),
-                                  ),
-                                  BlueTextButton(
-                                    onTap: () {
-                                      _removeForm(forms[i].id);
-                                    },
-                                    text: "Remove",
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              forms[i],
-                            ],
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
                           ),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                      BlueTextButton(
-                        onTap: () {
-                          _addForm();
-                          scrollController.animateTo(
-                            scrollController.position.maxScrollExtent + 500,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                          );
-                        },
-                        text: "+ Add another address",
-                      ),
-                      // GestureDetector(
-                      //
-                      //   child: Text(
-                      //     "+ Add another address",
-                      //     style: STextStyles.largeMedium14(context),
-                      //   ),
-                      // ),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getSecondaryEnabledButtonColor(context),
-                              child: Text(
-                                "Cancel",
-                                style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark),
-                              ),
-                              onPressed: () async {
-                                if (FocusScope.of(context).hasFocus) {
-                                  FocusScope.of(context).unfocus();
-                                  await Future<void>.delayed(
-                                      const Duration(milliseconds: 75));
-                                }
-                                if (mounted) {
-                                  Navigator.of(context).pop();
-                                }
-                              },
+                          child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
+                            controller: nameController,
+                            focusNode: nameFocusNode,
+                            style: STextStyles.field(context),
+                            decoration: standardInputDecoration(
+                              "Enter contact name",
+                              nameFocusNode,
+                              context,
+                            ).copyWith(
+                              suffixIcon: ref
+                                      .read(contactNameIsNotEmptyStateProvider
+                                          .state)
+                                      .state
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          children: [
+                                            TextFieldIconButton(
+                                              child: const XIcon(),
+                                              onTap: () async {
+                                                setState(() {
+                                                  nameController.text = "";
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  : null,
                             ),
+                            onChanged: (newValue) {
+                              ref
+                                  .read(
+                                      contactNameIsNotEmptyStateProvider.state)
+                                  .state = newValue.isNotEmpty;
+                            },
                           ),
+                        ),
+                        if (forms.length <= 1)
                           const SizedBox(
-                            width: 16,
+                            height: 8,
                           ),
-                          Expanded(
-                            child: Builder(
-                              builder: (context) {
-                                bool nameExists = ref
-                                    .watch(contactNameIsNotEmptyStateProvider
-                                        .state)
-                                    .state;
-
-                                bool validForms = ref.watch(
-                                    validContactStateProvider(forms
-                                        .map((e) => e.id)
-                                        .toList(growable: false)));
-
-                                bool shouldEnableSave =
-                                    validForms && nameExists;
-
-                                return TextButton(
-                                  style: shouldEnableSave
-                                      ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryEnabledButtonColor(context)
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryDisabledButtonColor(
-                                              context),
-                                  onPressed: shouldEnableSave
-                                      ? () async {
-                                          if (FocusScope.of(context).hasFocus) {
-                                            FocusScope.of(context).unfocus();
-                                            await Future<void>.delayed(
-                                              const Duration(milliseconds: 75),
-                                            );
-                                          }
-                                          List<ContactAddressEntry> entries =
-                                              [];
-                                          for (int i = 0;
-                                              i < forms.length;
-                                              i++) {
-                                            entries.add(ref
-                                                .read(addressEntryDataProvider(
-                                                    forms[i].id))
-                                                .buildAddressEntry());
-                                          }
-                                          Contact contact = Contact(
-                                            emojiChar: _selectedEmoji?.char,
-                                            name: nameController.text,
-                                            addresses: entries,
-                                            isFavorite: _isFavorite,
-                                          );
-
-                                          if (await ref
-                                              .read(addressBookServiceProvider)
-                                              .addContact(contact)) {
-                                            if (mounted) {
-                                              Navigator.of(context).pop();
-                                            }
-                                            // TODO show success notification
-                                          } else {
-                                            // TODO show error notification
-                                          }
-                                        }
-                                      : null,
-                                  child: Text(
-                                    "Save",
-                                    style: STextStyles.button(context).copyWith(
-                                      color: shouldEnableSave
-                                          ? Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .buttonTextPrimary
-                                          : Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .buttonTextPrimaryDisabled,
+                        if (forms.length <= 1) forms[0],
+                        if (forms.length > 1)
+                          for (int i = 0; i < forms.length; i++)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(
+                                  height: 12,
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Address ${i + 1}",
+                                      style: STextStyles.smallMed12(context),
                                     ),
-                                  ),
-                                );
-                              },
+                                    BlueTextButton(
+                                      onTap: () {
+                                        _removeForm(forms[i].id);
+                                      },
+                                      text: "Remove",
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                forms[i],
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        BlueTextButton(
+                          onTap: () {
+                            _addForm();
+                            scrollController.animateTo(
+                              scrollController.position.maxScrollExtent + 500,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          text: "+ Add another address",
+                        ),
+                        // GestureDetector(
+                        //
+                        //   child: Text(
+                        //     "+ Add another address",
+                        //     style: STextStyles.largeMedium14(context),
+                        //   ),
+                        // ),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getSecondaryEnabledButtonColor(context),
+                                child: Text(
+                                  "Cancel",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                                onPressed: () async {
+                                  if (FocusScope.of(context).hasFocus) {
+                                    FocusScope.of(context).unfocus();
+                                    await Future<void>.delayed(
+                                        const Duration(milliseconds: 75));
+                                  }
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 16,
+                            ),
+                            Expanded(
+                              child: Builder(
+                                builder: (context) {
+                                  bool nameExists = ref
+                                      .watch(contactNameIsNotEmptyStateProvider
+                                          .state)
+                                      .state;
+
+                                  bool validForms = ref.watch(
+                                      validContactStateProvider(forms
+                                          .map((e) => e.id)
+                                          .toList(growable: false)));
+
+                                  bool shouldEnableSave =
+                                      validForms && nameExists;
+
+                                  return TextButton(
+                                    style: shouldEnableSave
+                                        ? Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .getPrimaryEnabledButtonColor(
+                                                context)
+                                        : Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .getPrimaryDisabledButtonColor(
+                                                context),
+                                    onPressed: shouldEnableSave
+                                        ? () async {
+                                            if (FocusScope.of(context)
+                                                .hasFocus) {
+                                              FocusScope.of(context).unfocus();
+                                              await Future<void>.delayed(
+                                                const Duration(
+                                                    milliseconds: 75),
+                                              );
+                                            }
+                                            List<ContactAddressEntry> entries =
+                                                [];
+                                            for (int i = 0;
+                                                i < forms.length;
+                                                i++) {
+                                              entries.add(ref
+                                                  .read(
+                                                      addressEntryDataProvider(
+                                                          forms[i].id))
+                                                  .buildAddressEntry());
+                                            }
+                                            Contact contact = Contact(
+                                              emojiChar: _selectedEmoji?.char,
+                                              name: nameController.text,
+                                              addresses: entries,
+                                              isFavorite: _isFavorite,
+                                            );
+
+                                            if (await ref
+                                                .read(
+                                                    addressBookServiceProvider)
+                                                .addContact(contact)) {
+                                              if (mounted) {
+                                                Navigator.of(context).pop();
+                                              }
+                                              // TODO show success notification
+                                            } else {
+                                              // TODO show error notification
+                                            }
+                                          }
+                                        : null,
+                                    child: Text(
+                                      "Save",
+                                      style:
+                                          STextStyles.button(context).copyWith(
+                                        color: shouldEnableSave
+                                            ? Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonTextPrimary
+                                            : Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonTextPrimaryDisabled,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
