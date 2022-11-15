@@ -4,7 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings/language_dialog.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class LanguageOptionSettings extends ConsumerStatefulWidget {
@@ -15,6 +15,17 @@ class LanguageOptionSettings extends ConsumerStatefulWidget {
   @override
   ConsumerState<LanguageOptionSettings> createState() =>
       _LanguageOptionSettings();
+}
+
+Future<void> chooseLanguage(BuildContext context) async {
+  await showDialog<dynamic>(
+    context: context,
+    useSafeArea: false,
+    barrierDismissible: true,
+    builder: (context) {
+      return const LanguageDialog();
+    },
+  );
 }
 
 class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
@@ -66,12 +77,20 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Padding(
                       padding: EdgeInsets.all(
                         10,
                       ),
-                      child: ChangeLanguageButton(),
+                      child: PrimaryButton(
+                        width: 210,
+                        desktopMed: true,
+                        enabled: true,
+                        label: "Change language",
+                        onPressed: () {
+                          chooseLanguage(context);
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -80,43 +99,6 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class ChangeLanguageButton extends ConsumerWidget {
-  const ChangeLanguageButton({
-    Key? key,
-  }) : super(key: key);
-
-  Future<void> chooseLanguage(BuildContext context) async {
-    await showDialog<dynamic>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: true,
-      builder: (context) {
-        return const LanguageDialog();
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: 200,
-      height: 48,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {
-          chooseLanguage(context);
-        },
-        child: Text(
-          "Change language",
-          style: STextStyles.button(context),
-        ),
-      ),
     );
   }
 }

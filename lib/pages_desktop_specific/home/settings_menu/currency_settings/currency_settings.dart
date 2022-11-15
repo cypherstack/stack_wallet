@@ -7,6 +7,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class CurrencySettings extends ConsumerStatefulWidget {
@@ -16,6 +17,41 @@ class CurrencySettings extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<CurrencySettings> createState() => _CurrencySettings();
+}
+
+Future<void> chooseCurrency(BuildContext context) async {
+  await showDialog<dynamic>(
+    context: context,
+    useSafeArea: false,
+    barrierDismissible: true,
+    builder: (context) {
+      return DesktopDialog(
+        maxHeight: 800,
+        maxWidth: 600,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Text(
+                    "Select currency",
+                    style: STextStyles.desktopH3(context),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            const Expanded(
+              child: BaseCurrencySettingsView(),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }
 
 class _CurrencySettings extends ConsumerState<CurrencySettings> {
@@ -65,12 +101,20 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Padding(
                       padding: EdgeInsets.all(
                         10,
                       ),
-                      child: changeCurrency(),
+                      child: PrimaryButton(
+                        width: 210,
+                        desktopMed: true,
+                        enabled: true,
+                        label: "Change currency",
+                        onPressed: () {
+                          chooseCurrency(context);
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -79,66 +123,6 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class changeCurrency extends ConsumerWidget {
-  const changeCurrency({
-    Key? key,
-  }) : super(key: key);
-  Future<void> chooseCurrency(BuildContext context) async {
-    await showDialog<dynamic>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: true,
-      builder: (context) {
-        return DesktopDialog(
-          maxHeight: 800,
-          maxWidth: 600,
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                      "Select currency",
-                      style: STextStyles.desktopH3(context),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const DesktopDialogCloseButton(),
-                ],
-              ),
-              const Expanded(
-                child: BaseCurrencySettingsView(),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: 200,
-      height: 48,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {
-          chooseCurrency(context);
-        },
-        child: Text(
-          "Change currency",
-          style: STextStyles.button(context),
-        ),
-      ),
     );
   }
 }

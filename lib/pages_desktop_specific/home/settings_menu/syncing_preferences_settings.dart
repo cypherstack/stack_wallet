@@ -5,7 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class SyncingPreferencesSettings extends ConsumerStatefulWidget {
@@ -75,12 +75,18 @@ class _SyncingPreferencesSettings
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Padding(
                       padding: EdgeInsets.all(
                         10,
                       ),
-                      child: ChangePrefButton(),
+                      child: PrimaryButton(
+                        width: 210,
+                        desktopMed: true,
+                        enabled: true,
+                        label: "Change preferences",
+                        onPressed: () {},
+                      ),
                     ),
                   ],
                 ),
@@ -89,29 +95,6 @@ class _SyncingPreferencesSettings
           ),
         ),
       ],
-    );
-  }
-}
-
-class ChangePrefButton extends ConsumerWidget {
-  const ChangePrefButton({
-    Key? key,
-  }) : super(key: key);
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: 200,
-      height: 48,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {},
-        child: Text(
-          "Change preferences",
-          style: STextStyles.button(context),
-        ),
-      ),
     );
   }
 }

@@ -157,20 +157,16 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                   ),
                 ),
                 Padding(
-                  padding:
-                      const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                  padding: const EdgeInsets.all(10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(
-                        height: 16,
-                      ),
                       Text(
                         "Change Password",
                         style: STextStyles.desktopTextSmall(context),
                       ),
                       const SizedBox(
-                        height: 8,
+                        height: 16,
                       ),
                       Text(
                         "Protect your Stack Wallet with a strong password. Stack Wallet does not store "
