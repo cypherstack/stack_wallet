@@ -492,7 +492,11 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
 
                             return DropdownMenuItem(
                               value: e,
-                              child: Text(message),
+                              child: Text(
+                                message,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                    context),
+                              ),
                             );
                           },
                         ),
