@@ -48,16 +48,20 @@ class _SendReceiveTabMenuState extends State<SendReceiveTabMenu> {
                   const SizedBox(
                     height: 16,
                   ),
-                  Text(
-                    "Send",
-                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: _selectedIndex == 0
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: Text(
+                      "Send",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: _selectedIndex == 0
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorBlue
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
+                      ),
                     ),
                   ),
                   const SizedBox(
@@ -90,16 +94,20 @@ class _SendReceiveTabMenuState extends State<SendReceiveTabMenu> {
                   const SizedBox(
                     height: 16,
                   ),
-                  Text(
-                    "Receive",
-                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: _selectedIndex == 1
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: Text(
+                      "Receive",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: _selectedIndex == 1
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorBlue
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
+                      ),
                     ),
                   ),
                   const SizedBox(
