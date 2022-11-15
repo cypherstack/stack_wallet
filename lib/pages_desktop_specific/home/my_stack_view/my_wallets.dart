@@ -53,7 +53,10 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
             height: 20,
           ),
           const Expanded(
-            child: WalletSummaryTable(),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: WalletSummaryTable(),
+            ),
           ),
         ],
       ),
