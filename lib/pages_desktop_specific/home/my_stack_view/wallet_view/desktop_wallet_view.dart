@@ -292,13 +292,13 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     eventBus: eventBus,
                   ),
                   const SizedBox(
-                    width: 32,
+                    width: 2,
                   ),
                   WalletKeysButton(
                     walletId: walletId,
                   ),
                   const SizedBox(
-                    width: 32,
+                    width: 12,
                   ),
                 ],
               ),
