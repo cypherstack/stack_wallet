@@ -330,7 +330,7 @@ class SupportView extends StatelessWidget {
               onPressed: () {
                 if (!isDesktop) {
                   launchUrl(
-                    Uri.parse("mailto://support@stackwallet.com"),
+                    Uri.parse("mailto:support@stackwallet.com"),
                     mode: LaunchMode.externalApplication,
                   );
                 }
@@ -367,7 +367,7 @@ class SupportView extends StatelessWidget {
                       text: isDesktop ? "support@stackwallet.com" : "",
                       onTap: () {
                         launchUrl(
-                          Uri.parse("mailto://support@stackwallet.com"),
+                          Uri.parse("mailto:support@stackwallet.com"),
                           mode: LaunchMode.externalApplication,
                         );
                       },
