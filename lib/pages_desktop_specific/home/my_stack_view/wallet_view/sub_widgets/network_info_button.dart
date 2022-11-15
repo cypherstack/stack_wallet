@@ -132,10 +132,10 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
         label = "Unable to sync";
         break;
       case WalletSyncStatus.synced:
-        label = "Synchronised";
+        label = "Synchronized";
         break;
       case WalletSyncStatus.syncing:
-        label = "Synchronising";
+        label = "Synchronizing";
         break;
     }
 
