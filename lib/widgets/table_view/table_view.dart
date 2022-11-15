@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/widgets/table_view/table_view_row.dart';
 
 class TableView extends StatefulWidget {
   const TableView({
@@ -9,7 +8,7 @@ class TableView extends StatefulWidget {
     this.shrinkWrap = false,
   }) : super(key: key);
 
-  final List<TableViewRow> rows;
+  final List<Widget> rows;
   final double rowSpacing;
   final bool shrinkWrap;
 
