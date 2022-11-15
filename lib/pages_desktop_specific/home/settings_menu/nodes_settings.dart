@@ -34,6 +34,18 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
 
   String filter = "";
 
+  List<Coin> _search(String filter, List<Coin> coins) {
+    if (filter.isEmpty) {
+      return coins;
+    }
+    return coins
+        .where((coin) =>
+            coin.prettyName.contains(filter) ||
+            coin.name.contains(filter) ||
+            coin.ticker.toLowerCase().contains(filter.toLowerCase()))
+        .toList();
+  }
+
   @override
   void initState() {
     _coins = _coins.toList();
@@ -67,6 +79,8 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
     List<Coin> coins = showTestNet
         ? _coins
         : _coins.sublist(0, _coins.length - kTestNetCoinCount);
+
+    coins = _search(filter, coins);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
