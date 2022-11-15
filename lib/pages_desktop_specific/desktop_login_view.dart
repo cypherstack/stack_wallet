@@ -175,15 +175,18 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                     hidePassword = !hidePassword;
                                   });
                                 },
-                                child: SvgPicture.asset(
-                                  hidePassword
-                                      ? Assets.svg.eye
-                                      : Assets.svg.eyeSlash,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark3,
-                                  width: 24,
-                                  height: 24,
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: SvgPicture.asset(
+                                    hidePassword
+                                        ? Assets.svg.eye
+                                        : Assets.svg.eyeSlash,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
+                                    width: 24,
+                                    height: 24,
+                                  ),
                                 ),
                               ),
                               const SizedBox(
