@@ -102,7 +102,7 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(
+                      padding: const EdgeInsets.all(
                         10,
                       ),
                       child: PrimaryButton(
