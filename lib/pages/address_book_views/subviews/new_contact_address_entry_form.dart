@@ -14,13 +14,12 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import 'package:stackwallet/utilities/util.dart';
 
 class NewContactAddressEntryForm extends ConsumerStatefulWidget {
   const NewContactAddressEntryForm({
@@ -70,6 +69,7 @@ class _NewContactAddressEntryFormState
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
     return Column(
       children: [
         TextField(
@@ -168,6 +168,7 @@ class _NewContactAddressEntryFormState
               addressLabelFocusNode,
               context,
             ).copyWith(
+              labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
               suffixIcon: addressLabelController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
@@ -212,6 +213,7 @@ class _NewContactAddressEntryFormState
               addressFocusNode,
               context,
             ).copyWith(
+              labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
               suffixIcon: UnconstrainedBox(
                 child: Row(
                   children: [
