@@ -18,6 +18,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
@@ -523,7 +524,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
 
                               if (mounted) {
                                 // pop encryption progress dialog
-                                Navigator.of(context).pop();
+                                if (!isDesktop) Navigator.of(context).pop();
 
                                 if (result) {
                                   await showDialog<dynamic>(
@@ -607,14 +608,52 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     return;
                                   }
 
-                                  unawaited(showDialog<dynamic>(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (_) => const StackDialog(
-                                      title: "Encrypting backup",
-                                      message: "This shouldn't take long",
+                                  unawaited(
+                                    showDialog<dynamic>(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (_) {
+                                        if (Util.isDesktop) {
+                                          return DesktopDialog(
+                                            maxHeight: double.infinity,
+                                            maxWidth: 450,
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(
+                                                32,
+                                              ),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "Encrypting initial backup",
+                                                    style:
+                                                        STextStyles.desktopH3(
+                                                            context),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 40,
+                                                  ),
+                                                  Text(
+                                                    "This shouldn't take long",
+                                                    style: STextStyles
+                                                        .desktopTextExtraExtraSmall(
+                                                            context),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          return const StackDialog(
+                                            title: "Encrypting initial backup",
+                                            message: "This shouldn't take long",
+                                          );
+                                        }
+                                      },
                                     ),
-                                  ));
+                                  );
                                   // make sure the dialog is able to be displayed for at least 1 second
                                   await Future<void>.delayed(
                                       const Duration(seconds: 1));
@@ -637,7 +676,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
 
                                   if (mounted) {
                                     // pop encryption progress dialog
-                                    Navigator.of(context).pop();
+                                    if (!isDesktop) Navigator.of(context).pop();
 
                                     if (result) {
                                       await showDialog<dynamic>(
@@ -648,9 +687,67 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                                 title: "Backup saved to:",
                                                 message: fileToSave,
                                               )
-                                            : const StackOkDialog(
-                                                title:
-                                                    "Backup creation succeeded"),
+                                            : !isDesktop
+                                                ? const StackOkDialog(
+                                                    title:
+                                                        "Backup creation succeeded")
+                                                : DesktopDialog(
+                                                    maxHeight: double.infinity,
+                                                    maxWidth: 500,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                        left: 32,
+                                                        right: 32,
+                                                        bottom: 32,
+                                                      ),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          const SizedBox(
+                                                              height: 26),
+                                                          Text(
+                                                            "Stack backup saved to: \n",
+                                                            style: STextStyles
+                                                                .desktopH3(
+                                                                    context),
+                                                          ),
+                                                          Text(
+                                                            fileToSave,
+                                                            style: STextStyles
+                                                                .desktopTextExtraExtraSmall(
+                                                                    context),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 40,
+                                                          ),
+                                                          Row(
+                                                            children: [
+                                                              // const Spacer(),
+                                                              Expanded(
+                                                                child:
+                                                                    PrimaryButton(
+                                                                  label: "Ok",
+                                                                  desktopMed:
+                                                                      true,
+                                                                  onPressed:
+                                                                      () {
+                                                                    // Navigator.of(
+                                                                    //         context)
+                                                                    //     .pop();
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          )
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
                                       );
                                       passwordController.text = "";
                                       passwordRepeatController.text = "";
