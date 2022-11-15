@@ -11,8 +11,10 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
+import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class NodesSettings extends ConsumerStatefulWidget {
   const NodesSettings({Key? key}) : super(key: key);
@@ -29,6 +31,8 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
   late final TextEditingController searchNodeController;
   late final FocusNode searchNodeFocusNode;
 
+  late final ScrollController nodeScrollController;
+
   String filter = "";
 
   @override
@@ -38,6 +42,8 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
 
     searchNodeController = TextEditingController();
     searchNodeFocusNode = FocusNode();
+
+    nodeScrollController = ScrollController();
 
     super.initState();
   }
@@ -134,6 +140,26 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                             height: 16,
                           ),
                         ),
+                        suffixIcon: searchNodeController.text.isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.only(right: 0),
+                                child: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      TextFieldIconButton(
+                                        child: const XIcon(),
+                                        onTap: () async {
+                                          setState(() {
+                                            searchNodeController.text = "";
+                                            filter = "";
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : null,
                       ),
                     ),
                   ),
@@ -145,6 +171,9 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                     borderColor:
                         Theme.of(context).extension<StackColors>()!.background,
                     child: ListView.separated(
+                      controller: nodeScrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      scrollDirection: Axis.vertical,
                       primary: false,
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
