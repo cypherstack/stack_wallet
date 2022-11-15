@@ -56,7 +56,7 @@ class _SyncingPreferencesSettings
                             ),
                             TextSpan(
                               text:
-                                  "\nSet up your syncing preferences for all wallets in your Stack.",
+                                  "\n\nSet up your syncing preferences for all wallets in your Stack.",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                   context),
                             ),
@@ -69,7 +69,7 @@ class _SyncingPreferencesSettings
 
                 ///TODO: ONLY SHOW SYNC OPTIONS ON BUTTON PRESS
                 Column(
-                  children: [
+                  children: const [
                     SyncingOptionsView(),
                   ],
                 ),
@@ -77,7 +77,7 @@ class _SyncingPreferencesSettings
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(
+                      padding: const EdgeInsets.all(
                         10,
                       ),
                       child: PrimaryButton(
