@@ -31,10 +31,13 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SvgPicture.asset(
-                  Assets.svg.circleLanguage,
-                  width: 48,
-                  height: 48,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SvgPicture.asset(
+                    Assets.svg.circleLanguage,
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

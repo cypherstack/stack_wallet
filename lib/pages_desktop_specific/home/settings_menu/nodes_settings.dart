@@ -79,10 +79,13 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                SvgPicture.asset(
-                  Assets.svg.circleNode,
-                  width: 48,
-                  height: 48,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SvgPicture.asset(
+                    Assets.svg.circleNode,
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

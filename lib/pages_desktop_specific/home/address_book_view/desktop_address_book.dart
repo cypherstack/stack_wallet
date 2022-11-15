@@ -239,8 +239,8 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 26),
           child: SizedBox(
             width: 489,
             child: AddressBookView(),

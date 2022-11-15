@@ -32,10 +32,13 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SvgPicture.asset(
-                  Assets.svg.circleDollarSign,
-                  width: 48,
-                  height: 48,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SvgPicture.asset(
+                    Assets.svg.circleDollarSign,
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
                 Center(
                   child: Padding(
@@ -67,7 +70,7 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                       padding: EdgeInsets.all(
                         10,
                       ),
-                      child: NewPasswordButton(),
+                      child: changeCurrency(),
                     ),
                   ],
                 ),
@@ -80,19 +83,11 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
   }
 }
 
-class NewPasswordButton extends ConsumerWidget {
-  const NewPasswordButton({
+class changeCurrency extends ConsumerWidget {
+  const changeCurrency({
     Key? key,
   }) : super(key: key);
   Future<void> chooseCurrency(BuildContext context) async {
-    // await showDialog<dynamic>(
-    //   context: context,
-    //   useSafeArea: false,
-    //   barrierDismissible: true,
-    //   builder: (context) {
-    //     return CurrencyDialog();
-    //   },
-    // );
     await showDialog<dynamic>(
       context: context,
       useSafeArea: false,
