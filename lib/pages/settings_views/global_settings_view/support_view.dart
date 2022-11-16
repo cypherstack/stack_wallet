@@ -104,7 +104,7 @@ class SupportView extends StatelessWidget {
             height: 8,
           ),
           AboutItem(
-            linkUrl: "mailto://support@stackwallet.com",
+            linkUrl: "mailto:support@stackwallet.com",
             label: "Email",
             buttonText: "support@stackwallet.com",
             iconAsset: Assets.svg.envelope,
