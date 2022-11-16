@@ -73,7 +73,7 @@ class SupportView extends StatelessWidget {
             height: 8,
           ),
           AboutItem(
-            linkUrl: "https://discord.gg/RZMG3yUm",
+            linkUrl: "https://discord.com/invite/mRPZuXx3At",
             label: "Discord",
             buttonText: "Stack Wallet",
             iconAsset: Assets.socials.discord,
