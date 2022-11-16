@@ -654,9 +654,10 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                       },
                                     ),
                                   );
+
                                   // make sure the dialog is able to be displayed for at least 1 second
-                                  await Future<void>.delayed(
-                                      const Duration(seconds: 1));
+                                  final fut = Future<void>.delayed(
+                                      const Duration(seconds: 2));
 
                                   final DateTime now = DateTime.now();
                                   final String fileToSave =
@@ -674,81 +675,86 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     jsonEncode(backup),
                                   );
 
+                                  await Future.wait([fut]);
+
                                   if (mounted) {
                                     // pop encryption progress dialog
                                     if (!isDesktop) Navigator.of(context).pop();
 
                                     if (result) {
                                       await showDialog<dynamic>(
-                                        context: context,
-                                        barrierDismissible: false,
-                                        builder: (_) => Platform.isAndroid
-                                            ? StackOkDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (context) {
+                                            if (Platform.isAndroid) {
+                                              return StackOkDialog(
                                                 title: "Backup saved to:",
                                                 message: fileToSave,
-                                              )
-                                            : !isDesktop
-                                                ? const StackOkDialog(
-                                                    title:
-                                                        "Backup creation succeeded")
-                                                : DesktopDialog(
-                                                    maxHeight: double.infinity,
-                                                    maxWidth: 500,
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                        left: 32,
-                                                        right: 32,
-                                                        bottom: 32,
-                                                      ),
-                                                      child: Column(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          const SizedBox(
-                                                              height: 26),
-                                                          Text(
-                                                            "Stack backup saved to: \n",
-                                                            style: STextStyles
-                                                                .desktopH3(
-                                                                    context),
-                                                          ),
-                                                          Text(
-                                                            fileToSave,
-                                                            style: STextStyles
-                                                                .desktopTextExtraExtraSmall(
-                                                                    context),
-                                                          ),
-                                                          const SizedBox(
-                                                            height: 40,
-                                                          ),
-                                                          Row(
-                                                            children: [
-                                                              // const Spacer(),
-                                                              Expanded(
-                                                                child:
-                                                                    PrimaryButton(
-                                                                  label: "Ok",
-                                                                  desktopMed:
-                                                                      true,
-                                                                  onPressed:
-                                                                      () {
-                                                                    // Navigator.of(
-                                                                    //         context)
-                                                                    //     .pop();
-                                                                  },
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          )
-                                                        ],
-                                                      ),
-                                                    ),
+                                              );
+                                            } else if (isDesktop) {
+                                              return DesktopDialog(
+                                                maxHeight: double.infinity,
+                                                maxWidth: 500,
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                    left: 32,
+                                                    right: 32,
+                                                    bottom: 32,
                                                   ),
-                                      );
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      const SizedBox(
+                                                          height: 26),
+                                                      Text(
+                                                        "Stack backup saved to: \n",
+                                                        style: STextStyles
+                                                            .desktopH3(context),
+                                                      ),
+                                                      Text(
+                                                        fileToSave,
+                                                        style: STextStyles
+                                                            .desktopTextExtraExtraSmall(
+                                                                context),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 40,
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          // const Spacer(),
+                                                          Expanded(
+                                                            child:
+                                                                PrimaryButton(
+                                                              label: "Ok",
+                                                              desktopMed: true,
+                                                              onPressed: () {
+                                                                int count = 0;
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .popUntil((_) =>
+                                                                        count++ >=
+                                                                        2);
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              return const StackOkDialog(
+                                                  title:
+                                                      "Backup creation succeeded");
+                                            }
+                                          });
                                       passwordController.text = "";
                                       passwordRepeatController.text = "";
                                       setState(() {});
