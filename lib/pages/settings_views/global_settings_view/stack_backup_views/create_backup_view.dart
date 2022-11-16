@@ -655,9 +655,12 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                     ),
                                   );
 
+                                  await Future<void>.delayed(
+                                      const Duration(seconds: 1));
+
                                   // make sure the dialog is able to be displayed for at least 1 second
                                   final fut = Future<void>.delayed(
-                                      const Duration(seconds: 2));
+                                      const Duration(seconds: 1));
 
                                   final DateTime now = DateTime.now();
                                   final String fileToSave =
