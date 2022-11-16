@@ -7,7 +7,6 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -138,30 +137,20 @@ class AboutItem extends StatelessWidget {
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
-      child: ConditionalParent(
-        condition: !isDesktop,
-        builder: (child) => RawMaterialButton(
-          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-          ),
-          onPressed: () {
-            launchUrl(
-              Uri.parse(linkUrl),
-              mode: LaunchMode.externalApplication,
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 20,
-            ),
-            child: child,
+      child: RawMaterialButton(
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
           ),
         ),
+        onPressed: () {
+          launchUrl(
+            Uri.parse(linkUrl),
+            mode: LaunchMode.externalApplication,
+          );
+        },
         child: Padding(
           padding: isDesktop
               ? const EdgeInsets.symmetric(
@@ -212,15 +201,19 @@ class AboutItem extends StatelessWidget {
                 ],
               ),
               if (isDesktop)
-                BlueTextButton(
-                  text: buttonText,
-                  onTap: () {
-                    launchUrl(
-                      Uri.parse(linkUrl),
-                      mode: LaunchMode.externalApplication,
-                    );
-                  },
-                ),
+                Text(
+                  buttonText,
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                )
+              // BlueTextButton(
+              //   text: buttonText,
+              //   onTap: () {
+              //     launchUrl(
+              //       Uri.parse(linkUrl),
+              //       mode: LaunchMode.externalApplication,
+              //     );
+              //   },
+              // ),
             ],
           ),
         ),
