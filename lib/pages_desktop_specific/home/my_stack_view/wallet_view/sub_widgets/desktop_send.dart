@@ -13,6 +13,7 @@ import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dia
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
@@ -94,11 +95,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late VoidCallback onCryptoAmountChanged;
 
   Future<void> previewSend() async {
-    // wait for keyboard to disappear
-    FocusScope.of(context).unfocus();
-    await Future<void>.delayed(
-      const Duration(milliseconds: 100),
-    );
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
@@ -794,35 +790,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       _addressToggleFlag = true;
     }
 
-    // _cryptoFocus.addListener(() {
-    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture =
-    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-    //       });
-    //     }
-    //   }
-    // });
-    //
-    // _baseFocus.addListener(() {
-    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture =
-    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-    //       });
-    //     }
-    //   }
-    // });
+    _cryptoFocus.addListener(() {
+      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+        if (_amountToSend == null) {
+          ref.refresh(sendAmountProvider);
+        } else {
+          ref.read(sendAmountProvider.state).state = _amountToSend!;
+        }
+      }
+    });
+
+    _baseFocus.addListener(() {
+      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+        if (_amountToSend == null) {
+          ref.refresh(sendAmountProvider);
+        } else {
+          ref.read(sendAmountProvider.state).state = _amountToSend!;
+        }
+      }
+    });
 
     super.initState();
   }
@@ -1370,6 +1356,24 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   : null,
             ),
           ),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        Text(
+          "Transaction fee (estimated)",
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
+          ),
+          textAlign: TextAlign.left,
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        DesktopFeeDropDown(
+          walletId: walletId,
         ),
         const SizedBox(
           height: 36,

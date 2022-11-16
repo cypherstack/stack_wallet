@@ -224,7 +224,11 @@ class _AddAddressBookEntryViewState
                   const DesktopDialogCloseButton(),
                 ],
               ),
-              Expanded(child: child),
+              Expanded(
+                  child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: child,
+              )),
             ],
           );
         },
@@ -248,216 +252,473 @@ class _AddAddressBookEntryViewState
                   child: IntrinsicHeight(
                     child: Column(
                       children: [
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            if (_selectedEmoji != null) {
-                              setState(() {
-                                _selectedEmoji = null;
-                              });
-                              return;
-                            }
+                        if (!isDesktop) const SizedBox(height: 4),
+                        isDesktop
+                            ? Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (_selectedEmoji != null) {
+                                        setState(() {
+                                          _selectedEmoji = null;
+                                        });
+                                        return;
+                                      }
 
-                            ///TODO if desktop make dialog
-                            !isDesktop
-                                ? showModalBottomSheet<dynamic>(
-                                    backgroundColor: Colors.transparent,
-                                    context: context,
-                                    shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(20),
-                                      ),
-                                    ),
-                                    builder: (_) => const EmojiSelectSheet(),
-                                  ).then((value) {
-                                    if (value is Emoji) {
-                                      setState(() {
-                                        _selectedEmoji = value;
-                                      });
-                                    }
-                                  })
-                                : showDialog<dynamic>(
-                                    context: context,
-                                    builder: (context) {
-                                      return DesktopDialog(
-                                        maxHeight: 700,
-                                        maxWidth: 700,
-                                        child: Column(
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(32),
-                                                  child: Text(
-                                                    "Select emoji",
-                                                    style:
-                                                        STextStyles.desktopH3(
-                                                            context),
-                                                    textAlign: TextAlign.center,
-                                                  ),
+                                      ///TODO if desktop make dialog
+                                      !isDesktop
+                                          ? showModalBottomSheet<dynamic>(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              context: context,
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                  top: Radius.circular(20),
                                                 ),
-                                              ],
-                                            ),
-                                            Expanded(
-                                              child: LayoutBuilder(
-                                                builder:
-                                                    (context, constraints) {
-                                                  return SingleChildScrollView(
-                                                    scrollDirection:
-                                                        Axis.vertical,
-                                                    child: ConstrainedBox(
-                                                      constraints:
-                                                          BoxConstraints(
-                                                        minHeight: constraints
-                                                            .maxHeight,
-                                                        minWidth: constraints
-                                                            .maxWidth,
-                                                      ),
-                                                      child: IntrinsicHeight(
-                                                        child: Column(
-                                                          children: const [
-                                                            Padding(
-                                                              padding: EdgeInsets
-                                                                  .symmetric(
-                                                                      horizontal:
-                                                                          32),
-                                                              // child:
-                                                              //     EmojiSelectSheet(),
+                                              ),
+                                              builder: (_) =>
+                                                  const EmojiSelectSheet(),
+                                            ).then((value) {
+                                              if (value is Emoji) {
+                                                setState(() {
+                                                  _selectedEmoji = value;
+                                                });
+                                              }
+                                            })
+                                          : showDialog<dynamic>(
+                                              context: context,
+                                              builder: (context) {
+                                                return DesktopDialog(
+                                                  maxHeight: 700,
+                                                  maxWidth: 700,
+                                                  child: Column(
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(32),
+                                                            child: Text(
+                                                              "Select emoji",
+                                                              style: STextStyles
+                                                                  .desktopH3(
+                                                                      context),
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
                                                             ),
-                                                          ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Expanded(
+                                                        child: LayoutBuilder(
+                                                          builder: (context,
+                                                              constraints) {
+                                                            return SingleChildScrollView(
+                                                              scrollDirection:
+                                                                  Axis.vertical,
+                                                              child:
+                                                                  ConstrainedBox(
+                                                                constraints:
+                                                                    BoxConstraints(
+                                                                  minHeight:
+                                                                      constraints
+                                                                          .maxHeight,
+                                                                  minWidth:
+                                                                      constraints
+                                                                          .maxWidth,
+                                                                ),
+                                                                child:
+                                                                    IntrinsicHeight(
+                                                                  child: Column(
+                                                                    children: const [
+                                                                      Padding(
+                                                                        padding:
+                                                                            EdgeInsets.symmetric(horizontal: 32),
+                                                                        // child:
+                                                                        //     EmojiSelectSheet(),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
                                                         ),
                                                       ),
+                                                    ],
+                                                  ),
+                                                );
+                                              }).then((value) {
+                                              if (value is Emoji) {
+                                                setState(() {
+                                                  _selectedEmoji = value;
+                                                });
+                                              }
+                                            });
+                                    },
+                                    child: SizedBox(
+                                      height: 56,
+                                      width: 56,
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            height: 56,
+                                            width: 56,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textFieldActiveBG,
+                                            ),
+                                            child: Center(
+                                              child: _selectedEmoji == null
+                                                  ? SvgPicture.asset(
+                                                      Assets.svg.user,
+                                                      height: 30,
+                                                      width: 30,
+                                                    )
+                                                  : Text(
+                                                      _selectedEmoji!.char,
+                                                      style: STextStyles
+                                                          .pageTitleH1(context),
                                                     ),
-                                                  );
-                                                },
+                                            ),
+                                          ),
+                                          Align(
+                                            alignment: Alignment.bottomRight,
+                                            child: Container(
+                                              height: 14,
+                                              width: 14,
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .accentColorDark),
+                                              child: Center(
+                                                child: _selectedEmoji == null
+                                                    ? SvgPicture.asset(
+                                                        Assets.svg.plus,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textWhite,
+                                                        width: 12,
+                                                        height: 12,
+                                                      )
+                                                    : SvgPicture.asset(
+                                                        Assets.svg.thickX,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textWhite,
+                                                        width: 8,
+                                                        height: 8,
+                                                      ),
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                      );
-                                    }).then((value) {
-                                    if (value is Emoji) {
-                                      setState(() {
-                                        _selectedEmoji = value;
-                                      });
-                                    }
-                                  });
-                          },
-                          child: SizedBox(
-                            height: 48,
-                            width: 48,
-                            child: Stack(
-                              children: [
-                                Container(
-                                  height: 48,
-                                  width: 48,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(24),
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldActiveBG,
-                                  ),
-                                  child: Center(
-                                    child: _selectedEmoji == null
-                                        ? SvgPicture.asset(
-                                            Assets.svg.user,
-                                            height: 24,
-                                            width: 24,
                                           )
-                                        : Text(
-                                            _selectedEmoji!.char,
-                                            style: STextStyles.pageTitleH1(
-                                                context),
-                                          ),
-                                  ),
-                                ),
-                                Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: Container(
-                                    height: 14,
-                                    width: 14,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(14),
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark),
-                                    child: Center(
-                                      child: _selectedEmoji == null
-                                          ? SvgPicture.asset(
-                                              Assets.svg.plus,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textWhite,
-                                              width: 12,
-                                              height: 12,
-                                            )
-                                          : SvgPicture.asset(
-                                              Assets.svg.thickX,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textWhite,
-                                              width: 8,
-                                              height: 8,
-                                            ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                          child: TextField(
-                            autocorrect: Util.isDesktop ? false : true,
-                            enableSuggestions: Util.isDesktop ? false : true,
-                            controller: nameController,
-                            focusNode: nameFocusNode,
-                            style: STextStyles.field(context),
-                            decoration: standardInputDecoration(
-                              "Enter contact name",
-                              nameFocusNode,
-                              context,
-                            ).copyWith(
-                              suffixIcon: ref
-                                      .read(contactNameIsNotEmptyStateProvider
-                                          .state)
-                                      .state
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(right: 0),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            TextFieldIconButton(
-                                              child: const XIcon(),
-                                              onTap: () async {
-                                                setState(() {
-                                                  nameController.text = "";
-                                                });
-                                              },
-                                            ),
-                                          ],
-                                        ),
+                                  const SizedBox(width: 8),
+                                  SizedBox(
+                                    width: isDesktop ? 450 : null,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
                                       ),
-                                    )
-                                  : null,
-                            ),
-                            onChanged: (newValue) {
-                              ref
-                                  .read(
-                                      contactNameIsNotEmptyStateProvider.state)
-                                  .state = newValue.isNotEmpty;
-                            },
-                          ),
-                        ),
+                                      child: TextField(
+                                        autocorrect:
+                                            Util.isDesktop ? false : true,
+                                        enableSuggestions:
+                                            Util.isDesktop ? false : true,
+                                        controller: nameController,
+                                        focusNode: nameFocusNode,
+                                        style: STextStyles.field(context),
+                                        decoration: standardInputDecoration(
+                                          "Enter contact name",
+                                          nameFocusNode,
+                                          context,
+                                        ).copyWith(
+                                          labelStyle:
+                                              STextStyles.fieldLabel(context),
+                                          suffixIcon: ref
+                                                  .read(
+                                                      contactNameIsNotEmptyStateProvider
+                                                          .state)
+                                                  .state
+                                              ? Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          right: 0),
+                                                  child: UnconstrainedBox(
+                                                    child: Row(
+                                                      children: [
+                                                        TextFieldIconButton(
+                                                          child: const XIcon(),
+                                                          onTap: () async {
+                                                            setState(() {
+                                                              nameController
+                                                                  .text = "";
+                                                            });
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                )
+                                              : null,
+                                        ),
+                                        onChanged: (newValue) {
+                                          ref
+                                              .read(
+                                                  contactNameIsNotEmptyStateProvider
+                                                      .state)
+                                              .state = newValue.isNotEmpty;
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (_selectedEmoji != null) {
+                                        setState(() {
+                                          _selectedEmoji = null;
+                                        });
+                                        return;
+                                      }
+
+                                      ///TODO if desktop make dialog
+                                      !isDesktop
+                                          ? showModalBottomSheet<dynamic>(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              context: context,
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                  top: Radius.circular(20),
+                                                ),
+                                              ),
+                                              builder: (_) =>
+                                                  const EmojiSelectSheet(),
+                                            ).then((value) {
+                                              if (value is Emoji) {
+                                                setState(() {
+                                                  _selectedEmoji = value;
+                                                });
+                                              }
+                                            })
+                                          : showDialog<dynamic>(
+                                              context: context,
+                                              builder: (context) {
+                                                return DesktopDialog(
+                                                  maxHeight: 700,
+                                                  maxWidth: 700,
+                                                  child: Column(
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(32),
+                                                            child: Text(
+                                                              "Select emoji",
+                                                              style: STextStyles
+                                                                  .desktopH3(
+                                                                      context),
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Expanded(
+                                                        child: LayoutBuilder(
+                                                          builder: (context,
+                                                              constraints) {
+                                                            return SingleChildScrollView(
+                                                              scrollDirection:
+                                                                  Axis.vertical,
+                                                              child:
+                                                                  ConstrainedBox(
+                                                                constraints:
+                                                                    BoxConstraints(
+                                                                  minHeight:
+                                                                      constraints
+                                                                          .maxHeight,
+                                                                  minWidth:
+                                                                      constraints
+                                                                          .maxWidth,
+                                                                ),
+                                                                child:
+                                                                    IntrinsicHeight(
+                                                                  child: Column(
+                                                                    children: const [
+                                                                      Padding(
+                                                                        padding:
+                                                                            EdgeInsets.symmetric(horizontal: 32),
+                                                                        // child:
+                                                                        //     EmojiSelectSheet(),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              }).then((value) {
+                                              if (value is Emoji) {
+                                                setState(() {
+                                                  _selectedEmoji = value;
+                                                });
+                                              }
+                                            });
+                                    },
+                                    child: SizedBox(
+                                      height: 48,
+                                      width: 48,
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            height: 48,
+                                            width: 48,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textFieldActiveBG,
+                                            ),
+                                            child: Center(
+                                              child: _selectedEmoji == null
+                                                  ? SvgPicture.asset(
+                                                      Assets.svg.user,
+                                                      height: 24,
+                                                      width: 24,
+                                                    )
+                                                  : Text(
+                                                      _selectedEmoji!.char,
+                                                      style: STextStyles
+                                                          .pageTitleH1(context),
+                                                    ),
+                                            ),
+                                          ),
+                                          Align(
+                                            alignment: Alignment.bottomRight,
+                                            child: Container(
+                                              height: 14,
+                                              width: 14,
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .accentColorDark),
+                                              child: Center(
+                                                child: _selectedEmoji == null
+                                                    ? SvgPicture.asset(
+                                                        Assets.svg.plus,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textWhite,
+                                                        width: 12,
+                                                        height: 12,
+                                                      )
+                                                    : SvgPicture.asset(
+                                                        Assets.svg.thickX,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textWhite,
+                                                        width: 8,
+                                                        height: 8,
+                                                      ),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                    child: TextField(
+                                      autocorrect:
+                                          Util.isDesktop ? false : true,
+                                      enableSuggestions:
+                                          Util.isDesktop ? false : true,
+                                      controller: nameController,
+                                      focusNode: nameFocusNode,
+                                      style: STextStyles.field(context),
+                                      decoration: standardInputDecoration(
+                                        "Enter contact name",
+                                        nameFocusNode,
+                                        context,
+                                      ).copyWith(
+                                        suffixIcon: ref
+                                                .read(
+                                                    contactNameIsNotEmptyStateProvider
+                                                        .state)
+                                                .state
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 0),
+                                                child: UnconstrainedBox(
+                                                  child: Row(
+                                                    children: [
+                                                      TextFieldIconButton(
+                                                        child: const XIcon(),
+                                                        onTap: () async {
+                                                          setState(() {
+                                                            nameController
+                                                                .text = "";
+                                                          });
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              )
+                                            : null,
+                                      ),
+                                      onChanged: (newValue) {
+                                        ref
+                                            .read(
+                                                contactNameIsNotEmptyStateProvider
+                                                    .state)
+                                            .state = newValue.isNotEmpty;
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                        if (!isDesktop) const SizedBox(height: 8),
                         if (forms.length <= 1)
                           const SizedBox(
                             height: 8,

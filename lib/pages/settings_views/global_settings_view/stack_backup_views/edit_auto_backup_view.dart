@@ -424,6 +424,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 passwordFocusNode,
                 context,
               ).copyWith(
+                labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
                 suffixIcon: UnconstrainedBox(
                   child: Row(
                     children: [
@@ -555,6 +556,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 passwordRepeatFocusNode,
                 context,
               ).copyWith(
+                labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
                 suffixIcon: UnconstrainedBox(
                   child: Row(
                     children: [
@@ -631,7 +633,11 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
 
                       return DropdownMenuItem(
                         value: e,
-                        child: Text(message),
+                        child: Text(
+                          message,
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
                       );
                     },
                   ),

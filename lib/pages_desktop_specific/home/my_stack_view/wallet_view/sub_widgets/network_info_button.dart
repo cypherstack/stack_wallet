@@ -98,25 +98,26 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 
   Widget _buildNetworkIcon(WalletSyncStatus status, BuildContext context) {
     const size = 24.0;
+    final color = _getColor(status, context);
     switch (status) {
       case WalletSyncStatus.unableToSync:
         return SvgPicture.asset(
           Assets.svg.radioProblem,
-          color: Theme.of(context).extension<StackColors>()!.accentColorRed,
+          color: color,
           width: size,
           height: size,
         );
       case WalletSyncStatus.synced:
         return SvgPicture.asset(
           Assets.svg.radio,
-          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
+          color: color,
           width: size,
           height: size,
         );
       case WalletSyncStatus.syncing:
         return SvgPicture.asset(
           Assets.svg.radioSyncing,
-          color: Theme.of(context).extension<StackColors>()!.accentColorYellow,
+          color: color,
           width: size,
           height: size,
         );
@@ -125,35 +126,46 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 
   Widget _buildText(WalletSyncStatus status, BuildContext context) {
     String label;
-    Color color;
 
     switch (status) {
       case WalletSyncStatus.unableToSync:
         label = "Unable to sync";
-        color = Theme.of(context).extension<StackColors>()!.accentColorRed;
         break;
       case WalletSyncStatus.synced:
-        label = "Synchronised";
-        color = Theme.of(context).extension<StackColors>()!.accentColorGreen;
+        label = "Synchronized";
         break;
       case WalletSyncStatus.syncing:
-        label = "Synchronising";
-        color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+        label = "Synchronizing";
         break;
     }
 
     return Text(
       label,
       style: STextStyles.desktopMenuItemSelected(context).copyWith(
-        color: color,
+        color: _getColor(status, context),
       ),
     );
   }
 
+  Color _getColor(WalletSyncStatus status, BuildContext context) {
+    switch (status) {
+      case WalletSyncStatus.unableToSync:
+        return Theme.of(context).extension<StackColors>()!.accentColorRed;
+      case WalletSyncStatus.synced:
+        return Theme.of(context).extension<StackColors>()!.accentColorGreen;
+      case WalletSyncStatus.syncing:
+        return Theme.of(context).extension<StackColors>()!.accentColorYellow;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
+    return RawMaterialButton(
+      hoverColor: _getColor(_currentSyncStatus, context).withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(1000),
+      ),
+      onPressed: () {
         if (Util.isDesktop) {
           // showDialog<void>(
           //   context: context,
@@ -265,8 +277,11 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
           );
         }
       },
-      child: Container(
-        color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 32,
+        ),
         child: Row(
           children: [
             _buildNetworkIcon(_currentSyncStatus, context),

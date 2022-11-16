@@ -89,11 +89,14 @@ class _ExpandableState extends State<Expandable> with TickerProviderStateMixin {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        GestureDetector(
-          onTap: toggle,
-          child: Container(
-            color: Colors.transparent,
-            child: widget.header,
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: toggle,
+            child: Container(
+              color: Colors.transparent,
+              child: widget.header,
+            ),
           ),
         ),
         SizeTransition(

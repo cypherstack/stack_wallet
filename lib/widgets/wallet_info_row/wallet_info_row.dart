@@ -26,53 +26,58 @@ class WalletInfoRow extends ConsumerWidget {
         .getManagerProvider(walletId));
 
     if (Util.isDesktop) {
-      return GestureDetector(
-        onTap: onPressed,
-        child: Container(
-          color: Colors.transparent,
-          child: Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Row(
-                  children: [
-                    WalletInfoCoinIcon(coin: manager.coin),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    Text(
-                      manager.walletName,
-                      style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color:
-                            Theme.of(context).extension<StackColors>()!.textDark,
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onPressed,
+          child: Container(
+            color: Colors.transparent,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Row(
+                    children: [
+                      WalletInfoCoinIcon(coin: manager.coin),
+                      const SizedBox(
+                        width: 12,
                       ),
-                    ),
-                  ],
+                      Text(
+                        manager.walletName,
+                        style:
+                            STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                flex: 4,
-                child: WalletInfoRowBalanceFuture(
-                  walletId: walletId,
+                Expanded(
+                  flex: 4,
+                  child: WalletInfoRowBalanceFuture(
+                    walletId: walletId,
+                  ),
                 ),
-              ),
-              Expanded(
-                flex: 6,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    SvgPicture.asset(
-                      Assets.svg.chevronRight,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle1,
-                    )
-                  ],
-                ),
-              )
-            ],
+                Expanded(
+                  flex: 6,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      SvgPicture.asset(
+                        Assets.svg.chevronRight,
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle1,
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       );

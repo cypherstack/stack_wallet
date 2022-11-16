@@ -203,15 +203,18 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                                       height: 32,
                                       width: 32,
                                       child: Center(
-                                        child: SvgPicture.asset(
-                                          hidePassword
-                                              ? Assets.svg.eye
-                                              : Assets.svg.eyeSlash,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textDark3,
-                                          width: 24,
-                                          height: 19,
+                                        child: MouseRegion(
+                                          cursor: SystemMouseCursors.click,
+                                          child: SvgPicture.asset(
+                                            hidePassword
+                                                ? Assets.svg.eye
+                                                : Assets.svg.eyeSlash,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark3,
+                                            width: 24,
+                                            height: 19,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -354,22 +357,25 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                                       height: 32,
                                       width: 32,
                                       child: Center(
-                                        child: SvgPicture.asset(
-                                          fieldsMatch && passwordStrength == 1
-                                              ? Assets.svg.checkCircle
-                                              : hidePassword
-                                                  ? Assets.svg.eye
-                                                  : Assets.svg.eyeSlash,
-                                          color: fieldsMatch &&
-                                                  passwordStrength == 1
-                                              ? Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorGreen
-                                              : Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textDark3,
-                                          width: 24,
-                                          height: 19,
+                                        child: MouseRegion(
+                                          cursor: SystemMouseCursors.click,
+                                          child: SvgPicture.asset(
+                                            fieldsMatch && passwordStrength == 1
+                                                ? Assets.svg.checkCircle
+                                                : hidePassword
+                                                    ? Assets.svg.eye
+                                                    : Assets.svg.eyeSlash,
+                                            color: fieldsMatch &&
+                                                    passwordStrength == 1
+                                                ? Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorGreen
+                                                : Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark3,
+                                            width: 24,
+                                            height: 19,
+                                          ),
                                         ),
                                       ),
                                     ),

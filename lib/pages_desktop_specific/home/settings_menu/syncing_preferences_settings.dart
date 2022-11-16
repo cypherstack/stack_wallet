@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 
 class SyncingPreferencesSettings extends ConsumerStatefulWidget {
   const SyncingPreferencesSettings({Key? key}) : super(key: key);
@@ -34,10 +33,13 @@ class _SyncingPreferencesSettings
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SvgPicture.asset(
-                  Assets.svg.circleArrowRotate,
-                  width: 48,
-                  height: 48,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SvgPicture.asset(
+                    Assets.svg.circleArrowRotate,
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -54,7 +56,7 @@ class _SyncingPreferencesSettings
                             ),
                             TextSpan(
                               text:
-                                  "\nSet up your syncing preferences for all wallets in your Stack.",
+                                  "\n\nSet up your syncing preferences for all wallets in your Stack.",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                   context),
                             ),
@@ -67,18 +69,24 @@ class _SyncingPreferencesSettings
 
                 ///TODO: ONLY SHOW SYNC OPTIONS ON BUTTON PRESS
                 Column(
-                  children: [
+                  children: const [
                     SyncingOptionsView(),
                   ],
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Padding(
-                      padding: EdgeInsets.all(
+                      padding: const EdgeInsets.all(
                         10,
                       ),
-                      child: ChangePrefButton(),
+                      child: PrimaryButton(
+                        width: 210,
+                        desktopMed: true,
+                        enabled: true,
+                        label: "Change preferences",
+                        onPressed: () {},
+                      ),
                     ),
                   ],
                 ),
@@ -87,29 +95,6 @@ class _SyncingPreferencesSettings
           ),
         ),
       ],
-    );
-  }
-}
-
-class ChangePrefButton extends ConsumerWidget {
-  const ChangePrefButton({
-    Key? key,
-  }) : super(key: key);
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: 200,
-      height: 48,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {},
-        child: Text(
-          "Change preferences",
-          style: STextStyles.button(context),
-        ),
-      ),
     );
   }
 }

@@ -16,8 +16,11 @@ class WalletKeysButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(1000),
+      ),
+      onPressed: () {
         showDialog<void>(
           context: context,
           barrierDismissible: false,
@@ -36,17 +39,12 @@ class WalletKeysButton extends StatelessWidget {
             },
           ),
         );
-
-        // showDialog<void>(
-        //   context: context,
-        //   barrierDismissible: false,
-        //   builder: (context) => UnlockWalletKeysDesktop(
-        //     walletId: walletId,
-        //   ),
-        // );
       },
-      child: Container(
-        color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 19,
+          horizontal: 32,
+        ),
         child: Row(
           children: [
             SvgPicture.asset(

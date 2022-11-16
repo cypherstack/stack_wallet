@@ -39,85 +39,93 @@ class _SendReceiveTabMenuState extends State<SendReceiveTabMenu> {
     return Row(
       children: [
         Expanded(
-          child: GestureDetector(
-            onTap: () => _onChanged(0),
-            child: Container(
-              color: Colors.transparent,
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  Text(
-                    "Send",
-                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: _selectedIndex == 0
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => _onChanged(0),
+              child: Container(
+                color: Colors.transparent,
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      height: 16,
                     ),
-                  ),
-                  const SizedBox(
-                    height: 19,
-                  ),
-                  Container(
-                    height: 2,
-                    decoration: BoxDecoration(
-                      color: _selectedIndex == 0
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
+                    Text(
+                      "Send",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: _selectedIndex == 0
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorBlue
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(
+                      height: 19,
+                    ),
+                    Container(
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: _selectedIndex == 0
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorBlue
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .background,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
         Expanded(
-          child: GestureDetector(
-            onTap: () => _onChanged(1),
-            child: Container(
-              color: Colors.transparent,
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  Text(
-                    "Receive",
-                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: _selectedIndex == 1
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => _onChanged(1),
+              child: Container(
+                color: Colors.transparent,
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      height: 16,
                     ),
-                  ),
-                  const SizedBox(
-                    height: 19,
-                  ),
-                  Container(
-                    height: 2,
-                    decoration: BoxDecoration(
-                      color: _selectedIndex == 1
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
+                    Text(
+                      "Receive",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: _selectedIndex == 1
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorBlue
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(
+                      height: 19,
+                    ),
+                    Container(
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: _selectedIndex == 1
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorBlue
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .background,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

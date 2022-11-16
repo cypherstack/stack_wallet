@@ -52,10 +52,13 @@ class _AppearanceOptionSettings
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SvgPicture.asset(
-                  Assets.svg.circleSun,
-                  width: 48,
-                  height: 48,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SvgPicture.asset(
+                    Assets.svg.circleSun,
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

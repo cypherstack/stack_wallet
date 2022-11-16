@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 
 class DesktopLoginView extends ConsumerStatefulWidget {
@@ -45,6 +46,15 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
   Future<void> login() async {
     try {
+      unawaited(
+        showDialog(
+          context: context,
+          builder: (context) => const LoadingIndicator(
+            width: 200,
+          ),
+        ),
+      );
+
       await ref
           .read(storageCryptoHandlerProvider)
           .initFromExisting(passwordController.text);
@@ -55,6 +65,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
       // if no errors passphrase is correct
       if (mounted) {
+        // pop loading indicator
+        Navigator.of(context).pop();
+
         unawaited(
           Navigator.of(context).pushNamedAndRemoveUntil(
             DesktopHomeView.routeName,
@@ -63,6 +76,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
         );
       }
     } catch (e) {
+      // pop loading indicator
+      Navigator.of(context).pop();
+
       await showFloatingFlushBar(
         type: FlushBarType.warning,
         message: e.toString(),
@@ -159,15 +175,18 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                     hidePassword = !hidePassword;
                                   });
                                 },
-                                child: SvgPicture.asset(
-                                  hidePassword
-                                      ? Assets.svg.eye
-                                      : Assets.svg.eyeSlash,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark3,
-                                  width: 24,
-                                  height: 24,
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: SvgPicture.asset(
+                                    hidePassword
+                                        ? Assets.svg.eye
+                                        : Assets.svg.eyeSlash,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
+                                    width: 24,
+                                    height: 24,
+                                  ),
                                 ),
                               ),
                               const SizedBox(
