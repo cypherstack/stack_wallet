@@ -547,6 +547,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         borderColor: Theme.of(context)
                             .extension<StackColors>()!
                             .background,
+                        width: isDesktop ? 370 : null,
                         child: Column(
                           children: [
                             Text(
@@ -578,26 +579,31 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                               height: 12,
                             ),
                             Row(
+                              mainAxisAlignment: isDesktop
+                                  ? MainAxisAlignment.center
+                                  : MainAxisAlignment.start,
                               children: [
-                                SecondaryButton(
-                                  width: 170,
-                                  desktopMed: true,
-                                  onPressed: () async {
-                                    await _capturePng(false);
-                                  },
-                                  label: "Share",
-                                  icon: SvgPicture.asset(
-                                    Assets.svg.share,
-                                    width: 20,
-                                    height: 20,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .buttonTextSecondary,
+                                if (!isDesktop)
+                                  SecondaryButton(
+                                    width: 170,
+                                    desktopMed: true,
+                                    onPressed: () async {
+                                      await _capturePng(false);
+                                    },
+                                    label: "Share",
+                                    icon: SvgPicture.asset(
+                                      Assets.svg.share,
+                                      width: 20,
+                                      height: 20,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .buttonTextSecondary,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(
-                                  width: 16,
-                                ),
+                                if (!isDesktop)
+                                  const SizedBox(
+                                    width: 16,
+                                  ),
                                 PrimaryButton(
                                   width: 170,
                                   desktopMed: true,
