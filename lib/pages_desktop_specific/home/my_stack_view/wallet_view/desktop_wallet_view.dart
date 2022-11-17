@@ -440,7 +440,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       SecondaryButton(
-                                        width: 180,
+                                        width: 200,
                                         buttonHeight: ButtonHeight.l,
                                         label: "Cancel",
                                         onPressed: () {
@@ -449,7 +449,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                                       ),
                                       const SizedBox(width: 20),
                                       PrimaryButton(
-                                        width: 180,
+                                        width: 200,
                                         buttonHeight: ButtonHeight.l,
                                         label: "Continue",
                                         onPressed: () {
