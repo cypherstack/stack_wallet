@@ -117,78 +117,82 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        GestureDetector(
-          onTap: () {
-            clipboard.setData(
-              ClipboardData(text: receivingAddress),
-            );
-            showFloatingFlushBar(
-              type: FlushBarType.info,
-              message: "Copied to clipboard",
-              iconAsset: Assets.svg.copy,
-              context: context,
-            );
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).extension<StackColors>()!.background,
-                width: 2,
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () {
+              clipboard.setData(
+                ClipboardData(text: receivingAddress),
+              );
+              showFloatingFlushBar(
+                type: FlushBarType.info,
+                message: "Copied to clipboard",
+                iconAsset: Assets.svg.copy,
+                context: context,
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
               ),
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-            child: RoundedWhiteContainer(
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        "Your ${coin.ticker} address",
-                        style: STextStyles.itemSubtitle(context),
-                      ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          SvgPicture.asset(
-                            Assets.svg.copy,
-                            width: 15,
-                            height: 15,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .infoItemIcons,
-                          ),
-                          const SizedBox(
-                            width: 4,
-                          ),
-                          Text(
-                            "Copy",
-                            style: STextStyles.link2(context),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          receivingAddress,
-                          style: STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
+              child: RoundedWhiteContainer(
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "Your ${coin.ticker} address",
+                          style: STextStyles.itemSubtitle(context),
+                        ),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.copy,
+                              width: 15,
+                              height: 15,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemIcons,
+                            ),
+                            const SizedBox(
+                              width: 4,
+                            ),
+                            Text(
+                              "Copy",
+                              style: STextStyles.link2(context),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            receivingAddress,
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
