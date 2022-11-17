@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_vie
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
@@ -27,8 +29,11 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/hover_text_field.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -159,6 +164,75 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
               coin,
               _loadCNData,
             ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> attemptAnonymize() async {
+    final managerProvider =
+        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+
+    bool shouldPop = false;
+    unawaited(
+      showDialog(
+        context: context,
+        builder: (context) => WillPopScope(
+          child: const CustomLoadingOverlay(
+            message: "Anonymizing balance",
+            eventBus: null,
+          ),
+          onWillPop: () async => shouldPop,
+        ),
+      ),
+    );
+    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
+
+    final publicBalance = await firoWallet.availablePublicBalance();
+    if (publicBalance <= Decimal.zero) {
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(DesktopWalletView.routeName),
+        );
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.info,
+            message: "No funds available to anonymize!",
+            context: context,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      await firoWallet.anonymizeAllPublicFunds();
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(DesktopWalletView.routeName),
+        );
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "Anonymize transaction submitted",
+            context: context,
+          ),
+        );
+      }
+    } catch (e) {
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(DesktopWalletView.routeName),
+        );
+        await showDialog<dynamic>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: "Anonymize all failed",
+            message: "Reason: $e",
           ),
         );
       }
@@ -333,6 +407,67 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                         : WalletSyncStatus.synced,
                   ),
                   const Spacer(),
+                  if (coin == Coin.firo) const SizedBox(width: 10),
+                  if (coin == Coin.firo)
+                    SecondaryButton(
+                      width: 180,
+                      desktopMed: true,
+                      label: "Anonymize funds",
+                      onPressed: () async {
+                        await showDialog<void>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => DesktopDialog(
+                            maxWidth: 500,
+                            maxHeight: 210,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 32, vertical: 20),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "Attention!",
+                                    style: STextStyles.desktopH2(context),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    "You're about to anonymize all of your public funds.",
+                                    style:
+                                        STextStyles.desktopTextSmall(context),
+                                  ),
+                                  const SizedBox(height: 32),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SecondaryButton(
+                                        width: 180,
+                                        desktopMed: true,
+                                        label: "Cancel",
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      const SizedBox(width: 20),
+                                      PrimaryButton(
+                                        width: 180,
+                                        desktopMed: true,
+                                        label: "Continue",
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+
+                                          unawaited(attemptAnonymize());
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  if (coin == Coin.firo) const SizedBox(width: 16),
                   SecondaryButton(
                     width: 180,
                     desktopMed: true,
