@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -12,10 +16,12 @@ class DesktopAddressCard extends StatelessWidget {
     Key? key,
     required this.entry,
     required this.contactId,
+    this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
   final ContactAddressEntry entry;
   final String contactId;
+  final ClipboardInterface clipboard;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +63,17 @@ class DesktopAddressCard extends StatelessWidget {
                 children: [
                   BlueTextButton(
                     text: "Copy",
-                    onTap: () {},
+                    onTap: () {
+                      clipboard.setData(
+                        ClipboardData(text: entry.address),
+                      );
+                      showFloatingFlushBar(
+                        type: FlushBarType.info,
+                        message: "Copied to clipboard",
+                        iconAsset: Assets.svg.copy,
+                        context: context,
+                      );
+                    },
                   ),
                   if (contactId != "default")
                     const SizedBox(

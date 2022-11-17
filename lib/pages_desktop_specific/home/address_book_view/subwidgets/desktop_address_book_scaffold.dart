@@ -56,6 +56,7 @@ class DesktopAddressBookScaffold extends StatelessWidget {
         ),
         Expanded(
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 flex: 6,
@@ -96,7 +97,7 @@ class DesktopAddressBookScaffold extends StatelessWidget {
                     const SizedBox(
                       height: weirdRowHeight,
                     ),
-                    Expanded(
+                    Flexible(
                       child: details ?? Container(),
                     ),
                   ],
