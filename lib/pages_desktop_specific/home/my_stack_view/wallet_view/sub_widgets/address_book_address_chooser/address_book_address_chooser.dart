@@ -200,12 +200,19 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
 
                 final favorites = pullOutFavorites(contacts);
 
-                return ListView.builder(
+                final totalLength = favorites.length +
+                    contacts.length +
+                    2; // +2 for "fav" and "all" headers
+
+                return ListView.separated(
                   primary: false,
                   shrinkWrap: true,
-                  itemCount: favorites.length +
-                      contacts.length +
-                      2, // +2 for "fav" and "all" headers
+                  itemCount: totalLength,
+                  separatorBuilder: (context, index) {
+                    return const SizedBox(
+                      height: 10,
+                    );
+                  },
                   itemBuilder: (context, index) {
                     if (index == 0) {
                       return Padding(
@@ -220,7 +227,7 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                               STextStyles.desktopTextExtraExtraSmall(context),
                         ),
                       );
-                    } else if (index <= favorites.length) {
+                    } else if (index < favorites.length + 1) {
                       final id = favorites[index - 1].id;
                       return ContactListItem(
                         key: Key("contactContactListItem_${id}_key"),
@@ -241,7 +248,7 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                         ),
                       );
                     } else {
-                      final id = contacts[index - favorites.length - 1].id;
+                      final id = contacts[index - favorites.length - 2].id;
                       return ContactListItem(
                         key: Key("contactContactListItem_${id}_key"),
                         contactId: id,
