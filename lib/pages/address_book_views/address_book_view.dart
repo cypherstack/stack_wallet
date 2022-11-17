@@ -18,7 +18,6 @@ import 'package:stackwallet/widgets/address_book_card.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -38,9 +37,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
   late TextEditingController _searchController;
 
   final _searchFocusNode = FocusNode();
-
-  List<Contact>? _cache;
-  List<Contact>? _cacheFav;
+  //
+  // List<Contact>? _cache;
+  // List<Contact>? _cacheFav;
 
   String _searchTerm = "";
 
@@ -100,8 +99,10 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final addressBookEntriesFuture = ref.watch(
-        addressBookServiceProvider.select((value) => value.addressBookEntries));
+    // final addressBookEntriesFuture = ref.watch(
+    //     addressBookServiceProvider.select((value) => value.addressBookEntries));
+    final contacts =
+        ref.watch(addressBookServiceProvider.select((value) => value.contacts));
 
     final isDesktop = Util.isDesktop;
     return ConditionalParent(
@@ -279,57 +280,58 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
             const SizedBox(
               height: 12,
             ),
-            FutureBuilder(
-              future: addressBookEntriesFuture,
-              builder: (_, AsyncSnapshot<List<Contact>> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData) {
-                  _cacheFav = snapshot.data!;
-                }
-                if (_cacheFav == null) {
-                  // TODO proper loading animation
-                  return const LoadingIndicator();
-                } else {
-                  if (_cacheFav!.isNotEmpty) {
-                    return RoundedWhiteContainer(
-                      padding: EdgeInsets.all(!isDesktop ? 0 : 15),
-                      child: Column(
-                        children: [
-                          ..._cacheFav!
-                              .where((element) => element.addresses
-                                  .where((e) => ref.watch(
-                                      addressBookFilterProvider.select(
-                                          (value) =>
-                                              value.coins.contains(e.coin))))
-                                  .isNotEmpty)
-                              .where((e) =>
-                                  e.isFavorite &&
-                                  ref
-                                      .read(addressBookServiceProvider)
-                                      .matches(_searchTerm, e))
-                              .where((element) => element.isFavorite)
-                              .map(
-                                (e) => AddressBookCard(
-                                  key: Key("favContactCard_${e.id}_key"),
-                                  contactId: e.id,
-                                ),
-                              ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    return RoundedWhiteContainer(
-                      child: Center(
-                        child: Text(
-                          "Your favorite contacts will appear here",
-                          style: STextStyles.itemSubtitle(context),
+            // FutureBuilder(
+            //   future: addressBookEntriesFuture,
+            //   builder: (_, AsyncSnapshot<List<Contact>> snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.done &&
+            //         snapshot.hasData) {
+            //       _cacheFav = snapshot.data!;
+            //     }
+            //     if (_cacheFav == null) {
+            //       // TODO proper loading animation
+            //       return const LoadingIndicator();
+            //     } else {
+            //       if (_cacheFav!.isNotEmpty) {
+            //         return
+            RoundedWhiteContainer(
+              padding: EdgeInsets.all(!isDesktop ? 0 : 15),
+              child: Column(
+                children: [
+                  ...contacts
+                      .where((element) => element.addresses
+                          .where((e) => ref.watch(addressBookFilterProvider
+                              .select((value) => value.coins.contains(e.coin))))
+                          .isNotEmpty)
+                      .where((e) =>
+                          e.isFavorite &&
+                          ref
+                              .read(addressBookServiceProvider)
+                              .matches(_searchTerm, e))
+                      .where((element) => element.isFavorite)
+                      .map(
+                        (e) => AddressBookCard(
+                          key: Key("favContactCard_${e.id}_key"),
+                          contactId: e.id,
                         ),
                       ),
-                    );
-                  }
-                }
-              },
-            ),
+                ],
+              ),
+            )
+            //         ;
+            //       } else {
+            //         return RoundedWhiteContainer(
+            //           child: Center(
+            //             child: Text(
+            //               "Your favorite contacts will appear here",
+            //               style: STextStyles.itemSubtitle(context),
+            //             ),
+            //           ),
+            //         );
+            //       }
+            //     }
+            //   },
+            // )
+            ,
             const SizedBox(
               height: 16,
             ),
@@ -340,63 +342,64 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
             const SizedBox(
               height: 12,
             ),
-            FutureBuilder(
-              future: addressBookEntriesFuture,
-              builder: (_, AsyncSnapshot<List<Contact>> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData) {
-                  _cache = snapshot.data!;
-                }
-                if (_cache == null) {
-                  // TODO proper loading animation
-                  return const LoadingIndicator();
-                } else {
-                  if (_cache!.isNotEmpty) {
-                    return Column(
+            // FutureBuilder(
+            //   future: addressBookEntriesFuture,
+            //   builder: (_, AsyncSnapshot<List<Contact>> snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.done &&
+            //         snapshot.hasData) {
+            //       _cache = snapshot.data!;
+            //     }
+            //     if (_cache == null) {
+            //       // TODO proper loading animation
+            //       return const LoadingIndicator();
+            //     } else {
+            //       if (_cache!.isNotEmpty) {
+            //         return
+            Column(
+              children: [
+                RoundedWhiteContainer(
+                  padding: EdgeInsets.all(!isDesktop ? 0 : 15),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
                       children: [
-                        RoundedWhiteContainer(
-                          padding: EdgeInsets.all(!isDesktop ? 0 : 15),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                ..._cache!
-                                    .where((element) => element.addresses
-                                        .where((e) => ref.watch(
-                                            addressBookFilterProvider.select(
-                                                (value) => value.coins
-                                                    .contains(e.coin))))
-                                        .isNotEmpty)
-                                    .where((e) => ref
-                                        .read(addressBookServiceProvider)
-                                        .matches(_searchTerm, e))
-                                    .where((element) => !element.isFavorite)
-                                    .map(
-                                      (e) => AddressBookCard(
-                                        key: Key(
-                                            "desktopContactCard_${e.id}_key"),
-                                        contactId: e.id,
-                                      ),
-                                    ),
-                              ],
+                        ...contacts
+                            .where((element) => element.addresses
+                                .where((e) => ref.watch(
+                                    addressBookFilterProvider.select((value) =>
+                                        value.coins.contains(e.coin))))
+                                .isNotEmpty)
+                            .where((e) => ref
+                                .read(addressBookServiceProvider)
+                                .matches(_searchTerm, e))
+                            .where((element) => !element.isFavorite)
+                            .map(
+                              (e) => AddressBookCard(
+                                key: Key("desktopContactCard_${e.id}_key"),
+                                contactId: e.id,
+                              ),
                             ),
-                          ),
-                        ),
                       ],
-                    );
-                  } else {
-                    return RoundedWhiteContainer(
-                      child: Center(
-                        child: Text(
-                          "Your contacts will appear here",
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                      ),
-                    );
-                  }
-                }
-              },
-            ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+            //         ;
+            //       } else {
+            //         return RoundedWhiteContainer(
+            //           child: Center(
+            //             child: Text(
+            //               "Your contacts will appear here",
+            //               style: STextStyles.itemSubtitle(context),
+            //             ),
+            //           ),
+            //         );
+            //       }
+            //     }
+            //   },
+            // )
+            ,
           ],
         ),
       ),
