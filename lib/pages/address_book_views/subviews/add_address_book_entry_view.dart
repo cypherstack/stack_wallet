@@ -191,33 +191,33 @@ class _AddAddressBookEntryViewState
                           style: STextStyles.desktopH3(context),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(width: 10),
-                        AppBarIconButton(
-                          key:
-                              const Key("addAddressBookEntryFavoriteButtonKey"),
-                          size: 36,
-                          shadows: const [],
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
-                          icon: SvgPicture.asset(
-                            Assets.svg.star,
-                            color: _isFavorite
-                                ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .favoriteStarActive
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .favoriteStarInactive,
-                            width: 20,
-                            height: 20,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isFavorite = !_isFavorite;
-                            });
-                          },
-                        ),
+                        // const SizedBox(width: 10),
+                        // AppBarIconButton(
+                        //   key:
+                        //       const Key("addAddressBookEntryFavoriteButtonKey"),
+                        //   size: 36,
+                        //   shadows: const [],
+                        //   color: Theme.of(context)
+                        //       .extension<StackColors>()!
+                        //       .background,
+                        //   icon: SvgPicture.asset(
+                        //     Assets.svg.star,
+                        //     color: _isFavorite
+                        //         ? Theme.of(context)
+                        //             .extension<StackColors>()!
+                        //             .favoriteStarActive
+                        //         : Theme.of(context)
+                        //             .extension<StackColors>()!
+                        //             .favoriteStarInactive,
+                        //     width: 20,
+                        //     height: 20,
+                        //   ),
+                        //   onPressed: () {
+                        //     setState(() {
+                        //       _isFavorite = !_isFavorite;
+                        //     });
+                        //   },
+                        // ),
                       ],
                     ),
                   ),
@@ -225,10 +225,11 @@ class _AddAddressBookEntryViewState
                 ],
               ),
               Expanded(
-                  child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: child,
-              )),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: child,
+                ),
+              ),
             ],
           );
         },
@@ -292,66 +293,17 @@ class _AddAddressBookEntryViewState
                                           : showDialog<dynamic>(
                                               context: context,
                                               builder: (context) {
-                                                return DesktopDialog(
+                                                return const DesktopDialog(
                                                   maxHeight: 700,
-                                                  maxWidth: 700,
-                                                  child: Column(
-                                                    children: [
-                                                      Row(
-                                                        children: [
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(32),
-                                                            child: Text(
-                                                              "Select emoji",
-                                                              style: STextStyles
-                                                                  .desktopH3(
-                                                                      context),
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .center,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      Expanded(
-                                                        child: LayoutBuilder(
-                                                          builder: (context,
-                                                              constraints) {
-                                                            return SingleChildScrollView(
-                                                              scrollDirection:
-                                                                  Axis.vertical,
-                                                              child:
-                                                                  ConstrainedBox(
-                                                                constraints:
-                                                                    BoxConstraints(
-                                                                  minHeight:
-                                                                      constraints
-                                                                          .maxHeight,
-                                                                  minWidth:
-                                                                      constraints
-                                                                          .maxWidth,
-                                                                ),
-                                                                child:
-                                                                    IntrinsicHeight(
-                                                                  child: Column(
-                                                                    children: const [
-                                                                      Padding(
-                                                                        padding:
-                                                                            EdgeInsets.symmetric(horizontal: 32),
-                                                                        // child:
-                                                                        //     EmojiSelectSheet(),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            );
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ],
+                                                  maxWidth: 600,
+                                                  child: Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: 32,
+                                                      right: 20,
+                                                      top: 32,
+                                                      bottom: 32,
+                                                    ),
+                                                    child: EmojiSelectSheet(),
                                                   ),
                                                 );
                                               }).then((value) {
