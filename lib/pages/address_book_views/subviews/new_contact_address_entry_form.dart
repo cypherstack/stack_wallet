@@ -253,7 +253,7 @@ class _NewContactAddressEntryFormState
                         },
                         child: const ClipboardIcon(),
                       ),
-                    if (ref.watch(addressEntryDataProvider(widget.id)
+                    if (!Util.isDesktop && ref.watch(addressEntryDataProvider(widget.id)
                             .select((value) => value.address)) ==
                         null)
                       TextFieldIconButton(
