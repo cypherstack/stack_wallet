@@ -8,6 +8,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 import 'debug_info_dialog.dart';
@@ -143,7 +144,21 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                 ),
                               ],
                             ),
-                            const StackPrivacyButton(),
+                            PrimaryButton(
+                              label: "Change",
+                              buttonHeight: ButtonHeight.xs,
+                              width: 86,
+                              onPressed: () async {
+                                await showDialog<dynamic>(
+                                  context: context,
+                                  useSafeArea: false,
+                                  barrierDismissible: true,
+                                  builder: (context) {
+                                    return const StackPrivacyDialog();
+                                  },
+                                );
+                              },
+                            )
                           ],
                         ),
                       );
@@ -172,7 +187,21 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                     .textDark),
                         textAlign: TextAlign.left,
                       ),
-                      ShowLogsButton(),
+                      PrimaryButton(
+                        buttonHeight: ButtonHeight.xs,
+                        label: "Show logs",
+                        width: 101,
+                        onPressed: () async {
+                          await showDialog<dynamic>(
+                            context: context,
+                            useSafeArea: false,
+                            barrierDismissible: true,
+                            builder: (context) {
+                              return const DebugInfoDialog();
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -181,84 +210,6 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class StackPrivacyButton extends ConsumerWidget {
-  const StackPrivacyButton({
-    Key? key,
-  }) : super(key: key);
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    Future<void> changePrivacySettings() async {
-      await showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return StackPrivacyDialog();
-        },
-      );
-    }
-
-    return SizedBox(
-      width: 84,
-      height: 37,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {
-          // Navigator.of(context).pushNamed(
-          //   StackPrivacyCalls.routeName,
-          //   arguments: false,
-          // );
-          changePrivacySettings();
-        },
-        child: Text(
-          "Change",
-          style: STextStyles.desktopTextExtraExtraSmall(context)
-              .copyWith(color: Colors.white),
-        ),
-      ),
-    );
-  }
-}
-
-class ShowLogsButton extends ConsumerWidget {
-  const ShowLogsButton({
-    Key? key,
-  }) : super(key: key);
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    Future<void> viewDebugLogs() async {
-      await showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return const DebugInfoDialog();
-        },
-      );
-    }
-
-    return SizedBox(
-      width: 101,
-      height: 37,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {
-          viewDebugLogs();
-        },
-        child: Text(
-          "Show logs",
-          style: STextStyles.desktopTextExtraExtraSmall(context)
-              .copyWith(color: Colors.white),
-        ),
-      ),
     );
   }
 }

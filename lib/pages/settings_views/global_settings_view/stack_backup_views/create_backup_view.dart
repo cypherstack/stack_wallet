@@ -562,7 +562,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                       Consumer(builder: (context, ref, __) {
                         return PrimaryButton(
                           width: 183,
-                          buttonHeight: ButtonHeight.l,
+                          buttonHeight: ButtonHeight.m,
                           label: "Create backup",
                           enabled: shouldEnableCreate,
                           onPressed: !shouldEnableCreate
@@ -780,7 +780,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                       ),
                       SecondaryButton(
                         width: 183,
-                        buttonHeight: ButtonHeight.l,
+                        buttonHeight: ButtonHeight.m,
                         label: "Cancel",
                         onPressed: () {},
                       ),

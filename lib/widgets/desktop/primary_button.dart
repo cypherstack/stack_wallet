@@ -81,9 +81,9 @@ class PrimaryButton extends StatelessWidget {
     if (Util.isDesktop) {
       switch (buttonHeight!) {
         case ButtonHeight.xxs:
-          return 28;
-        case ButtonHeight.xs:
           return 32;
+        case ButtonHeight.xs:
+          return 37;
         case ButtonHeight.s:
           return 40;
         case ButtonHeight.m:

@@ -411,7 +411,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   if (coin == Coin.firo)
                     SecondaryButton(
                       width: 180,
-                      desktopMed: true,
+                      buttonHeight: ButtonHeight.l,
                       label: "Anonymize funds",
                       onPressed: () async {
                         await showDialog<void>(
@@ -441,7 +441,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                                     children: [
                                       SecondaryButton(
                                         width: 180,
-                                        desktopMed: true,
+                                        buttonHeight: ButtonHeight.l,
                                         label: "Cancel",
                                         onPressed: () {
                                           Navigator.of(context).pop();
@@ -450,7 +450,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                                       const SizedBox(width: 20),
                                       PrimaryButton(
                                         width: 180,
-                                        desktopMed: true,
+                                        buttonHeight: ButtonHeight.l,
                                         label: "Continue",
                                         onPressed: () {
                                           Navigator.of(context).pop();
