@@ -199,7 +199,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           ),
         if (coin != Coin.epicCash)
           SecondaryButton(
-            desktopMed: true,
+            buttonHeight: ButtonHeight.l,
             onPressed: generateNewAddress,
             label: "Generate new address",
           ),

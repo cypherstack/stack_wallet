@@ -58,7 +58,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                     children: [
                       Expanded(
                         child: SecondaryButton(
-                          desktopMed: true,
+                          buttonHeight: ButtonHeight.l,
                           onPressed: Navigator.of(context).pop,
                           label: "Cancel",
                         ),
@@ -68,7 +68,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                       ),
                       Expanded(
                         child: PrimaryButton(
-                          desktopMed: true,
+                          buttonHeight: ButtonHeight.l,
                           onPressed: () {
                             Navigator.of(context).pop();
                             onConfirm.call();

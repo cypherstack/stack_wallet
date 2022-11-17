@@ -142,7 +142,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
             Expanded(
               child: SecondaryButton(
                 label: "Cancel",
-                desktopMed: true,
+                buttonHeight: ButtonHeight.l,
                 onPressed: Navigator.of(context).pop,
               ),
             ),
@@ -153,7 +153,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
               child: PrimaryButton(
                 enabled: _confirmEnabled,
                 label: "Confirm",
-                desktopMed: true,
+                buttonHeight: ButtonHeight.l,
                 onPressed: () async {
                   // TODO show spinner while verifying passphrase
 

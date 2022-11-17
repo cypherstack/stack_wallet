@@ -189,7 +189,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                     Expanded(
                       child: SecondaryButton(
                         label: "Cancel",
-                        desktopMed: true,
+                        buttonHeight: ButtonHeight.l,
                         onPressed: Navigator.of(context).pop,
                       ),
                     ),
@@ -199,7 +199,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                     Expanded(
                       child: PrimaryButton(
                         label: "Save changes",
-                        desktopMed: true,
+                        buttonHeight: ButtonHeight.l,
                         onPressed: () {
                           ref.read(prefsChangeNotifierProvider).currency =
                               current;

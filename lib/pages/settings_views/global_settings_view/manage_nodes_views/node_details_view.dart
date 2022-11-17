@@ -349,7 +349,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Test connection",
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     onPressed: () async {
                       await _testConnection(ref, context);
                     },
@@ -364,7 +364,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                     child: !nodeId.startsWith("default")
                         ? PrimaryButton(
                             label: _desktopReadOnly ? "Edit" : "Save",
-                            desktopMed: true,
+                            buttonHeight: ButtonHeight.l,
                             onPressed: () async {
                               final shouldSave = _desktopReadOnly == false;
                               setState(() {

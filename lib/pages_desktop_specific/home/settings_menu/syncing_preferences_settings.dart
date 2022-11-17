@@ -83,7 +83,7 @@ class _SyncingPreferencesSettings
                       ),
                       child: PrimaryButton(
                         width: 210,
-                        desktopMed: true,
+                        buttonHeight: ButtonHeight.l,
                         enabled: true,
                         label: "Change preferences",
                         onPressed: () {},

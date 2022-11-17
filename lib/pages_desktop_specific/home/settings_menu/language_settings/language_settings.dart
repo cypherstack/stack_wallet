@@ -85,7 +85,7 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                       ),
                       child: PrimaryButton(
                         width: 210,
-                        desktopMed: true,
+                        buttonHeight: ButtonHeight.l,
                         enabled: true,
                         label: "Change language",
                         onPressed: () {

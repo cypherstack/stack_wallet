@@ -238,7 +238,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: SecondaryButton(
                                     label: "Cancel",
-                                    desktopMed: true,
+                                    buttonHeight: ButtonHeight.l,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -251,7 +251,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: PrimaryButton(
                                     label: "Save",
-                                    desktopMed: true,
+                                    buttonHeight: ButtonHeight.l,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -561,7 +561,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   child: SecondaryButton(
                     label: "Test connection",
                     enabled: testConnectionEnabled,
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     onPressed: testConnectionEnabled
                         ? () async {
                             await _testConnection();
@@ -578,7 +578,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     child: PrimaryButton(
                       label: "Save",
                       enabled: saveEnabled,
-                      desktopMed: true,
+                      buttonHeight: ButtonHeight.l,
                       onPressed: saveEnabled ? attemptSave : null,
                     ),
                   ),

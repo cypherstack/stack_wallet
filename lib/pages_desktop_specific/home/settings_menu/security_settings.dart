@@ -485,7 +485,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                   const SizedBox(height: 20),
                                   PrimaryButton(
                                     width: 160,
-                                    desktopMed: true,
+                                    buttonHeight: ButtonHeight.l,
                                     enabled: shouldEnableSave,
                                     label: "Save changes",
                                     onPressed: () async {
@@ -503,7 +503,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                             )
                           : PrimaryButton(
                               width: 210,
-                              desktopMed: true,
+                              buttonHeight: ButtonHeight.l,
                               enabled: true,
                               label: "Set up new password",
                               onPressed: () {

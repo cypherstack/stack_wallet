@@ -240,7 +240,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                             children: [
                               Expanded(
                                 child: SecondaryButton(
-                                  desktopMed: true,
+                                  buttonHeight: ButtonHeight.l,
                                   label: "Cancel",
                                   onPressed: Navigator.of(context).pop,
                                 ),
@@ -248,7 +248,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: PrimaryButton(
-                                  desktopMed: true,
+                                  buttonHeight: ButtonHeight.l,
                                   label: "Disable",
                                   onPressed: () {
                                     ref
@@ -422,7 +422,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                 padding: const EdgeInsets.all(10),
                                 child: !isEnabledAutoBackup
                                     ? PrimaryButton(
-                                        desktopMed: true,
+                                        buttonHeight: ButtonHeight.l,
                                         width: 200,
                                         label: "Enable auto backup",
                                         onPressed: () {
@@ -467,7 +467,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                           Row(
                                             children: [
                                               PrimaryButton(
-                                                desktopMed: true,
+                                                buttonHeight: ButtonHeight.l,
                                                 width: 190,
                                                 label: "Disable auto backup",
                                                 onPressed: () {
@@ -476,7 +476,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                               ),
                                               const SizedBox(width: 16),
                                               SecondaryButton(
-                                                desktopMed: true,
+                                                buttonHeight: ButtonHeight.l,
                                                 width: 190,
                                                 label: "Edit auto backup",
                                                 onPressed: () {
@@ -560,7 +560,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                         child: CreateBackupView(),
                                       )
                                     : PrimaryButton(
-                                        desktopMed: true,
+                                        buttonHeight: ButtonHeight.l,
                                         width: 200,
                                         label: "Create manual backup",
                                         onPressed: () {
@@ -642,7 +642,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                         child: RestoreFromFileView(),
                                       )
                                     : PrimaryButton(
-                                        desktopMed: true,
+                                        buttonHeight: ButtonHeight.l,
                                         width: 200,
                                         label: "Restore backup",
                                         onPressed: () {

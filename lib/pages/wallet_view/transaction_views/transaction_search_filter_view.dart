@@ -869,7 +869,7 @@ class _TransactionSearchViewState
             Expanded(
               child: SecondaryButton(
                 label: "Cancel",
-                desktopMed: isDesktop,
+                buttonHeight: ButtonHeight.l,
                 onPressed: () async {
                   if (!isDesktop) {
                     if (FocusScope.of(context).hasFocus) {
@@ -919,7 +919,7 @@ class _TransactionSearchViewState
             ),
             Expanded(
               child: PrimaryButton(
-                desktopMed: isDesktop,
+                buttonHeight: ButtonHeight.l,
                 onPressed: () async {
                   await _onApplyPressed();
                 },

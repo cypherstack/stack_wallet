@@ -148,7 +148,7 @@ class _ConfirmTransactionViewState
                         const Spacer(),
                         Expanded(
                           child: PrimaryButton(
-                            desktopMed: true,
+                            buttonHeight: ButtonHeight.l,
                             label: "Ok",
                             onPressed: Navigator.of(context).pop,
                           ),
@@ -780,7 +780,7 @@ class _ConfirmTransactionViewState
                   : const EdgeInsets.all(0),
               child: PrimaryButton(
                 label: "Send",
-                desktopMed: true,
+                buttonHeight: ButtonHeight.l,
                 onPressed: () async {
                   final dynamic unlocked;
 

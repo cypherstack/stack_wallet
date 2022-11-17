@@ -240,7 +240,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
               SecondaryButton(
                 width: 184,
                 label: "Filter",
-                desktopMed: true,
+                buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.filter,
                   color: Theme.of(context)
@@ -255,7 +255,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
               PrimaryButton(
                 width: 184,
                 label: "Add new",
-                desktopMed: true,
+                buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.circlePlus,
                   color: Theme.of(context)

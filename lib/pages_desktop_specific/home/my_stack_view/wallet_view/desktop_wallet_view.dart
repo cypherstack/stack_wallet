@@ -470,7 +470,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   if (coin == Coin.firo) const SizedBox(width: 16),
                   SecondaryButton(
                     width: 180,
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     onPressed: () {
                       _onExchangePressed(context);
                     },

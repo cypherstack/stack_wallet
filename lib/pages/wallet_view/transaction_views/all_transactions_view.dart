@@ -385,7 +385,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                     ),
                   if (isDesktop)
                     SecondaryButton(
-                      desktopMed: isDesktop,
+                      buttonHeight: ButtonHeight.l,
                       width: 200,
                       label: "Filter",
                       icon: SvgPicture.asset(

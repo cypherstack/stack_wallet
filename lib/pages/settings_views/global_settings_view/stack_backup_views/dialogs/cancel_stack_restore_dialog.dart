@@ -85,7 +85,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                       children: [
                         SecondaryButton(
                           width: 248,
-                          desktopMed: true,
+                          buttonHeight: ButtonHeight.l,
                           enabled: true,
                           label: "Keep restoring",
                           onPressed: () {
@@ -95,7 +95,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                         const SizedBox(width: 20),
                         PrimaryButton(
                           width: 248,
-                          desktopMed: true,
+                          buttonHeight: ButtonHeight.l,
                           enabled: true,
                           label: "Cancel anyway",
                           onPressed: () {
