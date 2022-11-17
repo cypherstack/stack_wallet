@@ -338,6 +338,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       right: 30,
                     ),
                     child: RoundedWhiteContainer(
+                      radiusMultiplier: 2,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -501,6 +502,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       right: 30,
                     ),
                     child: RoundedWhiteContainer(
+                      radiusMultiplier: 2,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -583,6 +585,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       bottom: 40,
                     ),
                     child: RoundedWhiteContainer(
+                      radiusMultiplier: 2,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

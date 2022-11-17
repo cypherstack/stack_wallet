@@ -144,7 +144,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
             right: 30,
           ),
           child: RoundedWhiteContainer(
-            // radiusMultiplier: 2,
+            radiusMultiplier: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

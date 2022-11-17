@@ -88,12 +88,12 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(
-              right: 32,
-              bottom: 32,
+              right: 30,
+              // bottom: 32,
             ),
             child: RoundedWhiteContainer(
               radiusMultiplier: 2,
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -114,7 +114,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                         style: STextStyles.desktopTextSmall(context),
                       ),
                       const SizedBox(
-                        height: 8,
+                        height: 16,
                       ),
                       Text(
                         "Select a coin to see nodes",

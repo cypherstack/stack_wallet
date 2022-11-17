@@ -39,13 +39,20 @@ class _DesktopNotificationsViewState
         ),
       ),
       body: notifications.isEmpty
-          ? RoundedWhiteContainer(
-              child: Center(
-                child: Text(
-                  "Notifications will appear here",
-                  style: STextStyles.desktopTextExtraExtraSmall(context),
+          ? Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: RoundedWhiteContainer(
+                    child: Center(
+                      child: Text(
+                        "Notifications will appear here",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             )
           : ListView.builder(
               primary: false,

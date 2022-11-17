@@ -25,6 +25,7 @@ class DesktopDialog extends StatelessWidget {
             maxHeight: maxHeight,
           ),
           child: Material(
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(
               20,
             ),

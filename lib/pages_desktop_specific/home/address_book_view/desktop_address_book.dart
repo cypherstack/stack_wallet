@@ -13,8 +13,10 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -89,37 +91,31 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     final hasWallets = ref.watch(walletsChangeNotifierProvider).hasWallets;
-    final size = MediaQuery.of(context).size;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DesktopAppBar(
-          isCompactHeight: true,
-          leading: Row(
-            children: [
-              const SizedBox(
-                width: 24,
-              ),
-              Text(
-                "Address Book",
-                style: STextStyles.desktopH3(context),
-              )
-            ],
-          ),
+    return DesktopScaffold(
+      appBar: DesktopAppBar(
+        isCompactHeight: true,
+        leading: Row(
+          children: [
+            const SizedBox(
+              width: 24,
+            ),
+            Text(
+              "Address Book",
+              style: STextStyles.desktopH3(context),
+            )
+          ],
         ),
-        const SizedBox(height: 53),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: RoundedContainer(
-            color: Theme.of(context).extension<StackColors>()!.background,
-            child: Row(
-              children: [
-                SizedBox(
-                  height: 60,
-                  width: size.width - 800,
-                  child: ClipRRect(
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 6,
+              child: Column(
+                children: [
+                  ClipRRect(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -172,81 +168,57 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 20),
-                TextButton(
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getDesktopMenuButtonColorSelected(context),
-                  onPressed: () {
-                    selectCryptocurrency();
-                  },
-                  child: SizedBox(
-                    width: 200,
-                    height: 56,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: SvgPicture.asset(Assets.svg.filter),
-                        ),
-                        Text(
-                          "Filter",
-                          style: STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(
+                    height: 24,
                   ),
-                ),
-                const SizedBox(width: 20),
-                TextButton(
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context),
-                  onPressed: () {
-                    newContact();
-                  },
-                  child: SizedBox(
-                    width: 200,
-                    height: 56,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: SvgPicture.asset(Assets.svg.circlePlus),
-                        ),
-                        Text(
-                          "Add new",
-                          style: STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .popupBG,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                  const AddressBookView(),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(
+              width: 20,
+            ),
+            Expanded(
+              flex: 5,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      SecondaryButton(
+                        width: 184,
+                        label: "Filter",
+                        desktopMed: true,
+                        icon: SvgPicture.asset(
+                          Assets.svg.filter,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondary,
+                        ),
+                        onPressed: selectCryptocurrency,
+                      ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      PrimaryButton(
+                        width: 184,
+                        label: "Add new",
+                        desktopMed: true,
+                        icon: SvgPicture.asset(
+                          Assets.svg.circlePlus,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextPrimary,
+                        ),
+                        onPressed: newContact,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 26),
-          child: SizedBox(
-            width: 489,
-            child: AddressBookView(),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

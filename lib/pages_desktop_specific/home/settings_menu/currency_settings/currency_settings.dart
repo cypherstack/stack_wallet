@@ -64,6 +64,7 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
             right: 30,
           ),
           child: RoundedWhiteContainer(
+            radiusMultiplier: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

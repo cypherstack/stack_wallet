@@ -40,7 +40,6 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -249,6 +248,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                             label: "Yes",
                             onPressed: () {
                               Navigator.of(context).pop(true);
+
+                              setState(() {
+                                sendToController.text = "";
+                                cryptoAmountController.text = "";
+                                baseAmountController.text = "";
+                                noteController.text = "";
+                              });
                             },
                           ),
                         ),
@@ -1247,12 +1253,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           },
                           child: const AddressBookIcon(),
                         ),
-                      if (sendToController.text.isEmpty)
-                        TextFieldIconButton(
-                          key: const Key("sendViewScanQrButtonKey"),
-                          onTap: scanQr,
-                          child: const QrCodeIcon(),
-                        )
+                      // if (sendToController.text.isEmpty)
+                      //   TextFieldIconButton(
+                      //     key: const Key("sendViewScanQrButtonKey"),
+                      //     onTap: scanQr,
+                      //     child: const QrCodeIcon(),
+                      //   )
                     ],
                   ),
                 ),

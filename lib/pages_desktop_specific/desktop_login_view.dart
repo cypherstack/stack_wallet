@@ -55,6 +55,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
         ),
       );
 
+      await Future<void>.delayed(const Duration(seconds: 1));
+
       await ref
           .read(storageCryptoHandlerProvider)
           .initFromExisting(passwordController.text);
@@ -78,6 +80,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
     } catch (e) {
       // pop loading indicator
       Navigator.of(context).pop();
+
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       await showFloatingFlushBar(
         type: FlushBarType.warning,

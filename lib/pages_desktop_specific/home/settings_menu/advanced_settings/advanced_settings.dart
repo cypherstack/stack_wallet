@@ -32,6 +32,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
             right: 30,
           ),
           child: RoundedWhiteContainer(
+            radiusMultiplier: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
