@@ -5,7 +5,11 @@ import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/address_book_view/subwidgets/desktop_address_book_scaffold.dart';
+import 'package:stackwallet/pages_desktop_specific/home/address_book_view/subwidgets/desktop_contact_details.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -19,12 +23,10 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import '../../../providers/providers.dart';
-import '../../../providers/ui/address_book_providers/address_book_filter_provider.dart';
 
 class DesktopAddressBook extends ConsumerStatefulWidget {
   const DesktopAddressBook({Key? key}) : super(key: key);
@@ -41,6 +43,8 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
   late final FocusNode _searchFocusNode;
 
   String _searchTerm = "";
+
+  String? currentContactId;
 
   Future<void> selectCryptocurrency() async {
     await showDialog<dynamic>(
@@ -139,8 +143,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
             .where((e) => ref.watch(addressBookFilterProvider
                 .select((value) => value.coins.contains(e.coin))))
             .isNotEmpty)
-        .where((e) =>
-            ref.read(addressBookServiceProvider).matches(_searchTerm, e));
+        .where(
+            (e) => ref.read(addressBookServiceProvider).matches(_searchTerm, e))
+        .toList();
 
     final favorites = contacts
         .where((element) => element.addresses
@@ -150,7 +155,8 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
         .where((e) =>
             e.isFavorite &&
             ref.read(addressBookServiceProvider).matches(_searchTerm, e))
-        .where((element) => element.isFavorite);
+        .where((element) => element.isFavorite)
+        .toList();
 
     return DesktopScaffold(
       appBar: DesktopAppBar(
@@ -294,12 +300,56 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                   padding: const EdgeInsets.all(0),
                   child: Column(
                     children: [
-                      ...favorites.map(
-                        (e) => AddressBookCard(
-                          key: Key("favContactCard_${e.id}_key"),
-                          contactId: e.id,
+                      for (int i = 0; i < favorites.length; i++)
+                        Column(
+                          children: [
+                            if (i > 0)
+                              Container(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
+                                height: 1,
+                              ),
+                            Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: RoundedContainer(
+                                padding: const EdgeInsets.all(0),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark
+                                    .withOpacity(
+                                      currentContactId == favorites[i].id
+                                          ? 0.08
+                                          : 0,
+                                    ),
+                                child: RawMaterialButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      currentContactId = favorites[i].id;
+                                    });
+                                  },
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 16,
+                                  ),
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                  ),
+                                  child: AddressBookCard(
+                                    key: Key(
+                                        "favContactCard_${favorites[i].id}_key"),
+                                    contactId: favorites[i].id,
+                                    desktopSendFrom: false,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -318,136 +368,70 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                   children: [
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            ...allContacts.map(
-                              (e) => AddressBookCard(
-                                key: Key("desktopContactCard_${e.id}_key"),
-                                contactId: e.id,
-                              ),
+                      child: Column(
+                        children: [
+                          for (int i = 0; i < allContacts.length; i++)
+                            Column(
+                              children: [
+                                if (i > 0)
+                                  Container(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .background,
+                                    height: 1,
+                                  ),
+                                Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: RoundedContainer(
+                                    padding: const EdgeInsets.all(0),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark
+                                        .withOpacity(
+                                          currentContactId == allContacts[i].id
+                                              ? 0.08
+                                              : 0,
+                                        ),
+                                    child: RawMaterialButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          currentContactId = allContacts[i].id;
+                                        });
+                                      },
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 16,
+                                      ),
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          Constants.size.circularBorderRadius,
+                                        ),
+                                      ),
+                                      child: AddressBookCard(
+                                        key: Key(
+                                            "favContactCard_${allContacts[i].id}_key"),
+                                        contactId: allContacts[i].id,
+                                        desktopSendFrom: false,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-          details: Container(
-            color: Colors.purple,
-          ),
+          details: currentContactId == null
+              ? Container()
+              : DesktopContactDetails(
+                  contactId: currentContactId!,
+                ),
         ),
       ),
-    );
-  }
-}
-
-class DesktopAddressBookScaffold extends StatelessWidget {
-  const DesktopAddressBookScaffold({
-    Key? key,
-    required this.controlsLeft,
-    required this.controlsRight,
-    required this.filterItems,
-    required this.upperLabel,
-    required this.lowerLabel,
-    required this.favorites,
-    required this.all,
-    required this.details,
-  }) : super(key: key);
-
-  final Widget? controlsLeft;
-  final Widget? controlsRight;
-  final Widget? filterItems;
-  final Widget? upperLabel;
-  final Widget? lowerLabel;
-  final Widget? favorites;
-  final Widget? all;
-  final Widget? details;
-
-  static const double weirdRowHeight = 30;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Expanded(
-              flex: 6,
-              child: controlsLeft ?? Container(),
-            ),
-            const SizedBox(
-              width: 20,
-            ),
-            Expanded(
-              flex: 5,
-              child: controlsRight ?? Container(),
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: 20,
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: filterItems ?? Container(),
-            ),
-          ],
-        ),
-        Expanded(
-          child: Row(
-            children: [
-              Expanded(
-                flex: 6,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: IntrinsicHeight(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: weirdRowHeight,
-                                child: upperLabel,
-                              ),
-                              favorites ?? Container(),
-                              lowerLabel ?? Container(),
-                              all ?? Container(),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(
-                width: 20,
-              ),
-              Expanded(
-                flex: 5,
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: weirdRowHeight,
-                    ),
-                    Expanded(
-                      child: details ?? Container(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        )
-      ],
     );
   }
 }

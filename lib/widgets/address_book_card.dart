@@ -18,10 +18,12 @@ class AddressBookCard extends ConsumerStatefulWidget {
     Key? key,
     required this.contactId,
     this.indicatorDown,
+    this.desktopSendFrom = true,
   }) : super(key: key);
 
   final String contactId;
   final ExpandableState? indicatorDown;
+  final bool desktopSendFrom;
 
   @override
   ConsumerState<AddressBookCard> createState() => _AddressBookCardState();
@@ -30,10 +32,12 @@ class AddressBookCard extends ConsumerStatefulWidget {
 class _AddressBookCardState extends ConsumerState<AddressBookCard> {
   late final String contactId;
   late final bool isDesktop;
+  late final bool desktopSendFrom;
 
   @override
   void initState() {
     contactId = widget.contactId;
+    desktopSendFrom = widget.desktopSendFrom;
     isDesktop = Util.isDesktop;
     super.initState();
   }
@@ -107,6 +111,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
             const SizedBox(
               width: 16,
             ),
+          if (isDesktop && !desktopSendFrom) const Spacer(),
           if (isDesktop)
             Text(
               coinsString,
@@ -129,8 +134,8 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                 ),
               ],
             ),
-          if (isDesktop) const Spacer(),
-          if (isDesktop)
+          if (isDesktop && desktopSendFrom) const Spacer(),
+          if (isDesktop && desktopSendFrom)
             SvgPicture.asset(
               widget.indicatorDown == ExpandableState.collapsed
                   ? Assets.svg.chevronDown
