@@ -192,9 +192,16 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           ],
                         ),
                       ),
-                      Text(
-                        "Transaction history",
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: 20,
+                          bottom: 12,
+                        ),
+                        child: Text(
+                          "Transaction history",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
                       ),
                       FutureBuilder(
                         future: _filteredTransactionsByContact(
