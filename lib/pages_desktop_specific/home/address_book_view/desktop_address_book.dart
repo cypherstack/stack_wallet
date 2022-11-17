@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -33,11 +31,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
   late final TextEditingController _searchController;
 
   late final FocusNode _searchFocusNode;
-
-  List<Contact>? _cache;
-  List<Contact>? _cacheFav;
-
-  late bool hasContacts = false;
 
   String _searchTerm = "";
 
@@ -90,7 +83,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final hasWallets = ref.watch(walletsChangeNotifierProvider).hasWallets;
 
     return DesktopScaffold(
       appBar: DesktopAppBar(
@@ -171,7 +163,11 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                   const SizedBox(
                     height: 24,
                   ),
-                  const AddressBookView(),
+                  Expanded(
+                    child: AddressBookView(
+                      filterTerm: _searchTerm,
+                    ),
+                  ),
                 ],
               ),
             ),

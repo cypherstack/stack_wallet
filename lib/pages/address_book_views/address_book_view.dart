@@ -23,11 +23,16 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class AddressBookView extends ConsumerStatefulWidget {
-  const AddressBookView({Key? key, this.coin}) : super(key: key);
+  const AddressBookView({
+    Key? key,
+    this.coin,
+    this.filterTerm,
+  }) : super(key: key);
 
   static const String routeName = "/addressBook";
 
   final Coin? coin;
+  final String? filterTerm;
 
   @override
   ConsumerState<AddressBookView> createState() => _AddressBookViewState();
@@ -37,9 +42,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
   late TextEditingController _searchController;
 
   final _searchFocusNode = FocusNode();
-  //
-  // List<Contact>? _cache;
-  // List<Contact>? _cacheFav;
 
   String _searchTerm = "";
 
@@ -198,7 +200,12 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                     child: IntrinsicHeight(
                       child: Padding(
                         padding: const EdgeInsets.all(4),
-                        child: child,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: MediaQuery.of(context).size.height - 271,
+                          ),
+                          child: child,
+                        ),
                       ),
                     ),
                   ),
@@ -208,163 +215,156 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
           ),
         );
       },
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: MediaQuery.of(context).size.height - 271,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-              child: !isDesktop
-                  ? TextField(
-                      autocorrect: Util.isDesktop ? false : true,
-                      enableSuggestions: Util.isDesktop ? false : true,
-                      controller: _searchController,
-                      focusNode: _searchFocusNode,
-                      onChanged: (value) {
-                        setState(() {
-                          _searchTerm = value;
-                        });
-                      },
-                      style: STextStyles.field(context),
-                      decoration: standardInputDecoration(
-                        "Search",
-                        _searchFocusNode,
-                        context,
-                      ).copyWith(
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 16,
-                          ),
-                          child: SvgPicture.asset(
-                            Assets.svg.search,
-                            width: 16,
-                            height: 16,
-                          ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: !isDesktop
+                ? TextField(
+                    autocorrect: Util.isDesktop ? false : true,
+                    enableSuggestions: Util.isDesktop ? false : true,
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchTerm = value;
+                      });
+                    },
+                    style: STextStyles.field(context),
+                    decoration: standardInputDecoration(
+                      "Search",
+                      _searchFocusNode,
+                      context,
+                    ).copyWith(
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 16,
                         ),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          setState(() {
-                                            _searchController.text = "";
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
+                        child: SvgPicture.asset(
+                          Assets.svg.search,
+                          width: 16,
+                          height: 16,
+                        ),
                       ),
-                    )
-                  : null,
-            ),
-            if (!isDesktop) const SizedBox(height: 16),
-            Text(
-              "Favorites",
-              style: STextStyles.smallMed12(context),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            if (contacts.isNotEmpty)
-              RoundedWhiteContainer(
-                padding: EdgeInsets.all(!isDesktop ? 0 : 15),
-                child: Column(
-                  children: [
-                    ...contacts
-                        .where((element) => element.addresses
-                            .where((e) => ref.watch(
-                                addressBookFilterProvider.select(
-                                    (value) => value.coins.contains(e.coin))))
-                            .isNotEmpty)
-                        .where((e) =>
-                            e.isFavorite &&
-                            ref
-                                .read(addressBookServiceProvider)
-                                .matches(_searchTerm, e))
-                        .where((element) => element.isFavorite)
-                        .map(
-                          (e) => AddressBookCard(
-                            key: Key("favContactCard_${e.id}_key"),
-                            contactId: e.id,
-                          ),
-                        ),
-                  ],
-                ),
-              ),
-            if (contacts.isEmpty)
-              RoundedWhiteContainer(
-                child: Center(
-                  child: Text(
-                    "Your favorite contacts will appear here",
-                    style: STextStyles.itemSubtitle(context),
-                  ),
-                ),
-              ),
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              "All contacts",
-              style: STextStyles.smallMed12(context),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            if (contacts.isNotEmpty)
-              Column(
-                children: [
-                  RoundedWhiteContainer(
-                    padding: EdgeInsets.all(!isDesktop ? 0 : 15),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          ...contacts
-                              .where((element) => element.addresses
-                                  .where((e) => ref.watch(
-                                      addressBookFilterProvider.select(
-                                          (value) =>
-                                              value.coins.contains(e.coin))))
-                                  .isNotEmpty)
-                              .where((e) => ref
-                                  .read(addressBookServiceProvider)
-                                  .matches(_searchTerm, e))
-                              .map(
-                                (e) => AddressBookCard(
-                                  key: Key("desktopContactCard_${e.id}_key"),
-                                  contactId: e.id,
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          _searchController.text = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ),
-                        ],
-                      ),
+                            )
+                          : null,
                     ),
-                  ),
+                  )
+                : null,
+          ),
+          if (!isDesktop) const SizedBox(height: 16),
+          Text(
+            "Favorites",
+            style: STextStyles.smallMed12(context),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          if (contacts.isNotEmpty)
+            RoundedWhiteContainer(
+              padding: EdgeInsets.all(!isDesktop ? 0 : 15),
+              child: Column(
+                children: [
+                  ...contacts
+                      .where((element) => element.addresses
+                          .where((e) => ref.watch(addressBookFilterProvider
+                              .select((value) => value.coins.contains(e.coin))))
+                          .isNotEmpty)
+                      .where((e) =>
+                          e.isFavorite &&
+                          ref
+                              .read(addressBookServiceProvider)
+                              .matches(widget.filterTerm ?? _searchTerm, e))
+                      .where((element) => element.isFavorite)
+                      .map(
+                        (e) => AddressBookCard(
+                          key: Key("favContactCard_${e.id}_key"),
+                          contactId: e.id,
+                        ),
+                      ),
                 ],
               ),
-            if (contacts.isEmpty)
-              RoundedWhiteContainer(
-                child: Center(
-                  child: Text(
-                    "Your contacts will appear here",
-                    style: STextStyles.itemSubtitle(context),
-                  ),
+            ),
+          if (contacts.isEmpty)
+            RoundedWhiteContainer(
+              child: Center(
+                child: Text(
+                  "Your favorite contacts will appear here",
+                  style: STextStyles.itemSubtitle(context),
                 ),
               ),
-          ],
-        ),
+            ),
+          const SizedBox(
+            height: 16,
+          ),
+          Text(
+            "All contacts",
+            style: STextStyles.smallMed12(context),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          if (contacts.isNotEmpty)
+            Column(
+              children: [
+                RoundedWhiteContainer(
+                  padding: EdgeInsets.all(!isDesktop ? 0 : 15),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        ...contacts
+                            .where((element) => element.addresses
+                                .where((e) => ref.watch(
+                                    addressBookFilterProvider.select((value) =>
+                                        value.coins.contains(e.coin))))
+                                .isNotEmpty)
+                            .where((e) => ref
+                                .read(addressBookServiceProvider)
+                                .matches(widget.filterTerm ?? _searchTerm, e))
+                            .map(
+                              (e) => AddressBookCard(
+                                key: Key("desktopContactCard_${e.id}_key"),
+                                contactId: e.id,
+                              ),
+                            ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          if (contacts.isEmpty)
+            RoundedWhiteContainer(
+              child: Center(
+                child: Text(
+                  "Your contacts will appear here",
+                  style: STextStyles.itemSubtitle(context),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
