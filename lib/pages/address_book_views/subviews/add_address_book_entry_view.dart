@@ -559,7 +559,7 @@ class _AddAddressBookEntryViewState
                                   ),
                                 ],
                               ),
-                        if (!isDesktop) const SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         if (forms.length <= 1)
                           const SizedBox(
                             height: 8,

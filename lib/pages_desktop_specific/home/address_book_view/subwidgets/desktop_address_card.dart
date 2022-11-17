@@ -11,9 +11,11 @@ class DesktopAddressCard extends StatelessWidget {
   const DesktopAddressCard({
     Key? key,
     required this.entry,
+    required this.contactId,
   }) : super(key: key);
 
   final ContactAddressEntry entry;
+  final String contactId;
 
   @override
   Widget build(BuildContext context) {
@@ -57,13 +59,15 @@ class DesktopAddressCard extends StatelessWidget {
                     text: "Copy",
                     onTap: () {},
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  BlueTextButton(
-                    text: "Edit",
-                    onTap: () {},
-                  ),
+                  if (contactId != "default")
+                    const SizedBox(
+                      width: 16,
+                    ),
+                  if (contactId != "default")
+                    BlueTextButton(
+                      text: "Edit",
+                      onTap: () {},
+                    ),
                 ],
               )
             ],

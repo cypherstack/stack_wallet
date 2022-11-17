@@ -40,16 +40,18 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color: contact.id == "default"
+                        ? Colors.transparent
+                        : Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(32),
                   ),
                   child: contact.id == "default"
                       ? Center(
                           child: SvgPicture.asset(
                             Assets.svg.stackIcon(context),
-                            width: 20,
+                            width: 32,
                           ),
                         )
                       : contact.emojiChar != null
@@ -134,6 +136,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                                       padding: const EdgeInsets.all(18),
                                       child: DesktopAddressCard(
                                         entry: contact.addresses[i],
+                                        contactId: contact.id,
                                       ),
                                     ),
                                   ],
