@@ -261,6 +261,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                                       onTap: () async {
                                         setState(() {
                                           _searchController.text = "";
+                                          _searchTerm = "";
                                         });
                                       },
                                     ),

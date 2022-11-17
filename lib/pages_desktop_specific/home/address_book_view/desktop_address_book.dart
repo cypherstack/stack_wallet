@@ -152,12 +152,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
             ref.read(addressBookServiceProvider).matches(_searchTerm, e))
         .where((element) => element.isFavorite);
 
-    print("=========================================================");
-    print("contacts: ${contacts.length}");
-    print("favorites: ${favorites.length}");
-    print("allContacts: ${allContacts.length}");
-    print("=========================================================");
-
     return DesktopScaffold(
       appBar: DesktopAppBar(
         isCompactHeight: true,
@@ -222,6 +216,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                                 onTap: () async {
                                   setState(() {
                                     _searchController.text = "";
+                                    _searchTerm = "";
                                   });
                                 },
                               ),
@@ -284,8 +279,18 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                     style: STextStyles.smallMed12(context),
                   ),
                 ),
-          favorites: favorites.isNotEmpty
-              ? RoundedWhiteContainer(
+          favorites: favorites.isEmpty
+              ? contacts.isNotEmpty
+                  ? null
+                  : RoundedWhiteContainer(
+                      child: Center(
+                        child: Text(
+                          "Your favorite contacts will appear here",
+                          style: STextStyles.itemSubtitle(context),
+                        ),
+                      ),
+                    )
+              : RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
                   child: Column(
                     children: [
@@ -297,17 +302,19 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                       ),
                     ],
                   ),
-                )
-              : RoundedWhiteContainer(
-                  child: Center(
-                    child: Text(
-                      "Your favorite contacts will appear here",
-                      style: STextStyles.itemSubtitle(context),
-                    ),
-                  ),
                 ),
-          all: allContacts.isNotEmpty
-              ? Column(
+          all: allContacts.isEmpty
+              ? contacts.isNotEmpty
+                  ? null
+                  : RoundedWhiteContainer(
+                      child: Center(
+                        child: Text(
+                          "Your contacts will appear here",
+                          style: STextStyles.itemSubtitle(context),
+                        ),
+                      ),
+                    )
+              : Column(
                   children: [
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
@@ -326,14 +333,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                       ),
                     ),
                   ],
-                )
-              : RoundedWhiteContainer(
-                  child: Center(
-                    child: Text(
-                      "Your contacts will appear here",
-                      style: STextStyles.itemSubtitle(context),
-                    ),
-                  ),
                 ),
           details: Container(
             color: Colors.purple,
