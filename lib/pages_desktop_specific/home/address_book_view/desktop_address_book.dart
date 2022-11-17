@@ -427,8 +427,11 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 ),
           details: currentContactId == null
               ? Container()
-              : DesktopContactDetails(
-                  contactId: currentContactId!,
+              : RoundedWhiteContainer(
+            padding: const EdgeInsets.all(24),
+                  child: DesktopContactDetails(
+                    contactId: currentContactId!,
+                  ),
                 ),
         ),
       ),

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/pages_desktop_specific/home/address_book_view/subwidgets/desktop_address_card.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class DesktopContactDetails extends ConsumerStatefulWidget {
   const DesktopContactDetails({
@@ -74,6 +74,8 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
             ),
             SecondaryButton(
               label: "Options",
+              width: 86,
+              buttonHeight: ButtonHeight.xxs,
               onPressed: () {},
             ),
           ],
@@ -106,12 +108,38 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             ),
                           ],
                         ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ...contact.addresses
-                                .map((e) => AddressCard(entry: e)),
-                          ],
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        RoundedWhiteContainer(
+                          padding: const EdgeInsets.all(0),
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              for (int i = 0; i < contact.addresses.length; i++)
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (i > 0)
+                                      Container(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .background,
+                                        height: 1,
+                                      ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(18),
+                                      child: DesktopAddressCard(
+                                        entry: contact.addresses[i],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
                         )
                       ],
                     ),
@@ -120,70 +148,6 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
               );
             },
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class AddressCard extends StatelessWidget {
-  const AddressCard({
-    Key? key,
-    required this.entry,
-  }) : super(key: key);
-
-  final ContactAddressEntry entry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SvgPicture.asset(
-          Assets.svg.iconFor(
-            coin: entry.coin,
-          ),
-          height: 32,
-          width: 32,
-        ),
-        const SizedBox(
-          width: 16,
-        ),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SelectableText(
-              "${entry.label} ${entry.coin.ticker}",
-              style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                color: Theme.of(context).extension<StackColors>()!.textDark,
-              ),
-            ),
-            const SizedBox(
-              height: 2,
-            ),
-            SelectableText(
-              entry.address,
-              style: STextStyles.desktopTextExtraExtraSmall(context),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            Row(
-              children: [
-                BlueTextButton(
-                  text: "Copy",
-                  onTap: () {},
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                BlueTextButton(
-                  text: "Edit",
-                  onTap: () {},
-                ),
-              ],
-            )
-          ],
         ),
       ],
     );
