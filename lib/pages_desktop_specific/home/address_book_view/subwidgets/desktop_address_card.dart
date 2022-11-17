@@ -90,6 +90,8 @@ class DesktopAddressCard extends StatelessWidget {
                         return BlueTextButton(
                           text: "Edit",
                           onTap: () async {
+                            ref.refresh(
+                                addressEntryDataProviderFamilyRefresher);
                             ref.read(addressEntryDataProvider(0)).address =
                                 entry.address;
                             ref.read(addressEntryDataProvider(0)).addressLabel =

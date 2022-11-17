@@ -3,14 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/address_book_view/subwidgets/desktop_address_card.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -154,7 +158,50 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           ),
                           BlueTextButton(
                             text: "Add new",
-                            onTap: () {},
+                            onTap: () async {
+                              ref.refresh(
+                                  addressEntryDataProviderFamilyRefresher);
+
+                              await showDialog<void>(
+                                context: context,
+                                builder: (context) => DesktopDialog(
+                                  maxWidth: 580,
+                                  maxHeight: 566,
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const SizedBox(
+                                            width: 8,
+                                          ),
+                                          const AppBarBackButton(
+                                            isCompact: true,
+                                          ),
+                                          Text(
+                                            "Add new address",
+                                            style:
+                                                STextStyles.desktopH3(context),
+                                          ),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 20,
+                                            left: 32,
+                                            right: 32,
+                                            bottom: 32,
+                                          ),
+                                          child: AddNewContactAddressView(
+                                            contactId: widget.contactId,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
