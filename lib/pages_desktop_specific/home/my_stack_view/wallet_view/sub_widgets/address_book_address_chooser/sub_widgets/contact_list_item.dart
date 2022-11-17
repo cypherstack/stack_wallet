@@ -58,7 +58,7 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
           ),
           child: AddressBookCard(
             contactId: contactId,
-            indicatorDown: _state == ExpandableState.expanded,
+            indicatorDown: _state,
           ),
         ),
         body: Column(

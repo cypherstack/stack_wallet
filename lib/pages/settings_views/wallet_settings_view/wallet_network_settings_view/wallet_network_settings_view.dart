@@ -77,7 +77,7 @@ class _WalletNetworkSettingsViewState
 
   late double _percent;
   late int _blocksRemaining;
-  bool _advancedIsExpanded = true;
+  bool _advancedIsExpanded = false;
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -855,8 +855,8 @@ class _WalletNetworkSettingsViewState
                     ),
                     SvgPicture.asset(
                       _advancedIsExpanded
-                          ? Assets.svg.chevronDown
-                          : Assets.svg.chevronUp,
+                          ? Assets.svg.chevronUp
+                          : Assets.svg.chevronDown,
                       width: 12,
                       height: 6,
                       color: Theme.of(context)
@@ -877,11 +877,11 @@ class _WalletNetworkSettingsViewState
                         text: "Rescan",
                         onTap: () async {
                           await Navigator.of(context).push(
-                             FadePageRoute<void>(
+                            FadePageRoute<void>(
                               ConfirmFullRescanDialog(
                                 onConfirm: _attemptRescan,
                               ),
-                             const RouteSettings(),
+                              const RouteSettings(),
                             ),
                           );
                           // await showDialog<dynamic>(
