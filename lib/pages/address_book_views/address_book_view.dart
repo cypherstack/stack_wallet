@@ -99,8 +99,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    // final addressBookEntriesFuture = ref.watch(
-    //     addressBookServiceProvider.select((value) => value.addressBookEntries));
     final contacts =
         ref.watch(addressBookServiceProvider.select((value) => value.contacts));
 
@@ -280,58 +278,41 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
             const SizedBox(
               height: 12,
             ),
-            // FutureBuilder(
-            //   future: addressBookEntriesFuture,
-            //   builder: (_, AsyncSnapshot<List<Contact>> snapshot) {
-            //     if (snapshot.connectionState == ConnectionState.done &&
-            //         snapshot.hasData) {
-            //       _cacheFav = snapshot.data!;
-            //     }
-            //     if (_cacheFav == null) {
-            //       // TODO proper loading animation
-            //       return const LoadingIndicator();
-            //     } else {
-            //       if (_cacheFav!.isNotEmpty) {
-            //         return
-            RoundedWhiteContainer(
-              padding: EdgeInsets.all(!isDesktop ? 0 : 15),
-              child: Column(
-                children: [
-                  ...contacts
-                      .where((element) => element.addresses
-                          .where((e) => ref.watch(addressBookFilterProvider
-                              .select((value) => value.coins.contains(e.coin))))
-                          .isNotEmpty)
-                      .where((e) =>
-                          e.isFavorite &&
-                          ref
-                              .read(addressBookServiceProvider)
-                              .matches(_searchTerm, e))
-                      .where((element) => element.isFavorite)
-                      .map(
-                        (e) => AddressBookCard(
-                          key: Key("favContactCard_${e.id}_key"),
-                          contactId: e.id,
+            if (contacts.isNotEmpty)
+              RoundedWhiteContainer(
+                padding: EdgeInsets.all(!isDesktop ? 0 : 15),
+                child: Column(
+                  children: [
+                    ...contacts
+                        .where((element) => element.addresses
+                            .where((e) => ref.watch(
+                                addressBookFilterProvider.select(
+                                    (value) => value.coins.contains(e.coin))))
+                            .isNotEmpty)
+                        .where((e) =>
+                            e.isFavorite &&
+                            ref
+                                .read(addressBookServiceProvider)
+                                .matches(_searchTerm, e))
+                        .where((element) => element.isFavorite)
+                        .map(
+                          (e) => AddressBookCard(
+                            key: Key("favContactCard_${e.id}_key"),
+                            contactId: e.id,
+                          ),
                         ),
-                      ),
-                ],
+                  ],
+                ),
               ),
-            )
-            //         ;
-            //       } else {
-            //         return RoundedWhiteContainer(
-            //           child: Center(
-            //             child: Text(
-            //               "Your favorite contacts will appear here",
-            //               style: STextStyles.itemSubtitle(context),
-            //             ),
-            //           ),
-            //         );
-            //       }
-            //     }
-            //   },
-            // )
-            ,
+            if (contacts.isEmpty)
+              RoundedWhiteContainer(
+                child: Center(
+                  child: Text(
+                    "Your favorite contacts will appear here",
+                    style: STextStyles.itemSubtitle(context),
+                  ),
+                ),
+              ),
             const SizedBox(
               height: 16,
             ),
@@ -342,64 +323,46 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
             const SizedBox(
               height: 12,
             ),
-            // FutureBuilder(
-            //   future: addressBookEntriesFuture,
-            //   builder: (_, AsyncSnapshot<List<Contact>> snapshot) {
-            //     if (snapshot.connectionState == ConnectionState.done &&
-            //         snapshot.hasData) {
-            //       _cache = snapshot.data!;
-            //     }
-            //     if (_cache == null) {
-            //       // TODO proper loading animation
-            //       return const LoadingIndicator();
-            //     } else {
-            //       if (_cache!.isNotEmpty) {
-            //         return
-            Column(
-              children: [
-                RoundedWhiteContainer(
-                  padding: EdgeInsets.all(!isDesktop ? 0 : 15),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        ...contacts
-                            .where((element) => element.addresses
-                                .where((e) => ref.watch(
-                                    addressBookFilterProvider.select((value) =>
-                                        value.coins.contains(e.coin))))
-                                .isNotEmpty)
-                            .where((e) => ref
-                                .read(addressBookServiceProvider)
-                                .matches(_searchTerm, e))
-                            .where((element) => !element.isFavorite)
-                            .map(
-                              (e) => AddressBookCard(
-                                key: Key("desktopContactCard_${e.id}_key"),
-                                contactId: e.id,
+            if (contacts.isNotEmpty)
+              Column(
+                children: [
+                  RoundedWhiteContainer(
+                    padding: EdgeInsets.all(!isDesktop ? 0 : 15),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          ...contacts
+                              .where((element) => element.addresses
+                                  .where((e) => ref.watch(
+                                      addressBookFilterProvider.select(
+                                          (value) =>
+                                              value.coins.contains(e.coin))))
+                                  .isNotEmpty)
+                              .where((e) => ref
+                                  .read(addressBookServiceProvider)
+                                  .matches(_searchTerm, e))
+                              .map(
+                                (e) => AddressBookCard(
+                                  key: Key("desktopContactCard_${e.id}_key"),
+                                  contactId: e.id,
+                                ),
                               ),
-                            ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
+                ],
+              ),
+            if (contacts.isEmpty)
+              RoundedWhiteContainer(
+                child: Center(
+                  child: Text(
+                    "Your contacts will appear here",
+                    style: STextStyles.itemSubtitle(context),
+                  ),
                 ),
-              ],
-            )
-            //         ;
-            //       } else {
-            //         return RoundedWhiteContainer(
-            //           child: Center(
-            //             child: Text(
-            //               "Your contacts will appear here",
-            //               style: STextStyles.itemSubtitle(context),
-            //             ),
-            //           ),
-            //         );
-            //       }
-            //     }
-            //   },
-            // )
-            ,
+              ),
           ],
         ),
       ),
