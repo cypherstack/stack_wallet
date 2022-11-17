@@ -243,7 +243,7 @@ class _WDesktopWalletSummaryState extends State<DesktopWalletSummary> {
                               fontSize: 24,
                               color: Theme.of(context)
                                   .extension<StackColors>()!
-                                  .textFavoriteCard,
+                                  .textDark,
                             ),
                           ),
                           if (externalCalls)
