@@ -24,7 +24,7 @@ class OceanBreezeColors extends StackColorTheme {
   Color get accentColorDark => const Color(0xFF227386);
 
   @override
-  Color get shadow => const Color(0xFF388192);
+  Color get shadow => const Color(0x0F2D3132);
 
   @override
   Color get textDark => const Color(0xFF232323);
