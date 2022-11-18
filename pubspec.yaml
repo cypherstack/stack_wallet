@@ -228,6 +228,7 @@ flutter:
     - assets/svg/chevron-down.svg
     - assets/svg/chevron-up.svg
     - assets/svg/lock-keyhole.svg
+    - assets/svg/lock-open.svg
     - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg

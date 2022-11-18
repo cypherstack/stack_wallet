@@ -7,8 +7,8 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class RateTypeToggle extends ConsumerWidget {
   const RateTypeToggle({
@@ -21,12 +21,17 @@ class RateTypeToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
+    final isDesktop = Util.isDesktop;
+
     final estimated = ref.watch(prefsChangeNotifierProvider
             .select((value) => value.exchangeRateType)) ==
         ExchangeRateType.estimated;
 
-    return RoundedWhiteContainer(
+    return RoundedContainer(
       padding: const EdgeInsets.all(0),
+      color: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.buttonBackSecondary
+          : Theme.of(context).extension<StackColors>()!.popupBG,
       child: Row(
         children: [
           Expanded(
@@ -39,6 +44,9 @@ class RateTypeToggle extends ConsumerWidget {
                 }
               },
               child: RoundedContainer(
+                padding: isDesktop
+                    ? const EdgeInsets.all(17)
+                    : const EdgeInsets.all(0),
                 color: estimated
                     ? Theme.of(context)
                         .extension<StackColors>()!
@@ -48,29 +56,50 @@ class RateTypeToggle extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SvgPicture.asset(
-                      Assets.svg.lock,
+                      Assets.svg.lockOpen,
                       width: 12,
                       height: 14,
-                      color: estimated
-                          ? Theme.of(context).extension<StackColors>()!.textDark
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
+                      color: isDesktop
+                          ? estimated
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorBlue
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonTextSecondary
+                          : estimated
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                     ),
                     const SizedBox(
                       width: 5,
                     ),
                     Text(
                       "Estimate rate",
-                      style: STextStyles.smallMed12(context).copyWith(
-                        color: estimated
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                      ),
+                      style: isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                              color: estimated
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorBlue
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextSecondary,
+                            )
+                          : STextStyles.smallMed12(context).copyWith(
+                              color: estimated
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
+                            ),
                     ),
                   ],
                 ),
@@ -87,6 +116,9 @@ class RateTypeToggle extends ConsumerWidget {
                 }
               },
               child: RoundedContainer(
+                padding: isDesktop
+                    ? const EdgeInsets.all(17)
+                    : const EdgeInsets.all(0),
                 color: !estimated
                     ? Theme.of(context)
                         .extension<StackColors>()!
@@ -99,26 +131,47 @@ class RateTypeToggle extends ConsumerWidget {
                       Assets.svg.lock,
                       width: 12,
                       height: 14,
-                      color: !estimated
-                          ? Theme.of(context).extension<StackColors>()!.textDark
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
+                      color: isDesktop
+                          ? !estimated
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorBlue
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonTextSecondary
+                          : !estimated
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                     ),
                     const SizedBox(
                       width: 5,
                     ),
                     Text(
                       "Fixed rate",
-                      style: STextStyles.smallMed12(context).copyWith(
-                        color: !estimated
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                      ),
+                      style: isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                              color: !estimated
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorBlue
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextSecondary,
+                            )
+                          : STextStyles.smallMed12(context).copyWith(
+                              color: !estimated
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
+                            ),
                     ),
                   ],
                 ),
