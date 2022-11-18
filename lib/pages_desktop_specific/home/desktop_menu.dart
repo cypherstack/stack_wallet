@@ -104,10 +104,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                                     .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                                 .withOpacity(0.8),
                       ),
                       label: "My Stack",
@@ -120,29 +120,33 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     const SizedBox(
                       height: 2,
                     ),
-                    // DesktopMenuItem(
-                    //   icon: SvgPicture.asset(
-                    //     Assets.svg.exchangeDesktop,
-                    //     width: 20,
-                    //     height: 20,
-                    //     color: DesktopMenuItemId.exchange == ref.watch(currentDesktopMenuItemProvider.state).state
-                    //         ? Theme.of(context)
-                    //             .extension<StackColors>()!
-                    //             .textDark
-                    //         : Theme.of(context)
-                    //             .extension<StackColors>()!
-                    //             .textDark
-                    //             .withOpacity(0.8),
-                    //   ),
-                    //   label: "Exchange",
-                    //   value: DesktopMenuItemId.exchange,
-                    //   group: ref.watch(currentDesktopMenuItemProvider.state).state,
-                    //   onChanged: updateSelectedMenuItem,
-                    //   iconOnly: _width == minimizedWidth,
-                    // ),
-                    // const SizedBox(
-                    //   height: 2,
-                    // ),
+                    DesktopMenuItem(
+                      icon: SvgPicture.asset(
+                        Assets.svg.exchangeDesktop,
+                        width: 20,
+                        height: 20,
+                        color: DesktopMenuItemId.exchange ==
+                                ref
+                                    .watch(currentDesktopMenuItemProvider.state)
+                                    .state
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark
+                                .withOpacity(0.8),
+                      ),
+                      label: "Exchange",
+                      value: DesktopMenuItemId.exchange,
+                      group:
+                          ref.watch(currentDesktopMenuItemProvider.state).state,
+                      onChanged: updateSelectedMenuItem,
+                      iconOnly: _width == minimizedWidth,
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
                     DesktopMenuItem(
                       icon: SvgPicture.asset(
                         Assets.svg.bell,
@@ -154,10 +158,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                                     .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                                 .withOpacity(0.8),
                       ),
                       label: "Notifications",
@@ -181,10 +185,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                                     .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                                 .withOpacity(0.8),
                       ),
                       label: "Address Book",
@@ -208,10 +212,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                                     .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                                 .withOpacity(0.8),
                       ),
                       label: "Settings",
@@ -235,10 +239,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                                     .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                                 .withOpacity(0.8),
                       ),
                       label: "Support",
@@ -262,10 +266,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                                     .state
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark
+                                .accentColorDark
                                 .withOpacity(0.8),
                       ),
                       label: "About",
@@ -283,7 +287,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         height: 20,
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .textDark
+                            .accentColorDark
                             .withOpacity(0.8),
                       ),
                       label: "Exit",
