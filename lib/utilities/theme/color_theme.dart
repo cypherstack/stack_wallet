@@ -5,6 +5,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 enum ThemeType {
   light,
   dark,
+  oceanBreeze,
 }
 
 abstract class StackColorTheme {

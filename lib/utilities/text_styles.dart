@@ -15,6 +15,7 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 20,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -32,6 +33,7 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 18,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -49,6 +51,7 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -66,6 +69,7 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -83,6 +87,7 @@ class STextStyles {
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -100,6 +105,7 @@ class STextStyles {
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -117,6 +123,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -134,6 +141,7 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -151,6 +159,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimary,
@@ -168,6 +177,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -185,6 +195,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
@@ -202,6 +213,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
@@ -219,6 +231,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
@@ -237,6 +250,7 @@ class STextStyles {
           fontSize: 14,
           height: 14 / 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textFieldActiveSearchIconRight,
@@ -255,6 +269,7 @@ class STextStyles {
           fontWeight: FontWeight.w700,
           fontSize: 12,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
@@ -272,6 +287,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).infoItemLabel,
@@ -289,6 +305,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -306,6 +323,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -324,6 +342,7 @@ class STextStyles {
           fontSize: 14,
           height: 1.5,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle2,
@@ -343,6 +362,7 @@ class STextStyles {
           fontSize: 14,
           height: 1.5,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -361,6 +381,7 @@ class STextStyles {
           fontWeight: FontWeight.w400,
           fontSize: 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -378,6 +399,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).accentColorRed,
@@ -395,6 +417,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).infoItemIcons,
@@ -412,6 +435,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).accentColorBlue,
@@ -429,6 +453,7 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 12,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -446,6 +471,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -463,6 +489,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -480,6 +507,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 10,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textError,
@@ -497,6 +525,7 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 10,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
@@ -517,6 +546,7 @@ class STextStyles {
           fontSize: 40,
           height: 40 / 40,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -536,6 +566,7 @@ class STextStyles {
           fontSize: 32,
           height: 32 / 32,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -555,6 +586,7 @@ class STextStyles {
           fontSize: 24,
           height: 24 / 24,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -574,6 +606,7 @@ class STextStyles {
           fontSize: 20,
           height: 30 / 20,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -593,6 +626,7 @@ class STextStyles {
           fontSize: 20,
           height: 30 / 20,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -612,6 +646,7 @@ class STextStyles {
           fontSize: 20,
           height: 28 / 20,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -631,6 +666,7 @@ class STextStyles {
           fontSize: 24,
           height: 33 / 24,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -650,6 +686,7 @@ class STextStyles {
           fontSize: 20,
           height: 26 / 20,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimary,
@@ -669,6 +706,7 @@ class STextStyles {
           fontSize: 20,
           height: 26 / 20,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
@@ -688,6 +726,7 @@ class STextStyles {
           fontSize: 20,
           height: 26 / 20,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondary,
@@ -707,6 +746,7 @@ class STextStyles {
           fontSize: 20,
           height: 26 / 20,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondaryDisabled,
@@ -726,6 +766,7 @@ class STextStyles {
           fontSize: 18,
           height: 27 / 18,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
@@ -745,6 +786,7 @@ class STextStyles {
           fontSize: 16,
           height: 24 / 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
@@ -764,6 +806,7 @@ class STextStyles {
           fontSize: 14,
           height: 21 / 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
@@ -783,6 +826,7 @@ class STextStyles {
           fontSize: 14,
           height: 21 / 14,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -802,6 +846,7 @@ class STextStyles {
           fontSize: 16,
           height: 24 / 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondary,
@@ -821,6 +866,7 @@ class STextStyles {
           fontSize: 20,
           height: 30 / 20,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle2,
@@ -840,6 +886,7 @@ class STextStyles {
           fontSize: 16,
           height: 20.8 / 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark.withOpacity(0.8),
@@ -859,6 +906,7 @@ class STextStyles {
           fontSize: 16,
           height: 20.8 / 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -878,6 +926,7 @@ class STextStyles {
           fontSize: 16,
           height: 20.8 / 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark.withOpacity(0.5),
@@ -897,6 +946,7 @@ class STextStyles {
           fontSize: 16,
           height: 20.8 / 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -915,6 +965,7 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 8,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.roboto(
           color: _theme(context).textDark,
@@ -932,6 +983,7 @@ class STextStyles {
           fontWeight: FontWeight.w400,
           fontSize: 26,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.roboto(
           color: _theme(context).numberTextDefault,
@@ -950,6 +1002,7 @@ class STextStyles {
           fontWeight: FontWeight.w400,
           fontSize: 12,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           letterSpacing: 0.5,
@@ -969,6 +1022,7 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 16,
         );
+      case ThemeType.oceanBreeze:
       case ThemeType.dark:
         return GoogleFonts.inter(
           letterSpacing: 0.5,
