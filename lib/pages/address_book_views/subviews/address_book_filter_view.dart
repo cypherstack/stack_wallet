@@ -38,7 +38,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
     } else {
       _coins = coins
           .toList(growable: false)
-          .getRange(0, coins.length - kTestNetCoinCount + 1)
+          .getRange(0, coins.length - kTestNetCoinCount)
           .toList(growable: false);
     }
     super.initState();

@@ -84,7 +84,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     ref.refresh(addressBookFilterProvider);
 
     // if (widget.coin == null) {
-    List<Coin> coins = Coin.values.where((e) => !(e == Coin.epicCash)).toList();
+    List<Coin> coins = Coin.values.toList();
     coins.remove(Coin.firoTestNet);
 
     bool showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
@@ -92,8 +92,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     if (showTestNet) {
       ref.read(addressBookFilterProvider).addAll(coins, false);
     } else {
-      ref.read(addressBookFilterProvider).addAll(
-          coins.getRange(0, coins.length - kTestNetCoinCount + 1), false);
+      ref
+          .read(addressBookFilterProvider)
+          .addAll(coins.getRange(0, coins.length - kTestNetCoinCount), false);
     }
     // } else {
     //   ref.read(addressBookFilterProvider).add(widget.coin!, false);
