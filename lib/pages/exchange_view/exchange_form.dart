@@ -27,9 +27,12 @@ import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 
@@ -54,6 +57,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
   late final TextEditingController _sendController;
   late final TextEditingController _receiveController;
+  final isDesktop = Util.isDesktop;
   final FocusNode _sendFocusNode = FocusNode();
   final FocusNode _receiveFocusNode = FocusNode();
 
@@ -960,8 +964,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             color: Theme.of(context).extension<StackColors>()!.textDark3,
           ),
         ),
-        const SizedBox(
-          height: 4,
+        SizedBox(
+          height: isDesktop ? 10 : 4,
         ),
         TextFormField(
           style: STextStyles.smallMed14(context).copyWith(
@@ -970,6 +974,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           focusNode: _sendFocusNode,
           controller: _sendController,
           textAlign: TextAlign.right,
+          enableSuggestions: false,
+          autocorrect: false,
           onTap: () {
             if (_sendController.text == "-") {
               _sendController.text = "";
@@ -1100,68 +1106,122 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             ),
           ),
         ),
-        const SizedBox(
-          height: 4,
+
+        SizedBox(
+          height: isDesktop ? 10 : 4,
         ),
-        Stack(
+        if (ref
+                .watch(
+                    exchangeFormStateProvider.select((value) => value.warning))
+                .isNotEmpty &&
+            !ref.watch(
+                exchangeFormStateProvider.select((value) => value.reversed)))
+          Text(
+            ref.watch(
+                exchangeFormStateProvider.select((value) => value.warning)),
+            style: STextStyles.errorSmall(context),
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Positioned.fill(
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  "You will receive",
-                  style: STextStyles.itemSubtitle(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
-                  ),
+            Text(
+              "You will receive",
+              style: STextStyles.itemSubtitle(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+            ),
+            ConditionalParent(
+              condition: isDesktop,
+              builder: (child) => MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: RoundedContainer(
+                  padding: const EdgeInsets.all(6),
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonBackSecondary,
+                  radiusMultiplier: 0.75,
+                  child: child,
                 ),
               ),
-            ),
-            Center(
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 6,
+              child: GestureDetector(
+                onTap: () async {
+                  await _swap();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: SvgPicture.asset(
+                    Assets.svg.swap,
+                    width: 20,
+                    height: 20,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
-                  GestureDetector(
-                    onTap: () async {
-                      await _swap();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: SvgPicture.asset(
-                        Assets.svg.swap,
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 6,
-                  ),
-                ],
-              ),
-            ),
-            Positioned.fill(
-              child: Align(
-                alignment: ref.watch(exchangeFormStateProvider
-                        .select((value) => value.reversed))
-                    ? Alignment.bottomRight
-                    : Alignment.topRight,
-                child: Text(
-                  ref.watch(exchangeFormStateProvider
-                      .select((value) => value.warning)),
-                  style: STextStyles.errorSmall(context),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(
-          height: 4,
+        // Stack(
+        //   children: [
+        //     Positioned.fill(
+        //       child: Align(
+        //         alignment: Alignment.bottomLeft,
+        //         child: Text(
+        //           "You will receive",
+        //           style: STextStyles.itemSubtitle(context).copyWith(
+        //             color:
+        //                 Theme.of(context).extension<StackColors>()!.textDark3,
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //     Center(
+        //       child: Column(
+        //         children: [
+        //           const SizedBox(
+        //             height: 6,
+        //           ),
+        //           GestureDetector(
+        //             onTap: () async {
+        //               await _swap();
+        //             },
+        //             child: Padding(
+        //               padding: const EdgeInsets.all(4),
+        //               child: SvgPicture.asset(
+        //                 Assets.svg.swap,
+        //                 width: 20,
+        //                 height: 20,
+        //                 color: Theme.of(context)
+        //                     .extension<StackColors>()!
+        //                     .accentColorDark,
+        //               ),
+        //             ),
+        //           ),
+        //           const SizedBox(
+        //             height: 6,
+        //           ),
+        //         ],
+        //       ),
+        //     ),
+        //     Positioned.fill(
+        //       child: Align(
+        //         alignment: ref.watch(exchangeFormStateProvider
+        //                 .select((value) => value.reversed))
+        //             ? Alignment.bottomRight
+        //             : Alignment.topRight,
+        //         child: Text(
+        //           ref.watch(exchangeFormStateProvider
+        //               .select((value) => value.warning)),
+        //           style: STextStyles.errorSmall(context),
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        SizedBox(
+          height: isDesktop ? 10 : 4,
         ),
         TextFormField(
           style: STextStyles.smallMed14(context).copyWith(
@@ -1169,6 +1229,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           ),
           focusNode: _receiveFocusNode,
           controller: _receiveController,
+          enableSuggestions: false,
+          autocorrect: false,
           readOnly: ref.watch(prefsChangeNotifierProvider
                       .select((value) => value.exchangeRateType)) ==
                   ExchangeRateType.estimated ||
@@ -1304,16 +1366,27 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             ),
           ),
         ),
-        const SizedBox(
-          height: 12,
+        if (ref
+                .watch(
+                    exchangeFormStateProvider.select((value) => value.warning))
+                .isNotEmpty &&
+            ref.watch(
+                exchangeFormStateProvider.select((value) => value.reversed)))
+          Text(
+            ref.watch(
+                exchangeFormStateProvider.select((value) => value.warning)),
+            style: STextStyles.errorSmall(context),
+          ),
+        SizedBox(
+          height: isDesktop ? 20 : 12,
         ),
         RateTypeToggle(
           onChanged: onRateTypeChanged,
         ),
         if (ref.read(exchangeFormStateProvider).fromAmount != null &&
             ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
-          const SizedBox(
-            height: 8,
+          SizedBox(
+            height: isDesktop ? 20 : 12,
           ),
         if (ref.read(exchangeFormStateProvider).fromAmount != null &&
             ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
@@ -1328,10 +1401,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             reversed: ref.watch(
                 exchangeFormStateProvider.select((value) => value.reversed)),
           ),
-        const SizedBox(
-          height: 12,
+        SizedBox(
+          height: isDesktop ? 20 : 12,
         ),
         PrimaryButton(
+          buttonHeight: isDesktop ? ButtonHeight.l : null,
           enabled: ref.watch(
               exchangeFormStateProvider.select((value) => value.canExchange)),
           onPressed: ref.watch(exchangeFormStateProvider
