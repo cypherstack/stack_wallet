@@ -85,6 +85,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/pages_desktop_specific/forgot_password_desktop_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
@@ -1017,6 +1018,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const DesktopNotificationsView(),
+            settings: RouteSettings(name: settings.name));
+
+      case DesktopExchangeView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopExchangeView(),
             settings: RouteSettings(name: settings.name));
 
       case DesktopSettingsView.routeName:
