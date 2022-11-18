@@ -193,6 +193,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     if (publicBalance <= Decimal.zero) {
       shouldPop = true;
       if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context).popUntil(
           ModalRoute.withName(DesktopWalletView.routeName),
         );
@@ -211,6 +212,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       await firoWallet.anonymizeAllPublicFunds();
       shouldPop = true;
       if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context).popUntil(
           ModalRoute.withName(DesktopWalletView.routeName),
         );
@@ -225,14 +227,53 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     } catch (e) {
       shouldPop = true;
       if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context).popUntil(
           ModalRoute.withName(DesktopWalletView.routeName),
         );
         await showDialog<dynamic>(
           context: context,
-          builder: (_) => StackOkDialog(
-            title: "Anonymize all failed",
-            message: "Reason: $e",
+          builder: (_) => DesktopDialog(
+            maxWidth: 400,
+            maxHeight: 300,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Anonymize all failed",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                  const Spacer(
+                    flex: 1,
+                  ),
+                  Text(
+                    "Reason: $e",
+                    style: STextStyles.desktopTextSmall(context),
+                  ),
+                  const Spacer(
+                    flex: 2,
+                  ),
+                  Row(
+                    children: [
+                      const Spacer(),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      Expanded(
+                        child: PrimaryButton(
+                          label: "Ok",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed:
+                              Navigator.of(context, rootNavigator: true).pop,
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
           ),
         );
       }
