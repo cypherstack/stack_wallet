@@ -8,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/delete_wallet_button.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/my_wallet.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/network_info_button.dart';
@@ -412,6 +413,10 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   WalletKeysButton(
                     walletId: walletId,
                   ),
+                  const SizedBox(
+                    width: 2,
+                  ),
+                  DeleteWalletButton(),
                   const SizedBox(
                     width: 12,
                   ),
