@@ -467,36 +467,36 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                         );
                       },
                     ),
-                  if (coin == Coin.firo) const SizedBox(width: 16),
-                  SecondaryButton(
-                    width: 180,
-                    buttonHeight: ButtonHeight.l,
-                    onPressed: () {
-                      _onExchangePressed(context);
-                    },
-                    label: "Exchange",
-                    icon: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackPrimary
-                            .withOpacity(0.2),
-                      ),
-                      child: Center(
-                        child: SvgPicture.asset(
-                          Assets.svg.arrowRotate2,
-                          width: 14,
-                          height: 14,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .buttonTextSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
+                  // if (coin == Coin.firo) const SizedBox(width: 16),
+                  // SecondaryButton(
+                  //   width: 180,
+                  //   buttonHeight: ButtonHeight.l,
+                  //   onPressed: () {
+                  //     _onExchangePressed(context);
+                  //   },
+                  //   label: "Exchange",
+                  //   icon: Container(
+                  //     width: 24,
+                  //     height: 24,
+                  //     decoration: BoxDecoration(
+                  //       borderRadius: BorderRadius.circular(24),
+                  //       color: Theme.of(context)
+                  //           .extension<StackColors>()!
+                  //           .buttonBackPrimary
+                  //           .withOpacity(0.2),
+                  //     ),
+                  //     child: Center(
+                  //       child: SvgPicture.asset(
+                  //         Assets.svg.arrowRotate2,
+                  //         width: 14,
+                  //         height: 14,
+                  //         color: Theme.of(context)
+                  //             .extension<StackColors>()!
+                  //             .buttonTextSecondary,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
