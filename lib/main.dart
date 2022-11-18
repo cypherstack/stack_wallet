@@ -301,6 +301,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       case "dark":
         themeType = ThemeType.dark;
         break;
+      case "oceanBreeze":
+        themeType = ThemeType.oceanBreeze;
+        break;
       case "light":
       default:
         themeType = ThemeType.light;
