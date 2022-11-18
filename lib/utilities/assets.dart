@@ -107,6 +107,7 @@ class _SVG {
   String get swap => "assets/svg/swap.svg";
   String get downloadFolder => "assets/svg/folder-down.svg";
   String get lock => "assets/svg/lock-keyhole.svg";
+  String get lockOpen => "assets/svg/lock-open.svg";
   String get network => "assets/svg/network-wired.svg";
   String get networkWired => "assets/svg/network-wired-2.svg";
   String get addressBook => "assets/svg/address-book.svg";
