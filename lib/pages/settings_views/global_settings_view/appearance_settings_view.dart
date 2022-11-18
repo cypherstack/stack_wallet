@@ -141,7 +141,10 @@ class AppearanceSettingsView extends ConsumerWidget {
                                             key: "colorScheme",
                                             value: (newValue
                                                     ? ThemeType.dark
-                                                    : ThemeType.light)
+                                                    : (newValue
+                                                        ? ThemeType.light
+                                                        : ThemeType
+                                                            .oceanBreeze))
                                                 .name,
                                           );
                                           ref
