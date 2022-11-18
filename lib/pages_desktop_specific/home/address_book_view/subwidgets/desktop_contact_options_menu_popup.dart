@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -27,6 +28,147 @@ class _DesktopContactOptionsMenuPopupState
   bool hoveredOnStar = false;
   bool hoveredOnPencil = false;
   bool hoveredOnTrash = false;
+
+  void editContact() {
+    // pop context menu
+    Navigator.of(context).pop();
+
+    showDialog<dynamic>(
+      context: context,
+      useSafeArea: true,
+      barrierDismissible: true,
+      builder: (_) => DesktopDialog(
+        maxWidth: 580,
+        maxHeight: 400,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 32,
+                  ),
+                  child: Text(
+                    "Edit contact",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  top: 16,
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                ),
+                child: EditContactNameEmojiView(
+                  contactId: widget.contactId,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void attemptDeleteContact() {
+    final contact =
+        ref.read(addressBookServiceProvider).getContactById(widget.contactId);
+
+    // pop context menu
+    Navigator.of(context).pop();
+
+    showDialog<dynamic>(
+      context: context,
+      useSafeArea: true,
+      barrierDismissible: true,
+      builder: (_) => DesktopDialog(
+        maxWidth: 500,
+        maxHeight: 400,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 32,
+                  ),
+                  child: Text(
+                    "Delete ${contact.name}?",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Spacer(
+                      flex: 1,
+                    ),
+                    Text(
+                      "Contact will be deleted permanently!",
+                      style: STextStyles.desktopTextSmall(context),
+                    ),
+                    const Spacer(
+                      flex: 2,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: "Cancel",
+                            onPressed: Navigator.of(context).pop,
+                            buttonHeight: ButtonHeight.l,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        Expanded(
+                          child: Consumer(
+                            builder: (context, ref, __) => PrimaryButton(
+                              label: "Delete",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () {
+                                ref
+                                    .read(addressBookServiceProvider)
+                                    .removeContact(contact.id);
+                                Navigator.of(context).pop();
+                                showFloatingFlushBar(
+                                  type: FlushBarType.success,
+                                  message: "${contact.name} deleted",
+                                  context: context,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,9 +290,7 @@ class _DesktopContactOptionsMenuPopupState
                             1000,
                           ),
                         ),
-                        onPressed: () {
-                          print("should go to edit");
-                        },
+                        onPressed: editContact,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 25,
@@ -213,111 +353,7 @@ class _DesktopContactOptionsMenuPopupState
                             1000,
                           ),
                         ),
-                        onPressed: () {
-                          final contact = ref
-                              .read(addressBookServiceProvider)
-                              .getContactById(widget.contactId);
-
-                          // pop context menu
-                          Navigator.of(context).pop();
-
-                          showDialog<dynamic>(
-                            context: context,
-                            useSafeArea: true,
-                            barrierDismissible: true,
-                            builder: (_) => DesktopDialog(
-                              maxWidth: 500,
-                              maxHeight: 300,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 32,
-                                        ),
-                                        child: Text(
-                                          "Delete ${contact.name}?",
-                                          style: STextStyles.desktopH3(context),
-                                        ),
-                                      ),
-                                      const DesktopDialogCloseButton(),
-                                    ],
-                                  ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 32,
-                                        right: 32,
-                                        bottom: 32,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Spacer(
-                                            flex: 1,
-                                          ),
-                                          Text(
-                                            "Contact will be deleted permanently!",
-                                            style: STextStyles.desktopTextSmall(
-                                                context),
-                                          ),
-                                          const Spacer(
-                                            flex: 2,
-                                          ),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: SecondaryButton(
-                                                  label: "Cancel",
-                                                  onPressed:
-                                                      Navigator.of(context).pop,
-                                                  buttonHeight: ButtonHeight.l,
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                width: 16,
-                                              ),
-                                              Expanded(
-                                                child: Consumer(
-                                                  builder: (context, ref, __) =>
-                                                      PrimaryButton(
-                                                    label: "Delete",
-                                                    buttonHeight:
-                                                        ButtonHeight.l,
-                                                    onPressed: () {
-                                                      ref
-                                                          .read(
-                                                              addressBookServiceProvider)
-                                                          .removeContact(
-                                                              contact.id);
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                      showFloatingFlushBar(
-                                                        type: FlushBarType
-                                                            .success,
-                                                        message:
-                                                            "${contact.name} deleted",
-                                                        context: context,
-                                                      );
-                                                    },
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: attemptDeleteContact,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 25,
