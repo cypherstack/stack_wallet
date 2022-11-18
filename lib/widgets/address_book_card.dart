@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -44,10 +45,16 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
 
   @override
   Widget build(BuildContext context) {
-    // final isTiny = SizingUtilities.isTinyWidth(context);
+    // provider hack to prevent trying to update widget with deleted contact
+    Contact? _contact;
+    try {
+      _contact = ref.watch(addressBookServiceProvider
+          .select((value) => value.getContactById(contactId)));
+    } catch (_) {
+      return Container();
+    }
 
-    final contact = ref.watch(addressBookServiceProvider
-        .select((value) => value.getContactById(contactId)));
+    final contact = _contact!;
 
     final List<Coin> coins = [];
     for (var element in contact.addresses) {
