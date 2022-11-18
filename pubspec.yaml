@@ -205,9 +205,6 @@ flutter:
     - assets/svg/plus.svg
     - assets/svg/gear.svg
     - assets/svg/bell.svg
-    - assets/svg/light/bell-new.svg
-    - assets/svg/dark/bell-new.svg
-    - assets/svg/stack-icon1.svg
     - assets/svg/arrow-left-fa.svg
     - assets/svg/copy-fa.svg
     - assets/svg/star.svg
@@ -220,10 +217,7 @@ flutter:
     - assets/svg/bars.svg
     - assets/svg/filter.svg
     - assets/svg/pending.svg
-    - assets/svg/dark/exchange-2.svg
-    - assets/svg/light/exchange-2.svg
     - assets/svg/signal-stream.svg
-    - assets/svg/buy-coins-icon.svg
     - assets/svg/Ellipse-43.svg
     - assets/svg/Ellipse-42.svg
     - assets/svg/arrow-rotate.svg
@@ -265,25 +259,7 @@ flutter:
     - assets/svg/ellipsis-vertical1.svg
     - assets/svg/dice-alt.svg
     - assets/svg/circle-arrow-up-right2.svg
-    - assets/svg/dark/tx-exchange-icon.svg
-    - assets/svg/light/tx-exchange-icon.svg
-    - assets/svg/dark/tx-exchange-icon-pending.svg
-    - assets/svg/light/tx-exchange-icon-pending.svg
-    - assets/svg/dark/tx-exchange-icon-failed.svg
-    - assets/svg/light/tx-exchange-icon-failed.svg
     - assets/svg/loader.svg
-    - assets/svg/dark/tx-icon-send.svg
-    - assets/svg/light/tx-icon-send.svg
-    - assets/svg/dark/tx-icon-send-pending.svg
-    - assets/svg/light/tx-icon-send-pending.svg
-    - assets/svg/dark/tx-icon-send-failed.svg
-    - assets/svg/light/tx-icon-send-failed.svg
-    - assets/svg/dark/tx-icon-receive.svg
-    - assets/svg/light/tx-icon-receive.svg
-    - assets/svg/dark/tx-icon-receive-pending.svg
-    - assets/svg/light/tx-icon-receive-pending.svg
-    - assets/svg/dark/tx-icon-receive-failed.svg
-    - assets/svg/light/tx-icon-receive-failed.svg
     - assets/svg/add-backup.svg
     - assets/svg/auto-backup.svg
     - assets/svg/restore-backup.svg
@@ -305,8 +281,6 @@ flutter:
     - assets/svg/rotate-circle.svg
     - assets/svg/sun-circle.svg
     - assets/svg/node-circle.svg
-    - assets/svg/dark/dark-theme.svg
-    - assets/svg/light/light-mode.svg
     - assets/svg/address-book-desktop.svg
     - assets/svg/about-desktop.svg
     - assets/svg/exchange-desktop.svg
@@ -316,7 +290,6 @@ flutter:
     - assets/svg/arrow-down.svg
     - assets/svg/plus-circle.svg
     - assets/svg/configuration.svg
-    - assets/svg/ocean-breeze-theme.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Litecoin.svg
@@ -347,6 +320,56 @@ flutter:
     # exchange icons
     - assets/svg/exchange_icons/change_now_logo_1.svg
     - assets/svg/exchange_icons/simpleswap-icon.svg
+
+    # theme selectors
+    - assets/svg/dark-theme.svg
+    - assets/svg/light-mode.svg
+    - assets/svg/ocean-breeze-theme.svg
+
+    # light theme specific
+    - assets/svg/light/tx-exchange-icon.svg
+    - assets/svg/light/tx-exchange-icon-pending.svg
+    - assets/svg/light/tx-exchange-icon-failed.svg
+    - assets/svg/light/tx-icon-send.svg
+    - assets/svg/light/tx-icon-send-pending.svg
+    - assets/svg/light/tx-icon-send-failed.svg
+    - assets/svg/light/tx-icon-receive.svg
+    - assets/svg/light/tx-icon-receive-pending.svg
+    - assets/svg/light/tx-icon-receive-failed.svg
+    - assets/svg/light/exchange-2.svg
+    - assets/svg/light/bell-new.svg
+    - assets/svg/light/stack-icon1.svg
+    - assets/svg/light/buy-coins-icon.svg
+
+    # dark theme specific
+    - assets/svg/dark/tx-exchange-icon.svg
+    - assets/svg/dark/tx-exchange-icon-pending.svg
+    - assets/svg/dark/tx-exchange-icon-failed.svg
+    - assets/svg/dark/tx-icon-send.svg
+    - assets/svg/dark/tx-icon-send-pending.svg
+    - assets/svg/dark/tx-icon-send-failed.svg
+    - assets/svg/dark/tx-icon-receive.svg
+    - assets/svg/dark/tx-icon-receive-pending.svg
+    - assets/svg/dark/tx-icon-receive-failed.svg
+    - assets/svg/dark/exchange-2.svg
+    - assets/svg/dark/bell-new.svg
+    - assets/svg/dark/stack-icon1.svg
+    - assets/svg/dark/buy-coins-icon.svg
+
+    # light theme specific
+    - assets/svg/oceanBreeze/tx-exchange-icon.svg
+    - assets/svg/oceanBreeze/tx-exchange-icon-pending.svg
+    - assets/svg/oceanBreeze/tx-exchange-icon-failed.svg
+    - assets/svg/oceanBreeze/tx-icon-send.svg
+    - assets/svg/oceanBreeze/tx-icon-send-pending.svg
+    - assets/svg/oceanBreeze/tx-icon-send-failed.svg
+    - assets/svg/oceanBreeze/tx-icon-receive.svg
+    - assets/svg/oceanBreeze/tx-icon-receive-pending.svg
+    - assets/svg/oceanBreeze/tx-icon-receive-failed.svg
+    - assets/svg/oceanBreeze/exchange-2.svg
+    - assets/svg/oceanBreeze/bell-new.svg
+    - assets/svg/oceanBreeze/stack-icon1.svg
+    - assets/svg/oceanBreeze/buy-coins-icon.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
