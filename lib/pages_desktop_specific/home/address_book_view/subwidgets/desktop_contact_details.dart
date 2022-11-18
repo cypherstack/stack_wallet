@@ -131,9 +131,19 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                     ),
                     SecondaryButton(
                       label: "Options",
-                      width: 86,
+                      width: 96,
                       buttonHeight: ButtonHeight.xxs,
-                      onPressed: () {},
+                      onPressed: () async {
+                        await showDialog<void>(
+                          context: context,
+                          barrierColor: Colors.transparent,
+                          builder: (context) {
+                            return DesktopContactOptionsMenuPopup(
+                              contactId: contact.id,
+                            );
+                          },
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -323,6 +333,254 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class DesktopContactOptionsMenuPopup extends ConsumerStatefulWidget {
+  const DesktopContactOptionsMenuPopup({Key? key, required this.contactId})
+      : super(key: key);
+
+  final String contactId;
+
+  @override
+  ConsumerState<DesktopContactOptionsMenuPopup> createState() =>
+      _DesktopContactOptionsMenuPopupState();
+}
+
+class _DesktopContactOptionsMenuPopupState
+    extends ConsumerState<DesktopContactOptionsMenuPopup> {
+  bool hoveredOnStar = false;
+  bool hoveredOnPencil = false;
+  bool hoveredOnTrash = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          top: 210,
+          left: MediaQuery.of(context).size.width - 280,
+          child: Container(
+            width: 270,
+            decoration: BoxDecoration(
+              color: Theme.of(context).extension<StackColors>()!.popupBG,
+              borderRadius: BorderRadius.circular(
+                20,
+              ),
+              boxShadow: [
+                Theme.of(context).extension<StackColors>()!.standardBoxShadow,
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  MouseRegion(
+                    onEnter: (_) {
+                      setState(() {
+                        hoveredOnStar = true;
+                      });
+                    },
+                    onExit: (_) {
+                      setState(() {
+                        hoveredOnStar = false;
+                      });
+                    },
+                    child: RawMaterialButton(
+                      hoverColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          1000,
+                        ),
+                      ),
+                      onPressed: () {
+                        final contact =
+                            ref.read(addressBookServiceProvider).getContactById(
+                                  widget.contactId,
+                                );
+                        ref.read(addressBookServiceProvider).editContact(
+                              contact.copyWith(
+                                isFavorite: !contact.isFavorite,
+                              ),
+                            );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 16,
+                        ),
+                        child: Row(
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.star,
+                              width: 24,
+                              height: 22,
+                              color: hoveredOnStar
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultSearchIconLeft,
+                            ),
+                            const SizedBox(
+                              width: 12,
+                            ),
+                            Text(
+                              ref.watch(addressBookServiceProvider.select(
+                                      (value) => value
+                                          .getContactById(widget.contactId)
+                                          .isFavorite))
+                                  ? "Remove from favorites"
+                                  : "Add to favorites",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  MouseRegion(
+                    onEnter: (_) {
+                      setState(() {
+                        hoveredOnPencil = true;
+                      });
+                    },
+                    onExit: (_) {
+                      setState(() {
+                        hoveredOnPencil = false;
+                      });
+                    },
+                    child: RawMaterialButton(
+                      hoverColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          1000,
+                        ),
+                      ),
+                      onPressed: () {
+                        print("should go to edit");
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 16,
+                        ),
+                        child: Row(
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.pencil,
+                              width: 24,
+                              height: 22,
+                              color: hoveredOnPencil
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultSearchIconLeft,
+                            ),
+                            const SizedBox(
+                              width: 12,
+                            ),
+                            Text(
+                              "Edit contact",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  MouseRegion(
+                    onEnter: (_) {
+                      setState(() {
+                        hoveredOnTrash = true;
+                      });
+                    },
+                    onExit: (_) {
+                      setState(() {
+                        hoveredOnTrash = false;
+                      });
+                    },
+                    child: RawMaterialButton(
+                      hoverColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          1000,
+                        ),
+                      ),
+                      onPressed: () {
+                        print("should delete contact");
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 16,
+                        ),
+                        child: Row(
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.trash,
+                              width: 24,
+                              height: 22,
+                              color: hoveredOnTrash
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultSearchIconLeft,
+                            ),
+                            const SizedBox(
+                              width: 12,
+                            ),
+                            Text(
+                              "Delete contact",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
