@@ -9,6 +9,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 
 class DeleteWalletButton extends ConsumerStatefulWidget {
@@ -34,7 +35,7 @@ class _DeleteWalletButton extends ConsumerState<DeleteWalletButton> {
       barrierDismissible: true,
       builder: (context) => DesktopDialog(
         maxWidth: 580,
-        maxHeight: 400,
+        maxHeight: 530,
         child: Column(
           children: [
             Row(
@@ -43,17 +44,62 @@ class _DeleteWalletButton extends ConsumerState<DeleteWalletButton> {
                 DesktopDialogCloseButton(),
               ],
             ),
-            Column(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 26),
-                  child: Text(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 26),
+              child: Column(
+                children: [
+                  Text(
                     "Attention!",
                     style: STextStyles.desktopH2(context),
                   ),
-                ),
-              ],
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  RoundedContainer(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .snackBarBackError,
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Text(
+                        "You are going to permanently delete you wallet.\n\nIf you delete your wallet, "
+                        "the only way you can have access to your funds is by using your backup key."
+                        "\n\nStack Wallet does not keep nor is able to restore your backup key or your wallet."
+                        "\n\nPLEASE SAVE YOUR BACKUP KEY.",
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark3,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SecondaryButton(
+                        width: 250,
+                        buttonHeight: ButtonHeight.xl,
+                        label: "Cancel",
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      PrimaryButton(
+                        width: 250,
+                        buttonHeight: ButtonHeight.xl,
+                        label: "View Backup Key",
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
           ],
         ),
@@ -84,7 +130,7 @@ class _DeleteWalletButton extends ConsumerState<DeleteWalletButton> {
         borderRadius: BorderRadius.circular(1000),
       ),
       onPressed: () {
-        showDialog(
+        showDialog<dynamic>(
           barrierDismissible: true,
           context: context,
           builder: (context) => DesktopDialog(
