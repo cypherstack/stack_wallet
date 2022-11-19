@@ -30,7 +30,11 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/desktop/simple_desktop_dialog.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -139,14 +143,27 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                     .read(exchangeFormStateProvider)
                     .updateMarket(market, true);
               } catch (e) {
-                unawaited(showDialog<dynamic>(
-                  context: context,
-                  builder: (_) => const StackDialog(
-                    title: "Fixed rate market error",
-                    message:
-                        "Could not find the specified fixed rate trade pair",
+                unawaited(
+                  showDialog<dynamic>(
+                    context: context,
+                    builder: (_) {
+                      if (isDesktop) {
+                        return const SimpleDesktopDialog(
+                          title: "Fixed rate market error",
+                          message:
+                              "Could not find the specified fixed rate trade pair",
+                        );
+                      } else {
+                        return const StackDialog(
+                          title: "Fixed rate market error",
+                          message:
+                              "Could not find the specified fixed rate trade pair",
+                        );
+                      }
+                    },
                   ),
-                ));
+                );
+
                 return;
               }
             },
@@ -229,14 +246,26 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                     .read(exchangeFormStateProvider)
                     .updateMarket(market, true);
               } catch (e) {
-                unawaited(showDialog<dynamic>(
-                  context: context,
-                  builder: (_) => const StackDialog(
-                    title: "Fixed rate market error",
-                    message:
-                        "Could not find the specified fixed rate trade pair",
+                unawaited(
+                  showDialog<dynamic>(
+                    context: context,
+                    builder: (_) {
+                      if (isDesktop) {
+                        return const SimpleDesktopDialog(
+                          title: "Fixed rate market error",
+                          message:
+                              "Could not find the specified fixed rate trade pair",
+                        );
+                      } else {
+                        return const StackDialog(
+                          title: "Fixed rate market error",
+                          message:
+                              "Could not find the specified fixed rate trade pair",
+                        );
+                      }
+                    },
                   ),
-                ));
+                );
                 return;
               }
             },
@@ -324,7 +353,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       await ref.read(exchangeFormStateProvider).swap();
     }
     if (mounted) {
-      Navigator.of(context).pop();
+      Navigator.of(context, rootNavigator: isDesktop).pop();
     }
     _swapLock = false;
   }
@@ -567,14 +596,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                       ? "-"
                       : ref.read(exchangeFormStateProvider).toAmountString;
               if (mounted) {
-                Navigator.of(context).pop();
+                Navigator.of(context, rootNavigator: isDesktop).pop();
               }
               return;
             }
           }
         }
         if (mounted) {
-          Navigator.of(context).pop();
+          Navigator.of(context, rootNavigator: isDesktop).pop();
         }
         if (!(fromTicker == "-" || toTicker == "-")) {
           unawaited(
@@ -620,7 +649,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                     true,
                   );
               if (mounted) {
-                Navigator.of(context).pop();
+                Navigator.of(context, rootNavigator: isDesktop).pop();
               }
               return;
             case SimpleSwapExchange.exchangeName:
@@ -657,7 +686,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                           ? "-"
                           : ref.read(exchangeFormStateProvider).toAmountString;
                   if (mounted) {
-                    Navigator.of(context).pop();
+                    Navigator.of(context, rootNavigator: isDesktop).pop();
                   }
                   return;
                 }
@@ -669,7 +698,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           }
         }
         if (mounted) {
-          Navigator.of(context).pop();
+          Navigator.of(context, rootNavigator: isDesktop).pop();
         }
         unawaited(
           showFloatingFlushBar(
@@ -722,15 +751,27 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         }
 
         if (!isAvailable) {
-          unawaited(showDialog<dynamic>(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) => StackDialog(
-              title: "Selected trade pair unavailable",
-              message:
-                  "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
+          unawaited(
+            showDialog<dynamic>(
+              context: context,
+              barrierDismissible: true,
+              builder: (_) {
+                if (isDesktop) {
+                  return SimpleDesktopDialog(
+                    title: "Selected trade pair unavailable",
+                    message:
+                        "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
+                  );
+                } else {
+                  return StackDialog(
+                    title: "Selected trade pair unavailable",
+                    message:
+                        "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
+                  );
+                }
+              },
             ),
-          ));
+          );
           return;
         }
         rate =
@@ -744,37 +785,101 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           shouldCancel = await showDialog<bool?>(
             context: context,
             barrierDismissible: true,
-            builder: (_) => StackDialog(
-              title: "Failed to update trade estimate",
-              message:
-                  "${estimate.warningMessage!}\n\nDo you want to attempt trade anyways?",
-              leftButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context),
-                child: Text(
-                  "Cancel",
-                  style: STextStyles.itemSubtitle12(context),
-                ),
-                onPressed: () {
-                  // notify return to cancel
-                  Navigator.of(context).pop(true);
-                },
-              ),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
-                child: Text(
-                  "Attempt",
-                  style: STextStyles.button(context),
-                ),
-                onPressed: () {
-                  // continue and try to attempt trade
-                  Navigator.of(context).pop(false);
-                },
-              ),
-            ),
+            builder: (_) {
+              if (isDesktop) {
+                return DesktopDialog(
+                  maxWidth: 500,
+                  maxHeight: 300,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Failed to update trade estimate",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                          const DesktopDialogCloseButton(),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        estimate.warningMessage!,
+                        style: STextStyles.desktopTextSmall(context),
+                      ),
+                      const Spacer(),
+                      Text(
+                        "Do you want to attempt trade anyways?",
+                        style: STextStyles.desktopTextSmall(context),
+                      ),
+                      const Spacer(
+                        flex: 2,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              label: "Cancel",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () => Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).pop(true),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: PrimaryButton(
+                              label: "Attempt",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () => Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).pop(false),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                );
+              } else {
+                return StackDialog(
+                  title: "Failed to update trade estimate",
+                  message:
+                      "${estimate.warningMessage!}\n\nDo you want to attempt trade anyways?",
+                  leftButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonColor(context),
+                    child: Text(
+                      "Cancel",
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                    onPressed: () {
+                      // notify return to cancel
+                      Navigator.of(context).pop(true);
+                    },
+                  ),
+                  rightButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonColor(context),
+                    child: Text(
+                      "Attempt",
+                      style: STextStyles.button(context),
+                    ),
+                    onPressed: () {
+                      // continue and try to attempt trade
+                      Navigator.of(context).pop(false);
+                    },
+                  ),
+                );
+              }
+            },
           );
         }
 
