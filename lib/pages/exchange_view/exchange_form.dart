@@ -18,6 +18,7 @@ import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_options.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
@@ -908,20 +909,49 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       if (walletInitiated) {
         ref.read(exchangeSendFromWalletIdStateProvider.state).state =
             Tuple2(walletId!, coin!);
-        unawaited(
-          Navigator.of(context).pushNamed(
-            Step2View.routeName,
-            arguments: model,
-          ),
-        );
+        if (isDesktop) {
+          await showDialog<void>(
+            context: context,
+            builder: (context) {
+              return const DesktopDialog(
+                maxWidth: 700,
+                child: StepScaffold(
+                  step: 1,
+                ),
+              );
+            },
+          );
+        } else {
+          unawaited(
+            Navigator.of(context).pushNamed(
+              Step2View.routeName,
+              arguments: model,
+            ),
+          );
+        }
       } else {
         ref.read(exchangeSendFromWalletIdStateProvider.state).state = null;
-        unawaited(
-          Navigator.of(context).pushNamed(
-            Step1View.routeName,
-            arguments: model,
-          ),
-        );
+
+        if (isDesktop) {
+          await showDialog<void>(
+            context: context,
+            builder: (context) {
+              return const DesktopDialog(
+                maxWidth: 700,
+                child: StepScaffold(
+                  step: 0,
+                ),
+              );
+            },
+          );
+        } else {
+          unawaited(
+            Navigator.of(context).pushNamed(
+              Step1View.routeName,
+              arguments: model,
+            ),
+          );
+        }
       }
     }
   }
