@@ -863,7 +863,8 @@ class WowneroWallet extends CoinServiceAPI {
         await DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
     // Use new index to derive a new receiving address
     final newReceivingAddress = await _generateAddressForChain(0, curIndex);
-    Logging.instance.log("xmr address in init existing: $newReceivingAddress",
+    Logging.instance.log(
+        "wownero address in init existing: $newReceivingAddress",
         level: LogLevel.Info);
     _currentReceivingAddress = Future(() => newReceivingAddress);
   }
