@@ -185,8 +185,8 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       if (walletBase!.syncStatus! is SyncedSyncStatus &&
           walletBase!.syncStatus!.progress() == 1.0) {
-        Logging.instance
-            .log("currentSyncingHeight lol", level: LogLevel.Warning);
+        // Logging.instance
+        //     .log("currentSyncingHeight lol", level: LogLevel.Warning);
         return getSyncingHeight();
       }
     } catch (e, s) {}
