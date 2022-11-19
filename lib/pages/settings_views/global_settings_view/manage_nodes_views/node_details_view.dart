@@ -349,7 +349,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Test connection",
-                    buttonHeight: ButtonHeight.l,
+                    buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: () async {
                       await _testConnection(ref, context);
                     },
