@@ -416,7 +416,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   const SizedBox(
                     width: 2,
                   ),
-                  DeleteWalletButton(),
+                  DeleteWalletButton(
+                    walletId: walletId,
+                  ),
                   const SizedBox(
                     width: 12,
                   ),
