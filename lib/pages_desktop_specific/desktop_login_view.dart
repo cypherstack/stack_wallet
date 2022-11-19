@@ -49,8 +49,15 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
       unawaited(
         showDialog(
           context: context,
-          builder: (context) => const LoadingIndicator(
-            width: 200,
+          builder: (context) => Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: const [
+              LoadingIndicator(
+                width: 200,
+                height: 200,
+              ),
+            ],
           ),
         ),
       );
