@@ -77,7 +77,7 @@ void main() async {
 
   if (Util.isDesktop) {
     setWindowTitle('Stack Wallet');
-    setWindowMinSize(const Size(1220, 1100));
+    setWindowMinSize(const Size(1220, 1000));
     setWindowMaxSize(Size.infinite);
   }
 
