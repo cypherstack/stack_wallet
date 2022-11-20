@@ -231,6 +231,9 @@ class _PNG {
   String get bitcoincash => "assets/images/bitcoincash.png";
   String get namecoin => "assets/images/namecoin.png";
 
+  String get glasses => "assets/images/glasses.png";
+  String get glassesHidden => "assets/images/glasses-hidden.png";
+
   String imageFor({required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
