@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_3.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_choose_from_stack.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
@@ -13,6 +16,8 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
@@ -21,10 +26,6 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import '../../../../models/contact_address_entry.dart';
-import '../../../../widgets/desktop/desktop_dialog.dart';
-import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 
 class DesktopStep2 extends ConsumerStatefulWidget {
   const DesktopStep2({
@@ -552,8 +553,25 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                 child: PrimaryButton(
                   label: "Next",
                   buttonHeight: ButtonHeight.l,
-                  onPressed: () {
-                    // todo
+                  onPressed: () async {
+                    await showDialog<void>(
+                      context: context,
+                      barrierColor: Colors.transparent,
+                      barrierDismissible: false,
+                      builder: (context) {
+                        return DesktopDialog(
+                          maxWidth: 720,
+                          maxHeight: double.infinity,
+                          child: StepScaffold(
+                            step: 3,
+                            model: model,
+                            body: DesktopStep3(
+                              model: model,
+                            ),
+                          ),
+                        );
+                      },
+                    );
                   },
                 ),
               ),

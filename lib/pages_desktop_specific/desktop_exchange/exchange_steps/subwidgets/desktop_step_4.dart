@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -148,7 +150,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               DesktopStepItem(
                 label: "Amount",
                 value:
-                    "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
+                    "${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker.toUpperCase()}",
               ),
               Container(
                 height: 1,
@@ -208,7 +210,50 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                   label: "Show QR code",
                   buttonHeight: ButtonHeight.l,
                   onPressed: () {
-                    // todo
+                    showDialog<dynamic>(
+                      context: context,
+                      barrierColor: Colors.transparent,
+                      barrierDismissible: true,
+                      builder: (_) {
+                        return DesktopDialog(
+                          maxHeight: 720,
+                          maxWidth: 720,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Send ${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker} to this address",
+                                style: STextStyles.desktopH3(context),
+                              ),
+                              const SizedBox(
+                                height: 48,
+                              ),
+                              Center(
+                                child: QrImage(
+                                  // TODO: grab coin uri scheme from somewhere
+                                  // data: "${coin.uriScheme}:$receivingAddress",
+                                  data: model.trade!.payInAddress,
+                                  size: 290,
+                                  foregroundColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 48,
+                              ),
+                              SecondaryButton(
+                                label: "Cancel",
+                                width: 310,
+                                buttonHeight: ButtonHeight.l,
+                                onPressed: Navigator.of(context).pop,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
                   },
                 ),
               ),

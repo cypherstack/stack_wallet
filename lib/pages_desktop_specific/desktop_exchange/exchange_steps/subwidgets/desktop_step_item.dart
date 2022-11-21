@@ -24,6 +24,7 @@ class DesktopStepItem extends StatelessWidget {
       child: ConditionalParent(
         condition: vertical,
         builder: (child) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             child,
             const SizedBox(

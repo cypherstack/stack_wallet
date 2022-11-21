@@ -104,6 +104,7 @@ class DesktopStep1 extends ConsumerWidget {
                     await showDialog<void>(
                       context: context,
                       barrierColor: Colors.transparent,
+                      barrierDismissible: false,
                       builder: (context) {
                         return DesktopDialog(
                           maxWidth: 720,

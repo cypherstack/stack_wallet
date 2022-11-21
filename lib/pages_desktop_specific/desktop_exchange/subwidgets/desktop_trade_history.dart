@@ -31,6 +31,8 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
 
     if (hasHistory) {
       return ListView.separated(
+        shrinkWrap: true,
+        primary: false,
         itemBuilder: (context, index) {
           return TradeCard(
             key: Key("tradeCard_${trades[index].uuid}"),

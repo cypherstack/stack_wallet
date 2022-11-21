@@ -1024,6 +1024,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         if (isDesktop) {
           await showDialog<void>(
             context: context,
+            barrierDismissible: false,
             builder: (context) {
               return DesktopDialog(
                 maxWidth: 720,
@@ -1052,6 +1053,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         if (isDesktop) {
           await showDialog<void>(
             context: context,
+            barrierDismissible: false,
             builder: (context) {
               return DesktopDialog(
                 maxWidth: 720,
