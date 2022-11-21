@@ -1,28 +1,132 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
+import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class DesktopStep4 extends StatelessWidget {
-  const DesktopStep4({Key? key}) : super(key: key);
+class DesktopStep4 extends ConsumerStatefulWidget {
+  const DesktopStep4({
+    Key? key,
+    required this.model,
+  }) : super(key: key);
+
+  final IncompleteExchangeModel model;
+
+  @override
+  ConsumerState<DesktopStep4> createState() => _DesktopStep4State();
+}
+
+class _DesktopStep4State extends ConsumerState<DesktopStep4> {
+  late final IncompleteExchangeModel model;
+
+  String _statusString = "New";
+
+  Timer? _statusTimer;
+
+  bool _isWalletCoinAndHasWallet(String ticker) {
+    try {
+      final coin = coinFromTickerCaseInsensitive(ticker);
+      return ref
+          .read(walletsChangeNotifierProvider)
+          .managers
+          .where((element) => element.coin == coin)
+          .isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _updateStatus() async {
+    final statusResponse =
+        await ref.read(exchangeProvider).updateTrade(model.trade!);
+    String status = "Waiting";
+    if (statusResponse.value != null) {
+      status = statusResponse.value!.status;
+    }
+
+    // extra info if status is waiting
+    if (status == "Waiting") {
+      status += " for deposit";
+    }
+
+    if (mounted) {
+      setState(() {
+        _statusString = status;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    model = widget.model;
+
+    _statusTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      _updateStatus();
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _statusTimer?.cancel();
+    _statusTimer = null;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Text(
-          "Confirm amount",
+          "Send ${model.sendTicker.toUpperCase()} to the address below",
           style: STextStyles.desktopTextMedium(context),
         ),
         const SizedBox(
           height: 8,
         ),
         Text(
-          "Network fees and other exchange charges are included in the rate.",
+          "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ${model.trade!.exchangeName} will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
           style: STextStyles.desktopTextExtraExtraSmall(context),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        RoundedContainer(
+          color: Theme.of(context).extension<StackColors>()!.warningBackground,
+          child: RichText(
+            text: TextSpan(
+              text:
+                  "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
+              style: STextStyles.label700(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .warningForeground,
+                fontSize: 14,
+              ),
+              children: [
+                TextSpan(
+                  text:
+                      "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
+                  style: STextStyles.label(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .warningForeground,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         const SizedBox(
           height: 20,
@@ -32,33 +136,52 @@ class DesktopStep4 extends StatelessWidget {
           padding: const EdgeInsets.all(0),
           child: Column(
             children: [
-              const DesktopStepItem(
-                label: "Exchange",
-                value: "lol",
+              DesktopStepItem(
+                vertical: true,
+                label: "Send ${model.sendTicker.toUpperCase()} to this address",
+                value: model.trade!.payInAddress,
               ),
               Container(
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              const DesktopStepItem(
-                label: "You send",
-                value: "lol",
+              DesktopStepItem(
+                label: "Amount",
+                value:
+                    "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
               ),
               Container(
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              const DesktopStepItem(
-                label: "You receive",
-                value: "lol",
+              DesktopStepItem(
+                label: "Trade ID",
+                value: model.trade!.tradeId,
               ),
               Container(
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              const DesktopStepItem(
-                label: "Rate",
-                value: "lol",
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Status",
+                      style: STextStyles.desktopTextExtraExtraSmall(context),
+                    ),
+                    Text(
+                      _statusString,
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .colorForStatus(_statusString),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
