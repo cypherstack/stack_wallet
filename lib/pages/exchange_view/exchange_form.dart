@@ -39,6 +39,7 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/desktop/simple_desktop_dialog.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 
@@ -410,13 +411,65 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     }).toList(growable: false);
 
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute<dynamic>(
-        builder: (_) => FloatingRateCurrencySelectionView(
-          currencies: tickers,
-        ),
-      ),
-    );
+    final result = isDesktop
+        ? await showDialog<Currency?>(
+            context: context,
+            builder: (context) {
+              return DesktopDialog(
+                maxHeight: 700,
+                maxWidth: 580,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 32,
+                          ),
+                          child: Text(
+                            "Choose a coin to exchange",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          bottom: 32,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: RoundedWhiteContainer(
+                                padding: const EdgeInsets.all(16),
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
+                                child: FloatingRateCurrencySelectionView(
+                                  currencies: tickers,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            })
+        : await Navigator.of(context).push(
+            MaterialPageRoute<dynamic>(
+              builder: (_) => FloatingRateCurrencySelectionView(
+                currencies: tickers,
+              ),
+            ),
+          );
 
     if (mounted && result is Currency) {
       onSelected(result);
@@ -490,15 +543,73 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           .toList(growable: false);
     }
 
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute<dynamic>(
-        builder: (_) => FixedRateMarketPairCoinSelectionView(
-          markets: marketsThatPairWithExcludedTicker,
-          currencies: ref.read(availableChangeNowCurrenciesProvider).currencies,
-          isFrom: excludedTicker != fromTicker,
-        ),
-      ),
-    );
+    final result = isDesktop
+        ? await showDialog<String?>(
+            context: context,
+            builder: (context) {
+              return DesktopDialog(
+                maxHeight: 700,
+                maxWidth: 580,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 32,
+                          ),
+                          child: Text(
+                            "Choose a coin to exchange",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          bottom: 32,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: RoundedWhiteContainer(
+                                padding: const EdgeInsets.all(16),
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
+                                child: FixedRateMarketPairCoinSelectionView(
+                                  markets: marketsThatPairWithExcludedTicker,
+                                  currencies: ref
+                                      .read(
+                                          availableChangeNowCurrenciesProvider)
+                                      .currencies,
+                                  isFrom: excludedTicker != fromTicker,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            })
+        : await Navigator.of(context).push(
+            MaterialPageRoute<dynamic>(
+              builder: (_) => FixedRateMarketPairCoinSelectionView(
+                markets: marketsThatPairWithExcludedTicker,
+                currencies:
+                    ref.read(availableChangeNowCurrenciesProvider).currencies,
+                isFrom: excludedTicker != fromTicker,
+              ),
+            ),
+          );
 
     if (mounted && result is String) {
       onSelected(result);
