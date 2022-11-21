@@ -127,7 +127,7 @@ class _DeletePopupButtonState extends State<DeletePopupButton> {
                 height: 70,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
+                    Constants.size.circularBorderRadius * 2,
                   ),
                   color: Theme.of(context).extension<StackColors>()!.popupBG,
                   boxShadow: [
