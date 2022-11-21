@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_exchange_steps_indicator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -8,10 +9,12 @@ class StepScaffold extends StatefulWidget {
     Key? key,
     required this.body,
     required this.step,
+    required this.model,
   }) : super(key: key);
 
   final Widget body;
   final int step;
+  final IncompleteExchangeModel model;
 
   @override
   State<StepScaffold> createState() => _StepScaffoldState();
@@ -19,10 +22,12 @@ class StepScaffold extends StatefulWidget {
 
 class _StepScaffoldState extends State<StepScaffold> {
   int currentStep = 0;
+  late final IncompleteExchangeModel model;
 
   @override
   void initState() {
     currentStep = widget.step;
+    model = widget.model;
     super.initState();
   }
 
@@ -38,7 +43,7 @@ class _StepScaffoldState extends State<StepScaffold> {
               iconSize: 23,
             ),
             Text(
-              "Exchange XXX to XXX",
+              "Exchange ${model.sendTicker.toUpperCase()} to ${model.receiveTicker.toUpperCase()}",
               style: STextStyles.desktopH3(context),
             ),
           ],

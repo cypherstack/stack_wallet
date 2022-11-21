@@ -1030,6 +1030,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 maxHeight: double.infinity,
                 child: StepScaffold(
                   step: 2,
+                  model: model,
                   body: DesktopStep2(
                     model: model,
                   ),
@@ -1057,6 +1058,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 maxHeight: double.infinity,
                 child: StepScaffold(
                   step: 1,
+                  model: model,
                   body: DesktopStep1(
                     model: model,
                   ),
