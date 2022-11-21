@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/step_one_item.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -41,7 +41,7 @@ class DesktopStep1 extends ConsumerWidget {
           padding: const EdgeInsets.all(0),
           child: Column(
             children: [
-              StepOneItem(
+              DesktopStepItem(
                 label: "Exchange",
                 value: ref.watch(currentExchangeNameStateProvider.state).state,
               ),
@@ -49,7 +49,7 @@ class DesktopStep1 extends ConsumerWidget {
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              StepOneItem(
+              DesktopStepItem(
                 label: "You send",
                 value:
                     "${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker.toUpperCase()}",
@@ -58,7 +58,7 @@ class DesktopStep1 extends ConsumerWidget {
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              StepOneItem(
+              DesktopStepItem(
                 label: "You receive",
                 value:
                     "~${model.receiveAmount.toStringAsFixed(8)} ${model.receiveTicker.toUpperCase()}",
@@ -67,7 +67,7 @@ class DesktopStep1 extends ConsumerWidget {
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              StepOneItem(
+              DesktopStepItem(
                 label: model.rateType == ExchangeRateType.estimated
                     ? "Estimated rate"
                     : "Fixed rate",

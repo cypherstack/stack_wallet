@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/step_one_item.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -32,7 +32,7 @@ class DesktopStep4 extends StatelessWidget {
           padding: const EdgeInsets.all(0),
           child: Column(
             children: [
-              const StepOneItem(
+              const DesktopStepItem(
                 label: "Exchange",
                 value: "lol",
               ),
@@ -40,7 +40,7 @@ class DesktopStep4 extends StatelessWidget {
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              const StepOneItem(
+              const DesktopStepItem(
                 label: "You send",
                 value: "lol",
               ),
@@ -48,7 +48,7 @@ class DesktopStep4 extends StatelessWidget {
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              const StepOneItem(
+              const DesktopStepItem(
                 label: "You receive",
                 value: "lol",
               ),
@@ -56,7 +56,7 @@ class DesktopStep4 extends StatelessWidget {
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              const StepOneItem(
+              const DesktopStepItem(
                 label: "Rate",
                 value: "lol",
               ),
