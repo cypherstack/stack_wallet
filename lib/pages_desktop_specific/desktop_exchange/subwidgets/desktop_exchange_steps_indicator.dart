@@ -22,9 +22,9 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
     }
   }
 
-  static const double verticalSpacing = 4;
+  static const double verticalSpacing = 6;
   static const double horizontalSpacing = 16;
-  static const double barHeight = 6;
+  static const double barHeight = 4;
 
   @override
   Widget build(BuildContext context) {
@@ -35,16 +35,17 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
             children: [
               Text(
                 "Confirm amount",
-                style: STextStyles.desktopTextSmall(context).copyWith(
-                  color: getColor(context, 0),
+                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  color: getColor(context, 1),
                 ),
               ),
               const SizedBox(
                 height: verticalSpacing,
               ),
               RoundedContainer(
-                color: getColor(context, 0),
+                color: getColor(context, 1),
                 height: barHeight,
+                width: double.infinity,
               ),
             ],
           ),
@@ -57,16 +58,17 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
             children: [
               Text(
                 "Enter details",
-                style: STextStyles.desktopTextSmall(context).copyWith(
-                  color: getColor(context, 1),
+                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  color: getColor(context, 2),
                 ),
               ),
               const SizedBox(
                 height: verticalSpacing,
               ),
               RoundedContainer(
-                color: getColor(context, 1),
+                color: getColor(context, 2),
                 height: barHeight,
+                width: double.infinity,
               ),
             ],
           ),
@@ -79,16 +81,17 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
             children: [
               Text(
                 "Confirm details",
-                style: STextStyles.desktopTextSmall(context).copyWith(
-                  color: getColor(context, 2),
+                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  color: getColor(context, 3),
                 ),
               ),
               const SizedBox(
                 height: verticalSpacing,
               ),
               RoundedContainer(
-                color: getColor(context, 2),
+                color: getColor(context, 3),
                 height: barHeight,
+                width: double.infinity,
               ),
             ],
           ),
@@ -101,16 +104,17 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
             children: [
               Text(
                 "Complete exchange",
-                style: STextStyles.desktopTextSmall(context).copyWith(
-                  color: getColor(context, 3),
+                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  color: getColor(context, 4),
                 ),
               ),
               const SizedBox(
                 height: verticalSpacing,
               ),
               RoundedContainer(
-                color: getColor(context, 3),
+                color: getColor(context, 4),
                 height: barHeight,
+                width: double.infinity,
               ),
             ],
           ),

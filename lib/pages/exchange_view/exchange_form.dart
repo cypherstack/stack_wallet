@@ -19,12 +19,13 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_op
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_1.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_2.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -913,10 +914,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           await showDialog<void>(
             context: context,
             builder: (context) {
-              return const DesktopDialog(
-                maxWidth: 700,
+              return DesktopDialog(
+                maxWidth: 720,
+                maxHeight: double.infinity,
                 child: StepScaffold(
-                  step: 1,
+                  step: 2,
+                  body: DesktopStep2(
+                    model: model,
+                  ),
                 ),
               );
             },
@@ -936,10 +941,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           await showDialog<void>(
             context: context,
             builder: (context) {
-              return const DesktopDialog(
-                maxWidth: 700,
+              return DesktopDialog(
+                maxWidth: 720,
+                maxHeight: double.infinity,
                 child: StepScaffold(
-                  step: 0,
+                  step: 1,
+                  body: DesktopStep1(
+                    model: model,
+                  ),
                 ),
               );
             },

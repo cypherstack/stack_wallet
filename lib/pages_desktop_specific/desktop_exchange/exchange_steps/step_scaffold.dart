@@ -4,8 +4,13 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 
 class StepScaffold extends StatefulWidget {
-  const StepScaffold({Key? key, required this.step}) : super(key: key);
+  const StepScaffold({
+    Key? key,
+    required this.body,
+    required this.step,
+  }) : super(key: key);
 
+  final Widget body;
   final int step;
 
   @override
@@ -24,11 +29,13 @@ class _StepScaffoldState extends State<StepScaffold> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Row(
           children: [
             const AppBarBackButton(
               isCompact: true,
+              iconSize: 23,
             ),
             Text(
               "Exchange XXX to XXX",
@@ -37,17 +44,24 @@ class _StepScaffoldState extends State<StepScaffold> {
           ],
         ),
         const SizedBox(
-          height: 32,
+          height: 12,
         ),
-        DesktopExchangeStepsIndicator(
-          currentStep: currentStep,
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 32,
+          ),
+          child: DesktopExchangeStepsIndicator(
+            currentStep: currentStep,
+          ),
         ),
         const SizedBox(
           height: 32,
         ),
-        Container(
-          height: 200,
-          color: Colors.red,
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 32,
+          ),
+          child: widget.body,
         ),
       ],
     );
