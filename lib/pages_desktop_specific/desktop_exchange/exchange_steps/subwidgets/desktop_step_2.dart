@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
-import 'package:stackwallet/providers/exchange/exchange_flow_is_active_state_provider.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -23,6 +21,10 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../../models/contact_address_entry.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 
 class DesktopStep2 extends ConsumerStatefulWidget {
   const DesktopStep2({
@@ -105,42 +107,96 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
     }
   }
 
-  void selectRecipientFromAddressBook() {
-    ref.read(exchangeFlowIsActiveStateProvider.state).state = true;
-    Navigator.of(context)
-        .pushNamed(
-      AddressBookView.routeName,
-    )
-        .then((_) {
-      ref.read(exchangeFlowIsActiveStateProvider.state).state = false;
+  void selectRecipientFromAddressBook() async {
+    final coin = coinFromTickerCaseInsensitive(
+      model.receiveTicker,
+    );
 
-      final address =
-          ref.read(exchangeFromAddressBookAddressStateProvider.state).state;
-      if (address.isNotEmpty) {
-        _toController.text = address;
-        model.recipientAddress = _toController.text;
-        ref.read(exchangeFromAddressBookAddressStateProvider.state).state = "";
-      }
-    });
+    final entry = await showDialog<ContactAddressEntry?>(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (context) => DesktopDialog(
+        maxWidth: 720,
+        maxHeight: 670,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 32,
+                  ),
+                  child: Text(
+                    "Address book",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Expanded(
+              child: AddressBookAddressChooser(
+                coin: coin,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (entry != null) {
+      _toController.text = entry.address;
+      model.recipientAddress = entry.address;
+      setState(() {});
+    }
   }
 
-  void selectRefundFromAddressBook() {
-    ref.read(exchangeFlowIsActiveStateProvider.state).state = true;
-    Navigator.of(context)
-        .pushNamed(
-      AddressBookView.routeName,
-    )
-        .then(
-      (_) {
-        ref.read(exchangeFlowIsActiveStateProvider.state).state = false;
-        final address =
-            ref.read(exchangeFromAddressBookAddressStateProvider.state).state;
-        if (address.isNotEmpty) {
-          _refundController.text = address;
-          model.refundAddress = _refundController.text;
-        }
-      },
+  void selectRefundFromAddressBook() async {
+    final coin = coinFromTickerCaseInsensitive(
+      model.sendTicker,
     );
+
+    final entry = await showDialog<ContactAddressEntry?>(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (context) => DesktopDialog(
+        maxWidth: 720,
+        maxHeight: 670,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 32,
+                  ),
+                  child: Text(
+                    "Address book",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Expanded(
+              child: AddressBookAddressChooser(
+                coin: coin,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (entry != null) {
+      _refundController.text = entry.address;
+      model.refundAddress = entry.address;
+      setState(() {});
+    }
   }
 
   @override
@@ -198,10 +254,12 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           "Enter exchange details",
           style: STextStyles.desktopTextMedium(context),
+          textAlign: TextAlign.center,
         ),
         const SizedBox(
           height: 8,
@@ -209,6 +267,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
         Text(
           "Enter your recipient and refund addresses",
           style: STextStyles.desktopTextExtraExtraSmall(context),
+          textAlign: TextAlign.center,
         ),
         const SizedBox(
           height: 20,
@@ -231,7 +290,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           ],
         ),
         const SizedBox(
-          height: 4,
+          height: 10,
         ),
         ClipRRect(
           borderRadius: BorderRadius.circular(
@@ -321,9 +380,10 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           ),
         ),
         const SizedBox(
-          height: 6,
+          height: 10,
         ),
         RoundedWhiteContainer(
+          borderColor: Theme.of(context).extension<StackColors>()!.background,
           child: Text(
             "This is the wallet where your ${model.receiveTicker.toUpperCase()} will be sent to.",
             style: STextStyles.desktopTextExtraExtraSmall(context),
@@ -350,7 +410,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           ],
         ),
         const SizedBox(
-          height: 4,
+          height: 10,
         ),
         ClipRRect(
           borderRadius: BorderRadius.circular(
@@ -380,6 +440,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
               "Enter ${model.sendTicker.toUpperCase()} refund address",
               _refundFocusNode,
               context,
+              desktopMed: true,
             ).copyWith(
               contentPadding: const EdgeInsets.only(
                 left: 16,
@@ -441,7 +502,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           ),
         ),
         const SizedBox(
-          height: 6,
+          height: 10,
         ),
         RoundedWhiteContainer(
           borderColor: Theme.of(context).extension<StackColors>()!.background,

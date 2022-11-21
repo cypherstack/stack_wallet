@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_2.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -97,8 +100,24 @@ class DesktopStep1 extends ConsumerWidget {
                 child: PrimaryButton(
                   label: "Next",
                   buttonHeight: ButtonHeight.l,
-                  onPressed: () {
-                    // todo
+                  onPressed: () async {
+                    await showDialog<void>(
+                      context: context,
+                      barrierColor: Colors.transparent,
+                      builder: (context) {
+                        return DesktopDialog(
+                          maxWidth: 720,
+                          maxHeight: double.infinity,
+                          child: StepScaffold(
+                            step: 2,
+                            model: model,
+                            body: DesktopStep2(
+                              model: model,
+                            ),
+                          ),
+                        );
+                      },
+                    );
                   },
                 ),
               ),
