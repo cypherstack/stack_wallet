@@ -92,6 +92,8 @@ import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
@@ -1176,6 +1178,51 @@ class RouteGenerator {
           return FadePageRoute(
             DesktopDeleteWalletDialog(
               walletId: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => WalletKeysDesktopPopup(
+          //     words: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopAttentionDeleteWallet.routeName:
+        if (args is String) {
+          return FadePageRoute(
+            DesktopAttentionDeleteWallet(
+              walletId: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => WalletKeysDesktopPopup(
+          //     words: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DeleteWalletKeysPopup.routeName:
+        if (args is Tuple2<String, List<String>>) {
+          return FadePageRoute(
+            DeleteWalletKeysPopup(
+              walletId: args.item1,
+              words: args.item2,
             ),
             RouteSettings(
               name: settings.name,
