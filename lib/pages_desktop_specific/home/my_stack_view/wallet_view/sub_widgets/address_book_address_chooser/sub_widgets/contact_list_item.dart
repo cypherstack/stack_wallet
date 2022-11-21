@@ -87,35 +87,47 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                WalletInfoCoinIcon(coin: e.coin),
-                                const SizedBox(
-                                  width: 12,
-                                ),
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "${contactId == "default" ? e.other! : e.label} (${e.coin.ticker})",
-                                      style: STextStyles
-                                              .desktopTextExtraExtraSmall(
-                                                  context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark,
-                                      ),
+                            Flexible(
+                              child: Row(
+                                children: [
+                                  WalletInfoCoinIcon(coin: e.coin),
+                                  const SizedBox(
+                                    width: 12,
+                                  ),
+                                  Flexible(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "${contactId == "default" ? e.other! : e.label} (${e.coin.ticker})",
+                                          style: STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                e.address,
+                                                style: STextStyles
+                                                    .desktopTextExtraExtraSmall(
+                                                        context),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
-                                    Text(
-                                      e.address,
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(context),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
                             BlueTextButton(
                               text: "Select wallet",
