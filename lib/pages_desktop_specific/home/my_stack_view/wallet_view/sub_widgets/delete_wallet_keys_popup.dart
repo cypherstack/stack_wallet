@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -28,6 +31,15 @@ class DeleteWalletKeysPopup extends ConsumerStatefulWidget {
 }
 
 class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
+  late final String _walletId;
+
+  @override
+  void initState() {
+    _walletId = widget.walletId;
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return DesktopDialog(
@@ -113,6 +125,7 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
                             context: context,
                             builder: (context) {
                               return DesktopDialog(
+                                maxHeight: 350,
                                 child: Column(
                                   children: [
                                     Row(
@@ -128,13 +141,16 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
                                       ],
                                     ),
                                     Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
                                       children: [
                                         Text(
                                           "Thanks! "
                                           "\n\nYour wallet will be deleted.",
                                           style: STextStyles.desktopH2(context),
+                                          textAlign: TextAlign.center,
                                         ),
-                                        const SizedBox(height: 20),
+                                        const SizedBox(height: 50),
                                         Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
@@ -155,20 +171,43 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
                                                 buttonHeight: ButtonHeight.xl,
                                                 label: "Continue",
                                                 onPressed: () async {
-                                                  // final walletsInstance =
-                                                  // ref.read(walletsChangeNotifierProvider);
-                                                  // await ref
-                                                  //     .read(walletsServiceChangeNotifierProvider)
-                                                  //     .deleteWallet(walletId, true);
-                                                  //
-                                                  // if (mounted) {
-                                                  //   Navigator.of(context).popUntil(
-                                                  //       ModalRoute.withName(HomeView.routeName));
-                                                  // }
+                                                  // int count = 0;
+                                                  // Navigator.of(context)
+                                                  //     .popUntil(
+                                                  //         (_) => count++ >= 2);
 
-                                                  // // wait for widget tree to dispose of any widgets watching the manager
-                                                  // await Future<void>.delayed(const Duration(seconds: 1));
-                                                  // walletsInstance.removeWallet(walletId: walletId);
+                                                  final walletsInstance = ref.read(
+                                                      walletsChangeNotifierProvider);
+                                                  final manager = ref
+                                                      .read(
+                                                          walletsChangeNotifierProvider)
+                                                      .getManager(_walletId);
+
+                                                  final _managerWalletId =
+                                                      manager.walletId;
+
+                                                  await ref
+                                                      .read(
+                                                          walletsServiceChangeNotifierProvider)
+                                                      .deleteWallet(
+                                                          manager.walletName,
+                                                          true);
+
+                                                  if (mounted) {
+                                                    Navigator.of(context)
+                                                        .popUntil(
+                                                            ModalRoute.withName(
+                                                                MyStackView
+                                                                    .routeName));
+                                                  }
+
+                                                  // wait for widget tree to dispose of any widgets watching the manager
+                                                  await Future<void>.delayed(
+                                                      const Duration(
+                                                          seconds: 1));
+                                                  walletsInstance.removeWallet(
+                                                      walletId:
+                                                          _managerWalletId);
                                                 }),
                                           ],
                                         )
