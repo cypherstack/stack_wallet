@@ -129,16 +129,30 @@ class _DeletePopupButtonState extends State<DeletePopupButton> {
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
-                  color: Colors.red,
+                  color: Theme.of(context).extension<StackColors>()!.popupBG,
                   boxShadow: [
                     Theme.of(context)
                         .extension<StackColors>()!
                         .standardBoxShadow,
                   ],
                 ),
-                child: Text(
-                  "Delete",
-                  style: STextStyles.desktopButtonSecondaryEnabled(context),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const SizedBox(width: 24),
+                    SvgPicture.asset(
+                      Assets.svg.trash,
+                    ),
+                    const SizedBox(width: 14),
+                    Text(
+                      "Delete wallet",
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark),
+                    ),
+                  ],
                 ),
               ),
             ),
