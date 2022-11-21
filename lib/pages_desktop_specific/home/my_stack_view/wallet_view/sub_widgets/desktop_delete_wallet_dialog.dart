@@ -13,6 +13,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 
 import '../../../../../providers/desktop/storage_crypto_handler_provider.dart';
@@ -177,11 +178,35 @@ class _DesktopDeleteWalletDialog
                       label: "Continue",
                       onPressed: _continueEnabled
                           ? () async {
+                              // add loading indicator
+                              unawaited(
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: const [
+                                      LoadingIndicator(
+                                        width: 200,
+                                        height: 200,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+
+                              await Future<void>.delayed(
+                                  const Duration(seconds: 1));
+
                               final verified = await ref
                                   .read(storageCryptoHandlerProvider)
                                   .verifyPassphrase(passwordController.text);
 
                               if (verified) {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop();
+
                                 final words = await ref
                                     .read(walletsChangeNotifierProvider)
                                     .getManager(widget.walletId)
@@ -190,12 +215,20 @@ class _DesktopDeleteWalletDialog
                                 if (mounted) {
                                   Navigator.of(context).pop();
 
-                                  await Navigator.of(context).pushNamed(
-                                    DesktopAttentionDeleteWallet.routeName,
-                                    arguments: widget.walletId,
+                                  unawaited(
+                                    Navigator.of(context).pushNamed(
+                                      DesktopAttentionDeleteWallet.routeName,
+                                      arguments: widget.walletId,
+                                    ),
                                   );
                                 }
                               } else {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop();
+
+                                await Future<void>.delayed(
+                                    const Duration(milliseconds: 300));
+
                                 unawaited(
                                   showFloatingFlushBar(
                                     type: FlushBarType.warning,
