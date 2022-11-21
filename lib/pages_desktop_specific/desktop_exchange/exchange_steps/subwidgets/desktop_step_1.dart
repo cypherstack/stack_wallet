@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
+import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/step_one_item.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class DesktopStep1 extends StatelessWidget {
+class DesktopStep1 extends ConsumerWidget {
   const DesktopStep1({
     Key? key,
     required this.model,
@@ -16,7 +19,7 @@ class DesktopStep1 extends StatelessWidget {
   final IncompleteExchangeModel model;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
         Text(
@@ -38,33 +41,37 @@ class DesktopStep1 extends StatelessWidget {
           padding: const EdgeInsets.all(0),
           child: Column(
             children: [
-              const StepOneItem(
+              StepOneItem(
                 label: "Exchange",
-                value: "lol",
+                value: ref.watch(currentExchangeNameStateProvider.state).state,
               ),
               Container(
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              const StepOneItem(
+              StepOneItem(
                 label: "You send",
-                value: "lol",
+                value:
+                    "${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker.toUpperCase()}",
               ),
               Container(
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              const StepOneItem(
+              StepOneItem(
                 label: "You receive",
-                value: "lol",
+                value:
+                    "~${model.receiveAmount.toStringAsFixed(8)} ${model.receiveTicker.toUpperCase()}",
               ),
               Container(
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              const StepOneItem(
-                label: "Rate",
-                value: "lol",
+              StepOneItem(
+                label: model.rateType == ExchangeRateType.estimated
+                    ? "Estimated rate"
+                    : "Fixed rate",
+                value: model.rateInfo,
               ),
             ],
           ),
