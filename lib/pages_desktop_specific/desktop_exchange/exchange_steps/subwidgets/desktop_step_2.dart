@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_choose_from_stack.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
@@ -64,12 +64,21 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
       final coin = coinFromTickerCaseInsensitive(
         model.receiveTicker,
       );
-      Navigator.of(context)
-          .pushNamed(
-        ChooseFromStackView.routeName,
-        arguments: coin,
-      )
-          .then((value) async {
+
+      showDialog<String?>(
+        context: context,
+        barrierColor: Colors.transparent,
+        builder: (context) => DesktopDialog(
+          maxWidth: 720,
+          maxHeight: 670,
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: DesktopChooseFromStack(
+              coin: coin,
+            ),
+          ),
+        ),
+      ).then((value) async {
         if (value is String) {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(value);
@@ -88,12 +97,21 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
       final coin = coinFromTickerCaseInsensitive(
         model.sendTicker,
       );
-      Navigator.of(context)
-          .pushNamed(
-        ChooseFromStackView.routeName,
-        arguments: coin,
-      )
-          .then((value) async {
+
+      showDialog<String?>(
+        context: context,
+        barrierColor: Colors.transparent,
+        builder: (context) => DesktopDialog(
+          maxWidth: 720,
+          maxHeight: 670,
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: DesktopChooseFromStack(
+              coin: coin,
+            ),
+          ),
+        ),
+      ).then((value) async {
         if (value is String) {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(value);
@@ -366,7 +384,8 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                   ? const ClipboardIcon()
                                   : const XIcon(),
                             ),
-                      if (_toController.text.isEmpty)
+                      if (_toController.text.isEmpty &&
+                          isStackCoin(model.receiveTicker))
                         TextFieldIconButton(
                           key: const Key("sendViewAddressBookButtonKey"),
                           onTap: selectRecipientFromAddressBook,
@@ -488,7 +507,8 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                   ? const ClipboardIcon()
                                   : const XIcon(),
                             ),
-                      if (_refundController.text.isEmpty)
+                      if (_refundController.text.isEmpty &&
+                          isStackCoin(model.sendTicker))
                         TextFieldIconButton(
                           key: const Key("sendViewAddressBookButtonKey"),
                           onTap: selectRefundFromAddressBook,
