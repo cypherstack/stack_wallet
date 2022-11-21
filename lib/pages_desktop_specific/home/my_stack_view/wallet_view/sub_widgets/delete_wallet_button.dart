@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-
-import 'desktop_delete_wallet_dialog.dart';
 
 class DeleteWalletButton extends ConsumerStatefulWidget {
   const DeleteWalletButton({
@@ -26,8 +26,6 @@ class _DeleteWalletButton extends ConsumerState<DeleteWalletButton> {
   @override
   void initState() {
     walletId = widget.walletId;
-    final managerProvider =
-        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
 
     super.initState();
   }
@@ -38,25 +36,45 @@ class _DeleteWalletButton extends ConsumerState<DeleteWalletButton> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(1000),
       ),
-      onPressed: () {
-        showDialog<void>(
+      onPressed: () async {
+        final shouldOpenDeleteDialog = await showDialog<bool?>(
           context: context,
-          barrierDismissible: false,
-          builder: (context) => Navigator(
-            initialRoute: DesktopDeleteWalletDialog.routeName,
-            onGenerateRoute: RouteGenerator.generateRoute,
-            onGenerateInitialRoutes: (_, __) {
-              return [
-                RouteGenerator.generateRoute(
-                  RouteSettings(
-                    name: DesktopDeleteWalletDialog.routeName,
-                    arguments: walletId,
-                  ),
-                )
-              ];
-            },
-          ),
+          barrierColor: Colors.transparent,
+          builder: (context) {
+            return DeletePopupButton(
+              onTap: () async {
+                Navigator.of(context).pop(true);
+              },
+            );
+          },
         );
+
+        if (shouldOpenDeleteDialog == true) {
+          final result = await showDialog<bool?>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => Navigator(
+              initialRoute: DesktopDeleteWalletDialog.routeName,
+              onGenerateRoute: RouteGenerator.generateRoute,
+              onGenerateInitialRoutes: (_, __) {
+                return [
+                  RouteGenerator.generateRoute(
+                    RouteSettings(
+                      name: DesktopDeleteWalletDialog.routeName,
+                      arguments: walletId,
+                    ),
+                  ),
+                ];
+              },
+            ),
+          );
+
+          if (result == true) {
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          }
+        }
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -76,6 +94,57 @@ class _DeleteWalletButton extends ConsumerState<DeleteWalletButton> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class DeletePopupButton extends StatefulWidget {
+  const DeletePopupButton({
+    Key? key,
+    this.onTap,
+  }) : super(key: key);
+
+  final VoidCallback? onTap;
+
+  @override
+  State<DeletePopupButton> createState() => _DeletePopupButtonState();
+}
+
+class _DeletePopupButtonState extends State<DeletePopupButton> {
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          top: 24,
+          left: MediaQuery.of(context).size.width - 234,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: widget.onTap,
+              child: Container(
+                width: 210,
+                height: 70,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                  color: Colors.red,
+                  boxShadow: [
+                    Theme.of(context)
+                        .extension<StackColors>()!
+                        .standardBoxShadow,
+                  ],
+                ),
+                child: Text(
+                  "Delete",
+                  style: STextStyles.desktopButtonSecondaryEnabled(context),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

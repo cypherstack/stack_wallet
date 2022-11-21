@@ -1,11 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -61,8 +59,10 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
               ),
               DesktopDialogCloseButton(
                 onPressedOverride: () {
-                  int count = 0;
-                  Navigator.of(context).popUntil((_) => count++ >= 2);
+                  Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pop();
                 },
               ),
             ],
@@ -117,106 +117,17 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
                   child: PrimaryButton(
                     label: "Continue",
                     onPressed: () async {
-                      int count = 0;
-                      Navigator.of(context).popUntil((_) => count++ >= 2);
-
-                      unawaited(
-                        showDialog(
-                            context: context,
-                            builder: (context) {
-                              return DesktopDialog(
-                                maxHeight: 350,
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        DesktopDialogCloseButton(
-                                          onPressedOverride: () {
-                                            int count = 0;
-                                            Navigator.of(context)
-                                                .popUntil((_) => count++ >= 2);
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          "Thanks! "
-                                          "\n\nYour wallet will be deleted.",
-                                          style: STextStyles.desktopH2(context),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        const SizedBox(height: 50),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            SecondaryButton(
-                                                width: 250,
-                                                buttonHeight: ButtonHeight.xl,
-                                                label: "Cancel",
-                                                onPressed: () {
-                                                  int count = 0;
-                                                  Navigator.of(context)
-                                                      .popUntil(
-                                                          (_) => count++ >= 2);
-                                                }),
-                                            const SizedBox(width: 16),
-                                            PrimaryButton(
-                                                width: 250,
-                                                buttonHeight: ButtonHeight.xl,
-                                                label: "Continue",
-                                                onPressed: () async {
-                                                  // int count = 0;
-                                                  // Navigator.of(context)
-                                                  //     .popUntil(
-                                                  //         (_) => count++ >= 2);
-
-                                                  final walletsInstance = ref.read(
-                                                      walletsChangeNotifierProvider);
-                                                  final manager = ref
-                                                      .read(
-                                                          walletsChangeNotifierProvider)
-                                                      .getManager(_walletId);
-
-                                                  final _managerWalletId =
-                                                      manager.walletId;
-
-                                                  await ref
-                                                      .read(
-                                                          walletsServiceChangeNotifierProvider)
-                                                      .deleteWallet(
-                                                          manager.walletName,
-                                                          true);
-
-                                                  if (mounted) {
-                                                    Navigator.of(context)
-                                                        .popUntil(
-                                                            ModalRoute.withName(
-                                                                MyStackView
-                                                                    .routeName));
-                                                  }
-
-                                                  // wait for widget tree to dispose of any widgets watching the manager
-                                                  await Future<void>.delayed(
-                                                      const Duration(
-                                                          seconds: 1));
-                                                  walletsInstance.removeWallet(
-                                                      walletId:
-                                                          _managerWalletId);
-                                                }),
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
+                      await Navigator.of(context).push(
+                        RouteGenerator.getRoute(
+                          builder: (context) {
+                            return ConfirmDelete(
+                              walletId: _walletId,
+                            );
+                          },
+                          settings: const RouteSettings(
+                            name: "/desktopConfirmDelete",
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -226,6 +137,89 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
           ),
           const SizedBox(
             height: 32,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ConfirmDelete extends ConsumerStatefulWidget {
+  const ConfirmDelete({
+    Key? key,
+    required this.walletId,
+  }) : super(key: key);
+
+  final String walletId;
+
+  @override
+  ConsumerState<ConfirmDelete> createState() => _ConfirmDeleteState();
+}
+
+class _ConfirmDeleteState extends ConsumerState<ConfirmDelete> {
+  @override
+  Widget build(BuildContext context) {
+    return DesktopDialog(
+      maxHeight: 350,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: const [
+              DesktopDialogCloseButton(),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "Thanks! "
+                "\n\nYour wallet will be deleted.",
+                style: STextStyles.desktopH2(context),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SecondaryButton(
+                    width: 250,
+                    buttonHeight: ButtonHeight.xl,
+                    label: "Cancel",
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                    },
+                  ),
+                  const SizedBox(width: 16),
+                  PrimaryButton(
+                    width: 250,
+                    buttonHeight: ButtonHeight.xl,
+                    label: "Continue",
+                    onPressed: () async {
+                      final walletsInstance =
+                          ref.read(walletsChangeNotifierProvider);
+                      final manager = ref
+                          .read(walletsChangeNotifierProvider)
+                          .getManager(widget.walletId);
+
+                      final _managerWalletId = manager.walletId;
+                      //
+                      await ref
+                          .read(walletsServiceChangeNotifierProvider)
+                          .deleteWallet(manager.walletName, true);
+
+                      if (mounted) {
+                        Navigator.of(context, rootNavigator: true).pop(true);
+                      }
+
+                      // wait for widget tree to dispose of any widgets watching the manager
+                      await Future<void>.delayed(const Duration(seconds: 1));
+                      walletsInstance.removeWallet(walletId: _managerWalletId);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

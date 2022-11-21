@@ -41,8 +41,10 @@ class _DesktopAttentionDeleteWallet
             children: [
               DesktopDialogCloseButton(
                 onPressedOverride: () {
-                  int count = 0;
-                  Navigator.of(context).popUntil((_) => count++ >= 2);
+                  Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pop();
                 },
               ),
             ],
@@ -87,8 +89,10 @@ class _DesktopAttentionDeleteWallet
                       buttonHeight: ButtonHeight.xl,
                       label: "Cancel",
                       onPressed: () {
-                        int count = 0;
-                        Navigator.of(context).popUntil((_) => count++ >= 2);
+                        Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        ).pop();
                       },
                     ),
                     const SizedBox(width: 16),
@@ -102,12 +106,15 @@ class _DesktopAttentionDeleteWallet
                             .getManager(widget.walletId)
                             .mnemonic;
 
-                        await Navigator.of(context)
-                            .pushNamed(DeleteWalletKeysPopup.routeName,
-                                arguments: Tuple2(
-                                  widget.walletId,
-                                  words,
-                                ));
+                        if (mounted) {
+                          await Navigator.of(context).pushNamed(
+                            DeleteWalletKeysPopup.routeName,
+                            arguments: Tuple2(
+                              widget.walletId,
+                              words,
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],
