@@ -10,7 +10,10 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
-import 'package:tuple/tuple.dart';
+
+import '../../../route_generator.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 
 class DesktopTradeHistory extends ConsumerStatefulWidget {
   const DesktopTradeHistory({Key? key}) : super(key: key);
@@ -64,19 +67,122 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                 final tx = txData.getAllTransactions()[txid];
 
                 if (mounted) {
-                  unawaited(
-                    Navigator.of(context).pushNamed(
-                      TradeDetailsView.routeName,
-                      arguments: Tuple4(
-                          tradeId, tx, walletIds.first, manager.walletName),
+                  await showDialog<void>(
+                    context: context,
+                    builder: (context) => Navigator(
+                      initialRoute: TradeDetailsView.routeName,
+                      onGenerateRoute: RouteGenerator.generateRoute,
+                      onGenerateInitialRoutes: (_, __) {
+                        return [
+                          FadePageRoute(
+                            DesktopDialog(
+                              // maxHeight:
+                              //     MediaQuery.of(context).size.height - 64,
+                              maxHeight: double.infinity,
+                              maxWidth: 580,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 32,
+                                      bottom: 16,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Trade details",
+                                          style: STextStyles.desktopH3(context),
+                                        ),
+                                        DesktopDialogCloseButton(
+                                          onPressedOverride: Navigator.of(
+                                            context,
+                                            rootNavigator: true,
+                                          ).pop,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: TradeDetailsView(
+                                      tradeId: tradeId,
+                                      transactionIfSentFromStack: tx,
+                                      walletName: manager.walletName,
+                                      walletId: walletIds.first,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const RouteSettings(
+                              name: TradeDetailsView.routeName,
+                            ),
+                          ),
+                        ];
+                      },
                     ),
                   );
                 }
               } else {
                 unawaited(
-                  Navigator.of(context).pushNamed(
-                    TradeDetailsView.routeName,
-                    arguments: Tuple4(tradeId, null, walletIds?.first, null),
+                  showDialog<void>(
+                    context: context,
+                    builder: (context) => Navigator(
+                      initialRoute: TradeDetailsView.routeName,
+                      onGenerateRoute: RouteGenerator.generateRoute,
+                      onGenerateInitialRoutes: (_, __) {
+                        return [
+                          FadePageRoute(
+                            DesktopDialog(
+                              // maxHeight:
+                              //     MediaQuery.of(context).size.height - 64,
+                              maxHeight: double.infinity,
+                              maxWidth: 580,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 32,
+                                      bottom: 16,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Trade details",
+                                          style: STextStyles.desktopH3(context),
+                                        ),
+                                        DesktopDialogCloseButton(
+                                          onPressedOverride: Navigator.of(
+                                            context,
+                                            rootNavigator: true,
+                                          ).pop,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: TradeDetailsView(
+                                      tradeId: tradeId,
+                                      transactionIfSentFromStack: null,
+                                      walletName: null,
+                                      walletId: walletIds?.first,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const RouteSettings(
+                              name: TradeDetailsView.routeName,
+                            ),
+                          ),
+                        ];
+                      },
+                    ),
                   ),
                 );
               }

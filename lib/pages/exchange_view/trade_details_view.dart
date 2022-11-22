@@ -206,16 +206,57 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               padding: const EdgeInsets.only(
                 right: 12,
               ),
-              child: RoundedWhiteContainer(
-                borderColor: isDesktop
-                    ? Theme.of(context).extension<StackColors>()!.background
-                    : null,
-                padding: const EdgeInsets.all(0),
-                child: ListView(
-                  primary: false,
-                  shrinkWrap: true,
-                  children: children,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RoundedWhiteContainer(
+                    borderColor:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    padding: const EdgeInsets.all(0),
+                    child: ListView(
+                      primary: false,
+                      shrinkWrap: true,
+                      children: children,
+                    ),
+                  ),
+                  if (isStackCoin(trade.payInCurrency) &&
+                      (trade.status == "New" ||
+                          trade.status == "new" ||
+                          trade.status == "waiting" ||
+                          trade.status == "Waiting"))
+                    const SizedBox(
+                      height: 32,
+                    ),
+                  if (isStackCoin(trade.payInCurrency) &&
+                      (trade.status == "New" ||
+                          trade.status == "new" ||
+                          trade.status == "waiting" ||
+                          trade.status == "Waiting"))
+                    SecondaryButton(
+                      label: "Send from Stack",
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: () {
+                        final amount = sendAmount;
+                        final address = trade.payInAddress;
+
+                        final coin =
+                            coinFromTickerCaseInsensitive(trade.payInCurrency);
+
+                        Navigator.of(context).pushNamed(
+                          SendFromView.routeName,
+                          arguments: Tuple4(
+                            coin,
+                            amount,
+                            address,
+                            trade,
+                          ),
+                        );
+                      },
+                    ),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                ],
               ),
             ),
           ),
@@ -350,33 +391,94 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 padding: isDesktop
                     ? const EdgeInsets.all(16)
                     : const EdgeInsets.all(12),
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .warningBackground,
-                child: RichText(
-                  text: TextSpan(
-                      text:
-                          "You must send at least ${sendAmount.toStringAsFixed(
-                        trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
-                      )} ${trade.payInCurrency.toUpperCase()}. ",
-                      style: STextStyles.label700(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningForeground,
-                      ),
-                      children: [
-                        TextSpan(
-                          text:
-                              "If you send less than ${sendAmount.toStringAsFixed(
-                            trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
-                          )} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
-                          style: STextStyles.label(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .warningForeground,
+                color: isDesktop
+                    ? Theme.of(context).extension<StackColors>()!.popupBG
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .warningBackground,
+                child: ConditionalParent(
+                  condition: isDesktop,
+                  builder: (child) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Amount",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                    context),
+                              ),
+                              const SizedBox(
+                                height: 2,
+                              ),
+                              Text(
+                                "${trade.payInAmount} ${trade.payInCurrency.toUpperCase()}",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ]),
+                          IconCopyButton(
+                            data: trade.payInAmount,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 6,
+                      ),
+                      child,
+                    ],
+                  ),
+                  child: RichText(
+                    text: TextSpan(
+                        text:
+                            "You must send at least ${sendAmount.toStringAsFixed(
+                          trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
+                        )} ${trade.payInCurrency.toUpperCase()}. ",
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorRed)
+                            : STextStyles.label(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .warningForeground,
+                              ),
+                        children: [
+                          TextSpan(
+                            text:
+                                "If you send less than ${sendAmount.toStringAsFixed(
+                              trade.payInCurrency.toLowerCase() == "xmr"
+                                  ? 12
+                                  : 8,
+                            )} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
+                            style: isDesktop
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed)
+                                : STextStyles.label(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .warningForeground,
+                                  ),
+                          ),
+                        ]),
+                  ),
                 ),
               ),
             if (sentFromStack)
@@ -1035,12 +1137,12 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 ],
               ),
             ),
-            isDesktop
-                ? const _Divider()
-                : const SizedBox(
-                    height: 12,
-                  ),
-            if (isStackCoin(trade.payInCurrency) &&
+            if (!isDesktop)
+              const SizedBox(
+                height: 12,
+              ),
+            if (!isDesktop &&
+                isStackCoin(trade.payInCurrency) &&
                 (trade.status == "New" ||
                     trade.status == "new" ||
                     trade.status == "waiting" ||
