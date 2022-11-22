@@ -40,6 +40,30 @@ abstract class Constants {
 
   static const int currentHiveDbVersion = 3;
 
+  static int decimalPlacesForCoin(Coin coin) {
+    switch (coin) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.bitcoinTestNet:
+      case Coin.dogecoinTestNet:
+      case Coin.firoTestNet:
+      case Coin.epicCash:
+      case Coin.namecoin:
+        return decimalPlaces;
+
+      case Coin.wownero:
+        return decimalPlacesWownero;
+
+      case Coin.monero:
+        return decimalPlacesMonero;
+    }
+  }
+
   static List<int> possibleLengthsForCoin(Coin coin) {
     final List<int> values = [];
     switch (coin) {
