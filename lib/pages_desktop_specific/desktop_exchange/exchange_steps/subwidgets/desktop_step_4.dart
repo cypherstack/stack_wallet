@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
+import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -199,7 +202,38 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                 child: SecondaryButton(
                   label: "Send from Stack Wallet",
                   buttonHeight: ButtonHeight.l,
-                  onPressed: Navigator.of(context).pop,
+                  onPressed: () {
+                    final trade = model.trade!;
+                    final amount = Decimal.parse(trade.payInAmount);
+                    final address = trade.payInAddress;
+
+                    final coin =
+                        coinFromTickerCaseInsensitive(trade.payInCurrency);
+
+                    showDialog<void>(
+                      context: context,
+                      builder: (context) => Navigator(
+                        initialRoute: SendFromView.routeName,
+                        onGenerateRoute: RouteGenerator.generateRoute,
+                        onGenerateInitialRoutes: (_, __) {
+                          return [
+                            FadePageRoute(
+                              SendFromView(
+                                coin: coin,
+                                trade: trade,
+                                amount: amount,
+                                address: address,
+                                shouldPopRoot: true,
+                              ),
+                              const RouteSettings(
+                                name: SendFromView.routeName,
+                              ),
+                            ),
+                          ];
+                        },
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(

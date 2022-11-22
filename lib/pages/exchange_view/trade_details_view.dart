@@ -219,7 +219,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       children: children,
                     ),
                   ),
-                  if (isStackCoin(trade.payInCurrency) &&
+                  if (!hasTx &&
+                      isStackCoin(trade.payInCurrency) &&
                       (trade.status == "New" ||
                           trade.status == "new" ||
                           trade.status == "waiting" ||
@@ -227,7 +228,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     const SizedBox(
                       height: 32,
                     ),
-                  if (isStackCoin(trade.payInCurrency) &&
+                  if (!hasTx &&
+                      isStackCoin(trade.payInCurrency) &&
                       (trade.status == "New" ||
                           trade.status == "new" ||
                           trade.status == "waiting" ||
@@ -1142,6 +1144,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 height: 12,
               ),
             if (!isDesktop &&
+                !hasTx &&
                 isStackCoin(trade.payInCurrency) &&
                 (trade.status == "New" ||
                     trade.status == "new" ||

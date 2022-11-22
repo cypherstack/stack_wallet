@@ -7,8 +7,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/confirm_change_now_send.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
@@ -30,8 +30,6 @@ import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
-import '../../pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-
 class SendFromView extends ConsumerStatefulWidget {
   const SendFromView({
     Key? key,
@@ -39,6 +37,7 @@ class SendFromView extends ConsumerStatefulWidget {
     required this.trade,
     required this.amount,
     required this.address,
+    this.shouldPopRoot = false,
   }) : super(key: key);
 
   static const String routeName = "/sendFrom";
@@ -47,6 +46,7 @@ class SendFromView extends ConsumerStatefulWidget {
   final Decimal amount;
   final String address;
   final Trade trade;
+  final bool shouldPopRoot;
 
   @override
   ConsumerState<SendFromView> createState() => _SendFromViewState();
@@ -142,7 +142,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
                   DesktopDialogCloseButton(
                     onPressedOverride: Navigator.of(
                       context,
-                      rootNavigator: false,
+                      rootNavigator: widget.shouldPopRoot,
                     ).pop,
                   ),
                 ],
@@ -239,12 +239,23 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           useSafeArea: false,
           barrierDismissible: false,
           builder: (context) {
-            return BuildingTransactionDialog(
-              onCancel: () {
-                wasCancelled = true;
+            return ConditionalParent(
+              condition: Util.isDesktop,
+              builder: (child) => DesktopDialog(
+                maxWidth: 400,
+                maxHeight: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: child,
+                ),
+              ),
+              child: BuildingTransactionDialog(
+                onCancel: () {
+                  wasCancelled = true;
 
-                Navigator.of(context).pop();
-              },
+                  Navigator.of(context).pop();
+                },
+              ),
             );
           },
         ),
@@ -290,7 +301,10 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         // pop building dialog
 
         if (mounted) {
-          Navigator.of(context).pop();
+          Navigator.of(
+            context,
+            rootNavigator: Util.isDesktop,
+          ).pop();
         }
 
         txData["note"] =
@@ -304,7 +318,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               builder: (_) => ConfirmChangeNowSendView(
                 transactionInfo: txData,
                 walletId: walletId,
-                routeOnSuccessName: HomeView.routeName,
+                routeOnSuccessName: Util.isDesktop
+                    ? DesktopExchangeView.routeName
+                    : HomeView.routeName,
                 trade: trade,
                 shouldSendPublicFiroFunds: shouldSendPublicFiroFunds,
               ),
@@ -401,58 +417,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   ),
                 ),
                 onPressed: () async {
-                  final dynamic unlocked;
-
-                  if (Util.isDesktop) {
-                    unlocked = await showDialog<bool?>(
-                      context: context,
-                      builder: (context) => DesktopDialog(
-                        maxWidth: 580,
-                        maxHeight: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: const [
-                                DesktopDialogCloseButton(),
-                              ],
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.only(
-                                left: 32,
-                                right: 32,
-                                bottom: 32,
-                              ),
-                              child: DesktopAuthSend(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else {
-                    unlocked = await Navigator.push(
-                      context,
-                      RouteGenerator.getRoute(
-                        shouldUseMaterialRoute:
-                            RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => const LockscreenView(
-                          showBackButton: true,
-                          popOnSuccess: true,
-                          routeOnSuccessArguments: true,
-                          routeOnSuccess: "",
-                          biometricsCancelButtonString: "CANCEL",
-                          biometricsLocalizedReason:
-                              "Authenticate to send transaction",
-                          biometricsAuthenticationTitle: "Confirm Transaction",
-                        ),
-                        settings:
-                            const RouteSettings(name: "/confirmsendlockscreen"),
-                      ),
-                    );
-                  }
-
-                  if (unlocked is bool && unlocked && mounted) {
+                  if (mounted) {
                     unawaited(
                       _send(
                         manager,
@@ -537,58 +502,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   ),
                 ),
                 onPressed: () async {
-                  final dynamic unlocked;
-
-                  if (Util.isDesktop) {
-                    unlocked = await showDialog<bool?>(
-                      context: context,
-                      builder: (context) => DesktopDialog(
-                        maxWidth: 580,
-                        maxHeight: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: const [
-                                DesktopDialogCloseButton(),
-                              ],
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.only(
-                                left: 32,
-                                right: 32,
-                                bottom: 32,
-                              ),
-                              child: DesktopAuthSend(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else {
-                    unlocked = await Navigator.push(
-                      context,
-                      RouteGenerator.getRoute(
-                        shouldUseMaterialRoute:
-                            RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => const LockscreenView(
-                          showBackButton: true,
-                          popOnSuccess: true,
-                          routeOnSuccessArguments: true,
-                          routeOnSuccess: "",
-                          biometricsCancelButtonString: "CANCEL",
-                          biometricsLocalizedReason:
-                              "Authenticate to send transaction",
-                          biometricsAuthenticationTitle: "Confirm Transaction",
-                        ),
-                        settings:
-                            const RouteSettings(name: "/confirmsendlockscreen"),
-                      ),
-                    );
-                  }
-
-                  if (unlocked is bool && unlocked && mounted) {
+                  if (mounted) {
                     unawaited(
                       _send(
                         manager,
@@ -680,57 +594,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               ),
             ),
             onPressed: () async {
-              final dynamic unlocked;
-
-              if (Util.isDesktop) {
-                unlocked = await showDialog<bool?>(
-                  context: context,
-                  builder: (context) => DesktopDialog(
-                    maxWidth: 580,
-                    maxHeight: double.infinity,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: const [
-                            DesktopDialogCloseButton(),
-                          ],
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(
-                            left: 32,
-                            right: 32,
-                            bottom: 32,
-                          ),
-                          child: DesktopAuthSend(),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              } else {
-                unlocked = await Navigator.push(
-                  context,
-                  RouteGenerator.getRoute(
-                    shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-                    builder: (_) => const LockscreenView(
-                      showBackButton: true,
-                      popOnSuccess: true,
-                      routeOnSuccessArguments: true,
-                      routeOnSuccess: "",
-                      biometricsCancelButtonString: "CANCEL",
-                      biometricsLocalizedReason:
-                          "Authenticate to send transaction",
-                      biometricsAuthenticationTitle: "Confirm Transaction",
-                    ),
-                    settings:
-                        const RouteSettings(name: "/confirmsendlockscreen"),
-                  ),
-                );
-              }
-
-              if (unlocked is bool && unlocked && mounted) {
+              if (mounted) {
                 unawaited(
                   _send(manager),
                 );

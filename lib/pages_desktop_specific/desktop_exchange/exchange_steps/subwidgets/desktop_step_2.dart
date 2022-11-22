@@ -51,6 +51,8 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   late final FocusNode _toFocusNode;
   late final FocusNode _refundFocusNode;
 
+  bool enableNext = false;
+
   bool isStackCoin(String ticker) {
     try {
       coinFromTickerCaseInsensitive(ticker);
@@ -60,13 +62,13 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
     }
   }
 
-  void selectRecipientAddressFromStack() {
+  void selectRecipientAddressFromStack() async {
     try {
       final coin = coinFromTickerCaseInsensitive(
         model.receiveTicker,
       );
 
-      showDialog<String?>(
+      final address = await showDialog<String?>(
         context: context,
         barrierColor: Colors.transparent,
         builder: (context) => DesktopDialog(
@@ -79,27 +81,31 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             ),
           ),
         ),
-      ).then((value) async {
-        if (value is String) {
-          final manager =
-              ref.read(walletsChangeNotifierProvider).getManager(value);
+      );
 
-          _toController.text = manager.walletName;
-          model.recipientAddress = await manager.currentReceivingAddress;
-        }
-      });
+      if (address is String) {
+        final manager =
+            ref.read(walletsChangeNotifierProvider).getManager(address);
+
+        _toController.text = manager.walletName;
+        model.recipientAddress = await manager.currentReceivingAddress;
+      }
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Info);
     }
+    setState(() {
+      enableNext =
+          _toController.text.isNotEmpty && _refundController.text.isNotEmpty;
+    });
   }
 
-  void selectRefundAddressFromStack() {
+  void selectRefundAddressFromStack() async {
     try {
       final coin = coinFromTickerCaseInsensitive(
         model.sendTicker,
       );
 
-      showDialog<String?>(
+      final address = await showDialog<String?>(
         context: context,
         barrierColor: Colors.transparent,
         builder: (context) => DesktopDialog(
@@ -112,18 +118,21 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             ),
           ),
         ),
-      ).then((value) async {
-        if (value is String) {
-          final manager =
-              ref.read(walletsChangeNotifierProvider).getManager(value);
+      );
+      if (address is String) {
+        final manager =
+            ref.read(walletsChangeNotifierProvider).getManager(address);
 
-          _refundController.text = manager.walletName;
-          model.refundAddress = await manager.currentReceivingAddress;
-        }
-      });
+        _refundController.text = manager.walletName;
+        model.refundAddress = await manager.currentReceivingAddress;
+      }
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Info);
     }
+    setState(() {
+      enableNext =
+          _toController.text.isNotEmpty && _refundController.text.isNotEmpty;
+    });
   }
 
   void selectRecipientFromAddressBook() async {
@@ -168,7 +177,10 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
     if (entry != null) {
       _toController.text = entry.address;
       model.recipientAddress = entry.address;
-      setState(() {});
+      setState(() {
+        enableNext =
+            _toController.text.isNotEmpty && _refundController.text.isNotEmpty;
+      });
     }
   }
 
@@ -214,7 +226,10 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
     if (entry != null) {
       _refundController.text = entry.address;
       model.refundAddress = entry.address;
-      setState(() {});
+      setState(() {
+        enableNext =
+            _toController.text.isNotEmpty && _refundController.text.isNotEmpty;
+      });
     }
   }
 
@@ -334,7 +349,10 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             focusNode: _toFocusNode,
             style: STextStyles.field(context),
             onChanged: (value) {
-              setState(() {});
+              setState(() {
+                enableNext = _toController.text.isNotEmpty &&
+                    _refundController.text.isNotEmpty;
+              });
             },
             decoration: standardInputDecoration(
               "Enter the ${model.receiveTicker.toUpperCase()} payout address",
@@ -363,7 +381,10 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                               onTap: () {
                                 _toController.text = "";
                                 model.recipientAddress = _toController.text;
-                                setState(() {});
+                                setState(() {
+                                  enableNext = _toController.text.isNotEmpty &&
+                                      _refundController.text.isNotEmpty;
+                                });
                               },
                               child: const XIcon(),
                             )
@@ -378,7 +399,11 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                   final content = data.text!.trim();
                                   _toController.text = content;
                                   model.recipientAddress = _toController.text;
-                                  setState(() {});
+                                  setState(() {
+                                    enableNext =
+                                        _toController.text.isNotEmpty &&
+                                            _refundController.text.isNotEmpty;
+                                  });
                                 }
                               },
                               child: _toController.text.isEmpty
@@ -454,7 +479,10 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             focusNode: _refundFocusNode,
             style: STextStyles.field(context),
             onChanged: (value) {
-              setState(() {});
+              setState(() {
+                enableNext = _toController.text.isNotEmpty &&
+                    _refundController.text.isNotEmpty;
+              });
             },
             decoration: standardInputDecoration(
               "Enter ${model.sendTicker.toUpperCase()} refund address",
@@ -484,7 +512,10 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                 _refundController.text = "";
                                 model.refundAddress = _refundController.text;
 
-                                setState(() {});
+                                setState(() {
+                                  enableNext = _toController.text.isNotEmpty &&
+                                      _refundController.text.isNotEmpty;
+                                });
                               },
                               child: const XIcon(),
                             )
@@ -501,7 +532,11 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                   _refundController.text = content;
                                   model.refundAddress = _refundController.text;
 
-                                  setState(() {});
+                                  setState(() {
+                                    enableNext =
+                                        _toController.text.isNotEmpty &&
+                                            _refundController.text.isNotEmpty;
+                                  });
                                 }
                               },
                               child: _refundController.text.isEmpty
@@ -552,6 +587,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
               Expanded(
                 child: PrimaryButton(
                   label: "Next",
+                  enabled: enableNext,
                   buttonHeight: ButtonHeight.l,
                   onPressed: () async {
                     await showDialog<void>(
