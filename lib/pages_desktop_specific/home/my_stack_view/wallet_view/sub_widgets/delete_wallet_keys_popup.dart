@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -16,10 +22,12 @@ class DeleteWalletKeysPopup extends ConsumerStatefulWidget {
     Key? key,
     required this.walletId,
     required this.words,
+    this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
 
   final String walletId;
   final List<String> words;
+  final ClipboardInterface clipboardInterface;
 
   static const String routeName = "/desktopDeleteWalletKeysPopup";
 
@@ -30,10 +38,14 @@ class DeleteWalletKeysPopup extends ConsumerStatefulWidget {
 
 class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
   late final String _walletId;
+  late final List<String> _words;
+  late final ClipboardInterface _clipboardInterface;
 
   @override
   void initState() {
     _walletId = widget.walletId;
+    _words = widget.words;
+    _clipboardInterface = widget.clipboardInterface;
 
     super.initState();
   }
@@ -96,12 +108,28 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
             padding: const EdgeInsets.symmetric(
               horizontal: 32,
             ),
-            child: MnemonicTable(
-              words: widget.words,
-              isDesktop: true,
-              itemBorderColor: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonBackSecondary,
+            child: RawMaterialButton(
+              hoverColor: Colors.transparent,
+              onPressed: () async {
+                await _clipboardInterface.setData(
+                  ClipboardData(text: _words.join(" ")),
+                );
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.info,
+                    message: "Copied to clipboard",
+                    iconAsset: Assets.svg.copy,
+                    context: context,
+                  ),
+                );
+              },
+              child: MnemonicTable(
+                words: widget.words,
+                isDesktop: true,
+                itemBorderColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonBackSecondary,
+              ),
             ),
           ),
           const SizedBox(
