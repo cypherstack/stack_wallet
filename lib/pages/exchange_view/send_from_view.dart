@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/confirm_change_now_send.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
@@ -19,12 +20,17 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 
 class SendFromView extends ConsumerStatefulWidget {
   const SendFromView({
@@ -90,21 +96,68 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
     final walletIds = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getWalletIdsFor(coin: coin)));
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+    final isDesktop = Util.isDesktop;
+
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) {
+        return Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Send from",
+              style: STextStyles.navBarTitle(context),
+            ),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: child,
+          ),
+        );
+      },
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) => DesktopDialog(
+          maxHeight: double.infinity,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 32,
+                    ),
+                    child: Text(
+                      "Send from Stack",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: Navigator.of(
+                      context,
+                      rootNavigator: false,
+                    ).pop,
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                ),
+                child: child,
+              ),
+            ],
+          ),
         ),
-        title: Text(
-          "Send from",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -112,15 +165,23 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
               children: [
                 Text(
                   "You need to send ${formatAmount(amount, coin)} ${coin.ticker}",
-                  style: STextStyles.itemSubtitle(context),
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.itemSubtitle(context),
                 ),
               ],
             ),
             const SizedBox(
               height: 16,
             ),
-            Expanded(
+            ConditionalParent(
+              condition: !isDesktop,
+              builder: (child) => Expanded(
+                child: child,
+              ),
               child: ListView.builder(
+                primary: isDesktop ? false : null,
+                shrinkWrap: isDesktop,
                 itemCount: walletIds.length,
                 itemBuilder: (context, index) {
                   return Padding(
@@ -339,10 +400,67 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     Constants.size.circularBorderRadius,
                   ),
                 ),
-                onPressed: () => _send(
-                  manager,
-                  shouldSendPublicFiroFunds: false,
-                ),
+                onPressed: () async {
+                  final dynamic unlocked;
+
+                  if (Util.isDesktop) {
+                    unlocked = await showDialog<bool?>(
+                      context: context,
+                      builder: (context) => DesktopDialog(
+                        maxWidth: 580,
+                        maxHeight: double.infinity,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: const [
+                                DesktopDialogCloseButton(),
+                              ],
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.only(
+                                left: 32,
+                                right: 32,
+                                bottom: 32,
+                              ),
+                              child: DesktopAuthSend(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    unlocked = await Navigator.push(
+                      context,
+                      RouteGenerator.getRoute(
+                        shouldUseMaterialRoute:
+                            RouteGenerator.useMaterialPageRoute,
+                        builder: (_) => const LockscreenView(
+                          showBackButton: true,
+                          popOnSuccess: true,
+                          routeOnSuccessArguments: true,
+                          routeOnSuccess: "",
+                          biometricsCancelButtonString: "CANCEL",
+                          biometricsLocalizedReason:
+                              "Authenticate to send transaction",
+                          biometricsAuthenticationTitle: "Confirm Transaction",
+                        ),
+                        settings:
+                            const RouteSettings(name: "/confirmsendlockscreen"),
+                      ),
+                    );
+                  }
+
+                  if (unlocked is bool && unlocked && mounted) {
+                    unawaited(
+                      _send(
+                        manager,
+                        shouldSendPublicFiroFunds: false,
+                      ),
+                    );
+                  }
+                },
                 child: Container(
                   color: Colors.transparent,
                   child: Padding(
@@ -418,10 +536,67 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     Constants.size.circularBorderRadius,
                   ),
                 ),
-                onPressed: () => _send(
-                  manager,
-                  shouldSendPublicFiroFunds: true,
-                ),
+                onPressed: () async {
+                  final dynamic unlocked;
+
+                  if (Util.isDesktop) {
+                    unlocked = await showDialog<bool?>(
+                      context: context,
+                      builder: (context) => DesktopDialog(
+                        maxWidth: 580,
+                        maxHeight: double.infinity,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: const [
+                                DesktopDialogCloseButton(),
+                              ],
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.only(
+                                left: 32,
+                                right: 32,
+                                bottom: 32,
+                              ),
+                              child: DesktopAuthSend(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    unlocked = await Navigator.push(
+                      context,
+                      RouteGenerator.getRoute(
+                        shouldUseMaterialRoute:
+                            RouteGenerator.useMaterialPageRoute,
+                        builder: (_) => const LockscreenView(
+                          showBackButton: true,
+                          popOnSuccess: true,
+                          routeOnSuccessArguments: true,
+                          routeOnSuccess: "",
+                          biometricsCancelButtonString: "CANCEL",
+                          biometricsLocalizedReason:
+                              "Authenticate to send transaction",
+                          biometricsAuthenticationTitle: "Confirm Transaction",
+                        ),
+                        settings:
+                            const RouteSettings(name: "/confirmsendlockscreen"),
+                      ),
+                    );
+                  }
+
+                  if (unlocked is bool && unlocked && mounted) {
+                    unawaited(
+                      _send(
+                        manager,
+                        shouldSendPublicFiroFunds: true,
+                      ),
+                    );
+                  }
+                },
                 child: Container(
                   color: Colors.transparent,
                   child: Padding(
@@ -504,7 +679,63 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 Constants.size.circularBorderRadius,
               ),
             ),
-            onPressed: () => _send(manager),
+            onPressed: () async {
+              final dynamic unlocked;
+
+              if (Util.isDesktop) {
+                unlocked = await showDialog<bool?>(
+                  context: context,
+                  builder: (context) => DesktopDialog(
+                    maxWidth: 580,
+                    maxHeight: double.infinity,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: const [
+                            DesktopDialogCloseButton(),
+                          ],
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(
+                            left: 32,
+                            right: 32,
+                            bottom: 32,
+                          ),
+                          child: DesktopAuthSend(),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              } else {
+                unlocked = await Navigator.push(
+                  context,
+                  RouteGenerator.getRoute(
+                    shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+                    builder: (_) => const LockscreenView(
+                      showBackButton: true,
+                      popOnSuccess: true,
+                      routeOnSuccessArguments: true,
+                      routeOnSuccess: "",
+                      biometricsCancelButtonString: "CANCEL",
+                      biometricsLocalizedReason:
+                          "Authenticate to send transaction",
+                      biometricsAuthenticationTitle: "Confirm Transaction",
+                    ),
+                    settings:
+                        const RouteSettings(name: "/confirmsendlockscreen"),
+                  ),
+                );
+              }
+
+              if (unlocked is bool && unlocked && mounted) {
+                unawaited(
+                  _send(manager),
+                );
+              }
+            },
             child: child,
           ),
           child: Row(
