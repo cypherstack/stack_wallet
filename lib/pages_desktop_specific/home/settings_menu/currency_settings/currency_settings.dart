@@ -107,7 +107,7 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                         10,
                       ),
                       child: PrimaryButton(
-                        width: 210,
+                        width: 200,
                         buttonHeight: ButtonHeight.m,
                         enabled: true,
                         label: "Change currency",
