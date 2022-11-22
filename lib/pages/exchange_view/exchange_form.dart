@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
@@ -25,6 +24,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -37,10 +37,10 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/desktop/simple_desktop_dialog.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/textfields/exchange_textfield.dart';
 import 'package:tuple/tuple.dart';
 
 class ExchangeForm extends ConsumerStatefulWidget {
@@ -1226,146 +1226,33 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         SizedBox(
           height: isDesktop ? 10 : 4,
         ),
-        TextFormField(
-          style: STextStyles.smallMed14(context).copyWith(
+        ExchangeTextField(
+          controller: _sendController,
+          focusNode: _sendFocusNode,
+          textStyle: STextStyles.smallMed14(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
-          focusNode: _sendFocusNode,
-          controller: _sendController,
-          textAlign: TextAlign.right,
-          enableSuggestions: false,
-          autocorrect: false,
+          buttonColor:
+              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          borderRadius: Constants.size.circularBorderRadius,
+          background:
+              Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
           onTap: () {
             if (_sendController.text == "-") {
               _sendController.text = "";
             }
           },
           onChanged: sendFieldOnChanged,
-          keyboardType: const TextInputType.numberWithOptions(
-            signed: false,
-            decimal: true,
-          ),
-          inputFormatters: [
-            // regex to validate a crypto amount with 8 decimal places
-            TextInputFormatter.withFunction((oldValue, newValue) =>
-                RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                        .hasMatch(newValue.text)
-                    ? newValue
-                    : oldValue),
-          ],
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.only(
-              top: 12,
-              right: 12,
-            ),
-            hintText: "0",
-            hintStyle: STextStyles.fieldLabel(context).copyWith(
-              fontSize: 14,
-            ),
-            prefixIcon: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: GestureDetector(
-                onTap: selectSendCurrency,
-                child: Container(
-                  color: Colors.transparent,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Builder(
-                            builder: (context) {
-                              final image = _fetchIconUrlFromTicker(ref.watch(
-                                  exchangeFormStateProvider
-                                      .select((value) => value.fromTicker)));
-
-                              if (image != null && image.isNotEmpty) {
-                                return Center(
-                                  child: SvgPicture.network(
-                                    image,
-                                    height: 18,
-                                    placeholderBuilder: (_) => Container(
-                                      width: 18,
-                                      height: 18,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textFieldDefaultBG,
-                                        borderRadius: BorderRadius.circular(
-                                          18,
-                                        ),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          18,
-                                        ),
-                                        child: const LoadingIndicator(),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return Container(
-                                  width: 18,
-                                  height: 18,
-                                  decoration: BoxDecoration(
-                                    // color: Theme.of(context).extension<StackColors>()!.accentColorDark
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.circleQuestion,
-                                    width: 18,
-                                    height: 18,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldDefaultBG,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 6,
-                        ),
-                        Text(
-                          ref.watch(exchangeFormStateProvider.select((value) =>
-                                  value.fromTicker?.toUpperCase())) ??
-                              "-",
-                          style: STextStyles.smallMed14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                        ),
-                        if (!isWalletCoin(coin, true))
-                          const SizedBox(
-                            width: 6,
-                          ),
-                        if (!isWalletCoin(coin, true))
-                          SvgPicture.asset(
-                            Assets.svg.chevronDown,
-                            width: 5,
-                            height: 2.5,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          onButtonTap: selectSendCurrency,
+          isWalletCoin: isWalletCoin(coin, true),
+          image: _fetchIconUrlFromTicker(ref.watch(
+              exchangeFormStateProvider.select((value) => value.fromTicker))),
+          ticker: ref.watch(
+              exchangeFormStateProvider.select((value) => value.fromTicker)),
         ),
-
+        SizedBox(
+          height: isDesktop ? 10 : 4,
+        ),
         SizedBox(
           height: isDesktop ? 10 : 4,
         ),
@@ -1422,79 +1309,20 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             ),
           ],
         ),
-        // Stack(
-        //   children: [
-        //     Positioned.fill(
-        //       child: Align(
-        //         alignment: Alignment.bottomLeft,
-        //         child: Text(
-        //           "You will receive",
-        //           style: STextStyles.itemSubtitle(context).copyWith(
-        //             color:
-        //                 Theme.of(context).extension<StackColors>()!.textDark3,
-        //           ),
-        //         ),
-        //       ),
-        //     ),
-        //     Center(
-        //       child: Column(
-        //         children: [
-        //           const SizedBox(
-        //             height: 6,
-        //           ),
-        //           GestureDetector(
-        //             onTap: () async {
-        //               await _swap();
-        //             },
-        //             child: Padding(
-        //               padding: const EdgeInsets.all(4),
-        //               child: SvgPicture.asset(
-        //                 Assets.svg.swap,
-        //                 width: 20,
-        //                 height: 20,
-        //                 color: Theme.of(context)
-        //                     .extension<StackColors>()!
-        //                     .accentColorDark,
-        //               ),
-        //             ),
-        //           ),
-        //           const SizedBox(
-        //             height: 6,
-        //           ),
-        //         ],
-        //       ),
-        //     ),
-        //     Positioned.fill(
-        //       child: Align(
-        //         alignment: ref.watch(exchangeFormStateProvider
-        //                 .select((value) => value.reversed))
-        //             ? Alignment.bottomRight
-        //             : Alignment.topRight,
-        //         child: Text(
-        //           ref.watch(exchangeFormStateProvider
-        //               .select((value) => value.warning)),
-        //           style: STextStyles.errorSmall(context),
-        //         ),
-        //       ),
-        //     ),
-        //   ],
-        // ),
         SizedBox(
           height: isDesktop ? 10 : 4,
         ),
-        TextFormField(
-          style: STextStyles.smallMed14(context).copyWith(
-            color: Theme.of(context).extension<StackColors>()!.textDark,
-          ),
+        ExchangeTextField(
           focusNode: _receiveFocusNode,
           controller: _receiveController,
-          enableSuggestions: false,
-          autocorrect: false,
-          readOnly: ref.watch(prefsChangeNotifierProvider
-                      .select((value) => value.exchangeRateType)) ==
-                  ExchangeRateType.estimated ||
-              ref.watch(exchangeProvider).name ==
-                  SimpleSwapExchange.exchangeName,
+          textStyle: STextStyles.smallMed14(context).copyWith(
+            color: Theme.of(context).extension<StackColors>()!.textDark,
+          ),
+          buttonColor:
+              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          borderRadius: Constants.size.circularBorderRadius,
+          background:
+              Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
           onTap: () {
             if (!(ref.read(prefsChangeNotifierProvider).exchangeRateType ==
                     ExchangeRateType.estimated) &&
@@ -1503,127 +1331,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             }
           },
           onChanged: receiveFieldOnChanged,
-          textAlign: TextAlign.right,
-          keyboardType: const TextInputType.numberWithOptions(
-            signed: false,
-            decimal: true,
-          ),
-          inputFormatters: [
-            // regex to validate a crypto amount with 8 decimal places
-            TextInputFormatter.withFunction((oldValue, newValue) =>
-                RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                        .hasMatch(newValue.text)
-                    ? newValue
-                    : oldValue),
-          ],
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.only(
-              top: 12,
-              right: 12,
-            ),
-            hintText: "0",
-            hintStyle: STextStyles.fieldLabel(context).copyWith(
-              fontSize: 14,
-            ),
-            prefixIcon: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: GestureDetector(
-                onTap: selectReceiveCurrency,
-                child: Container(
-                  color: Colors.transparent,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Builder(
-                            builder: (context) {
-                              final image = _fetchIconUrlFromTicker(ref.watch(
-                                  exchangeFormStateProvider
-                                      .select((value) => value.toTicker)));
-
-                              if (image != null && image.isNotEmpty) {
-                                return Center(
-                                  child: SvgPicture.network(
-                                    image,
-                                    height: 18,
-                                    placeholderBuilder: (_) => Container(
-                                      width: 18,
-                                      height: 18,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textFieldDefaultBG,
-                                        borderRadius: BorderRadius.circular(18),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          18,
-                                        ),
-                                        child: const LoadingIndicator(),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return Container(
-                                  width: 18,
-                                  height: 18,
-                                  decoration: BoxDecoration(
-                                    // color: Theme.of(context).extension<StackColors>()!.accentColorDark
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.circleQuestion,
-                                    width: 18,
-                                    height: 18,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldDefaultBG,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 6,
-                        ),
-                        Text(
-                          ref.watch(exchangeFormStateProvider.select(
-                                  (value) => value.toTicker?.toUpperCase())) ??
-                              "-",
-                          style: STextStyles.smallMed14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                        ),
-                        if (!isWalletCoin(coin, false))
-                          const SizedBox(
-                            width: 6,
-                          ),
-                        if (!isWalletCoin(coin, false))
-                          SvgPicture.asset(
-                            Assets.svg.chevronDown,
-                            width: 5,
-                            height: 2.5,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          onButtonTap: selectReceiveCurrency,
+          isWalletCoin: isWalletCoin(coin, true),
+          image: _fetchIconUrlFromTicker(ref.watch(
+              exchangeFormStateProvider.select((value) => value.toTicker))),
+          ticker: ref.watch(
+              exchangeFormStateProvider.select((value) => value.toTicker)),
+          readOnly: ref.watch(prefsChangeNotifierProvider
+                      .select((value) => value.exchangeRateType)) ==
+                  ExchangeRateType.estimated ||
+              ref.watch(exchangeProvider).name ==
+                  SimpleSwapExchange.exchangeName,
         ),
         if (ref
                 .watch(
