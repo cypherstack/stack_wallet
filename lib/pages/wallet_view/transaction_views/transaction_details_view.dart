@@ -266,7 +266,10 @@ class _TransactionDetailsViewState
                           buttonHeight: ButtonHeight.l,
                           label: "Cancel",
                           onPressed: () {
-                            Navigator.of(context).pop(false);
+                            Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pop(false);
                           },
                         ),
                         const SizedBox(width: 20),
@@ -275,7 +278,10 @@ class _TransactionDetailsViewState
                           buttonHeight: ButtonHeight.l,
                           label: "Continue",
                           onPressed: () {
-                            Navigator.of(context).pop(true);
+                            Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pop(true);
                           },
                         ),
                       ],
