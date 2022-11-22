@@ -165,6 +165,12 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     obscureText: hidePassword,
                     enableSuggestions: false,
                     autocorrect: false,
+                    autofocus: true,
+                    onSubmitted: (_) {
+                      if (_continueEnabled) {
+                        login();
+                      }
+                    },
                     decoration: standardInputDecoration(
                       "Enter password",
                       passwordFocusNode,
