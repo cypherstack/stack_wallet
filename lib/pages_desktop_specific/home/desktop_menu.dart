@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu_item.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -149,20 +150,27 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ),
                     DesktopMenuItem(
                       icon: SvgPicture.asset(
-                        Assets.svg.bell,
+                        ref.watch(notificationsProvider.select(
+                                (value) => value.hasUnreadNotifications))
+                            ? Assets.svg.bellNew(context)
+                            : Assets.svg.bell,
                         width: 20,
                         height: 20,
-                        color: DesktopMenuItemId.notifications ==
-                                ref
-                                    .watch(currentDesktopMenuItemProvider.state)
-                                    .state
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                                .withOpacity(0.8),
+                        color: ref.watch(notificationsProvider.select(
+                                (value) => value.hasUnreadNotifications))
+                            ? null
+                            : DesktopMenuItemId.notifications ==
+                                    ref
+                                        .watch(currentDesktopMenuItemProvider
+                                            .state)
+                                        .state
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark
+                                    .withOpacity(0.8),
                       ),
                       label: "Notifications",
                       value: DesktopMenuItemId.notifications,
