@@ -61,6 +61,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
 
     if (verified) {
       if (pwNew != pwNewRepeat) {
+        await Future<void>.delayed(const Duration(seconds: 1));
+
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -77,6 +79,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                 );
 
         if (success) {
+          await Future<void>.delayed(const Duration(seconds: 1));
+
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.success,
@@ -86,6 +90,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
           );
           return true;
         } else {
+          await Future<void>.delayed(const Duration(seconds: 1));
+
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.warning,
@@ -97,6 +103,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
         }
       }
     } else {
+      await Future<void>.delayed(const Duration(seconds: 1));
+
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.warning,
