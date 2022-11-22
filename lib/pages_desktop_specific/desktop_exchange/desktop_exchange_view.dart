@@ -63,19 +63,9 @@ class _DesktopExchangeViewState extends State<DesktopExchangeView> {
               width: 16,
             ),
             Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Exchange details",
-                    style: STextStyles.desktopTextExtraExtraSmall(context),
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  const RoundedWhiteContainer(
-                    padding: EdgeInsets.all(0),
+              child: Row(
+                children: const [
+                  Expanded(
                     child: DesktopTradeHistory(),
                   ),
                 ],
