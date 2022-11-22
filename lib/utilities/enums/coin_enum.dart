@@ -12,7 +12,7 @@ import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
     as nmc;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
-import 'dart:io' show Platform;
+import 'package:stackwallet/utilities/util.dart';
 
 enum Coin {
   bitcoin,
@@ -37,12 +37,7 @@ enum Coin {
   firoTestNet,
 }
 
-if(Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
-  int kTestNetCoinCount = 5; // Because we are removing Wownero from Desktop
-} else {
-  // remove firotestnet for now
-  int kTestNetCoinCount = 4;
-}
+final int kTestNetCoinCount = Util.isDesktop ? 5 : 4;
 
 extension CoinExt on Coin {
   String get prettyName {
