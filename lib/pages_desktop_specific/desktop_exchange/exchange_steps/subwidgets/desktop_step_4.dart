@@ -224,6 +224,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                                 amount: amount,
                                 address: address,
                                 shouldPopRoot: true,
+                                fromDesktopStep4: true,
                               ),
                               const RouteSettings(
                                 name: SendFromView.routeName,

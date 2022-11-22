@@ -38,6 +38,7 @@ class SendFromView extends ConsumerStatefulWidget {
     required this.amount,
     required this.address,
     this.shouldPopRoot = false,
+    this.fromDesktopStep4 = false,
   }) : super(key: key);
 
   static const String routeName = "/sendFrom";
@@ -47,6 +48,7 @@ class SendFromView extends ConsumerStatefulWidget {
   final String address;
   final Trade trade;
   final bool shouldPopRoot;
+  final bool fromDesktopStep4;
 
   @override
   ConsumerState<SendFromView> createState() => _SendFromViewState();
@@ -191,6 +193,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
                       amount: amount,
                       address: address,
                       trade: trade,
+                      fromDesktopStep4: widget.fromDesktopStep4,
                     ),
                   );
                 },
@@ -210,12 +213,14 @@ class SendFromCard extends ConsumerStatefulWidget {
     required this.amount,
     required this.address,
     required this.trade,
+    this.fromDesktopStep4 = false,
   }) : super(key: key);
 
   final String walletId;
   final Decimal amount;
   final String address;
   final Trade trade;
+  final bool fromDesktopStep4;
 
   @override
   ConsumerState<SendFromCard> createState() => _SendFromCardState();
@@ -323,6 +328,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     : HomeView.routeName,
                 trade: trade,
                 shouldSendPublicFiroFunds: shouldSendPublicFiroFunds,
+                fromDesktopStep4: widget.fromDesktopStep4,
               ),
               settings: const RouteSettings(
                 name: ConfirmChangeNowSendView.routeName,

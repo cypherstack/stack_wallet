@@ -37,6 +37,7 @@ class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
     this.routeOnSuccessName = WalletView.routeName,
     required this.trade,
     this.shouldSendPublicFiroFunds,
+    this.fromDesktopStep4 = false,
   }) : super(key: key);
 
   static const String routeName = "/confirmChangeNowSend";
@@ -46,6 +47,7 @@ class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
   final String routeOnSuccessName;
   final Trade trade;
   final bool? shouldSendPublicFiroFunds;
+  final bool fromDesktopStep4;
 
   @override
   ConsumerState<ConfirmChangeNowSendView> createState() =>
@@ -105,7 +107,17 @@ class _ConfirmChangeNowSendViewState
       if (mounted) {
         if (Util.isDesktop) {
           Navigator.of(context, rootNavigator: true).pop();
+
+          // stupid hack
+          if (widget.fromDesktopStep4) {
+            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context, rootNavigator: true).pop();
+          }
         }
+
         Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
       }
     } catch (e) {
