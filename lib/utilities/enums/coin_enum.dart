@@ -37,7 +37,12 @@ enum Coin {
   firoTestNet,
 }
 
-int kTestNetCoinCount = (Platform.isLinux || Platform.isWindows || Platform.isMacOS) ? 5 : 4;
+if(Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+  int kTestNetCoinCount = 5; // Because we are removing Wownero from Desktop
+} else {
+  // remove firotestnet for now
+  int kTestNetCoinCount = 4;
+}
 
 extension CoinExt on Coin {
   String get prettyName {
