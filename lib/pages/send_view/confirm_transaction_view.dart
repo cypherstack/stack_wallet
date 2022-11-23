@@ -780,7 +780,7 @@ class _ConfirmTransactionViewState
                   : const EdgeInsets.all(0),
               child: PrimaryButton(
                 label: "Send",
-                buttonHeight: ButtonHeight.l,
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   final dynamic unlocked;
 
