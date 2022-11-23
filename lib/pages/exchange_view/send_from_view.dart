@@ -61,25 +61,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
   late final Trade trade;
 
   String formatAmount(Decimal amount, Coin coin) {
-    switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoincash:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.epicCash:
-      case Coin.firo:
-      case Coin.namecoin:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoinTestNet:
-      case Coin.firoTestNet:
-        return amount.toStringAsFixed(Constants.decimalPlaces);
-      case Coin.monero:
-        return amount.toStringAsFixed(Constants.decimalPlacesMonero);
-      case Coin.wownero:
-        return amount.toStringAsFixed(Constants.decimalPlacesWownero);
-    }
+    return amount.toStringAsFixed(Constants.decimalPlacesForCoin(coin));
   }
 
   @override
@@ -233,7 +215,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
   late final Trade trade;
 
   Future<void> _send(Manager manager, {bool? shouldSendPublicFiroFunds}) async {
-    final _amount = Format.decimalAmountToSatoshis(amount);
+    final _amount = Format.decimalAmountToSatoshis(amount, manager.coin);
 
     try {
       bool wasCancelled = false;
@@ -464,7 +446,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                                     "${Format.localizedStringAsFixed(
                                       value: snapshot.data!,
                                       locale: locale,
-                                      decimalPlaces: Constants.decimalPlaces,
+                                      decimalPlaces:
+                                          Constants.decimalPlacesForCoin(coin),
                                     )} ${coin.ticker}",
                                     style: STextStyles.itemSubtitle(context),
                                   );
@@ -549,7 +532,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                                     "${Format.localizedStringAsFixed(
                                       value: snapshot.data!,
                                       locale: locale,
-                                      decimalPlaces: Constants.decimalPlaces,
+                                      decimalPlaces:
+                                          Constants.decimalPlacesForCoin(coin),
                                     )} ${coin.ticker}",
                                     style: STextStyles.itemSubtitle(context),
                                   );
@@ -657,11 +641,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               "${Format.localizedStringAsFixed(
                                 value: snapshot.data!,
                                 locale: locale,
-                                decimalPlaces: coin == Coin.monero
-                                    ? Constants.decimalPlacesMonero
-                                    : coin == Coin.wownero
-                                        ? Constants.decimalPlacesWownero
-                                        : Constants.decimalPlaces,
+                                decimalPlaces:
+                                    Constants.decimalPlacesForCoin(coin),
                               )} ${coin.ticker}",
                               style: STextStyles.itemSubtitle(context),
                             );

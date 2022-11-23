@@ -620,7 +620,7 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
     "txid": txId,
     "txHex": txHex,
     "value": amount,
-    "fees": Format.satoshisToAmount(fee).toDouble(),
+    "fees": Format.satoshisToAmount(fee, coin: coin).toDouble(),
     "fee": fee,
     "vSize": extTx.virtualSize(),
     "jmintValue": changeToMint,
@@ -629,11 +629,11 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
     "height": locktime,
     "txType": "Sent",
     "confirmed_status": false,
-    "amount": Format.satoshisToAmount(amount).toDouble(),
+    "amount": Format.satoshisToAmount(amount, coin: coin).toDouble(),
     "recipientAmt": amount,
     "worthNow": Format.localizedStringAsFixed(
         value: ((Decimal.fromInt(amount) * price) /
-                Decimal.fromInt(Constants.satsPerCoin))
+                Decimal.fromInt(Constants.satsPerCoin(coin)))
             .toDecimal(scaleOnInfinitePrecision: 2),
         decimalPlaces: 2,
         locale: locale),
@@ -883,7 +883,7 @@ class FiroWallet extends CoinServiceAPI {
   Future<Decimal> get balanceMinusMaxFee async {
     final balances = await this.balances;
     final maxFee = await this.maxFee;
-    return balances[0] - Format.satoshisToAmount(maxFee);
+    return balances[0] - Format.satoshisToAmount(maxFee, coin: coin);
   }
 
   @override
@@ -919,7 +919,7 @@ class FiroWallet extends CoinServiceAPI {
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toDecimal(scaleOnInfinitePrecision: 2),
         decimalPlaces: 2,
         locale: locale!);
@@ -1089,8 +1089,8 @@ class FiroWallet extends CoinServiceAPI {
 
         // check for send all
         bool isSendAll = false;
-        final balance =
-            Format.decimalAmountToSatoshis(await availablePublicBalance());
+        final balance = Format.decimalAmountToSatoshis(
+            await availablePublicBalance(), coin);
         if (satoshiAmount == balance) {
           isSendAll = true;
         }
@@ -1176,7 +1176,7 @@ class FiroWallet extends CoinServiceAPI {
       // check for send all
       bool isSendAll = false;
       final balance =
-          Format.decimalAmountToSatoshis(await availablePrivateBalance());
+          Format.decimalAmountToSatoshis(await availablePrivateBalance(), coin);
       if (satoshiAmount == balance) {
         // print("is send all");
         isSendAll = true;
@@ -1222,7 +1222,8 @@ class FiroWallet extends CoinServiceAPI {
         // temporarily update apdate available balance until a full refresh is done
 
         // TODO: something here causes an exception to be thrown giving user false info that the tx failed
-        Decimal sendTotal = Format.satoshisToAmount(txData["value"] as int);
+        Decimal sendTotal =
+            Format.satoshisToAmount(txData["value"] as int, coin: coin);
         sendTotal += Decimal.parse(txData["fees"].toString());
         final bals = await balances;
         bals[0] -= sendTotal;
@@ -1270,7 +1271,7 @@ class FiroWallet extends CoinServiceAPI {
 
           // temporarily update apdate available balance until a full refresh is done
           Decimal sendTotal =
-              Format.satoshisToAmount(txHexOrError["value"] as int);
+              Format.satoshisToAmount(txHexOrError["value"] as int, coin: coin);
           sendTotal += Decimal.parse(txHexOrError["fees"].toString());
           final bals = await balances;
           bals[0] -= sendTotal;
@@ -2333,8 +2334,9 @@ class FiroWallet extends CoinServiceAPI {
 
   Future<int> _fetchMaxFee() async {
     final balance = await availableBalance;
-    int spendAmount =
-        (balance * Decimal.fromInt(Constants.satsPerCoin)).toBigInt().toInt();
+    int spendAmount = (balance * Decimal.fromInt(Constants.satsPerCoin(coin)))
+        .toBigInt()
+        .toInt();
     int fee = await estimateJoinSplitFee(spendAmount);
     return fee;
   }
@@ -2480,18 +2482,20 @@ class FiroWallet extends CoinServiceAPI {
       }
 
       final int utxosIntValue = utxos.satoshiBalance;
-      final Decimal utxosValue = Format.satoshisToAmount(utxosIntValue);
+      final Decimal utxosValue =
+          Format.satoshisToAmount(utxosIntValue, coin: coin);
 
       List<Decimal> balances = List.empty(growable: true);
 
-      Decimal lelantusBalance = Format.satoshisToAmount(intLelantusBalance);
+      Decimal lelantusBalance =
+          Format.satoshisToAmount(intLelantusBalance, coin: coin);
 
       balances.add(lelantusBalance);
 
       balances.add(lelantusBalance * price);
 
       Decimal _unconfirmedLelantusBalance =
-          Format.satoshisToAmount(unconfirmedLelantusBalance);
+          Format.satoshisToAmount(unconfirmedLelantusBalance, coin: coin);
 
       balances.add(lelantusBalance + utxosValue + _unconfirmedLelantusBalance);
 
@@ -2503,7 +2507,7 @@ class FiroWallet extends CoinServiceAPI {
       if (availableSats < 0) {
         availableSats = 0;
       }
-      balances.add(Format.satoshisToAmount(availableSats));
+      balances.add(Format.satoshisToAmount(availableSats, coin: coin));
 
       Logging.instance.log("balances $balances", level: LogLevel.Info);
       await DB.instance.put<dynamic>(
@@ -2601,7 +2605,8 @@ class FiroWallet extends CoinServiceAPI {
 
     final feesObject = await fees;
 
-    final Decimal fastFee = Format.satoshisToAmount(feesObject.fast);
+    final Decimal fastFee =
+        Format.satoshisToAmount(feesObject.fast, coin: coin);
     int firoFee =
         (dvsize * fastFee * Decimal.fromInt(100000)).toDouble().ceil();
     // int firoFee = (vsize * feesObject.fast * (1 / 1000.0) * 100000000).ceil();
@@ -2789,15 +2794,15 @@ class FiroWallet extends CoinServiceAPI {
       "txid": txId,
       "txHex": txHex,
       "value": amount - fee,
-      "fees": Format.satoshisToAmount(fee).toDouble(),
+      "fees": Format.satoshisToAmount(fee, coin: coin).toDouble(),
       "publicCoin": "",
       "height": height,
       "txType": "Sent",
       "confirmed_status": false,
-      "amount": Format.satoshisToAmount(amount).toDouble(),
+      "amount": Format.satoshisToAmount(amount, coin: coin).toDouble(),
       "worthNow": Format.localizedStringAsFixed(
           value: ((Decimal.fromInt(amount) * price) /
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2),
           decimalPlaces: 2,
           locale: locale!),
@@ -3040,9 +3045,9 @@ class FiroWallet extends CoinServiceAPI {
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Format.decimalAmountToSatoshis(fast),
-        medium: Format.decimalAmountToSatoshis(medium),
-        slow: Format.decimalAmountToSatoshis(slow),
+        fast: Format.decimalAmountToSatoshis(fast, coin),
+        medium: Format.decimalAmountToSatoshis(medium, coin),
+        slow: Format.decimalAmountToSatoshis(slow, coin),
       );
 
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
@@ -3328,7 +3333,7 @@ class FiroWallet extends CoinServiceAPI {
           if (nFees != null) {
             nFeesUsed = true;
             fees = (Decimal.parse(nFees.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toBigInt()
                 .toInt();
           }
@@ -3353,7 +3358,7 @@ class FiroWallet extends CoinServiceAPI {
             if (value != null) {
               if (changeAddresses.contains(address)) {
                 inputAmtSentFromWallet -= (Decimal.parse(value.toString()) *
-                        Decimal.fromInt(Constants.satsPerCoin))
+                        Decimal.fromInt(Constants.satsPerCoin(coin)))
                     .toBigInt()
                     .toInt();
               } else {
@@ -3363,7 +3368,7 @@ class FiroWallet extends CoinServiceAPI {
           }
           if (value != null) {
             outAmount += (Decimal.parse(value.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toBigInt()
                 .toInt();
           }
@@ -3376,7 +3381,7 @@ class FiroWallet extends CoinServiceAPI {
           final nFees = input["nFees"];
           if (nFees != null) {
             fees += (Decimal.parse(nFees.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toBigInt()
                 .toInt();
           }
@@ -3391,7 +3396,7 @@ class FiroWallet extends CoinServiceAPI {
 
             if (allAddresses.contains(address)) {
               outputAmtAddressedToWallet += (Decimal.parse(value.toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin))
+                      Decimal.fromInt(Constants.satsPerCoin(coin)))
                   .toBigInt()
                   .toInt();
               outAddress = address;
@@ -3413,7 +3418,7 @@ class FiroWallet extends CoinServiceAPI {
         midSortedTx["amount"] = inputAmtSentFromWallet;
         final String worthNow = Format.localizedStringAsFixed(
             value: ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toDecimal(scaleOnInfinitePrecision: 2),
             decimalPlaces: 2,
             locale: locale!);
@@ -3428,7 +3433,7 @@ class FiroWallet extends CoinServiceAPI {
         final worthNow = Format.localizedStringAsFixed(
             value:
                 ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
-                        Decimal.fromInt(Constants.satsPerCoin))
+                        Decimal.fromInt(Constants.satsPerCoin(coin)))
                     .toDecimal(scaleOnInfinitePrecision: 2),
             decimalPlaces: 2,
             locale: locale!);
@@ -3589,7 +3594,7 @@ class FiroWallet extends CoinServiceAPI {
           utxo["status"]["block_time"] = txn["blocktime"];
 
           final fiatValue = ((Decimal.fromInt(value) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2);
           utxo["rawWorth"] = fiatValue;
           utxo["fiatWorth"] = fiatValue.toString();
@@ -3600,15 +3605,16 @@ class FiroWallet extends CoinServiceAPI {
 
       Decimal currencyBalanceRaw =
           ((Decimal.fromInt(satoshiBalance) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2);
 
       final Map<String, dynamic> result = {
         "total_user_currency": currencyBalanceRaw.toString(),
         "total_sats": satoshiBalance,
         "total_btc": (Decimal.fromInt(satoshiBalance) /
-                Decimal.fromInt(Constants.satsPerCoin))
-            .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces)
+                Decimal.fromInt(Constants.satsPerCoin(coin)))
+            .toDecimal(
+                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin))
             .toString(),
         "outputArray": outputArray,
         "unconfirmed": satoshiBalancePending,
@@ -4571,8 +4577,9 @@ class FiroWallet extends CoinServiceAPI {
   ) async {
     var lelantusEntry = await _getLelantusEntry();
     final balance = await availableBalance;
-    int spendAmount =
-        (balance * Decimal.fromInt(Constants.satsPerCoin)).toBigInt().toInt();
+    int spendAmount = (balance * Decimal.fromInt(Constants.satsPerCoin(coin)))
+        .toBigInt()
+        .toInt();
     if (spendAmount == 0 || lelantusEntry.isEmpty) {
       return LelantusFeeData(0, 0, []).fee;
     }
@@ -4633,7 +4640,7 @@ class FiroWallet extends CoinServiceAPI {
 
   Future<int> estimateFeeForPublic(int satoshiAmount, int feeRate) async {
     final available =
-        Format.decimalAmountToSatoshis(await availablePublicBalance());
+        Format.decimalAmountToSatoshis(await availablePublicBalance(), coin);
 
     if (available == satoshiAmount) {
       return satoshiAmount - sweepAllEstimate(feeRate);

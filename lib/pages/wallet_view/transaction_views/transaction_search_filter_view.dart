@@ -79,7 +79,7 @@ class _TransactionSearchViewState
       String amount = "";
       if (filterState.amount != null) {
         amount = Format.satoshiAmountToPrettyString(filterState.amount!,
-            ref.read(localeServiceChangeNotifierProvider).locale);
+            ref.read(localeServiceChangeNotifierProvider).locale, widget.coin);
       }
       _amountTextEditingController.text = amount;
     }
@@ -967,22 +967,7 @@ class _TransactionSearchViewState
     }
     int? amount;
     if (amountDecimal != null) {
-      if (widget.coin == Coin.monero) {
-        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinMonero))
-            .floor()
-            .toBigInt()
-            .toInt();
-      } else if (widget.coin == Coin.wownero) {
-        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinWownero))
-            .floor()
-            .toBigInt()
-            .toInt();
-      } else {
-        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoin))
-            .floor()
-            .toBigInt()
-            .toInt();
-      }
+      amount = Format.decimalAmountToSatoshis(amountDecimal, widget.coin);
     }
 
     final TransactionFilter filter = TransactionFilter(

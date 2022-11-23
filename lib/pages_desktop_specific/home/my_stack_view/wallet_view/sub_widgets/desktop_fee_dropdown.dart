@@ -1,3 +1,4 @@
+import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -55,16 +56,27 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+          if (coin == Coin.monero || coin == Coin.wownero) {
+            final fee = await manager.estimateFeeFor(
+                amount, MoneroTransactionPriority.fast.raw!);
+            ref.read(feeSheetSessionCacheProvider).fast[amount] =
+                Format.satoshisToAmount(
+              fee,
+              coin: coin,
+            );
+          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
               ref.read(publicPrivateBalanceStateProvider.state).state !=
                   "Private") {
             ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate));
+                Format.satoshisToAmount(
+                    await (manager.wallet as FiroWallet)
+                        .estimateFeeForPublic(amount, feeRate),
+                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).fast[amount] =
                 Format.satoshisToAmount(
-                    await manager.estimateFeeFor(amount, feeRate));
+                    await manager.estimateFeeFor(amount, feeRate),
+                    coin: coin);
           }
         }
         return ref.read(feeSheetSessionCacheProvider).fast[amount]!;
@@ -74,16 +86,27 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+          if (coin == Coin.monero || coin == Coin.wownero) {
+            final fee = await manager.estimateFeeFor(
+                amount, MoneroTransactionPriority.regular.raw!);
+            ref.read(feeSheetSessionCacheProvider).average[amount] =
+                Format.satoshisToAmount(
+              fee,
+              coin: coin,
+            );
+          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
               ref.read(publicPrivateBalanceStateProvider.state).state !=
                   "Private") {
             ref.read(feeSheetSessionCacheProvider).average[amount] =
-                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate));
+                Format.satoshisToAmount(
+                    await (manager.wallet as FiroWallet)
+                        .estimateFeeForPublic(amount, feeRate),
+                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).average[amount] =
                 Format.satoshisToAmount(
-                    await manager.estimateFeeFor(amount, feeRate));
+                    await manager.estimateFeeFor(amount, feeRate),
+                    coin: coin);
           }
         }
         return ref.read(feeSheetSessionCacheProvider).average[amount]!;
@@ -93,44 +116,30 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+          if (coin == Coin.monero || coin == Coin.wownero) {
+            final fee = await manager.estimateFeeFor(
+                amount, MoneroTransactionPriority.slow.raw!);
+            ref.read(feeSheetSessionCacheProvider).slow[amount] =
+                Format.satoshisToAmount(
+              fee,
+              coin: coin,
+            );
+          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
               ref.read(publicPrivateBalanceStateProvider.state).state !=
                   "Private") {
             ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate));
+                Format.satoshisToAmount(
+                    await (manager.wallet as FiroWallet)
+                        .estimateFeeForPublic(amount, feeRate),
+                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).slow[amount] =
                 Format.satoshisToAmount(
-                    await manager.estimateFeeFor(amount, feeRate));
+                    await manager.estimateFeeFor(amount, feeRate),
+                    coin: coin);
           }
         }
         return ref.read(feeSheetSessionCacheProvider).slow[amount]!;
-    }
-  }
-
-  String estimatedTimeToBeIncludedInNextBlock(
-      int targetBlockTime, int estimatedNumberOfBlocks) {
-    int time = targetBlockTime * estimatedNumberOfBlocks;
-
-    int hours = (time / 3600).floor();
-    if (hours > 1) {
-      return "~$hours hours";
-    } else if (hours == 1) {
-      return "~$hours hour";
-    }
-
-    // less than an hour
-
-    final string = (time / 60).toStringAsFixed(1);
-
-    if (string == "1.0") {
-      return "~1 minute";
-    } else {
-      if (string.endsWith(".0")) {
-        return "~${(time / 60).floor()} minutes";
-      }
-      return "~$string minutes";
     }
   }
 
@@ -307,7 +316,7 @@ class FeeDropDownChild extends ConsumerWidget {
       return FutureBuilder(
         future: feeFor(
           coin: manager.coin,
-          feeRateType: FeeRateType.fast,
+          feeRateType: feeRateType,
           feeRate: feeRateType == FeeRateType.fast
               ? feeObject!.fast
               : feeRateType == FeeRateType.slow
@@ -315,6 +324,7 @@ class FeeDropDownChild extends ConsumerWidget {
                   : feeObject!.medium,
           amount: Format.decimalAmountToSatoshis(
             ref.watch(sendAmountProvider.state).state,
+            manager.coin,
           ),
         ),
         builder: (_, AsyncSnapshot<Decimal> snapshot) {

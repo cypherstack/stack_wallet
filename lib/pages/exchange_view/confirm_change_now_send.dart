@@ -342,6 +342,9 @@ class _ConfirmChangeNowSendViewState
                                 localeServiceChangeNotifierProvider
                                     .select((value) => value.locale),
                               ),
+                              ref.watch(
+                                managerProvider.select((value) => value.coin),
+                              ),
                             )} ${ref.watch(
                                   managerProvider.select((value) => value.coin),
                                 ).ticker}",
@@ -381,6 +384,9 @@ class _ConfirmChangeNowSendViewState
                               ref.watch(
                                 localeServiceChangeNotifierProvider
                                     .select((value) => value.locale),
+                              ),
+                              ref.watch(
+                                managerProvider.select((value) => value.coin),
                               ),
                             )} ${ref.watch(
                                   managerProvider.select((value) => value.coin),
@@ -563,13 +569,12 @@ class _ConfirmChangeNowSendViewState
                       ],
                     ),
                     child: Text(
-                      "${Format.satoshiAmountToPrettyString(
-                        transactionInfo["recipientAmt"] as int,
-                        ref.watch(
-                          localeServiceChangeNotifierProvider
-                              .select((value) => value.locale),
-                        ),
-                      )} ${ref.watch(
+                      "${Format.satoshiAmountToPrettyString(transactionInfo["recipientAmt"] as int, ref.watch(
+                            localeServiceChangeNotifierProvider
+                                .select((value) => value.locale),
+                          ), ref.watch(
+                            managerProvider.select((value) => value.coin),
+                          ))} ${ref.watch(
                             managerProvider.select((value) => value.coin),
                           ).ticker}",
                       style: STextStyles.itemSubtitle12(context),
@@ -597,13 +602,12 @@ class _ConfirmChangeNowSendViewState
                     style: STextStyles.smallMed12(context),
                   ),
                   Text(
-                    "${Format.satoshiAmountToPrettyString(
-                      transactionInfo["fee"] as int,
-                      ref.watch(
-                        localeServiceChangeNotifierProvider
-                            .select((value) => value.locale),
-                      ),
-                    )} ${ref.watch(
+                    "${Format.satoshiAmountToPrettyString(transactionInfo["fee"] as int, ref.watch(
+                          localeServiceChangeNotifierProvider
+                              .select((value) => value.locale),
+                        ), ref.watch(
+                          managerProvider.select((value) => value.coin),
+                        ))} ${ref.watch(
                           managerProvider.select((value) => value.coin),
                         ).ticker}",
                     style: STextStyles.itemSubtitle12(context),
@@ -685,14 +689,12 @@ class _ConfirmChangeNowSendViewState
                       ),
                     ),
                     Text(
-                      "${Format.satoshiAmountToPrettyString(
-                        (transactionInfo["fee"] as int) +
-                            (transactionInfo["recipientAmt"] as int),
-                        ref.watch(
-                          localeServiceChangeNotifierProvider
-                              .select((value) => value.locale),
-                        ),
-                      )} ${ref.watch(
+                      "${Format.satoshiAmountToPrettyString((transactionInfo["fee"] as int) + (transactionInfo["recipientAmt"] as int), ref.watch(
+                            localeServiceChangeNotifierProvider
+                                .select((value) => value.locale),
+                          ), ref.watch(
+                            managerProvider.select((value) => value.coin),
+                          ))} ${ref.watch(
                             managerProvider.select((value) => value.coin),
                           ).ticker}",
                       style: STextStyles.itemSubtitle12(context).copyWith(
