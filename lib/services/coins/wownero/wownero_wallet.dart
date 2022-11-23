@@ -563,11 +563,11 @@ class WowneroWallet extends CoinServiceAPI {
   Future<String>? _currentReceivingAddress;
 
   Future<FeeObject> _getFees() async {
-    // TODO: not use hard coded values here
+    // TODO: not use random hard coded values here
     return FeeObject(
       numberOfBlocksFast: 10,
-      numberOfBlocksAverage: 10,
-      numberOfBlocksSlow: 10,
+      numberOfBlocksAverage: 15,
+      numberOfBlocksSlow: 20,
       fast: MoneroTransactionPriority.fast.raw!,
       medium: MoneroTransactionPriority.regular.raw!,
       slow: MoneroTransactionPriority.slow.raw!,
