@@ -203,7 +203,7 @@ class _ExchangeTextFieldState extends State<ExchangeTextField> {
                           width: 6,
                         ),
                         Text(
-                          widget.ticker ?? "-",
+                          widget.ticker?.toUpperCase() ?? "-",
                           style: STextStyles.smallMed14(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
