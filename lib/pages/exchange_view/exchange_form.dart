@@ -1281,28 +1281,30 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
               condition: isDesktop,
               builder: (child) => MouseRegion(
                 cursor: SystemMouseCursors.click,
-                child: RoundedContainer(
-                  padding: const EdgeInsets.all(6),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonBackSecondary,
-                  radiusMultiplier: 0.75,
-                  child: child,
-                ),
+                child: child,
               ),
-              child: GestureDetector(
-                onTap: () async {
-                  await _swap();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: SvgPicture.asset(
-                    Assets.svg.swap,
-                    width: 20,
-                    height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
+              child: RoundedContainer(
+                padding: isDesktop
+                    ? const EdgeInsets.all(6)
+                    : const EdgeInsets.all(2),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonBackSecondary,
+                radiusMultiplier: 0.75,
+                child: GestureDetector(
+                  onTap: () async {
+                    await _swap();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: SvgPicture.asset(
+                      Assets.svg.swap,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                 ),
               ),
@@ -1310,7 +1312,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           ],
         ),
         SizedBox(
-          height: isDesktop ? 10 : 4,
+          height: isDesktop ? 10 : 7,
         ),
         ExchangeTextField(
           focusNode: _receiveFocusNode,

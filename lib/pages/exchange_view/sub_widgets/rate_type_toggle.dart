@@ -55,7 +55,7 @@ class RateTypeToggle extends ConsumerWidget {
                 child: RoundedContainer(
                   padding: isDesktop
                       ? const EdgeInsets.all(17)
-                      : const EdgeInsets.all(0),
+                      : const EdgeInsets.all(12),
                   color: estimated
                       ? Theme.of(context)
                           .extension<StackColors>()!
@@ -136,7 +136,7 @@ class RateTypeToggle extends ConsumerWidget {
                 child: RoundedContainer(
                   padding: isDesktop
                       ? const EdgeInsets.all(17)
-                      : const EdgeInsets.all(0),
+                      : const EdgeInsets.all(12),
                   color: !estimated
                       ? Theme.of(context)
                           .extension<StackColors>()!
