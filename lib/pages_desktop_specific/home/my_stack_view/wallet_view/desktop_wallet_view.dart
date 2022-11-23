@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/delete_wallet_button.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/my_wallet.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/network_info_button.dart';
@@ -15,6 +17,7 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_vie
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
@@ -27,8 +30,11 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/hover_text_field.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -158,6 +164,116 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
               walletId,
               coin,
               _loadCNData,
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> attemptAnonymize() async {
+    final managerProvider =
+        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+
+    bool shouldPop = false;
+    unawaited(
+      showDialog(
+        context: context,
+        builder: (context) => WillPopScope(
+          child: const CustomLoadingOverlay(
+            message: "Anonymizing balance",
+            eventBus: null,
+          ),
+          onWillPop: () async => shouldPop,
+        ),
+      ),
+    );
+    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
+
+    final publicBalance = await firoWallet.availablePublicBalance();
+    if (publicBalance <= Decimal.zero) {
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(DesktopWalletView.routeName),
+        );
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.info,
+            message: "No funds available to anonymize!",
+            context: context,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      await firoWallet.anonymizeAllPublicFunds();
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(DesktopWalletView.routeName),
+        );
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "Anonymize transaction submitted",
+            context: context,
+          ),
+        );
+      }
+    } catch (e) {
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(DesktopWalletView.routeName),
+        );
+        await showDialog<dynamic>(
+          context: context,
+          builder: (_) => DesktopDialog(
+            maxWidth: 400,
+            maxHeight: 300,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Anonymize all failed",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                  const Spacer(
+                    flex: 1,
+                  ),
+                  Text(
+                    "Reason: $e",
+                    style: STextStyles.desktopTextSmall(context),
+                  ),
+                  const Spacer(
+                    flex: 2,
+                  ),
+                  Row(
+                    children: [
+                      const Spacer(),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      Expanded(
+                        child: PrimaryButton(
+                          label: "Ok",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed:
+                              Navigator.of(context, rootNavigator: true).pop,
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
         );
@@ -298,6 +414,12 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     walletId: walletId,
                   ),
                   const SizedBox(
+                    width: 2,
+                  ),
+                  DeleteWalletButton(
+                    walletId: walletId,
+                  ),
+                  const SizedBox(
                     width: 12,
                   ),
                 ],
@@ -333,35 +455,96 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                         : WalletSyncStatus.synced,
                   ),
                   const Spacer(),
-                  SecondaryButton(
-                    width: 180,
-                    desktopMed: true,
-                    onPressed: () {
-                      _onExchangePressed(context);
-                    },
-                    label: "Exchange",
-                    icon: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackPrimary
-                            .withOpacity(0.2),
-                      ),
-                      child: Center(
-                        child: SvgPicture.asset(
-                          Assets.svg.arrowRotate2,
-                          width: 14,
-                          height: 14,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .buttonTextSecondary,
-                        ),
-                      ),
+                  if (coin == Coin.firo) const SizedBox(width: 10),
+                  if (coin == Coin.firo)
+                    SecondaryButton(
+                      width: 180,
+                      buttonHeight: ButtonHeight.l,
+                      label: "Anonymize funds",
+                      onPressed: () async {
+                        await showDialog<void>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => DesktopDialog(
+                            maxWidth: 500,
+                            maxHeight: 210,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 32, vertical: 20),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "Attention!",
+                                    style: STextStyles.desktopH2(context),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    "You're about to anonymize all of your public funds.",
+                                    style:
+                                        STextStyles.desktopTextSmall(context),
+                                  ),
+                                  const SizedBox(height: 32),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SecondaryButton(
+                                        width: 200,
+                                        buttonHeight: ButtonHeight.l,
+                                        label: "Cancel",
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      const SizedBox(width: 20),
+                                      PrimaryButton(
+                                        width: 200,
+                                        buttonHeight: ButtonHeight.l,
+                                        label: "Continue",
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+
+                                          unawaited(attemptAnonymize());
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
+                  // if (coin == Coin.firo) const SizedBox(width: 16),
+                  // SecondaryButton(
+                  //   width: 180,
+                  //   buttonHeight: ButtonHeight.l,
+                  //   onPressed: () {
+                  //     _onExchangePressed(context);
+                  //   },
+                  //   label: "Exchange",
+                  //   icon: Container(
+                  //     width: 24,
+                  //     height: 24,
+                  //     decoration: BoxDecoration(
+                  //       borderRadius: BorderRadius.circular(24),
+                  //       color: Theme.of(context)
+                  //           .extension<StackColors>()!
+                  //           .buttonBackPrimary
+                  //           .withOpacity(0.2),
+                  //     ),
+                  //     child: Center(
+                  //       child: SvgPicture.asset(
+                  //         Assets.svg.arrowRotate2,
+                  //         width: 14,
+                  //         height: 14,
+                  //         color: Theme.of(context)
+                  //             .extension<StackColors>()!
+                  //             .buttonTextSecondary,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),

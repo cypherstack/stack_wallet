@@ -238,7 +238,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: SecondaryButton(
                                     label: "Cancel",
-                                    desktopMed: true,
+                                    buttonHeight: ButtonHeight.l,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -251,7 +251,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: PrimaryButton(
                                     label: "Save",
-                                    desktopMed: true,
+                                    buttonHeight: ButtonHeight.l,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -494,6 +494,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         condition: isDesktop,
         builder: (child) => DesktopDialog(
           maxWidth: 580,
+          maxHeight: 500,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -561,7 +562,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   child: SecondaryButton(
                     label: "Test connection",
                     enabled: testConnectionEnabled,
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     onPressed: testConnectionEnabled
                         ? () async {
                             await _testConnection();
@@ -578,7 +579,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     child: PrimaryButton(
                       label: "Save",
                       enabled: saveEnabled,
-                      desktopMed: true,
+                      buttonHeight: ButtonHeight.l,
                       onPressed: saveEnabled ? attemptSave : null,
                     ),
                   ),
@@ -830,110 +831,100 @@ class _NodeFormState extends ConsumerState<NodeForm> {
         const SizedBox(
           height: 8,
         ),
-        Row(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
-                  key: const Key("addCustomNodeNodeAddressFieldKey"),
-                  readOnly: widget.readOnly,
-                  enabled: enableField(_hostController),
-                  controller: _hostController,
-                  focusNode: _hostFocusNode,
-                  style: STextStyles.field(context),
-                  decoration: standardInputDecoration(
-                    (widget.coin != Coin.monero &&
-                            widget.coin != Coin.wownero &&
-                            widget.coin != Coin.epicCash)
-                        ? "IP address"
-                        : "Url",
-                    _hostFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon:
-                        !widget.readOnly && _hostController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          _hostController.text = "";
-                                          _updateState();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
-                  ),
-                  onChanged: (newValue) {
-                    _updateState();
-                    setState(() {});
-                  },
-                ),
-              ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
+            key: const Key("addCustomNodeNodeAddressFieldKey"),
+            readOnly: widget.readOnly,
+            enabled: enableField(_hostController),
+            controller: _hostController,
+            focusNode: _hostFocusNode,
+            style: STextStyles.field(context),
+            decoration: standardInputDecoration(
+              (widget.coin != Coin.monero &&
+                      widget.coin != Coin.wownero &&
+                      widget.coin != Coin.epicCash)
+                  ? "IP address"
+                  : "Url",
+              _hostFocusNode,
+              context,
+            ).copyWith(
+              suffixIcon: !widget.readOnly && _hostController.text.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 0),
+                      child: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            TextFieldIconButton(
+                              child: const XIcon(),
+                              onTap: () async {
+                                _hostController.text = "";
+                                _updateState();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : null,
             ),
-            const SizedBox(
-              width: 12,
+            onChanged: (newValue) {
+              _updateState();
+              setState(() {});
+            },
+          ),
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
+            key: const Key("addCustomNodeNodePortFieldKey"),
+            readOnly: widget.readOnly,
+            enabled: enableField(_portController),
+            controller: _portController,
+            focusNode: _portFocusNode,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            keyboardType: TextInputType.number,
+            style: STextStyles.field(context),
+            decoration: standardInputDecoration(
+              "Port",
+              _portFocusNode,
+              context,
+            ).copyWith(
+              suffixIcon: !widget.readOnly && _portController.text.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 0),
+                      child: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            TextFieldIconButton(
+                              child: const XIcon(),
+                              onTap: () async {
+                                _portController.text = "";
+                                _updateState();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : null,
             ),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
-                  key: const Key("addCustomNodeNodePortFieldKey"),
-                  readOnly: widget.readOnly,
-                  enabled: enableField(_portController),
-                  controller: _portController,
-                  focusNode: _portFocusNode,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  keyboardType: TextInputType.number,
-                  style: STextStyles.field(context),
-                  decoration: standardInputDecoration(
-                    "Port",
-                    _portFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon:
-                        !widget.readOnly && _portController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          _portController.text = "";
-                                          _updateState();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
-                  ),
-                  onChanged: (newValue) {
-                    _updateState();
-                    setState(() {});
-                  },
-                ),
-              ),
-            ),
-          ],
+            onChanged: (newValue) {
+              _updateState();
+              setState(() {});
+            },
+          ),
         ),
         const SizedBox(
           height: 8,

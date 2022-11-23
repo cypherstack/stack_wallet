@@ -10,6 +10,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -291,7 +292,109 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
           ),
         ),
         const SizedBox(
-          width: 20,
+          width: 10,
+        ),
+        MaterialButton(
+          splashColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          padding: const EdgeInsets.all(0),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+          onPressed: () {
+            DB.instance.put<dynamic>(
+              boxName: DB.boxNameTheme,
+              key: "colorScheme",
+              value: ThemeType.oceanBreeze.name,
+            );
+            ref.read(colorThemeProvider.state).state =
+                StackColors.fromStackColorTheme(
+              OceanBreezeColors(),
+            );
+
+            setState(() {
+              _selectedTheme = "oceanBreeze";
+            });
+          },
+          child: SizedBox(
+            width: 200,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 2.5,
+                      color: _selectedTheme == "oceanBreeze"
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .infoItemIcons
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+                  child: SvgPicture.asset(
+                    Assets.svg.themeOcean,
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Radio(
+                        activeColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .radioButtonIconEnabled,
+                        value: "oceanBreeze",
+                        groupValue: _selectedTheme,
+                        onChanged: (newValue) {
+                          if (newValue is String && newValue == "oceanBreeze") {
+                            DB.instance.put<dynamic>(
+                              boxName: DB.boxNameTheme,
+                              key: "colorScheme",
+                              value: ThemeType.oceanBreeze.name,
+                            );
+                            ref.read(colorThemeProvider.state).state =
+                                StackColors.fromStackColorTheme(
+                              OceanBreezeColors(),
+                            );
+
+                            setState(() {
+                              _selectedTheme = "oceanBreeze";
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 14,
+                    ),
+                    Text(
+                      "Ocean Breeze",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 10,
         ),
         MaterialButton(
           splashColor: Colors.transparent,

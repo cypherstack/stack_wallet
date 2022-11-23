@@ -77,7 +77,7 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
             height: 40,
           ),
           SecondaryButton(
-            desktopMed: true,
+            buttonHeight: ButtonHeight.l,
             label: "Cancel",
             onPressed: () {
               onCancel.call();

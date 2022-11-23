@@ -16,6 +16,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 
 class UnlockWalletKeysDesktop extends ConsumerStatefulWidget {
@@ -201,11 +202,32 @@ class _UnlockWalletKeysDesktopState
                     enabled: continueEnabled,
                     onPressed: continueEnabled
                         ? () async {
+                            unawaited(
+                              showDialog(
+                                context: context,
+                                builder: (context) => Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: const [
+                                    LoadingIndicator(
+                                      width: 200,
+                                      height: 200,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+
+                            await Future<void>.delayed(
+                                const Duration(seconds: 1));
+
                             final verified = await ref
                                 .read(storageCryptoHandlerProvider)
                                 .verifyPassphrase(passwordController.text);
 
                             if (verified) {
+                              Navigator.of(context, rootNavigator: true).pop();
+
                               final words = await ref
                                   .read(walletsChangeNotifierProvider)
                                   .getManager(widget.walletId)
@@ -219,6 +241,11 @@ class _UnlockWalletKeysDesktopState
                                 );
                               }
                             } else {
+                              Navigator.of(context, rootNavigator: true).pop();
+
+                              await Future<void>.delayed(
+                                  const Duration(milliseconds: 300));
+
                               unawaited(
                                 showFloatingFlushBar(
                                   type: FlushBarType.warning,

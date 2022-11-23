@@ -61,6 +61,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
 
     if (verified) {
       if (pwNew != pwNewRepeat) {
+        await Future<void>.delayed(const Duration(seconds: 1));
+
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -77,6 +79,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                 );
 
         if (success) {
+          await Future<void>.delayed(const Duration(seconds: 1));
+
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.success,
@@ -86,6 +90,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
           );
           return true;
         } else {
+          await Future<void>.delayed(const Duration(seconds: 1));
+
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.warning,
@@ -97,6 +103,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
         }
       }
     } else {
+      await Future<void>.delayed(const Duration(seconds: 1));
+
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.warning,
@@ -485,7 +493,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                   const SizedBox(height: 20),
                                   PrimaryButton(
                                     width: 160,
-                                    desktopMed: true,
+                                    buttonHeight: ButtonHeight.l,
                                     enabled: shouldEnableSave,
                                     label: "Save changes",
                                     onPressed: () async {
@@ -503,7 +511,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                             )
                           : PrimaryButton(
                               width: 210,
-                              desktopMed: true,
+                              buttonHeight: ButtonHeight.m,
                               enabled: true,
                               label: "Set up new password",
                               onPressed: () {

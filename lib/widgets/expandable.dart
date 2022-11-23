@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 enum ExpandableState {
-  expanded,
   collapsed,
+  expanded,
 }
 
 class ExpandableController {
@@ -45,11 +45,11 @@ class _ExpandableState extends State<Expandable> with TickerProviderStateMixin {
   Future<void> toggle() async {
     if (animation.isDismissed) {
       await animationController.forward();
-      _toggleState = ExpandableState.collapsed;
+      _toggleState = ExpandableState.expanded;
       widget.onExpandChanged?.call(_toggleState);
     } else if (animation.isCompleted) {
       await animationController.reverse();
-      _toggleState = ExpandableState.expanded;
+      _toggleState = ExpandableState.collapsed;
       widget.onExpandChanged?.call(_toggleState);
     }
     controller?.state = _toggleState;

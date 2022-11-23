@@ -32,6 +32,11 @@ class SearchableCoinList extends ConsumerWidget {
     // remove firo testnet regardless
     _coins.remove(Coin.firoTestNet);
 
+    // Kidgloves for Wownero on desktop
+    if(isDesktop) {
+      _coins.remove(Coin.wownero);
+    }
+
     return _coins;
   }
 

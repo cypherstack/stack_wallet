@@ -469,7 +469,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                               ..._cachedTransactions.map(
                                 (e) => TransactionCard(
                                   key: Key(
-                                      "contactDetailsTransaction_${e.item2.txid}_cardKey"),
+                                      "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey"),
                                   transaction: e.item2,
                                   walletId: e.item1,
                                 ),
@@ -499,7 +499,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                               ..._cachedTransactions.map(
                                 (e) => TransactionCard(
                                   key: Key(
-                                      "contactDetailsTransaction_${e.item2.txid}_cardKey"),
+                                      "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey"),
                                   transaction: e.item2,
                                   walletId: e.item1,
                                 ),

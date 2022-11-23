@@ -70,7 +70,7 @@ void main() {
       await widgetTester.tap(find.byType(RawMaterialButton));
       expect(find.byType(ContactPopUp), findsOneWidget);
     } else if (Util.isDesktop) {
-      expect(find.byType(RawMaterialButton), findsOneWidget);
+      expect(find.byType(RawMaterialButton), findsNothing);
     }
   });
 }

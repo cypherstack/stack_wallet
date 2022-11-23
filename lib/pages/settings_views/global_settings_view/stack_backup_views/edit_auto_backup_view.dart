@@ -754,7 +754,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Cancel",
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     onPressed: Navigator.of(context).pop,
                   ),
                 ),
@@ -764,7 +764,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 Expanded(
                   child: PrimaryButton(
                     label: "Save",
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     enabled: shouldEnableCreate,
                     onPressed: onSavePressed,
                   ),

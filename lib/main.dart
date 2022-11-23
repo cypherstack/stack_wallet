@@ -57,6 +57,7 @@ import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
@@ -76,7 +77,7 @@ void main() async {
 
   if (Util.isDesktop) {
     setWindowTitle('Stack Wallet');
-    setWindowMinSize(const Size(1200, 1100));
+    setWindowMinSize(const Size(1220, 900));
     setWindowMaxSize(Size.infinite);
   }
 
@@ -301,6 +302,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       case "dark":
         themeType = ThemeType.dark;
         break;
+      case "oceanBreeze":
+        themeType = ThemeType.oceanBreeze;
+        break;
       case "light":
       default:
         themeType = ThemeType.light;
@@ -314,8 +318,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(colorThemeProvider.state).state =
-          StackColors.fromStackColorTheme(
-              themeType == ThemeType.dark ? DarkColors() : LightColors());
+          StackColors.fromStackColorTheme(themeType == ThemeType.dark
+              ? DarkColors()
+              : (themeType == ThemeType.light
+                  ? LightColors()
+                  : OceanBreezeColors()));
 
       if (Platform.isAndroid) {
         // fetch open file if it exists

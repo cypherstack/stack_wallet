@@ -37,6 +37,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     required this.transactionInfo,
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
+    this.isTradeTransaction = false,
   }) : super(key: key);
 
   static const String routeName = "/confirmTransactionView";
@@ -44,6 +45,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final Map<String, dynamic> transactionInfo;
   final String walletId;
   final String routeOnSuccessName;
+  final bool isTradeTransaction;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -148,7 +150,7 @@ class _ConfirmTransactionViewState
                         const Spacer(),
                         Expanded(
                           child: PrimaryButton(
-                            desktopMed: true,
+                            buttonHeight: ButtonHeight.l,
                             label: "Ok",
                             onPressed: Navigator.of(context).pop,
                           ),
@@ -780,7 +782,7 @@ class _ConfirmTransactionViewState
                   : const EdgeInsets.all(0),
               child: PrimaryButton(
                 label: "Send",
-                desktopMed: true,
+                buttonHeight: ButtonHeight.l,
                 onPressed: () async {
                   final dynamic unlocked;
 
@@ -833,8 +835,19 @@ class _ConfirmTransactionViewState
                     );
                   }
 
-                  if (unlocked is bool && unlocked && mounted) {
-                    unawaited(_attemptSend(context));
+                  if (mounted) {
+                    if (unlocked == true) {
+                      unawaited(_attemptSend(context));
+                    } else {
+                      unawaited(
+                        showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: Util.isDesktop
+                                ? "Invalid passphrase"
+                                : "Invalid PIN",
+                            context: context),
+                      );
+                    }
                   }
                 },
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
@@ -29,10 +30,11 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: MyStackView.routeName,
     ),
-    // Container(
-    //   // todo: exchange
-    //   color: Colors.green,
-    // ),
+    DesktopMenuItemId.exchange: const Navigator(
+      key: Key("desktopExchangeHomeKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: DesktopExchangeView.routeName,
+    ),
     DesktopMenuItemId.notifications: const Navigator(
       key: Key("desktopNotificationsHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,

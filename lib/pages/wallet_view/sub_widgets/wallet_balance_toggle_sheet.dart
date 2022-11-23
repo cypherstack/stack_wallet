@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 
 class WalletBalanceToggleSheet extends ConsumerWidget {
   const WalletBalanceToggleSheet({
@@ -153,7 +152,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                                       snapshot.hasData &&
                                       snapshot.data != null) {
                                     return Text(
-                                      "${snapshot.data!}",
+                                      "${snapshot.data!.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} ${coin.ticker}",
                                       style: STextStyles.itemSubtitle12(context)
                                           .copyWith(
                                         color: Theme.of(context)
@@ -195,7 +194,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                                       snapshot.hasData &&
                                       snapshot.data != null) {
                                     return Text(
-                                      "${snapshot.data!}",
+                                      "${snapshot.data!.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} ${coin.ticker}",
                                       style: STextStyles.itemSubtitle12(context)
                                           .copyWith(
                                         color: Theme.of(context)
@@ -287,7 +286,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                                       snapshot.hasData &&
                                       snapshot.data != null) {
                                     return Text(
-                                      "${snapshot.data!}",
+                                      "${snapshot.data!.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} ${coin.ticker}",
                                       style: STextStyles.itemSubtitle12(context)
                                           .copyWith(
                                         color: Theme.of(context)
@@ -329,7 +328,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                                       snapshot.hasData &&
                                       snapshot.data != null) {
                                     return Text(
-                                      "${snapshot.data!}",
+                                      "${snapshot.data!.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} ${coin.ticker}",
                                       style: STextStyles.itemSubtitle12(context)
                                           .copyWith(
                                         color: Theme.of(context)

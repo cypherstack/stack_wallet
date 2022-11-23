@@ -46,7 +46,7 @@ class NodeCard extends ConsumerStatefulWidget {
 class _NodeCardState extends ConsumerState<NodeCard> {
   String _status = "Disconnected";
   late final String nodeId;
-  bool _advancedIsExpanded = true;
+  bool _advancedIsExpanded = false;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
     final managers = ref
@@ -367,8 +367,8 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                 if (isDesktop)
                   SvgPicture.asset(
                     _advancedIsExpanded
-                        ? Assets.svg.chevronDown
-                        : Assets.svg.chevronUp,
+                        ? Assets.svg.chevronUp
+                        : Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
                     color: Theme.of(context)

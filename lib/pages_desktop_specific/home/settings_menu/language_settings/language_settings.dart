@@ -80,12 +80,12 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(
+                      padding: const EdgeInsets.all(
                         10,
                       ),
                       child: PrimaryButton(
-                        width: 210,
-                        desktopMed: true,
+                        width: 200,
+                        buttonHeight: ButtonHeight.m,
                         enabled: true,
                         label: "Change language",
                         onPressed: () {

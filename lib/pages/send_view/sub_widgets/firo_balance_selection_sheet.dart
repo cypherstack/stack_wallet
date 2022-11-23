@@ -161,7 +161,7 @@ class _FiroBalanceSelectionSheetState
                                           ConnectionState.done &&
                                       snapshot.hasData) {
                                     return Text(
-                                      "${snapshot.data!} ${manager.coin.ticker}",
+                                      "${snapshot.data!.toStringAsFixed(8)} ${manager.coin.ticker}",
                                       style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     );
@@ -251,7 +251,7 @@ class _FiroBalanceSelectionSheetState
                                           ConnectionState.done &&
                                       snapshot.hasData) {
                                     return Text(
-                                      "${snapshot.data!} ${manager.coin.ticker}",
+                                      "${snapshot.data!.toStringAsFixed(8)} ${manager.coin.ticker}",
                                       style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     );

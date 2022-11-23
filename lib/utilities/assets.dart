@@ -59,12 +59,14 @@ class _SVG {
   String txExchangeFailed(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
+  String get themeOcean => "assets/svg/ocean-breeze-theme.svg";
+  String get themeLight => "assets/svg/light-mode.svg";
+  String get themeDark => "assets/svg/dark-theme.svg";
+
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
   String get framedGear => "assets/svg/framed-gear.svg";
   String get framedAddressBook => "assets/svg/framed-address-book.svg";
-  String get themeLight => "assets/svg/light/light-mode.svg";
-  String get themeDark => "assets/svg/dark/dark-theme.svg";
   String get circleNode => "assets/svg/node-circle.svg";
   String get circleSun => "assets/svg/sun-circle.svg";
   String get circleArrowRotate => "assets/svg/rotate-circle.svg";
@@ -105,6 +107,7 @@ class _SVG {
   String get swap => "assets/svg/swap.svg";
   String get downloadFolder => "assets/svg/folder-down.svg";
   String get lock => "assets/svg/lock-keyhole.svg";
+  String get lockOpen => "assets/svg/lock-open.svg";
   String get network => "assets/svg/network-wired.svg";
   String get networkWired => "assets/svg/network-wired-2.svg";
   String get addressBook => "assets/svg/address-book.svg";
@@ -227,6 +230,9 @@ class _PNG {
   String get epicCash => "assets/images/epic-cash.png";
   String get bitcoincash => "assets/images/bitcoincash.png";
   String get namecoin => "assets/images/namecoin.png";
+
+  String get glasses => "assets/images/glasses.png";
+  String get glassesHidden => "assets/images/glasses-hidden.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {

@@ -59,7 +59,7 @@ class EnableBackupDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     label: "Cancel",
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -71,7 +71,7 @@ class EnableBackupDialog extends StatelessWidget {
                 ),
                 Expanded(
                   child: PrimaryButton(
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     label: "Continue",
                     onPressed: () {
                       Navigator.of(context).pop();

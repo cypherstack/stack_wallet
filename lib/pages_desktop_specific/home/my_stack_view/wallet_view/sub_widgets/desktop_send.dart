@@ -145,7 +145,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       right: 32,
                     ),
                     child: SecondaryButton(
-                      desktopMed: true,
+                      buttonHeight: ButtonHeight.l,
                       label: "Ok",
                       onPressed: () {
                         Navigator.of(context).pop();
@@ -232,7 +232,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       children: [
                         Expanded(
                           child: SecondaryButton(
-                            desktopMed: true,
+                            buttonHeight: ButtonHeight.l,
                             label: "Cancel",
                             onPressed: () {
                               Navigator.of(context).pop(false);
@@ -244,7 +244,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         ),
                         Expanded(
                           child: PrimaryButton(
-                            desktopMed: true,
+                            buttonHeight: ButtonHeight.l,
                             label: "Yes",
                             onPressed: () {
                               Navigator.of(context).pop(true);
@@ -399,7 +399,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         ),
                         child: Expanded(
                           child: SecondaryButton(
-                            desktopMed: true,
+                            buttonHeight: ButtonHeight.l,
                             label: "Yes",
                             onPressed: () {
                               Navigator.of(
@@ -1385,7 +1385,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           height: 36,
         ),
         PrimaryButton(
-          desktopMed: true,
+          buttonHeight: ButtonHeight.l,
           label: "Preview send",
           enabled: ref.watch(previewTxButtonStateProvider.state).state,
           onPressed: ref.watch(previewTxButtonStateProvider.state).state

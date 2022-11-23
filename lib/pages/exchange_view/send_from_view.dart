@@ -8,6 +8,7 @@ import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/confirm_change_now_send.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
@@ -19,9 +20,12 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -33,6 +37,8 @@ class SendFromView extends ConsumerStatefulWidget {
     required this.trade,
     required this.amount,
     required this.address,
+    this.shouldPopRoot = false,
+    this.fromDesktopStep4 = false,
   }) : super(key: key);
 
   static const String routeName = "/sendFrom";
@@ -41,6 +47,8 @@ class SendFromView extends ConsumerStatefulWidget {
   final Decimal amount;
   final String address;
   final Trade trade;
+  final bool shouldPopRoot;
+  final bool fromDesktopStep4;
 
   @override
   ConsumerState<SendFromView> createState() => _SendFromViewState();
@@ -90,21 +98,68 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
     final walletIds = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getWalletIdsFor(coin: coin)));
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+    final isDesktop = Util.isDesktop;
+
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) {
+        return Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Send from",
+              style: STextStyles.navBarTitle(context),
+            ),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: child,
+          ),
+        );
+      },
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) => DesktopDialog(
+          maxHeight: double.infinity,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 32,
+                    ),
+                    child: Text(
+                      "Send from Stack",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: Navigator.of(
+                      context,
+                      rootNavigator: widget.shouldPopRoot,
+                    ).pop,
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                ),
+                child: child,
+              ),
+            ],
+          ),
         ),
-        title: Text(
-          "Send from",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -112,15 +167,23 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
               children: [
                 Text(
                   "You need to send ${formatAmount(amount, coin)} ${coin.ticker}",
-                  style: STextStyles.itemSubtitle(context),
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.itemSubtitle(context),
                 ),
               ],
             ),
             const SizedBox(
               height: 16,
             ),
-            Expanded(
+            ConditionalParent(
+              condition: !isDesktop,
+              builder: (child) => Expanded(
+                child: child,
+              ),
               child: ListView.builder(
+                primary: isDesktop ? false : null,
+                shrinkWrap: isDesktop,
                 itemCount: walletIds.length,
                 itemBuilder: (context, index) {
                   return Padding(
@@ -130,6 +193,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
                       amount: amount,
                       address: address,
                       trade: trade,
+                      fromDesktopStep4: widget.fromDesktopStep4,
                     ),
                   );
                 },
@@ -149,12 +213,14 @@ class SendFromCard extends ConsumerStatefulWidget {
     required this.amount,
     required this.address,
     required this.trade,
+    this.fromDesktopStep4 = false,
   }) : super(key: key);
 
   final String walletId;
   final Decimal amount;
   final String address;
   final Trade trade;
+  final bool fromDesktopStep4;
 
   @override
   ConsumerState<SendFromCard> createState() => _SendFromCardState();
@@ -178,12 +244,23 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           useSafeArea: false,
           barrierDismissible: false,
           builder: (context) {
-            return BuildingTransactionDialog(
-              onCancel: () {
-                wasCancelled = true;
+            return ConditionalParent(
+              condition: Util.isDesktop,
+              builder: (child) => DesktopDialog(
+                maxWidth: 400,
+                maxHeight: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: child,
+                ),
+              ),
+              child: BuildingTransactionDialog(
+                onCancel: () {
+                  wasCancelled = true;
 
-                Navigator.of(context).pop();
-              },
+                  Navigator.of(context).pop();
+                },
+              ),
             );
           },
         ),
@@ -229,7 +306,10 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         // pop building dialog
 
         if (mounted) {
-          Navigator.of(context).pop();
+          Navigator.of(
+            context,
+            rootNavigator: Util.isDesktop,
+          ).pop();
         }
 
         txData["note"] =
@@ -243,9 +323,12 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               builder: (_) => ConfirmChangeNowSendView(
                 transactionInfo: txData,
                 walletId: walletId,
-                routeOnSuccessName: HomeView.routeName,
+                routeOnSuccessName: Util.isDesktop
+                    ? DesktopExchangeView.routeName
+                    : HomeView.routeName,
                 trade: trade,
                 shouldSendPublicFiroFunds: shouldSendPublicFiroFunds,
+                fromDesktopStep4: widget.fromDesktopStep4,
               ),
               settings: const RouteSettings(
                 name: ConfirmChangeNowSendView.routeName,
@@ -339,10 +422,16 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     Constants.size.circularBorderRadius,
                   ),
                 ),
-                onPressed: () => _send(
-                  manager,
-                  shouldSendPublicFiroFunds: false,
-                ),
+                onPressed: () async {
+                  if (mounted) {
+                    unawaited(
+                      _send(
+                        manager,
+                        shouldSendPublicFiroFunds: false,
+                      ),
+                    );
+                  }
+                },
                 child: Container(
                   color: Colors.transparent,
                   child: Padding(
@@ -418,10 +507,16 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     Constants.size.circularBorderRadius,
                   ),
                 ),
-                onPressed: () => _send(
-                  manager,
-                  shouldSendPublicFiroFunds: true,
-                ),
+                onPressed: () async {
+                  if (mounted) {
+                    unawaited(
+                      _send(
+                        manager,
+                        shouldSendPublicFiroFunds: true,
+                      ),
+                    );
+                  }
+                },
                 child: Container(
                   color: Colors.transparent,
                   child: Padding(
@@ -504,7 +599,13 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 Constants.size.circularBorderRadius,
               ),
             ),
-            onPressed: () => _send(manager),
+            onPressed: () async {
+              if (mounted) {
+                unawaited(
+                  _send(manager),
+                );
+              }
+            },
             child: child,
           ),
           child: Row(

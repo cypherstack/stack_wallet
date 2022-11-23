@@ -389,7 +389,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                       children: [
                         PrimaryButton(
                           width: 183,
-                          desktopMed: true,
+                          buttonHeight: ButtonHeight.m,
                           label: "Restore",
                           enabled: !(passwordController.text.isEmpty ||
                               fileLocationController.text.isEmpty),
@@ -566,7 +566,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                         ),
                         SecondaryButton(
                           width: 183,
-                          desktopMed: true,
+                          buttonHeight: ButtonHeight.m,
                           label: "Cancel",
                           onPressed: () {},
                         ),

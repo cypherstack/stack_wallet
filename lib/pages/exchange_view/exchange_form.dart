@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
@@ -18,19 +17,30 @@ import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_options.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_1.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_2.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/desktop/simple_desktop_dialog.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/textfields/exchange_textfield.dart';
 import 'package:tuple/tuple.dart';
 
 class ExchangeForm extends ConsumerStatefulWidget {
@@ -54,6 +64,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
   late final TextEditingController _sendController;
   late final TextEditingController _receiveController;
+  final isDesktop = Util.isDesktop;
   final FocusNode _sendFocusNode = FocusNode();
   final FocusNode _receiveFocusNode = FocusNode();
 
@@ -135,14 +146,27 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                     .read(exchangeFormStateProvider)
                     .updateMarket(market, true);
               } catch (e) {
-                unawaited(showDialog<dynamic>(
-                  context: context,
-                  builder: (_) => const StackDialog(
-                    title: "Fixed rate market error",
-                    message:
-                        "Could not find the specified fixed rate trade pair",
+                unawaited(
+                  showDialog<dynamic>(
+                    context: context,
+                    builder: (_) {
+                      if (isDesktop) {
+                        return const SimpleDesktopDialog(
+                          title: "Fixed rate market error",
+                          message:
+                              "Could not find the specified fixed rate trade pair",
+                        );
+                      } else {
+                        return const StackDialog(
+                          title: "Fixed rate market error",
+                          message:
+                              "Could not find the specified fixed rate trade pair",
+                        );
+                      }
+                    },
                   ),
-                ));
+                );
+
                 return;
               }
             },
@@ -225,14 +249,26 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                     .read(exchangeFormStateProvider)
                     .updateMarket(market, true);
               } catch (e) {
-                unawaited(showDialog<dynamic>(
-                  context: context,
-                  builder: (_) => const StackDialog(
-                    title: "Fixed rate market error",
-                    message:
-                        "Could not find the specified fixed rate trade pair",
+                unawaited(
+                  showDialog<dynamic>(
+                    context: context,
+                    builder: (_) {
+                      if (isDesktop) {
+                        return const SimpleDesktopDialog(
+                          title: "Fixed rate market error",
+                          message:
+                              "Could not find the specified fixed rate trade pair",
+                        );
+                      } else {
+                        return const StackDialog(
+                          title: "Fixed rate market error",
+                          message:
+                              "Could not find the specified fixed rate trade pair",
+                        );
+                      }
+                    },
                   ),
-                ));
+                );
                 return;
               }
             },
@@ -320,7 +356,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       await ref.read(exchangeFormStateProvider).swap();
     }
     if (mounted) {
-      Navigator.of(context).pop();
+      Navigator.of(context, rootNavigator: isDesktop).pop();
     }
     _swapLock = false;
   }
@@ -375,13 +411,65 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     }).toList(growable: false);
 
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute<dynamic>(
-        builder: (_) => FloatingRateCurrencySelectionView(
-          currencies: tickers,
-        ),
-      ),
-    );
+    final result = isDesktop
+        ? await showDialog<Currency?>(
+            context: context,
+            builder: (context) {
+              return DesktopDialog(
+                maxHeight: 700,
+                maxWidth: 580,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 32,
+                          ),
+                          child: Text(
+                            "Choose a coin to exchange",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          bottom: 32,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: RoundedWhiteContainer(
+                                padding: const EdgeInsets.all(16),
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
+                                child: FloatingRateCurrencySelectionView(
+                                  currencies: tickers,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            })
+        : await Navigator.of(context).push(
+            MaterialPageRoute<dynamic>(
+              builder: (_) => FloatingRateCurrencySelectionView(
+                currencies: tickers,
+              ),
+            ),
+          );
 
     if (mounted && result is Currency) {
       onSelected(result);
@@ -455,15 +543,73 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           .toList(growable: false);
     }
 
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute<dynamic>(
-        builder: (_) => FixedRateMarketPairCoinSelectionView(
-          markets: marketsThatPairWithExcludedTicker,
-          currencies: ref.read(availableChangeNowCurrenciesProvider).currencies,
-          isFrom: excludedTicker != fromTicker,
-        ),
-      ),
-    );
+    final result = isDesktop
+        ? await showDialog<String?>(
+            context: context,
+            builder: (context) {
+              return DesktopDialog(
+                maxHeight: 700,
+                maxWidth: 580,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 32,
+                          ),
+                          child: Text(
+                            "Choose a coin to exchange",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          bottom: 32,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: RoundedWhiteContainer(
+                                padding: const EdgeInsets.all(16),
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
+                                child: FixedRateMarketPairCoinSelectionView(
+                                  markets: marketsThatPairWithExcludedTicker,
+                                  currencies: ref
+                                      .read(
+                                          availableChangeNowCurrenciesProvider)
+                                      .currencies,
+                                  isFrom: excludedTicker != fromTicker,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            })
+        : await Navigator.of(context).push(
+            MaterialPageRoute<dynamic>(
+              builder: (_) => FixedRateMarketPairCoinSelectionView(
+                markets: marketsThatPairWithExcludedTicker,
+                currencies:
+                    ref.read(availableChangeNowCurrenciesProvider).currencies,
+                isFrom: excludedTicker != fromTicker,
+              ),
+            ),
+          );
 
     if (mounted && result is String) {
       onSelected(result);
@@ -563,14 +709,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                       ? "-"
                       : ref.read(exchangeFormStateProvider).toAmountString;
               if (mounted) {
-                Navigator.of(context).pop();
+                Navigator.of(context, rootNavigator: isDesktop).pop();
               }
               return;
             }
           }
         }
         if (mounted) {
-          Navigator.of(context).pop();
+          Navigator.of(context, rootNavigator: isDesktop).pop();
         }
         if (!(fromTicker == "-" || toTicker == "-")) {
           unawaited(
@@ -616,7 +762,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                     true,
                   );
               if (mounted) {
-                Navigator.of(context).pop();
+                Navigator.of(context, rootNavigator: isDesktop).pop();
               }
               return;
             case SimpleSwapExchange.exchangeName:
@@ -653,7 +799,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                           ? "-"
                           : ref.read(exchangeFormStateProvider).toAmountString;
                   if (mounted) {
-                    Navigator.of(context).pop();
+                    Navigator.of(context, rootNavigator: isDesktop).pop();
                   }
                   return;
                 }
@@ -665,7 +811,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           }
         }
         if (mounted) {
-          Navigator.of(context).pop();
+          Navigator.of(context, rootNavigator: isDesktop).pop();
         }
         unawaited(
           showFloatingFlushBar(
@@ -718,15 +864,27 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         }
 
         if (!isAvailable) {
-          unawaited(showDialog<dynamic>(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) => StackDialog(
-              title: "Selected trade pair unavailable",
-              message:
-                  "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
+          unawaited(
+            showDialog<dynamic>(
+              context: context,
+              barrierDismissible: true,
+              builder: (_) {
+                if (isDesktop) {
+                  return SimpleDesktopDialog(
+                    title: "Selected trade pair unavailable",
+                    message:
+                        "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
+                  );
+                } else {
+                  return StackDialog(
+                    title: "Selected trade pair unavailable",
+                    message:
+                        "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
+                  );
+                }
+              },
             ),
-          ));
+          );
           return;
         }
         rate =
@@ -740,37 +898,101 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           shouldCancel = await showDialog<bool?>(
             context: context,
             barrierDismissible: true,
-            builder: (_) => StackDialog(
-              title: "Failed to update trade estimate",
-              message:
-                  "${estimate.warningMessage!}\n\nDo you want to attempt trade anyways?",
-              leftButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context),
-                child: Text(
-                  "Cancel",
-                  style: STextStyles.itemSubtitle12(context),
-                ),
-                onPressed: () {
-                  // notify return to cancel
-                  Navigator.of(context).pop(true);
-                },
-              ),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
-                child: Text(
-                  "Attempt",
-                  style: STextStyles.button(context),
-                ),
-                onPressed: () {
-                  // continue and try to attempt trade
-                  Navigator.of(context).pop(false);
-                },
-              ),
-            ),
+            builder: (_) {
+              if (isDesktop) {
+                return DesktopDialog(
+                  maxWidth: 500,
+                  maxHeight: 300,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Failed to update trade estimate",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                          const DesktopDialogCloseButton(),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        estimate.warningMessage!,
+                        style: STextStyles.desktopTextSmall(context),
+                      ),
+                      const Spacer(),
+                      Text(
+                        "Do you want to attempt trade anyways?",
+                        style: STextStyles.desktopTextSmall(context),
+                      ),
+                      const Spacer(
+                        flex: 2,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              label: "Cancel",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () => Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).pop(true),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: PrimaryButton(
+                              label: "Attempt",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () => Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).pop(false),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                );
+              } else {
+                return StackDialog(
+                  title: "Failed to update trade estimate",
+                  message:
+                      "${estimate.warningMessage!}\n\nDo you want to attempt trade anyways?",
+                  leftButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonColor(context),
+                    child: Text(
+                      "Cancel",
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                    onPressed: () {
+                      // notify return to cancel
+                      Navigator.of(context).pop(true);
+                    },
+                  ),
+                  rightButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonColor(context),
+                    child: Text(
+                      "Attempt",
+                      style: STextStyles.button(context),
+                    ),
+                    onPressed: () {
+                      // continue and try to attempt trade
+                      Navigator.of(context).pop(false);
+                    },
+                  ),
+                );
+              }
+            },
           );
         }
 
@@ -799,20 +1021,61 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       if (walletInitiated) {
         ref.read(exchangeSendFromWalletIdStateProvider.state).state =
             Tuple2(walletId!, coin!);
-        unawaited(
-          Navigator.of(context).pushNamed(
-            Step2View.routeName,
-            arguments: model,
-          ),
-        );
+        if (isDesktop) {
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return DesktopDialog(
+                maxWidth: 720,
+                maxHeight: double.infinity,
+                child: StepScaffold(
+                  step: 2,
+                  model: model,
+                  body: DesktopStep2(
+                    model: model,
+                  ),
+                ),
+              );
+            },
+          );
+        } else {
+          unawaited(
+            Navigator.of(context).pushNamed(
+              Step2View.routeName,
+              arguments: model,
+            ),
+          );
+        }
       } else {
         ref.read(exchangeSendFromWalletIdStateProvider.state).state = null;
-        unawaited(
-          Navigator.of(context).pushNamed(
-            Step1View.routeName,
-            arguments: model,
-          ),
-        );
+
+        if (isDesktop) {
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return DesktopDialog(
+                maxWidth: 720,
+                maxHeight: double.infinity,
+                child: StepScaffold(
+                  step: 1,
+                  model: model,
+                  body: DesktopStep1(
+                    model: model,
+                  ),
+                ),
+              );
+            },
+          );
+        } else {
+          unawaited(
+            Navigator.of(context).pushNamed(
+              Step1View.routeName,
+              arguments: model,
+            ),
+          );
+        }
       }
     }
   }
@@ -960,220 +1223,106 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             color: Theme.of(context).extension<StackColors>()!.textDark3,
           ),
         ),
-        const SizedBox(
-          height: 4,
+        SizedBox(
+          height: isDesktop ? 10 : 4,
         ),
-        TextFormField(
-          style: STextStyles.smallMed14(context).copyWith(
+        ExchangeTextField(
+          controller: _sendController,
+          focusNode: _sendFocusNode,
+          textStyle: STextStyles.smallMed14(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
-          focusNode: _sendFocusNode,
-          controller: _sendController,
-          textAlign: TextAlign.right,
+          buttonColor:
+              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          borderRadius: Constants.size.circularBorderRadius,
+          background:
+              Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
           onTap: () {
             if (_sendController.text == "-") {
               _sendController.text = "";
             }
           },
           onChanged: sendFieldOnChanged,
-          keyboardType: const TextInputType.numberWithOptions(
-            signed: false,
-            decimal: true,
-          ),
-          inputFormatters: [
-            // regex to validate a crypto amount with 8 decimal places
-            TextInputFormatter.withFunction((oldValue, newValue) =>
-                RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                        .hasMatch(newValue.text)
-                    ? newValue
-                    : oldValue),
-          ],
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.only(
-              top: 12,
-              right: 12,
-            ),
-            hintText: "0",
-            hintStyle: STextStyles.fieldLabel(context).copyWith(
-              fontSize: 14,
-            ),
-            prefixIcon: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: GestureDetector(
-                onTap: selectSendCurrency,
-                child: Container(
-                  color: Colors.transparent,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Builder(
-                            builder: (context) {
-                              final image = _fetchIconUrlFromTicker(ref.watch(
-                                  exchangeFormStateProvider
-                                      .select((value) => value.fromTicker)));
-
-                              if (image != null && image.isNotEmpty) {
-                                return Center(
-                                  child: SvgPicture.network(
-                                    image,
-                                    height: 18,
-                                    placeholderBuilder: (_) => Container(
-                                      width: 18,
-                                      height: 18,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textFieldDefaultBG,
-                                        borderRadius: BorderRadius.circular(
-                                          18,
-                                        ),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          18,
-                                        ),
-                                        child: const LoadingIndicator(),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return Container(
-                                  width: 18,
-                                  height: 18,
-                                  decoration: BoxDecoration(
-                                    // color: Theme.of(context).extension<StackColors>()!.accentColorDark
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.circleQuestion,
-                                    width: 18,
-                                    height: 18,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldDefaultBG,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 6,
-                        ),
-                        Text(
-                          ref.watch(exchangeFormStateProvider.select((value) =>
-                                  value.fromTicker?.toUpperCase())) ??
-                              "-",
-                          style: STextStyles.smallMed14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                        ),
-                        if (!isWalletCoin(coin, true))
-                          const SizedBox(
-                            width: 6,
-                          ),
-                        if (!isWalletCoin(coin, true))
-                          SvgPicture.asset(
-                            Assets.svg.chevronDown,
-                            width: 5,
-                            height: 2.5,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          onButtonTap: selectSendCurrency,
+          isWalletCoin: isWalletCoin(coin, true),
+          image: _fetchIconUrlFromTicker(ref.watch(
+              exchangeFormStateProvider.select((value) => value.fromTicker))),
+          ticker: ref.watch(
+              exchangeFormStateProvider.select((value) => value.fromTicker)),
         ),
-        const SizedBox(
-          height: 4,
+        SizedBox(
+          height: isDesktop ? 10 : 4,
         ),
-        Stack(
+        SizedBox(
+          height: isDesktop ? 10 : 4,
+        ),
+        if (ref
+                .watch(
+                    exchangeFormStateProvider.select((value) => value.warning))
+                .isNotEmpty &&
+            !ref.watch(
+                exchangeFormStateProvider.select((value) => value.reversed)))
+          Text(
+            ref.watch(
+                exchangeFormStateProvider.select((value) => value.warning)),
+            style: STextStyles.errorSmall(context),
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Positioned.fill(
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  "You will receive",
-                  style: STextStyles.itemSubtitle(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
-                  ),
+            Text(
+              "You will receive",
+              style: STextStyles.itemSubtitle(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+            ),
+            ConditionalParent(
+              condition: isDesktop,
+              builder: (child) => MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: RoundedContainer(
+                  padding: const EdgeInsets.all(6),
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonBackSecondary,
+                  radiusMultiplier: 0.75,
+                  child: child,
                 ),
               ),
-            ),
-            Center(
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 6,
+              child: GestureDetector(
+                onTap: () async {
+                  await _swap();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: SvgPicture.asset(
+                    Assets.svg.swap,
+                    width: 20,
+                    height: 20,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
-                  GestureDetector(
-                    onTap: () async {
-                      await _swap();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: SvgPicture.asset(
-                        Assets.svg.swap,
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 6,
-                  ),
-                ],
-              ),
-            ),
-            Positioned.fill(
-              child: Align(
-                alignment: ref.watch(exchangeFormStateProvider
-                        .select((value) => value.reversed))
-                    ? Alignment.bottomRight
-                    : Alignment.topRight,
-                child: Text(
-                  ref.watch(exchangeFormStateProvider
-                      .select((value) => value.warning)),
-                  style: STextStyles.errorSmall(context),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(
-          height: 4,
+        SizedBox(
+          height: isDesktop ? 10 : 4,
         ),
-        TextFormField(
-          style: STextStyles.smallMed14(context).copyWith(
-            color: Theme.of(context).extension<StackColors>()!.textDark,
-          ),
+        ExchangeTextField(
           focusNode: _receiveFocusNode,
           controller: _receiveController,
-          readOnly: ref.watch(prefsChangeNotifierProvider
-                      .select((value) => value.exchangeRateType)) ==
-                  ExchangeRateType.estimated ||
-              ref.watch(exchangeProvider).name ==
-                  SimpleSwapExchange.exchangeName,
+          textStyle: STextStyles.smallMed14(context).copyWith(
+            color: Theme.of(context).extension<StackColors>()!.textDark,
+          ),
+          buttonColor:
+              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          borderRadius: Constants.size.circularBorderRadius,
+          background:
+              Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
           onTap: () {
             if (!(ref.read(prefsChangeNotifierProvider).exchangeRateType ==
                     ExchangeRateType.estimated) &&
@@ -1182,138 +1331,39 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             }
           },
           onChanged: receiveFieldOnChanged,
-          textAlign: TextAlign.right,
-          keyboardType: const TextInputType.numberWithOptions(
-            signed: false,
-            decimal: true,
-          ),
-          inputFormatters: [
-            // regex to validate a crypto amount with 8 decimal places
-            TextInputFormatter.withFunction((oldValue, newValue) =>
-                RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                        .hasMatch(newValue.text)
-                    ? newValue
-                    : oldValue),
-          ],
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.only(
-              top: 12,
-              right: 12,
-            ),
-            hintText: "0",
-            hintStyle: STextStyles.fieldLabel(context).copyWith(
-              fontSize: 14,
-            ),
-            prefixIcon: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: GestureDetector(
-                onTap: selectReceiveCurrency,
-                child: Container(
-                  color: Colors.transparent,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Builder(
-                            builder: (context) {
-                              final image = _fetchIconUrlFromTicker(ref.watch(
-                                  exchangeFormStateProvider
-                                      .select((value) => value.toTicker)));
-
-                              if (image != null && image.isNotEmpty) {
-                                return Center(
-                                  child: SvgPicture.network(
-                                    image,
-                                    height: 18,
-                                    placeholderBuilder: (_) => Container(
-                                      width: 18,
-                                      height: 18,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textFieldDefaultBG,
-                                        borderRadius: BorderRadius.circular(18),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          18,
-                                        ),
-                                        child: const LoadingIndicator(),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return Container(
-                                  width: 18,
-                                  height: 18,
-                                  decoration: BoxDecoration(
-                                    // color: Theme.of(context).extension<StackColors>()!.accentColorDark
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.circleQuestion,
-                                    width: 18,
-                                    height: 18,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldDefaultBG,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 6,
-                        ),
-                        Text(
-                          ref.watch(exchangeFormStateProvider.select(
-                                  (value) => value.toTicker?.toUpperCase())) ??
-                              "-",
-                          style: STextStyles.smallMed14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                        ),
-                        if (!isWalletCoin(coin, false))
-                          const SizedBox(
-                            width: 6,
-                          ),
-                        if (!isWalletCoin(coin, false))
-                          SvgPicture.asset(
-                            Assets.svg.chevronDown,
-                            width: 5,
-                            height: 2.5,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          onButtonTap: selectReceiveCurrency,
+          isWalletCoin: isWalletCoin(coin, true),
+          image: _fetchIconUrlFromTicker(ref.watch(
+              exchangeFormStateProvider.select((value) => value.toTicker))),
+          ticker: ref.watch(
+              exchangeFormStateProvider.select((value) => value.toTicker)),
+          readOnly: ref.watch(prefsChangeNotifierProvider
+                      .select((value) => value.exchangeRateType)) ==
+                  ExchangeRateType.estimated ||
+              ref.watch(exchangeProvider).name ==
+                  SimpleSwapExchange.exchangeName,
         ),
-        const SizedBox(
-          height: 12,
+        if (ref
+                .watch(
+                    exchangeFormStateProvider.select((value) => value.warning))
+                .isNotEmpty &&
+            ref.watch(
+                exchangeFormStateProvider.select((value) => value.reversed)))
+          Text(
+            ref.watch(
+                exchangeFormStateProvider.select((value) => value.warning)),
+            style: STextStyles.errorSmall(context),
+          ),
+        SizedBox(
+          height: isDesktop ? 20 : 12,
         ),
         RateTypeToggle(
           onChanged: onRateTypeChanged,
         ),
         if (ref.read(exchangeFormStateProvider).fromAmount != null &&
             ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
-          const SizedBox(
-            height: 8,
+          SizedBox(
+            height: isDesktop ? 20 : 12,
           ),
         if (ref.read(exchangeFormStateProvider).fromAmount != null &&
             ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
@@ -1328,10 +1378,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             reversed: ref.watch(
                 exchangeFormStateProvider.select((value) => value.reversed)),
           ),
-        const SizedBox(
-          height: 12,
+        SizedBox(
+          height: isDesktop ? 20 : 12,
         ),
         PrimaryButton(
+          buttonHeight: isDesktop ? ButtonHeight.l : null,
           enabled: ref.watch(
               exchangeFormStateProvider.select((value) => value.canExchange)),
           onPressed: ref.watch(exchangeFormStateProvider

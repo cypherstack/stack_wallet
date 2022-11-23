@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -9,6 +11,9 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
+
+import '../../../../../notifications/show_flush_bar.dart';
+import '../../../../../widgets/loading_indicator.dart';
 
 class DesktopAuthSend extends ConsumerStatefulWidget {
   const DesktopAuthSend({Key? key}) : super(key: key);
@@ -142,7 +147,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
             Expanded(
               child: SecondaryButton(
                 label: "Cancel",
-                desktopMed: true,
+                buttonHeight: ButtonHeight.l,
                 onPressed: Navigator.of(context).pop,
               ),
             ),
@@ -153,14 +158,37 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
               child: PrimaryButton(
                 enabled: _confirmEnabled,
                 label: "Confirm",
-                desktopMed: true,
+                buttonHeight: ButtonHeight.l,
                 onPressed: () async {
-                  // TODO show spinner while verifying passphrase
+                  unawaited(
+                    showDialog<void>(
+                      context: context,
+                      builder: (context) => Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: const [
+                          LoadingIndicator(
+                            width: 200,
+                            height: 200,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+
+                  await Future<void>.delayed(const Duration(seconds: 1));
 
                   final passwordIsValid = await verifyPassphrase();
 
                   if (mounted) {
-                    Navigator.of(context).pop(passwordIsValid);
+                    Navigator.of(context).pop();
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop(passwordIsValid);
+                    await Future<void>.delayed(const Duration(
+                      milliseconds: 100,
+                    ));
                   }
                 },
               ),

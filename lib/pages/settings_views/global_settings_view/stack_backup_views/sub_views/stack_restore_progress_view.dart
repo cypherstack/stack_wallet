@@ -108,7 +108,7 @@ class _StackRestoreProgressViewState
     //     children: [
     //       SecondaryButton(
     //         width: 248,
-    //         desktopMed: true,
+    //          buttonHeight: ButtonHeight.l,
     //         enabled: true,
     //         label: "Keep restoring",
     //         onPressed: () {
@@ -118,7 +118,7 @@ class _StackRestoreProgressViewState
     //       const SizedBox(width: 16),
     //       PrimaryButton(
     //         width: 248,
-    //         desktopMed: true,
+    //          buttonHeight: ButtonHeight.l,
     //         enabled: true,
     //         label: "Cancel anyway",
     //         onPressed: () {
@@ -681,7 +681,7 @@ class _StackRestoreProgressViewState
                           _success
                               ? PrimaryButton(
                                   width: 248,
-                                  desktopMed: true,
+                                  buttonHeight: ButtonHeight.l,
                                   enabled: true,
                                   label: "Done",
                                   onPressed: () async {
@@ -690,7 +690,7 @@ class _StackRestoreProgressViewState
                                 )
                               : SecondaryButton(
                                   width: 248,
-                                  desktopMed: true,
+                                  buttonHeight: ButtonHeight.l,
                                   enabled: true,
                                   label: "Cancel restore process",
                                   onPressed: () async {

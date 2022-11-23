@@ -153,7 +153,7 @@ class WowneroWallet extends CoinServiceAPI {
     try {
       _height = (walletBase!.syncStatus as SyncingSyncStatus).height;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
 
     int blocksRemaining = -1;
@@ -162,7 +162,7 @@ class WowneroWallet extends CoinServiceAPI {
       blocksRemaining =
           (walletBase!.syncStatus as SyncingSyncStatus).blocksLeft;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
     int currentHeight = _height + blocksRemaining;
     if (_height == -1 || blocksRemaining == -1) {
@@ -186,8 +186,8 @@ class WowneroWallet extends CoinServiceAPI {
     try {
       if (walletBase!.syncStatus! is SyncedSyncStatus &&
           walletBase!.syncStatus!.progress() == 1.0) {
-        Logging.instance
-            .log("currentSyncingHeight lol", level: LogLevel.Warning);
+        // Logging.instance
+        //     .log("currentSyncingHeight lol", level: LogLevel.Warning);
         return getSyncingHeight();
       }
     } catch (e, s) {}
@@ -195,7 +195,7 @@ class WowneroWallet extends CoinServiceAPI {
     try {
       syncingHeight = (walletBase!.syncStatus as SyncingSyncStatus).height;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
     final cachedHeight =
         DB.instance.get<dynamic>(boxName: walletId, key: "storedSyncingHeight")
@@ -418,7 +418,7 @@ class WowneroWallet extends CoinServiceAPI {
       try {
         progress = (walletBase!.syncStatus!).progress();
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Warning);
+        // Logging.instance.log("$e $s", level: LogLevel.Warning);
       }
       await _fetchTransactionData();
 
@@ -863,7 +863,8 @@ class WowneroWallet extends CoinServiceAPI {
         await DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
     // Use new index to derive a new receiving address
     final newReceivingAddress = await _generateAddressForChain(0, curIndex);
-    Logging.instance.log("xmr address in init existing: $newReceivingAddress",
+    Logging.instance.log(
+        "wownero address in init existing: $newReceivingAddress",
         level: LogLevel.Info);
     _currentReceivingAddress = Future(() => newReceivingAddress);
   }

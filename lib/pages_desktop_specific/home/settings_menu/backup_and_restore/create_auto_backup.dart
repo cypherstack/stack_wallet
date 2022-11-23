@@ -556,7 +556,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Cancel",
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     onPressed: Navigator.of(context).pop,
                   ),
                 ),
@@ -565,7 +565,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                 ),
                 Expanded(
                   child: PrimaryButton(
-                    desktopMed: true,
+                    buttonHeight: ButtonHeight.l,
                     label: "Enable Auto Backup",
                     enabled: shouldEnableCreate,
                     onPressed: !shouldEnableCreate
@@ -792,7 +792,8 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                                   Expanded(
                                                     child: PrimaryButton(
                                                       label: "Ok",
-                                                      desktopMed: true,
+                                                      buttonHeight:
+                                                          ButtonHeight.l,
                                                       onPressed: () {
                                                         Navigator.of(context)
                                                             .pop();

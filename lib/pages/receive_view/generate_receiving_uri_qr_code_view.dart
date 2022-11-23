@@ -530,7 +530,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                       });
                     }
                   : onGeneratePressed,
-              desktopMed: true,
+              buttonHeight: ButtonHeight.l,
             ),
             if (isDesktop && didGenerate)
               Row(
@@ -586,7 +586,6 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                 if (!isDesktop)
                                   SecondaryButton(
                                     width: 170,
-                                    desktopMed: true,
                                     onPressed: () async {
                                       await _capturePng(false);
                                     },
@@ -606,7 +605,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                   ),
                                 PrimaryButton(
                                   width: 170,
-                                  desktopMed: true,
+                                  buttonHeight: ButtonHeight.l,
                                   onPressed: () async {
                                     // TODO: add save functionality instead of share
                                     // save works on linux at the moment

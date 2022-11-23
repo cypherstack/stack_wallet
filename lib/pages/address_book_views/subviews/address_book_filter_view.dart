@@ -38,7 +38,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
     } else {
       _coins = coins
           .toList(growable: false)
-          .getRange(0, coins.length - kTestNetCoinCount + 1)
+          .getRange(0, coins.length - kTestNetCoinCount)
           .toList(growable: false);
     }
     super.initState();
@@ -159,7 +159,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                   children: [
                     SecondaryButton(
                       width: 248,
-                      desktopMed: true,
+                      buttonHeight: ButtonHeight.l,
                       enabled: true,
                       label: "Cancel",
                       onPressed: () {
@@ -169,7 +169,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                     // const SizedBox(width: 16),
                     PrimaryButton(
                       width: 248,
-                      desktopMed: true,
+                      buttonHeight: ButtonHeight.l,
                       enabled: true,
                       label: "Apply",
                       onPressed: () {
