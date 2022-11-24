@@ -487,7 +487,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
                                         final amount =
                                             Format.decimalAmountToSatoshis(
-                                                model.sendAmount);
+                                                model.sendAmount, manager.coin);
                                         final address =
                                             model.trade!.payInAddress;
 

@@ -78,8 +78,8 @@ class _TransactionDetailsViewState
     walletId = widget.walletId;
 
     coin = widget.coin;
-    amount = Format.satoshisToAmount(_transaction.amount);
-    fee = Format.satoshisToAmount(_transaction.fees);
+    amount = Format.satoshisToAmount(_transaction.amount, coin: coin);
+    fee = Format.satoshisToAmount(_transaction.fees, coin: coin);
 
     if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
         _transaction.subType == "mint") {
@@ -418,21 +418,15 @@ class _TransactionDetailsViewState
                                       children: [
                                         SelectableText(
                                           "$amountPrefix${Format.localizedStringAsFixed(
-                                            value: coin == Coin.monero
-                                                ? (amount / 10000.toDecimal())
-                                                    .toDecimal()
-                                                : coin == Coin.wownero
-                                                    ? (amount /
-                                                            1000.toDecimal())
-                                                        .toDecimal()
-                                                    : amount,
+                                            value: amount,
                                             locale: ref.watch(
                                               localeServiceChangeNotifierProvider
                                                   .select(
                                                       (value) => value.locale),
                                             ),
                                             decimalPlaces:
-                                                Constants.decimalPlaces,
+                                                Constants.decimalPlacesForCoin(
+                                                    coin),
                                           )} ${coin.ticker}",
                                           style: isDesktop
                                               ? STextStyles
@@ -454,11 +448,21 @@ class _TransactionDetailsViewState
                                                 (value) =>
                                                     value.externalCalls)))
                                           SelectableText(
-                                            "$amountPrefix${Format.localizedStringAsFixed(value: (coin == Coin.monero ? (amount / 10000.toDecimal()).toDecimal() : coin == Coin.wownero ? (amount / 1000.toDecimal()).toDecimal() : amount) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
-                                                  localeServiceChangeNotifierProvider
-                                                      .select((value) =>
-                                                          value.locale),
-                                                ), decimalPlaces: 2)} ${ref.watch(
+                                            "$amountPrefix${Format.localizedStringAsFixed(
+                                              value: amount *
+                                                  ref.watch(
+                                                    priceAnd24hChangeNotifierProvider
+                                                        .select((value) => value
+                                                            .getPrice(coin)
+                                                            .item1),
+                                                  ),
+                                              locale: ref.watch(
+                                                localeServiceChangeNotifierProvider
+                                                    .select((value) =>
+                                                        value.locale),
+                                              ),
+                                              decimalPlaces: 2,
+                                            )} ${ref.watch(
                                               prefsChangeNotifierProvider
                                                   .select(
                                                 (value) => value.currency,
@@ -834,32 +838,22 @@ class _TransactionDetailsViewState
                               final feeString = showFeePending
                                   ? _transaction.confirmedStatus
                                       ? Format.localizedStringAsFixed(
-                                          value: coin == Coin.monero
-                                              ? (fee / 10000.toDecimal())
-                                                  .toDecimal()
-                                              : coin == Coin.wownero
-                                                  ? (fee / 1000.toDecimal())
-                                                      .toDecimal()
-                                                  : fee,
+                                          value: fee,
                                           locale: ref.watch(
                                               localeServiceChangeNotifierProvider
                                                   .select(
                                                       (value) => value.locale)),
                                           decimalPlaces:
-                                              Constants.decimalPlaces)
+                                              Constants.decimalPlacesForCoin(
+                                                  coin))
                                       : "Pending"
                                   : Format.localizedStringAsFixed(
-                                      value: coin == Coin.monero
-                                          ? (fee / 10000.toDecimal())
-                                              .toDecimal()
-                                          : coin == Coin.wownero
-                                              ? (fee / 1000.toDecimal())
-                                                  .toDecimal()
-                                              : fee,
+                                      value: fee,
                                       locale: ref.watch(
                                           localeServiceChangeNotifierProvider
                                               .select((value) => value.locale)),
-                                      decimalPlaces: Constants.decimalPlaces);
+                                      decimalPlaces:
+                                          Constants.decimalPlacesForCoin(coin));
 
                               return Row(
                                 mainAxisAlignment:

@@ -2,6 +2,7 @@ import 'package:dart_numerics/dart_numerics.dart';
 import 'package:decimal/decimal.dart';
 import 'package:hive/hive.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 part '../type_adaptors/transactions_model.g.dart';
 
@@ -220,14 +221,16 @@ class Transaction {
           (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       txType: json['txType'] as String,
       amount: (Decimal.parse(json["amount"].toString()) *
-              Decimal.fromInt(Constants.satsPerCoin))
+              Decimal.fromInt(Constants.satsPerCoin(Coin
+                  .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
           .toBigInt()
           .toInt(),
       aliens: [],
       worthNow: json['worthNow'] as String,
       worthAtBlockTimestamp: json['worthAtBlockTimestamp'] as String? ?? "0",
       fees: (Decimal.parse(json["fees"].toString()) *
-              Decimal.fromInt(Constants.satsPerCoin))
+              Decimal.fromInt(Constants.satsPerCoin(Coin
+                  .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
           .toBigInt()
           .toInt(),
       inputSize: json['inputSize'] as int? ?? 0,
@@ -386,7 +389,8 @@ class Output {
       scriptpubkeyType: json['scriptPubKey']['type'] as String?,
       scriptpubkeyAddress: address,
       value: (Decimal.parse(json["value"].toString()) *
-              Decimal.fromInt(Constants.satsPerCoin))
+              Decimal.fromInt(Constants.satsPerCoin(Coin
+                  .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
           .toBigInt()
           .toInt(),
     );

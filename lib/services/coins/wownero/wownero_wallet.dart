@@ -45,6 +45,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -534,8 +535,7 @@ class WowneroWallet extends CoinServiceAPI {
   @override
   Future<Decimal> get balanceMinusMaxFee async =>
       (await availableBalance) -
-      (Decimal.fromInt((await maxFee)) / Decimal.fromInt(Constants.satsPerCoin))
-          .toDecimal();
+      Format.satoshisToAmount(await maxFee, coin: Coin.wownero);
 
   @override
   Future<String> get currentReceivingAddress =>
@@ -563,13 +563,15 @@ class WowneroWallet extends CoinServiceAPI {
   Future<String>? _currentReceivingAddress;
 
   Future<FeeObject> _getFees() async {
+    // TODO: not use random hard coded values here
     return FeeObject(
-        numberOfBlocksFast: 10,
-        numberOfBlocksAverage: 10,
-        numberOfBlocksSlow: 10,
-        fast: 4,
-        medium: 2,
-        slow: 0);
+      numberOfBlocksFast: 10,
+      numberOfBlocksAverage: 15,
+      numberOfBlocksSlow: 20,
+      fast: MoneroTransactionPriority.fast.raw!,
+      medium: MoneroTransactionPriority.regular.raw!,
+      slow: MoneroTransactionPriority.slow.raw!,
+    );
   }
 
   @override
@@ -873,8 +875,9 @@ class WowneroWallet extends CoinServiceAPI {
   Future<int> get maxFee async {
     var bal = await availableBalance;
     var fee = walletBase!.calculateEstimatedFee(
-            wownero.getDefaultTransactionPriority(), bal.toBigInt().toInt()) ~/
-        10000;
+      wownero.getDefaultTransactionPriority(),
+      Format.decimalAmountToSatoshis(bal, coin),
+    );
 
     return fee;
   }
@@ -1446,13 +1449,13 @@ class WowneroWallet extends CoinServiceAPI {
     try {
       final feeRate = args?["feeRate"];
       if (feeRate is FeeRateType) {
-        MoneroTransactionPriority feePriority = MoneroTransactionPriority.slow;
+        MoneroTransactionPriority feePriority;
         switch (feeRate) {
           case FeeRateType.fast:
-            feePriority = MoneroTransactionPriority.fastest;
+            feePriority = MoneroTransactionPriority.fast;
             break;
           case FeeRateType.average:
-            feePriority = MoneroTransactionPriority.medium;
+            feePriority = MoneroTransactionPriority.regular;
             break;
           case FeeRateType.slow:
             feePriority = MoneroTransactionPriority.slow;
@@ -1465,15 +1468,14 @@ class WowneroWallet extends CoinServiceAPI {
           bool isSendAll = false;
           final balance = await availableBalance;
           final satInDecimal = ((Decimal.fromInt(satoshiAmount) /
-                      Decimal.fromInt(Constants.satsPerCoinWownero))
-                  .toDecimal() *
-              Decimal.fromInt(1000));
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
+              .toDecimal());
           if (satInDecimal == balance) {
             isSendAll = true;
           }
           Logging.instance
               .log("$toAddress $amount $args", level: LogLevel.Info);
-          String amountToSend = wowneroAmountToString(amount: amount * 1000);
+          String amountToSend = wowneroAmountToString(amount: amount);
           Logging.instance.log("$amount $amountToSend", level: LogLevel.Info);
 
           wownero_output.Output output = wownero_output.Output(walletBase!);
@@ -1495,10 +1497,8 @@ class WowneroWallet extends CoinServiceAPI {
 
         PendingWowneroTransaction pendingWowneroTransaction =
             await (awaitPendingTransaction!) as PendingWowneroTransaction;
-        int realfee = (Decimal.parse(pendingWowneroTransaction.feeFormatted) *
-                100000000.toDecimal())
-            .toBigInt()
-            .toInt();
+        int realfee = Format.decimalAmountToSatoshis(
+            Decimal.parse(pendingWowneroTransaction.feeFormatted), coin);
         debugPrint("fee? $realfee");
         Map<String, dynamic> txData = {
           "pendingWowneroTransaction": pendingWowneroTransaction,
@@ -1531,12 +1531,12 @@ class WowneroWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    MoneroTransactionPriority? priority;
+    MoneroTransactionPriority priority;
     FeeRateType feeRateType = FeeRateType.slow;
     switch (feeRate) {
       case 1:
         priority = MoneroTransactionPriority.regular;
-        feeRateType = FeeRateType.slow;
+        feeRateType = FeeRateType.average;
         break;
       case 2:
         priority = MoneroTransactionPriority.medium;
@@ -1544,7 +1544,7 @@ class WowneroWallet extends CoinServiceAPI {
         break;
       case 3:
         priority = MoneroTransactionPriority.fast;
-        feeRateType = FeeRateType.average;
+        feeRateType = FeeRateType.fast;
         break;
       case 4:
         priority = MoneroTransactionPriority.fastest;
@@ -1568,7 +1568,7 @@ class WowneroWallet extends CoinServiceAPI {
               args: {"feeRate": feeRateType}))['fee'];
           await Future.delayed(const Duration(milliseconds: 500));
         } catch (e, s) {
-          aprox = -9999999999999999;
+          aprox = walletBase!.calculateEstimatedFee(priority, satoshiAmount);
         }
       }
     });

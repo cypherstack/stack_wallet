@@ -7,8 +7,6 @@ import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_3_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/providers/exchange/exchange_flow_is_active_state_provider.dart';
-import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -20,6 +18,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -56,6 +55,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   late final FocusNode _toFocusNode;
   late final FocusNode _refundFocusNode;
+
+  bool enableNext = false;
 
   bool isStackCoin(String ticker) {
     try {
@@ -207,6 +208,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                         _toController.text = manager.walletName;
                                         model.recipientAddress = await manager
                                             .currentReceivingAddress;
+
+                                        setState(() {
+                                          enableNext = _toController
+                                                  .text.isNotEmpty &&
+                                              _refundController.text.isNotEmpty;
+                                        });
                                       }
                                     });
                                   } catch (e, s) {
@@ -275,7 +282,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 model.recipientAddress =
                                                     _toController.text;
 
-                                                setState(() {});
+                                                setState(() {
+                                                  enableNext = _toController
+                                                          .text.isNotEmpty &&
+                                                      _refundController
+                                                          .text.isNotEmpty;
+                                                });
                                               },
                                               child: const XIcon(),
                                             )
@@ -295,7 +307,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                   model.recipientAddress =
                                                       _toController.text;
 
-                                                  setState(() {});
+                                                  setState(() {
+                                                    enableNext = _toController
+                                                            .text.isNotEmpty &&
+                                                        _refundController
+                                                            .text.isNotEmpty;
+                                                  });
                                                 }
                                               },
                                               child: _toController.text.isEmpty
@@ -338,6 +355,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                             .state)
                                                     .state = "";
                                               }
+                                              setState(() {
+                                                enableNext = _toController
+                                                        .text.isNotEmpty &&
+                                                    _refundController
+                                                        .text.isNotEmpty;
+                                              });
                                             });
                                           },
                                           child: const AddressBookIcon(),
@@ -361,14 +384,24 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 model.recipientAddress =
                                                     _toController.text;
 
-                                                setState(() {});
+                                                setState(() {
+                                                  enableNext = _toController
+                                                          .text.isNotEmpty &&
+                                                      _refundController
+                                                          .text.isNotEmpty;
+                                                });
                                               } else {
                                                 _toController.text =
                                                     qrResult.rawContent;
                                                 model.recipientAddress =
                                                     _toController.text;
 
-                                                setState(() {});
+                                                setState(() {
+                                                  enableNext = _toController
+                                                          .text.isNotEmpty &&
+                                                      _refundController
+                                                          .text.isNotEmpty;
+                                                });
                                               }
                                             } on PlatformException catch (e, s) {
                                               Logging.instance.log(
@@ -429,6 +462,11 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                         model.refundAddress = await manager
                                             .currentReceivingAddress;
                                       }
+                                      setState(() {
+                                        enableNext = _toController
+                                                .text.isNotEmpty &&
+                                            _refundController.text.isNotEmpty;
+                                      });
                                     });
                                   } catch (e, s) {
                                     Logging.instance
@@ -495,7 +533,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 model.refundAddress =
                                                     _refundController.text;
 
-                                                setState(() {});
+                                                setState(() {
+                                                  enableNext = _toController
+                                                          .text.isNotEmpty &&
+                                                      _refundController
+                                                          .text.isNotEmpty;
+                                                });
                                               },
                                               child: const XIcon(),
                                             )
@@ -516,7 +559,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                   model.refundAddress =
                                                       _refundController.text;
 
-                                                  setState(() {});
+                                                  setState(() {
+                                                    enableNext = _toController
+                                                            .text.isNotEmpty &&
+                                                        _refundController
+                                                            .text.isNotEmpty;
+                                                  });
                                                 }
                                               },
                                               child:
@@ -555,6 +603,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 model.refundAddress =
                                                     _refundController.text;
                                               }
+                                              setState(() {
+                                                enableNext = _toController
+                                                        .text.isNotEmpty &&
+                                                    _refundController
+                                                        .text.isNotEmpty;
+                                              });
                                             });
                                           },
                                           child: const AddressBookIcon(),
@@ -578,14 +632,24 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 model.refundAddress =
                                                     _refundController.text;
 
-                                                setState(() {});
+                                                setState(() {
+                                                  enableNext = _toController
+                                                          .text.isNotEmpty &&
+                                                      _refundController
+                                                          .text.isNotEmpty;
+                                                });
                                               } else {
                                                 _refundController.text =
                                                     qrResult.rawContent;
                                                 model.refundAddress =
                                                     _refundController.text;
 
-                                                setState(() {});
+                                                setState(() {
+                                                  enableNext = _toController
+                                                          .text.isNotEmpty &&
+                                                      _refundController
+                                                          .text.isNotEmpty;
+                                                });
                                               }
                                             } on PlatformException catch (e, s) {
                                               Logging.instance.log(
@@ -637,20 +701,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               width: 16,
                             ),
                             Expanded(
-                              child: TextButton(
+                              child: PrimaryButton(
+                                label: "Next",
+                                enabled: enableNext,
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(
                                     Step3View.routeName,
                                     arguments: model,
                                   );
                                 },
-                                style: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .getPrimaryEnabledButtonColor(context),
-                                child: Text(
-                                  "Next",
-                                  style: STextStyles.button(context),
-                                ),
                               ),
                             ),
                           ],

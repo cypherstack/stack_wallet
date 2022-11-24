@@ -43,6 +43,58 @@ class _UnlockWalletKeysDesktopState
   bool continueEnabled = false;
   bool hidePassword = true;
 
+  Future<void> enterPassphrase() async {
+    unawaited(
+      showDialog(
+        context: context,
+        builder: (context) => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: const [
+            LoadingIndicator(
+              width: 200,
+              height: 200,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    final verified = await ref
+        .read(storageCryptoHandlerProvider)
+        .verifyPassphrase(passwordController.text);
+
+    if (verified) {
+      Navigator.of(context, rootNavigator: true).pop();
+
+      final words = await ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(widget.walletId)
+          .mnemonic;
+
+      if (mounted) {
+        await Navigator.of(context).pushReplacementNamed(
+          WalletKeysDesktopPopup.routeName,
+          arguments: words,
+        );
+      }
+    } else {
+      Navigator.of(context, rootNavigator: true).pop();
+
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Invalid passphrase!",
+          context: context,
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     passwordController = TextEditingController();
@@ -120,6 +172,12 @@ class _UnlockWalletKeysDesktopState
                 obscureText: hidePassword,
                 enableSuggestions: false,
                 autocorrect: false,
+                autofocus: true,
+                onSubmitted: (_) {
+                  if (continueEnabled) {
+                    enterPassphrase();
+                  }
+                },
                 decoration: standardInputDecoration(
                   "Enter password",
                   passwordFocusNode,

@@ -170,19 +170,21 @@ class BitcoinCashWallet extends CoinServiceAPI {
   Future<Decimal> get availableBalance async {
     final data = await utxoData;
     return Format.satoshisToAmount(
-        data.satoshiBalance - data.satoshiBalanceUnconfirmed);
+        data.satoshiBalance - data.satoshiBalanceUnconfirmed,
+        coin: coin);
   }
 
   @override
   Future<Decimal> get pendingBalance async {
     final data = await utxoData;
-    return Format.satoshisToAmount(data.satoshiBalanceUnconfirmed);
+    return Format.satoshisToAmount(data.satoshiBalanceUnconfirmed, coin: coin);
   }
 
   @override
   Future<Decimal> get balanceMinusMaxFee async =>
       (await availableBalance) -
-      (Decimal.fromInt((await maxFee)) / Decimal.fromInt(Constants.satsPerCoin))
+      (Decimal.fromInt((await maxFee)) /
+              Decimal.fromInt(Constants.satsPerCoin(coin)))
           .toDecimal();
 
   @override
@@ -192,13 +194,13 @@ class BitcoinCashWallet extends CoinServiceAPI {
           .get<dynamic>(boxName: walletId, key: 'totalBalance') as int?;
       if (totalBalance == null) {
         final data = await utxoData;
-        return Format.satoshisToAmount(data.satoshiBalance);
+        return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
       } else {
-        return Format.satoshisToAmount(totalBalance);
+        return Format.satoshisToAmount(totalBalance, coin: coin);
       }
     }
     final data = await utxoData;
-    return Format.satoshisToAmount(data.satoshiBalance);
+    return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
   }
 
   @override
@@ -232,8 +234,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
   @override
   Future<int> get maxFee async {
     final fee = (await fees).fast;
-    final satsFee =
-        Format.satoshisToAmount(fee) * Decimal.fromInt(Constants.satsPerCoin);
+    final satsFee = Format.satoshisToAmount(fee, coin: coin) *
+        Decimal.fromInt(Constants.satsPerCoin(coin));
     return satsFee.floor().toBigInt().toInt();
   }
 
@@ -988,7 +990,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
         }
         // check for send all
         bool isSendAll = false;
-        final balance = Format.decimalAmountToSatoshis(await availableBalance);
+        final balance =
+            Format.decimalAmountToSatoshis(await availableBalance, coin);
         if (satoshiAmount == balance) {
           isSendAll = true;
         }
@@ -1175,7 +1178,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toDecimal(scaleOnInfinitePrecision: 2),
         decimalPlaces: 2,
         locale: locale!);
@@ -1384,9 +1387,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Format.decimalAmountToSatoshis(fast),
-        medium: Format.decimalAmountToSatoshis(medium),
-        slow: Format.decimalAmountToSatoshis(slow),
+        fast: Format.decimalAmountToSatoshis(fast, coin),
+        medium: Format.decimalAmountToSatoshis(medium, coin),
+        slow: Format.decimalAmountToSatoshis(slow, coin),
       );
 
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
@@ -1791,7 +1794,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
           utxo["status"]["block_time"] = txn["blocktime"];
 
           final fiatValue = ((Decimal.fromInt(value) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2);
           utxo["rawWorth"] = fiatValue;
           utxo["fiatWorth"] = fiatValue.toString();
@@ -1801,15 +1804,16 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
       Decimal currencyBalanceRaw =
           ((Decimal.fromInt(satoshiBalance) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2);
 
       final Map<String, dynamic> result = {
         "total_user_currency": currencyBalanceRaw.toString(),
         "total_sats": satoshiBalance,
         "total_btc": (Decimal.fromInt(satoshiBalance) /
-                Decimal.fromInt(Constants.satsPerCoin))
-            .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces)
+                Decimal.fromInt(Constants.satsPerCoin(coin)))
+            .toDecimal(
+                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin))
             .toString(),
         "outputArray": outputArray,
         "unconfirmed": satoshiBalancePending,
@@ -2332,7 +2336,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
             if (prevOut == out["n"]) {
               inputAmtSentFromWallet +=
                   (Decimal.parse(out["value"].toString()) *
-                          Decimal.fromInt(Constants.satsPerCoin))
+                          Decimal.fromInt(Constants.satsPerCoin(coin)))
                       .toBigInt()
                       .toInt();
             }
@@ -2345,7 +2349,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
           final address = output["scriptPubKey"]["addresses"][0];
           final value = output["value"];
           final _value = (Decimal.parse(value.toString()) *
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toBigInt()
               .toInt();
           totalOutput += _value;
@@ -2370,7 +2374,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
           final address = output["scriptPubKey"]["addresses"][0];
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toBigInt()
                 .toInt();
             totalOut += value;
@@ -2394,7 +2398,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
           for (final out in tx["vout"] as List) {
             if (prevOut == out["n"]) {
               totalIn += (Decimal.parse(out["value"].toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin))
+                      Decimal.fromInt(Constants.satsPerCoin(coin)))
                   .toBigInt()
                   .toInt();
             }
@@ -2416,7 +2420,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
         midSortedTx["amount"] = inputAmtSentFromWallet;
         final String worthNow =
             ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toDecimal(scaleOnInfinitePrecision: 2)
                 .toStringAsFixed(2);
         midSortedTx["worthNow"] = worthNow;
@@ -2426,7 +2430,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
         midSortedTx["amount"] = outputAmtAddressedToWallet;
         final worthNow =
             ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toDecimal(scaleOnInfinitePrecision: 2)
                 .toStringAsFixed(2);
         midSortedTx["worthNow"] = worthNow;
@@ -3457,7 +3461,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final available = Format.decimalAmountToSatoshis(await availableBalance);
+    final available =
+        Format.decimalAmountToSatoshis(await availableBalance, coin);
 
     if (available == satoshiAmount) {
       return satoshiAmount - sweepAllEstimate(feeRate);

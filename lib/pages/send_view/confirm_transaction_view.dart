@@ -317,13 +317,12 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         Text(
-                          "${Format.satoshiAmountToPrettyString(
-                            transactionInfo["recipientAmt"] as int,
-                            ref.watch(
-                              localeServiceChangeNotifierProvider
-                                  .select((value) => value.locale),
-                            ),
-                          )} ${ref.watch(
+                          "${Format.satoshiAmountToPrettyString(transactionInfo["recipientAmt"] as int, ref.watch(
+                                localeServiceChangeNotifierProvider
+                                    .select((value) => value.locale),
+                              ), ref.watch(
+                                managerProvider.select((value) => value.coin),
+                              ))} ${ref.watch(
                                 managerProvider.select((value) => value.coin),
                               ).ticker}",
                           style: STextStyles.itemSubtitle12(context),
@@ -344,13 +343,12 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         Text(
-                          "${Format.satoshiAmountToPrettyString(
-                            transactionInfo["fee"] as int,
-                            ref.watch(
-                              localeServiceChangeNotifierProvider
-                                  .select((value) => value.locale),
-                            ),
-                          )} ${ref.watch(
+                          "${Format.satoshiAmountToPrettyString(transactionInfo["fee"] as int, ref.watch(
+                                localeServiceChangeNotifierProvider
+                                    .select((value) => value.locale),
+                              ), ref.watch(
+                                managerProvider.select((value) => value.coin),
+                              ))} ${ref.watch(
                                 managerProvider.select((value) => value.coin),
                               ).ticker}",
                           style: STextStyles.itemSubtitle12(context),
@@ -494,6 +492,7 @@ class _ConfirmTransactionViewState
                                           localeServiceChangeNotifierProvider
                                               .select((value) => value.locale),
                                         ),
+                                        coin,
                                       )} ${coin.ticker}",
                                       style: STextStyles
                                               .desktopTextExtraExtraSmall(
@@ -638,11 +637,7 @@ class _ConfirmTransactionViewState
                           value: fee,
                           locale: ref.watch(localeServiceChangeNotifierProvider
                               .select((value) => value.locale)),
-                          decimalPlaces: coin == Coin.monero
-                              ? Constants.decimalPlacesMonero
-                              : coin == Coin.wownero
-                                  ? Constants.decimalPlacesWownero
-                                  : Constants.decimalPlaces,
+                          decimalPlaces: Constants.decimalPlacesForCoin(coin),
                         )} ${coin.ticker}",
                         style: STextStyles.itemSubtitle(context),
                       );
@@ -750,6 +745,9 @@ class _ConfirmTransactionViewState
                           localeServiceChangeNotifierProvider
                               .select((value) => value.locale),
                         ),
+                        ref.watch(
+                          managerProvider.select((value) => value.coin),
+                        ),
                       )} ${ref.watch(
                             managerProvider.select((value) => value.coin),
                           ).ticker}",
@@ -782,7 +780,7 @@ class _ConfirmTransactionViewState
                   : const EdgeInsets.all(0),
               child: PrimaryButton(
                 label: "Send",
-                buttonHeight: ButtonHeight.l,
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   final dynamic unlocked;
 

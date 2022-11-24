@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,6 +31,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -40,8 +42,6 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import 'package:stackwallet/utilities/util.dart';
 
 class SendView extends ConsumerStatefulWidget {
   const SendView({
@@ -211,29 +211,47 @@ class _SendViewState extends ConsumerState<SendView> {
     }
 
     int fee;
+    if (coin == Coin.monero) {
+      MoneroTransactionPriority specialMoneroId;
+      switch (ref.read(feeRateTypeStateProvider.state).state) {
+        case FeeRateType.fast:
+          specialMoneroId = MoneroTransactionPriority.fast;
+          break;
+        case FeeRateType.average:
+          specialMoneroId = MoneroTransactionPriority.regular;
+          break;
+        case FeeRateType.slow:
+          specialMoneroId = MoneroTransactionPriority.slow;
+          break;
+      }
 
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      fee = await manager.estimateFeeFor(amount, specialMoneroId.raw!);
+      cachedFees[amount] = Format.satoshisToAmount(fee, coin: coin)
+          .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+
+      return cachedFees[amount]!;
+    } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
         fee = await manager.estimateFeeFor(amount, feeRate);
 
-        cachedFiroPrivateFees[amount] = Format.satoshisToAmount(fee)
-            .toStringAsFixed(Constants.decimalPlaces);
+        cachedFiroPrivateFees[amount] = Format.satoshisToAmount(fee, coin: coin)
+            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
 
         return cachedFiroPrivateFees[amount]!;
       } else {
         fee = await (manager.wallet as FiroWallet)
             .estimateFeeForPublic(amount, feeRate);
 
-        cachedFiroPublicFees[amount] = Format.satoshisToAmount(fee)
-            .toStringAsFixed(Constants.decimalPlaces);
+        cachedFiroPublicFees[amount] = Format.satoshisToAmount(fee, coin: coin)
+            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
 
         return cachedFiroPublicFees[amount]!;
       }
     } else {
       fee = await manager.estimateFeeFor(amount, feeRate);
-      cachedFees[amount] =
-          Format.satoshisToAmount(fee).toStringAsFixed(Constants.decimalPlaces);
+      cachedFees[amount] = Format.satoshisToAmount(fee, coin: coin)
+          .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
 
       return cachedFees[amount]!;
     }
@@ -296,8 +314,8 @@ class _SendViewState extends ConsumerState<SendView> {
           });
         } else {
           setState(() {
-            _calculateFeesFuture =
-                calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
+            _calculateFeesFuture = calculateFees(
+                Format.decimalAmountToSatoshis(_amountToSend!, coin));
           });
         }
       }
@@ -311,8 +329,8 @@ class _SendViewState extends ConsumerState<SendView> {
           });
         } else {
           setState(() {
-            _calculateFeesFuture =
-                calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
+            _calculateFeesFuture = calculateFees(
+                Format.decimalAmountToSatoshis(_amountToSend!, coin));
           });
         }
       }
@@ -354,8 +372,8 @@ class _SendViewState extends ConsumerState<SendView> {
           });
         } else {
           setState(() {
-            _calculateFeesFuture =
-                calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
+            _calculateFeesFuture = calculateFees(
+                Format.decimalAmountToSatoshis(_amountToSend!, coin));
           });
         }
       });
@@ -492,7 +510,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                         onTap: () {
                                           cryptoAmountController.text =
                                               _cachedBalance!.toStringAsFixed(
-                                                  Constants.decimalPlaces);
+                                                  Constants
+                                                      .decimalPlacesForCoin(
+                                                          coin));
                                         },
                                         child: Container(
                                           color: Colors.transparent,
@@ -781,8 +801,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         .read(
                                                             localeServiceChangeNotifierProvider)
                                                         .locale,
-                                                    decimalPlaces:
-                                                        Constants.decimalPlaces,
+                                                    decimalPlaces: Constants
+                                                        .decimalPlacesForCoin(
+                                                            coin),
                                                   );
                                                   amount.toString();
                                                   _amountToSend = amount;
@@ -1044,19 +1065,22 @@ class _SendViewState extends ConsumerState<SendView> {
                                         (await firoWallet
                                                 .availablePrivateBalance())
                                             .toStringAsFixed(
-                                                Constants.decimalPlaces);
+                                                Constants.decimalPlacesForCoin(
+                                                    coin));
                                   } else {
                                     cryptoAmountController.text =
                                         (await firoWallet
                                                 .availablePublicBalance())
                                             .toStringAsFixed(
-                                                Constants.decimalPlaces);
+                                                Constants.decimalPlacesForCoin(
+                                                    coin));
                                   }
                                 } else {
                                   cryptoAmountController.text = (await ref
                                           .read(provider)
                                           .availableBalance)
-                                      .toStringAsFixed(Constants.decimalPlaces);
+                                      .toStringAsFixed(
+                                          Constants.decimalPlacesForCoin(coin));
                                 }
                               },
                             ),
@@ -1167,7 +1191,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                       ? Decimal.zero
                                       : (baseAmount / _price).toDecimal(
                                           scaleOnInfinitePrecision:
-                                              Constants.decimalPlaces);
+                                              Constants.decimalPlacesForCoin(
+                                                  coin));
                                 }
                                 if (_cachedAmountToSend != null &&
                                     _cachedAmountToSend == _amountToSend) {
@@ -1184,7 +1209,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                   locale: ref
                                       .read(localeServiceChangeNotifierProvider)
                                       .locale,
-                                  decimalPlaces: Constants.decimalPlaces,
+                                  decimalPlaces:
+                                      Constants.decimalPlacesForCoin(coin),
                                 );
 
                                 _cryptoAmountChangeLock = true;
@@ -1506,7 +1532,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   }
 
                                   final amount = Format.decimalAmountToSatoshis(
-                                      _amountToSend!);
+                                      _amountToSend!, coin);
                                   int availableBalance;
                                   if ((coin == Coin.firo ||
                                       coin == Coin.firoTestNet)) {
@@ -1520,18 +1546,21 @@ class _SendViewState extends ConsumerState<SendView> {
                                           Format.decimalAmountToSatoshis(
                                               await (manager.wallet
                                                       as FiroWallet)
-                                                  .availablePrivateBalance());
+                                                  .availablePrivateBalance(),
+                                              coin);
                                     } else {
                                       availableBalance =
                                           Format.decimalAmountToSatoshis(
                                               await (manager.wallet
                                                       as FiroWallet)
-                                                  .availablePublicBalance());
+                                                  .availablePublicBalance(),
+                                              coin);
                                     }
                                   } else {
                                     availableBalance =
                                         Format.decimalAmountToSatoshis(
-                                            await manager.availableBalance);
+                                            await manager.availableBalance,
+                                            coin);
                                   }
 
                                   // confirm send all

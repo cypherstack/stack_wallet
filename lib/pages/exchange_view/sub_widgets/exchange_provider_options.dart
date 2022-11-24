@@ -159,6 +159,14 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                             .toDecimal(
                                                 scaleOnInfinitePrecision: 12);
                                       }
+                                      Coin coin;
+                                      try {
+                                        coin =
+                                            coinFromTickerCaseInsensitive(to!);
+                                      } catch (_) {
+                                        coin = Coin.bitcoin;
+                                      }
+
                                       return Text(
                                         "1 ${from!.toUpperCase()} ~ ${Format.localizedStringAsFixed(
                                           value: rate,
@@ -167,11 +175,9 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                                 .select(
                                                     (value) => value.locale),
                                           ),
-                                          decimalPlaces: to!.toUpperCase() ==
-                                                  Coin.monero.ticker
-                                                      .toUpperCase()
-                                              ? Constants.decimalPlacesMonero
-                                              : Constants.decimalPlaces,
+                                          decimalPlaces:
+                                              Constants.decimalPlacesForCoin(
+                                                  coin),
                                         )} ${to!.toUpperCase()}",
                                         style:
                                             STextStyles.itemSubtitle12(context)
@@ -354,6 +360,13 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                           .toDecimal(
                                               scaleOnInfinitePrecision: 12);
 
+                                      Coin coin;
+                                      try {
+                                        coin =
+                                            coinFromTickerCaseInsensitive(to!);
+                                      } catch (_) {
+                                        coin = Coin.bitcoin;
+                                      }
                                       return Text(
                                         "1 ${from!.toUpperCase()} ~ ${Format.localizedStringAsFixed(
                                           value: rate,
@@ -362,11 +375,9 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                                 .select(
                                                     (value) => value.locale),
                                           ),
-                                          decimalPlaces: to!.toUpperCase() ==
-                                                  Coin.monero.ticker
-                                                      .toUpperCase()
-                                              ? Constants.decimalPlacesMonero
-                                              : Constants.decimalPlaces,
+                                          decimalPlaces:
+                                              Constants.decimalPlacesForCoin(
+                                                  coin),
                                         )} ${to!.toUpperCase()}",
                                         style:
                                             STextStyles.itemSubtitle12(context)
