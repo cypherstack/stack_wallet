@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 part 'type_adaptors/node_model.g.dart';
@@ -84,7 +85,7 @@ class NodeModel {
     return map;
   }
 
-  bool get isDefault => id.startsWith("default_");
+  bool get isDefault => id.startsWith(DefaultNodes.defaultNodeIdPrefix);
 
   @override
   String toString() {

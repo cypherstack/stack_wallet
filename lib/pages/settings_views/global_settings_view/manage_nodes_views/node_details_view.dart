@@ -10,7 +10,6 @@ import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -178,6 +177,11 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
     final node = ref.watch(nodeServiceChangeNotifierProvider
         .select((value) => value.getNodeById(id: nodeId)));
 
+    final nodesForCoin = ref.watch(nodeServiceChangeNotifierProvider
+        .select((value) => value.getNodesFor(coin)));
+
+    final canDelete = nodesForCoin.length > 1;
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -201,44 +205,43 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
               style: STextStyles.navBarTitle(context),
             ),
             actions: [
-              if (!nodeId.startsWith("default"))
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
-                      size: 36,
-                      shadows: const [],
+              // if (!nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix))
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
+                    size: 36,
+                    shadows: const [],
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.pencil,
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .background,
-                      icon: SvgPicture.asset(
-                        Assets.svg.pencil,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                        width: 20,
-                        height: 20,
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          AddEditNodeView.routeName,
-                          arguments: Tuple4(
-                            AddEditNodeViewType.edit,
-                            coin,
-                            nodeId,
-                            popRouteName,
-                          ),
-                        );
-                      },
+                          .accentColorDark,
+                      width: 20,
+                      height: 20,
                     ),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        AddEditNodeView.routeName,
+                        arguments: Tuple4(
+                          AddEditNodeViewType.edit,
+                          coin,
+                          nodeId,
+                          popRouteName,
+                        ),
+                      );
+                    },
                   ),
                 ),
+              ),
             ],
           ),
           body: Padding(
@@ -315,7 +318,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
               const SizedBox(
                 height: 22,
               ),
-            if (isDesktop)
+            if (isDesktop && canDelete)
               SizedBox(
                 height: 56,
                 child: _desktopReadOnly
@@ -345,7 +348,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         ],
                       ),
               ),
-            if (isDesktop && !_desktopReadOnly)
+            if (isDesktop && !_desktopReadOnly && canDelete)
               const SizedBox(
                 height: 45,
               ),
@@ -366,22 +369,41 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                   ),
                 if (isDesktop)
                   Expanded(
-                    child: !nodeId.startsWith("default")
-                        ? PrimaryButton(
-                            label: _desktopReadOnly ? "Edit" : "Save",
-                            buttonHeight: ButtonHeight.l,
-                            onPressed: () async {
-                              final shouldSave = _desktopReadOnly == false;
-                              setState(() {
-                                _desktopReadOnly = !_desktopReadOnly;
-                              });
+                    child:
+                        // !nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix)
+                        //     ?
+                        PrimaryButton(
+                      label: _desktopReadOnly ? "Edit" : "Save",
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: () async {
+                        final shouldSave = _desktopReadOnly == false;
+                        setState(() {
+                          _desktopReadOnly = !_desktopReadOnly;
+                        });
 
-                              if (shouldSave) {
-                                // todo save node
-                              }
-                            },
-                          )
-                        : Container(),
+                        if (shouldSave) {
+                          final editedNode = node!.copyWith(
+                            host: ref.read(nodeFormDataProvider).host,
+                            port: ref.read(nodeFormDataProvider).port,
+                            name: ref.read(nodeFormDataProvider).name,
+                            useSSL: ref.read(nodeFormDataProvider).useSSL,
+                            loginName: ref.read(nodeFormDataProvider).login,
+                            isFailover:
+                                ref.read(nodeFormDataProvider).isFailover,
+                          );
+
+                          await ref
+                              .read(nodeServiceChangeNotifierProvider)
+                              .edit(
+                                editedNode,
+                                ref.read(nodeFormDataProvider).password,
+                                true,
+                              );
+                        }
+                      },
+                    )
+                    // : Container()
+                    ,
                   ),
               ],
             ),

@@ -432,7 +432,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               style: STextStyles.navBarTitle(context),
             ),
             actions: [
-              if (viewType == AddEditNodeViewType.edit)
+              if (viewType == AddEditNodeViewType.edit &&
+                  ref
+                          .watch(nodeServiceChangeNotifierProvider
+                              .select((value) => value.getNodesFor(coin)))
+                          .length >
+                      1)
                 Padding(
                   padding: const EdgeInsets.only(
                     top: 10,
