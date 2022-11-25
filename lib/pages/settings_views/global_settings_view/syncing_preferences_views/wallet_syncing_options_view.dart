@@ -12,6 +12,7 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/animated_text.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/conditional_parent.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/draggable_switch_button.dart';
@@ -31,30 +32,32 @@ class WalletSyncingOptionsView extends ConsumerWidget {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-              },
-            ),
-            title: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                "Sync only selected wallets at startup",
-                style: STextStyles.navBarTitle(context),
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                },
+              ),
+              title: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "Sync only selected wallets at startup",
+                  style: STextStyles.navBarTitle(context),
+                ),
               ),
             ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              left: 12,
-              top: 12,
-              right: 12,
+            body: Padding(
+              padding: const EdgeInsets.only(
+                left: 12,
+                top: 12,
+                right: 12,
+              ),
+              child: child,
             ),
-            child: child,
           ),
         );
       },

@@ -5,6 +5,7 @@ import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/unread_notifications_provider.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 
@@ -43,66 +44,68 @@ class _NotificationsViewState extends ConsumerState<NotificationsView> {
             .where((element) => element.walletId == widget.walletId)
             .toList(growable: false);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        title: Text(
-          "Notifications",
-          style: STextStyles.navBarTitle(context),
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          title: Text(
+            "Notifications",
+            style: STextStyles.navBarTitle(context),
+          ),
+          leading: AppBarBackButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+            },
+          ),
         ),
-        leading: AppBarBackButton(
-          onPressed: () async {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: notifications.isNotEmpty
-            ? Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: notifications.length,
-                      itemBuilder: (builderContext, index) {
-                        final notification = notifications[index];
-                        if (notification.read == false) {
-                          ref
-                              .read(unreadNotificationsStateProvider.state)
-                              .state
-                              .add(notification.id);
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: NotificationCard(
-                            notification: notifications[index],
-                          ),
-                        );
-                      },
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: notifications.isNotEmpty
+              ? Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: notifications.length,
+                        itemBuilder: (builderContext, index) {
+                          final notification = notifications[index];
+                          if (notification.read == false) {
+                            ref
+                                .read(unreadNotificationsStateProvider.state)
+                                .state
+                                .add(notification.id);
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: NotificationCard(
+                              notification: notifications[index],
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: RoundedWhiteContainer(
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            "Notifications will appear here",
-                            style: STextStyles.itemSubtitle(context),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: RoundedWhiteContainer(
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              "Notifications will appear here",
+                              style: STextStyles.itemSubtitle(context),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  )
-                ],
-              ),
+                    )
+                  ],
+                ),
+        ),
       ),
     );
   }

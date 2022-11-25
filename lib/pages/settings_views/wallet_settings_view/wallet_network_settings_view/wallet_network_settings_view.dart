@@ -20,6 +20,7 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/animated_text.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/conditional_parent.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
@@ -285,118 +286,122 @@ class _WalletNetworkSettingsViewState
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            title: Text(
-              "Network",
-              style: STextStyles.navBarTitle(context),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.verticalEllipsis,
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              title: Text(
+                "Network",
+                style: STextStyles.navBarTitle(context),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key(
+                          "walletNetworkSettingsAddNewNodeViewButton"),
+                      size: 36,
+                      shadows: const [],
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
-                    ),
-                    onPressed: () {
-                      showDialog<dynamic>(
-                        barrierColor: Colors.transparent,
-                        barrierDismissible: true,
-                        context: context,
-                        builder: (_) {
-                          return Stack(
-                            children: [
-                              Positioned(
-                                top: 9,
-                                right: 10,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .popupBG,
-                                    borderRadius: BorderRadius.circular(
-                                        Constants.size.circularBorderRadius),
-                                    // boxShadow: [CFColors.standardBoxShadow],
-                                    boxShadow: const [],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.of(context).pop();
-                                          showDialog<void>(
-                                            context: context,
-                                            useSafeArea: false,
-                                            barrierDismissible: true,
-                                            builder: (context) {
-                                              return ConfirmFullRescanDialog(
-                                                onConfirm: _attemptRescan,
-                                              );
-                                            },
-                                          );
-                                        },
-                                        child: RoundedWhiteContainer(
-                                          child: Material(
-                                            color: Colors.transparent,
-                                            child: Text(
-                                              "Rescan blockchain",
-                                              style:
-                                                  STextStyles.baseXS(context),
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.verticalEllipsis,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () {
+                        showDialog<dynamic>(
+                          barrierColor: Colors.transparent,
+                          barrierDismissible: true,
+                          context: context,
+                          builder: (_) {
+                            return Stack(
+                              children: [
+                                Positioned(
+                                  top: 9,
+                                  right: 10,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .popupBG,
+                                      borderRadius: BorderRadius.circular(
+                                          Constants.size.circularBorderRadius),
+                                      // boxShadow: [CFColors.standardBoxShadow],
+                                      boxShadow: const [],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            Navigator.of(context).pop();
+                                            showDialog<void>(
+                                              context: context,
+                                              useSafeArea: false,
+                                              barrierDismissible: true,
+                                              builder: (context) {
+                                                return ConfirmFullRescanDialog(
+                                                  onConfirm: _attemptRescan,
+                                                );
+                                              },
+                                            );
+                                          },
+                                          child: RoundedWhiteContainer(
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: Text(
+                                                "Rescan blockchain",
+                                                style:
+                                                    STextStyles.baseXS(context),
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          body: Padding(
-            padding: EdgeInsets.only(
-              top: 12,
-              left: _padding,
-              right: _padding,
+              ],
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  child,
-                ],
+            body: Padding(
+              padding: EdgeInsets.only(
+                top: 12,
+                left: _padding,
+                right: _padding,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    child,
+                  ],
+                ),
               ),
             ),
           ),

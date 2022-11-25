@@ -5,6 +5,7 @@ import 'package:epicmobile/pages/add_wallet_views/create_or_restore_wallet_view/
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
@@ -75,49 +76,53 @@ class CreateOrRestoreWalletView extends StatelessWidget {
         ),
       );
     } else {
-      return Scaffold(
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+      return Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
           ),
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(31),
-                  child: CoinImage(
+          body: Container(
+            color: Theme.of(context).extension<StackColors>()!.background,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(31),
+                    child: CoinImage(
+                      coin: coin,
+                      isDesktop: isDesktop,
+                    ),
+                  ),
+                  const Spacer(
+                    flex: 2,
+                  ),
+                  CreateRestoreWalletTitle(
                     coin: coin,
                     isDesktop: isDesktop,
                   ),
-                ),
-                const Spacer(
-                  flex: 2,
-                ),
-                CreateRestoreWalletTitle(
-                  coin: coin,
-                  isDesktop: isDesktop,
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                CreateRestoreWalletSubTitle(
-                  isDesktop: isDesktop,
-                ),
-                const Spacer(
-                  flex: 5,
-                ),
-                CreateWalletButtonGroup(
-                  coin: coin,
-                  isDesktop: isDesktop,
-                ),
-              ],
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  CreateRestoreWalletSubTitle(
+                    isDesktop: isDesktop,
+                  ),
+                  const Spacer(
+                    flex: 5,
+                  ),
+                  CreateWalletButtonGroup(
+                    coin: coin,
+                    isDesktop: isDesktop,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

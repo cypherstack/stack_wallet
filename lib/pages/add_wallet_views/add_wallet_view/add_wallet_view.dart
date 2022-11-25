@@ -8,6 +8,7 @@ import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
@@ -179,39 +180,41 @@ class _AddWalletViewState extends State<AddWalletView> {
         ),
       );
     } else {
-      return Scaffold(
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+      return Background(
+        child: Scaffold(
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
           ),
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const AddWalletText(
-                  isDesktop: false,
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Expanded(
-                  child: MobileCoinList(
-                    coins: coins,
+          body: Container(
+            color: Theme.of(context).extension<StackColors>()!.background,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const AddWalletText(
+                    isDesktop: false,
                   ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                const AddWalletNextButton(
-                  isDesktop: false,
-                ),
-              ],
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Expanded(
+                    child: MobileCoinList(
+                      coins: coins,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  const AddWalletNextButton(
+                    isDesktop: false,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

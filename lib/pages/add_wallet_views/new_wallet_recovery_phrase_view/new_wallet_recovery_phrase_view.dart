@@ -15,6 +15,7 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -90,44 +91,64 @@ class _NewWalletRecoveryPhraseViewState
       onWillPop: onWillPop,
       child: MasterScaffold(
         isDesktop: isDesktop,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              await delete();
-
-              if (mounted) {
-                Navigator.of(context).popUntil(
-                  ModalRoute.withName(
-                    NewWalletRecoveryPhraseWarningView.routeName,
-                  ),
-                );
-              }
-            },
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  shadows: const [],
-                  icon: SvgPicture.asset(
-                    Assets.svg.copy,
-                    width: 24,
-                    height: 24,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                  ),
+        appBar: isDesktop
+            ? DesktopAppBar(
+                isCompactHeight: false,
+                leading: AppBarBackButton(
                   onPressed: () async {
-                    await _copy();
+                    await delete();
+
+                    if (mounted) {
+                      Navigator.of(context).popUntil(
+                        ModalRoute.withName(
+                          NewWalletRecoveryPhraseWarningView.routeName,
+                        ),
+                      );
+                    }
+                    // Navigator.of(context).pop();
                   },
                 ),
+              )
+            : AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    await delete();
+
+                    if (mounted) {
+                      Navigator.of(context).popUntil(
+                        ModalRoute.withName(
+                          NewWalletRecoveryPhraseWarningView.routeName,
+                        ),
+                      );
+                    }
+                  },
+                ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                        shadows: const [],
+                        icon: SvgPicture.asset(
+                          Assets.svg.copy,
+                          width: 24,
+                          height: 24,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .topNavIconPrimary,
+                        ),
+                        onPressed: () async {
+                          await _copy();
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
         body: Container(
           color: Theme.of(context).extension<StackColors>()!.background,
           width: isDesktop ? 600 : null,

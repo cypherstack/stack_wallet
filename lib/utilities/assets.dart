@@ -1,4 +1,5 @@
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/theme/color_theme.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -28,6 +29,13 @@ class _EXCHANGE {
 
 class _SVG {
   const _SVG();
+  String? background(BuildContext context) {
+    switch (Theme.of(context).extension<StackColors>()!.themeType) {
+      case ThemeType.light:
+      case ThemeType.dark:
+        return null;
+    }
+  }
 
   String bellNew(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/bell-new.svg";
@@ -59,10 +67,14 @@ class _SVG {
   String txExchangeFailed(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
+  String get themeOcean => "assets/svg/ocean-breeze-theme.svg";
+  String get themeLight => "assets/svg/light-mode.svg";
+  String get themeDark => "assets/svg/dark-theme.svg";
+
+  String get circleSliders => "assets/svg/configuration.svg";
+  String get circlePlus => "assets/svg/plus-circle.svg";
   String get framedGear => "assets/svg/framed-gear.svg";
   String get framedAddressBook => "assets/svg/framed-address-book.svg";
-  String get themeLight => "assets/svg/light/light-mode.svg";
-  String get themeDark => "assets/svg/dark/dark-theme.svg";
   String get circleNode => "assets/svg/node-circle.svg";
   String get circleSun => "assets/svg/sun-circle.svg";
   String get circleArrowRotate => "assets/svg/rotate-circle.svg";
@@ -103,6 +115,7 @@ class _SVG {
   String get swap => "assets/svg/swap.svg";
   String get downloadFolder => "assets/svg/folder-down.svg";
   String get lock => "assets/svg/lock-keyhole.svg";
+  String get lockOpen => "assets/svg/lock-open.svg";
   String get network => "assets/svg/network-wired.svg";
   String get networkWired => "assets/svg/network-wired-2.svg";
   String get addressBook => "assets/svg/address-book.svg";

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/background.dart';
 
 class DesktopScaffold extends StatelessWidget {
   const DesktopScaffold({
@@ -18,15 +19,17 @@ class DesktopScaffold extends StatelessWidget {
     return Material(
       color:
           background ?? Theme.of(context).extension<StackColors>()!.background,
-      child: Column(
-        // crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (appBar != null) appBar!,
-          if (body != null)
-            Expanded(
-              child: body!,
-            ),
-        ],
+      child: Background(
+        child: Column(
+          // crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (appBar != null) appBar!,
+            if (body != null)
+              Expanded(
+                child: body!,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -50,17 +53,18 @@ class MasterScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isDesktop) {
       return DesktopScaffold(
-        background: background ??
-            Theme.of(context).extension<StackColors>()!.background,
+        background: background,
         appBar: appBar,
         body: body,
       );
     } else {
-      return Scaffold(
-        backgroundColor: background ??
-            Theme.of(context).extension<StackColors>()!.background,
-        appBar: appBar as PreferredSizeWidget?,
-        body: body,
+      return Background(
+        child: Scaffold(
+          backgroundColor: background ??
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: appBar as PreferredSizeWidget?,
+          body: body,
+        ),
       );
     }
   }

@@ -12,6 +12,7 @@ import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:flutter/material.dart';
@@ -116,177 +117,184 @@ class _HomeViewState extends ConsumerState<HomeView> {
     debugPrint("BUILD: $runtimeType");
     return WillPopScope(
       onWillPop: _onWillPop,
-      child: Scaffold(
-        key: _key,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Row(
-            children: [
-              GestureDetector(
-                onTap: _hiddenOptions,
-                child: SvgPicture.asset(
-                  Assets.svg.stackIcon(context),
-                  width: 24,
-                  height: 24,
-                ),
-              ),
-              const SizedBox(
-                width: 16,
-              ),
-              Text(
-                "My Stack",
-                style: STextStyles.navBarTitle(context),
-              )
-            ],
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("walletsViewAlertsButton"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    ref.watch(notificationsProvider
-                            .select((value) => value.hasUnreadNotifications))
-                        ? Assets.svg.bellNew(context)
-                        : Assets.svg.bell,
-                    width: 20,
-                    height: 20,
-                    color: ref.watch(notificationsProvider
-                            .select((value) => value.hasUnreadNotifications))
-                        ? null
-                        : Theme.of(context)
-                            .extension<StackColors>()!
-                            .topNavIconPrimary,
+      child: Background(
+        child: Scaffold(
+          key: _key,
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: Row(
+              children: [
+                GestureDetector(
+                  onTap: _hiddenOptions,
+                  child: SvgPicture.asset(
+                    Assets.svg.stackIcon(context),
+                    width: 24,
+                    height: 24,
                   ),
-                  onPressed: () {
-                    // reset unread state
-                    ref.refresh(unreadNotificationsStateProvider);
-
-                    Navigator.of(context)
-                        .pushNamed(NotificationsView.routeName)
-                        .then((_) {
-                      final Set<int> unreadNotificationIds = ref
-                          .read(unreadNotificationsStateProvider.state)
-                          .state;
-                      if (unreadNotificationIds.isEmpty) return;
-
-                      List<Future<void>> futures = [];
-                      for (int i = 0;
-                          i < unreadNotificationIds.length - 1;
-                          i++) {
-                        futures.add(ref.read(notificationsProvider).markAsRead(
-                            unreadNotificationIds.elementAt(i), false));
-                      }
-
-                      // wait for multiple to update if any
-                      Future.wait(futures).then((_) {
-                        // only notify listeners once
-                        ref
-                            .read(notificationsProvider)
-                            .markAsRead(unreadNotificationIds.last, true);
-                      });
-                    });
-                  },
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("walletsViewSettingsButton"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    Assets.svg.gear,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                    width: 20,
-                    height: 20,
-                  ),
-                  onPressed: () {
-                    debugPrint("main view settings tapped");
-                    Navigator.of(context)
-                        .pushNamed(GlobalSettingsView.routeName);
-                  },
+                const SizedBox(
+                  width: 16,
                 ),
-              ),
+                Text(
+                  "My Stack",
+                  style: STextStyles.navBarTitle(context),
+                )
+              ],
             ),
-          ],
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Column(
-            children: [
-              if (Constants.enableExchange)
-                Container(
-                  decoration: BoxDecoration(
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("walletsViewAlertsButton"),
+                    size: 36,
+                    shadows: const [],
                     color:
                         Theme.of(context).extension<StackColors>()!.background,
-                    boxShadow: [
-                      Theme.of(context)
-                          .extension<StackColors>()!
-                          .standardBoxShadow,
-                    ],
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      bottom: 12,
-                      right: 16,
-                      top: 0,
+                    icon: SvgPicture.asset(
+                      ref.watch(notificationsProvider
+                              .select((value) => value.hasUnreadNotifications))
+                          ? Assets.svg.bellNew(context)
+                          : Assets.svg.bell,
+                      width: 20,
+                      height: 20,
+                      color: ref.watch(notificationsProvider
+                              .select((value) => value.hasUnreadNotifications))
+                          ? null
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .topNavIconPrimary,
                     ),
-                    child: HomeViewButtonBar(),
-                  ),
-                ),
-              Expanded(
-                child: Consumer(
-                  builder: (_, _ref, __) {
-                    _ref.listen(homeViewPageIndexStateProvider,
-                        (previous, next) {
-                      if (next is int) {
-                        if (next >= 0 && next <= 1) {
-                          _pageController.animateToPage(
-                            next,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.decelerate,
-                          );
+                    onPressed: () {
+                      // reset unread state
+                      ref.refresh(unreadNotificationsStateProvider);
+
+                      Navigator.of(context)
+                          .pushNamed(NotificationsView.routeName)
+                          .then((_) {
+                        final Set<int> unreadNotificationIds = ref
+                            .read(unreadNotificationsStateProvider.state)
+                            .state;
+                        if (unreadNotificationIds.isEmpty) return;
+
+                        List<Future<void>> futures = [];
+                        for (int i = 0;
+                            i < unreadNotificationIds.length - 1;
+                            i++) {
+                          futures.add(ref
+                              .read(notificationsProvider)
+                              .markAsRead(
+                                  unreadNotificationIds.elementAt(i), false));
                         }
-                      }
-                    });
-                    return PageView(
-                      controller: _pageController,
-                      children: _children,
-                      onPageChanged: (pageIndex) {
-                        ref.read(homeViewPageIndexStateProvider.state).state =
-                            pageIndex;
-                      },
-                    );
-                  },
+
+                        // wait for multiple to update if any
+                        Future.wait(futures).then((_) {
+                          // only notify listeners once
+                          ref
+                              .read(notificationsProvider)
+                              .markAsRead(unreadNotificationIds.last, true);
+                        });
+                      });
+                    },
+                  ),
                 ),
               ),
-              // Expanded(
-              //   child: HomeStack(
-              //     children: _children,
-              //   ),
-              // ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("walletsViewSettingsButton"),
+                    size: 36,
+                    shadows: const [],
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.gear,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                      width: 20,
+                      height: 20,
+                    ),
+                    onPressed: () {
+                      debugPrint("main view settings tapped");
+                      Navigator.of(context)
+                          .pushNamed(GlobalSettingsView.routeName);
+                    },
+                  ),
+                ),
+              ),
             ],
+          ),
+          body: Container(
+            color: Theme.of(context).extension<StackColors>()!.background,
+            child: Column(
+              children: [
+                if (Constants.enableExchange)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      boxShadow: [
+                        Theme.of(context)
+                            .extension<StackColors>()!
+                            .standardBoxShadow,
+                      ],
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        bottom: 12,
+                        right: 16,
+                        top: 0,
+                      ),
+                      child: HomeViewButtonBar(),
+                    ),
+                  ),
+                Expanded(
+                  child: Consumer(
+                    builder: (_, _ref, __) {
+                      _ref.listen(homeViewPageIndexStateProvider,
+                          (previous, next) {
+                        if (next is int) {
+                          if (next >= 0 && next <= 1) {
+                            _pageController.animateToPage(
+                              next,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.decelerate,
+                            );
+                          }
+                        }
+                      });
+                      return PageView(
+                        controller: _pageController,
+                        children: _children,
+                        onPageChanged: (pageIndex) {
+                          ref.read(homeViewPageIndexStateProvider.state).state =
+                              pageIndex;
+                        },
+                      );
+                    },
+                  ),
+                ),
+                // Expanded(
+                //   child: HomeStack(
+                //     children: _children,
+                //   ),
+                // ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,16 +1,19 @@
-import 'dart:ui';
-
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:flutter/material.dart';
 
 enum ThemeType {
-  dark,
   light,
+  dark,
 }
 
 abstract class StackColorTheme {
   ThemeType get themeType;
 
   Color get background;
+  Color get backgroundAppBar;
+
+  Gradient? get gradientBackground;
+
   Color get overlay;
 
   Color get accentColorBlue;

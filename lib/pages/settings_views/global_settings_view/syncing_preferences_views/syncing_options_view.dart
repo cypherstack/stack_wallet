@@ -7,6 +7,7 @@ import 'package:epicmobile/utilities/enums/sync_type_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/conditional_parent.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
@@ -24,35 +25,37 @@ class SyncingOptionsView extends ConsumerWidget {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-              },
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                },
+              ),
+              title: Text(
+                "Syncing",
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
-            title: Text(
-              "Syncing",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: child,
+                      ),
                     ),
-                    child: IntrinsicHeight(
-                      child: child,
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         );

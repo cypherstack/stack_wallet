@@ -12,6 +12,7 @@ import 'package:epicmobile/utilities/test_epic_box_connection.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/conditional_parent.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/delete_button.dart';
@@ -115,85 +116,89 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          title: Text(
-            "Node details",
-            style: STextStyles.navBarTitle(context),
-          ),
-          actions: [
-            if (!nodeId.startsWith("default"))
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.pencil,
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Node details",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              if (!nodeId.startsWith("default"))
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
+                      size: 36,
+                      shadows: const [],
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.pencil,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          AddEditNodeView.routeName,
+                          arguments: Tuple4(
+                            AddEditNodeViewType.edit,
+                            coin,
+                            nodeId,
+                            popRouteName,
+                          ),
+                        );
+                      },
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        AddEditNodeView.routeName,
-                        arguments: Tuple4(
-                          AddEditNodeViewType.edit,
-                          coin,
-                          nodeId,
-                          popRouteName,
-                        ),
-                      );
-                    },
                   ),
                 ),
-              ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 12,
-            right: 12,
+            ],
           ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: ConstrainedBox(
-                    constraints:
-                        BoxConstraints(minHeight: constraints.maxHeight - 8),
-                    child: IntrinsicHeight(
-                      child: child,
+          body: Padding(
+            padding: const EdgeInsets.only(
+              top: 12,
+              left: 12,
+              right: 12,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight - 8),
+                      child: IntrinsicHeight(
+                        child: child,
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

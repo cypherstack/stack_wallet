@@ -10,6 +10,7 @@ import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
 import 'package:epicmobile/widgets/desktop/desktop_dialog_close_button.dart';
@@ -428,42 +429,46 @@ class _TransactionSearchViewState
         ),
       );
     } else {
-      return Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
+      return Background(
+        child: Scaffold(
           backgroundColor:
               Theme.of(context).extension<StackColors>()!.background,
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
+          appBar: AppBar(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Transactions filter",
+              style: STextStyles.navBarTitle(context),
+            ),
           ),
-          title: Text(
-            "Transactions filter",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
-        body: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Constants.size.standardPadding,
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: _buildContent(context),
+          body: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Constants.size.standardPadding,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: _buildContent(context),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       );
@@ -869,7 +874,6 @@ class _TransactionSearchViewState
             Expanded(
               child: SecondaryButton(
                 label: "Cancel",
-                desktopMed: isDesktop,
                 onPressed: () async {
                   if (!isDesktop) {
                     if (FocusScope.of(context).hasFocus) {
@@ -919,13 +923,29 @@ class _TransactionSearchViewState
             ),
             Expanded(
               child: PrimaryButton(
-                desktopMed: isDesktop,
                 onPressed: () async {
                   await _onApplyPressed();
                 },
                 label: "Save",
               ),
             ),
+            // Expanded(
+            //   child: SizedBox(
+            //     height: 48,
+            //     child: TextButton(
+            //       style: Theme.of(context)
+            //           .extension<StackColors>()!
+            //           .getPrimaryEnabledButtonColor(context),
+            //       onPressed: () async {
+            //         await _onApplyPressed();
+            //       },
+            //       child: Text(
+            //         "Save",
+            //         style: STextStyles.button(context),
+            //       ),
+            //     ),
+            //   ),
+            // ),
             if (isDesktop)
               const SizedBox(
                 width: 32,
@@ -950,10 +970,7 @@ class _TransactionSearchViewState
     }
     int? amount;
     if (amountDecimal != null) {
-      amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoin))
-          .floor()
-          .toBigInt()
-          .toInt();
+      amount = Format.decimalAmountToSatoshis(amountDecimal);
     }
 
     final TransactionFilter filter = TransactionFilter(

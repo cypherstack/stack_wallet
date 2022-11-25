@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/providers/global/base_currencies_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -8,16 +5,19 @@ import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/conditional_parent.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/rounded_container.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
-
-import '../../../widgets/rounded_white_container.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class BaseCurrencySettingsView extends ConsumerStatefulWidget {
   const BaseCurrencySettingsView({Key? key}) : super(key: key);
@@ -111,33 +111,36 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 75));
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+              title: Text(
+                "Currency",
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
-            title: Text(
-              "Currency",
-              style: STextStyles.navBarTitle(context),
+            body: Padding(
+              padding: const EdgeInsets.only(
+                top: 12,
+                left: 16,
+                right: 16,
+              ),
+              child: child,
             ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              top: 12,
-              left: 16,
-              right: 16,
-            ),
-            child: child,
           ),
         );
       },

@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/models/contact.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
@@ -14,6 +18,7 @@ import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:epicmobile/widgets/loading_indicator.dart';
@@ -21,10 +26,6 @@ import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:epicmobile/widgets/transaction_card.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 class ContactDetailsView extends ConsumerStatefulWidget {
@@ -104,335 +105,203 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
     final _contact = ref.watch(addressBookServiceProvider
         .select((value) => value.getContactById(_contactId)));
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: Text(
-          "Contact details",
-          style: STextStyles.navBarTitle(context),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 10,
-              bottom: 10,
-              right: 10,
-            ),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: AppBarIconButton(
-                key: const Key("contactDetails"),
-                size: 36,
-                shadows: const [],
-                color: Theme.of(context).extension<StackColors>()!.background,
-                icon: SvgPicture.asset(
-                  Assets.svg.star,
-                  color: _contact.isFavorite
-                      ? Theme.of(context)
-                          .extension<StackColors>()!
-                          .favoriteStarActive
-                      : Theme.of(context)
-                          .extension<StackColors>()!
-                          .favoriteStarInactive,
-                  width: 20,
-                  height: 20,
-                ),
-                onPressed: () {
-                  bool isFavorite = _contact.isFavorite;
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          title: Text(
+            "Contact details",
+            style: STextStyles.navBarTitle(context),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 10,
+                bottom: 10,
+                right: 10,
+              ),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: AppBarIconButton(
+                  key: const Key("contactDetails"),
+                  size: 36,
+                  shadows: const [],
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                  icon: SvgPicture.asset(
+                    Assets.svg.star,
+                    color: _contact.isFavorite
+                        ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .favoriteStarActive
+                        : Theme.of(context)
+                            .extension<StackColors>()!
+                            .favoriteStarInactive,
+                    width: 20,
+                    height: 20,
+                  ),
+                  onPressed: () {
+                    bool isFavorite = _contact.isFavorite;
 
-                  ref
-                      .read(addressBookServiceProvider)
-                      .editContact(_contact.copyWith(isFavorite: !isFavorite));
-                },
+                    ref.read(addressBookServiceProvider).editContact(
+                        _contact.copyWith(isFavorite: !isFavorite));
+                  },
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 10,
-              bottom: 10,
-              right: 10,
-            ),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: AppBarIconButton(
-                key: const Key("contactDetailsViewDeleteContactButtonKey"),
-                size: 36,
-                shadows: const [],
-                color: Theme.of(context).extension<StackColors>()!.background,
-                icon: SvgPicture.asset(
-                  Assets.svg.trash,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                  width: 20,
-                  height: 20,
-                ),
-                onPressed: () {
-                  showDialog<dynamic>(
-                    context: context,
-                    useSafeArea: true,
-                    barrierDismissible: true,
-                    builder: (_) => StackDialog(
-                      title: "Delete ${_contact.name}?",
-                      message: "Contact will be deleted permanently!",
-                      leftButton: TextButton(
-                        style: Theme.of(context)
-                            .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context),
-                        child: Text(
-                          "Cancel",
-                          style: STextStyles.itemSubtitle12(context),
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 10,
+                bottom: 10,
+                right: 10,
+              ),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: AppBarIconButton(
+                  key: const Key("contactDetailsViewDeleteContactButtonKey"),
+                  size: 36,
+                  shadows: const [],
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                  icon: SvgPicture.asset(
+                    Assets.svg.trash,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                    width: 20,
+                    height: 20,
+                  ),
+                  onPressed: () {
+                    showDialog<dynamic>(
+                      context: context,
+                      useSafeArea: true,
+                      barrierDismissible: true,
+                      builder: (_) => StackDialog(
+                        title: "Delete ${_contact.name}?",
+                        message: "Contact will be deleted permanently!",
+                        leftButton: TextButton(
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getSecondaryEnabledButtonColor(context),
+                          child: Text(
+                            "Cancel",
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
+                        rightButton: TextButton(
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonColor(context),
+                          child: Text(
+                            "Delete",
+                            style: STextStyles.button(context),
+                          ),
+                          onPressed: () {
+                            ref
+                                .read(addressBookServiceProvider)
+                                .removeContact(_contact.id);
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            showFloatingFlushBar(
+                              type: FlushBarType.success,
+                              message: "${_contact.name} deleted",
+                              context: context,
+                            );
+                          },
+                        ),
                       ),
-                      rightButton: TextButton(
-                        style: Theme.of(context)
-                            .extension<StackColors>()!
-                            .getPrimaryEnabledButtonColor(context),
-                        child: Text(
-                          "Delete",
-                          style: STextStyles.button(context),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        height: 48,
+                        width: 48,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldActiveBG,
                         ),
+                        child: Center(
+                          child: _contact.emojiChar == null
+                              ? SvgPicture.asset(
+                                  Assets.svg.user,
+                                  height: 24,
+                                  width: 24,
+                                )
+                              : Text(
+                                  _contact.emojiChar!,
+                                  style: STextStyles.pageTitleH1(context),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          _contact.name,
+                          textAlign: TextAlign.left,
+                          style: STextStyles.pageTitleH2(context),
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton(
                         onPressed: () {
-                          ref
-                              .read(addressBookServiceProvider)
-                              .removeContact(_contact.id);
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                          showFloatingFlushBar(
-                            type: FlushBarType.success,
-                            message: "${_contact.name} deleted",
-                            context: context,
+                          Navigator.of(context).pushNamed(
+                            EditContactNameEmojiView.routeName,
+                            arguments: _contact.id,
                           );
                         },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(
-                  height: 12,
-                ),
-                Row(
-                  children: [
-                    Container(
-                      height: 48,
-                      width: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        color: Theme.of(context)
+                        style: Theme.of(context)
                             .extension<StackColors>()!
-                            .textFieldActiveBG,
-                      ),
-                      child: Center(
-                        child: _contact.emojiChar == null
-                            ? SvgPicture.asset(
-                                Assets.svg.user,
-                                height: 24,
-                                width: 24,
-                              )
-                            : Text(
-                                _contact.emojiChar!,
-                                style: STextStyles.pageTitleH1(context),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 16,
-                    ),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        _contact.name,
-                        textAlign: TextAlign.left,
-                        style: STextStyles.pageTitleH2(context),
-                      ),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          EditContactNameEmojiView.routeName,
-                          arguments: _contact.id,
-                        );
-                      },
-                      style: Theme.of(context)
-                          .extension<StackColors>()!
-                          .getSecondaryEnabledButtonColor(context)!
-                          .copyWith(
-                            minimumSize: MaterialStateProperty.all<Size>(
-                                const Size(46, 32)),
-                          ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Row(
-                          children: [
-                            SvgPicture.asset(Assets.svg.pencil,
-                                width: 10,
-                                height: 10,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark),
-                            const SizedBox(
-                              width: 4,
+                            .getSecondaryEnabledButtonColor(context)!
+                            .copyWith(
+                              minimumSize: MaterialStateProperty.all<Size>(
+                                  const Size(46, 32)),
                             ),
-                            Text(
-                              "Edit",
-                              style: STextStyles.buttonSmall(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Addresses",
-                      style: STextStyles.itemSubtitle(context),
-                    ),
-                    BlueTextButton(
-                      text: "Add new",
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          AddNewContactAddressView.routeName,
-                          arguments: _contact.id,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                RoundedWhiteContainer(
-                  padding: const EdgeInsets.all(0),
-                  child: Column(
-                    children: [
-                      ..._contact.addresses.map(
-                        (e) => Padding(
-                          padding: const EdgeInsets.all(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Row(
                             children: [
-                              SvgPicture.asset(
-                                Assets.svg.iconFor(coin: e.coin),
-                                height: 24,
-                              ),
-                              const SizedBox(
-                                width: 12,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "${e.label} (${e.coin.ticker})",
-                                      style:
-                                          STextStyles.itemSubtitle12(context),
-                                    ),
-                                    const SizedBox(
-                                      height: 2,
-                                    ),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        e.address,
-                                        style: STextStyles.itemSubtitle(context)
-                                            .copyWith(
-                                          fontSize: 8,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  ref
-                                      .read(addressEntryDataProvider(0))
-                                      .address = e.address;
-                                  ref
-                                      .read(addressEntryDataProvider(0))
-                                      .addressLabel = e.label;
-                                  ref.read(addressEntryDataProvider(0)).coin =
-                                      e.coin;
-
-                                  Navigator.of(context).pushNamed(
-                                    EditContactAddressView.routeName,
-                                    arguments: Tuple2(_contact.id, e),
-                                  );
-                                },
-                                child: RoundedContainer(
+                              SvgPicture.asset(Assets.svg.pencil,
+                                  width: 10,
+                                  height: 10,
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .textFieldDefaultBG,
-                                  padding: const EdgeInsets.all(6),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.pencil,
-                                    width: 14,
-                                    height: 14,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
-                                  ),
-                                ),
-                              ),
+                                      .accentColorDark),
                               const SizedBox(
                                 width: 4,
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  clipboard.setData(
-                                    ClipboardData(text: e.address),
-                                  );
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.info,
-                                    message: "Copied to clipboard",
-                                    iconAsset: Assets.svg.copy,
-                                    context: context,
-                                  );
-                                },
-                                child: RoundedContainer(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldDefaultBG,
-                                  padding: const EdgeInsets.all(6),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.copy,
-                                    width: 16,
-                                    height: 16,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
-                                  ),
-                                ),
+                              Text(
+                                "Edit",
+                                style: STextStyles.buttonSmall(context),
                               ),
                             ],
                           ),
@@ -440,81 +309,216 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                Text(
-                  "Transaction history",
-                  style: STextStyles.itemSubtitle(context),
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                FutureBuilder(
-                  future: _filteredTransactionsByContact(
-                      ref.watch(walletsChangeNotifierProvider).managers),
-                  builder: (_,
-                      AsyncSnapshot<List<Tuple2<String, Transaction>>>
-                          snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done &&
-                        snapshot.hasData) {
-                      _cachedTransactions = snapshot.data!;
-
-                      if (_cachedTransactions.isNotEmpty) {
-                        return RoundedWhiteContainer(
-                          padding: const EdgeInsets.all(0),
-                          child: Column(
-                            children: [
-                              ..._cachedTransactions.map(
-                                (e) => TransactionCard(
-                                  key: Key(
-                                      "contactDetailsTransaction_${e.item2.txid}_cardKey"),
-                                  transaction: e.item2,
-                                  walletId: e.item1,
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Addresses",
+                        style: STextStyles.itemSubtitle(context),
+                      ),
+                      BlueTextButton(
+                        text: "Add new",
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            AddNewContactAddressView.routeName,
+                            arguments: _contact.id,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: Column(
+                      children: [
+                        ..._contact.addresses.map(
+                          (e) => Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  Assets.svg.iconFor(coin: e.coin),
+                                  height: 24,
                                 ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        return RoundedWhiteContainer(
-                          child: Center(
-                            child: Text(
-                              "No transactions found",
-                              style: STextStyles.itemSubtitle(context),
+                                const SizedBox(
+                                  width: 12,
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "${e.label} (${e.coin.ticker})",
+                                        style:
+                                            STextStyles.itemSubtitle12(context),
+                                      ),
+                                      const SizedBox(
+                                        height: 2,
+                                      ),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          e.address,
+                                          style:
+                                              STextStyles.itemSubtitle(context)
+                                                  .copyWith(
+                                            fontSize: 8,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    ref
+                                        .read(addressEntryDataProvider(0))
+                                        .address = e.address;
+                                    ref
+                                        .read(addressEntryDataProvider(0))
+                                        .addressLabel = e.label;
+                                    ref.read(addressEntryDataProvider(0)).coin =
+                                        e.coin;
+
+                                    Navigator.of(context).pushNamed(
+                                      EditContactAddressView.routeName,
+                                      arguments: Tuple2(_contact.id, e),
+                                    );
+                                  },
+                                  child: RoundedContainer(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldDefaultBG,
+                                    padding: const EdgeInsets.all(6),
+                                    child: SvgPicture.asset(
+                                      Assets.svg.pencil,
+                                      width: 14,
+                                      height: 14,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 4,
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    clipboard.setData(
+                                      ClipboardData(text: e.address),
+                                    );
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.info,
+                                      message: "Copied to clipboard",
+                                      iconAsset: Assets.svg.copy,
+                                      context: context,
+                                    );
+                                  },
+                                  child: RoundedContainer(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldDefaultBG,
+                                    padding: const EdgeInsets.all(6),
+                                    child: SvgPicture.asset(
+                                      Assets.svg.copy,
+                                      width: 16,
+                                      height: 16,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        );
-                      }
-                    } else {
-                      // TODO: proper loading animation
-                      if (_cachedTransactions.isEmpty) {
-                        return const LoadingIndicator();
-                      } else {
-                        return RoundedWhiteContainer(
-                          padding: const EdgeInsets.all(0),
-                          child: Column(
-                            children: [
-                              ..._cachedTransactions.map(
-                                (e) => TransactionCard(
-                                  key: Key(
-                                      "contactDetailsTransaction_${e.item2.txid}_cardKey"),
-                                  transaction: e.item2,
-                                  walletId: e.item1,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  Text(
+                    "Transaction history",
+                    style: STextStyles.itemSubtitle(context),
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  FutureBuilder(
+                    future: _filteredTransactionsByContact(
+                        ref.watch(walletsChangeNotifierProvider).managers),
+                    builder: (_,
+                        AsyncSnapshot<List<Tuple2<String, Transaction>>>
+                            snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        _cachedTransactions = snapshot.data!;
+
+                        if (_cachedTransactions.isNotEmpty) {
+                          return RoundedWhiteContainer(
+                            padding: const EdgeInsets.all(0),
+                            child: Column(
+                              children: [
+                                ..._cachedTransactions.map(
+                                  (e) => TransactionCard(
+                                    key: Key(
+                                        "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey"),
+                                    transaction: e.item2,
+                                    walletId: e.item1,
+                                  ),
                                 ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          return RoundedWhiteContainer(
+                            child: Center(
+                              child: Text(
+                                "No transactions found",
+                                style: STextStyles.itemSubtitle(context),
                               ),
-                            ],
-                          ),
-                        );
+                            ),
+                          );
+                        }
+                      } else {
+                        // TODO: proper loading animation
+                        if (_cachedTransactions.isEmpty) {
+                          return const LoadingIndicator();
+                        } else {
+                          return RoundedWhiteContainer(
+                            padding: const EdgeInsets.all(0),
+                            child: Column(
+                              children: [
+                                ..._cachedTransactions.map(
+                                  (e) => TransactionCard(
+                                    key: Key(
+                                        "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey"),
+                                    transaction: e.item2,
+                                    walletId: e.item1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
                       }
-                    }
-                  },
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-              ],
+                    },
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

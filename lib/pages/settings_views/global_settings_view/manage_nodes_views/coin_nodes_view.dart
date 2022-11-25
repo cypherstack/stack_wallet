@@ -8,6 +8,7 @@ import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
@@ -122,66 +123,70 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
         ),
       );
     } else {
-      return Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          title: Text(
-            "${widget.coin.prettyName} nodes",
-            style: STextStyles.navBarTitle(context),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("manageNodesAddNewNodeButtonKey"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    Assets.svg.plus,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
-                    width: 20,
-                    height: 20,
+      return Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "${widget.coin.prettyName} nodes",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("manageNodesAddNewNodeButtonKey"),
+                    size: 36,
+                    shadows: const [],
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.plus,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                      width: 20,
+                      height: 20,
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        AddEditNodeView.routeName,
+                        arguments: Tuple4(
+                          AddEditNodeViewType.add,
+                          widget.coin,
+                          null,
+                          CoinNodesView.routeName,
+                        ),
+                      );
+                    },
                   ),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(
-                      AddEditNodeView.routeName,
-                      arguments: Tuple4(
-                        AddEditNodeViewType.add,
-                        widget.coin,
-                        null,
-                        CoinNodesView.routeName,
-                      ),
-                    );
-                  },
                 ),
               ),
-            ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 12,
-            right: 12,
+            ],
           ),
-          child: SingleChildScrollView(
-            child: NodesList(
-              coin: widget.coin,
-              popBackToRoute: CoinNodesView.routeName,
+          body: Padding(
+            padding: const EdgeInsets.only(
+              top: 12,
+              left: 12,
+              right: 12,
+            ),
+            child: SingleChildScrollView(
+              child: NodesList(
+                coin: widget.coin,
+                popBackToRoute: CoinNodesView.routeName,
+              ),
             ),
           ),
         ),
