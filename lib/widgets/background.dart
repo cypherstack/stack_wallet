@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 
-class Background extends ConsumerWidget {
+class Background extends StatelessWidget {
   const Background({
     Key? key,
     required this.child,
@@ -16,12 +14,10 @@ class Background extends ConsumerWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorTheme = ref.watch(colorThemeProvider.state).state;
-
+  Widget build(BuildContext context) {
     Color? color;
 
-    switch (colorTheme.themeType) {
+    switch (Theme.of(context).extension<StackColors>()!.themeType) {
       case ThemeType.light:
       case ThemeType.dark:
         color = Theme.of(context).extension<StackColors>()!.background;
