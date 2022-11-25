@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -116,65 +117,67 @@ class _AddAddressBookEntryViewState
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            appBar: AppBar(
-              leading: AppBarBackButton(
-                onPressed: () async {
-                  if (FocusScope.of(context).hasFocus) {
-                    FocusScope.of(context).unfocus();
-                    await Future<void>.delayed(
-                        const Duration(milliseconds: 75));
-                  }
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-              title: Text(
-                "New contact",
-                style: STextStyles.navBarTitle(context),
-              ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("addAddressBookEntryFavoriteButtonKey"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: SvgPicture.asset(
-                        Assets.svg.star,
-                        color: _isFavorite
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .favoriteStarActive
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .favoriteStarInactive,
-                        width: 20,
-                        height: 20,
+        return Background(
+          child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                          const Duration(milliseconds: 75));
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+                title: Text(
+                  "New contact",
+                  style: STextStyles.navBarTitle(context),
+                ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 10,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        key: const Key("addAddressBookEntryFavoriteButtonKey"),
+                        size: 36,
+                        shadows: const [],
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                        icon: SvgPicture.asset(
+                          Assets.svg.star,
+                          color: _isFavorite
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .favoriteStarActive
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .favoriteStarInactive,
+                          width: 20,
+                          height: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isFavorite = !_isFavorite;
+                          });
+                        },
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _isFavorite = !_isFavorite;
-                        });
-                      },
                     ),
                   ),
-                ),
-              ],
-            ),
-            body: child);
+                ],
+              ),
+              body: child),
+        );
       },
       child: ConditionalParent(
         condition: isDesktop,

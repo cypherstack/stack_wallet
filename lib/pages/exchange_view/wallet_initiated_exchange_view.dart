@@ -7,6 +7,7 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 
 class WalletInitiatedExchangeView extends ConsumerStatefulWidget {
@@ -47,75 +48,77 @@ class _WalletInitiatedExchangeViewState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () async {
-            if (FocusScope.of(context).hasFocus) {
-              FocusScope.of(context).unfocus();
-              await Future<void>.delayed(const Duration(milliseconds: 75));
-            }
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          },
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () async {
+              if (FocusScope.of(context).hasFocus) {
+                FocusScope.of(context).unfocus();
+                await Future<void>.delayed(const Duration(milliseconds: 75));
+              }
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          title: Text(
+            "Exchange",
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
-        title: Text(
-          "Exchange",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = MediaQuery.of(context).size.width - 32;
-          return Padding(
-            padding: const EdgeInsets.all(12),
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 24,
-                ),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        StepRow(
-                          count: 4,
-                          current: 0,
-                          width: width,
-                        ),
-                        const SizedBox(
-                          height: 14,
-                        ),
-                        Text(
-                          "Exchange amount",
-                          style: STextStyles.pageTitleH1(context),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        Text(
-                          "Network fees and other exchange charges are included in the rate.",
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        ExchangeForm(
-                          walletId: walletId,
-                          coin: coin,
-                        ),
-                      ],
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = MediaQuery.of(context).size.width - 32;
+            return Padding(
+              padding: const EdgeInsets.all(12),
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 24,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          StepRow(
+                            count: 4,
+                            current: 0,
+                            width: width,
+                          ),
+                          const SizedBox(
+                            height: 14,
+                          ),
+                          Text(
+                            "Exchange amount",
+                            style: STextStyles.pageTitleH1(context),
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          Text(
+                            "Network fees and other exchange charges are included in the rate.",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          ExchangeForm(
+                            walletId: walletId,
+                            coin: coin,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

@@ -10,6 +10,7 @@ import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -32,127 +33,131 @@ class AppearanceSettingsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () async {
-            Navigator.of(context).pop();
-          },
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+            },
+          ),
+          title: Text(
+            "Appearance",
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
-        title: Text(
-          "Appearance",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      RoundedWhiteContainer(
-                        child: Consumer(
-                          builder: (_, ref, __) {
-                            return RawMaterialButton(
-                              splashColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .highlight,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        RoundedWhiteContainer(
+                          child: Consumer(
+                            builder: (_, ref, __) {
+                              return RawMaterialButton(
+                                splashColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .highlight,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    Constants.size.circularBorderRadius,
+                                  ),
                                 ),
-                              ),
-                              onPressed: null,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Display favorite wallets",
-                                      style: STextStyles.titleBold12(context),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                      width: 40,
-                                      child: DraggableSwitchButton(
-                                        isOn: ref.watch(
-                                          prefsChangeNotifierProvider.select(
-                                              (value) =>
-                                                  value.showFavoriteWallets),
-                                        ),
-                                        onValueChanged: (newValue) {
-                                          ref
-                                              .read(prefsChangeNotifierProvider)
-                                              .showFavoriteWallets = newValue;
-                                        },
+                                onPressed: null,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Display favorite wallets",
+                                        style: STextStyles.titleBold12(context),
+                                        textAlign: TextAlign.left,
                                       ),
-                                    )
-                                  ],
+                                      SizedBox(
+                                        height: 20,
+                                        width: 40,
+                                        child: DraggableSwitchButton(
+                                          isOn: ref.watch(
+                                            prefsChangeNotifierProvider.select(
+                                                (value) =>
+                                                    value.showFavoriteWallets),
+                                          ),
+                                          onValueChanged: (newValue) {
+                                            ref
+                                                .read(
+                                                    prefsChangeNotifierProvider)
+                                                .showFavoriteWallets = newValue;
+                                          },
+                                        ),
+                                      )
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      RoundedWhiteContainer(
-                        padding: const EdgeInsets.all(0),
-                        child: RawMaterialButton(
-                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        RoundedWhiteContainer(
                           padding: const EdgeInsets.all(0),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
+                          child: RawMaterialButton(
+                            // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                            padding: const EdgeInsets.all(0),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
+                              ),
                             ),
-                          ),
-                          onPressed: null,
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Choose Theme",
-                                      style: STextStyles.titleBold12(context),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                    const Padding(
-                                      padding: EdgeInsets.all(10),
-                                      child: ThemeOptionsView(),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                            onPressed: null,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Choose Theme",
+                                        style: STextStyles.titleBold12(context),
+                                        textAlign: TextAlign.left,
+                                      ),
+                                      const Padding(
+                                        padding: EdgeInsets.all(10),
+                                        child: ThemeOptionsView(),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

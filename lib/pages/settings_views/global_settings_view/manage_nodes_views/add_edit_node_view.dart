@@ -12,7 +12,6 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -20,6 +19,7 @@ import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -238,7 +238,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: SecondaryButton(
                                     label: "Cancel",
-                                    buttonHeight: ButtonHeight.l,
+                                    buttonHeight:
+                                        isDesktop ? ButtonHeight.l : null,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -251,7 +252,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: PrimaryButton(
                                     label: "Save",
-                                    buttonHeight: ButtonHeight.l,
+                                    buttonHeight:
+                                        isDesktop ? ButtonHeight.l : null,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -409,84 +411,90 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          title: Text(
-            viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
-            style: STextStyles.navBarTitle(context),
-          ),
-          actions: [
-            if (viewType == AddEditNodeViewType.edit)
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("deleteNodeAppBarButtonKey"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.trash,
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              if (viewType == AddEditNodeViewType.edit)
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("deleteNodeAppBarButtonKey"),
+                      size: 36,
+                      shadows: const [],
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
-                    ),
-                    onPressed: () async {
-                      Navigator.popUntil(context,
-                          ModalRoute.withName(widget.routeOnSuccessOrDelete));
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.trash,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () async {
+                        Navigator.popUntil(context,
+                            ModalRoute.withName(widget.routeOnSuccessOrDelete));
 
-                      await ref.read(nodeServiceChangeNotifierProvider).delete(
-                            nodeId!,
-                            true,
-                          );
-                    },
-                  ),
-                ),
-              ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 12,
-            right: 12,
-            bottom: 12,
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: ConstrainedBox(
-                    constraints:
-                        BoxConstraints(minHeight: constraints.maxHeight - 8),
-                    child: IntrinsicHeight(
-                      child: child,
+                        await ref
+                            .read(nodeServiceChangeNotifierProvider)
+                            .delete(
+                              nodeId!,
+                              true,
+                            );
+                      },
                     ),
                   ),
                 ),
-              );
-            },
+            ],
+          ),
+          body: Padding(
+            padding: const EdgeInsets.only(
+              top: 12,
+              left: 12,
+              right: 12,
+              bottom: 12,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight - 8),
+                      child: IntrinsicHeight(
+                        child: child,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -562,7 +570,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   child: SecondaryButton(
                     label: "Test connection",
                     enabled: testConnectionEnabled,
-                    buttonHeight: ButtonHeight.l,
+                    buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: testConnectionEnabled
                         ? () async {
                             await _testConnection();

@@ -8,6 +8,11 @@ class LightColors extends StackColorTheme {
   @override
   Color get background => const Color(0xFFF7F7F7);
   @override
+  Color get backgroundAppBar => background;
+  @override
+  Gradient? get gradientBackground => null;
+
+  @override
   Color get overlay => const Color(0xFF111215);
 
   @override

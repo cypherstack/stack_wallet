@@ -22,6 +22,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -203,48 +204,51 @@ class _ConfirmTransactionViewState
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
+      builder: (child) => Background(
+        child: Scaffold(
           backgroundColor:
               Theme.of(context).extension<StackColors>()!.background,
-          leading: AppBarBackButton(
-            onPressed: () async {
-              // if (FocusScope.of(context).hasFocus) {
-              //   FocusScope.of(context).unfocus();
-              //   await Future<void>.delayed(Duration(milliseconds: 50));
-              // }
-              Navigator.of(context).pop();
-            },
+          appBar: AppBar(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                // if (FocusScope.of(context).hasFocus) {
+                //   FocusScope.of(context).unfocus();
+                //   await Future<void>.delayed(Duration(milliseconds: 50));
+                // }
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Confirm transaction",
+              style: STextStyles.navBarTitle(context),
+            ),
           ),
-          title: Text(
-            "Confirm transaction",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
-        body: LayoutBuilder(
-          builder: (builderContext, constraints) {
-            return Padding(
-              padding: const EdgeInsets.only(
-                left: 12,
-                top: 12,
-                right: 12,
-              ),
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 24,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: child,
+          body: LayoutBuilder(
+            builder: (builderContext, constraints) {
+              return Padding(
+                padding: const EdgeInsets.only(
+                  left: 12,
+                  top: 12,
+                  right: 12,
+                ),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 24,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: child,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
       child: ConditionalParent(
