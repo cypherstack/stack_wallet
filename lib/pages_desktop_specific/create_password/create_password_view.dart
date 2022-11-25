@@ -7,9 +7,9 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -81,6 +81,10 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
 
       await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
       await (ref.read(secureStoreProvider).store as DesktopSecureStore).init();
+
+      // load default nodes now as node service requires storage handler to exist
+
+      await ref.read(nodeServiceChangeNotifierProvider).updateDefaults();
     } catch (e) {
       unawaited(showFloatingFlushBar(
         type: FlushBarType.warning,
