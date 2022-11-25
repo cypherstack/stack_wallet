@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -127,6 +128,42 @@ class HiddenSettings extends StatelessWidget {
                             ),
                           );
                         }),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            if (ref.watch(prefsChangeNotifierProvider
+                                    .select((value) => value.familiarity)) <
+                                6) {
+                              return GestureDetector(
+                                onTap: () async {
+                                  final familiarity = ref
+                                      .read(prefsChangeNotifierProvider)
+                                      .familiarity;
+                                  if (familiarity < 6) {
+                                    ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .familiarity = 6;
+
+                                    Constants.exchangeForExperiencedUsers(6);
+                                  }
+                                },
+                                child: RoundedWhiteContainer(
+                                  child: Text(
+                                    "Enable exchange",
+                                    style: STextStyles.button(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark),
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return Container();
+                            }
+                          },
+                        ),
                         // const SizedBox(
                         //   height: 12,
                         // ),

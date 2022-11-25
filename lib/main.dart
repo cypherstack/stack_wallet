@@ -235,6 +235,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     await DB.instance.init();
     await ref.read(prefsChangeNotifierProvider).init();
 
+    final familiarity = ref.read(prefsChangeNotifierProvider).familiarity + 1;
+    ref.read(prefsChangeNotifierProvider).familiarity = familiarity;
+
+    Constants.exchangeForExperiencedUsers(familiarity);
+
     if (Util.isDesktop) {
       _desktopHasPassword =
           await ref.read(storageCryptoHandlerProvider).hasPassword();
