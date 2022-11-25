@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cw_core/node.dart';
 import 'package:cw_core/unspent_coins_info.dart';
@@ -79,6 +80,15 @@ void main() async {
     setWindowTitle('Stack Wallet');
     setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);
+    final screen = await getCurrentScreen();
+    final screenHeight = screen?.frame.height;
+    if (screenHeight != null) {
+      // starting to height be 3/4 screen height or 900, whichever is smaller
+      final height = min<double>(screenHeight * 0.75, 900);
+      setWindowFrame(
+        Rect.fromLTWH(0, 0, 1220, height),
+      );
+    }
   }
 
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
