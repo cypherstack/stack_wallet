@@ -157,6 +157,9 @@ class _ConfirmChangeNowSendViewState
   Future<void> _confirmSend() async {
     final dynamic unlocked;
 
+    final coin =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
+
     if (Util.isDesktop) {
       unlocked = await showDialog<bool?>(
         context: context,
@@ -172,13 +175,15 @@ class _ConfirmChangeNowSendViewState
                   DesktopDialogCloseButton(),
                 ],
               ),
-              const Padding(
-                padding: EdgeInsets.only(
+              Padding(
+                padding: const EdgeInsets.only(
                   left: 32,
                   right: 32,
                   bottom: 32,
                 ),
-                child: DesktopAuthSend(),
+                child: DesktopAuthSend(
+                  coin: coin,
+                ),
               ),
             ],
           ),

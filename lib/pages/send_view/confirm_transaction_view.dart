@@ -784,6 +784,11 @@ class _ConfirmTransactionViewState
                 onPressed: () async {
                   final dynamic unlocked;
 
+                  final coin = ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(walletId)
+                      .coin;
+
                   if (isDesktop) {
                     unlocked = await showDialog<bool?>(
                       context: context,
@@ -799,13 +804,15 @@ class _ConfirmTransactionViewState
                                 DesktopDialogCloseButton(),
                               ],
                             ),
-                            const Padding(
-                              padding: EdgeInsets.only(
+                            Padding(
+                              padding: const EdgeInsets.only(
                                 left: 32,
                                 right: 32,
                                 bottom: 32,
                               ),
-                              child: DesktopAuthSend(),
+                              child: DesktopAuthSend(
+                                coin: coin,
+                              ),
                             ),
                           ],
                         ),
