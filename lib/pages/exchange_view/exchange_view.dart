@@ -43,7 +43,11 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
               handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
               sliver: const SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                  ),
                   child: ExchangeForm(),
                 ),
               ),
