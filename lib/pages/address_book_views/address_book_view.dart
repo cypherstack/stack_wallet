@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -108,110 +109,115 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            title: Text(
-              "Address book",
-              style: STextStyles.navBarTitle(context),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("addressBookFilterViewButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.filter,
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              title: Text(
+                "Address book",
+                style: STextStyles.navBarTitle(context),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("addressBookFilterViewButton"),
+                      size: 36,
+                      shadows: const [],
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.filter,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          AddressBookFilterView.routeName,
+                        );
+                      },
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        AddressBookFilterView.routeName,
-                      );
-                    },
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("addressBookAddNewContactViewButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.plus,
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("addressBookAddNewContactViewButton"),
+                      size: 36,
+                      shadows: const [],
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.plus,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          AddAddressBookEntryView.routeName,
+                        );
+                      },
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        AddAddressBookEntryView.routeName,
-                      );
-                    },
                   ),
                 ),
-              ),
-            ],
-          ),
-          body: LayoutBuilder(
-            builder: (builderContext, constraints) {
-              return Padding(
-                padding: const EdgeInsets.only(
-                  left: 12,
-                  top: 12,
-                  right: 12,
-                ),
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 24,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: MediaQuery.of(context).size.height - 271,
+              ],
+            ),
+            body: LayoutBuilder(
+              builder: (builderContext, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.only(
+                    left: 12,
+                    top: 12,
+                    right: 12,
+                  ),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 24,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight:
+                                  MediaQuery.of(context).size.height - 271,
+                            ),
+                            child: child,
                           ),
-                          child: child,
                         ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         );
       },

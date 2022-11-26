@@ -7,6 +7,7 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -22,128 +23,131 @@ class SecurityView extends StatelessWidget {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          title: Text(
+            "Security",
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
-        title: Text(
-          "Security",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(0),
-              child: RawMaterialButton(
-                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    RouteGenerator.getRoute(
-                      shouldUseMaterialRoute:
-                          RouteGenerator.useMaterialPageRoute,
-                      builder: (_) => const LockscreenView(
-                        showBackButton: true,
-                        routeOnSuccess: ChangePinView.routeName,
-                        biometricsCancelButtonString: "CANCEL",
-                        biometricsLocalizedReason: "Authenticate to change PIN",
-                        biometricsAuthenticationTitle: "Change PIN",
-                      ),
-                      settings:
-                          const RouteSettings(name: "/changepinlockscreen"),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              RoundedWhiteContainer(
+                padding: const EdgeInsets.all(0),
+                child: RawMaterialButton(
+                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
                     ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 20,
                   ),
-                  child: Row(
-                    children: [
-                      Text(
-                        "Change PIN",
-                        style: STextStyles.titleBold12(context),
-                        textAlign: TextAlign.left,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      RouteGenerator.getRoute(
+                        shouldUseMaterialRoute:
+                            RouteGenerator.useMaterialPageRoute,
+                        builder: (_) => const LockscreenView(
+                          showBackButton: true,
+                          routeOnSuccess: ChangePinView.routeName,
+                          biometricsCancelButtonString: "CANCEL",
+                          biometricsLocalizedReason:
+                              "Authenticate to change PIN",
+                          biometricsAuthenticationTitle: "Change PIN",
+                        ),
+                        settings:
+                            const RouteSettings(name: "/changepinlockscreen"),
                       ),
-                    ],
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 20,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          "Change PIN",
+                          style: STextStyles.titleBold12(context),
+                          textAlign: TextAlign.left,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            RoundedWhiteContainer(
-              child: Consumer(
-                builder: (_, ref, __) {
-                  return RawMaterialButton(
-                    // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
+              const SizedBox(
+                height: 8,
+              ),
+              RoundedWhiteContainer(
+                child: Consumer(
+                  builder: (_, ref, __) {
+                    return RawMaterialButton(
+                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
                       ),
-                    ),
-                    onPressed: null,
-                    //     () {
-                    //   final useBio =
-                    //       ref.read(prefsChangeNotifierProvider).useBiometrics;
-                    //
-                    //   debugPrint("useBio: $useBio");
-                    //   ref.read(prefsChangeNotifierProvider).useBiometrics =
-                    //       !useBio;
-                    //
-                    //   debugPrint(
-                    //       "useBio set to: ${ref.read(prefsChangeNotifierProvider).useBiometrics}");
-                    // },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Enable biometric authentication",
-                            style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
-                          ),
-                          SizedBox(
-                            height: 20,
-                            width: 40,
-                            child: DraggableSwitchButton(
-                              isOn: ref.watch(
-                                prefsChangeNotifierProvider
-                                    .select((value) => value.useBiometrics),
-                              ),
-                              onValueChanged: (newValue) {
-                                ref
-                                    .read(prefsChangeNotifierProvider)
-                                    .useBiometrics = newValue;
-                              },
+                      onPressed: null,
+                      //     () {
+                      //   final useBio =
+                      //       ref.read(prefsChangeNotifierProvider).useBiometrics;
+                      //
+                      //   debugPrint("useBio: $useBio");
+                      //   ref.read(prefsChangeNotifierProvider).useBiometrics =
+                      //       !useBio;
+                      //
+                      //   debugPrint(
+                      //       "useBio set to: ${ref.read(prefsChangeNotifierProvider).useBiometrics}");
+                      // },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Enable biometric authentication",
+                              style: STextStyles.titleBold12(context),
+                              textAlign: TextAlign.left,
                             ),
-                          ),
-                        ],
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: DraggableSwitchButton(
+                                isOn: ref.watch(
+                                  prefsChangeNotifierProvider
+                                      .select((value) => value.useBiometrics),
+                                ),
+                                onValueChanged: (newValue) {
+                                  ref
+                                      .read(prefsChangeNotifierProvider)
+                                      .useBiometrics = newValue;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

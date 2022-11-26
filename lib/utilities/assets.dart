@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 abstract class Assets {
@@ -28,6 +29,16 @@ class _EXCHANGE {
 
 class _SVG {
   const _SVG();
+  String? background(BuildContext context) {
+    switch (Theme.of(context).extension<StackColors>()!.themeType) {
+      case ThemeType.light:
+      case ThemeType.dark:
+        return null;
+
+      case ThemeType.oceanBreeze:
+        return "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/bg.svg";
+    }
+  }
 
   String bellNew(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/bell-new.svg";

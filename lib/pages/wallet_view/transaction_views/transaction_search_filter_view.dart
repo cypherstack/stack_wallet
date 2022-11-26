@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -428,42 +429,46 @@ class _TransactionSearchViewState
         ),
       );
     } else {
-      return Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
+      return Background(
+        child: Scaffold(
           backgroundColor:
               Theme.of(context).extension<StackColors>()!.background,
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
+          appBar: AppBar(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Transactions filter",
+              style: STextStyles.navBarTitle(context),
+            ),
           ),
-          title: Text(
-            "Transactions filter",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
-        body: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Constants.size.standardPadding,
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: _buildContent(context),
+          body: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Constants.size.standardPadding,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: _buildContent(context),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       );
@@ -869,7 +874,7 @@ class _TransactionSearchViewState
             Expanded(
               child: SecondaryButton(
                 label: "Cancel",
-                buttonHeight: ButtonHeight.l,
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   if (!isDesktop) {
                     if (FocusScope.of(context).hasFocus) {
@@ -919,7 +924,7 @@ class _TransactionSearchViewState
             ),
             Expanded(
               child: PrimaryButton(
-                buttonHeight: ButtonHeight.l,
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   await _onApplyPressed();
                 },

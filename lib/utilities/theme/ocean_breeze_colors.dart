@@ -6,7 +6,19 @@ class OceanBreezeColors extends StackColorTheme {
   ThemeType get themeType => ThemeType.oceanBreeze;
 
   @override
-  Color get background => const Color(0xFFF3F7FA);
+  Color get background => Colors.transparent;
+  @override
+  Color get backgroundAppBar => const Color(0xFFF3F7FA);
+  @override
+  Gradient? get gradientBackground => const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFFF3F7FA),
+          Color(0xFFE8F2F9),
+        ],
+      );
+
   @override
   Color get overlay => const Color(0xFF111215);
 

@@ -13,6 +13,7 @@ import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/background.dart';
 
 class DesktopHomeView extends ConsumerStatefulWidget {
   const DesktopHomeView({Key? key}) : super(key: key);
@@ -98,21 +99,23 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   Widget build(BuildContext context) {
     return Material(
       color: Theme.of(context).extension<StackColors>()!.background,
-      child: Row(
-        children: [
-          DesktopMenu(
-            // onSelectionChanged: onMenuSelectionChanged,
-            onSelectionWillChange: onMenuSelectionWillChange,
-          ),
-          Container(
-            width: 1,
-            color: Theme.of(context).extension<StackColors>()!.background,
-          ),
-          Expanded(
-            child: contentViews[
-                ref.watch(currentDesktopMenuItemProvider.state).state]!,
-          ),
-        ],
+      child: Background(
+        child: Row(
+          children: [
+            DesktopMenu(
+              // onSelectionChanged: onMenuSelectionChanged,
+              onSelectionWillChange: onMenuSelectionWillChange,
+            ),
+            Container(
+              width: 1,
+              color: Theme.of(context).extension<StackColors>()!.background,
+            ),
+            Expanded(
+              child: contentViews[
+                  ref.watch(currentDesktopMenuItemProvider.state).state]!,
+            ),
+          ],
+        ),
       ),
     );
   }

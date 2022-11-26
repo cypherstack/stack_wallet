@@ -24,11 +24,14 @@ class NodeService extends ChangeNotifier {
       final savedNode = DB.instance
           .get<NodeModel>(boxName: DB.boxNameNodeModels, key: defaultNode.id);
       if (savedNode == null) {
-        // save the default node to hive
-        await DB.instance.put<NodeModel>(
+        // save the default node to hive only if no other nodes for the specific coin exist
+        if (getNodesFor(coinFromPrettyName(defaultNode.coinName)).isEmpty) {
+          await DB.instance.put<NodeModel>(
             boxName: DB.boxNameNodeModels,
             key: defaultNode.id,
-            value: defaultNode);
+            value: defaultNode,
+          );
+        }
       } else {
         // update all fields but copy over previously set enabled state
         await DB.instance.put<NodeModel>(
@@ -81,14 +84,16 @@ class NodeService extends ChangeNotifier {
     final list = DB.instance
         .values<NodeModel>(boxName: DB.boxNameNodeModels)
         .where((e) =>
-            e.coinName == coin.name && e.name != DefaultNodes.defaultName)
+            e.coinName == coin.name &&
+            !e.id.startsWith(DefaultNodes.defaultNodeIdPrefix))
         .toList();
 
     // add default to end of list
     list.addAll(DB.instance
         .values<NodeModel>(boxName: DB.boxNameNodeModels)
         .where((e) =>
-            e.coinName == coin.name && e.name == DefaultNodes.defaultName)
+            e.coinName == coin.name &&
+            e.id.startsWith(DefaultNodes.defaultNodeIdPrefix))
         .toList());
 
     // return reversed list so default node appears at beginning

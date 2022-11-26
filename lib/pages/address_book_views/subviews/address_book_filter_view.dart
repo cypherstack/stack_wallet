@@ -6,6 +6,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -50,60 +51,62 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
+        return Background(
+          child: Scaffold(
             backgroundColor:
                 Theme.of(context).extension<StackColors>()!.background,
-            leading: AppBarBackButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-              },
+            appBar: AppBar(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                },
+              ),
+              title: Text(
+                "Filter addresses",
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
-            title: Text(
-              "Filter addresses",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(12),
-            child: LayoutBuilder(builder: (builderContext, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          RoundedWhiteContainer(
-                            child: Text(
-                              "Only selected cryptocurrency addresses will be displayed.",
-                              style: STextStyles.itemSubtitle(context),
+            body: Padding(
+              padding: const EdgeInsets.all(12),
+              child: LayoutBuilder(builder: (builderContext, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            RoundedWhiteContainer(
+                              child: Text(
+                                "Only selected cryptocurrency addresses will be displayed.",
+                                style: STextStyles.itemSubtitle(context),
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          Text(
-                            "Select cryptocurrency",
-                            style: STextStyles.smallMed12(context),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          child,
-                        ],
+                            const SizedBox(
+                              height: 12,
+                            ),
+                            Text(
+                              "Select cryptocurrency",
+                              style: STextStyles.smallMed12(context),
+                            ),
+                            const SizedBox(
+                              height: 12,
+                            ),
+                            child,
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
         );
       },

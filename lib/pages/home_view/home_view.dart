@@ -20,6 +20,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -141,129 +142,138 @@ class _HomeViewState extends ConsumerState<HomeView> {
     debugPrint("BUILD: $runtimeType");
     return WillPopScope(
       onWillPop: _onWillPop,
-      child: Scaffold(
-        key: _key,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Row(
-            children: [
-              GestureDetector(
-                onTap: _hiddenOptions,
-                child: SvgPicture.asset(
-                  Assets.svg.stackIcon(context),
-                  width: 24,
-                  height: 24,
-                ),
-              ),
-              const SizedBox(
-                width: 16,
-              ),
-              Text(
-                "My Stack",
-                style: STextStyles.navBarTitle(context),
-              )
-            ],
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("walletsViewAlertsButton"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    ref.watch(notificationsProvider
-                            .select((value) => value.hasUnreadNotifications))
-                        ? Assets.svg.bellNew(context)
-                        : Assets.svg.bell,
-                    width: 20,
-                    height: 20,
-                    color: ref.watch(notificationsProvider
-                            .select((value) => value.hasUnreadNotifications))
-                        ? null
-                        : Theme.of(context)
-                            .extension<StackColors>()!
-                            .topNavIconPrimary,
+      child: Background(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          key: _key,
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+            title: Row(
+              children: [
+                GestureDetector(
+                  onTap: _hiddenOptions,
+                  child: SvgPicture.asset(
+                    Assets.svg.stackIcon(context),
+                    width: 24,
+                    height: 24,
                   ),
-                  onPressed: () {
-                    // reset unread state
-                    ref.refresh(unreadNotificationsStateProvider);
-
-                    Navigator.of(context)
-                        .pushNamed(NotificationsView.routeName)
-                        .then((_) {
-                      final Set<int> unreadNotificationIds = ref
-                          .read(unreadNotificationsStateProvider.state)
-                          .state;
-                      if (unreadNotificationIds.isEmpty) return;
-
-                      List<Future<void>> futures = [];
-                      for (int i = 0;
-                          i < unreadNotificationIds.length - 1;
-                          i++) {
-                        futures.add(ref.read(notificationsProvider).markAsRead(
-                            unreadNotificationIds.elementAt(i), false));
-                      }
-
-                      // wait for multiple to update if any
-                      Future.wait(futures).then((_) {
-                        // only notify listeners once
-                        ref
-                            .read(notificationsProvider)
-                            .markAsRead(unreadNotificationIds.last, true);
-                      });
-                    });
-                  },
                 ),
-              ),
+                const SizedBox(
+                  width: 16,
+                ),
+                Text(
+                  "My Stack",
+                  style: STextStyles.navBarTitle(context),
+                )
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("walletsViewSettingsButton"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    Assets.svg.gear,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("walletsViewAlertsButton"),
+                    size: 36,
+                    shadows: const [],
                     color: Theme.of(context)
                         .extension<StackColors>()!
-                        .topNavIconPrimary,
-                    width: 20,
-                    height: 20,
+                        .backgroundAppBar,
+                    icon: SvgPicture.asset(
+                      ref.watch(notificationsProvider
+                              .select((value) => value.hasUnreadNotifications))
+                          ? Assets.svg.bellNew(context)
+                          : Assets.svg.bell,
+                      width: 20,
+                      height: 20,
+                      color: ref.watch(notificationsProvider
+                              .select((value) => value.hasUnreadNotifications))
+                          ? null
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .topNavIconPrimary,
+                    ),
+                    onPressed: () {
+                      // reset unread state
+                      ref.refresh(unreadNotificationsStateProvider);
+
+                      Navigator.of(context)
+                          .pushNamed(NotificationsView.routeName)
+                          .then((_) {
+                        final Set<int> unreadNotificationIds = ref
+                            .read(unreadNotificationsStateProvider.state)
+                            .state;
+                        if (unreadNotificationIds.isEmpty) return;
+
+                        List<Future<void>> futures = [];
+                        for (int i = 0;
+                            i < unreadNotificationIds.length - 1;
+                            i++) {
+                          futures.add(ref
+                              .read(notificationsProvider)
+                              .markAsRead(
+                                  unreadNotificationIds.elementAt(i), false));
+                        }
+
+                        // wait for multiple to update if any
+                        Future.wait(futures).then((_) {
+                          // only notify listeners once
+                          ref
+                              .read(notificationsProvider)
+                              .markAsRead(unreadNotificationIds.last, true);
+                        });
+                      });
+                    },
                   ),
-                  onPressed: () {
-                    debugPrint("main view settings tapped");
-                    Navigator.of(context)
-                        .pushNamed(GlobalSettingsView.routeName);
-                  },
                 ),
               ),
-            ),
-          ],
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Column(
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("walletsViewSettingsButton"),
+                    size: 36,
+                    shadows: const [],
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
+                    icon: SvgPicture.asset(
+                      Assets.svg.gear,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                      width: 20,
+                      height: 20,
+                    ),
+                    onPressed: () {
+                      debugPrint("main view settings tapped");
+                      Navigator.of(context)
+                          .pushNamed(GlobalSettingsView.routeName);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: Column(
             children: [
               if (Constants.enableExchange)
                 Container(
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
                     boxShadow: [
                       Theme.of(context)
                           .extension<StackColors>()!

@@ -4,7 +4,8 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
-  static String _nodeId(Coin coin) => "default_${coin.name}";
+  static const String defaultNodeIdPrefix = "default_";
+  static String _nodeId(Coin coin) => "$defaultNodeIdPrefix${coin.name}";
   static const String defaultName = "Stack Default";
 
   static List<NodeModel> get all => [

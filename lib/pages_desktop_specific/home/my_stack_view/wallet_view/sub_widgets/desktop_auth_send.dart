@@ -6,17 +6,21 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 
-import '../../../../../notifications/show_flush_bar.dart';
-import '../../../../../widgets/loading_indicator.dart';
-
 class DesktopAuthSend extends ConsumerStatefulWidget {
-  const DesktopAuthSend({Key? key}) : super(key: key);
+  const DesktopAuthSend({
+    Key? key,
+    required this.coin,
+  }) : super(key: key);
+
+  final Coin coin;
 
   @override
   ConsumerState<DesktopAuthSend> createState() => _DesktopAuthSendState();
@@ -72,7 +76,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
           height: 16,
         ),
         Text(
-          "Enter your wallet password to send BTC",
+          "Enter your wallet password to send ${widget.coin.ticker.toUpperCase()}",
           style: STextStyles.desktopTextMedium(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark3,
           ),
