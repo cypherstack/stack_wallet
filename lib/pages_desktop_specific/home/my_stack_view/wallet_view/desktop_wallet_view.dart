@@ -81,13 +81,13 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       // disable auto sync if it was enabled only when loading wallet
       ref.read(managerProvider).shouldAutoSync = false;
     }
-    ref.read(managerProvider.notifier).isActiveWallet = false;
     ref.read(transactionFilterProvider.state).state = null;
     if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
         ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
             BackupFrequencyType.afterClosingAWallet) {
       unawaited(ref.read(autoSWBServiceProvider).doBackup());
     }
+    ref.read(managerProvider.notifier).isActiveWallet = false;
   }
 
   void _loadCNData() {

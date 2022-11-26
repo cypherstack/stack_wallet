@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -51,6 +52,9 @@ class CoinWalletsTable extends ConsumerWidget {
                       Positioned.fill(
                         child: WalletRowHoverOverlay(
                           onPressed: () async {
+                            ref.read(currentWalletIdProvider.state).state =
+                                walletIds[i];
+
                             await Navigator.of(context).pushNamed(
                               DesktopWalletView.routeName,
                               arguments: walletIds[i],
