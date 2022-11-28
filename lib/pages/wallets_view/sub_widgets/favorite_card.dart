@@ -49,6 +49,8 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
     super.initState();
   }
 
+  bool _hovering = false;
+
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(managerProvider.select((value) => value.coin));
@@ -59,7 +61,48 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
       condition: Util.isDesktop,
       builder: (child) => MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: child,
+        onEnter: (_) {
+          setState(() {
+            _hovering = true;
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            _hovering = false;
+          });
+        },
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 200),
+          scale: _hovering ? 1.05 : 1,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: _hovering
+                ? BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    boxShadow: [
+                      Theme.of(context)
+                          .extension<StackColors>()!
+                          .standardBoxShadow,
+                      Theme.of(context)
+                          .extension<StackColors>()!
+                          .standardBoxShadow,
+                      Theme.of(context)
+                          .extension<StackColors>()!
+                          .standardBoxShadow,
+                    ],
+                  )
+                : BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+            child: child,
+          ),
+        ),
       ),
       child: GestureDetector(
         onTap: () {
