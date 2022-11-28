@@ -38,6 +38,9 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   static const expandedWidth = 225.0;
   static const minimizedWidth = 72.0;
 
+  final Duration duration = const Duration(milliseconds: 250);
+  late final List<DMIController> controllers;
+
   double _width = expandedWidth;
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
@@ -49,26 +52,58 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   }
 
   void toggleMinimize() {
+    final expanded = _width == expandedWidth;
+
+    for (var e in controllers) {
+      e.toggle?.call();
+    }
+
     setState(() {
-      _width = _width == expandedWidth ? minimizedWidth : expandedWidth;
+      _width = expanded ? minimizedWidth : expandedWidth;
     });
+  }
+
+  @override
+  void initState() {
+    controllers = [
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+    ];
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    for (var e in controllers) {
+      e.dispose();
+    }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
-      child: SizedBox(
+      child: AnimatedContainer(
         width: _width,
+        duration: duration,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              height: _width == expandedWidth ? 22 : 25,
+            const SizedBox(
+              height: 25,
             ),
-            SizedBox(
+            AnimatedContainer(
+              duration: duration,
               width: _width == expandedWidth ? 70 : 32,
-              height: _width == expandedWidth ? 70 : 32,
+              height: 70, //_width == expandedWidth ? 70 : 32,
               child: SvgPicture.asset(
                 Assets.svg.stackIcon(context),
               ),
@@ -76,18 +111,26 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
             const SizedBox(
               height: 10,
             ),
-            Text(
-              _width == expandedWidth ? "Stack Wallet" : "",
-              style: STextStyles.desktopH2(context).copyWith(
-                fontSize: 18,
-                height: 23.4 / 18,
+            AnimatedOpacity(
+              duration: duration,
+              opacity: _width == expandedWidth ? 1 : 0,
+              child: SizedBox(
+                height: 28,
+                child: Text(
+                  "Stack Wallet",
+                  style: STextStyles.desktopH2(context).copyWith(
+                    fontSize: 18,
+                    height: 23.4 / 18,
+                  ),
+                ),
               ),
             ),
             const SizedBox(
               height: 60,
             ),
             Expanded(
-              child: SizedBox(
+              child: AnimatedContainer(
+                duration: duration,
                 width: _width == expandedWidth
                     ? _width - 32 // 16 padding on either side
                     : _width - 16, // 8 padding on either side
@@ -95,6 +138,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DesktopMenuItem(
+                      duration: duration,
                       icon: SvgPicture.asset(
                         Assets.svg.walletDesktop,
                         width: 20,
@@ -116,12 +160,13 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       group:
                           ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
-                      iconOnly: _width == minimizedWidth,
+                      controller: controllers[0],
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      duration: duration,
                       icon: SvgPicture.asset(
                         Assets.svg.exchangeDesktop,
                         width: 20,
@@ -143,12 +188,13 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       group:
                           ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
-                      iconOnly: _width == minimizedWidth,
+                      controller: controllers[1],
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      duration: duration,
                       icon: SvgPicture.asset(
                         ref.watch(notificationsProvider.select(
                                 (value) => value.hasUnreadNotifications))
@@ -177,12 +223,13 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       group:
                           ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
-                      iconOnly: _width == minimizedWidth,
+                      controller: controllers[2],
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      duration: duration,
                       icon: SvgPicture.asset(
                         Assets.svg.addressBookDesktop,
                         width: 20,
@@ -204,12 +251,13 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       group:
                           ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
-                      iconOnly: _width == minimizedWidth,
+                      controller: controllers[3],
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      duration: duration,
                       icon: SvgPicture.asset(
                         Assets.svg.gear,
                         width: 20,
@@ -231,12 +279,13 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       group:
                           ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
-                      iconOnly: _width == minimizedWidth,
+                      controller: controllers[4],
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      duration: duration,
                       icon: SvgPicture.asset(
                         Assets.svg.messageQuestion,
                         width: 20,
@@ -258,12 +307,13 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       group:
                           ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
-                      iconOnly: _width == minimizedWidth,
+                      controller: controllers[5],
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      duration: duration,
                       icon: SvgPicture.asset(
                         Assets.svg.aboutDesktop,
                         width: 20,
@@ -285,10 +335,12 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       group:
                           ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
-                      iconOnly: _width == minimizedWidth,
+                      controller: controllers[6],
                     ),
                     const Spacer(),
                     DesktopMenuItem(
+                      duration: duration,
+                      labelLength: 123,
                       icon: SvgPicture.asset(
                         Assets.svg.exitDesktop,
                         width: 20,
@@ -306,7 +358,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         // todo: save stuff/ notify before exit?
                         exit(0);
                       },
-                      iconOnly: _width == minimizedWidth,
+                      controller: controllers[7],
                     ),
                   ],
                 ),
