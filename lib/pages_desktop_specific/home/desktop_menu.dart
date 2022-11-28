@@ -157,8 +157,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "My Stack",
                       value: DesktopMenuItemId.myStack,
-                      group:
-                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],
                     ),
@@ -185,8 +183,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Exchange",
                       value: DesktopMenuItemId.exchange,
-                      group:
-                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[1],
                     ),
@@ -220,8 +216,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Notifications",
                       value: DesktopMenuItemId.notifications,
-                      group:
-                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[2],
                     ),
@@ -248,8 +242,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Address Book",
                       value: DesktopMenuItemId.addressBook,
-                      group:
-                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[3],
                     ),
@@ -276,8 +268,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Settings",
                       value: DesktopMenuItemId.settings,
-                      group:
-                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[4],
                     ),
@@ -304,8 +294,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Support",
                       value: DesktopMenuItemId.support,
-                      group:
-                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[5],
                     ),
@@ -332,8 +320,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "About",
                       value: DesktopMenuItemId.about,
-                      group:
-                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[6],
                     ),
@@ -352,8 +338,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       ),
                       label: "Exit",
                       value: 7,
-                      group:
-                          ref.watch(currentDesktopMenuItemProvider.state).state,
                       onChanged: (_) {
                         // todo: save stuff/ notify before exit?
                         exit(0);

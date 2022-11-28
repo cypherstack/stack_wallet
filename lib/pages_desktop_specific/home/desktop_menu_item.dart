@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
@@ -9,13 +11,12 @@ class DMIController {
   }
 }
 
-class DesktopMenuItem<T> extends StatefulWidget {
+class DesktopMenuItem<T> extends ConsumerStatefulWidget {
   const DesktopMenuItem({
     Key? key,
     required this.icon,
     required this.label,
     required this.value,
-    required this.group,
     required this.onChanged,
     required this.duration,
     this.labelLength = 125,
@@ -25,22 +26,20 @@ class DesktopMenuItem<T> extends StatefulWidget {
   final Widget icon;
   final String label;
   final T value;
-  final T group;
   final void Function(T) onChanged;
   final Duration duration;
   final double labelLength;
   final DMIController? controller;
 
   @override
-  State<DesktopMenuItem<T>> createState() => _DesktopMenuItemState<T>();
+  ConsumerState<DesktopMenuItem<T>> createState() => _DesktopMenuItemState<T>();
 }
 
-class _DesktopMenuItemState<T> extends State<DesktopMenuItem<T>>
+class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
     with SingleTickerProviderStateMixin {
   late final Widget icon;
   late final String label;
   late final T value;
-  late final T group;
   late final void Function(T) onChanged;
   late final Duration duration;
   late final double labelLength;
@@ -67,7 +66,6 @@ class _DesktopMenuItemState<T> extends State<DesktopMenuItem<T>>
     icon = widget.icon;
     label = widget.label;
     value = widget.value;
-    group = widget.group;
     onChanged = widget.onChanged;
     duration = widget.duration;
     labelLength = widget.labelLength;
@@ -91,6 +89,8 @@ class _DesktopMenuItemState<T> extends State<DesktopMenuItem<T>>
 
   @override
   Widget build(BuildContext context) {
+    final group = ref.watch(currentDesktopMenuItemProvider.state).state;
+    debugPrint("============ value:$value ============ group:$group");
     return TextButton(
       style: value == group
           ? Theme.of(context)
