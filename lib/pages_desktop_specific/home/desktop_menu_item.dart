@@ -77,7 +77,7 @@ class _DesktopMenuItemState<T> extends State<DesktopMenuItem<T>>
     animationController = AnimationController(
       vsync: this,
       duration: duration,
-    );
+    )..forward();
 
     super.initState();
   }

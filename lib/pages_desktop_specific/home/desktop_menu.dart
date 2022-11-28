@@ -9,6 +9,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
 
 enum DesktopMenuItemId {
   myStack,
@@ -103,9 +104,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
             AnimatedContainer(
               duration: duration,
               width: _width == expandedWidth ? 70 : 32,
-              height: 70, //_width == expandedWidth ? 70 : 32,
-              child: SvgPicture.asset(
-                Assets.svg.stackIcon(context),
+              child: LivingStackIcon(
+                onPressed: toggleMinimize,
               ),
             ),
             const SizedBox(
