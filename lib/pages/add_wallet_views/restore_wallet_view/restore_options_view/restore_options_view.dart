@@ -155,7 +155,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     final date = await showRoundedDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      height: height / 3.2,
+      height: height * 0.5,
       theme: ThemeData(
         primarySwatch: Util.createMaterialColor(fetchedColor),
       ),
