@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:epicmobile/utilities/logger.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/utilities/logger.dart';
 
 class ElectrumXSubscription with ChangeNotifier {
   dynamic _response;

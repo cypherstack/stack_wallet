@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/electrumx_rpc/electrumx.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 import 'package:string_validator/string_validator.dart';
 
 class CachedElectrumX {

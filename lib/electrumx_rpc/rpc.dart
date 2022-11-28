@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
 // hacky fix to receive large jsonrpc responses
 class JsonRPC {

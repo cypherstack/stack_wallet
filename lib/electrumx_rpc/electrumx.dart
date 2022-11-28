@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/electrumx_rpc/rpc.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/electrumx_rpc/rpc.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 import 'package:uuid/uuid.dart';
 
 class WifiOnlyException implements Exception {}
