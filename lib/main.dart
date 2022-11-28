@@ -76,11 +76,17 @@ void main() async {
     Util.libraryPath = await getLibraryDirectory();
   }
 
+  Screen? screen;
+  if (Platform.isLinux || Util.isDesktop) {
+    screen = await getCurrentScreen();
+    Util.screenWidth = screen?.frame.width;
+  }
+
   if (Util.isDesktop) {
     setWindowTitle('Stack Wallet');
     setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);
-    final screen = await getCurrentScreen();
+
     final screenHeight = screen?.frame.height;
     if (screenHeight != null) {
       // starting to height be 3/4 screen height or 900, whichever is smaller
