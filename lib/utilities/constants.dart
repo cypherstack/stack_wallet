@@ -54,6 +54,7 @@ abstract class Constants {
       case Coin.firoTestNet:
       case Coin.epicCash:
       case Coin.namecoin:
+      case Coin.particl:
         return _satsPerCoin;
 
       case Coin.wownero:
@@ -78,6 +79,7 @@ abstract class Constants {
       case Coin.firoTestNet:
       case Coin.epicCash:
       case Coin.namecoin:
+      case Coin.particl:
         return _decimalPlaces;
 
       case Coin.wownero:
