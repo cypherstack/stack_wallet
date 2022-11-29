@@ -125,6 +125,7 @@ class _FloatingRateCurrencySelectionViewState
               Constants.size.circularBorderRadius,
             ),
             child: TextField(
+              autofocus: isDesktop,
               autocorrect: !isDesktop,
               enableSuggestions: !isDesktop,
               controller: _searchController,

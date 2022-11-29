@@ -168,8 +168,9 @@ class _FixedRateMarketPairCoinSelectionViewState
               Constants.size.circularBorderRadius,
             ),
             child: TextField(
-              autocorrect: Util.isDesktop ? false : true,
-              enableSuggestions: Util.isDesktop ? false : true,
+              autofocus: isDesktop,
+              autocorrect: !isDesktop,
+              enableSuggestions: !isDesktop,
               controller: _searchController,
               focusNode: _searchFocusNode,
               onChanged: filter,
