@@ -49,7 +49,7 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: 65eb920719c8f7895c5402a07497647e7fc4b346
+      ref: particl # TODO change to hash ref when merging in particl support
 
   stack_wallet_backup:
     git:
