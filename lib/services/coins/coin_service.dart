@@ -187,6 +187,7 @@ abstract class CoinServiceAPI {
             walletId: walletId,
             walletName: walletName,
             coin: coin,
+            secureStore: secureStorageInterface,
             client: client,
             cachedClient: cachedClient,
             tracker: tracker);
