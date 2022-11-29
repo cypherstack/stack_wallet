@@ -109,7 +109,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "65eb920719c8f7895c5402a07497647e7fc4b346"
+      ref: particl
       resolved-ref: "65eb920719c8f7895c5402a07497647e7fc4b346"
       url: "https://github.com/cypherstack/bitcoindart.git"
     source: git
