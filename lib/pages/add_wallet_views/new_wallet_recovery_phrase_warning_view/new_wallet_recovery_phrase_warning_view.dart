@@ -2,13 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/recovery_phrase_explanation_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -20,6 +23,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -74,6 +78,31 @@ class _NewWalletRecoveryPhraseWarningViewState
             )
           : AppBar(
               leading: const AppBarBackButton(),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AppBarIconButton(
+                    icon: SvgPicture.asset(
+                      Assets.svg.circleQuestion,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
+                    onPressed: () async {
+                      await showDialog<void>(
+                        context: context,
+                        builder: (context) => const RecoveryPhraseExplanationDialog(),
+                      );
+                    },
+                  ),
+                )
+              ],
             ),
       body: Padding(
         padding: EdgeInsets.all(isDesktop ? 0 : 16),
@@ -113,18 +142,183 @@ class _NewWalletRecoveryPhraseWarningViewState
               height: isDesktop ? 32 : 16,
             ),
             RoundedWhiteContainer(
-              padding: isDesktop
-                  ? const EdgeInsets.all(32)
-                  : const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(32),
               width: isDesktop ? 480 : null,
-              child: Text(
-                "On the next screen you will see $_numberOfPhraseWords words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
-                style: isDesktop
-                    ? STextStyles.desktopTextMediumRegular(context)
-                    : STextStyles.subtitle(context).copyWith(
-                        fontSize: 12,
-                      ),
-              ),
+              child: isDesktop
+                  ? Text(
+                      "On the next screen you will see $_numberOfPhraseWords words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
+                      style: isDesktop
+                          ? STextStyles.desktopTextMediumRegular(context)
+                          : STextStyles.subtitle(context).copyWith(
+                              fontSize: 12,
+                            ),
+                    )
+                  : Column(
+                      children: [
+                        Text(
+                          "Important",
+                          style: STextStyles.desktopH3(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorBlue,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: STextStyles.desktopH3(context)
+                                .copyWith(fontSize: 18),
+                            children: [
+                              TextSpan(
+                                text: "On the next screen you will be given ",
+                                style: STextStyles.desktopH3(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "12 words",
+                                style: STextStyles.desktopH3(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorBlue,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              TextSpan(
+                                text: ". They are your ",
+                                style: STextStyles.desktopH3(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "recovery phrase",
+                                style: STextStyles.desktopH3(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorBlue,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              TextSpan(
+                                text: ".",
+                                style: STextStyles.desktopH3(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 40,
+                        ),
+                        Column(
+                          children: [
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 32,
+                                  height: 32,
+                                  child: RoundedContainer(
+                                    radiusMultiplier: 20,
+                                    padding: const EdgeInsets.all(9),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonBackSecondary,
+                                    child: SvgPicture.asset(
+                                      Assets.svg.pencil,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                Text(
+                                  "Write them down.",
+                                  style: STextStyles.navBarTitle(context),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 30,
+                            ),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 32,
+                                  height: 32,
+                                  child: RoundedContainer(
+                                    radiusMultiplier: 20,
+                                    padding: const EdgeInsets.all(8),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonBackSecondary,
+                                    child: SvgPicture.asset(
+                                      Assets.svg.lock,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                Text(
+                                  "Keep them safe.",
+                                  style: STextStyles.navBarTitle(context),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 30,
+                            ),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 32,
+                                  height: 32,
+                                  child: RoundedContainer(
+                                    radiusMultiplier: 20,
+                                    padding: const EdgeInsets.all(8),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonBackSecondary,
+                                    child: SvgPicture.asset(
+                                      Assets.svg.eyeSlash,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                Text(
+                                  "Do not show them to anyone.",
+                                  style: STextStyles.navBarTitle(context),
+                                ),
+                              ],
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
             ),
             if (!isDesktop) const Spacer(),
             if (isDesktop)
@@ -150,27 +344,30 @@ class _NewWalletRecoveryPhraseWarningViewState
                         child: Container(
                           color: Colors.transparent,
                           child: Row(
-                            crossAxisAlignment: isDesktop
-                                ? CrossAxisAlignment.start
-                                : CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Checkbox(
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                value: ref
-                                    .watch(checkBoxStateProvider.state)
-                                    .state,
-                                onChanged: (newValue) {
-                                  ref.read(checkBoxStateProvider.state).state =
-                                      newValue!;
-                                },
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  value: ref
+                                      .watch(checkBoxStateProvider.state)
+                                      .state,
+                                  onChanged: (newValue) {
+                                    ref
+                                        .read(checkBoxStateProvider.state)
+                                        .state = newValue!;
+                                  },
+                                ),
                               ),
                               SizedBox(
-                                width: isDesktop ? 14 : 4,
+                                width: isDesktop ? 20 : 10,
                               ),
                               Flexible(
                                 child: Text(
-                                  "I understand that if I lose my recovery phrase, I will not be able to access my funds.",
+                                  "I understand that Stack Wallet does not keep and cannot restore your recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
                                   style: isDesktop
                                       ? STextStyles.desktopTextMedium(context)
                                       : STextStyles.baseXS(context),
