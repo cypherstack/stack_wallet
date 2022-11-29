@@ -103,6 +103,8 @@ abstract class Constants {
       case Coin.firoTestNet:
       case Coin.epicCash:
       case Coin.namecoin:
+      case Coin.particl:
+      case Coin.particlTestNet:
         values.addAll([24, 21, 18, 15, 12]);
         break;
 
@@ -149,6 +151,10 @@ abstract class Constants {
         return 120;
 
       case Coin.namecoin:
+        return 600;
+
+      case Coin.particl:
+      case Coin.particlTestNet:
         return 600;
     }
   }

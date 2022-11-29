@@ -193,6 +193,7 @@ class CoinThemeColor {
   Color get monero => const Color(0xFFFF9E6B);
   Color get namecoin => const Color(0xFF91B1E1);
   Color get wownero => const Color(0xFFED80C1);
+  Color get particl => const Color(0xFFED80C1); //TODO - Use part colors
 
   Color forCoin(Coin coin) {
     switch (coin) {
@@ -219,6 +220,9 @@ class CoinThemeColor {
         return namecoin;
       case Coin.wownero:
         return wownero;
+      case Coin.particl:
+      case Coin.particlTestNet:
+        return particl;
     }
   }
 }

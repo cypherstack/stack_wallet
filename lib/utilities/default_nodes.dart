@@ -145,6 +145,17 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get particl => NodeModel(
+      host: "host",
+      port: 123,
+      name: defaultName,
+      id: _nodeId(Coin.particl),
+      useSSL: true,
+      enabled: true,
+      coinName: Coin.particl.name,
+      isFailover: true,
+      isDown: false); //TODO - UPDATE WITH CORRECT DETAILS
+
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "electrumx-testnet.cypherstack.com",
         port: 51002,
@@ -193,6 +204,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get particlTestnet => NodeModel(
+        host: "host",
+        port: 60002,
+        name: defaultName,
+        id: _nodeId(Coin.particlTestNet),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.particlTestNet.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
@@ -222,6 +245,9 @@ abstract class DefaultNodes {
       case Coin.namecoin:
         return namecoin;
 
+      case Coin.particl:
+        return namecoin;
+
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
 
@@ -236,6 +262,9 @@ abstract class DefaultNodes {
 
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
+
+      case Coin.particlTestNet:
+        return particlTestnet;
     }
   }
 
