@@ -6,7 +6,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -65,14 +64,8 @@ class _DesktopDeleteWalletDialog
         .verifyPassphrase(passwordController.text);
 
     if (verified) {
-      Navigator.of(context, rootNavigator: true).pop();
-
-      final words = await ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(widget.walletId)
-          .mnemonic;
-
       if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context).pop();
 
         unawaited(
@@ -83,17 +76,19 @@ class _DesktopDeleteWalletDialog
         );
       }
     } else {
-      Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
 
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
 
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Invalid passphrase!",
-          context: context,
-        ),
-      );
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Invalid passphrase!",
+            context: context,
+          ),
+        );
+      }
     }
   }
 
@@ -157,7 +152,9 @@ class _DesktopDeleteWalletDialog
                     key: const Key("desktopDeleteWalletPasswordFieldKey"),
                     focusNode: passwordFocusNode,
                     controller: passwordController,
-                    style: STextStyles.field(context),
+                    style: STextStyles.desktopTextMedium(context).copyWith(
+                      height: 2,
+                    ),
                     obscureText: hidePassword,
                     enableSuggestions: false,
                     autocorrect: false,
@@ -240,7 +237,7 @@ class _DesktopDeleteWalletDialog
                       onPressed: _continueEnabled
                           ? () async {
                               // add loading indicator
-                              enterPassphrase();
+                              await enterPassphrase();
                             }
                           : null,
                     ),
