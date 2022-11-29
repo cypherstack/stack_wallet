@@ -1444,7 +1444,6 @@ class StackColors extends ThemeExtension<StackColors> {
       case Coin.wownero:
         return _coin.wownero;
       case Coin.particl:
-      case Coin.particlTestNet:
         return _coin.particl;
     }
   }

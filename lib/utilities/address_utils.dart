@@ -74,8 +74,6 @@ class AddressUtils {
         return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:
         return Address.validateAddress(address, dogecointestnet);
-      case Coin.particlTestNet:
-        return Address.validateAddress(address, particltestnet);
     }
   }
 

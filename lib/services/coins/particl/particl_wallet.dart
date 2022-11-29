@@ -46,7 +46,7 @@ const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 294;
 
 const String GENESIS_HASH_MAINNET =
-    "0000ee0784c195317ac95623e22fddb8c7b8825dc3998e0bb924d66866eccf4c";
+    "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770";
 const String GENESIS_HASH_TESTNET =
     "0000594ada5310b367443ee0afd4fa3d0bbd5850ea4e33cdc7d6a904a7ec7c90";
 
@@ -88,9 +88,6 @@ bip32.BIP32 getBip32NodeFromRoot(
   switch (root.network.wif) {
     case 0x6c: // PART mainnet wif
       coinType = "44"; // PART mainnet
-      break;
-    case 0x2e: // PART testnet wif
-      coinType = "1"; // PART testnet
       break;
     default:
       throw Exception("Invalid Particl network type used!");
@@ -153,8 +150,6 @@ class ParticlWallet extends CoinServiceAPI {
     switch (coin) {
       case Coin.particl:
         return particl;
-      case Coin.particlTestNet:
-        return particltestnet;
       default:
         throw Exception("Invalid network type!");
     }
@@ -352,10 +347,6 @@ class ParticlWallet extends CoinServiceAPI {
               throw Exception("genesis hash does not match main net!");
             }
             break;
-          case Coin.particlTestNet:
-            if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
-              throw Exception("genesis hash does not match test net!");
-            }
             break;
           default:
             throw Exception(
@@ -1472,11 +1463,6 @@ class ParticlWallet extends CoinServiceAPI {
         case Coin.particl:
           if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
             throw Exception("genesis hash does not match main net!");
-          }
-          break;
-        case Coin.particlTestNet:
-          if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
-            throw Exception("genesis hash does not match test net!");
           }
           break;
         default:
@@ -3803,11 +3789,3 @@ final particl = NetworkType(
     pubKeyHash: 0x38,
     scriptHash: 0x3c,
     wif: 0x6c);
-
-final particltestnet = NetworkType(
-    messagePrefix: '\x18Bitcoin Signed Message:\n',
-    bech32: 'tpw',
-    bip32: Bip32Type(public: 0xe1427800, private: 0x04889478),
-    pubKeyHash: 0x76,
-    scriptHash: 0x7a,
-    wif: 0x2e);

@@ -146,8 +146,8 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get particl => NodeModel(
-      host: "host",
-      port: 123,
+      host: "164.92.93.20",
+      port: 50002,
       name: defaultName,
       id: _nodeId(Coin.particl),
       useSSL: true,
@@ -204,18 +204,6 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
-  static NodeModel get particlTestnet => NodeModel(
-        host: "host",
-        port: 60002,
-        name: defaultName,
-        id: _nodeId(Coin.particlTestNet),
-        useSSL: true,
-        enabled: true,
-        coinName: Coin.particlTestNet.name,
-        isFailover: true,
-        isDown: false,
-      );
-
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
@@ -262,9 +250,6 @@ abstract class DefaultNodes {
 
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
-
-      case Coin.particlTestNet:
-        return particlTestnet;
     }
   }
 

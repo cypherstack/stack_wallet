@@ -191,15 +191,6 @@ abstract class CoinServiceAPI {
             cachedClient: cachedClient,
             tracker: tracker);
 
-      case Coin.particlTestNet:
-        return ParticlWallet(
-            walletId: walletId,
-            walletName: walletName,
-            coin: coin,
-            client: client,
-            cachedClient: cachedClient,
-            tracker: tracker);
-
       case Coin.wownero:
         return WowneroWallet(
           walletId: walletId,
