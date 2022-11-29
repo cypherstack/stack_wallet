@@ -28,19 +28,19 @@ import 'particl_wallet_test_parameters.dart';
 void main() {
   group("particl constants", () {
     test("particl minimum confirmations", () async {
-      expect(MINIMUM_CONFIRMATIONS, 2);
+      expect(MINIMUM_CONFIRMATIONS, 1);
     });
     test("particl dust limit", () async {
-      expect(DUST_LIMIT, 546);
+      expect(DUST_LIMIT, 294);
     });
     test("particl mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,
-          "0000ee0784c195317ac95623e22fddb8c7b8825dc3998e0bb924d66866eccf4c"); // Was 000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770
+          "0000ee0784c195317ac95623e22fddb8c7b8825dc3998e0bb924d66866eccf4c");
     });
-    // test("particl testnet genesis block hash", () async {
-    //   expect(GENESIS_HASH_TESTNET,
-    //       "00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008");
-    // });
+    test("particl testnet genesis block hash", () async {
+      expect(GENESIS_HASH_TESTNET,
+          "0000594ada5310b367443ee0afd4fa3d0bbd5850ea4e33cdc7d6a904a7ec7c90");
+    });
   });
 
   test("particl DerivePathType enum", () {
@@ -99,14 +99,14 @@ void main() {
     // });
   });
 
-  group("validate mainnet namecoin addresses", () {
+  group("validate mainnet particl addresses", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
-    ParticlWallet? mainnetWallet;
+    ParticlWallet? mainnetWallet; // TODO reimplement testnet, see 9baa30c1a40b422bb5f4746efc1220b52691ace6 and sneurlax/stack_wallet#ec399ade0aef1d9ab2dd78876a2d20819dae4ba0
 
     setUp(() {
       client = MockElectrumX();
@@ -127,41 +127,89 @@ void main() {
       );
     });
 
-    test("valid mainnet legacy/p2pkh address type", () {
+    test("valid mainnet particl legacy/p2pkh address", () {
+      expect(
+          mainnetWallet?.validateAddress("Pi9W46PhXkNRusar2KVMbXftYpGzEYGcSa"),
+          true);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("valid mainnet particl legacy/p2pkh address type", () {
       expect(
           mainnetWallet?.addressType(
-              address: "N673DDbjPcrNgJmrhJ1xQXF9LLizQzvjEs"),
+              address: "Pi9W46PhXkNRusar2KVMbXftYpGzEYGcSa"),
           DerivePathType.bip44);
-      expect(secureStore.interactions, 0);
+      expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
       verifyNoMoreInteractions(priceAPI);
     });
 
-    test("valid mainnet bech32 p2wpkh address type", () {
+    test("valid mainnet particl p2wpkh address", () {
       expect(
-          mainnetWallet?.addressType(
-              address: "nc1q6k4x8ye6865z3rc8zkt8gyu52na7njqt6hsk4v"),
-          DerivePathType.bip84);
-      expect(secureStore.interactions, 0);
+          mainnetWallet
+              ?.validateAddress("pw1qj6t0kvsmx8qd95pdh4rwxaz5qp5qtfz0xq2rja"),
+          true);
+      expect(
+          mainnetWallet
+              ?.validateAddress("bc1qc5ymmsay89r6gr4fy2kklvrkuvzyln4shdvjhf"),
+          false);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("valid mainnet particl legacy/p2pkh address", () {
+      expect(
+          mainnetWallet?.validateAddress("PputQYxNxMiYh3sg7vSh25wg3XxHiPHag7"),
+          true);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("invalid mainnet particl legacy/p2pkh address", () {
+      expect(
+          mainnetWallet?.validateAddress("PputQYxNxMiYh3sg7vSh25wg3XxHiP0000"),
+          false);
+      expect(
+          mainnetWallet?.validateAddress("16YB85zQHjro7fqjR2hMcwdQWCX8jNVtr5"),
+          false);
+      expect(secureStore?.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("invalid mainnet particl p2wpkh address", () {
+      expect(
+          mainnetWallet
+              ?.validateAddress("pw1qce3dhmmle4e0833kssj7ptta3ehydjf0tsa3ju"),
+          false);
+      expect(secureStore?.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
       verifyNoMoreInteractions(priceAPI);
     });
 
-    test("invalid bech32 address type", () {
-      expect(
-          () => mainnetWallet?.addressType(
-              address: "tb1qzzlm6mnc8k54mx6akehl8p9ray8r439va5ndyq"),
-          throwsArgumentError);
-      expect(secureStore.interactions, 0);
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
-    });
+    // test("invalid bech32 address type", () {
+    //   expect(
+    //       () => mainnetWallet?.addressType(
+    //           address: "tb1qzzlm6mnc8k54mx6akehl8p9ray8r439va5ndyq"),
+    //       throwsArgumentError);
+    //   expect(secureStore?.interactions, 0);
+    //   verifyNoMoreInteractions(client);
+    //   verifyNoMoreInteractions(cachedClient);
+    //   verifyNoMoreInteractions(tracker);
+    //   verifyNoMoreInteractions(priceAPI);
+    // });
 
     test("address has no matching script", () {
       expect(
