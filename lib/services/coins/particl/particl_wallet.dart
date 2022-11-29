@@ -1298,7 +1298,7 @@ class ParticlWallet extends CoinServiceAPI {
 
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 
@@ -1310,7 +1310,7 @@ class ParticlWallet extends CoinServiceAPI {
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
     PriceAPI? priceAPI,
-    FlutterSecureStorageInterface? secureStore,
+    SecureStorageInterface? secureStore,
   }) {
     txTracker = tracker;
     _walletId = walletId;
