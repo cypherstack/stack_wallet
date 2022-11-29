@@ -15,6 +15,8 @@ import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
+    as particl;
 
 enum Coin {
   bitcoin,
@@ -24,6 +26,7 @@ enum Coin {
   firo,
   litecoin,
   monero,
+  namecoin,
   particl,
   wownero,
 
@@ -313,6 +316,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.particl;
     case "tltc":
       return Coin.litecoinTestNet;
+    case "part":
+      return Coin.particl;
     case "tbtc":
       return Coin.bitcoinTestNet;
     case "tbch":

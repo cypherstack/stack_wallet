@@ -146,15 +146,15 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get particl => NodeModel(
-      host: "particl.stackwallet.com",
-      port: 58002,
+      host: "164.92.93.20",
+      port: 50002,
       name: defaultName,
       id: _nodeId(Coin.particl),
       useSSL: true,
       enabled: true,
       coinName: Coin.particl.name,
       isFailover: true,
-      isDown: false);
+      isDown: false); //TODO - UPDATE WITH CORRECT DETAILS
 
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "electrumx-testnet.cypherstack.com",

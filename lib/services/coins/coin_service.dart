@@ -9,6 +9,7 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
+import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -186,6 +187,7 @@ abstract class CoinServiceAPI {
             walletId: walletId,
             walletName: walletName,
             coin: coin,
+            secureStore: secureStorageInterface,
             client: client,
             cachedClient: cachedClient,
             tracker: tracker);

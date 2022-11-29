@@ -106,7 +106,7 @@ void main() {
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
-    NamecoinWallet? mainnetWallet;
+    ParticlWallet? mainnetWallet;
 
     setUp(() {
       client = MockElectrumX();
@@ -115,7 +115,7 @@ void main() {
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
-      mainnetWallet = NamecoinWallet(
+      mainnetWallet = ParticlWallet(
         walletId: "validateAddressMainNet",
         walletName: "validateAddressMainNet",
         coin: Coin.particl,
