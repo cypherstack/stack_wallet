@@ -28,8 +28,8 @@ class RoundedWhiteContainer extends StatelessWidget {
       radiusMultiplier: radiusMultiplier,
       width: width,
       height: height,
-      child: child,
       borderColor: borderColor,
+      child: child,
     );
   }
 }

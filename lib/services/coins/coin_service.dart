@@ -11,10 +11,12 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+
+import 'litecoin/litecoin_wallet.dart';
 
 abstract class CoinServiceAPI {
   CoinServiceAPI();
@@ -23,6 +25,7 @@ abstract class CoinServiceAPI {
     Coin coin,
     String walletId,
     String walletName,
+    SecureStorageInterface secureStorageInterface,
     NodeModel node,
     TransactionNotificationTracker tracker,
     Prefs prefs,
@@ -67,6 +70,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           client: client,
           cachedClient: cachedClient,
           tracker: tracker,
@@ -76,6 +80,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           client: client,
           cachedClient: cachedClient,
           tracker: tracker,
@@ -86,6 +91,29 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
+
+      case Coin.litecoin:
+        return LitecoinWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          secureStore: secureStorageInterface,
+          client: client,
+          cachedClient: cachedClient,
+          tracker: tracker,
+        );
+
+      case Coin.litecoinTestNet:
+        return LitecoinWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          secureStore: secureStorageInterface,
           client: client,
           cachedClient: cachedClient,
           tracker: tracker,
@@ -96,6 +124,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           client: client,
           cachedClient: cachedClient,
           tracker: tracker,
@@ -106,6 +135,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           client: client,
           cachedClient: cachedClient,
           tracker: tracker,
@@ -116,6 +146,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           client: client,
           cachedClient: cachedClient,
           tracker: tracker,
@@ -126,6 +157,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           client: client,
           cachedClient: cachedClient,
           tracker: tracker,
@@ -136,6 +168,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           // tracker: tracker,
         );
 
@@ -144,6 +177,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           // tracker: tracker,
         );
 
@@ -161,6 +195,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           // tracker: tracker,
         );
 
@@ -169,6 +204,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           tracker: tracker,
           cachedClient: cachedClient,
           client: client,
@@ -179,6 +215,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
+          secureStore: secureStorageInterface,
           client: client,
           cachedClient: cachedClient,
           tracker: tracker,
@@ -265,4 +302,7 @@ abstract class CoinServiceAPI {
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate);
 
   Future<bool> generateNewAddress();
+
+  // used for electrumx coins
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData);
 }

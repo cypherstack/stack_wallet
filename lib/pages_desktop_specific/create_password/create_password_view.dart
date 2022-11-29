@@ -1,13 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
+import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -18,23 +20,18 @@ import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
-class CreatePasswordView extends StatefulWidget {
+class CreatePasswordView extends ConsumerStatefulWidget {
   const CreatePasswordView({
     Key? key,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
 
   static const String routeName = "/createPasswordDesktop";
 
-  final FlutterSecureStorageInterface secureStore;
-
   @override
-  State<CreatePasswordView> createState() => _CreatePasswordViewState();
+  ConsumerState<CreatePasswordView> createState() => _CreatePasswordViewState();
 }
 
-class _CreatePasswordViewState extends State<CreatePasswordView> {
+class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
   late final TextEditingController passwordController;
   late final TextEditingController passwordRepeatController;
 
@@ -76,8 +73,26 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
       return;
     }
 
-    await widget.secureStore
-        .write(key: "stackDesktopPassword", value: passphrase);
+    try {
+      if (await ref.read(storageCryptoHandlerProvider).hasPassword()) {
+        throw Exception(
+            "Tried creating a new password and attempted to overwrite an existing entry!");
+      }
+
+      await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
+      await (ref.read(secureStoreProvider).store as DesktopSecureStore).init();
+
+      // load default nodes now as node service requires storage handler to exist
+
+      await ref.read(nodeServiceChangeNotifierProvider).updateDefaults();
+    } catch (e) {
+      unawaited(showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: "Error: $e",
+        context: context,
+      ));
+      return;
+    }
 
     if (mounted) {
       unawaited(Navigator.of(context)
@@ -192,15 +207,18 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                       height: 32,
                                       width: 32,
                                       child: Center(
-                                        child: SvgPicture.asset(
-                                          hidePassword
-                                              ? Assets.svg.eye
-                                              : Assets.svg.eyeSlash,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textDark3,
-                                          width: 24,
-                                          height: 19,
+                                        child: MouseRegion(
+                                          cursor: SystemMouseCursors.click,
+                                          child: SvgPicture.asset(
+                                            hidePassword
+                                                ? Assets.svg.eye
+                                                : Assets.svg.eyeSlash,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark3,
+                                            width: 24,
+                                            height: 19,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -343,22 +361,25 @@ class _CreatePasswordViewState extends State<CreatePasswordView> {
                                       height: 32,
                                       width: 32,
                                       child: Center(
-                                        child: SvgPicture.asset(
-                                          fieldsMatch && passwordStrength == 1
-                                              ? Assets.svg.checkCircle
-                                              : hidePassword
-                                                  ? Assets.svg.eye
-                                                  : Assets.svg.eyeSlash,
-                                          color: fieldsMatch &&
-                                                  passwordStrength == 1
-                                              ? Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorGreen
-                                              : Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textDark3,
-                                          width: 24,
-                                          height: 19,
+                                        child: MouseRegion(
+                                          cursor: SystemMouseCursors.click,
+                                          child: SvgPicture.asset(
+                                            fieldsMatch && passwordStrength == 1
+                                                ? Assets.svg.checkCircle
+                                                : hidePassword
+                                                    ? Assets.svg.eye
+                                                    : Assets.svg.eyeSlash,
+                                            color: fieldsMatch &&
+                                                    passwordStrength == 1
+                                                ? Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorGreen
+                                                : Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark3,
+                                            width: 24,
+                                            height: 19,
+                                          ),
                                         ),
                                       ),
                                     ),

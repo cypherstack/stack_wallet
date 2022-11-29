@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cw_core/node.dart';
 import 'package:cw_core/unspent_coins_info.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
@@ -30,7 +32,8 @@ import 'package:stackwallet/pages/loading_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_login_view.dart';
+import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
@@ -46,15 +49,16 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
@@ -68,26 +72,36 @@ final openedFromSWBFileStringStateProvider =
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
+  if (Platform.isIOS) {
+    Util.libraryPath = await getLibraryDirectory();
+  }
+
+  Screen? screen;
+  if (Platform.isLinux || Util.isDesktop) {
+    screen = await getCurrentScreen();
+    Util.screenWidth = screen?.frame.width;
+  }
 
   if (Util.isDesktop) {
     setWindowTitle('Stack Wallet');
-    setWindowMinSize(const Size(1200, 900));
+    setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);
+
+    final screenHeight = screen?.frame.height;
+    if (screenHeight != null) {
+      // starting to height be 3/4 screen height or 900, whichever is smaller
+      final height = min<double>(screenHeight * 0.75, 900);
+      setWindowFrame(
+        Rect.fromLTWH(0, 0, 1220, height),
+      );
+    }
   }
 
-  Directory appDirectory = (await getApplicationDocumentsDirectory());
-  if (Platform.isIOS) {
-    appDirectory = (await getLibraryDirectory());
-  }
-  if (Platform.isLinux || Logging.isArmLinux) {
-    appDirectory = Directory("${appDirectory.path}/.stackwallet");
-    await appDirectory.create();
-  }
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   if (!(Logging.isArmLinux || Logging.isTestEnv)) {
     final isar = await Isar.open(
       [LogSchema],
-      directory: appDirectory.path,
+      directory: (await StackFileSystem.applicationIsarDirectory()).path,
       inspector: false,
     );
     await Logging.instance.init(isar);
@@ -136,18 +150,29 @@ void main() async {
   Hive.registerAdapter(WalletTypeAdapter());
 
   Hive.registerAdapter(UnspentCoinsInfoAdapter());
-  await Hive.initFlutter(appDirectory.path);
+  await Hive.initFlutter(
+      (await StackFileSystem.applicationHiveDirectory()).path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
-  int dbVersion = DB.instance.get<dynamic>(
-          boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
-      0;
-  if (dbVersion < Constants.currentHiveDbVersion) {
-    try {
-      await DbVersionMigrator().migrate(dbVersion);
-    } catch (e, s) {
-      Logging.instance.log("Cannot migrate database\n$e $s",
-          level: LogLevel.Error, printFullLength: true);
+
+  // todo: db migrate stuff for desktop needs to be handled eventually
+  if (!Util.isDesktop) {
+    int dbVersion = DB.instance.get<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
+        0;
+    if (dbVersion < Constants.currentHiveDbVersion) {
+      try {
+        await DbVersionMigrator().migrate(
+          dbVersion,
+          secureStore: const SecureStorageWrapper(
+            store: FlutterSecureStorage(),
+            isDesktop: false,
+          ),
+        );
+      } catch (e, s) {
+        Logging.instance.log("Cannot migrate database\n$e $s",
+            level: LogLevel.Error, printFullLength: true);
+      }
     }
   }
 
@@ -195,8 +220,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   static const platform = MethodChannel("STACK_WALLET_RESTORE");
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  late final Wallets _wallets;
-  late final Prefs _prefs;
+  // late final Wallets _wallets;
+  // late final Prefs _prefs;
   late final NotificationsService _notificationsService;
   late final NodeService _nodeService;
   late final TradesService _tradesService;
@@ -204,58 +229,86 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   late final Completer<void> loadingCompleter;
 
   bool didLoad = false;
+  bool didLoadShared = false;
+  bool _desktopHasPassword = false;
 
-  Future<void> load() async {
-    if (didLoad) {
+  Future<void> loadShared() async {
+    if (didLoadShared) {
       return;
     }
-    didLoad = true;
+    didLoadShared = true;
 
     await DB.instance.init();
-    await _prefs.init();
+    await ref.read(prefsChangeNotifierProvider).init();
 
-    _notificationsService = ref.read(notificationsProvider);
-    _nodeService = ref.read(nodeServiceChangeNotifierProvider);
-    _tradesService = ref.read(tradesServiceProvider);
+    final familiarity = ref.read(prefsChangeNotifierProvider).familiarity + 1;
+    ref.read(prefsChangeNotifierProvider).familiarity = familiarity;
 
-    NotificationApi.prefs = _prefs;
-    NotificationApi.notificationsService = _notificationsService;
+    Constants.exchangeForExperiencedUsers(familiarity);
 
-    unawaited(ref.read(baseCurrenciesProvider).update());
-
-    await _nodeService.updateDefaults();
-    await _notificationsService.init(
-      nodeService: _nodeService,
-      tradesService: _tradesService,
-      prefs: _prefs,
-    );
-    ref.read(priceAnd24hChangeNotifierProvider).start(true);
-    await _wallets.load(_prefs);
-    loadingCompleter.complete();
-    // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
-    //  unawaited(_nodeService.updateCommunityNodes());
-
-    // run without awaiting
-    if (Constants.enableExchange &&
-        _prefs.externalCalls &&
-        await _prefs.isExternalCallsSet()) {
-      unawaited(ExchangeDataLoadingService().loadAll(ref));
+    if (Util.isDesktop) {
+      _desktopHasPassword =
+          await ref.read(storageCryptoHandlerProvider).hasPassword();
     }
+  }
 
-    if (_prefs.isAutoBackupEnabled) {
-      switch (_prefs.backupFrequencyType) {
-        case BackupFrequencyType.everyTenMinutes:
-          ref
-              .read(autoSWBServiceProvider)
-              .startPeriodicBackupTimer(duration: const Duration(minutes: 10));
-          break;
-        case BackupFrequencyType.everyAppStart:
-          unawaited(ref.read(autoSWBServiceProvider).doBackup());
-          break;
-        case BackupFrequencyType.afterClosingAWallet:
-          // ignore this case here
-          break;
+  Future<void> load() async {
+    try {
+      if (didLoad) {
+        return;
       }
+      didLoad = true;
+
+      if (!Util.isDesktop) {
+        await loadShared();
+      }
+
+      _notificationsService = ref.read(notificationsProvider);
+      _nodeService = ref.read(nodeServiceChangeNotifierProvider);
+      _tradesService = ref.read(tradesServiceProvider);
+
+      NotificationApi.prefs = ref.read(prefsChangeNotifierProvider);
+      NotificationApi.notificationsService = _notificationsService;
+
+      unawaited(ref.read(baseCurrenciesProvider).update());
+
+      await _nodeService.updateDefaults();
+      await _notificationsService.init(
+        nodeService: _nodeService,
+        tradesService: _tradesService,
+        prefs: ref.read(prefsChangeNotifierProvider),
+      );
+      ref.read(priceAnd24hChangeNotifierProvider).start(true);
+      await ref
+          .read(walletsChangeNotifierProvider)
+          .load(ref.read(prefsChangeNotifierProvider));
+      loadingCompleter.complete();
+      // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
+      //  unawaited(_nodeService.updateCommunityNodes());
+
+      // run without awaiting
+      if (Constants.enableExchange &&
+          ref.read(prefsChangeNotifierProvider).externalCalls &&
+          await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
+        unawaited(ExchangeDataLoadingService().loadAll(ref));
+      }
+
+      if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
+        switch (ref.read(prefsChangeNotifierProvider).backupFrequencyType) {
+          case BackupFrequencyType.everyTenMinutes:
+            ref.read(autoSWBServiceProvider).startPeriodicBackupTimer(
+                duration: const Duration(minutes: 10));
+            break;
+          case BackupFrequencyType.everyAppStart:
+            unawaited(ref.read(autoSWBServiceProvider).doBackup());
+            break;
+          case BackupFrequencyType.afterClosingAWallet:
+            // ignore this case here
+            break;
+        }
+      }
+    } catch (e, s) {
+      Logger.print("$e $s", normalLength: false);
     }
   }
 
@@ -265,14 +318,17 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     final colorScheme = DB.instance
         .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
 
-    ThemeType themeType;
+    StackColorTheme colorTheme;
     switch (colorScheme) {
       case "dark":
-        themeType = ThemeType.dark;
+        colorTheme = DarkColors();
+        break;
+      case "oceanBreeze":
+        colorTheme = OceanBreezeColors();
         break;
       case "light":
       default:
-        themeType = ThemeType.light;
+        colorTheme = LightColors();
     }
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
@@ -281,13 +337,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         .read(localeServiceChangeNotifierProvider.notifier)
         .loadLocale(notify: false);
 
-    _prefs = ref.read(prefsChangeNotifierProvider);
-    _wallets = ref.read(walletsChangeNotifierProvider);
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(colorThemeProvider.state).state =
-          StackColors.fromStackColorTheme(
-              themeType == ThemeType.dark ? DarkColors() : LightColors());
+          StackColors.fromStackColorTheme(colorTheme);
 
       if (Platform.isAndroid) {
         // fetch open file if it exists
@@ -388,7 +440,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   }
 
   Future<void> goToRestoreSWB(String encrypted) async {
-    if (!_prefs.hasPin) {
+    if (!ref.read(prefsChangeNotifierProvider).hasPin) {
       await Navigator.of(navigatorKey.currentContext!)
           .pushNamed(CreatePinView.routeName, arguments: true)
           .then((value) {
@@ -534,49 +586,70 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
         ),
       ),
-      home: FutureBuilder(
-        future: load(),
-        builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // FlutterNativeSplash.remove();
-            if (_wallets.hasWallets || _prefs.hasPin) {
-              // return HomeView();
+      home: Util.isDesktop
+          ? FutureBuilder(
+              future: loadShared(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (_desktopHasPassword) {
+                    String? startupWalletId;
+                    if (ref
+                        .read(prefsChangeNotifierProvider)
+                        .gotoWalletOnStartup) {
+                      startupWalletId =
+                          ref.read(prefsChangeNotifierProvider).startupWalletId;
+                    }
 
-              String? startupWalletId;
-              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
-                startupWalletId =
-                    ref.read(prefsChangeNotifierProvider).startupWalletId;
-              }
+                    return DesktopLoginView(
+                      startupWalletId: startupWalletId,
+                      load: load,
+                    );
+                  } else {
+                    return const IntroView();
+                  }
+                } else {
+                  return const LoadingView();
+                }
+              },
+            )
+          : FutureBuilder(
+              future: load(),
+              builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  // FlutterNativeSplash.remove();
+                  if (ref.read(walletsChangeNotifierProvider).hasWallets ||
+                      ref.read(prefsChangeNotifierProvider).hasPin) {
+                    // return HomeView();
 
-              // TODO proper desktop auth view
-              if (Util.isDesktop) {
-                Future<void>.delayed(Duration.zero).then((value) =>
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        DesktopHomeView.routeName, (route) => false));
-                return Container();
-              }
+                    String? startupWalletId;
+                    if (ref
+                        .read(prefsChangeNotifierProvider)
+                        .gotoWalletOnStartup) {
+                      startupWalletId =
+                          ref.read(prefsChangeNotifierProvider).startupWalletId;
+                    }
 
-              return LockscreenView(
-                isInitialAppLogin: true,
-                routeOnSuccess: HomeView.routeName,
-                routeOnSuccessArguments: startupWalletId,
-                biometricsAuthenticationTitle: "Unlock Stack",
-                biometricsLocalizedReason:
-                    "Unlock your stack wallet using biometrics",
-                biometricsCancelButtonString: "Cancel",
-              );
-            } else {
-              return const IntroView();
-            }
-          } else {
-            // CURRENTLY DISABLED as cannot be animated
-            // technically not needed as FlutterNativeSplash will overlay
-            // anything returned here until the future completes but
-            // FutureBuilder requires you to return something
-            return const LoadingView();
-          }
-        },
-      ),
+                    return LockscreenView(
+                      isInitialAppLogin: true,
+                      routeOnSuccess: HomeView.routeName,
+                      routeOnSuccessArguments: startupWalletId,
+                      biometricsAuthenticationTitle: "Unlock Stack",
+                      biometricsLocalizedReason:
+                          "Unlock your stack wallet using biometrics",
+                      biometricsCancelButtonString: "Cancel",
+                    );
+                  } else {
+                    return const IntroView();
+                  }
+                } else {
+                  // CURRENTLY DISABLED as cannot be animated
+                  // technically not needed as FlutterNativeSplash will overlay
+                  // anything returned here until the future completes but
+                  // FutureBuilder requires you to return something
+                  return const LoadingView();
+                }
+              },
+            ),
     );
   }
 }

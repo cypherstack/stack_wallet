@@ -9,9 +9,9 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -62,204 +62,209 @@ class _RestoreFromEncryptedStringViewState
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onWillPop,
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                _onWillPop();
-              }
-            },
+      child: Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  _onWillPop();
+                }
+              },
+            ),
+            title: Text(
+              "Restore from file",
+              style: STextStyles.navBarTitle(context),
+            ),
           ),
-          title: Text(
-            "Restore from file",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                          child: TextField(
-                            key: const Key("restoreFromFilePasswordFieldKey"),
-                            focusNode: passwordFocusNode,
-                            controller: passwordController,
-                            style: STextStyles.field(context),
-                            obscureText: hidePassword,
-                            enableSuggestions: false,
-                            autocorrect: false,
-                            decoration: standardInputDecoration(
-                              "Enter password",
-                              passwordFocusNode,
-                              context,
-                            ).copyWith(
-                              suffixIcon: UnconstrainedBox(
-                                child: Row(
-                                  children: [
-                                    const SizedBox(
-                                      width: 16,
-                                    ),
-                                    GestureDetector(
-                                      key: const Key(
-                                          "restoreFromFilePasswordFieldShowPasswordButtonKey"),
-                                      onTap: () async {
-                                        setState(() {
-                                          hidePassword = !hidePassword;
-                                        });
-                                      },
-                                      child: SvgPicture.asset(
-                                        hidePassword
-                                            ? Assets.svg.eye
-                                            : Assets.svg.eyeSlash,
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark3,
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                            child: TextField(
+                              key: const Key("restoreFromFilePasswordFieldKey"),
+                              focusNode: passwordFocusNode,
+                              controller: passwordController,
+                              style: STextStyles.field(context),
+                              obscureText: hidePassword,
+                              enableSuggestions: false,
+                              autocorrect: false,
+                              decoration: standardInputDecoration(
+                                "Enter password",
+                                passwordFocusNode,
+                                context,
+                              ).copyWith(
+                                suffixIcon: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      const SizedBox(
                                         width: 16,
-                                        height: 16,
                                       ),
-                                    ),
-                                    const SizedBox(
-                                      width: 12,
-                                    ),
-                                  ],
+                                      GestureDetector(
+                                        key: const Key(
+                                            "restoreFromFilePasswordFieldShowPasswordButtonKey"),
+                                        onTap: () async {
+                                          setState(() {
+                                            hidePassword = !hidePassword;
+                                          });
+                                        },
+                                        child: SvgPicture.asset(
+                                          hidePassword
+                                              ? Assets.svg.eye
+                                              : Assets.svg.eyeSlash,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark3,
+                                          width: 16,
+                                          height: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 12,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
+                              onChanged: (newValue) {
+                                setState(() {});
+                              },
                             ),
-                            onChanged: (newValue) {
-                              setState(() {});
-                            },
                           ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        const Spacer(),
-                        TextButton(
-                          style: passwordController.text.isEmpty
-                              ? Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryEnabledButtonColor(context)
-                              : Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryDisabledButtonColor(context),
-                          onPressed: passwordController.text.isEmpty
-                              ? null
-                              : () async {
-                                  final String passphrase =
-                                      passwordController.text;
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            style: passwordController.text.isEmpty
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryEnabledButtonColor(context)
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryDisabledButtonColor(context),
+                            onPressed: passwordController.text.isEmpty
+                                ? null
+                                : () async {
+                                    final String passphrase =
+                                        passwordController.text;
 
-                                  if (FocusScope.of(context).hasFocus) {
-                                    FocusScope.of(context).unfocus();
-                                    await Future<void>.delayed(
-                                        const Duration(milliseconds: 75));
-                                  }
+                                    if (FocusScope.of(context).hasFocus) {
+                                      FocusScope.of(context).unfocus();
+                                      await Future<void>.delayed(
+                                          const Duration(milliseconds: 75));
+                                    }
 
-                                  bool shouldPop = false;
-                                  showDialog<dynamic>(
-                                    barrierDismissible: false,
-                                    context: context,
-                                    builder: (_) => WillPopScope(
-                                      onWillPop: () async {
-                                        return shouldPop;
-                                      },
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Material(
-                                            color: Colors.transparent,
-                                            child: Center(
-                                              child: Text(
-                                                "Decrypting Stack backup file",
-                                                style: STextStyles.pageTitleH2(
-                                                        context)
-                                                    .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textWhite,
+                                    bool shouldPop = false;
+                                    showDialog<dynamic>(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder: (_) => WillPopScope(
+                                        onWillPop: () async {
+                                          return shouldPop;
+                                        },
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Material(
+                                              color: Colors.transparent,
+                                              child: Center(
+                                                child: Text(
+                                                  "Decrypting Stack backup file",
+                                                  style:
+                                                      STextStyles.pageTitleH2(
+                                                              context)
+                                                          .copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .textWhite,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(
-                                            height: 64,
-                                          ),
-                                          const Center(
-                                            child: LoadingIndicator(
-                                              width: 100,
+                                            const SizedBox(
+                                              height: 64,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-
-                                  final String? jsonString = await compute(
-                                    SWB.decryptStackWalletStringWithPassphrase,
-                                    Tuple2(widget.encrypted, passphrase),
-                                    debugLabel:
-                                        "stack wallet decryption compute",
-                                  );
-
-                                  if (mounted) {
-                                    // pop LoadingIndicator
-                                    shouldPop = true;
-                                    Navigator.of(context).pop();
-
-                                    passwordController.text = "";
-
-                                    if (jsonString == null) {
-                                      showFloatingFlushBar(
-                                        type: FlushBarType.warning,
-                                        message:
-                                            "Failed to decrypt backup file",
-                                        context: context,
-                                      );
-                                      return;
-                                    }
-
-                                    Navigator.of(context).push(
-                                      RouteGenerator.getRoute(
-                                        builder: (_) =>
-                                            StackRestoreProgressView(
-                                          jsonString: jsonString,
-                                          fromFile: true,
+                                            const Center(
+                                              child: LoadingIndicator(
+                                                width: 100,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     );
-                                  }
-                                },
-                          child: Text(
-                            "Restore",
-                            style: STextStyles.button(context),
+
+                                    final String? jsonString = await compute(
+                                      SWB.decryptStackWalletStringWithPassphrase,
+                                      Tuple2(widget.encrypted, passphrase),
+                                      debugLabel:
+                                          "stack wallet decryption compute",
+                                    );
+
+                                    if (mounted) {
+                                      // pop LoadingIndicator
+                                      shouldPop = true;
+                                      Navigator.of(context).pop();
+
+                                      passwordController.text = "";
+
+                                      if (jsonString == null) {
+                                        showFloatingFlushBar(
+                                          type: FlushBarType.warning,
+                                          message:
+                                              "Failed to decrypt backup file",
+                                          context: context,
+                                        );
+                                        return;
+                                      }
+
+                                      Navigator.of(context).push(
+                                        RouteGenerator.getRoute(
+                                          builder: (_) =>
+                                              StackRestoreProgressView(
+                                            jsonString: jsonString,
+                                            fromFile: true,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                            child: Text(
+                              "Restore",
+                              style: STextStyles.button(context),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

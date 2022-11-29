@@ -350,6 +350,14 @@ class MockPrefs extends _i1.Mock implements _i3.Prefs {
         returnValueForMissingStub: _i7.Future<void>.value(),
       ) as _i7.Future<void>);
   @override
+  _i7.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
+        Invocation.method(
+          #isExternalCallsSet,
+          [],
+        ),
+        returnValue: _i7.Future<bool>.value(false),
+      ) as _i7.Future<bool>);
+  @override
   void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,

@@ -9,10 +9,11 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_deta
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:tuple/tuple.dart';
 
 class TransactionCard extends ConsumerStatefulWidget {
@@ -100,6 +101,15 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             .select((value) => value.getPrice(coin)))
         .item1;
 
+    String prefix = "";
+    if (Util.isDesktop) {
+      if (_transaction.txType == "Sent") {
+        prefix = "-";
+      } else if (_transaction.txType == "Received") {
+        prefix = "+";
+      }
+    }
+
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       elevation: 0,
@@ -126,14 +136,31 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
               ));
               return;
             }
-            unawaited(Navigator.of(context).pushNamed(
-              TransactionDetailsView.routeName,
-              arguments: Tuple3(
-                _transaction,
-                coin,
-                walletId,
-              ),
-            ));
+            if (Util.isDesktop) {
+              await showDialog<void>(
+                context: context,
+                builder: (context) => DesktopDialog(
+                  maxHeight: MediaQuery.of(context).size.height - 64,
+                  maxWidth: 580,
+                  child: TransactionDetailsView(
+                    transaction: _transaction,
+                    coin: coin,
+                    walletId: walletId,
+                  ),
+                ),
+              );
+            } else {
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  TransactionDetailsView.routeName,
+                  arguments: Tuple3(
+                    _transaction,
+                    coin,
+                    walletId,
+                  ),
+                ),
+              );
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(8),
@@ -170,13 +197,9 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Builder(
                                 builder: (_) {
-                                  final amount = coin == Coin.monero
-                                      ? (_transaction.amount ~/ 10000)
-                                      : coin == Coin.wownero
-                                          ? (_transaction.amount ~/ 1000)
-                                          : _transaction.amount;
+                                  final amount = _transaction.amount;
                                   return Text(
-                                    "${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
+                                    "$prefix${Format.satoshiAmountToPrettyString(amount, locale, coin)} ${coin.ticker}",
                                     style:
                                         STextStyles.itemSubtitle12_600(context),
                                   );
@@ -214,17 +237,12 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                 fit: BoxFit.scaleDown,
                                 child: Builder(
                                   builder: (_) {
-                                    // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
                                     int value = _transaction.amount;
-                                    if (coin == Coin.monero) {
-                                      value = (value ~/ 10000);
-                                    } else if (coin == Coin.wownero) {
-                                      value = (value ~/ 1000);
-                                    }
 
                                     return Text(
-                                      "${Format.localizedStringAsFixed(
-                                        value: Format.satoshisToAmount(value) *
+                                      "$prefix${Format.localizedStringAsFixed(
+                                        value: Format.satoshisToAmount(value,
+                                                coin: coin) *
                                             price,
                                         locale: locale,
                                         decimalPlaces: 2,

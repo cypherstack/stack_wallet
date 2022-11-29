@@ -6,13 +6,13 @@ import 'dart:typed_data';
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:bitbox/bitbox.dart' as Bitbox;
+import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
+import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
@@ -170,19 +170,21 @@ class BitcoinCashWallet extends CoinServiceAPI {
   Future<Decimal> get availableBalance async {
     final data = await utxoData;
     return Format.satoshisToAmount(
-        data.satoshiBalance - data.satoshiBalanceUnconfirmed);
+        data.satoshiBalance - data.satoshiBalanceUnconfirmed,
+        coin: coin);
   }
 
   @override
   Future<Decimal> get pendingBalance async {
     final data = await utxoData;
-    return Format.satoshisToAmount(data.satoshiBalanceUnconfirmed);
+    return Format.satoshisToAmount(data.satoshiBalanceUnconfirmed, coin: coin);
   }
 
   @override
   Future<Decimal> get balanceMinusMaxFee async =>
       (await availableBalance) -
-      (Decimal.fromInt((await maxFee)) / Decimal.fromInt(Constants.satsPerCoin))
+      (Decimal.fromInt((await maxFee)) /
+              Decimal.fromInt(Constants.satsPerCoin(coin)))
           .toDecimal();
 
   @override
@@ -192,13 +194,13 @@ class BitcoinCashWallet extends CoinServiceAPI {
           .get<dynamic>(boxName: walletId, key: 'totalBalance') as int?;
       if (totalBalance == null) {
         final data = await utxoData;
-        return Format.satoshisToAmount(data.satoshiBalance);
+        return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
       } else {
-        return Format.satoshisToAmount(totalBalance);
+        return Format.satoshisToAmount(totalBalance, coin: coin);
       }
     }
     final data = await utxoData;
-    return Format.satoshisToAmount(data.satoshiBalance);
+    return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
   }
 
   @override
@@ -207,9 +209,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
           _getCurrentAddressForChain(0, DerivePathType.bip44);
   Future<String>? _currentReceivingAddressP2PKH;
 
-  Future<String> get currentReceivingAddressP2SH =>
-      _currentReceivingAddressP2SH ??=
-          _getCurrentAddressForChain(0, DerivePathType.bip49);
+  // Future<String> get currentReceivingAddressP2SH =>
+  //     _currentReceivingAddressP2SH ??=
+  //         _getCurrentAddressForChain(0, DerivePathType.bip49);
   Future<String>? _currentReceivingAddressP2SH;
 
   @override
@@ -232,8 +234,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
   @override
   Future<int> get maxFee async {
     final fee = (await fees).fast;
-    final satsFee =
-        Format.satoshisToAmount(fee) * Decimal.fromInt(Constants.satsPerCoin);
+    final satsFee = Format.satoshisToAmount(fee, coin: coin) *
+        Decimal.fromInt(Constants.satsPerCoin(coin));
     return satsFee.floor().toBigInt().toInt();
   }
 
@@ -258,7 +260,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
   }
 
   Future<void> updateStoredChainHeight({required int newHeight}) async {
-    DB.instance.put<dynamic>(
+    await DB.instance.put<dynamic>(
         boxName: walletId, key: "storedChainHeight", value: newHeight);
   }
 
@@ -266,8 +268,13 @@ class BitcoinCashWallet extends CoinServiceAPI {
     Uint8List? decodeBase58;
     Segwit? decodeBech32;
     try {
-      if (Bitbox.Address.detectFormat(address) == 0) {
-        address = Bitbox.Address.toLegacyAddress(address);
+      if (bitbox.Address.detectFormat(address) ==
+          bitbox.Address.formatCashAddr) {
+        if (validateCashAddr(address)) {
+          address = bitbox.Address.toLegacyAddress(address);
+        } else {
+          throw ArgumentError('$address is not currently supported');
+        }
       }
     } catch (e, s) {}
     try {
@@ -292,11 +299,14 @@ class BitcoinCashWallet extends CoinServiceAPI {
       } catch (err) {
         // Bech32 decode fail
       }
-      if (_network.bech32 != decodeBech32!.hrp) {
-        throw ArgumentError('Invalid prefix or Network mismatch');
-      }
-      if (decodeBech32.version != 0) {
-        throw ArgumentError('Invalid address version');
+
+      if (decodeBech32 != null) {
+        if (_network.bech32 != decodeBech32.hrp) {
+          throw ArgumentError('Invalid prefix or Network mismatch');
+        }
+        if (decodeBech32.version != 0) {
+          throw ArgumentError('Invalid address version');
+        }
       }
     }
     throw ArgumentError('$address has no matching Script');
@@ -609,7 +619,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
       // get address tx counts
       final counts = await _getBatchTxCount(addresses: txCountCallArgs);
-      print("Counts $counts");
+      if (kDebugMode) {
+        print("Counts $counts");
+      }
       // check and add appropriate addresses
       for (int k = 0; k < txCountBatchSize; k++) {
         int count = counts["${_id}_$k"]!;
@@ -745,31 +757,35 @@ class BitcoinCashWallet extends CoinServiceAPI {
     // notify on new incoming transaction
     for (final tx in unconfirmedTxnsToNotifyPending) {
       if (tx.txType == "Received") {
-        NotificationApi.showNotification(
-          title: "Incoming transaction",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.now(),
-          shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
-          coinName: coin.name,
-          txid: tx.txid,
-          confirmations: tx.confirmations,
-          requiredConfirmations: MINIMUM_CONFIRMATIONS,
+        unawaited(
+          NotificationApi.showNotification(
+            title: "Incoming transaction",
+            body: walletName,
+            walletId: walletId,
+            iconAssetName: Assets.svg.iconFor(coin: coin),
+            date: DateTime.now(),
+            shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+            coinName: coin.name,
+            txid: tx.txid,
+            confirmations: tx.confirmations,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+          ),
         );
         await txTracker.addNotifiedPending(tx.txid);
       } else if (tx.txType == "Sent") {
-        NotificationApi.showNotification(
-          title: "Sending transaction",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-          shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
-          coinName: coin.name,
-          txid: tx.txid,
-          confirmations: tx.confirmations,
-          requiredConfirmations: MINIMUM_CONFIRMATIONS,
+        unawaited(
+          NotificationApi.showNotification(
+            title: "Sending transaction",
+            body: walletName,
+            walletId: walletId,
+            iconAssetName: Assets.svg.iconFor(coin: coin),
+            date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+            shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+            coinName: coin.name,
+            txid: tx.txid,
+            confirmations: tx.confirmations,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+          ),
         );
         await txTracker.addNotifiedPending(tx.txid);
       }
@@ -778,26 +794,30 @@ class BitcoinCashWallet extends CoinServiceAPI {
     // notify on confirmed
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
       if (tx.txType == "Received") {
-        NotificationApi.showNotification(
-          title: "Incoming transaction confirmed",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.now(),
-          shouldWatchForUpdates: false,
-          coinName: coin.name,
+        unawaited(
+          NotificationApi.showNotification(
+            title: "Incoming transaction confirmed",
+            body: walletName,
+            walletId: walletId,
+            iconAssetName: Assets.svg.iconFor(coin: coin),
+            date: DateTime.now(),
+            shouldWatchForUpdates: false,
+            coinName: coin.name,
+          ),
         );
 
         await txTracker.addNotifiedConfirmed(tx.txid);
       } else if (tx.txType == "Sent") {
-        NotificationApi.showNotification(
-          title: "Outgoing transaction confirmed",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.now(),
-          shouldWatchForUpdates: false,
-          coinName: coin.name,
+        unawaited(
+          NotificationApi.showNotification(
+            title: "Outgoing transaction confirmed",
+            body: walletName,
+            walletId: walletId,
+            iconAssetName: Assets.svg.iconFor(coin: coin),
+            date: DateTime.now(),
+            shouldWatchForUpdates: false,
+            coinName: coin.name,
+          ),
         );
         await txTracker.addNotifiedConfirmed(tx.txid);
       }
@@ -862,7 +882,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
       if (currentHeight != storedHeight) {
         if (currentHeight != -1) {
           // -1 failed to fetch current height
-          updateStoredChainHeight(newHeight: currentHeight);
+          await updateStoredChainHeight(newHeight: currentHeight);
         }
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
@@ -970,7 +990,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
         }
         // check for send all
         bool isSendAll = false;
-        final balance = Format.decimalAmountToSatoshis(await availableBalance);
+        final balance =
+            Format.decimalAmountToSatoshis(await availableBalance, coin);
         if (satoshiAmount == balance) {
           isSendAll = true;
         }
@@ -1143,14 +1164,82 @@ class BitcoinCashWallet extends CoinServiceAPI {
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
 
+  TransactionData? cachedTxData;
+
+  // hack to add tx to txData before refresh completes
+  // required based on current app architecture where we don't properly store
+  // transactions locally in a good way
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    final priceData =
+        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
+    final locale = await Devicelocale.currentLocale;
+    final String worthNow = Format.localizedStringAsFixed(
+        value:
+            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                .toDecimal(scaleOnInfinitePrecision: 2),
+        decimalPlaces: 2,
+        locale: locale!);
+
+    final tx = models.Transaction(
+      txid: txData["txid"] as String,
+      confirmedStatus: false,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      txType: "Sent",
+      amount: txData["recipientAmt"] as int,
+      worthNow: worthNow,
+      worthAtBlockTimestamp: worthNow,
+      fees: txData["fee"] as int,
+      inputSize: 0,
+      outputSize: 0,
+      inputs: [],
+      outputs: [],
+      address: txData["address"] as String,
+      height: -1,
+      confirmations: 0,
+    );
+
+    if (cachedTxData == null) {
+      final data = await _fetchTransactionData();
+      _transactionData = Future(() => data);
+    }
+
+    final transactions = cachedTxData!.getAllTransactions();
+    transactions[tx.txid] = tx;
+    cachedTxData = models.TransactionData.fromMap(transactions);
+    _transactionData = Future(() => cachedTxData!);
+  }
+
+  bool validateCashAddr(String cashAddr) {
+    String addr = cashAddr;
+    if (cashAddr.contains(":")) {
+      addr = cashAddr.split(":").last;
+    }
+
+    return addr.startsWith("q");
+  }
+
   @override
   bool validateAddress(String address) {
     try {
       // 0 for bitcoincash: address scheme, 1 for legacy address
-      final format = Bitbox.Address.detectFormat(address);
-      print("format $format");
-      return true;
-    } catch (e, s) {
+      final format = bitbox.Address.detectFormat(address);
+      if (kDebugMode) {
+        print("format $format");
+      }
+
+      if (_coin == Coin.bitcoincashTestnet) {
+        return true;
+      }
+
+      if (format == bitbox.Address.formatCashAddr) {
+        return validateCashAddr(address);
+      } else {
+        return address.startsWith("1");
+      }
+    } catch (e) {
       return false;
     }
   }
@@ -1175,7 +1264,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 
@@ -1187,7 +1276,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
     PriceAPI? priceAPI,
-    FlutterSecureStorageInterface? secureStore,
+    required SecureStorageInterface secureStore,
   }) {
     txTracker = tracker;
     _walletId = walletId;
@@ -1197,13 +1286,12 @@ class BitcoinCashWallet extends CoinServiceAPI {
     _cachedElectrumXClient = cachedClient;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
-    _secureStore =
-        secureStore ?? const SecureStorageWrapper(FlutterSecureStorage());
+    _secureStore = secureStore;
   }
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
-    final failovers = NodeService()
+    final failovers = NodeService(secureStorageInterface: _secureStore)
         .failoverNodesFor(coin: coin)
         .map((e) => ElectrumXNode(
               address: e.host,
@@ -1226,7 +1314,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     );
 
     if (shouldRefresh) {
-      refresh();
+      unawaited(refresh());
     }
   }
 
@@ -1241,7 +1329,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
   }
 
   Future<ElectrumXNode> getCurrentNode() async {
-    final node = NodeService().getPrimaryNodeFor(coin: coin) ??
+    final node = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
 
     return ElectrumXNode(
@@ -1298,9 +1387,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Format.decimalAmountToSatoshis(fast),
-        medium: Format.decimalAmountToSatoshis(medium),
-        slow: Format.decimalAmountToSatoshis(slow),
+        fast: Format.decimalAmountToSatoshis(fast, coin),
+        medium: Format.decimalAmountToSatoshis(medium, coin),
+        slow: Format.decimalAmountToSatoshis(slow, coin),
       );
 
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
@@ -1522,12 +1611,15 @@ class BitcoinCashWallet extends CoinServiceAPI {
         break;
     }
 
-    print("Array key is ${jsonEncode(arrayKey)}");
+    if (kDebugMode) {
+      print("Array key is ${jsonEncode(arrayKey)}");
+    }
     final internalChainArray =
         DB.instance.get<dynamic>(boxName: walletId, key: arrayKey);
     if (derivePathType == DerivePathType.bip44) {
-      if (Bitbox.Address.detectFormat(internalChainArray.last as String) == 1) {
-        return Bitbox.Address.toCashAddress(internalChainArray.last as String);
+      if (bitbox.Address.detectFormat(internalChainArray.last as String) ==
+          bitbox.Address.formatLegacy) {
+        return bitbox.Address.toCashAddress(internalChainArray.last as String);
       }
     }
     return internalChainArray.last as String;
@@ -1642,7 +1734,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
           batches[batchNumber] = {};
         }
         final scripthash = _convertToScriptHash(allAddresses[i], _network);
-        print("SCRIPT_HASH_FOR_ADDRESS ${allAddresses[i]} IS $scripthash");
+        if (kDebugMode) {
+          print("SCRIPT_HASH_FOR_ADDRESS ${allAddresses[i]} IS $scripthash");
+        }
         batches[batchNumber]!.addAll({
           scripthash: [scripthash]
         });
@@ -1700,7 +1794,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
           utxo["status"]["block_time"] = txn["blocktime"];
 
           final fiatValue = ((Decimal.fromInt(value) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2);
           utxo["rawWorth"] = fiatValue;
           utxo["fiatWorth"] = fiatValue.toString();
@@ -1710,15 +1804,16 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
       Decimal currencyBalanceRaw =
           ((Decimal.fromInt(satoshiBalance) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2);
 
       final Map<String, dynamic> result = {
         "total_user_currency": currencyBalanceRaw.toString(),
         "total_sats": satoshiBalance,
         "total_btc": (Decimal.fromInt(satoshiBalance) /
-                Decimal.fromInt(Constants.satsPerCoin))
-            .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces)
+                Decimal.fromInt(Constants.satsPerCoin(coin)))
+            .toDecimal(
+                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin))
             .toString(),
         "outputArray": outputArray,
         "unconfirmed": satoshiBalancePending,
@@ -1818,20 +1913,28 @@ class BitcoinCashWallet extends CoinServiceAPI {
   }) async {
     try {
       final Map<String, List<dynamic>> args = {};
-      print("Address $addresses");
+      if (kDebugMode) {
+        print("Address $addresses");
+      }
       for (final entry in addresses.entries) {
         args[entry.key] = [_convertToScriptHash(entry.value, _network)];
       }
 
-      print("Args ${jsonEncode(args)}");
+      if (kDebugMode) {
+        print("Args ${jsonEncode(args)}");
+      }
 
       final response = await electrumXClient.getBatchHistory(args: args);
-      print("Response ${jsonEncode(response)}");
+      if (kDebugMode) {
+        print("Response ${jsonEncode(response)}");
+      }
       final Map<String, int> result = {};
       for (final entry in response.entries) {
         result[entry.key] = entry.value.length;
       }
-      print("result ${jsonEncode(result)}");
+      if (kDebugMode) {
+        print("result ${jsonEncode(result)}");
+      }
       return result;
     } catch (e, s) {
       Logging.instance.log(
@@ -1995,8 +2098,10 @@ class BitcoinCashWallet extends CoinServiceAPI {
   /// Returns the scripthash or throws an exception on invalid bch address
   String _convertToScriptHash(String bchAddress, NetworkType network) {
     try {
-      if (Bitbox.Address.detectFormat(bchAddress) == 0) {
-        bchAddress = Bitbox.Address.toLegacyAddress(bchAddress);
+      if (bitbox.Address.detectFormat(bchAddress) ==
+              bitbox.Address.formatCashAddr &&
+          validateCashAddr(bchAddress)) {
+        bchAddress = bitbox.Address.toLegacyAddress(bchAddress);
       }
       final output = Address.addressToOutputScript(bchAddress, network);
       final hash = sha256.convert(output.toList(growable: false)).toString();
@@ -2073,8 +2178,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
     List<String> allAddressesOld = await _fetchAllOwnAddresses();
     List<String> allAddresses = [];
     for (String address in allAddressesOld) {
-      if (Bitbox.Address.detectFormat(address) == 1) {
-        allAddresses.add(Bitbox.Address.toCashAddress(address));
+      if (bitbox.Address.detectFormat(address) == bitbox.Address.formatLegacy &&
+          addressType(address: address) == DerivePathType.bip44) {
+        allAddresses.add(bitbox.Address.toCashAddress(address));
       } else {
         allAddresses.add(address);
       }
@@ -2085,8 +2191,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
             as List<dynamic>;
     List<dynamic> changeAddressesP2PKH = [];
     for (var address in changeAddressesP2PKHOld) {
-      if (Bitbox.Address.detectFormat(address as String) == 1) {
-        changeAddressesP2PKH.add(Bitbox.Address.toCashAddress(address));
+      if (bitbox.Address.detectFormat(address as String) ==
+          bitbox.Address.formatLegacy) {
+        changeAddressesP2PKH.add(bitbox.Address.toCashAddress(address));
       } else {
         changeAddressesP2PKH.add(address);
       }
@@ -2108,21 +2215,27 @@ class BitcoinCashWallet extends CoinServiceAPI {
     unconfirmedCachedTransactions
         .removeWhere((key, value) => value.confirmedStatus);
 
-    print("CACHED_TRANSACTIONS_IS $cachedTransactions");
+    if (kDebugMode) {
+      print("CACHED_TRANSACTIONS_IS $cachedTransactions");
+    }
     if (cachedTransactions != null) {
       for (final tx in allTxHashes.toList(growable: false)) {
         final txHeight = tx["height"] as int;
         if (txHeight > 0 &&
             txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS) {
           if (unconfirmedCachedTransactions[tx["tx_hash"] as String] == null) {
-            print(cachedTransactions.findTransaction(tx["tx_hash"] as String));
-            print(unconfirmedCachedTransactions[tx["tx_hash"] as String]);
+            if (kDebugMode) {
+              print(
+                  cachedTransactions.findTransaction(tx["tx_hash"] as String));
+              print(unconfirmedCachedTransactions[tx["tx_hash"] as String]);
+            }
             final cachedTx =
                 cachedTransactions.findTransaction(tx["tx_hash"] as String);
             if (!(cachedTx != null &&
                 addressType(address: cachedTx.address) ==
                     DerivePathType.bip44 &&
-                Bitbox.Address.detectFormat(cachedTx.address) == 1)) {
+                bitbox.Address.detectFormat(cachedTx.address) ==
+                    bitbox.Address.formatLegacy)) {
               allTxHashes.remove(tx);
             }
           }
@@ -2223,7 +2336,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
             if (prevOut == out["n"]) {
               inputAmtSentFromWallet +=
                   (Decimal.parse(out["value"].toString()) *
-                          Decimal.fromInt(Constants.satsPerCoin))
+                          Decimal.fromInt(Constants.satsPerCoin(coin)))
                       .toBigInt()
                       .toInt();
             }
@@ -2236,7 +2349,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
           final address = output["scriptPubKey"]["addresses"][0];
           final value = output["value"];
           final _value = (Decimal.parse(value.toString()) *
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toBigInt()
               .toInt();
           totalOutput += _value;
@@ -2261,7 +2374,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
           final address = output["scriptPubKey"]["addresses"][0];
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toBigInt()
                 .toInt();
             totalOut += value;
@@ -2285,7 +2398,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
           for (final out in tx["vout"] as List) {
             if (prevOut == out["n"]) {
               totalIn += (Decimal.parse(out["value"].toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin))
+                      Decimal.fromInt(Constants.satsPerCoin(coin)))
                   .toBigInt()
                   .toInt();
             }
@@ -2307,7 +2420,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
         midSortedTx["amount"] = inputAmtSentFromWallet;
         final String worthNow =
             ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toDecimal(scaleOnInfinitePrecision: 2)
                 .toStringAsFixed(2);
         midSortedTx["worthNow"] = worthNow;
@@ -2317,7 +2430,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
         midSortedTx["amount"] = outputAmtAddressedToWallet;
         final worthNow =
             ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toDecimal(scaleOnInfinitePrecision: 2)
                 .toStringAsFixed(2);
         midSortedTx["worthNow"] = worthNow;
@@ -2401,6 +2514,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     await DB.instance.put<dynamic>(
         boxName: walletId, key: 'latest_tx_model', value: txModel);
 
+    cachedTxData = txModel;
     return txModel;
   }
 
@@ -2782,8 +2896,14 @@ class BitcoinCashWallet extends CoinServiceAPI {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
             String address = output["scriptPubKey"]["addresses"][0] as String;
-            if (Bitbox.Address.detectFormat(address) == 0) {
-              address = Bitbox.Address.toLegacyAddress(address);
+            if (bitbox.Address.detectFormat(address) ==
+                bitbox.Address.formatCashAddr) {
+              if (validateCashAddr(address)) {
+                address = bitbox.Address.toLegacyAddress(address);
+              } else {
+                throw Exception(
+                    "Unsupported address found during fetchBuildTxData(): $address");
+              }
             }
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
@@ -2814,9 +2934,6 @@ class BitcoinCashWallet extends CoinServiceAPI {
         );
         for (int i = 0; i < p2pkhLength; i++) {
           String address = addressesP2PKH[i];
-          if (Bitbox.Address.detectFormat(address) == 0) {
-            address = Bitbox.Address.toLegacyAddress(address);
-          }
 
           // receives
           final receiveDerivation = receiveDerivations[address];
@@ -2950,36 +3067,36 @@ class BitcoinCashWallet extends CoinServiceAPI {
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
-    final builder = Bitbox.Bitbox.transactionBuilder();
+    final builder = bitbox.Bitbox.transactionBuilder();
 
     // retrieve address' utxos from the rest api
-    List<Bitbox.Utxo> _utxos =
+    List<bitbox.Utxo> _utxos =
         []; // await Bitbox.Address.utxo(address) as List<Bitbox.Utxo>;
-    utxosToUse.forEach((element) {
-      _utxos.add(Bitbox.Utxo(
+    for (var element in utxosToUse) {
+      _utxos.add(bitbox.Utxo(
           element.txid,
           element.vout,
-          Bitbox.BitcoinCash.fromSatoshi(element.value),
+          bitbox.BitcoinCash.fromSatoshi(element.value),
           element.value,
           0,
           MINIMUM_CONFIRMATIONS + 1));
-    });
-    Logger.print("bch utxos: ${_utxos}");
+    }
+    Logger.print("bch utxos: $_utxos");
 
     // placeholder for input signatures
-    final signatures = <Map>[];
+    final List<Map<dynamic, dynamic>> signatures = [];
 
     // placeholder for total input balance
-    int totalBalance = 0;
+    // int totalBalance = 0;
 
     // iterate through the list of address _utxos and use them as inputs for the
     // withdrawal transaction
-    _utxos.forEach((Bitbox.Utxo utxo) {
+    for (var utxo in _utxos) {
       // add the utxo as an input for the transaction
       builder.addInput(utxo.txid, utxo.vout);
       final ec = utxoSigningData[utxo.txid]["keyPair"] as ECPair;
 
-      final bitboxEC = Bitbox.ECPair.fromWIF(ec.toWIF());
+      final bitboxEC = bitbox.ECPair.fromWIF(ec.toWIF());
 
       // add a signature to the list to be used later
       signatures.add({
@@ -2988,15 +3105,15 @@ class BitcoinCashWallet extends CoinServiceAPI {
         "original_amount": utxo.satoshis
       });
 
-      totalBalance += utxo.satoshis;
-    });
+      // totalBalance += utxo.satoshis;
+    }
 
     // calculate the fee based on number of inputs and one expected output
-    final fee =
-        Bitbox.BitcoinCash.getByteCount(signatures.length, recipients.length);
+    // final fee =
+    //     bitbox.BitcoinCash.getByteCount(signatures.length, recipients.length);
 
     // calculate how much balance will be left over to spend after the fee
-    final sendAmount = totalBalance - fee;
+    // final sendAmount = totalBalance - fee;
 
     // add the output based on the address provided in the testing data
     for (int i = 0; i < recipients.length; i++) {
@@ -3006,12 +3123,12 @@ class BitcoinCashWallet extends CoinServiceAPI {
     }
 
     // sign all inputs
-    signatures.forEach((signature) {
+    for (var signature in signatures) {
       builder.sign(
           signature["vin"] as int,
-          signature["key_pair"] as Bitbox.ECPair,
+          signature["key_pair"] as bitbox.ECPair,
           signature["original_amount"] as int);
-    });
+    }
 
     // build the transaction
     final tx = builder.build();
@@ -3038,7 +3155,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     );
 
     // clear cache
-    _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
+    await _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
 
     // back up data
     await _rescanBackup();
@@ -3326,9 +3443,10 @@ class BitcoinCashWallet extends CoinServiceAPI {
       return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
           as bool;
     } catch (e, s) {
-      Logging.instance
-          .log("isFavorite fetch failed: $e\n$s", level: LogLevel.Error);
-      rethrow;
+      Logging.instance.log(
+          "isFavorite fetch failed (returning false by default): $e\n$s",
+          level: LogLevel.Error);
+      return false;
     }
   }
 
@@ -3343,7 +3461,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final available = Format.decimalAmountToSatoshis(await availableBalance);
+    final available =
+        Format.decimalAmountToSatoshis(await availableBalance, coin);
 
     if (available == satoshiAmount) {
       return satoshiAmount - sweepAllEstimate(feeRate);

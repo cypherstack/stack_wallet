@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class DesktopDialog extends StatelessWidget {
-  const DesktopDialog({Key? key, this.child}) : super(key: key);
+  const DesktopDialog({
+    Key? key,
+    this.child,
+    this.maxWidth = 641,
+    this.maxHeight = 474,
+  }) : super(key: key);
 
   final Widget? child;
+  final double maxWidth;
+  final double maxHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -13,11 +20,12 @@ class DesktopDialog extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 641,
-            maxHeight: 474,
+          constraints: BoxConstraints(
+            maxWidth: maxWidth,
+            maxHeight: maxHeight,
           ),
           child: Material(
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(
               20,
             ),

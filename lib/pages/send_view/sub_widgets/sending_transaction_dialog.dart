@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class SendingTransactionDialog extends StatefulWidget {
@@ -43,24 +46,56 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
-      child: StackDialog(
-        title: "Sending transaction",
-        // // TODO get message from design team
-        // message: "<PLACEHOLDER>",
-        icon: RotationTransition(
-          turns: _spinAnimation,
-          child: SvgPicture.asset(
-            Assets.svg.arrowRotate,
-            color: Theme.of(context).extension<StackColors>()!.accentColorDark,
-            width: 24,
-            height: 24,
+    if (Util.isDesktop) {
+      return DesktopDialog(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Sending transaction",
+                style: STextStyles.desktopH3(context),
+              ),
+              const SizedBox(
+                height: 40,
+              ),
+              RotationTransition(
+                turns: _spinAnimation,
+                child: SvgPicture.asset(
+                  Assets.svg.arrowRotate,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
+                  width: 24,
+                  height: 24,
+                ),
+              ),
+            ],
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      return WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: StackDialog(
+          title: "Sending transaction",
+          // // TODO get message from design team
+          // message: "<PLACEHOLDER>",
+          icon: RotationTransition(
+            turns: _spinAnimation,
+            child: SvgPicture.asset(
+              Assets.svg.arrowRotate,
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              width: 24,
+              height: 24,
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

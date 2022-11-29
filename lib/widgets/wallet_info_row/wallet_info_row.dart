@@ -14,10 +14,12 @@ class WalletInfoRow extends ConsumerWidget {
     Key? key,
     required this.walletId,
     this.onPressed,
+    this.padding = const EdgeInsets.all(0),
   }) : super(key: key);
 
   final String walletId;
   final VoidCallback? onPressed;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,74 +27,90 @@ class WalletInfoRow extends ConsumerWidget {
         .watch(walletsChangeNotifierProvider.notifier)
         .getManagerProvider(walletId));
 
-    return Row(
-      children: Util.isDesktop
-          ? [
-              Expanded(
-                flex: 4,
-                child: Row(
-                  children: [
-                    WalletInfoCoinIcon(coin: manager.coin),
-                    const SizedBox(
-                      width: 12,
+    if (Util.isDesktop) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onPressed,
+          child: Padding(
+            padding: padding,
+            child: Container(
+              color: Colors.transparent,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: Row(
+                      children: [
+                        WalletInfoCoinIcon(coin: manager.coin),
+                        const SizedBox(
+                          width: 12,
+                        ),
+                        Text(
+                          manager.walletName,
+                          style: STextStyles.desktopTextExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      manager.walletName,
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
-                      ),
+                  ),
+                  Expanded(
+                    flex: 4,
+                    child: WalletInfoRowBalanceFuture(
+                      walletId: walletId,
                     ),
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 4,
-                child: WalletInfoRowBalanceFuture(
-                  walletId: walletId,
-                ),
-              ),
-              Expanded(
-                flex: 6,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    SvgPicture.asset(
-                      Assets.svg.chevronRight,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle1,
-                    )
-                  ],
-                ),
-              )
-            ]
-          : [
-              WalletInfoCoinIcon(coin: manager.coin),
-              const SizedBox(
-                width: 12,
-              ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      manager.walletName,
-                      style: STextStyles.titleBold12(context),
+                  ),
+                  Expanded(
+                    flex: 6,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        SvgPicture.asset(
+                          Assets.svg.chevronRight,
+                          width: 20,
+                          height: 20,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        )
+                      ],
                     ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    WalletInfoRowBalanceFuture(walletId: walletId),
-                  ],
-                ),
+                  )
+                ],
               ),
-            ],
-    );
+            ),
+          ),
+        ),
+      );
+    } else {
+      return Row(
+        children: [
+          WalletInfoCoinIcon(coin: manager.coin),
+          const SizedBox(
+            width: 12,
+          ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  manager.walletName,
+                  style: STextStyles.titleBold12(context),
+                ),
+                const SizedBox(
+                  height: 2,
+                ),
+                WalletInfoRowBalanceFuture(walletId: walletId),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
   }
 }

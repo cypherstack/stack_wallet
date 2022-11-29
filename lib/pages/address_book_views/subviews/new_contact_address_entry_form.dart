@@ -1,8 +1,10 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/coin_select_sheet.dart';
+import 'package:stackwallet/providers/providers.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -14,6 +16,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -46,6 +49,8 @@ class _NewContactAddressEntryFormState
   late final FocusNode addressLabelFocusNode;
   late final FocusNode addressFocusNode;
 
+  List<Coin> coins = [];
+
   @override
   void initState() {
     addressLabelController = TextEditingController()
@@ -54,6 +59,7 @@ class _NewContactAddressEntryFormState
       ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
     addressLabelFocusNode = FocusNode();
     addressFocusNode = FocusNode();
+    coins = [...Coin.values];
     super.initState();
   }
 
@@ -68,84 +74,180 @@ class _NewContactAddressEntryFormState
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
+    bool showTestNet = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
+    );
+    if (isDesktop) {
+      coins = [...Coin.values];
+
+      coins.remove(Coin.firoTestNet);
+      if (showTestNet) {
+        coins = coins.sublist(0, coins.length - kTestNetCoinCount);
+      }
+    }
+
     return Column(
       children: [
-        TextField(
-          readOnly: true,
-          style: STextStyles.field(context),
-          decoration: InputDecoration(
-            hintText: "Select cryptocurrency",
-            hintStyle: STextStyles.fieldLabel(context),
-            prefixIcon: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: RawMaterialButton(
-                  splashColor:
-                      Theme.of(context).extension<StackColors>()!.highlight,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
+        if (isDesktop)
+          DropdownButtonHideUnderline(
+            child: DropdownButton2<Coin>(
+              hint: Text(
+                "Select cryptocurrency",
+                style: STextStyles.fieldLabel(context),
+              ),
+              offset: const Offset(0, -10),
+              isExpanded: true,
+              dropdownElevation: 0,
+              value: ref.watch(addressEntryDataProvider(widget.id)
+                  .select((value) => value.coin)),
+              onChanged: (value) {
+                if (value is Coin) {
+                  ref.read(addressEntryDataProvider(widget.id)).coin = value;
+                }
+              },
+              icon: SvgPicture.asset(
+                Assets.svg.chevronDown,
+                width: 10,
+                height: 5,
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+              buttonPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 4,
+              ),
+              buttonDecoration: BoxDecoration(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+              ),
+              dropdownDecoration: BoxDecoration(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+              ),
+              items: [
+                ...coins.map(
+                  (coin) => DropdownMenuItem<Coin>(
+                    value: coin,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(
+                            Assets.svg.iconFor(coin: coin),
+                            height: 24,
+                            width: 24,
+                          ),
+                          const SizedBox(
+                            width: 12,
+                          ),
+                          Text(
+                            coin.prettyName,
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  onPressed: () {
-                    showModalBottomSheet<dynamic>(
-                      backgroundColor: Colors.transparent,
-                      context: context,
-                      builder: (_) => const CoinSelectSheet(),
-                    ).then((value) {
-                      if (value is Coin) {
-                        ref.read(addressEntryDataProvider(widget.id)).coin =
-                            value;
-                      }
-                    });
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ref.watch(addressEntryDataProvider(widget.id)
-                                  .select((value) => value.coin)) ==
-                              null
-                          ? Text(
-                              "Select cryptocurrency",
-                              style: STextStyles.fieldLabel(context),
-                            )
-                          : Row(
-                              children: [
-                                SvgPicture.asset(
-                                  Assets.svg.iconFor(
-                                      coin: ref.watch(
-                                          addressEntryDataProvider(widget.id)
-                                              .select((value) => value.coin))!),
-                                  height: 20,
-                                  width: 20,
-                                ),
-                                const SizedBox(
-                                  width: 12,
-                                ),
-                                Text(
-                                  ref
-                                      .watch(addressEntryDataProvider(widget.id)
-                                          .select((value) => value.coin))!
-                                      .prettyName,
-                                  style: STextStyles.itemSubtitle12(context),
-                                ),
-                              ],
-                            ),
-                      SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        width: 8,
-                        height: 4,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle2,
+                ),
+              ],
+            ),
+          ),
+        if (!isDesktop)
+          TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
+            readOnly: true,
+            style: STextStyles.field(context),
+            decoration: InputDecoration(
+              hintText: "Select cryptocurrency",
+              hintStyle: STextStyles.fieldLabel(context),
+              prefixIcon: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: RawMaterialButton(
+                    splashColor:
+                        Theme.of(context).extension<StackColors>()!.highlight,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
                       ),
-                    ],
+                    ),
+                    onPressed: () {
+                      showModalBottomSheet<dynamic>(
+                        backgroundColor: Colors.transparent,
+                        context: context,
+                        builder: (_) => const CoinSelectSheet(),
+                      ).then((value) {
+                        if (value is Coin) {
+                          ref.read(addressEntryDataProvider(widget.id)).coin =
+                              value;
+                        }
+                      });
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ref.watch(addressEntryDataProvider(widget.id)
+                                    .select((value) => value.coin)) ==
+                                null
+                            ? Text(
+                                "Select cryptocurrency",
+                                style: STextStyles.fieldLabel(context),
+                              )
+                            : Row(
+                                children: [
+                                  SvgPicture.asset(
+                                    Assets.svg.iconFor(
+                                        coin: ref.watch(
+                                            addressEntryDataProvider(widget.id)
+                                                .select(
+                                                    (value) => value.coin))!),
+                                    height: 20,
+                                    width: 20,
+                                  ),
+                                  const SizedBox(
+                                    width: 12,
+                                  ),
+                                  Text(
+                                    ref
+                                        .watch(
+                                            addressEntryDataProvider(widget.id)
+                                                .select((value) => value.coin))!
+                                        .prettyName,
+                                    style: STextStyles.itemSubtitle12(context),
+                                  ),
+                                ],
+                              ),
+                        if (!isDesktop)
+                          SvgPicture.asset(
+                            Assets.svg.chevronDown,
+                            width: 8,
+                            height: 4,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle2,
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
         const SizedBox(
           height: 8,
         ),
@@ -154,6 +256,8 @@ class _NewContactAddressEntryFormState
             Constants.size.circularBorderRadius,
           ),
           child: TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
             focusNode: addressLabelFocusNode,
             controller: addressLabelController,
             style: STextStyles.field(context),
@@ -162,6 +266,7 @@ class _NewContactAddressEntryFormState
               addressLabelFocusNode,
               context,
             ).copyWith(
+              labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
               suffixIcon: addressLabelController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
@@ -197,6 +302,7 @@ class _NewContactAddressEntryFormState
             Constants.size.circularBorderRadius,
           ),
           child: TextField(
+            enableSuggestions: Util.isDesktop ? false : true,
             focusNode: addressFocusNode,
             controller: addressController,
             style: STextStyles.field(context),
@@ -205,6 +311,7 @@ class _NewContactAddressEntryFormState
               addressFocusNode,
               context,
             ).copyWith(
+              labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
               suffixIcon: UnconstrainedBox(
                 child: Row(
                   children: [
@@ -244,9 +351,10 @@ class _NewContactAddressEntryFormState
                         },
                         child: const ClipboardIcon(),
                       ),
-                    if (ref.watch(addressEntryDataProvider(widget.id)
-                            .select((value) => value.address)) ==
-                        null)
+                    if (!Util.isDesktop &&
+                        ref.watch(addressEntryDataProvider(widget.id)
+                                .select((value) => value.address)) ==
+                            null)
                       TextFieldIconButton(
                         key: const Key("addAddressBookEntryScanQrButtonKey"),
                         onTap: () async {
@@ -324,7 +432,6 @@ class _NewContactAddressEntryFormState
             key: const Key("addAddressBookEntryViewAddressField"),
             readOnly: false,
             autocorrect: false,
-            enableSuggestions: false,
             // inputFormatters: <TextInputFormatter>[
             //   FilteringTextInputFormatter.allow(RegExp("[a-zA-Z0-9]{34}")),
             // ],

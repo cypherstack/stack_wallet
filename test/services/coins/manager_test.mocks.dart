@@ -117,6 +117,14 @@ class MockFiroWallet extends _i1.Mock implements _i7.FiroWallet {
         returnValueForMissingStub: null,
       );
   @override
+  set cachedTxData(_i4.TransactionData? _cachedTxData) => super.noSuchMethod(
+        Invocation.setter(
+          #cachedTxData,
+          _cachedTxData,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   _i2.TransactionNotificationTracker get txTracker => (super.noSuchMethod(
         Invocation.getter(#txTracker),
         returnValue: _FakeTransactionNotificationTracker_0(
@@ -374,6 +382,16 @@ class MockFiroWallet extends _i1.Mock implements _i7.FiroWallet {
         ),
         returnValue: false,
       ) as bool);
+  @override
+  _i8.Future<void> updateSentCachedTxData(Map<String, dynamic>? txData) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateSentCachedTxData,
+          [txData],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
   _i8.Future<bool> testNetworkConnection() => (super.noSuchMethod(
         Invocation.method(

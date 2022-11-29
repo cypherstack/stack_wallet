@@ -4,6 +4,9 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,272 +17,208 @@ class SupportView extends StatelessWidget {
   }) : super(key: key);
 
   static const String routeName = "/support";
-  final double iconSize = 28;
 
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: Text(
-          "Support",
-          style: STextStyles.navBarTitle(context),
-        ),
+    final isDesktop = Util.isDesktop;
+
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) {
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              title: Text(
+                "Support",
+                style: STextStyles.navBarTitle(context),
+              ),
+            ),
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RoundedWhiteContainer(
+            child: Text(
+              "If you need support or want to report a bug, reach out to us on any of our socials!",
+              style: STextStyles.smallMed12(context),
+            ),
+          ),
+          isDesktop
+              ? const SizedBox(
+                  height: 24,
+                )
+              : const SizedBox(
+                  height: 12,
+                ),
+          AboutItem(
+            linkUrl: "https://t.me/stackwallet",
+            label: "Telegram",
+            buttonText: "@stackwallet",
+            iconAsset: Assets.socials.telegram,
+            isDesktop: isDesktop,
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          AboutItem(
+            linkUrl: "https://discord.com/invite/mRPZuXx3At",
+            label: "Discord",
+            buttonText: "Stack Wallet",
+            iconAsset: Assets.socials.discord,
+            isDesktop: isDesktop,
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          AboutItem(
+            linkUrl: "https://www.reddit.com/r/stackwallet/",
+            label: "Reddit",
+            buttonText: "r/stackwallet",
+            iconAsset: Assets.socials.reddit,
+            isDesktop: isDesktop,
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          AboutItem(
+            linkUrl: "https://twitter.com/stack_wallet",
+            label: "Twitter",
+            buttonText: "@stack_wallet",
+            iconAsset: Assets.socials.twitter,
+            isDesktop: isDesktop,
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          AboutItem(
+            linkUrl: "mailto:support@stackwallet.com",
+            label: "Email",
+            buttonText: "support@stackwallet.com",
+            iconAsset: Assets.svg.envelope,
+            isDesktop: isDesktop,
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            RoundedWhiteContainer(
-              child: Text(
-                "If you need support or want to report a bug, reach out to us on any of our socials!",
-                style: STextStyles.smallMed12(context),
-              ),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(0),
-              child: RawMaterialButton(
-                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
+    );
+  }
+}
+
+class AboutItem extends StatelessWidget {
+  const AboutItem({
+    Key? key,
+    required this.linkUrl,
+    required this.label,
+    required this.buttonText,
+    required this.iconAsset,
+    required this.isDesktop,
+  }) : super(key: key);
+
+  final String linkUrl;
+  final String label;
+  final String buttonText;
+  final String iconAsset;
+  final bool isDesktop;
+
+  @override
+  Widget build(BuildContext context) {
+    final double iconSize = isDesktop ? 20 : 28;
+
+    return RoundedWhiteContainer(
+      padding: const EdgeInsets.all(0),
+      child: RawMaterialButton(
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+        ),
+        onPressed: () {
+          launchUrl(
+            Uri.parse(linkUrl),
+            mode: LaunchMode.externalApplication,
+          );
+        },
+        child: Padding(
+          padding: isDesktop
+              ? const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 15,
+                )
+              : const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 20,
                 ),
-                onPressed: () {
-                  launchUrl(
-                    Uri.parse("https://t.me/stackwallet"),
-                    mode: LaunchMode.externalApplication,
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        Assets.socials.telegram,
-                        width: iconSize,
-                        height: iconSize,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  ConditionalParent(
+                    condition: isDesktop,
+                    builder: (child) => Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10000),
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .accentColorDark,
+                            .buttonBackSecondary,
                       ),
-                      const SizedBox(
-                        width: 12,
+                      child: Center(
+                        child: child,
                       ),
-                      Text(
-                        "Telegram",
-                        style: STextStyles.titleBold12(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ],
+                    ),
+                    child: SvgPicture.asset(
+                      iconAsset,
+                      width: iconSize,
+                      height: iconSize,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .bottomNavIconIcon,
+                    ),
                   ),
-                ),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  Text(
+                    label,
+                    style: STextStyles.titleBold12(context),
+                    textAlign: TextAlign.left,
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(0),
-              child: RawMaterialButton(
-                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-                onPressed: () {
-                  launchUrl(
-                    Uri.parse("https://discord.gg/RZMG3yUm"),
-                    mode: LaunchMode.externalApplication,
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        Assets.socials.discord,
-                        width: iconSize,
-                        height: iconSize,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      Text(
-                        "Discord",
-                        style: STextStyles.titleBold12(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(0),
-              child: RawMaterialButton(
-                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-                onPressed: () {
-                  launchUrl(
-                    Uri.parse("https://www.reddit.com/r/stackwallet/"),
-                    mode: LaunchMode.externalApplication,
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        Assets.socials.reddit,
-                        width: iconSize,
-                        height: iconSize,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      Text(
-                        "Reddit",
-                        style: STextStyles.titleBold12(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(0),
-              child: RawMaterialButton(
-                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-                onPressed: () {
-                  launchUrl(
-                    Uri.parse("https://twitter.com/stack_wallet"),
-                    mode: LaunchMode.externalApplication,
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        Assets.socials.twitter,
-                        width: iconSize,
-                        height: iconSize,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      Text(
-                        "Twitter",
-                        style: STextStyles.titleBold12(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(0),
-              child: RawMaterialButton(
-                // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-                onPressed: () {
-                  launchUrl(
-                    Uri.parse("mailto://support@stackwallet.com"),
-                    mode: LaunchMode.externalApplication,
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        Assets.svg.envelope,
-                        width: iconSize,
-                        height: iconSize,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      Text(
-                        "Email",
-                        style: STextStyles.titleBold12(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+              if (isDesktop)
+                Text(
+                  buttonText,
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                )
+              // BlueTextButton(
+              //   text: buttonText,
+              //   onTap: () {
+              //     launchUrl(
+              //       Uri.parse(linkUrl),
+              //       mode: LaunchMode.externalApplication,
+              //     );
+              //   },
+              // ),
+            ],
+          ),
         ),
       ),
     );

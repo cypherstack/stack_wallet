@@ -7,6 +7,8 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -98,201 +100,205 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
       listWithoutSelected.insert(0, current);
     }
     listWithoutSelected = _filtered();
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () async {
-            if (FocusScope.of(context).hasFocus) {
-              FocusScope.of(context).unfocus();
-              await Future<void>.delayed(const Duration(milliseconds: 75));
-            }
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          },
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () async {
+              if (FocusScope.of(context).hasFocus) {
+                FocusScope.of(context).unfocus();
+                await Future<void>.delayed(const Duration(milliseconds: 75));
+              }
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          title: Text(
+            "Language",
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
-        title: Text(
-          "Language",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.only(
-          top: 12,
-          left: 16,
-          right: 16,
-        ),
-        child: NestedScrollView(
-          floatHeaderSlivers: true,
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverOverlapAbsorber(
-                handle:
-                    NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                sliver: SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        focusNode: _searchFocusNode,
-                        onChanged: (newString) {
-                          setState(() => filter = newString);
-                        },
-                        style: STextStyles.field(context),
-                        decoration: standardInputDecoration(
-                          "Search",
-                          _searchFocusNode,
-                          context,
-                        ).copyWith(
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 16,
+        body: Padding(
+          padding: const EdgeInsets.only(
+            top: 12,
+            left: 16,
+            right: 16,
+          ),
+          child: NestedScrollView(
+            floatHeaderSlivers: true,
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverOverlapAbsorber(
+                  handle:
+                      NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                  sliver: SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                        child: TextField(
+                          autocorrect: Util.isDesktop ? false : true,
+                          enableSuggestions: Util.isDesktop ? false : true,
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          onChanged: (newString) {
+                            setState(() => filter = newString);
+                          },
+                          style: STextStyles.field(context),
+                          decoration: standardInputDecoration(
+                            "Search",
+                            _searchFocusNode,
+                            context,
+                          ).copyWith(
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 16,
+                              ),
+                              child: SvgPicture.asset(
+                                Assets.svg.search,
+                                width: 16,
+                                height: 16,
+                              ),
                             ),
-                            child: SvgPicture.asset(
-                              Assets.svg.search,
-                              width: 16,
-                              height: 16,
-                            ),
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(() {
-                                              _searchController.text = "";
-                                              filter = "";
-                                            });
-                                          },
-                                        ),
-                                      ],
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _searchController.text = "";
+                                                filter = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                )
-                              : null,
+                                  )
+                                : null,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ];
-          },
-          body: Builder(
-            builder: (context) {
-              return CustomScrollView(
-                slivers: [
-                  SliverOverlapInjector(
-                    handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                      context,
+              ];
+            },
+            body: Builder(
+              builder: (context) {
+                return CustomScrollView(
+                  slivers: [
+                    SliverOverlapInjector(
+                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                        context,
+                      ),
                     ),
-                  ),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .popupBG,
-                            borderRadius: _borderRadius(index),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            key: Key(
-                                "languageSelect_${listWithoutSelected[index]}"),
-                            child: RoundedContainer(
-                              padding: const EdgeInsets.all(0),
-                              color: index == 0
-                                  ? Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .currencyListItemBG
-                                  : Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .popupBG,
-                              child: RawMaterialButton(
-                                onPressed: () async {
-                                  onTap(index);
-                                },
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
+                              borderRadius: _borderRadius(index),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              key: Key(
+                                  "languageSelect_${listWithoutSelected[index]}"),
+                              child: RoundedContainer(
+                                padding: const EdgeInsets.all(0),
+                                color: index == 0
+                                    ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .currencyListItemBG
+                                    : Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .popupBG,
+                                child: RawMaterialButton(
+                                  onPressed: () async {
+                                    onTap(index);
+                                  },
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
                                   ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: Radio(
-                                          activeColor: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .radioButtonIconEnabled,
-                                          value: true,
-                                          groupValue: index == 0,
-                                          onChanged: (_) {
-                                            onTap(index);
-                                          },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: Radio(
+                                            activeColor: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .radioButtonIconEnabled,
+                                            value: true,
+                                            groupValue: index == 0,
+                                            onChanged: (_) {
+                                              onTap(index);
+                                            },
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(
-                                        width: 12,
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            listWithoutSelected[index],
-                                            key: (index == 0)
-                                                ? const Key(
-                                                    "selectedLanguageSettingsLanguageText")
-                                                : null,
-                                            style: STextStyles.largeMedium14(
-                                                context),
-                                          ),
-                                          const SizedBox(
-                                            height: 2,
-                                          ),
-                                          Text(
-                                            listWithoutSelected[index],
-                                            key: (index == 0)
-                                                ? const Key(
-                                                    "selectedLanguageSettingsLanguageTextDescription")
-                                                : null,
-                                            style: STextStyles.itemSubtitle(
-                                                context),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                        const SizedBox(
+                                          width: 12,
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              listWithoutSelected[index],
+                                              key: (index == 0)
+                                                  ? const Key(
+                                                      "selectedLanguageSettingsLanguageText")
+                                                  : null,
+                                              style: STextStyles.largeMedium14(
+                                                  context),
+                                            ),
+                                            const SizedBox(
+                                              height: 2,
+                                            ),
+                                            Text(
+                                              listWithoutSelected[index],
+                                              key: (index == 0)
+                                                  ? const Key(
+                                                      "selectedLanguageSettingsLanguageTextDescription")
+                                                  : null,
+                                              style: STextStyles.itemSubtitle(
+                                                  context),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                      childCount: listWithoutSelected.length,
+                          );
+                        },
+                        childCount: listWithoutSelected.length,
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

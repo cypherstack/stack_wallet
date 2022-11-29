@@ -7,14 +7,24 @@ import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -27,6 +37,8 @@ class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
     required this.trade,
+    this.shouldSendPublicFiroFunds,
+    this.fromDesktopStep4 = false,
   }) : super(key: key);
 
   static const String routeName = "/confirmChangeNowSend";
@@ -35,6 +47,8 @@ class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
   final String walletId;
   final String routeOnSuccessName;
   final Trade trade;
+  final bool? shouldSendPublicFiroFunds;
+  final bool fromDesktopStep4;
 
   @override
   ConsumerState<ConfirmChangeNowSendView> createState() =>
@@ -49,21 +63,31 @@ class _ConfirmChangeNowSendViewState
   late final Trade trade;
 
   Future<void> _attemptSend(BuildContext context) async {
-    unawaited(showDialog<void>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: false,
-      builder: (context) {
-        return const SendingTransactionDialog();
-      },
-    ));
+    unawaited(
+      showDialog<void>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: false,
+        builder: (context) {
+          return const SendingTransactionDialog();
+        },
+      ),
+    );
 
     final String note = transactionInfo["note"] as String? ?? "";
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     try {
-      final txid = await manager.confirmSend(txData: transactionInfo);
+      late final String txid;
+
+      if (widget.shouldSendPublicFiroFunds == true) {
+        txid = await (manager.wallet as FiroWallet)
+            .confirmSendPublic(txData: transactionInfo);
+      } else {
+        txid = await manager.confirmSend(txData: transactionInfo);
+      }
+
       unawaited(manager.refresh());
 
       // save note
@@ -82,6 +106,19 @@ class _ConfirmChangeNowSendViewState
 
       // pop back to wallet
       if (mounted) {
+        if (Util.isDesktop) {
+          Navigator.of(context, rootNavigator: true).pop();
+
+          // stupid hack
+          if (widget.fromDesktopStep4) {
+            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+        }
+
         Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
       }
     } catch (e) {
@@ -118,6 +155,65 @@ class _ConfirmChangeNowSendViewState
     }
   }
 
+  Future<void> _confirmSend() async {
+    final dynamic unlocked;
+
+    final coin =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
+
+    if (Util.isDesktop) {
+      unlocked = await showDialog<bool?>(
+        context: context,
+        builder: (context) => DesktopDialog(
+          maxWidth: 580,
+          maxHeight: double.infinity,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: const [
+                  DesktopDialogCloseButton(),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                ),
+                child: DesktopAuthSend(
+                  coin: coin,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      unlocked = await Navigator.push(
+        context,
+        RouteGenerator.getRoute(
+          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+          builder: (_) => const LockscreenView(
+            showBackButton: true,
+            popOnSuccess: true,
+            routeOnSuccessArguments: true,
+            routeOnSuccess: "",
+            biometricsCancelButtonString: "CANCEL",
+            biometricsLocalizedReason: "Authenticate to send transaction",
+            biometricsAuthenticationTitle: "Confirm Transaction",
+          ),
+          settings: const RouteSettings(name: "/confirmsendlockscreen"),
+        ),
+      );
+    }
+
+    if (unlocked is bool && unlocked && mounted) {
+      await _attemptSend(context);
+    }
+  }
+
   @override
   void initState() {
     transactionInfo = widget.transactionInfo;
@@ -131,280 +227,507 @@ class _ConfirmChangeNowSendViewState
   Widget build(BuildContext context) {
     final managerProvider = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManagerProvider(walletId)));
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        leading: AppBarBackButton(
-          onPressed: () async {
-            // if (FocusScope.of(context).hasFocus) {
-            //   FocusScope.of(context).unfocus();
-            //   await Future<void>.delayed(Duration(milliseconds: 50));
-            // }
-            Navigator.of(context).pop();
-          },
-        ),
-        title: Text(
-          "Confirm transaction",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: LayoutBuilder(
-        builder: (builderContext, constraints) {
-          return Padding(
-            padding: const EdgeInsets.only(
-              left: 12,
-              top: 12,
-              right: 12,
+
+    final isDesktop = Util.isDesktop;
+
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) {
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  // if (FocusScope.of(context).hasFocus) {
+                  //   FocusScope.of(context).unfocus();
+                  //   await Future<void>.delayed(Duration(milliseconds: 50));
+                  // }
+                  Navigator.of(context).pop();
+                },
+              ),
+              title: Text(
+                "Confirm transaction",
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 24,
+            body: LayoutBuilder(
+              builder: (builderContext, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.only(
+                    left: 12,
+                    top: 12,
+                    right: 12,
+                  ),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 24,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) => DesktopDialog(
+          maxHeight: double.infinity,
+          maxWidth: 580,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  const SizedBox(
+                    width: 6,
+                  ),
+                  const AppBarBackButton(
+                    isCompact: true,
+                    iconSize: 23,
+                  ),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  Text(
+                    "Confirm ${ref.watch(managerProvider.select((value) => value.coin)).ticker} transaction",
+                    style: STextStyles.desktopH3(context),
+                  )
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
                 ),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                child: Column(
+                  children: [
+                    RoundedWhiteContainer(
+                      padding: const EdgeInsets.all(0),
+                      borderColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      child: child,
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    Row(
                       children: [
                         Text(
-                          "Send ${ref.watch(managerProvider.select((value) => value.coin)).ticker}",
-                          style: STextStyles.pageTitleH1(context),
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "Send from",
-                                style: STextStyles.smallMed12(context),
-                              ),
-                              const SizedBox(
-                                height: 4,
-                              ),
-                              Text(
-                                ref
-                                    .watch(walletsChangeNotifierProvider)
-                                    .getManager(walletId)
-                                    .walletName,
-                                style: STextStyles.itemSubtitle12(context),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "${trade.exchangeName} address",
-                                style: STextStyles.smallMed12(context),
-                              ),
-                              const SizedBox(
-                                height: 4,
-                              ),
-                              Text(
-                                "${transactionInfo["address"] ?? "ERROR"}",
-                                style: STextStyles.itemSubtitle12(context),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Amount",
-                                style: STextStyles.smallMed12(context),
-                              ),
-                              Text(
-                                "${Format.satoshiAmountToPrettyString(
-                                  transactionInfo["recipientAmt"] as int,
-                                  ref.watch(
-                                    localeServiceChangeNotifierProvider
-                                        .select((value) => value.locale),
-                                  ),
-                                )} ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
-                                style: STextStyles.itemSubtitle12(context),
-                                textAlign: TextAlign.right,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Transaction fee",
-                                style: STextStyles.smallMed12(context),
-                              ),
-                              Text(
-                                "${Format.satoshiAmountToPrettyString(
-                                  transactionInfo["fee"] as int,
-                                  ref.watch(
-                                    localeServiceChangeNotifierProvider
-                                        .select((value) => value.locale),
-                                  ),
-                                )} ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
-                                style: STextStyles.itemSubtitle12(context),
-                                textAlign: TextAlign.right,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "Note",
-                                style: STextStyles.smallMed12(context),
-                              ),
-                              const SizedBox(
-                                height: 4,
-                              ),
-                              Text(
-                                transactionInfo["note"] as String? ?? "",
-                                style: STextStyles.itemSubtitle12(context),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Trade ID",
-                                style: STextStyles.smallMed12(context),
-                              ),
-                              Text(
-                                trade.tradeId,
-                                style: STextStyles.itemSubtitle12(context),
-                                textAlign: TextAlign.right,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        RoundedContainer(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .snackBarBackSuccess,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Total amount",
-                                style:
-                                    STextStyles.titleBold12(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textConfirmTotalAmount,
-                                ),
-                              ),
-                              Text(
-                                "${Format.satoshiAmountToPrettyString(
-                                  (transactionInfo["fee"] as int) +
-                                      (transactionInfo["recipientAmt"] as int),
-                                  ref.watch(
-                                    localeServiceChangeNotifierProvider
-                                        .select((value) => value.locale),
-                                  ),
-                                )} ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
-                                style: STextStyles.itemSubtitle12(context)
-                                    .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textConfirmTotalAmount,
-                                ),
-                                textAlign: TextAlign.right,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        const Spacer(),
-                        TextButton(
-                          style: Theme.of(context)
-                              .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context),
-                          onPressed: () async {
-                            final unlocked = await Navigator.push(
-                              context,
-                              RouteGenerator.getRoute(
-                                shouldUseMaterialRoute:
-                                    RouteGenerator.useMaterialPageRoute,
-                                builder: (_) => const LockscreenView(
-                                  showBackButton: true,
-                                  popOnSuccess: true,
-                                  routeOnSuccessArguments: true,
-                                  routeOnSuccess: "",
-                                  biometricsCancelButtonString: "CANCEL",
-                                  biometricsLocalizedReason:
-                                      "Authenticate to send transaction",
-                                  biometricsAuthenticationTitle:
-                                      "Confirm Transaction",
-                                ),
-                                settings: const RouteSettings(
-                                    name: "/confirmsendlockscreen"),
-                              ),
-                            );
-
-                            if (unlocked is bool && unlocked && mounted) {
-                              await _attemptSend(context);
-                            }
-                          },
-                          child: Text(
-                            "Send",
-                            style: STextStyles.button(context),
-                          ),
+                          "Transaction fee",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
                         ),
                       ],
                     ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    RoundedContainer(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            "${Format.satoshiAmountToPrettyString(
+                              (transactionInfo["fee"] as int),
+                              ref.watch(
+                                localeServiceChangeNotifierProvider
+                                    .select((value) => value.locale),
+                              ),
+                              ref.watch(
+                                managerProvider.select((value) => value.coin),
+                              ),
+                            )} ${ref.watch(
+                                  managerProvider.select((value) => value.coin),
+                                ).ticker}",
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    RoundedContainer(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .snackBarBackSuccess,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total amount",
+                            style: STextStyles.titleBold12(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textConfirmTotalAmount,
+                            ),
+                          ),
+                          Text(
+                            "${Format.satoshiAmountToPrettyString(
+                              (transactionInfo["fee"] as int) +
+                                  (transactionInfo["recipientAmt"] as int),
+                              ref.watch(
+                                localeServiceChangeNotifierProvider
+                                    .select((value) => value.locale),
+                              ),
+                              ref.watch(
+                                managerProvider.select((value) => value.coin),
+                              ),
+                            )} ${ref.watch(
+                                  managerProvider.select((value) => value.coin),
+                                ).ticker}",
+                            style: STextStyles.itemSubtitle12(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textConfirmTotalAmount,
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: "Cancel",
+                            buttonHeight: ButtonHeight.l,
+                            onPressed: Navigator.of(context).pop,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        Expanded(
+                          child: PrimaryButton(
+                            label: "Send",
+                            buttonHeight: isDesktop ? ButtonHeight.l : null,
+                            onPressed: _confirmSend,
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ConditionalParent(
+              condition: isDesktop,
+              builder: (child) => Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      child,
+                    ],
                   ),
                 ),
               ),
+              child: Text(
+                "Send ${ref.watch(managerProvider.select((value) => value.coin)).ticker}",
+                style: isDesktop
+                    ? STextStyles.desktopTextMedium(context)
+                    : STextStyles.pageTitleH1(context),
+              ),
             ),
-          );
-        },
+            isDesktop
+                ? Container(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    height: 1,
+                  )
+                : const SizedBox(
+                    height: 12,
+                  ),
+            RoundedWhiteContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "Send from",
+                    style: STextStyles.smallMed12(context),
+                  ),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  Text(
+                    ref
+                        .watch(walletsChangeNotifierProvider)
+                        .getManager(walletId)
+                        .walletName,
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                ],
+              ),
+            ),
+            isDesktop
+                ? Container(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    height: 1,
+                  )
+                : const SizedBox(
+                    height: 12,
+                  ),
+            RoundedWhiteContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "${trade.exchangeName} address",
+                    style: STextStyles.smallMed12(context),
+                  ),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  Text(
+                    "${transactionInfo["address"] ?? "ERROR"}",
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                ],
+              ),
+            ),
+            isDesktop
+                ? Container(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    height: 1,
+                  )
+                : const SizedBox(
+                    height: 12,
+                  ),
+            RoundedWhiteContainer(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Amount",
+                    style: STextStyles.smallMed12(context),
+                  ),
+                  ConditionalParent(
+                    condition: isDesktop,
+                    builder: (child) => Row(
+                      children: [
+                        child,
+                        Builder(builder: (context) {
+                          final coin = ref.watch(
+                              walletsChangeNotifierProvider.select(
+                                  (value) => value.getManager(walletId).coin));
+                          final price = ref.watch(
+                              priceAnd24hChangeNotifierProvider
+                                  .select((value) => value.getPrice(coin)));
+                          final amount = Format.satoshisToAmount(
+                            transactionInfo["recipientAmt"] as int,
+                            coin: coin,
+                          );
+                          final value = price.item1 * amount;
+                          final currency = ref.watch(prefsChangeNotifierProvider
+                              .select((value) => value.currency));
+
+                          return Text(
+                            " | ${value.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} $currency",
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle2,
+                            ),
+                          );
+                        })
+                      ],
+                    ),
+                    child: Text(
+                      "${Format.satoshiAmountToPrettyString(transactionInfo["recipientAmt"] as int, ref.watch(
+                            localeServiceChangeNotifierProvider
+                                .select((value) => value.locale),
+                          ), ref.watch(
+                            managerProvider.select((value) => value.coin),
+                          ))} ${ref.watch(
+                            managerProvider.select((value) => value.coin),
+                          ).ticker}",
+                      style: STextStyles.itemSubtitle12(context),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            isDesktop
+                ? Container(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    height: 1,
+                  )
+                : const SizedBox(
+                    height: 12,
+                  ),
+            RoundedWhiteContainer(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Transaction fee",
+                    style: STextStyles.smallMed12(context),
+                  ),
+                  Text(
+                    "${Format.satoshiAmountToPrettyString(transactionInfo["fee"] as int, ref.watch(
+                          localeServiceChangeNotifierProvider
+                              .select((value) => value.locale),
+                        ), ref.watch(
+                          managerProvider.select((value) => value.coin),
+                        ))} ${ref.watch(
+                          managerProvider.select((value) => value.coin),
+                        ).ticker}",
+                    style: STextStyles.itemSubtitle12(context),
+                    textAlign: TextAlign.right,
+                  ),
+                ],
+              ),
+            ),
+            isDesktop
+                ? Container(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    height: 1,
+                  )
+                : const SizedBox(
+                    height: 12,
+                  ),
+            RoundedWhiteContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "Note",
+                    style: STextStyles.smallMed12(context),
+                  ),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  Text(
+                    transactionInfo["note"] as String? ?? "",
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                ],
+              ),
+            ),
+            isDesktop
+                ? Container(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    height: 1,
+                  )
+                : const SizedBox(
+                    height: 12,
+                  ),
+            RoundedWhiteContainer(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Trade ID",
+                    style: STextStyles.smallMed12(context),
+                  ),
+                  Text(
+                    trade.tradeId,
+                    style: STextStyles.itemSubtitle12(context),
+                    textAlign: TextAlign.right,
+                  ),
+                ],
+              ),
+            ),
+            if (!isDesktop)
+              const SizedBox(
+                height: 12,
+              ),
+            if (!isDesktop)
+              RoundedContainer(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .snackBarBackSuccess,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Total amount",
+                      style: STextStyles.titleBold12(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textConfirmTotalAmount,
+                      ),
+                    ),
+                    Text(
+                      "${Format.satoshiAmountToPrettyString((transactionInfo["fee"] as int) + (transactionInfo["recipientAmt"] as int), ref.watch(
+                            localeServiceChangeNotifierProvider
+                                .select((value) => value.locale),
+                          ), ref.watch(
+                            managerProvider.select((value) => value.coin),
+                          ))} ${ref.watch(
+                            managerProvider.select((value) => value.coin),
+                          ).ticker}",
+                      style: STextStyles.itemSubtitle12(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textConfirmTotalAmount,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                  ],
+                ),
+              ),
+            if (!isDesktop)
+              const SizedBox(
+                height: 16,
+              ),
+            if (!isDesktop) const Spacer(),
+            if (!isDesktop)
+              PrimaryButton(
+                label: "Send",
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
+                onPressed: _confirmSend,
+              ),
+          ],
+        ),
       ),
     );
   }

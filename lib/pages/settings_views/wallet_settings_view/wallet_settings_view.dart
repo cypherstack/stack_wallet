@@ -23,9 +23,10 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
@@ -132,196 +133,199 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          title: Text(
+            "Settings",
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
-        title: Text(
-          "Settings",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: LayoutBuilder(
-        builder: (builderContext, constraints) {
-          return Padding(
-            padding: const EdgeInsets.only(
-              left: 12,
-              top: 12,
-              right: 12,
-            ),
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 24,
-                ),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        RoundedWhiteContainer(
-                          padding: const EdgeInsets.all(4),
-                          child: Column(
-                            children: [
-                              SettingsListButton(
-                                iconAssetName: Assets.svg.addressBook,
-                                iconSize: 16,
-                                title: "Address book",
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed(
-                                    AddressBookView.routeName,
-                                    arguments: coin,
-                                  );
-                                },
-                              ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              SettingsListButton(
-                                iconAssetName: Assets.svg.node,
-                                iconSize: 16,
-                                title: "Network",
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed(
-                                    WalletNetworkSettingsView.routeName,
-                                    arguments: Tuple3(
-                                      walletId,
-                                      _currentSyncStatus,
-                                      widget.initialNodeStatus,
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              Consumer(
-                                builder: (_, ref, __) {
-                                  return SettingsListButton(
-                                    iconAssetName: Assets.svg.lock,
-                                    iconSize: 16,
-                                    title: "Wallet backup",
-                                    onPressed: () async {
-                                      final mnemonic = await ref
-                                          .read(walletsChangeNotifierProvider)
-                                          .getManager(walletId)
-                                          .mnemonic;
+        body: LayoutBuilder(
+          builder: (builderContext, constraints) {
+            return Padding(
+              padding: const EdgeInsets.only(
+                left: 12,
+                top: 12,
+                right: 12,
+              ),
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 24,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          RoundedWhiteContainer(
+                            padding: const EdgeInsets.all(4),
+                            child: Column(
+                              children: [
+                                SettingsListButton(
+                                  iconAssetName: Assets.svg.addressBook,
+                                  iconSize: 16,
+                                  title: "Address book",
+                                  onPressed: () {
+                                    Navigator.of(context).pushNamed(
+                                      AddressBookView.routeName,
+                                      arguments: coin,
+                                    );
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                SettingsListButton(
+                                  iconAssetName: Assets.svg.node,
+                                  iconSize: 16,
+                                  title: "Network",
+                                  onPressed: () {
+                                    Navigator.of(context).pushNamed(
+                                      WalletNetworkSettingsView.routeName,
+                                      arguments: Tuple3(
+                                        walletId,
+                                        _currentSyncStatus,
+                                        widget.initialNodeStatus,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                Consumer(
+                                  builder: (_, ref, __) {
+                                    return SettingsListButton(
+                                      iconAssetName: Assets.svg.lock,
+                                      iconSize: 16,
+                                      title: "Wallet backup",
+                                      onPressed: () async {
+                                        final mnemonic = await ref
+                                            .read(walletsChangeNotifierProvider)
+                                            .getManager(walletId)
+                                            .mnemonic;
 
-                                      if (mounted) {
-                                        Navigator.push(
-                                          context,
-                                          RouteGenerator.getRoute(
-                                            shouldUseMaterialRoute:
-                                                RouteGenerator
-                                                    .useMaterialPageRoute,
-                                            builder: (_) => LockscreenView(
-                                              routeOnSuccessArguments:
-                                                  Tuple2(walletId, mnemonic),
-                                              showBackButton: true,
-                                              routeOnSuccess:
-                                                  WalletBackupView.routeName,
-                                              biometricsCancelButtonString:
-                                                  "CANCEL",
-                                              biometricsLocalizedReason:
-                                                  "Authenticate to view recovery phrase",
-                                              biometricsAuthenticationTitle:
-                                                  "View recovery phrase",
+                                        if (mounted) {
+                                          Navigator.push(
+                                            context,
+                                            RouteGenerator.getRoute(
+                                              shouldUseMaterialRoute:
+                                                  RouteGenerator
+                                                      .useMaterialPageRoute,
+                                              builder: (_) => LockscreenView(
+                                                routeOnSuccessArguments:
+                                                    Tuple2(walletId, mnemonic),
+                                                showBackButton: true,
+                                                routeOnSuccess:
+                                                    WalletBackupView.routeName,
+                                                biometricsCancelButtonString:
+                                                    "CANCEL",
+                                                biometricsLocalizedReason:
+                                                    "Authenticate to view recovery phrase",
+                                                biometricsAuthenticationTitle:
+                                                    "View recovery phrase",
+                                              ),
+                                              settings: const RouteSettings(
+                                                  name:
+                                                      "/viewRecoverPhraseLockscreen"),
                                             ),
-                                            settings: const RouteSettings(
-                                                name:
-                                                    "/viewRecoverPhraseLockscreen"),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              SettingsListButton(
-                                iconAssetName: Assets.svg.downloadFolder,
-                                title: "Wallet settings",
-                                iconSize: 16,
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed(
-                                    WalletSettingsWalletSettingsView.routeName,
-                                    arguments: walletId,
-                                  );
-                                },
-                              ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              SettingsListButton(
-                                iconAssetName: Assets.svg.arrowRotate3,
-                                title: "Syncing preferences",
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed(
-                                      SyncingPreferencesView.routeName);
-                                },
-                              ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              SettingsListButton(
-                                iconAssetName: Assets.svg.ellipsis,
-                                title: "Debug Info",
-                                onPressed: () {
-                                  Navigator.of(context)
-                                      .pushNamed(DebugView.routeName);
-                                },
-                              ),
-                            ],
+                                          );
+                                        }
+                                      },
+                                    );
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                SettingsListButton(
+                                  iconAssetName: Assets.svg.downloadFolder,
+                                  title: "Wallet settings",
+                                  iconSize: 16,
+                                  onPressed: () {
+                                    Navigator.of(context).pushNamed(
+                                      WalletSettingsWalletSettingsView
+                                          .routeName,
+                                      arguments: walletId,
+                                    );
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                SettingsListButton(
+                                  iconAssetName: Assets.svg.arrowRotate3,
+                                  title: "Syncing preferences",
+                                  onPressed: () {
+                                    Navigator.of(context).pushNamed(
+                                        SyncingPreferencesView.routeName);
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                SettingsListButton(
+                                  iconAssetName: Assets.svg.ellipsis,
+                                  title: "Debug Info",
+                                  onPressed: () {
+                                    Navigator.of(context)
+                                        .pushNamed(DebugView.routeName);
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        const Spacer(),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return TextButton(
-                              onPressed: () {
-                                ref
-                                    .read(walletsChangeNotifierProvider)
-                                    .getManager(walletId)
-                                    .isActiveWallet = false;
-                                ref
-                                    .read(transactionFilterProvider.state)
-                                    .state = null;
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          const Spacer(),
+                          Consumer(
+                            builder: (_, ref, __) {
+                              return TextButton(
+                                onPressed: () {
+                                  ref
+                                      .read(walletsChangeNotifierProvider)
+                                      .getManager(walletId)
+                                      .isActiveWallet = false;
+                                  ref
+                                      .read(transactionFilterProvider.state)
+                                      .state = null;
 
-                                Navigator.of(context).popUntil(
-                                  ModalRoute.withName(HomeView.routeName),
-                                );
-                              },
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getSecondaryEnabledButtonColor(context),
-                              child: Text(
-                                "Log out",
-                                style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                                  Navigator.of(context).popUntil(
+                                    ModalRoute.withName(HomeView.routeName),
+                                  );
+                                },
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getSecondaryEnabledButtonColor(context),
+                                child: Text(
+                                  "Log out",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -374,6 +378,8 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
             controller: hostController,
             decoration: const InputDecoration(hintText: "Host"),
           ),
@@ -381,6 +387,8 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             height: 8,
           ),
           TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
             controller: portController,
             decoration: const InputDecoration(hintText: "Port"),
             keyboardType: const TextInputType.numberWithOptions(),

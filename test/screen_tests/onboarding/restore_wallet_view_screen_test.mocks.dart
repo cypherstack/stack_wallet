@@ -84,7 +84,7 @@ class _FakeTransactionData_4 extends _i1.SmartFake
 }
 
 class _FakeFlutterSecureStorageInterface_5 extends _i1.SmartFake
-    implements _i6.FlutterSecureStorageInterface {
+    implements _i6.SecureStorageInterface {
   _FakeFlutterSecureStorageInterface_5(
     Object parent,
     Invocation parentInvocation,
@@ -744,14 +744,14 @@ class MockManager extends _i1.Mock implements _i12.Manager {
 /// See the documentation for Mockito's code generation for more information.
 class MockNodeService extends _i1.Mock implements _i13.NodeService {
   @override
-  _i6.FlutterSecureStorageInterface get secureStorageInterface =>
+  _i6.SecureStorageInterface get secureStorageInterface =>
       (super.noSuchMethod(
         Invocation.getter(#secureStorageInterface),
         returnValue: _FakeFlutterSecureStorageInterface_5(
           this,
           Invocation.getter(#secureStorageInterface),
         ),
-      ) as _i6.FlutterSecureStorageInterface);
+      ) as _i6.SecureStorageInterface);
   @override
   List<_i14.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),

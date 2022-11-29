@@ -1108,6 +1108,16 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
         ),
         returnValue: _i16.Future<bool>.value(false),
       ) as _i16.Future<bool>);
+  @override
+  _i16.Future<void> updateSentCachedTxData(Map<String, dynamic>? txData) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateSentCachedTxData,
+          [txData],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
 }
 
 /// A class which mocks [FiroWallet].
@@ -1123,6 +1133,14 @@ class MockFiroWallet extends _i1.Mock implements _i19.FiroWallet {
         Invocation.setter(
           #timer,
           _timer,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  set cachedTxData(_i8.TransactionData? _cachedTxData) => super.noSuchMethod(
+        Invocation.setter(
+          #cachedTxData,
+          _cachedTxData,
         ),
         returnValueForMissingStub: null,
       );
@@ -1385,6 +1403,16 @@ class MockFiroWallet extends _i1.Mock implements _i19.FiroWallet {
         ),
         returnValue: false,
       ) as bool);
+  @override
+  _i16.Future<void> updateSentCachedTxData(Map<String, dynamic>? txData) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateSentCachedTxData,
+          [txData],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
   _i16.Future<bool> testNetworkConnection() => (super.noSuchMethod(
         Invocation.method(
@@ -2311,6 +2339,14 @@ class MockPrefs extends _i1.Mock implements _i17.Prefs {
         returnValue: _i16.Future<void>.value(),
         returnValueForMissingStub: _i16.Future<void>.value(),
       ) as _i16.Future<void>);
+  @override
+  _i16.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
+        Invocation.method(
+          #isExternalCallsSet,
+          [],
+        ),
+        returnValue: _i16.Future<bool>.value(false),
+      ) as _i16.Future<bool>);
   @override
   void addListener(_i18.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(

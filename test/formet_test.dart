@@ -1,54 +1,64 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 
 void main() {
   group("satoshisToAmount", () {
     test("12345", () {
-      expect(Format.satoshisToAmount(12345), Decimal.parse("0.00012345"));
+      expect(Format.satoshisToAmount(12345, coin: Coin.bitcoin),
+          Decimal.parse("0.00012345"));
     });
 
     test("100012345", () {
-      expect(Format.satoshisToAmount(100012345), Decimal.parse("1.00012345"));
+      expect(Format.satoshisToAmount(100012345, coin: Coin.bitcoin),
+          Decimal.parse("1.00012345"));
     });
 
     test("0", () {
-      expect(Format.satoshisToAmount(0), Decimal.zero);
+      expect(Format.satoshisToAmount(0, coin: Coin.bitcoin), Decimal.zero);
     });
 
     test("1000000000", () {
-      expect(Format.satoshisToAmount(1000000000), Decimal.parse("10"));
+      expect(Format.satoshisToAmount(1000000000, coin: Coin.bitcoin),
+          Decimal.parse("10"));
     });
   });
 
   group("satoshiAmountToPrettyString", () {
     const locale = "en_US";
     test("12345", () {
-      expect(Format.satoshiAmountToPrettyString(12345, locale), "0.00012345");
+      expect(Format.satoshiAmountToPrettyString(12345, locale, Coin.bitcoin),
+          "0.00012345");
     });
 
     test("100012345", () {
       expect(
-          Format.satoshiAmountToPrettyString(100012345, locale), "1.00012345");
+          Format.satoshiAmountToPrettyString(100012345, locale, Coin.bitcoin),
+          "1.00012345");
     });
 
     test("123450000", () {
       expect(
-          Format.satoshiAmountToPrettyString(123450000, locale), "1.23450000");
+          Format.satoshiAmountToPrettyString(123450000, locale, Coin.bitcoin),
+          "1.23450000");
     });
 
     test("1230045000", () {
-      expect(Format.satoshiAmountToPrettyString(1230045000, locale),
+      expect(
+          Format.satoshiAmountToPrettyString(1230045000, locale, Coin.bitcoin),
           "12.30045000");
     });
 
     test("1000000000", () {
-      expect(Format.satoshiAmountToPrettyString(1000000000, locale),
+      expect(
+          Format.satoshiAmountToPrettyString(1000000000, locale, Coin.bitcoin),
           "10.00000000");
     });
 
     test("0", () {
-      expect(Format.satoshiAmountToPrettyString(0, locale), "0.00000000");
+      expect(Format.satoshiAmountToPrettyString(0, locale, Coin.bitcoin),
+          "0.00000000");
     });
   });
 

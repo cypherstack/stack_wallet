@@ -8,6 +8,7 @@ import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
+import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -18,6 +19,7 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widge
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
@@ -149,11 +151,17 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     super.dispose();
   }
 
+  // TODO: check for wownero wordlist?
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
     if (widget.coin == Coin.monero) {
       var moneroWordList = monero.getMoneroWordList("English");
       return moneroWordList.contains(word);
+    }
+    if (widget.coin == Coin.wownero) {
+      var wowneroWordList = wownero.getWowneroWordList("English",
+          seedWordsLength: widget.seedWordsLength);
+      return wowneroWordList.contains(word);
     }
     return _wordListHashSet.contains(word);
   }
@@ -180,7 +188,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       if (widget.coin == Coin.monero) {
         height = monero.getHeigthByDate(date: widget.restoreFromDate);
+      } else if (widget.coin == Coin.wownero) {
+        height = wownero.getHeightByDate(date: widget.restoreFromDate);
       }
+      // todo: wait until this implemented
+      // else if (widget.coin == Coin.wownero) {
+      //   height = wownero.getHeightByDate(date: widget.restoreFromDate);
+      // }
 
       // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
       if (widget.coin == Coin.epicCash) {
@@ -260,6 +274,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           widget.coin,
           walletId,
           widget.walletName,
+          ref.read(secureStoreProvider),
           node,
           txTracker,
           ref.read(prefsChangeNotifierProvider),

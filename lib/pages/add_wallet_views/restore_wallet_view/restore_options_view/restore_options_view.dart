@@ -23,6 +23,8 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/rounded_date_picker/flutter_rounded_date_picker_widget.dart'
+    as datePicker;
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -152,7 +154,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       await Future<void>.delayed(const Duration(milliseconds: 125));
     }
 
-    final date = await showRoundedDatePicker(
+    final date = await datePicker.showRoundedDatePicker(
       context: context,
       initialDate: DateTime.now(),
       height: height * 0.5,
@@ -252,7 +254,11 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               SizedBox(
                 height: isDesktop ? 40 : 24,
               ),
-              if (coin == Coin.monero || coin == Coin.epicCash)
+              if (coin == Coin.monero ||
+                  coin == Coin.epicCash ||
+                  (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25))
                 Text(
                   "Choose start date",
                   style: isDesktop
@@ -264,11 +270,19 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
-              if (coin == Coin.monero || coin == Coin.epicCash)
+              if (coin == Coin.monero ||
+                  coin == Coin.epicCash ||
+                  (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25))
                 SizedBox(
                   height: isDesktop ? 16 : 8,
                 ),
-              if (coin == Coin.monero || coin == Coin.epicCash)
+              if (coin == Coin.monero ||
+                  coin == Coin.epicCash ||
+                  (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25))
 
                 // if (!isDesktop)
                 RestoreFromDatePicker(
@@ -278,11 +292,19 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
               // if (isDesktop)
               //   // TODO desktop date picker
-              if (coin == Coin.monero || coin == Coin.epicCash)
+              if (coin == Coin.monero ||
+                  coin == Coin.epicCash ||
+                  (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25))
                 const SizedBox(
                   height: 8,
                 ),
-              if (coin == Coin.monero || coin == Coin.epicCash)
+              if (coin == Coin.monero ||
+                  coin == Coin.epicCash ||
+                  (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25))
                 RoundedWhiteContainer(
                   child: Center(
                     child: Text(
@@ -299,7 +321,11 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     ),
                   ),
                 ),
-              if (coin == Coin.monero || coin == Coin.epicCash)
+              if (coin == Coin.monero ||
+                  coin == Coin.epicCash ||
+                  (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25))
                 SizedBox(
                   height: isDesktop ? 24 : 16,
                 ),

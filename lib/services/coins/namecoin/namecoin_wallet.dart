@@ -10,8 +10,8 @@ import 'package:bitcoindart/bitcoindart.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
+import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
@@ -170,9 +170,10 @@ class NamecoinWallet extends CoinServiceAPI {
       return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
           as bool;
     } catch (e, s) {
-      Logging.instance
-          .log("isFavorite fetch failed: $e\n$s", level: LogLevel.Error);
-      rethrow;
+      Logging.instance.log(
+          "isFavorite fetch failed (returning false by default): $e\n$s",
+          level: LogLevel.Error);
+      return false;
     }
   }
 
@@ -195,19 +196,21 @@ class NamecoinWallet extends CoinServiceAPI {
   Future<Decimal> get availableBalance async {
     final data = await utxoData;
     return Format.satoshisToAmount(
-        data.satoshiBalance - data.satoshiBalanceUnconfirmed);
+        data.satoshiBalance - data.satoshiBalanceUnconfirmed,
+        coin: coin);
   }
 
   @override
   Future<Decimal> get pendingBalance async {
     final data = await utxoData;
-    return Format.satoshisToAmount(data.satoshiBalanceUnconfirmed);
+    return Format.satoshisToAmount(data.satoshiBalanceUnconfirmed, coin: coin);
   }
 
   @override
   Future<Decimal> get balanceMinusMaxFee async =>
       (await availableBalance) -
-      (Decimal.fromInt((await maxFee)) / Decimal.fromInt(Constants.satsPerCoin))
+      (Decimal.fromInt((await maxFee)) /
+              Decimal.fromInt(Constants.satsPerCoin(coin)))
           .toDecimal();
 
   @override
@@ -217,13 +220,13 @@ class NamecoinWallet extends CoinServiceAPI {
           .get<dynamic>(boxName: walletId, key: 'totalBalance') as int?;
       if (totalBalance == null) {
         final data = await utxoData;
-        return Format.satoshisToAmount(data.satoshiBalance);
+        return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
       } else {
-        return Format.satoshisToAmount(totalBalance);
+        return Format.satoshisToAmount(totalBalance, coin: coin);
       }
     }
     final data = await utxoData;
-    return Format.satoshisToAmount(data.satoshiBalance);
+    return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
   }
 
   @override
@@ -261,7 +264,8 @@ class NamecoinWallet extends CoinServiceAPI {
   @override
   Future<int> get maxFee async {
     final fee = (await fees).fast as String;
-    final satsFee = Decimal.parse(fee) * Decimal.fromInt(Constants.satsPerCoin);
+    final satsFee =
+        Decimal.parse(fee) * Decimal.fromInt(Constants.satsPerCoin(coin));
     return satsFee.floor().toBigInt().toInt();
   }
 
@@ -1085,7 +1089,8 @@ class NamecoinWallet extends CoinServiceAPI {
 
         // check for send all
         bool isSendAll = false;
-        final balance = Format.decimalAmountToSatoshis(await availableBalance);
+        final balance =
+            Format.decimalAmountToSatoshis(await availableBalance, coin);
         if (satoshiAmount == balance) {
           isSendAll = true;
         }
@@ -1275,6 +1280,54 @@ class NamecoinWallet extends CoinServiceAPI {
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
 
+  TransactionData? cachedTxData;
+
+  // hack to add tx to txData before refresh completes
+  // required based on current app architecture where we don't properly store
+  // transactions locally in a good way
+  @override
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    final priceData =
+        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
+    final locale = await Devicelocale.currentLocale;
+    final String worthNow = Format.localizedStringAsFixed(
+        value:
+            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                .toDecimal(scaleOnInfinitePrecision: 2),
+        decimalPlaces: 2,
+        locale: locale!);
+
+    final tx = models.Transaction(
+      txid: txData["txid"] as String,
+      confirmedStatus: false,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      txType: "Sent",
+      amount: txData["recipientAmt"] as int,
+      worthNow: worthNow,
+      worthAtBlockTimestamp: worthNow,
+      fees: txData["fee"] as int,
+      inputSize: 0,
+      outputSize: 0,
+      inputs: [],
+      outputs: [],
+      address: txData["address"] as String,
+      height: -1,
+      confirmations: 0,
+    );
+
+    if (cachedTxData == null) {
+      final data = await _fetchTransactionData();
+      _transactionData = Future(() => data);
+    }
+
+    final transactions = cachedTxData!.getAllTransactions();
+    transactions[tx.txid] = tx;
+    cachedTxData = models.TransactionData.fromMap(transactions);
+    _transactionData = Future(() => cachedTxData!);
+  }
+
   @override
   bool validateAddress(String address) {
     return Address.validateAddress(address, _network, namecoin.bech32!);
@@ -1300,7 +1353,7 @@ class NamecoinWallet extends CoinServiceAPI {
 
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 
@@ -1312,7 +1365,7 @@ class NamecoinWallet extends CoinServiceAPI {
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
     PriceAPI? priceAPI,
-    FlutterSecureStorageInterface? secureStore,
+    required SecureStorageInterface secureStore,
   }) {
     txTracker = tracker;
     _walletId = walletId;
@@ -1322,13 +1375,12 @@ class NamecoinWallet extends CoinServiceAPI {
     _cachedElectrumXClient = cachedClient;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
-    _secureStore =
-        secureStore ?? const SecureStorageWrapper(FlutterSecureStorage());
+    _secureStore = secureStore;
   }
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
-    final failovers = NodeService()
+    final failovers = NodeService(secureStorageInterface: _secureStore)
         .failoverNodesFor(coin: coin)
         .map((e) => ElectrumXNode(
               address: e.host,
@@ -1366,7 +1418,8 @@ class NamecoinWallet extends CoinServiceAPI {
   }
 
   Future<ElectrumXNode> getCurrentNode() async {
-    final node = NodeService().getPrimaryNodeFor(coin: coin) ??
+    final node = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
 
     return ElectrumXNode(
@@ -1441,9 +1494,9 @@ class NamecoinWallet extends CoinServiceAPI {
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Format.decimalAmountToSatoshis(fast),
-        medium: Format.decimalAmountToSatoshis(medium),
-        slow: Format.decimalAmountToSatoshis(slow),
+        fast: Format.decimalAmountToSatoshis(fast, coin),
+        medium: Format.decimalAmountToSatoshis(medium, coin),
+        slow: Format.decimalAmountToSatoshis(slow, coin),
       );
 
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
@@ -1916,7 +1969,7 @@ class NamecoinWallet extends CoinServiceAPI {
           utxo["status"]["block_time"] = txn["blocktime"];
 
           final fiatValue = ((Decimal.fromInt(value) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2);
           utxo["rawWorth"] = fiatValue;
           utxo["fiatWorth"] = fiatValue.toString();
@@ -1926,15 +1979,16 @@ class NamecoinWallet extends CoinServiceAPI {
 
       Decimal currencyBalanceRaw =
           ((Decimal.fromInt(satoshiBalance) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2);
 
       final Map<String, dynamic> result = {
         "total_user_currency": currencyBalanceRaw.toString(),
         "total_sats": satoshiBalance,
         "total_btc": (Decimal.fromInt(satoshiBalance) /
-                Decimal.fromInt(Constants.satsPerCoin))
-            .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces)
+                Decimal.fromInt(Constants.satsPerCoin(coin)))
+            .toDecimal(
+                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin))
             .toString(),
         "outputArray": outputArray,
         "unconfirmed": satoshiBalancePending,
@@ -2491,7 +2545,7 @@ class NamecoinWallet extends CoinServiceAPI {
             if (prevOut == out["n"]) {
               inputAmtSentFromWallet +=
                   (Decimal.parse(out["value"]!.toString()) *
-                          Decimal.fromInt(Constants.satsPerCoin))
+                          Decimal.fromInt(Constants.satsPerCoin(coin)))
                       .toBigInt()
                       .toInt();
             }
@@ -2505,7 +2559,7 @@ class NamecoinWallet extends CoinServiceAPI {
           final address = output["scriptPubKey"]["address"];
           final value = output["value"];
           final _value = (Decimal.parse(value.toString()) *
-                  Decimal.fromInt(Constants.satsPerCoin))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toBigInt()
               .toInt();
           totalOutput += _value;
@@ -2533,7 +2587,7 @@ class NamecoinWallet extends CoinServiceAPI {
           }
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toBigInt()
                 .toInt();
             totalOut += value;
@@ -2556,7 +2610,7 @@ class NamecoinWallet extends CoinServiceAPI {
           for (final out in tx["vout"] as List) {
             if (prevOut == out["n"]) {
               totalIn += (Decimal.parse(out["value"].toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin))
+                      Decimal.fromInt(Constants.satsPerCoin(coin)))
                   .toBigInt()
                   .toInt();
             }
@@ -2578,7 +2632,7 @@ class NamecoinWallet extends CoinServiceAPI {
         midSortedTx["amount"] = inputAmtSentFromWallet;
         final String worthNow =
             ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toDecimal(scaleOnInfinitePrecision: 2)
                 .toStringAsFixed(2);
         midSortedTx["worthNow"] = worthNow;
@@ -2588,7 +2642,7 @@ class NamecoinWallet extends CoinServiceAPI {
         midSortedTx["amount"] = outputAmtAddressedToWallet;
         final worthNow =
             ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin))
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toDecimal(scaleOnInfinitePrecision: 2)
                 .toStringAsFixed(2);
         midSortedTx["worthNow"] = worthNow;
@@ -2672,6 +2726,7 @@ class NamecoinWallet extends CoinServiceAPI {
     await DB.instance.put<dynamic>(
         boxName: walletId, key: 'latest_tx_model', value: txModel);
 
+    cachedTxData = txModel;
     return txModel;
   }
 
@@ -3722,7 +3777,8 @@ class NamecoinWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final available = Format.decimalAmountToSatoshis(await availableBalance);
+    final available =
+        Format.decimalAmountToSatoshis(await availableBalance, coin);
 
     if (available == satoshiAmount) {
       return satoshiAmount - sweepAllEstimate(feeRate);
