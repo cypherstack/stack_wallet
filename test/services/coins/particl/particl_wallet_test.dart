@@ -1,25 +1,14 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:tuple/tuple.dart';
 
-import 'particl_history_sample_data.dart';
-import 'particl_transaction_data_samples.dart';
-import 'particl_utxo_sample_data.dart';
 import 'particl_wallet_test.mocks.dart';
 import 'particl_wallet_test_parameters.dart';
 
@@ -28,10 +17,11 @@ import 'particl_wallet_test_parameters.dart';
 void main() {
   group("particl constants", () {
     test("particl minimum confirmations", () async {
-      expect(MINIMUM_CONFIRMATIONS, 1);
+      expect(MINIMUM_CONFIRMATIONS,
+          1); // TODO confirm particl minimum confirmations
     });
     test("particl dust limit", () async {
-      expect(DUST_LIMIT, 294);
+      expect(DUST_LIMIT, 294); // TODO confirm particl dust limit
     });
     test("particl mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,
@@ -46,7 +36,7 @@ void main() {
   test("particl DerivePathType enum", () {
     expect(DerivePathType.values.length, 3);
     expect(DerivePathType.values.toString(),
-        "[DerivePathType.bip44, DerivePathType.bip49, DerivePathType.bip84]");
+        "[DerivePathType.bip44, DerivePathType.bip49, DerivePathType.bip84]"); // TODO does particl have BIP49, P2WPKH-P2SH?  I'd think no
   });
 
   group("bip32 node/root", () {
@@ -106,7 +96,8 @@ void main() {
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
-    ParticlWallet? mainnetWallet; // TODO reimplement testnet, see 9baa30c1a40b422bb5f4746efc1220b52691ace6 and sneurlax/stack_wallet#ec399ade0aef1d9ab2dd78876a2d20819dae4ba0
+    ParticlWallet?
+        mainnetWallet; // TODO reimplement testnet, see 9baa30c1a40b422bb5f4746efc1220b52691ace6 and sneurlax/stack_wallet#ec399ade0aef1d9ab2dd78876a2d20819dae4ba0
 
     setUp(() {
       client = MockElectrumX();
