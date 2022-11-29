@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 
 class BlueTextButton extends ConsumerStatefulWidget {
   const BlueTextButton({
@@ -27,6 +31,8 @@ class _BlueTextButtonState extends ConsumerState<BlueTextButton>
   AnimationController? controller;
   Animation<dynamic>? animation;
   late Color color;
+
+  bool _hovering = false;
 
   @override
   void initState() {
@@ -65,25 +71,47 @@ class _BlueTextButtonState extends ConsumerState<BlueTextButton>
 
   @override
   Widget build(BuildContext context) {
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        text: widget.text,
-        style: widget.textSize == null
-            ? STextStyles.link2(context).copyWith(
-                color: color,
-              )
-            : STextStyles.link2(context).copyWith(
-                color: color,
-                fontSize: widget.textSize,
-              ),
-        recognizer: widget.enabled
-            ? (TapGestureRecognizer()
-              ..onTap = () {
-                widget.onTap?.call();
-                controller?.forward().then((value) => controller?.reverse());
-              })
-            : null,
+    return ConditionalParent(
+      condition: Util.isDesktop,
+      builder: (child) {
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setState(() => _hovering = true),
+          onExit: (_) => setState(() => _hovering = false),
+          child: GestureDetector(
+            onTap: widget.onTap,
+            child: RoundedContainer(
+              radiusMultiplier: 20,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .highlight
+                  .withOpacity(_hovering ? 0.3 : 0),
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          text: widget.text,
+          style: widget.textSize == null
+              ? STextStyles.link2(context).copyWith(
+                  color: color,
+                )
+              : STextStyles.link2(context).copyWith(
+                  color: color,
+                  fontSize: widget.textSize,
+                ),
+          recognizer: widget.enabled
+              ? (TapGestureRecognizer()
+                ..onTap = () {
+                  widget.onTap?.call();
+                  controller?.forward().then((value) => controller?.reverse());
+                })
+              : null,
+        ),
       ),
     );
   }
