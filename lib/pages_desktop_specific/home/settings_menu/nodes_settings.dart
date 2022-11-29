@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
-import 'package:stackwallet/providers/global/node_service_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
+import 'package:epicmobile/providers/global/node_service_provider.dart';
+import 'package:epicmobile/providers/global/prefs_provider.dart';
+import 'package:epicmobile/route_generator.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:epicmobile/widgets/stack_text_field.dart';
 
 class NodesSettings extends ConsumerStatefulWidget {
   const NodesSettings({Key? key}) : super(key: key);

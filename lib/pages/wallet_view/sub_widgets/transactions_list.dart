@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/trade_card.dart';
-import 'package:stackwallet/widgets/transaction_card.dart';
+import 'package:epicmobile/models/paymint/transactions_model.dart';
+import 'package:epicmobile/pages/exchange_view/trade_details_view.dart';
+import 'package:epicmobile/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:epicmobile/providers/global/trades_service_provider.dart';
+import 'package:epicmobile/providers/global/wallets_provider.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/loading_indicator.dart';
+import 'package:epicmobile/widgets/trade_card.dart';
+import 'package:epicmobile/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {

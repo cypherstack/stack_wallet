@@ -8,7 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show precisionErrorTolerance;
 import 'package:flutter/gestures.dart' show DragStartBehavior;
 import 'package:flutter/rendering.dart';
-import 'package:stackwallet/widgets/custom_page_view/custom_sliver_fill_viewport.dart';
+import 'package:epicmobile/widgets/custom_page_view/custom_sliver_fill_viewport.dart';
 
 /// A controller for [CustomPageView].
 ///

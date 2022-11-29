@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/services/exchange/change_now/change_now_api.dart';
+import 'package:epicmobile/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
 class ExchangeDataLoadingService {
   Future<void> loadAll(WidgetRef ref, {Coin? coin}) async {

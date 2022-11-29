@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 class AddressBookFilter extends ChangeNotifier {
   AddressBookFilter(Set<Coin> coins) {

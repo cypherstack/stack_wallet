@@ -2,19 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:epicmobile/models/paymint/transactions_model.dart';
+import 'package:epicmobile/notifications/show_flush_bar.dart';
+import 'package:epicmobile/pages/wallet_view/sub_widgets/tx_icon.dart';
+import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_details_view.dart';
+import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
+import 'package:epicmobile/utilities/format.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
 import 'package:tuple/tuple.dart';
 
 class TransactionCard extends ConsumerStatefulWidget {

@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/languages_enum.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
+import 'package:epicmobile/utilities/enums/languages_enum.dart';
+import 'package:epicmobile/utilities/enums/sync_type_enum.dart';
 
 class Prefs extends ChangeNotifier {
   Prefs._();

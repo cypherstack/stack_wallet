@@ -1,4 +1,4 @@
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
 class UpdatedInBackgroundEvent {
   String message;

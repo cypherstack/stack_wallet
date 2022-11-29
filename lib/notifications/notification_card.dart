@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:epicmobile/models/notification_model.dart';
+import 'package:epicmobile/utilities/format.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/rounded_container.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
 
 class NotificationCard extends StatelessWidget {
   const NotificationCard({

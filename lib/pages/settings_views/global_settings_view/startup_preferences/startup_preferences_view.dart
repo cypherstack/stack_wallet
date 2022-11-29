@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/startup_preferences/startup_wallet_selection_view.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/startup_preferences/startup_wallet_selection_view.dart';
+import 'package:epicmobile/providers/global/prefs_provider.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
 
 class StartupPreferencesView extends ConsumerStatefulWidget {
   const StartupPreferencesView({Key? key}) : super(key: key);

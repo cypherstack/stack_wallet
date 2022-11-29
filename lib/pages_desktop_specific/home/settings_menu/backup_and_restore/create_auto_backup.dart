@@ -8,28 +8,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/enums/log_level_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/progress_bar.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+import 'package:epicmobile/notifications/show_flush_bar.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:epicmobile/providers/global/prefs_provider.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
+import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
+import 'package:epicmobile/utilities/enums/log_level_enum.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicmobile/utilities/format.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
+import 'package:epicmobile/widgets/desktop/primary_button.dart';
+import 'package:epicmobile/widgets/desktop/secondary_button.dart';
+import 'package:epicmobile/widgets/progress_bar.dart';
+import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 class CreateAutoBackup extends ConsumerStatefulWidget {
@@ -688,9 +688,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                             final String fileToSave =
                                 createAutoBackupFilename(pathToSave, now);
 
-                            final backup = await SWB.createStackWalletJSON();
+                            final backup = await SWB.createepicmobileJSON();
 
-                            bool result = await SWB.encryptStackWalletWithADK(
+                            bool result = await SWB.encryptepicmobileWithADK(
                               fileToSave,
                               adkString,
                               jsonEncode(backup),

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/sub_widgets/contact_list_item.dart';
-import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:epicmobile/models/contact.dart';
+import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/sub_widgets/contact_list_item.dart';
+import 'package:epicmobile/providers/global/address_book_service_provider.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
+import 'package:epicmobile/widgets/stack_text_field.dart';
+import 'package:epicmobile/widgets/textfield_icon_button.dart';
 
 class AddressBookAddressChooser extends StatefulWidget {
   const AddressBookAddressChooser({

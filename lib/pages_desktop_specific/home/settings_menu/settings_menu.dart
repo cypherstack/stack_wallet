@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu_item.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu_item.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
 
 class SettingsMenu extends ConsumerStatefulWidget {
   const SettingsMenu({

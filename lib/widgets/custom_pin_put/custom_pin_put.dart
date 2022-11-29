@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put_state.dart';
+import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put_state.dart';
 
 class CustomPinPut extends StatefulWidget {
   const CustomPinPut(

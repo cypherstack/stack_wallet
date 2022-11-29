@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 enum ThemeType {
   light,
@@ -158,9 +158,9 @@ abstract class StackColorTheme {
   Color get currencyListItemBG;
 
 // bottom nav
-  Color get stackWalletBG;
-  Color get stackWalletMid;
-  Color get stackWalletBottom;
+  Color get epicmobileBG;
+  Color get epicmobileMid;
+  Color get epicmobileBottom;
   Color get bottomNavShadow;
 
   Color get favoriteStarActive;

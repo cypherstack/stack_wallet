@@ -1,7 +1,6 @@
+import 'package:epicmobile/utilities/assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
-
-import 'package:stackwallet/utilities/assets.dart';
 
 class LoadingIndicator extends StatelessWidget {
   const LoadingIndicator({

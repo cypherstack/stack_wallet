@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/models/exchange/response_objects/trade.dart';
 
 class TradesService extends ChangeNotifier {
   List<Trade> get trades {

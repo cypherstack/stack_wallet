@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/support_view.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/support_view.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
+import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 
 class DesktopSupportView extends ConsumerStatefulWidget {
   const DesktopSupportView({Key? key}) : super(key: key);

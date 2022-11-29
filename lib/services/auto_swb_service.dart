@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
 enum AutoSWBStatus {
@@ -62,8 +62,8 @@ class AutoSWBService extends ChangeNotifier {
         return;
       }
 
-      final json = await SWB.createStackWalletJSON(
-          secureStorage: secureStorageInterface);
+      final json =
+          await SWB.createepicmobileJSON(secureStorage: secureStorageInterface);
       final jsonString = jsonEncode(json);
 
       final adkString =
@@ -77,7 +77,7 @@ class AutoSWBService extends ChangeNotifier {
       final String fileToSave =
           createAutoBackupFilename(autoBackupDirectoryPath, now);
 
-      final result = await SWB.encryptStackWalletWithADK(
+      final result = await SWB.encryptepicmobileWithADK(
           fileToSave, adkString!, jsonString,
           adkVersion: adkVersion);
 

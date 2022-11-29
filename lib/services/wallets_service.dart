@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/notifications_service.dart';
-import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:epicmobile/services/notifications_service.dart';
+import 'package:epicmobile/services/trade_sent_from_stack_service.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicmobile/utilities/logger.dart';
 import 'package:uuid/uuid.dart';
 
 class WalletInfo {
@@ -143,7 +143,7 @@ class WalletsService extends ChangeNotifier {
         name, WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map))));
   }
 
-  Future<void> addExistingStackWallet({
+  Future<void> addExistingepicmobile({
     required String name,
     required String walletId,
     required Coin coin,

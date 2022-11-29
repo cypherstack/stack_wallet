@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
+import 'package:epicmobile/utilities/theme/color_theme.dart';
 
 class DarkColors extends StackColorTheme {
   @override
@@ -274,11 +274,11 @@ class DarkColors extends StackColorTheme {
 
   // bottom nav
   @override
-  Color get stackWalletBG => const Color(0xFF35383D);
+  Color get epicmobileBG => const Color(0xFF35383D);
   @override
-  Color get stackWalletMid => const Color(0xFF292D34);
+  Color get epicmobileMid => const Color(0xFF292D34);
   @override
-  Color get stackWalletBottom => const Color(0xFFFFFFFF);
+  Color get epicmobileBottom => const Color(0xFFFFFFFF);
   @override
   Color get bottomNavShadow => const Color(0xFF282E33);
 

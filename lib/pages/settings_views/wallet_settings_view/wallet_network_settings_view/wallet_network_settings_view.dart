@@ -1,39 +1,39 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:epicmobile/pages/settings_views/sub_widgets/nodes_list.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/confirm_full_rescan.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
+import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/route_generator.dart';
+import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:epicmobile/services/coins/monero/monero_wallet.dart';
+import 'package:epicmobile/services/coins/wownero/wownero_wallet.dart';
+import 'package:epicmobile/services/event_bus/events/global/blocks_remaining_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/global_event_bus.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/animated_text.dart';
+import 'package:epicmobile/widgets/conditional_parent.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
+import 'package:epicmobile/widgets/expandable.dart';
+import 'package:epicmobile/widgets/progress_bar.dart';
+import 'package:epicmobile/widgets/rounded_container.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/confirm_full_rescan.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
-import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/progress_bar.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -877,11 +877,11 @@ class _WalletNetworkSettingsViewState
                         text: "Rescan",
                         onTap: () async {
                           await Navigator.of(context).push(
-                             FadePageRoute<void>(
+                            FadePageRoute<void>(
                               ConfirmFullRescanDialog(
                                 onConfirm: _attemptRescan,
                               ),
-                             const RouteSettings(),
+                              const RouteSettings(),
                             ),
                           );
                           // await showDialog<dynamic>(

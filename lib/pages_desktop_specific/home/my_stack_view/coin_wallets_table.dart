@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
+import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/wallet_info_row/wallet_info_row.dart';
 
 class CoinWalletsTable extends ConsumerWidget {
   const CoinWalletsTable({

@@ -1,19 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/electrumx_rpc/electrumx.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/models/exchange/response_objects/trade.dart';
+import 'package:epicmobile/models/notification_model.dart';
+import 'package:epicmobile/services/exchange/change_now/change_now_exchange.dart';
+import 'package:epicmobile/services/exchange/exchange_response.dart';
+import 'package:epicmobile/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:epicmobile/services/node_service.dart';
+import 'package:epicmobile/services/notifications_api.dart';
+import 'package:epicmobile/services/trade_service.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 
 class NotificationsService extends ChangeNotifier {
   late NodeService nodeService;

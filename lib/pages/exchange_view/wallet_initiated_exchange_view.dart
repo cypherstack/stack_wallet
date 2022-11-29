@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/pages/exchange_view/exchange_form.dart';
+import 'package:epicmobile/pages/exchange_view/sub_widgets/step_row.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 
 class WalletInitiatedExchangeView extends ConsumerStatefulWidget {
   const WalletInitiatedExchangeView({

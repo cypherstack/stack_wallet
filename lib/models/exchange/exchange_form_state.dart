@@ -1,14 +1,14 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/models/exchange/response_objects/currency.dart';
+import 'package:epicmobile/models/exchange/response_objects/estimate.dart';
+import 'package:epicmobile/models/exchange/response_objects/fixed_rate_market.dart';
+import 'package:epicmobile/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:epicmobile/services/exchange/change_now/change_now_exchange.dart';
+import 'package:epicmobile/services/exchange/exchange.dart';
+import 'package:epicmobile/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
   Exchange? _exchange;

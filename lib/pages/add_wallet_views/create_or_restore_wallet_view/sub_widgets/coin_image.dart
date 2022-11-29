@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 class CoinImage extends StatelessWidget {
   const CoinImage({

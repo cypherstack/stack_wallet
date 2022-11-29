@@ -2,27 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/coin_select_sheet.dart';
-// import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import 'package:stackwallet/utilities/util.dart';
-
-class NewContactAddressEntryForm extends ConsumerStatefulWidget {
+import 'package:epicmobile/pages/address_book_views/subviews/coin_select_sheet.dart';
+// import 'package:epicmobile/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
+import 'package:epicmobile/providers/ui/address_book_providers/address_entry_data_provider.dart';
+import 'package:epicmobile/utilities/address_utils.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
+import 'package:epicmobile/utilities/clipboard_interface.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/icon_widgets/clipboard_icon.dart';
+import 'package:epicmobile/widgets/icon_widgets/qrcode_icon.dart';
+import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
+import 'package:epicmobile/widgets/stack_text_field.dart';
+import 'package:epicmobile/widgets/textfield_icon_buttonContactAddressEntryForm extends ConsumerStatefulWidget {
   const NewContactAddressEntryForm({
     Key? key,
     required this.id,

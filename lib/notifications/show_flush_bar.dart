@@ -2,9 +2,9 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:another_flushbar/flushbar_route.dart' as flushRoute;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
 
 Future<dynamic> showFloatingFlushBar({
   required FlushBarType type,

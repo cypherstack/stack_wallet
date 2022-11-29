@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 class ContactAddressEntry {
   final Coin coin;

@@ -1,19 +1,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/transaction_notification_tracker.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/listenable_list.dart';
-import 'package:stackwallet/utilities/listenable_map.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/models/node_model.dart';
+import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/services/node_service.dart';
+import 'package:epicmobile/services/transaction_notification_tracker.dart';
+import 'package:epicmobile/services/wallets_service.dart';
+import 'package:epicmobile/utilities/default_nodes.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/sync_type_enum.dart';
+import 'package:epicmobile/utilities/listenable_list.dart';
+import 'package:epicmobile/utilities/listenable_map.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
 final ListenableList<ChangeNotifierProvider<Manager>> _nonFavorites =

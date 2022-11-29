@@ -2,20 +2,20 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
+import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
+import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
+import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
+import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/wallet_balance_toggle_state.dart';
+import 'package:epicmobile/utilities/format.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/animated_text.dart';
 
 class WalletSummaryInfo extends StatefulWidget {
   const WalletSummaryInfo({

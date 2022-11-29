@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/dark_colors.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/providers/global/prefs_provider.dart';
+import 'package:epicmobile/providers/ui/color_theme_provider.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/color_theme.dart';
+import 'package:epicmobile/utilities/theme/dark_colors.dart';
+import 'package:epicmobile/utilities/theme/light_colors.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
 
 class AppearanceOptionSettings extends ConsumerStatefulWidget {
   const AppearanceOptionSettings({Key? key}) : super(key: key);

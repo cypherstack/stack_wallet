@@ -1,8 +1,8 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/services/notifications_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/models/notification_model.dart';
+import 'package:epicmobile/services/notifications_service.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 
 class NotificationApi {
   static final _notifications = FlutterLocalNotificationsPlugin();

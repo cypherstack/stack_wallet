@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/models/node_model.dart';
+import 'package:epicmobile/utilities/default_nodes.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
-const kStackCommunityNodesEndpoint = "https://extras.stackwallet.com";
+const kStackCommunityNodesEndpoint = "https://extras.epicmobile.com";
 
 class NodeService extends ChangeNotifier {
   final FlutterSecureStorageInterface secureStorageInterface;

@@ -8,12 +8,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart';
 import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const kGithubAPI = "https://api.github.com";
@@ -462,10 +462,10 @@ class AboutView extends ConsumerWidget {
                               height: 4,
                             ),
                             BlueTextButton(
-                              text: "https://stackwallet.com",
+                              text: "https://epicmobile.com",
                               onTap: () {
                                 launchUrl(
-                                  Uri.parse("https://stackwallet.com"),
+                                  Uri.parse("https://epicmobile.com"),
                                   mode: LaunchMode.externalApplication,
                                 );
                               },
@@ -492,7 +492,7 @@ class AboutView extends ConsumerWidget {
                                 ..onTap = () {
                                   launchUrl(
                                     Uri.parse(
-                                        "https://stackwallet.com/terms-of-service.html"),
+                                        "https://epicmobile.com/terms-of-service.html"),
                                     mode: LaunchMode.externalApplication,
                                   );
                                 },
@@ -505,7 +505,7 @@ class AboutView extends ConsumerWidget {
                                 ..onTap = () {
                                   launchUrl(
                                     Uri.parse(
-                                        "https://stackwallet.com/privacy-policy.html"),
+                                        "https://epicmobile.com/privacy-policy.html"),
                                     mode: LaunchMode.externalApplication,
                                   );
                                 },

@@ -2,13 +2,13 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:epicmobile/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:epicmobile/models/exchange/response_objects/trade.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/format.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
 
 class TradeCard extends ConsumerWidget {
   const TradeCard({

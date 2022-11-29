@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
-import 'package:stackwallet/services/price.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/services/price.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
 
 class PriceService extends ChangeNotifier {

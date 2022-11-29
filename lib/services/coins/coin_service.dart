@@ -1,19 +1,19 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/models/models.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
-import 'package:stackwallet/services/transaction_notification_tracker.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/electrumx_rpc/cached_electrumx.dart';
+import 'package:epicmobile/electrumx_rpc/electrumx.dart';
+import 'package:epicmobile/models/models.dart';
+import 'package:epicmobile/models/node_model.dart';
+import 'package:epicmobile/services/coins/bitcoin/bitcoin_wallet.dart';
+import 'package:epicmobile/services/coins/bitcoincash/bitcoincash_wallet.dart';
+import 'package:epicmobile/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
+import 'package:epicmobile/services/coins/monero/monero_wallet.dart';
+import 'package:epicmobile/services/coins/namecoin/namecoin_wallet.dart';
+import 'package:epicmobile/services/coins/wownero/wownero_wallet.dart';
+import 'package:epicmobile/services/transaction_notification_tracker.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 
 import 'litecoin/litecoin_wallet.dart';
 

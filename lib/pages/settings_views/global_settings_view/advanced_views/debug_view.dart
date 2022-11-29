@@ -7,38 +7,33 @@ import 'package:event_bus/event_bus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:stackwallet/models/isar/models/log.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/global/debug_service_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
 import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
-
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
-
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-
-import 'package:stackwallet/utilities/util.dart';
-
-class DebugView extends ConsumerStatefulWidget {
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:epicmobile/models/isar/models/log.dart';
+import 'package:epicmobile/notifications/show_flush_bar.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:epicmobile/providers/global/debug_service_provider.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/clipboard_interface.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
+import 'package:epicmobile/widgets/custom_loading_overlay.dart';
+import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
+import 'package:epicmobile/widgets/rounded_container.dart';
+import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:epicmobile/widgets/stack_text_field.dart';
+import 'package:epicmobile/widgets/textfield_icon_buttonView extends ConsumerStatefulWidget {
   const DebugView({Key? key}) : super(key: key);
 
   static const String routeName = "/debug";

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/stack_restoring_status.dart';
 
 class WalletRestoreState extends ChangeNotifier {
   final String walletId;

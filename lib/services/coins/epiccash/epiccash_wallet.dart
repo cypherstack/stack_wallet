@@ -12,27 +12,27 @@ import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/price.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/test_epic_box_connection.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/models/node_model.dart';
+import 'package:epicmobile/models/paymint/fee_object_model.dart';
+import 'package:epicmobile/models/paymint/transactions_model.dart';
+import 'package:epicmobile/models/paymint/utxo_model.dart';
+import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/event_bus/events/global/blocks_remaining_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/global_event_bus.dart';
+import 'package:epicmobile/services/node_service.dart';
+import 'package:epicmobile/services/price.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/default_nodes.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
+import 'package:epicmobile/utilities/test_epic_box_connection.dart';
 import 'package:tuple/tuple.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
@@ -260,7 +260,7 @@ Future<String> deleteEpicWallet({
       appDir = (await getLibraryDirectory());
     }
     if (Platform.isLinux) {
-      appDir = Directory("${appDir.path}/.stackwallet");
+      appDir = Directory("${appDir.path}/.epicmobile");
     }
     final path = "${appDir.path}/epiccash";
     final String name = walletId;
@@ -305,7 +305,7 @@ Future<int> _getChainHeightWrapper(String config) async {
   return chainHeight;
 }
 
-const String EPICPOST_ADDRESS = 'https://epicpost.stackwallet.com';
+const String EPICPOST_ADDRESS = 'https://epicpost.epicmobile.com';
 
 Future<bool> postSlate(String receiveAddress, String slate) async {
   Logging.instance.log("postSlate", level: LogLevel.Info);
@@ -1243,7 +1243,7 @@ class EpicCashWallet extends CoinServiceAPI {
       appDir = (await getLibraryDirectory());
     }
     if (Platform.isLinux) {
-      appDir = Directory("${appDir.path}/.stackwallet");
+      appDir = Directory("${appDir.path}/.epicmobile");
     }
     final path = "${appDir.path}/epiccash";
     final String name = _walletId.trim();

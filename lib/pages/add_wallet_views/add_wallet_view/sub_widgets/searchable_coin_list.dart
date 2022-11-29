@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/coin_select_item.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/sub_widgets/coin_select_item.dart';
+import 'package:epicmobile/providers/global/prefs_provider.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 class SearchableCoinList extends ConsumerWidget {
   const SearchableCoinList({

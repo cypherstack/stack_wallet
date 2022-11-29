@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:epicmobile/models/paymint/transactions_model.dart';
+import 'package:epicmobile/utilities/assets.dart';
 
 class TxIcon extends StatelessWidget {
   const TxIcon({Key? key, required this.transaction}) : super(key: key);

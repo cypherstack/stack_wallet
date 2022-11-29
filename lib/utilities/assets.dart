@@ -1,6 +1,6 @@
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
 
 abstract class Assets {
   static const svg = _SVG();

@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings/advanced_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings/currency_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/advanced_settings/advanced_settings.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/currency_settings/currency_settings.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/security_settings.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/settings_menu.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
+import 'package:epicmobile/route_generator.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
+import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 
 class DesktopSettingsView extends ConsumerStatefulWidget {
   const DesktopSettingsView({Key? key}) : super(key: key);

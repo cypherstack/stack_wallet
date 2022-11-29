@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/new_contact_address_entry_form.dart';
-import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/valid_contact_state_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/models/contact.dart';
+import 'package:epicmobile/models/contact_address_entry.dart';
+import 'package:epicmobile/pages/address_book_views/subviews/new_contact_address_entry_form.dart';
+import 'package:epicmobile/providers/global/address_book_service_provider.dart';
+import 'package:epicmobile/providers/ui/address_book_providers/address_entry_data_provider.dart';
+import 'package:epicmobile/providers/ui/address_book_providers/valid_contact_state_provider.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
+import 'package:epicmobile/utilities/clipboard_interface.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 
 class EditContactAddressView extends ConsumerStatefulWidget {
   const EditContactAddressView({

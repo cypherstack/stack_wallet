@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:stackwallet/models/models.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/models/models.dart';
+import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:epicmobile/services/event_bus/global_event_bus.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
 class Manager with ChangeNotifier {
   final CoinServiceAPI _currentWallet;

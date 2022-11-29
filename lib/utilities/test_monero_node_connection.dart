@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:epicmobile/utilities/format.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/widgets/desktop/primary_button.dart';
+import 'package:epicmobile/widgets/desktop/secondary_button.dart';
+import 'package:epicmobile/widgets/stack_dialog.dart';
 
 class MoneroNodeConnectionResponse {
   final X509Certificate? cert;

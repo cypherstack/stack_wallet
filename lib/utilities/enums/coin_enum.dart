@@ -1,17 +1,15 @@
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as btc;
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
+import 'package:epicmobile/services/coins/bitcoin/bitcoin_wallet.dart' as btc;
+import 'package:epicmobile/services/coins/bitcoincash/bitcoincash_wallet.dart'
     as bch;
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
+import 'package:epicmobile/services/coins/dogecoin/dogecoin_wallet.dart'
     as doge;
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
+import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
-import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
-    as ltc;
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
-    as nmc;
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
+import 'package:epicmobile/services/coins/firo/firo_wallet.dart' as firo;
+import 'package:epicmobile/services/coins/litecoin/litecoin_wallet.dart' as ltc;
+import 'package:epicmobile/services/coins/monero/monero_wallet.dart' as xmr;
+import 'package:epicmobile/services/coins/namecoin/namecoin_wallet.dart' as nmc;
+import 'package:epicmobile/services/coins/wownero/wownero_wallet.dart' as wow;
 
 enum Coin {
   bitcoin,

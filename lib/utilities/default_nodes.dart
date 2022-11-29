@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/models/node_model.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
   static String _nodeId(Coin coin) => "default_${coin.name}";
@@ -25,7 +25,7 @@ abstract class DefaultNodes {
       ];
 
   static NodeModel get bitcoin => NodeModel(
-        host: "bitcoin.stackwallet.com",
+        host: "bitcoin.epicmobile.com",
         port: 50002,
         name: defaultName,
         id: _nodeId(Coin.bitcoin),
@@ -37,7 +37,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get litecoin => NodeModel(
-        host: "litecoin.stackwallet.com",
+        host: "litecoin.epicmobile.com",
         port: 20063,
         name: defaultName,
         id: _nodeId(Coin.litecoin),
@@ -49,7 +49,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get litecoinTestNet => NodeModel(
-        host: "litecoin.stackwallet.com",
+        host: "litecoin.epicmobile.com",
         port: 51002,
         name: defaultName,
         id: _nodeId(Coin.litecoinTestNet),
@@ -61,7 +61,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get bitcoincash => NodeModel(
-        host: "bitcoincash.stackwallet.com",
+        host: "bitcoincash.epicmobile.com",
         port: 50002,
         name: defaultName,
         id: _nodeId(Coin.bitcoincash),
@@ -73,7 +73,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get dogecoin => NodeModel(
-        host: "dogecoin.stackwallet.com",
+        host: "dogecoin.epicmobile.com",
         port: 50022,
         name: defaultName,
         id: _nodeId(Coin.dogecoin),
@@ -85,7 +85,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get firo => NodeModel(
-        host: "firo.stackwallet.com",
+        host: "firo.epicmobile.com",
         port: 50002,
         name: defaultName,
         id: _nodeId(Coin.firo),
@@ -97,7 +97,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get monero => NodeModel(
-        host: "https://monero.stackwallet.com",
+        host: "https://monero.epicmobile.com",
         port: 18081,
         name: defaultName,
         id: _nodeId(Coin.monero),
@@ -109,7 +109,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get wownero => NodeModel(
-        host: "https://wownero.stackwallet.com",
+        host: "https://wownero.epicmobile.com",
         port: 34568,
         name: defaultName,
         id: _nodeId(Coin.wownero),
@@ -121,7 +121,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get epicCash => NodeModel(
-        host: "http://epiccash.stackwallet.com",
+        host: "http://epiccash.epicmobile.com",
         port: 3413,
         name: defaultName,
         id: _nodeId(Coin.epicCash),
@@ -133,7 +133,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get namecoin => NodeModel(
-        host: "namecoin.stackwallet.com",
+        host: "namecoin.epicmobile.com",
         port: 57002,
         name: defaultName,
         id: _nodeId(Coin.namecoin),
@@ -157,7 +157,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get firoTestnet => NodeModel(
-        host: "firo-testnet.stackwallet.com",
+        host: "firo-testnet.epicmobile.com",
         port: 50002,
         name: defaultName,
         id: _nodeId(Coin.firoTestNet),
@@ -169,7 +169,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get dogecoinTestnet => NodeModel(
-        host: "dogecoin-testnet.stackwallet.com",
+        host: "dogecoin-testnet.epicmobile.com",
         port: 50022,
         name: defaultName,
         id: _nodeId(Coin.dogecoinTestNet),
@@ -181,7 +181,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get bitcoincashTestnet => NodeModel(
-        host: "bitcoincash-testnet.stackwallet.com",
+        host: "bitcoincash-testnet.epicmobile.com",
         port: 60002,
         name: defaultName,
         id: _nodeId(Coin.bitcoincashTestnet),

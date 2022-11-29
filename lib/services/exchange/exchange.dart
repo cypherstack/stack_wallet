@@ -1,12 +1,12 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:epicmobile/models/exchange/response_objects/currency.dart';
+import 'package:epicmobile/models/exchange/response_objects/estimate.dart';
+import 'package:epicmobile/models/exchange/response_objects/pair.dart';
+import 'package:epicmobile/models/exchange/response_objects/range.dart';
+import 'package:epicmobile/models/exchange/response_objects/trade.dart';
+import 'package:epicmobile/services/exchange/change_now/change_now_exchange.dart';
+import 'package:epicmobile/services/exchange/exchange_response.dart';
+import 'package:epicmobile/services/exchange/simpleswap/simpleswap_exchange.dart';
 
 abstract class Exchange {
   static Exchange fromName(String name) {

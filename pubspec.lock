@@ -50,13 +50,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.1"
-  asn1lib:
-    dependency: transitive
-    description:
-      name: asn1lib
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.2.0"
   async:
     dependency: transitive
     description:
@@ -310,34 +303,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.17.2"
-  cw_core:
-    dependency: "direct main"
-    description:
-      path: "crypto_plugins/flutter_libmonero/cw_core"
-      relative: true
-    source: path
-    version: "0.0.1"
-  cw_monero:
-    dependency: "direct main"
-    description:
-      path: "crypto_plugins/flutter_libmonero/cw_monero"
-      relative: true
-    source: path
-    version: "0.0.1"
-  cw_shared_external:
-    dependency: transitive
-    description:
-      path: "crypto_plugins/flutter_libmonero/cw_shared_external"
-      relative: true
-    source: path
-    version: "0.0.1"
-  cw_wownero:
-    dependency: "direct main"
-    description:
-      path: "crypto_plugins/flutter_libmonero/cw_wownero"
-      relative: true
-    source: path
-    version: "0.0.1"
   dart_numerics:
     dependency: "direct main"
     description:
@@ -415,13 +380,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.9.9"
-  encrypt:
-    dependency: transitive
-    description:
-      name: encrypt
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "5.0.1"
   event_bus:
     dependency: "direct main"
     description:
@@ -502,13 +460,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  flutter_libmonero:
-    dependency: "direct main"
-    description:
-      path: "crypto_plugins/flutter_libmonero"
-      relative: true
-    source: path
-    version: "0.0.1"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -537,13 +488,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.0.0"
-  flutter_mobx:
-    dependency: transitive
-    description:
-      name: flutter_mobx
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.6+4"
   flutter_native_splash:
     dependency: "direct main"
     description:
@@ -816,13 +760,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
-  lelantus:
-    dependency: "direct main"
-    description:
-      path: "crypto_plugins/flutter_liblelantus"
-      relative: true
-    source: path
-    version: "0.0.1"
   lint:
     dependency: transitive
     description:
@@ -886,13 +823,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
-  mobx:
-    dependency: transitive
-    description:
-      name: mobx
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
   mockingjay:
     dependency: "direct dev"
     description:

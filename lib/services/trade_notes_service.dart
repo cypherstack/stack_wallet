@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:epicmobile/hive/db.dart';
 
 class TradeNotesService extends ChangeNotifier {
   Map<String, String> get all {

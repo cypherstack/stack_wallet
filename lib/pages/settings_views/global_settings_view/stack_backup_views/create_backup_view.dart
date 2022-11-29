@@ -2,26 +2,26 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:epicmobile/notifications/show_flush_bar.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/conditional_parent.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/desktop/primary_button.dart';
+import 'package:epicmobile/widgets/desktop/secondary_button.dart';
+import 'package:epicmobile/widgets/progress_bar.dart';
+import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/progress_bar.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 class CreateBackupView extends StatefulWidget {
@@ -509,10 +509,10 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                             final String fileToSave =
                                 "$pathToSave/stackbackup_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.swb";
 
-                            final backup = await SWB.createStackWalletJSON();
+                            final backup = await SWB.createepicmobileJSON();
 
                             bool result =
-                                await SWB.encryptStackWalletWithPassphrase(
+                                await SWB.encryptepicmobileWithPassphrase(
                               fileToSave,
                               passphrase,
                               jsonEncode(backup),
@@ -618,11 +618,10 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                 final String fileToSave =
                                     "$pathToSave/stackbackup_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.swb";
 
-                                final backup =
-                                    await SWB.createStackWalletJSON();
+                                final backup = await SWB.createepicmobileJSON();
 
                                 bool result =
-                                    await SWB.encryptStackWalletWithPassphrase(
+                                    await SWB.encryptepicmobileWithPassphrase(
                                   fileToSave,
                                   passphrase,
                                   jsonEncode(backup),

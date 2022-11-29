@@ -28,27 +28,27 @@ import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/price.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/models/node_model.dart';
+import 'package:epicmobile/models/paymint/fee_object_model.dart';
+import 'package:epicmobile/models/paymint/transactions_model.dart';
+import 'package:epicmobile/models/paymint/utxo_model.dart';
+import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/event_bus/events/global/blocks_remaining_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/global_event_bus.dart';
+import 'package:epicmobile/services/node_service.dart';
+import 'package:epicmobile/services/price.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/default_nodes.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/fee_rate_type_enum.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
 
@@ -912,7 +912,7 @@ class MoneroWallet extends CoinServiceAPI {
     }
     //
     if (Platform.isLinux) {
-      root = Directory("${root.path}/.stackwallet");
+      root = Directory("${root.path}/.epicmobile");
     }
     final prefix = walletTypeToString(type).toLowerCase();
     final walletsDir = Directory('${root.path}/wallets');

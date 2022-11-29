@@ -1,12 +1,12 @@
+import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class WalletSummary extends StatelessWidget {
   const WalletSummary({
@@ -48,8 +48,10 @@ class WalletSummary extends StatelessWidget {
               builder: (_, ref, __) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).extension<StackColors>()!.colorForCoin(ref
-                        .watch(managerProvider.select((value) => value.coin))),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .colorForCoin(ref.watch(
+                            managerProvider.select((value) => value.coin))),
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),

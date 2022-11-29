@@ -3,40 +3,38 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/models/contact.dart';
+import 'package:epicmobile/models/contact_address_entry.dart';
+import 'package:epicmobile/models/exchange/change_now/exchange_transaction.dart';
+import 'package:epicmobile/models/exchange/response_objects/trade.dart';
+import 'package:epicmobile/models/node_model.dart';
+import 'package:epicmobile/models/stack_restoring_ui_state.dart';
+import 'package:epicmobile/models/trade_wallet_lookup.dart';
+import 'package:epicmobile/models/wallet_restore_state.dart';
+import 'package:epicmobile/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:epicmobile/services/address_book_service.dart';
+import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/services/node_service.dart';
+import 'package:epicmobile/services/notes_service.dart';
+import 'package:epicmobile/services/trade_notes_service.dart';
+import 'package:epicmobile/services/trade_sent_from_stack_service.dart';
+import 'package:epicmobile/services/trade_service.dart';
+import 'package:epicmobile/services/transaction_notification_tracker.dart';
+import 'package:epicmobile/services/wallets.dart';
+import 'package:epicmobile/services/wallets_service.dart';
+import 'package:epicmobile/utilities/default_nodes.dart';
+import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/stack_restoring_status.dart';
+import 'package:epicmobile/utilities/enums/sync_type_enum.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicmobile/utilities/format.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/stack_restoring_ui_state.dart';
-import 'package:stackwallet/models/trade_wallet_lookup.dart';
-import 'package:stackwallet/models/wallet_restore_state.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:stackwallet/services/address_book_service.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notes_service.dart';
-import 'package:stackwallet/services/trade_notes_service.dart';
-import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
-import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/services/transaction_notification_tracker.dart';
-import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wakelock/wakelock.dart';
@@ -106,7 +104,7 @@ abstract class SWB {
     }
   }
 
-  static Future<bool> encryptStackWalletWithPassphrase(
+  static Future<bool> encryptepicmobileWithPassphrase(
     String fileToSave,
     String passphrase,
     String plaintext,
@@ -129,7 +127,7 @@ abstract class SWB {
     }
   }
 
-  static Future<bool> encryptStackWalletWithADK(
+  static Future<bool> encryptepicmobileWithADK(
     String fileToSave,
     String adk,
     String plaintext, {
@@ -154,7 +152,7 @@ abstract class SWB {
     }
   }
 
-  static Future<String?> decryptStackWalletWithPassphrase(
+  static Future<String?> decryptepicmobileWithPassphrase(
     Tuple2<String, String> data,
   ) async {
     try {
@@ -162,7 +160,7 @@ abstract class SWB {
       String passphrase = data.item2;
       File backupFile = File(fileToRestore);
       String encryptedText = await backupFile.readAsString();
-      return await decryptStackWalletStringWithPassphrase(
+      return await decryptepicmobileStringWithPassphrase(
         Tuple2(encryptedText, passphrase),
       );
     } catch (e, s) {
@@ -171,7 +169,7 @@ abstract class SWB {
     }
   }
 
-  static Future<String?> decryptStackWalletStringWithPassphrase(
+  static Future<String?> decryptepicmobileStringWithPassphrase(
     Tuple2<String, String> data,
   ) async {
     try {
@@ -192,23 +190,22 @@ abstract class SWB {
   }
 
   /// [secureStorage] parameter exposed for testing purposes
-  static Future<Map<String, dynamic>> createStackWalletJSON({
+  static Future<Map<String, dynamic>> createepicmobileJSON({
     FlutterSecureStorageInterface? secureStorage,
   }) async {
     Logging.instance
-        .log("Starting createStackWalletJSON...", level: LogLevel.Info);
+        .log("Starting createepicmobileJSON...", level: LogLevel.Info);
     final _wallets = Wallets.sharedInstance;
     Map<String, dynamic> backupJson = {};
     NodeService nodeService = NodeService();
     final _secureStore =
         secureStorage ?? const SecureStorageWrapper(FlutterSecureStorage());
 
-    Logging.instance.log("createStackWalletJSON awaiting DB.instance.mutex...",
+    Logging.instance.log("createepicmobileJSON awaiting DB.instance.mutex...",
         level: LogLevel.Info);
     // prevent modification of data
     await DB.instance.mutex.protect(() async {
-      Logging.instance.log(
-          "...createStackWalletJSON DB.instance.mutex acquired",
+      Logging.instance.log("...createepicmobileJSON DB.instance.mutex acquired",
           level: LogLevel.Info);
       Logging.instance.log(
         "SWB backing up nodes",
@@ -330,7 +327,7 @@ abstract class SWB {
       final tradeNotes = tradeNotesService.all;
       backupJson["tradeNotes"] = tradeNotes;
     });
-    Logging.instance.log("createStackWalletJSON DB.instance.mutex released",
+    Logging.instance.log("createepicmobileJSON DB.instance.mutex released",
         level: LogLevel.Info);
 
     // // back up notifications data
@@ -341,7 +338,7 @@ abstract class SWB {
     //     .toList(growable: false);
 
     Logging.instance
-        .log("...createStackWalletJSON complete", level: LogLevel.Info);
+        .log("...createepicmobileJSON complete", level: LogLevel.Info);
     return backupJson;
   }
 
@@ -540,7 +537,7 @@ abstract class SWB {
     // uiState?.notifications = RestoringState.done;
   }
 
-  static Future<bool?> restoreStackWalletJSON(
+  static Future<bool?> restoreepicmobileJSON(
     String jsonBackup,
     StackRestoringUIState? uiState,
   ) async {
@@ -550,7 +547,7 @@ abstract class SWB {
       "SWB creating temp backup",
       level: LogLevel.Warning,
     );
-    final preRestoreJSON = await createStackWalletJSON();
+    final preRestoreJSON = await createepicmobileJSON();
     Logging.instance.log(
       "SWB temp backup created",
       level: LogLevel.Warning,
@@ -628,7 +625,7 @@ abstract class SWB {
         walletName += " (restored)";
       }
 
-      await walletsService.addExistingStackWallet(
+      await walletsService.addExistingepicmobile(
         name: walletName,
         walletId: walletId,
         coin: coin,

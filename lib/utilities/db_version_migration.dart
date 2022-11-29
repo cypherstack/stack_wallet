@@ -1,18 +1,18 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/lelantus_coin.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/electrumx_rpc/electrumx.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/models/exchange/change_now/exchange_transaction.dart';
+import 'package:epicmobile/models/exchange/response_objects/trade.dart';
+import 'package:epicmobile/models/lelantus_coin.dart';
+import 'package:epicmobile/models/node_model.dart';
+import 'package:epicmobile/services/node_service.dart';
+import 'package:epicmobile/services/wallets_service.dart';
+import 'package:epicmobile/utilities/default_nodes.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 
 class DbVersionMigrator {
   Future<void> migrate(

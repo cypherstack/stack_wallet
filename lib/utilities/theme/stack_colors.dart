@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/theme/color_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
   final ThemeType themeType;
@@ -153,9 +153,9 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color currencyListItemBG;
 
 // bottom nav
-  final Color stackWalletBG;
-  final Color stackWalletMid;
-  final Color stackWalletBottom;
+  final Color epicmobileBG;
+  final Color epicmobileMid;
+  final Color epicmobileBottom;
   final Color bottomNavShadow;
 
   final Color favoriteStarActive;
@@ -287,9 +287,9 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.infoItemIcons,
     required this.popupBG,
     required this.currencyListItemBG,
-    required this.stackWalletBG,
-    required this.stackWalletMid,
-    required this.stackWalletBottom,
+    required this.epicmobileBG,
+    required this.epicmobileMid,
+    required this.epicmobileBottom,
     required this.bottomNavShadow,
     required this.favoriteStarActive,
     required this.favoriteStarInactive,
@@ -423,9 +423,9 @@ class StackColors extends ThemeExtension<StackColors> {
       infoItemIcons: colorTheme.infoItemIcons,
       popupBG: colorTheme.popupBG,
       currencyListItemBG: colorTheme.currencyListItemBG,
-      stackWalletBG: colorTheme.stackWalletBG,
-      stackWalletMid: colorTheme.stackWalletMid,
-      stackWalletBottom: colorTheme.stackWalletBottom,
+      epicmobileBG: colorTheme.epicmobileBG,
+      epicmobileMid: colorTheme.epicmobileMid,
+      epicmobileBottom: colorTheme.epicmobileBottom,
       bottomNavShadow: colorTheme.bottomNavShadow,
       favoriteStarActive: colorTheme.favoriteStarActive,
       favoriteStarInactive: colorTheme.favoriteStarInactive,
@@ -558,9 +558,9 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? infoItemIcons,
     Color? popupBG,
     Color? currencyListItemBG,
-    Color? stackWalletBG,
-    Color? stackWalletMid,
-    Color? stackWalletBottom,
+    Color? epicmobileBG,
+    Color? epicmobileMid,
+    Color? epicmobileBottom,
     Color? bottomNavShadow,
     Color? favoriteStarActive,
     Color? favoriteStarInactive,
@@ -724,9 +724,9 @@ class StackColors extends ThemeExtension<StackColors> {
       infoItemIcons: infoItemIcons ?? this.infoItemIcons,
       popupBG: popupBG ?? this.popupBG,
       currencyListItemBG: currencyListItemBG ?? this.currencyListItemBG,
-      stackWalletBG: stackWalletBG ?? this.stackWalletBG,
-      stackWalletMid: stackWalletMid ?? this.stackWalletMid,
-      stackWalletBottom: stackWalletBottom ?? this.stackWalletBottom,
+      epicmobileBG: epicmobileBG ?? this.epicmobileBG,
+      epicmobileMid: epicmobileMid ?? this.epicmobileMid,
+      epicmobileBottom: epicmobileBottom ?? this.epicmobileBottom,
       bottomNavShadow: bottomNavShadow ?? this.bottomNavShadow,
       favoriteStarActive: favoriteStarActive ?? this.favoriteStarActive,
       favoriteStarInactive: favoriteStarInactive ?? this.favoriteStarInactive,
@@ -1328,19 +1328,19 @@ class StackColors extends ThemeExtension<StackColors> {
         other.currencyListItemBG,
         t,
       )!,
-      stackWalletBG: Color.lerp(
-        stackWalletBG,
-        other.stackWalletBG,
+      epicmobileBG: Color.lerp(
+        epicmobileBG,
+        other.epicmobileBG,
         t,
       )!,
-      stackWalletMid: Color.lerp(
-        stackWalletMid,
-        other.stackWalletMid,
+      epicmobileMid: Color.lerp(
+        epicmobileMid,
+        other.epicmobileMid,
         t,
       )!,
-      stackWalletBottom: Color.lerp(
-        stackWalletBottom,
-        other.stackWalletBottom,
+      epicmobileBottom: Color.lerp(
+        epicmobileBottom,
+        other.epicmobileBottom,
         t,
       )!,
       bottomNavShadow: Color.lerp(

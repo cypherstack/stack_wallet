@@ -1,4 +1,4 @@
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 Uri getBlockExplorerTransactionUrlFor({
   required Coin coin,

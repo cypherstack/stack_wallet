@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:epicmobile/models/exchange/incomplete_exchange.dart';
+import 'package:epicmobile/pages/exchange_view/exchange_step_views/step_2_view.dart';
+import 'package:epicmobile/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:epicmobile/pages/exchange_view/sub_widgets/step_row.dart';
+import 'package:epicmobile/utilities/clipboard_interface.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
 
 class Step1View extends StatefulWidget {
   const Step1View({

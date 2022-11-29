@@ -1,15 +1,13 @@
+import 'package:epicmobile/pages/stack_privacy_calls.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/prefs.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/stack_privacy_calls.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:stackwallet/utilities/prefs.dart';
 
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
@@ -208,7 +206,7 @@ class PrivacyAndTOSText extends StatelessWidget {
             recognizer: TapGestureRecognizer()
               ..onTap = () {
                 launchUrl(
-                  Uri.parse("https://stackwallet.com/terms-of-service.html"),
+                  Uri.parse("https://epicmobile.com/terms-of-service.html"),
                   mode: LaunchMode.externalApplication,
                 );
               },
@@ -220,7 +218,7 @@ class PrivacyAndTOSText extends StatelessWidget {
             recognizer: TapGestureRecognizer()
               ..onTap = () {
                 launchUrl(
-                  Uri.parse("https://stackwallet.com/privacy-policy.html"),
+                  Uri.parse("https://epicmobile.com/privacy-policy.html"),
                   mode: LaunchMode.externalApplication,
                 );
               },

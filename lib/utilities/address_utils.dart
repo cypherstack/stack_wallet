@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/services/coins/bitcoincash/bitcoincash_wallet.dart';
+import 'package:epicmobile/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
+import 'package:epicmobile/services/coins/litecoin/litecoin_wallet.dart';
+import 'package:epicmobile/services/coins/namecoin/namecoin_wallet.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
 class AddressUtils {
   static String condenseAddress(String address) {

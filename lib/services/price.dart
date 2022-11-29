@@ -4,10 +4,10 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
 class PriceAPI {

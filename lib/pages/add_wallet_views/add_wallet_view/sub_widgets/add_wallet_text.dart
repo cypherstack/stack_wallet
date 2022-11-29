@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
 
 class AddWalletText extends StatelessWidget {
   const AddWalletText({Key? key, required this.isDesktop}) : super(key: key);

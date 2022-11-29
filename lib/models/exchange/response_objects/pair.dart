@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
 class Pair {
   final String from;

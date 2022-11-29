@@ -1,6 +1,6 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:epicmobile/models/exchange/response_objects/trade.dart';
+import 'package:epicmobile/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 
 class IncompleteExchangeModel {
   final String sendTicker;

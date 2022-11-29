@@ -1,5 +1,5 @@
-name: stackwallet
-description: Stack Wallet
+name: epicmobile
+description: Epic Mobile
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -21,21 +21,6 @@ dependencies:
     sdk: flutter
   ffi: ^2.0.1
   mutex: ^3.0.0
-
-  lelantus:
-    path: ./crypto_plugins/flutter_liblelantus
-
-  flutter_libmonero:
-    path: ./crypto_plugins/flutter_libmonero
-
-  cw_monero:
-    path: ./crypto_plugins/flutter_libmonero/cw_monero
-
-  cw_wownero:
-    path: ./crypto_plugins/flutter_libmonero/cw_wownero
-
-  cw_core:
-    path: ./crypto_plugins/flutter_libmonero/cw_core
 
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash

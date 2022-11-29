@@ -3,22 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/create_auto_backup.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/enable_backup_dialog.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/backup_and_restore/create_auto_backup.dart';
+import 'package:epicmobile/pages_desktop_specific/home/settings_menu/backup_and_restore/enable_backup_dialog.dart';
+import 'package:epicmobile/providers/global/locale_provider.dart';
+import 'package:epicmobile/providers/global/prefs_provider.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
+import 'package:epicmobile/utilities/format.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:epicmobile/widgets/desktop/primary_button.dart';
+import 'package:epicmobile/widgets/desktop/secondary_button.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../providers/global/auto_swb_service_provider.dart';
@@ -271,14 +271,14 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                     context),
                                           ),
                                           TextSpan(
-                                            text: "stackwallet.com",
+                                            text: "epicmobile.com",
                                             style: STextStyles.richLink(context)
                                                 .copyWith(fontSize: 14),
                                             recognizer: TapGestureRecognizer()
                                               ..onTap = () {
                                                 launchUrl(
                                                   Uri.parse(
-                                                      "https://stackwallet.com/"),
+                                                      "https://epicmobile.com/"),
                                                   mode: LaunchMode
                                                       .externalApplication,
                                                 );

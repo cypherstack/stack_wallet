@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/wallet_restore_state.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/recovery_phrase_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
-import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:epicmobile/models/wallet_restore_state.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/sub_views/recovery_phrase_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
+import 'package:epicmobile/providers/stack_restore/stack_restoring_ui_state_provider.dart';
+import 'package:epicmobile/route_generator.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/stack_restoring_status.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/loading_indicator.dart';
+import 'package:epicmobile/widgets/rounded_container.dart';
 
 class RestoringWalletCard extends ConsumerStatefulWidget {
   const RestoringWalletCard({

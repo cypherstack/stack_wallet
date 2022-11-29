@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
 Future<bool> testEpicBoxNodeConnection(Uri uri) async {
   try {

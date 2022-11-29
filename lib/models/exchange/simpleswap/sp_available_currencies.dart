@@ -1,5 +1,5 @@
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
+import 'package:epicmobile/models/exchange/response_objects/currency.dart';
+import 'package:epicmobile/models/exchange/response_objects/pair.dart';
 
 class SPAvailableCurrencies {
   final List<Currency> floatingRateCurrencies = [];

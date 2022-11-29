@@ -4,35 +4,32 @@ import 'dart:convert';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
-import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
-
-import 'package:stackwallet/utilities/util.dart';
-
-/// [eventBus] should only be set during testing
+import 'package:epicmobile/notifications/show_flush_bar.dart';
+import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
+import 'package:epicmobile/pages/home_view/home_view.dart';
+import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
+import 'package:epicmobile/pages/settings_views/sub_widgets/settings_list_button.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
+import 'package:epicmobile/providers/global/wallets_provider.dart';
+import 'package:epicmobile/providers/ui/transaction_filter_provider.dart';
+import 'package:epicmobile/route_generator.dart';
+import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/global_event_bus.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:tuple/tuplehould only be set during testing
 class WalletSettingsView extends StatefulWidget {
   const WalletSettingsView({
     Key? key,

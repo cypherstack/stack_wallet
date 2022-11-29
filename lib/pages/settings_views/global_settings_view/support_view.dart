@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/conditional_parent.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SupportView extends StatelessWidget {
@@ -77,7 +77,7 @@ class SupportView extends StatelessWidget {
               onPressed: () {
                 if (!isDesktop) {
                   launchUrl(
-                    Uri.parse("https://t.me/stackwallet"),
+                    Uri.parse("https://t.me/epicmobile"),
                     mode: LaunchMode.externalApplication,
                   );
                 }
@@ -111,10 +111,10 @@ class SupportView extends StatelessWidget {
                       ],
                     ),
                     BlueTextButton(
-                      text: isDesktop ? "@stackwallet" : "",
+                      text: isDesktop ? "@epicmobile" : "",
                       onTap: () {
                         launchUrl(
-                          Uri.parse("https://t.me/stackwallet"),
+                          Uri.parse("https://t.me/epicmobile"),
                           mode: LaunchMode.externalApplication,
                         );
                       },
@@ -204,7 +204,7 @@ class SupportView extends StatelessWidget {
               onPressed: () {
                 if (!isDesktop) {
                   launchUrl(
-                    Uri.parse("https://www.reddit.com/r/stackwallet/"),
+                    Uri.parse("https://www.reddit.com/r/epicmobile/"),
                     mode: LaunchMode.externalApplication,
                   );
                 }
@@ -238,10 +238,10 @@ class SupportView extends StatelessWidget {
                       ],
                     ),
                     BlueTextButton(
-                      text: isDesktop ? "r/stackwallet" : "",
+                      text: isDesktop ? "r/epicmobile" : "",
                       onTap: () {
                         launchUrl(
-                          Uri.parse("https://www.reddit.com/r/stackwallet/"),
+                          Uri.parse("https://www.reddit.com/r/epicmobile/"),
                           mode: LaunchMode.externalApplication,
                         );
                       },
@@ -330,7 +330,7 @@ class SupportView extends StatelessWidget {
               onPressed: () {
                 if (!isDesktop) {
                   launchUrl(
-                    Uri.parse("mailto://support@stackwallet.com"),
+                    Uri.parse("mailto://support@epicmobile.com"),
                     mode: LaunchMode.externalApplication,
                   );
                 }
@@ -364,10 +364,10 @@ class SupportView extends StatelessWidget {
                       ],
                     ),
                     BlueTextButton(
-                      text: isDesktop ? "support@stackwallet.com" : "",
+                      text: isDesktop ? "support@epicmobile.com" : "",
                       onTap: () {
                         launchUrl(
-                          Uri.parse("mailto://support@stackwallet.com"),
+                          Uri.parse("mailto://support@epicmobile.com"),
                           mode: LaunchMode.externalApplication,
                         );
                       },

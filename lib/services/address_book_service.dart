@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:epicmobile/hive/db.dart';
+import 'package:epicmobile/models/contact.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/logger.dart';
 
 class AddressBookService extends ChangeNotifier {
   Contact getContactById(String id) {

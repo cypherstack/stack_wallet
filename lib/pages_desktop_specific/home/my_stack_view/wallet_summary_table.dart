@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/coin_wallets_table.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/table_view/table_view.dart';
-import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
-import 'package:stackwallet/widgets/table_view/table_view_row.dart';
+import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/coin_wallets_table.dart';
+import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/format.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/table_view/table_view.dart';
+import 'package:epicmobile/widgets/table_view/table_view_cell.dart';
+import 'package:epicmobile/widgets/table_view/table_view_row.dart';
 
 class WalletSummaryTable extends ConsumerStatefulWidget {
   const WalletSummaryTable({Key? key}) : super(key: key);
