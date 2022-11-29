@@ -9,6 +9,7 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 
@@ -60,9 +61,20 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Exchange details",
-            style: STextStyles.desktopTextExtraExtraSmall(context),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Recent trades",
+                style: STextStyles.desktopTextExtraExtraSmall(context),
+              ),
+              BlueTextButton(
+                text: "See all",
+                onTap: () {
+                  // todo display all trades
+                },
+              ),
+            ],
           ),
           const SizedBox(
             height: 16,
@@ -258,13 +270,26 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
         ],
       );
     } else {
-      return RoundedWhiteContainer(
-        child: Center(
-          child: Text(
-            "Trades will appear here",
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Recent trades",
             style: STextStyles.desktopTextExtraExtraSmall(context),
           ),
-        ),
+          const SizedBox(
+            height: 16,
+          ),
+          RoundedWhiteContainer(
+            child: Center(
+              child: Text(
+                "Trades will appear here",
+                style: STextStyles.desktopTextExtraExtraSmall(context),
+              ),
+            ),
+          ),
+        ],
       );
     }
   }
