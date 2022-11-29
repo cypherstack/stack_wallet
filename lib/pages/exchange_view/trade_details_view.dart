@@ -1115,31 +1115,40 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   const SizedBox(
                     height: 4,
                   ),
-                  Builder(builder: (context) {
-                    late final String url;
-                    switch (trade.exchangeName) {
-                      case ChangeNowExchange.exchangeName:
-                        url =
-                            "https://changenow.io/exchange/txs/${trade.tradeId}";
-                        break;
-                      case SimpleSwapExchange.exchangeName:
-                        url =
-                            "https://simpleswap.io/exchange?id=${trade.tradeId}";
-                        break;
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        launchUrl(
-                          Uri.parse(url),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      },
-                      child: Text(
-                        url,
-                        style: STextStyles.link2(context),
-                      ),
-                    );
-                  }),
+                  Builder(
+                    builder: (context) {
+                      late final String url;
+                      switch (trade.exchangeName) {
+                        case ChangeNowExchange.exchangeName:
+                          url =
+                              "https://changenow.io/exchange/txs/${trade.tradeId}";
+                          break;
+                        case SimpleSwapExchange.exchangeName:
+                          url =
+                              "https://simpleswap.io/exchange?id=${trade.tradeId}";
+                          break;
+                      }
+                      return ConditionalParent(
+                        condition: isDesktop,
+                        builder: (child) => MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: child,
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            launchUrl(
+                              Uri.parse(url),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          child: Text(
+                            url,
+                            style: STextStyles.link2(context),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
