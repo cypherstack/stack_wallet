@@ -77,7 +77,7 @@ void main() async {
   }
 
   Screen? screen;
-  if (Platform.isLinux || Util.isDesktop) {
+  if (Platform.isLinux || Platform.isIOS || Util.isDesktop) {
     screen = await getCurrentScreen();
     Util.screenWidth = screen?.frame.width;
   }
