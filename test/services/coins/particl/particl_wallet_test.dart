@@ -35,7 +35,7 @@ void main() {
     });
     test("particl mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,
-          "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770");
+          "0000ee0784c195317ac95623e22fddb8c7b8825dc3998e0bb924d66866eccf4c"); // Was 000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770
     });
     test("particl testnet genesis block hash", () async {
       expect(GENESIS_HASH_TESTNET,
