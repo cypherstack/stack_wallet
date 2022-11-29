@@ -95,7 +95,8 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
                 horizontal: 32,
               ),
               child: Text(
-                "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
+                "Please write down your recovery phrase in the correct order and "
+                "save it to keep your funds secure. You will be shown your recovery phrase on the next screen.",
                 style: STextStyles.desktopTextExtraExtraSmall(context),
                 textAlign: TextAlign.center,
               ),

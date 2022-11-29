@@ -9,11 +9,18 @@ import 'package:stackwallet/pages_desktop_specific/home/notifications/desktop_no
 import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_about_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_support_view.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
+import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
+
+final currentWalletIdProvider = StateProvider<String?>((_) => null);
 
 class DesktopHomeView extends ConsumerStatefulWidget {
   const DesktopHomeView({Key? key}) : super(key: key);
@@ -25,12 +32,25 @@ class DesktopHomeView extends ConsumerStatefulWidget {
 }
 
 class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
-  final Map<DesktopMenuItemId, Widget> contentViews = {
-    DesktopMenuItemId.myStack: const Navigator(
-      key: Key("desktopStackHomeKey"),
+  final GlobalKey key = GlobalKey<NavigatorState>();
+  late final Navigator myStackViewNav;
+
+  @override
+  void initState() {
+    myStackViewNav = Navigator(
+      key: key,
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: MyStackView.routeName,
-    ),
+    );
+    super.initState();
+  }
+
+  final Map<DesktopMenuItemId, Widget> contentViews = {
+    DesktopMenuItemId.myStack: Container(
+        // key: Key("desktopStackHomeKey"),
+        // onGenerateRoute: RouteGenerator.generateRoute,
+        // initialRoute: MyStackView.routeName,
+        ),
     DesktopMenuItemId.exchange: const Navigator(
       key: Key("desktopExchangeHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
@@ -63,7 +83,30 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     ),
   };
 
+  DesktopMenuItemId prev = DesktopMenuItemId.myStack;
+
   void onMenuSelectionWillChange(DesktopMenuItemId newKey) {
+    if (prev == DesktopMenuItemId.myStack && prev == newKey) {
+      Navigator.of(key.currentContext!)
+          .popUntil(ModalRoute.withName(MyStackView.routeName));
+      if (ref.read(currentWalletIdProvider.state).state != null) {
+        final managerProvider = ref
+            .read(walletsChangeNotifierProvider)
+            .getManagerProvider(ref.read(currentWalletIdProvider.state).state!);
+        if (ref.read(managerProvider).shouldAutoSync) {
+          ref.read(managerProvider).shouldAutoSync = false;
+        }
+        ref.read(transactionFilterProvider.state).state = null;
+        if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
+            ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
+                BackupFrequencyType.afterClosingAWallet) {
+          ref.read(autoSWBServiceProvider).doBackup();
+        }
+        ref.read(managerProvider.notifier).isActiveWallet = false;
+      }
+    }
+    prev = newKey;
+
     // check for unread notifications and refresh provider before
     // showing notifications view
     if (newKey == DesktopMenuItemId.notifications) {
@@ -111,9 +154,25 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
               color: Theme.of(context).extension<StackColors>()!.background,
             ),
             Expanded(
-              child: contentViews[
-                  ref.watch(currentDesktopMenuItemProvider.state).state]!,
+              child: IndexedStack(
+                index: ref
+                            .watch(currentDesktopMenuItemProvider.state)
+                            .state
+                            .index >
+                        0
+                    ? 1
+                    : 0,
+                children: [
+                  myStackViewNav,
+                  contentViews[
+                      ref.watch(currentDesktopMenuItemProvider.state).state]!,
+                ],
+              ),
             ),
+            // Expanded(
+            //   child: contentViews[
+            //       ref.watch(currentDesktopMenuItemProvider.state).state]!,
+            // ),
           ],
         ),
       ),

@@ -76,11 +76,17 @@ void main() async {
     Util.libraryPath = await getLibraryDirectory();
   }
 
+  Screen? screen;
+  if (Platform.isLinux || Util.isDesktop) {
+    screen = await getCurrentScreen();
+    Util.screenWidth = screen?.frame.width;
+  }
+
   if (Util.isDesktop) {
     setWindowTitle('Stack Wallet');
     setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);
-    final screen = await getCurrentScreen();
+
     final screenHeight = screen?.frame.height;
     if (screenHeight != null) {
       // starting to height be 3/4 screen height or 900, whichever is smaller
@@ -312,17 +318,17 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     final colorScheme = DB.instance
         .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
 
-    ThemeType themeType;
+    StackColorTheme colorTheme;
     switch (colorScheme) {
       case "dark":
-        themeType = ThemeType.dark;
+        colorTheme = DarkColors();
         break;
       case "oceanBreeze":
-        themeType = ThemeType.oceanBreeze;
+        colorTheme = OceanBreezeColors();
         break;
       case "light":
       default:
-        themeType = ThemeType.light;
+        colorTheme = LightColors();
     }
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
@@ -333,11 +339,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(colorThemeProvider.state).state =
-          StackColors.fromStackColorTheme(themeType == ThemeType.dark
-              ? DarkColors()
-              : (themeType == ThemeType.light
-                  ? LightColors()
-                  : OceanBreezeColors()));
+          StackColors.fromStackColorTheme(colorTheme);
 
       if (Platform.isAndroid) {
         // fetch open file if it exists

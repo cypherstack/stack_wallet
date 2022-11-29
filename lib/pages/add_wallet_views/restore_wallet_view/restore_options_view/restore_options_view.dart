@@ -23,6 +23,8 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/rounded_date_picker/flutter_rounded_date_picker_widget.dart'
+    as datePicker;
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -152,10 +154,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       await Future<void>.delayed(const Duration(milliseconds: 125));
     }
 
-    final date = await showRoundedDatePicker(
+    final date = await datePicker.showRoundedDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      height: height / 3.2,
+      height: height * 0.5,
       theme: ThemeData(
         primarySwatch: Util.createMaterialColor(fetchedColor),
       ),
