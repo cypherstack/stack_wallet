@@ -140,19 +140,23 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
         ref.watch(addressBookServiceProvider.select((value) => value.contacts));
 
     final allContacts = contacts
-        .where((element) => element.addresses
-            .where((e) => ref.watch(addressBookFilterProvider
-                .select((value) => value.coins.contains(e.coin))))
-            .isNotEmpty)
+        .where((element) =>
+            element.addresses.isEmpty ||
+            element.addresses
+                .where((e) => ref.watch(addressBookFilterProvider
+                    .select((value) => value.coins.contains(e.coin))))
+                .isNotEmpty)
         .where(
             (e) => ref.read(addressBookServiceProvider).matches(_searchTerm, e))
         .toList();
 
     final favorites = contacts
-        .where((element) => element.addresses
-            .where((e) => ref.watch(addressBookFilterProvider
-                .select((value) => value.coins.contains(e.coin))))
-            .isNotEmpty)
+        .where((element) =>
+            element.addresses.isEmpty ||
+            element.addresses
+                .where((e) => ref.watch(addressBookFilterProvider
+                    .select((value) => value.coins.contains(e.coin))))
+                .isNotEmpty)
         .where((e) =>
             e.isFavorite &&
             ref.read(addressBookServiceProvider).matches(_searchTerm, e))
