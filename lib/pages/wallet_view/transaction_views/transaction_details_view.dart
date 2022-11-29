@@ -358,7 +358,7 @@ class _TransactionDetailsViewState
                         borderColor: isDesktop
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .background
+                                .backgroundAppBar
                             : null,
                         padding: const EdgeInsets.all(0),
                         child: child,
@@ -382,7 +382,7 @@ class _TransactionDetailsViewState
                                     ? BoxDecoration(
                                         color: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .background,
+                                            .backgroundAppBar,
                                         borderRadius: BorderRadius.vertical(
                                           top: Radius.circular(
                                             Constants.size.circularBorderRadius,
@@ -1387,7 +1387,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      color: Theme.of(context).extension<StackColors>()!.background,
+      color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
     );
   }
 }

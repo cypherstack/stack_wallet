@@ -214,8 +214,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundedWhiteContainer(
-                    borderColor:
-                        Theme.of(context).extension<StackColors>()!.background,
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
                     padding: const EdgeInsets.all(0),
                     child: ListView(
                       primary: false,
@@ -281,7 +282,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     ? BoxDecoration(
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .background,
+                            .backgroundAppBar,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(
                             Constants.size.circularBorderRadius,
@@ -1197,7 +1198,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      color: Theme.of(context).extension<StackColors>()!.background,
+      color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
     );
   }
 }
