@@ -51,12 +51,12 @@ void main() {
 
   group("bip32 node/root", () {
     test("getBip32Root", () {
-      final root = getBip32Root(TEST_MNEMONIC, namecoin);
+      final root = getBip32Root(TEST_MNEMONIC, particl);
       expect(root.toWIF(), ROOT_WIF);
     });
 
     // test("getBip32NodeFromRoot", () {
-    //   final root = getBip32Root(TEST_MNEMONIC, namecoin);
+    //   final root = getBip32Root(TEST_MNEMONIC, particl);
     //   // two mainnet
     //   final node44 = getBip32NodeFromRoot(0, 0, root, DerivePathType.bip44);
     //   expect(node44.toWIF(), NODE_WIF_44);
