@@ -6,32 +6,13 @@ if ! test -f "$KEYS"; then
 fi
 
 # Create template wallet test parameter files if they don't already exist
-BWTP=../test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart
-if ! test -f "$BWTP"; then
-    echo 'prebuild.sh: creating template test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart file'
-    printf 'const TEST_MNEMONIC = "";\nconst ROOT_WIF = "";\nconst NODE_WIF_84 = "";\n' > $BWTP
-fi
+declare -a coins=("bitcoin" "bitcoincash" "dogecoin" "namecoin" "firo") # TODO add monero and wownero when those tests are updated to use the .gitignored test wallet setup: when doing that, make sure to update the test vectors for a new, private development seed
 
-BCWTP=../test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart
-if ! test -f "$BCWTP"; then
-    echo 'prebuild.sh: creating template test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart file'
-    printf 'const TEST_MNEMONIC = "";\nconst ROOT_WIF = "";\nconst NODE_WIF_84 = "";\n' > $BCWTP
-fi
-
-DWTP=../test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart
-if ! test -f "$DWTP"; then
-    echo 'prebuild.sh: creating template test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart file'
-    printf 'const TEST_MNEMONIC = "";\nconst ROOT_WIF = "";\nconst NODE_WIF_84 = "";\n' > $DWTP
-fi
-
-NWTP=../test/services/coins/namecoin/namecoin_wallet_test_parameters.dart
-if ! test -f "$NWTP"; then
-    echo 'prebuild.sh: creating template test/services/coins/namecoin/namecoin_wallet_test_parameters.dart file'
-    printf 'const TEST_MNEMONIC = "";\nconst ROOT_WIF = "";\nconst NODE_WIF_84 = "";\n' > $NWTP
-fi
-
-FWTP=../test/services/coins/firo/firo_wallet_test_parameters.dart
-if ! test -f "$FWTP"; then
-    echo 'prebuild.sh: creating template test/services/coins/firo/firo_wallet_test_parameters.dart file'
-    printf 'const TEST_MNEMONIC = "";\nconst ROOT_WIF = "";\nconst NODE_WIF_84 = "";\n' > $FWTP
-fi
+for coin in "${coins[@]}"
+do
+    WALLETTESTPARAMFILE="../test/services/coins/${coin}/${coin}_wallet_test_parameters.dart"
+    if ! test -f "$WALLETTESTPARAMFILE"; then
+        echo "prebuild.sh: creating template test/services/coins/${coin}/${coin}_wallet_test_parameters.dart file"
+        printf 'const TEST_MNEMONIC = "";\nconst ROOT_WIF = "";\nconst NODE_WIF_84 = "";\n' > $WALLETTESTPARAMFILE
+    fi
+done
