@@ -17,12 +17,16 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../route_generator.dart';
 
 class DesktopAllTradesView extends ConsumerStatefulWidget {
   const DesktopAllTradesView({Key? key}) : super(key: key);
@@ -348,29 +352,140 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
             final txData = await manager.transactionData;
 
             final tx = txData.getAllTransactions()[txid];
+            await showDialog<void>(
+              context: context,
+              builder: (context) => DesktopDialog(
+                maxHeight: MediaQuery.of(context).size.height - 64,
+                maxWidth: 580,
+                child: TradeDetailsView(
+                  tradeId: tradeId,
+                  transactionIfSentFromStack: tx,
+                  walletName: manager.walletName,
+                  walletId: walletIds.first,
+                ),
+              ),
+            );
 
             if (mounted) {
               unawaited(
-                Navigator.of(context).pushNamed(
-                  TradeDetailsView.routeName,
-                  arguments: Tuple4(
-                    tradeId,
-                    tx,
-                    walletIds.first,
-                    manager.walletName,
+                showDialog<void>(
+                  context: context,
+                  builder: (context) => Navigator(
+                    initialRoute: TradeDetailsView.routeName,
+                    onGenerateRoute: RouteGenerator.generateRoute,
+                    onGenerateInitialRoutes: (_, __) {
+                      return [
+                        FadePageRoute(
+                          DesktopDialog(
+                            maxHeight: null,
+                            maxWidth: 580,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 32,
+                                    bottom: 16,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Trade details",
+                                        style: STextStyles.desktopH3(context),
+                                      ),
+                                      DesktopDialogCloseButton(
+                                        onPressedOverride: Navigator.of(
+                                          context,
+                                          rootNavigator: true,
+                                        ).pop,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Flexible(
+                                  child: SingleChildScrollView(
+                                    primary: false,
+                                    child: TradeDetailsView(
+                                      tradeId: tradeId,
+                                      transactionIfSentFromStack: tx,
+                                      walletName: manager.walletName,
+                                      walletId: walletIds.first,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const RouteSettings(
+                            name: TradeDetailsView.routeName,
+                          ),
+                        ),
+                      ];
+                    },
                   ),
                 ),
               );
             }
           } else {
             unawaited(
-              Navigator.of(context).pushNamed(
-                TradeDetailsView.routeName,
-                arguments: Tuple4(
-                  tradeId,
-                  null,
-                  walletIds?.first,
-                  null,
+              showDialog<void>(
+                context: context,
+                builder: (context) => Navigator(
+                  initialRoute: TradeDetailsView.routeName,
+                  onGenerateRoute: RouteGenerator.generateRoute,
+                  onGenerateInitialRoutes: (_, __) {
+                    return [
+                      FadePageRoute(
+                        DesktopDialog(
+                          maxHeight: null,
+                          maxWidth: 580,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 32,
+                                  bottom: 16,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Trade details",
+                                      style: STextStyles.desktopH3(context),
+                                    ),
+                                    DesktopDialogCloseButton(
+                                      onPressedOverride: Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Flexible(
+                                child: SingleChildScrollView(
+                                  primary: false,
+                                  child: TradeDetailsView(
+                                    tradeId: tradeId,
+                                    transactionIfSentFromStack: null,
+                                    walletName: null,
+                                    walletId: walletIds?.first,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const RouteSettings(
+                          name: TradeDetailsView.routeName,
+                        ),
+                      ),
+                    ];
+                  },
                 ),
               ),
             );

@@ -109,9 +109,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                         return [
                           FadePageRoute(
                             DesktopDialog(
-                              // maxHeight:
-                              //     MediaQuery.of(context).size.height - 64,
-                              maxHeight: double.infinity,
+                              maxHeight: null,
                               maxWidth: 580,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,

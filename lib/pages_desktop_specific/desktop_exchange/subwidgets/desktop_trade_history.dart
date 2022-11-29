@@ -139,9 +139,7 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                 return [
                                   FadePageRoute(
                                     DesktopDialog(
-                                      // maxHeight:
-                                      //     MediaQuery.of(context).size.height - 64,
-                                      maxHeight: double.infinity,
+                                      maxHeight: null,
                                       maxWidth: 580,
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
@@ -172,11 +170,14 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                             ),
                                           ),
                                           Flexible(
-                                            child: TradeDetailsView(
-                                              tradeId: tradeId,
-                                              transactionIfSentFromStack: tx,
-                                              walletName: manager.walletName,
-                                              walletId: walletIds.first,
+                                            child: SingleChildScrollView(
+                                              primary: false,
+                                              child: TradeDetailsView(
+                                                tradeId: tradeId,
+                                                transactionIfSentFromStack: tx,
+                                                walletName: manager.walletName,
+                                                walletId: walletIds.first,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -202,9 +203,7 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                 return [
                                   FadePageRoute(
                                     DesktopDialog(
-                                      // maxHeight:
-                                      //     MediaQuery.of(context).size.height - 64,
-                                      maxHeight: double.infinity,
+                                      maxHeight: null,
                                       maxWidth: 580,
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
@@ -235,11 +234,15 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                             ),
                                           ),
                                           Flexible(
-                                            child: TradeDetailsView(
-                                              tradeId: tradeId,
-                                              transactionIfSentFromStack: null,
-                                              walletName: null,
-                                              walletId: walletIds?.first,
+                                            child: SingleChildScrollView(
+                                              primary: false,
+                                              child: TradeDetailsView(
+                                                tradeId: tradeId,
+                                                transactionIfSentFromStack:
+                                                    null,
+                                                walletName: null,
+                                                walletId: walletIds?.first,
+                                              ),
                                             ),
                                           ),
                                         ],
