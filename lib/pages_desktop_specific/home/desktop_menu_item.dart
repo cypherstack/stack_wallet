@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/home/desktop_menu.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
+import 'package:stackwallet/providers/global/notifications_provider.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
@@ -8,6 +12,39 @@ class DMIController {
   VoidCallback? toggle;
   void dispose() {
     toggle = null;
+  }
+}
+
+class DesktopNotificationsIcon extends ConsumerStatefulWidget {
+  const DesktopNotificationsIcon({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<DesktopNotificationsIcon> createState() =>
+      _DesktopNotificationsIconState();
+}
+
+class _DesktopNotificationsIconState
+    extends ConsumerState<DesktopNotificationsIcon> {
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.asset(
+      ref.watch(notificationsProvider
+              .select((value) => value.hasUnreadNotifications))
+          ? Assets.svg.bellNew(context)
+          : Assets.svg.bell,
+      width: 20,
+      height: 20,
+      color: ref.watch(notificationsProvider
+              .select((value) => value.hasUnreadNotifications))
+          ? null
+          : DesktopMenuItemId.notifications ==
+                  ref.watch(currentDesktopMenuItemProvider.state).state
+              ? Theme.of(context).extension<StackColors>()!.accentColorDark
+              : Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark
+                  .withOpacity(0.8),
+    );
   }
 }
 
