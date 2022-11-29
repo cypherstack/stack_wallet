@@ -108,10 +108,65 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+              child: TextField(
+                autocorrect: Util.isDesktop ? false : true,
+                enableSuggestions: Util.isDesktop ? false : true,
+                controller: searchDebugController,
+                focusNode: searchDebugFocusNode,
+                onChanged: (newString) {
+                  setState(() => _searchTerm = newString);
+                },
+                style: STextStyles.field(context),
+                decoration: standardInputDecoration(
+                  "Search",
+                  searchDebugFocusNode,
+                  context,
+                ).copyWith(
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 16,
+                    ),
+                    child: SvgPicture.asset(
+                      Assets.svg.search,
+                      width: 16,
+                      height: 16,
+                    ),
+                  ),
+                  suffixIcon: searchDebugController.text.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    setState(() {
+                                      searchDebugController.text = "";
+                                      _searchTerm = "";
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+              ),
+            ),
+          ),
           Expanded(
             // flex: 24,
             child: NestedScrollView(
-              floatHeaderSlivers: true,
+              // floatHeaderSlivers: true,
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
                   SliverOverlapAbsorber(
@@ -122,70 +177,7 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                         padding: const EdgeInsets.symmetric(
                             vertical: 16, horizontal: 32),
                         child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
-                                child: TextField(
-                                  autocorrect: Util.isDesktop ? false : true,
-                                  enableSuggestions:
-                                      Util.isDesktop ? false : true,
-                                  controller: searchDebugController,
-                                  focusNode: searchDebugFocusNode,
-                                  onChanged: (newString) {
-                                    setState(() => _searchTerm = newString);
-                                  },
-                                  style: STextStyles.field(context),
-                                  decoration: standardInputDecoration(
-                                    "Search",
-                                    searchDebugFocusNode,
-                                    context,
-                                  ).copyWith(
-                                    prefixIcon: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 16,
-                                      ),
-                                      child: SvgPicture.asset(
-                                        Assets.svg.search,
-                                        width: 16,
-                                        height: 16,
-                                      ),
-                                    ),
-                                    suffixIcon: searchDebugController
-                                            .text.isNotEmpty
-                                        ? Padding(
-                                            padding:
-                                                const EdgeInsets.only(right: 0),
-                                            child: UnconstrainedBox(
-                                              child: Row(
-                                                children: [
-                                                  TextFieldIconButton(
-                                                    child: const XIcon(),
-                                                    onTap: () async {
-                                                      setState(() {
-                                                        searchDebugController
-                                                            .text = "";
-                                                        _searchTerm = "";
-                                                      });
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                          ],
+                          children: const [],
                         ),
                       ),
                     ),

@@ -4,9 +4,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class CurrencySettings extends ConsumerStatefulWidget {
@@ -16,6 +16,41 @@ class CurrencySettings extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<CurrencySettings> createState() => _CurrencySettings();
+}
+
+Future<void> chooseCurrency(BuildContext context) async {
+  await showDialog<dynamic>(
+    context: context,
+    useSafeArea: false,
+    barrierDismissible: true,
+    builder: (context) {
+      return DesktopDialog(
+        maxHeight: 800,
+        maxWidth: 600,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Text(
+                    "Select currency",
+                    style: STextStyles.desktopH3(context),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            const Expanded(
+              child: BaseCurrencySettingsView(),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }
 
 class _CurrencySettings extends ConsumerState<CurrencySettings> {
@@ -29,13 +64,17 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
             right: 30,
           ),
           child: RoundedWhiteContainer(
+            radiusMultiplier: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SvgPicture.asset(
-                  Assets.svg.circleDollarSign,
-                  width: 48,
-                  height: 48,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SvgPicture.asset(
+                    Assets.svg.circleDollarSign,
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
                 Center(
                   child: Padding(
@@ -50,8 +89,8 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                           ),
                           TextSpan(
                             text:
-                                "\n\nProtect your Stack Wallet with a strong password. Stack Wallet does not store "
-                                "your password, and is therefore NOT able to restore it. Keep your password safe and secure.",
+                                "\n\nSelect a fiat currency to evaluate your crypto assets. We use CoinGecko conversion rates "
+                                "when displaying your balance and transaction amounts.",
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context),
                           ),
@@ -62,12 +101,20 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Padding(
-                      padding: EdgeInsets.all(
+                      padding: const EdgeInsets.all(
                         10,
                       ),
-                      child: NewPasswordButton(),
+                      child: PrimaryButton(
+                        width: 200,
+                        buttonHeight: ButtonHeight.m,
+                        enabled: true,
+                        label: "Change currency",
+                        onPressed: () {
+                          chooseCurrency(context);
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -76,74 +123,6 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class NewPasswordButton extends ConsumerWidget {
-  const NewPasswordButton({
-    Key? key,
-  }) : super(key: key);
-  Future<void> chooseCurrency(BuildContext context) async {
-    // await showDialog<dynamic>(
-    //   context: context,
-    //   useSafeArea: false,
-    //   barrierDismissible: true,
-    //   builder: (context) {
-    //     return CurrencyDialog();
-    //   },
-    // );
-    await showDialog<dynamic>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: true,
-      builder: (context) {
-        return DesktopDialog(
-          maxHeight: 800,
-          maxWidth: 600,
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                      "Select currency",
-                      style: STextStyles.desktopH3(context),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const DesktopDialogCloseButton(),
-                ],
-              ),
-              const Expanded(
-                child: BaseCurrencySettingsView(),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: 200,
-      height: 48,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getPrimaryEnabledButtonColor(context),
-        onPressed: () {
-          chooseCurrency(context);
-        },
-        child: Text(
-          "Change currency",
-          style: STextStyles.button(context),
-        ),
-      ),
     );
   }
 }

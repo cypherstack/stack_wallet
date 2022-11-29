@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 // import 'package:document_file_save_plus/document_file_save_plus.dart';
 import 'package:decimal/decimal.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
@@ -21,6 +23,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -71,19 +74,53 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
           await image.toByteData(format: ui.ImageByteFormat.png);
       Uint8List pngBytes = byteData!.buffer.asUint8List();
 
-      // if (shouldSaveInsteadOfShare) {
-      //   await DocumentFileSavePlus.saveFile(
-      //       pngBytes,
-      //       "receive_qr_code_${DateTime.now().toLocal().toIso8601String()}.png",
-      //       "image/png");
-      // } else {
-      final tempDir = await getTemporaryDirectory();
-      final file = await File("${tempDir.path}/qrcode.png").create();
-      await file.writeAsBytes(pngBytes);
+      if (shouldSaveInsteadOfShare) {
+        if (Util.isDesktop) {
+          final dir = Directory("${Platform.environment['HOME']}");
+          if (!dir.existsSync()) {
+            throw Exception(
+                "Home dir not found while trying to open filepicker on QR image save");
+          }
+          final path = await FilePicker.platform.saveFile(
+            fileName: "qrcode.png",
+            initialDirectory: dir.path,
+          );
 
-      await Share.shareFiles(["${tempDir.path}/qrcode.png"],
-          text: "Receive URI QR Code");
-      // }
+          if (path != null) {
+            final file = File(path);
+            if (file.existsSync()) {
+              unawaited(
+                showFloatingFlushBar(
+                  type: FlushBarType.warning,
+                  message: "$path already exists!",
+                  context: context,
+                ),
+              );
+            } else {
+              await file.writeAsBytes(pngBytes);
+              unawaited(
+                showFloatingFlushBar(
+                  type: FlushBarType.success,
+                  message: "$path saved!",
+                  context: context,
+                ),
+              );
+            }
+          }
+        } else {
+          //   await DocumentFileSavePlus.saveFile(
+          //       pngBytes,
+          //       "receive_qr_code_${DateTime.now().toLocal().toIso8601String()}.png",
+          //       "image/png");
+        }
+      } else {
+        final tempDir = await getTemporaryDirectory();
+        final file = await File("${tempDir.path}/qrcode.png").create();
+        await file.writeAsBytes(pngBytes);
+
+        await Share.shareFiles(["${tempDir.path}/qrcode.png"],
+            text: "Receive URI QR Code");
+      }
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -269,48 +306,51 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 70));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 70));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Generate QR code",
+              style: STextStyles.navBarTitle(context),
+            ),
           ),
-          title: Text(
-            "Generate QR code",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
-        body: LayoutBuilder(
-          builder: (buildContext, constraints) {
-            return Padding(
-              padding: const EdgeInsets.only(
-                left: 12,
-                top: 12,
-                right: 12,
-              ),
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 24,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: child,
+          body: LayoutBuilder(
+            builder: (buildContext, constraints) {
+              return Padding(
+                padding: const EdgeInsets.only(
+                  left: 12,
+                  top: 12,
+                  right: 12,
+                ),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 24,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: child,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
       child: Padding(
@@ -494,7 +534,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                       });
                     }
                   : onGeneratePressed,
-              desktopMed: true,
+              buttonHeight: isDesktop ? ButtonHeight.l : null,
             ),
             if (isDesktop && didGenerate)
               Row(
@@ -511,6 +551,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         borderColor: Theme.of(context)
                             .extension<StackColors>()!
                             .background,
+                        width: isDesktop ? 370 : null,
                         child: Column(
                           children: [
                             Text(
@@ -542,31 +583,39 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                               height: 12,
                             ),
                             Row(
+                              mainAxisAlignment: isDesktop
+                                  ? MainAxisAlignment.center
+                                  : MainAxisAlignment.start,
                               children: [
-                                SecondaryButton(
-                                  width: 170,
-                                  desktopMed: true,
-                                  onPressed: () async {
-                                    await _capturePng(false);
-                                  },
-                                  label: "Share",
-                                  icon: SvgPicture.asset(
-                                    Assets.svg.share,
-                                    width: 20,
-                                    height: 20,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .buttonTextSecondary,
+                                if (!isDesktop)
+                                  SecondaryButton(
+                                    width: 170,
+                                    buttonHeight:
+                                        isDesktop ? ButtonHeight.l : null,
+                                    onPressed: () async {
+                                      await _capturePng(false);
+                                    },
+                                    label: "Share",
+                                    icon: SvgPicture.asset(
+                                      Assets.svg.share,
+                                      width: 20,
+                                      height: 20,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .buttonTextSecondary,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(
-                                  width: 16,
-                                ),
+                                if (!isDesktop)
+                                  const SizedBox(
+                                    width: 16,
+                                  ),
                                 PrimaryButton(
                                   width: 170,
-                                  desktopMed: true,
+                                  buttonHeight:
+                                      isDesktop ? ButtonHeight.l : null,
                                   onPressed: () async {
                                     // TODO: add save functionality instead of share
+                                    // save works on linux at the moment
                                     await _capturePng(true);
                                   },
                                   label: "Save",

@@ -46,7 +46,7 @@ class NodeCard extends ConsumerStatefulWidget {
 class _NodeCardState extends ConsumerState<NodeCard> {
   String _status = "Disconnected";
   late final String nodeId;
-  bool _advancedIsExpanded = true;
+  bool _advancedIsExpanded = false;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
     final managers = ref
@@ -306,7 +306,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   width: isDesktop ? 40 : 24,
                   height: isDesktop ? 40 : 24,
                   decoration: BoxDecoration(
-                    color: _node.name == DefaultNodes.defaultName
+                    color: _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
                         ? Theme.of(context)
                             .extension<StackColors>()!
                             .buttonBackSecondary
@@ -321,13 +321,14 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       Assets.svg.node,
                       height: isDesktop ? 18 : 11,
                       width: isDesktop ? 20 : 14,
-                      color: _node.name == DefaultNodes.defaultName
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorDark
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemIcons,
+                      color:
+                          _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemIcons,
                     ),
                   ),
                 ),
@@ -367,8 +368,8 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                 if (isDesktop)
                   SvgPicture.asset(
                     _advancedIsExpanded
-                        ? Assets.svg.chevronDown
-                        : Assets.svg.chevronUp,
+                        ? Assets.svg.chevronUp
+                        : Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
                     color: Theme.of(context)

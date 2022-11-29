@@ -4,6 +4,8 @@ import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -20,22 +22,33 @@ class NotificationCard extends StatelessWidget {
     return Format.extractDateFrom(date.millisecondsSinceEpoch ~/ 1000);
   }
 
+  static const double mobileIconSize = 24;
+  static const double desktopIconSize = 30;
+
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
+
     return Stack(
       children: [
         RoundedWhiteContainer(
+          padding: isDesktop
+              ? const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                )
+              : const EdgeInsets.all(12),
           child: Row(
             children: [
               notification.changeNowId == null
                   ? SvgPicture.asset(
                       notification.iconAssetName,
-                      width: 24,
-                      height: 24,
+                      width: isDesktop ? desktopIconSize : mobileIconSize,
+                      height: isDesktop ? desktopIconSize : mobileIconSize,
                     )
                   : Container(
-                      width: 24,
-                      height: 24,
+                      width: isDesktop ? desktopIconSize : mobileIconSize,
+                      height: isDesktop ? desktopIconSize : mobileIconSize,
                       decoration: BoxDecoration(
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(24),
@@ -45,8 +58,8 @@ class NotificationCard extends StatelessWidget {
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .accentColorDark,
-                        width: 24,
-                        height: 24,
+                        width: isDesktop ? desktopIconSize : mobileIconSize,
+                        height: isDesktop ? desktopIconSize : mobileIconSize,
                       ),
                     ),
               const SizedBox(
@@ -56,9 +69,35 @@ class NotificationCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      notification.title,
-                      style: STextStyles.titleBold12(context),
+                    ConditionalParent(
+                      condition: isDesktop && !notification.read,
+                      builder: (child) => Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          child,
+                          Text(
+                            "New",
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorGreen,
+                            ),
+                          )
+                        ],
+                      ),
+                      child: Text(
+                        notification.title,
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              )
+                            : STextStyles.titleBold12(context),
+                      ),
                     ),
                     const SizedBox(
                       height: 2,
@@ -68,11 +107,25 @@ class NotificationCard extends StatelessWidget {
                       children: [
                         Text(
                           notification.description,
-                          style: STextStyles.label(context),
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
+                                )
+                              : STextStyles.label(context),
                         ),
                         Text(
                           extractPrettyDateString(notification.date),
-                          style: STextStyles.label(context),
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
+                                )
+                              : STextStyles.label(context),
                         ),
                       ],
                     ),

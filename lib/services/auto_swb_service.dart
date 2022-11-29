@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -25,11 +24,9 @@ class AutoSWBService extends ChangeNotifier {
   bool _isActiveTimer = false;
   bool get isActivePeriodicTimer => _isActiveTimer;
 
-  final FlutterSecureStorageInterface secureStorageInterface;
+  final SecureStorageInterface secureStorageInterface;
 
-  AutoSWBService(
-      {this.secureStorageInterface =
-          const SecureStorageWrapper(FlutterSecureStorage())});
+  AutoSWBService({required this.secureStorageInterface});
 
   /// Attempt a backup.
   Future<void> doBackup() async {

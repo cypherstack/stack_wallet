@@ -103,7 +103,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     NamecoinWallet? mainnetWallet;
@@ -132,7 +132,7 @@ void main() {
           mainnetWallet?.addressType(
               address: "N673DDbjPcrNgJmrhJ1xQXF9LLizQzvjEs"),
           DerivePathType.bip44);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -144,7 +144,7 @@ void main() {
           mainnetWallet?.addressType(
               address: "nc1q6k4x8ye6865z3rc8zkt8gyu52na7njqt6hsk4v"),
           DerivePathType.bip84);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -156,7 +156,7 @@ void main() {
           () => mainnetWallet?.addressType(
               address: "tb1qzzlm6mnc8k54mx6akehl8p9ray8r439va5ndyq"),
           throwsArgumentError);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -168,7 +168,7 @@ void main() {
           () => mainnetWallet?.addressType(
               address: "mpMk94ETazqonHutyC1v6ajshgtP8oiFKU"),
           throwsArgumentError);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -180,7 +180,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     NamecoinWallet? nmc;
@@ -208,7 +208,7 @@ void main() {
       when(client?.ping()).thenAnswer((_) async => false);
       final bool? result = await nmc?.testNetworkConnection();
       expect(result, false);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -219,7 +219,7 @@ void main() {
       when(client?.ping()).thenThrow(Exception);
       final bool? result = await nmc?.testNetworkConnection();
       expect(result, false);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -230,7 +230,7 @@ void main() {
       when(client?.ping()).thenAnswer((_) async => true);
       final bool? result = await nmc?.testNetworkConnection();
       expect(result, true);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -245,7 +245,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     NamecoinWallet? nmc;
@@ -271,7 +271,7 @@ void main() {
 
     test("get networkType main", () async {
       expect(Coin.namecoin, Coin.namecoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -289,7 +289,7 @@ void main() {
         secureStore: secureStore,
       );
       expect(Coin.namecoin, Coin.namecoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -297,7 +297,7 @@ void main() {
 
     test("get cryptoCurrency", () async {
       expect(Coin.namecoin, Coin.namecoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -305,7 +305,7 @@ void main() {
 
     test("get coinName", () async {
       expect(Coin.namecoin, Coin.namecoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -313,7 +313,7 @@ void main() {
 
     test("get coinTicker", () async {
       expect(Coin.namecoin, Coin.namecoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -323,7 +323,7 @@ void main() {
       expect(Coin.namecoin, Coin.namecoin);
       nmc?.walletName = "new name";
       expect(nmc?.walletName, "new name");
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -338,7 +338,7 @@ void main() {
       expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 1699), 712);
       expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 2000), 712);
       expect(nmc?.estimateTxFee(vSize: 356, feeRatePerKB: 12345), 4628);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -372,7 +372,7 @@ void main() {
       verify(client?.estimateFee(blocks: 1)).called(1);
       verify(client?.estimateFee(blocks: 5)).called(1);
       verify(client?.estimateFee(blocks: 20)).called(1);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -409,7 +409,7 @@ void main() {
       verify(client?.estimateFee(blocks: 1)).called(1);
       verify(client?.estimateFee(blocks: 5)).called(1);
       verify(client?.estimateFee(blocks: 20)).called(1);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -440,7 +440,7 @@ void main() {
     //   verify(client?.estimateFee(blocks: 1)).called(1);
     //   verify(client?.estimateFee(blocks: 5)).called(1);
     //   verify(client?.estimateFee(blocks: 20)).called(1);
-    //   expect(secureStore?.interactions, 0);
+    //   expect(secureStore.interactions, 0);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
     //   verifyNoMoreInteractions(tracker);
@@ -457,7 +457,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     NamecoinWallet? nmc;
@@ -504,7 +504,7 @@ void main() {
     // test("initializeWallet no network", () async {
     //   when(client?.ping()).thenAnswer((_) async => false);
     //   expect(await nmc?.initializeWallet(), false);
-    //   expect(secureStore?.interactions, 0);
+    //   expect(secureStore.interactions, 0);
     //   verify(client?.ping()).called(1);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
@@ -515,7 +515,7 @@ void main() {
     //   when(client?.ping()).thenThrow(Exception("Network connection failed"));
     //   final wallets = await Hive.openBox(testWalletId);
     //   expect(await nmc?.initializeExisting(), false);
-    //   expect(secureStore?.interactions, 0);
+    //   expect(secureStore.interactions, 0);
     //   verify(client?.ping()).called(1);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
@@ -539,7 +539,7 @@ void main() {
 
       expectLater(() => nmc?.initializeExisting(), throwsA(isA<Exception>()))
           .then((_) {
-        expect(secureStore?.interactions, 0);
+        expect(secureStore.interactions, 0);
         // verify(client?.ping()).called(1);
         // verify(client?.getServerFeatures()).called(1);
         verifyNoMoreInteractions(client);
@@ -560,13 +560,13 @@ void main() {
             "hash_function": "sha256",
             "services": []
           });
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_mnemonic", value: "some mnemonic");
 
       final wallets = await Hive.openBox(testWalletId);
       expectLater(() => nmc?.initializeExisting(), throwsA(isA<Exception>()))
           .then((_) {
-        expect(secureStore?.interactions, 1);
+        expect(secureStore.interactions, 1);
         // verify(client?.ping()).called(1);
         // verify(client?.getServerFeatures()).called(1);
         verifyNoMoreInteractions(client);
@@ -603,7 +603,7 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -623,7 +623,7 @@ void main() {
             "services": []
           });
 
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_mnemonic", value: "some mnemonic words");
 
       bool hasThrown = false;
@@ -640,7 +640,7 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
 
-      expect(secureStore?.interactions, 2);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -691,10 +691,10 @@ void main() {
       verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
 
-      expect(secureStore?.interactions, 20);
-      expect(secureStore?.writes, 7);
-      expect(secureStore?.reads, 13);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 20);
+      expect(secureStore.writes, 7);
+      expect(secureStore.reads, 13);
+      expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -814,10 +814,10 @@ void main() {
             true);
       }
 
-      expect(secureStore?.interactions, 14);
-      expect(secureStore?.writes, 7);
-      expect(secureStore?.reads, 7);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 14);
+      expect(secureStore.writes, 7);
+      expect(secureStore.reads, 7);
+      expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -911,17 +911,17 @@ void main() {
       final preChangeIndexP2SH = await wallet.get('changeIndexP2SH');
       final preChangeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
       final preUtxoData = await wallet.get('latest_utxo_model');
-      final preReceiveDerivationsStringP2PKH = await secureStore?.read(
+      final preReceiveDerivationsStringP2PKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
-      final preChangeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
-      final preReceiveDerivationsStringP2SH = await secureStore?.read(
-          key: "${testWalletId}_receiveDerivationsP2SH");
+      final preChangeDerivationsStringP2PKH =
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
+      final preReceiveDerivationsStringP2SH =
+          await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
       final preChangeDerivationsStringP2SH =
-          await secureStore?.read(key: "${testWalletId}_changeDerivationsP2SH");
-      final preReceiveDerivationsStringP2WPKH = await secureStore?.read(
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
+      final preReceiveDerivationsStringP2WPKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2WPKH");
-      final preChangeDerivationsStringP2WPKH = await secureStore?.read(
+      final preChangeDerivationsStringP2WPKH = await secureStore.read(
           key: "${testWalletId}_changeDerivationsP2WPKH");
 
       // destroy the data that the rescan will fix
@@ -943,17 +943,17 @@ void main() {
       await wallet.put('changeIndexP2PKH', 123);
       await wallet.put('changeIndexP2SH', 123);
       await wallet.put('changeIndexP2WPKH', 123);
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_receiveDerivationsP2PKH", value: "{}");
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_changeDerivationsP2PKH", value: "{}");
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_receiveDerivationsP2SH", value: "{}");
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_changeDerivationsP2SH", value: "{}");
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_receiveDerivationsP2WPKH", value: "{}");
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_changeDerivationsP2WPKH", value: "{}");
 
       bool hasThrown = false;
@@ -980,17 +980,17 @@ void main() {
       final changeIndexP2SH = await wallet.get('changeIndexP2SH');
       final changeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
       final utxoData = await wallet.get('latest_utxo_model');
-      final receiveDerivationsStringP2PKH = await secureStore?.read(
+      final receiveDerivationsStringP2PKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
-      final changeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
-      final receiveDerivationsStringP2SH = await secureStore?.read(
-          key: "${testWalletId}_receiveDerivationsP2SH");
+      final changeDerivationsStringP2PKH =
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
+      final receiveDerivationsStringP2SH =
+          await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
       final changeDerivationsStringP2SH =
-          await secureStore?.read(key: "${testWalletId}_changeDerivationsP2SH");
-      final receiveDerivationsStringP2WPKH = await secureStore?.read(
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
+      final receiveDerivationsStringP2WPKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2WPKH");
-      final changeDerivationsStringP2WPKH = await secureStore?.read(
+      final changeDerivationsStringP2WPKH = await secureStore.read(
           key: "${testWalletId}_changeDerivationsP2WPKH");
 
       expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
@@ -1082,9 +1082,9 @@ void main() {
       //
       // argCount.forEach((key, value) => print("arg: $key\ncount: $value"));
 
-      expect(secureStore?.writes, 25);
-      expect(secureStore?.reads, 32);
-      expect(secureStore?.deletes, 6);
+      expect(secureStore.writes, 25);
+      expect(secureStore.reads, 32);
+      expect(secureStore.deletes, 6);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -1182,17 +1182,17 @@ void main() {
       final preChangeIndexP2SH = await wallet.get('changeIndexP2SH');
       final preChangeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
       final preUtxoData = await wallet.get('latest_utxo_model');
-      final preReceiveDerivationsStringP2PKH = await secureStore?.read(
+      final preReceiveDerivationsStringP2PKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
-      final preChangeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
-      final preReceiveDerivationsStringP2SH = await secureStore?.read(
-          key: "${testWalletId}_receiveDerivationsP2SH");
+      final preChangeDerivationsStringP2PKH =
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
+      final preReceiveDerivationsStringP2SH =
+          await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
       final preChangeDerivationsStringP2SH =
-          await secureStore?.read(key: "${testWalletId}_changeDerivationsP2SH");
-      final preReceiveDerivationsStringP2WPKH = await secureStore?.read(
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
+      final preReceiveDerivationsStringP2WPKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2WPKH");
-      final preChangeDerivationsStringP2WPKH = await secureStore?.read(
+      final preChangeDerivationsStringP2WPKH = await secureStore.read(
           key: "${testWalletId}_changeDerivationsP2WPKH");
 
       when(client?.getBatchHistory(args: historyBatchArgs0))
@@ -1222,17 +1222,17 @@ void main() {
       final changeIndexP2SH = await wallet.get('changeIndexP2SH');
       final changeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
       final utxoData = await wallet.get('latest_utxo_model');
-      final receiveDerivationsStringP2PKH = await secureStore?.read(
+      final receiveDerivationsStringP2PKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
-      final changeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
-      final receiveDerivationsStringP2SH = await secureStore?.read(
-          key: "${testWalletId}_receiveDerivationsP2SH");
+      final changeDerivationsStringP2PKH =
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
+      final receiveDerivationsStringP2SH =
+          await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
       final changeDerivationsStringP2SH =
-          await secureStore?.read(key: "${testWalletId}_changeDerivationsP2SH");
-      final receiveDerivationsStringP2WPKH = await secureStore?.read(
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
+      final receiveDerivationsStringP2WPKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2WPKH");
-      final changeDerivationsStringP2WPKH = await secureStore?.read(
+      final changeDerivationsStringP2WPKH = await secureStore.read(
           key: "${testWalletId}_changeDerivationsP2WPKH");
 
       expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
@@ -1296,9 +1296,9 @@ void main() {
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
           .called(1);
 
-      expect(secureStore?.writes, 19);
-      expect(secureStore?.reads, 32);
-      expect(secureStore?.deletes, 12);
+      expect(secureStore.writes, 19);
+      expect(secureStore.reads, 32);
+      expect(secureStore.deletes, 12);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -1366,21 +1366,21 @@ void main() {
           height: 4000);
 
       // modify addresses to properly mock data to build a tx
-      final rcv44 = await secureStore?.read(
+      final rcv44 = await secureStore.read(
           key: testWalletId + "_receiveDerivationsP2PKH");
-      await secureStore?.write(
+      await secureStore.write(
           key: testWalletId + "_receiveDerivationsP2PKH",
           value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
               "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-      final rcv49 = await secureStore?.read(
-          key: testWalletId + "_receiveDerivationsP2SH");
-      await secureStore?.write(
+      final rcv49 =
+          await secureStore.read(key: testWalletId + "_receiveDerivationsP2SH");
+      await secureStore.write(
           key: testWalletId + "_receiveDerivationsP2SH",
           value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
               "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-      final rcv84 = await secureStore?.read(
+      final rcv84 = await secureStore.read(
           key: testWalletId + "_receiveDerivationsP2WPKH");
-      await secureStore?.write(
+      await secureStore.write(
           key: testWalletId + "_receiveDerivationsP2WPKH",
           value: rcv84?.replaceFirst(
               "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
@@ -1436,10 +1436,10 @@ void main() {
             true);
       }
 
-      expect(secureStore?.interactions, 20);
-      expect(secureStore?.writes, 10);
-      expect(secureStore?.reads, 10);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 20);
+      expect(secureStore.writes, 10);
+      expect(secureStore.reads, 10);
+      expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -1456,7 +1456,7 @@ void main() {
 
       expect(didThrow, true);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -1472,7 +1472,7 @@ void main() {
 
       expect(didThrow, true);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -1492,7 +1492,7 @@ void main() {
               rawTx: "a string", requestID: anyNamed("requestID")))
           .called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -1513,7 +1513,7 @@ void main() {
               rawTx: "a string", requestID: anyNamed("requestID")))
           .called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(priceAPI);
@@ -1538,7 +1538,7 @@ void main() {
               rawTx: "a string", requestID: anyNamed("requestID")))
           .called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -1658,10 +1658,10 @@ void main() {
             true);
       }
 
-      expect(secureStore?.interactions, 14);
-      expect(secureStore?.writes, 7);
-      expect(secureStore?.reads, 7);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 14);
+      expect(secureStore.writes, 7);
+      expect(secureStore.reads, 7);
+      expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -1726,10 +1726,10 @@ void main() {
         verify(client?.getBatchHistory(args: map)).called(1);
       }
 
-      expect(secureStore?.interactions, 14);
-      expect(secureStore?.writes, 7);
-      expect(secureStore?.reads, 7);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 14);
+      expect(secureStore.writes, 7);
+      expect(secureStore.reads, 7);
+      expect(secureStore.deletes, 0);
 
       // verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);

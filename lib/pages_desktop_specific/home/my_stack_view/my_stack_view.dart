@@ -6,6 +6,7 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_wallets
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 
 class MyStackView extends ConsumerStatefulWidget {
@@ -23,36 +24,38 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
     debugPrint("BUILD: $runtimeType");
     final hasWallets = ref.watch(walletsChangeNotifierProvider).hasWallets;
 
-    return Column(
-      children: [
-        DesktopAppBar(
-          isCompactHeight: true,
-          leading: Row(
-            children: [
-              const SizedBox(
-                width: 24,
-              ),
-              SizedBox(
-                width: 32,
-                height: 32,
-                child: SvgPicture.asset(
-                  Assets.svg.stackIcon(context),
+    return Background(
+      child: Column(
+        children: [
+          DesktopAppBar(
+            isCompactHeight: true,
+            leading: Row(
+              children: [
+                const SizedBox(
+                  width: 24,
                 ),
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              Text(
-                "My Stack",
-                style: STextStyles.desktopH3(context),
-              )
-            ],
+                SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: SvgPicture.asset(
+                    Assets.svg.stackIcon(context),
+                  ),
+                ),
+                const SizedBox(
+                  width: 12,
+                ),
+                Text(
+                  "My Stack",
+                  style: STextStyles.desktopH3(context),
+                )
+              ],
+            ),
           ),
-        ),
-        Expanded(
-          child: hasWallets ? const MyWallets() : const EmptyWallets(),
-        ),
-      ],
+          Expanded(
+            child: hasWallets ? const MyWallets() : const EmptyWallets(),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,16 +1,20 @@
-import 'dart:ui';
-
+import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 enum ThemeType {
   light,
   dark,
+  oceanBreeze,
 }
 
 abstract class StackColorTheme {
   ThemeType get themeType;
 
   Color get background;
+  Color get backgroundAppBar;
+
+  Gradient? get gradientBackground;
+
   Color get overlay;
 
   Color get accentColorBlue;

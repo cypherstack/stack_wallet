@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -10,6 +11,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class AddressBookCard extends ConsumerStatefulWidget {
@@ -17,10 +19,12 @@ class AddressBookCard extends ConsumerStatefulWidget {
     Key? key,
     required this.contactId,
     this.indicatorDown,
+    this.desktopSendFrom = true,
   }) : super(key: key);
 
   final String contactId;
-  final bool? indicatorDown;
+  final ExpandableState? indicatorDown;
+  final bool desktopSendFrom;
 
   @override
   ConsumerState<AddressBookCard> createState() => _AddressBookCardState();
@@ -29,20 +33,28 @@ class AddressBookCard extends ConsumerStatefulWidget {
 class _AddressBookCardState extends ConsumerState<AddressBookCard> {
   late final String contactId;
   late final bool isDesktop;
+  late final bool desktopSendFrom;
 
   @override
   void initState() {
     contactId = widget.contactId;
+    desktopSendFrom = widget.desktopSendFrom;
     isDesktop = Util.isDesktop;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    // final isTiny = SizingUtilities.isTinyWidth(context);
+    // provider hack to prevent trying to update widget with deleted contact
+    Contact? _contact;
+    try {
+      _contact = ref.watch(addressBookServiceProvider
+          .select((value) => value.getContactById(contactId)));
+    } catch (_) {
+      return Container();
+    }
 
-    final contact = ref.watch(addressBookServiceProvider
-        .select((value) => value.getContactById(contactId)));
+    final contact = _contact!;
 
     final List<Coin> coins = [];
     for (var element in contact.addresses) {
@@ -106,6 +118,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
             const SizedBox(
               width: 16,
             ),
+          if (isDesktop && !desktopSendFrom) const Spacer(),
           if (isDesktop)
             Text(
               coinsString,
@@ -128,10 +141,10 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                 ),
               ],
             ),
-          if (isDesktop) const Spacer(),
-          if (isDesktop)
+          if (isDesktop && desktopSendFrom) const Spacer(),
+          if (isDesktop && desktopSendFrom)
             SvgPicture.asset(
-              widget.indicatorDown == true
+              widget.indicatorDown == ExpandableState.collapsed
                   ? Assets.svg.chevronDown
                   : Assets.svg.chevronUp,
               width: 10,

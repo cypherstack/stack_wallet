@@ -64,7 +64,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     BitcoinCashWallet? mainnetWallet;
@@ -203,7 +203,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     BitcoinCashWallet? mainnetWallet;
@@ -314,7 +314,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     BitcoinCashWallet? bch;
@@ -383,7 +383,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     BitcoinCashWallet? bch;
@@ -606,7 +606,7 @@ void main() {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
     MockPriceAPI? priceAPI;
-    FakeSecureStorage? secureStore;
+    late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
     BitcoinCashWallet? bch;

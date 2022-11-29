@@ -385,7 +385,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                     ),
                   if (isDesktop)
                     SecondaryButton(
-                      desktopMed: isDesktop,
+                      buttonHeight: ButtonHeight.l,
                       width: 200,
                       label: "Filter",
                       icon: SvgPicture.asset(
@@ -937,13 +937,9 @@ class _DesktopTransactionCardRowState
                 flex: 6,
                 child: Builder(
                   builder: (_) {
-                    final amount = coin == Coin.monero
-                        ? (_transaction.amount ~/ 10000)
-                        : coin == Coin.wownero
-                            ? (_transaction.amount ~/ 1000)
-                            : _transaction.amount;
+                    final amount = _transaction.amount;
                     return Text(
-                      "$prefix${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
+                      "$prefix${Format.satoshiAmountToPrettyString(amount, locale, coin)} ${coin.ticker}",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
                         color: Theme.of(context)
@@ -960,17 +956,12 @@ class _DesktopTransactionCardRowState
                   flex: 4,
                   child: Builder(
                     builder: (_) {
-                      // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
                       int value = _transaction.amount;
-                      if (coin == Coin.monero) {
-                        value = (value ~/ 10000);
-                      } else if (coin == Coin.wownero) {
-                        value = (value ~/ 1000);
-                      }
 
                       return Text(
                         "$prefix${Format.localizedStringAsFixed(
-                          value: Format.satoshisToAmount(value) * price,
+                          value: Format.satoshisToAmount(value, coin: coin) *
+                              price,
                           locale: locale,
                           decimalPlaces: 2,
                         )} $baseCurrency",

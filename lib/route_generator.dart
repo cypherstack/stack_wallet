@@ -85,14 +85,19 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/pages_desktop_specific/forgot_password_desktop_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
+import 'package:stackwallet/pages_desktop_specific/home/notifications/desktop_notifications_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings/advanced_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
@@ -1012,6 +1017,18 @@ class RouteGenerator {
             builder: (_) => const DesktopHomeView(),
             settings: RouteSettings(name: settings.name));
 
+      case DesktopNotificationsView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopNotificationsView(),
+            settings: RouteSettings(name: settings.name));
+
+      case DesktopExchangeView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopExchangeView(),
+            settings: RouteSettings(name: settings.name));
+
       case DesktopSettingsView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -1139,6 +1156,73 @@ class RouteGenerator {
           return FadePageRoute(
             UnlockWalletKeysDesktop(
               walletId: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => WalletKeysDesktopPopup(
+          //     words: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopDeleteWalletDialog.routeName:
+        if (args is String) {
+          return FadePageRoute(
+            DesktopDeleteWalletDialog(
+              walletId: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => WalletKeysDesktopPopup(
+          //     words: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopAttentionDeleteWallet.routeName:
+        if (args is String) {
+          return FadePageRoute(
+            DesktopAttentionDeleteWallet(
+              walletId: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+          // return getRoute(
+          //   shouldUseMaterialRoute: useMaterialPageRoute,
+          //   builder: (_) => WalletKeysDesktopPopup(
+          //     words: args,
+          //   ),
+          //   settings: RouteSettings(
+          //     name: settings.name,
+          //   ),
+          // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DeleteWalletKeysPopup.routeName:
+        if (args is Tuple2<String, List<String>>) {
+          return FadePageRoute(
+            DeleteWalletKeysPopup(
+              walletId: args.item1,
+              words: args.item2,
             ),
             RouteSettings(
               name: settings.name,

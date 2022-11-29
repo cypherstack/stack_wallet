@@ -2,15 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -18,6 +17,7 @@ import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/delete_button.dart';
@@ -32,14 +32,10 @@ class NodeDetailsView extends ConsumerStatefulWidget {
     required this.coin,
     required this.nodeId,
     required this.popRouteName,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
 
   static const String routeName = "/nodeDetails";
 
-  final FlutterSecureStorageInterface secureStore;
   final Coin coin;
   final String nodeId;
   final String popRouteName;
@@ -49,7 +45,7 @@ class NodeDetailsView extends ConsumerStatefulWidget {
 }
 
 class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
-  late final FlutterSecureStorageInterface secureStore;
+  late final SecureStorageInterface secureStore;
   late final Coin coin;
   late final String nodeId;
   late final String popRouteName;
@@ -58,7 +54,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
 
   @override
   initState() {
-    secureStore = widget.secureStore;
+    secureStore = ref.read(secureStoreProvider);
     coin = widget.coin;
     nodeId = widget.nodeId;
     popRouteName = widget.popRouteName;
@@ -181,28 +177,35 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
     final node = ref.watch(nodeServiceChangeNotifierProvider
         .select((value) => value.getNodeById(id: nodeId)));
 
+    final nodesForCoin = ref.watch(nodeServiceChangeNotifierProvider
+        .select((value) => value.getNodesFor(coin)));
+
+    final canDelete = nodesForCoin.length > 1;
+
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          title: Text(
-            "Node details",
-            style: STextStyles.navBarTitle(context),
-          ),
-          actions: [
-            if (!nodeId.startsWith("default"))
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Node details",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              // if (!nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix))
               Padding(
                 padding: const EdgeInsets.only(
                   top: 10,
@@ -239,29 +242,30 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                   ),
                 ),
               ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 12,
-            right: 12,
+            ],
           ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: ConstrainedBox(
-                    constraints:
-                        BoxConstraints(minHeight: constraints.maxHeight - 8),
-                    child: IntrinsicHeight(
-                      child: child,
+          body: Padding(
+            padding: const EdgeInsets.only(
+              top: 12,
+              left: 12,
+              right: 12,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight - 8),
+                      child: IntrinsicHeight(
+                        child: child,
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -314,7 +318,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
               const SizedBox(
                 height: 22,
               ),
-            if (isDesktop)
+            if (isDesktop && canDelete)
               SizedBox(
                 height: 56,
                 child: _desktopReadOnly
@@ -344,7 +348,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         ],
                       ),
               ),
-            if (isDesktop && !_desktopReadOnly)
+            if (isDesktop && !_desktopReadOnly && canDelete)
               const SizedBox(
                 height: 45,
               ),
@@ -353,7 +357,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Test connection",
-                    desktopMed: true,
+                    buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: () async {
                       await _testConnection(ref, context);
                     },
@@ -365,22 +369,41 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                   ),
                 if (isDesktop)
                   Expanded(
-                    child: !nodeId.startsWith("default")
-                        ? PrimaryButton(
-                            label: _desktopReadOnly ? "Edit" : "Save",
-                            desktopMed: true,
-                            onPressed: () async {
-                              final shouldSave = _desktopReadOnly == false;
-                              setState(() {
-                                _desktopReadOnly = !_desktopReadOnly;
-                              });
+                    child:
+                        // !nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix)
+                        //     ?
+                        PrimaryButton(
+                      label: _desktopReadOnly ? "Edit" : "Save",
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: () async {
+                        final shouldSave = _desktopReadOnly == false;
+                        setState(() {
+                          _desktopReadOnly = !_desktopReadOnly;
+                        });
 
-                              if (shouldSave) {
-                                // todo save node
-                              }
-                            },
-                          )
-                        : Container(),
+                        if (shouldSave) {
+                          final editedNode = node!.copyWith(
+                            host: ref.read(nodeFormDataProvider).host,
+                            port: ref.read(nodeFormDataProvider).port,
+                            name: ref.read(nodeFormDataProvider).name,
+                            useSSL: ref.read(nodeFormDataProvider).useSSL,
+                            loginName: ref.read(nodeFormDataProvider).login,
+                            isFailover:
+                                ref.read(nodeFormDataProvider).isFailover,
+                          );
+
+                          await ref
+                              .read(nodeServiceChangeNotifierProvider)
+                              .edit(
+                                editedNode,
+                                ref.read(nodeFormDataProvider).password,
+                                true,
+                              );
+                        }
+                      },
+                    )
+                    // : Container()
+                    ,
                   ),
               ],
             ),

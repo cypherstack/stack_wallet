@@ -7,9 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
-// import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/restore_backup_dialog.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -18,6 +17,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -44,24 +44,13 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
 
   late final FocusNode passwordFocusNode;
 
-  late final StackFileSystem stackFileSystem;
+  late final SWBFileSystem stackFileSystem;
 
   bool hidePassword = true;
 
-  Future<void> restoreBackupPopup(BuildContext context) async {
-    // await showDialog<dynamic>(
-    //   context: context,
-    //   useSafeArea: false,
-    //   barrierDismissible: true,
-    //   builder: (context) {
-    //     return const RestoreBackupDialog();
-    //   },
-    // );
-  }
-
   @override
   void initState() {
-    stackFileSystem = StackFileSystem();
+    stackFileSystem = SWBFileSystem();
     fileLocationController = TextEditingController();
     passwordController = TextEditingController();
 
@@ -87,42 +76,44 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
     return ConditionalParent(
         condition: !isDesktop,
         builder: (child) {
-          return Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            appBar: AppBar(
-              leading: AppBarBackButton(
-                onPressed: () async {
-                  if (FocusScope.of(context).hasFocus) {
-                    FocusScope.of(context).unfocus();
-                    await Future<void>.delayed(
-                        const Duration(milliseconds: 75));
-                  }
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
+          return Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                          const Duration(milliseconds: 75));
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+                title: Text(
+                  "Restore from file",
+                  style: STextStyles.navBarTitle(context),
+                ),
               ),
-              title: Text(
-                "Restore from file",
-                style: STextStyles.navBarTitle(context),
-              ),
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(16),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
+              body: Padding(
+                padding: const EdgeInsets.all(16),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
+                          child: child,
+                        ),
                       ),
-                      child: IntrinsicHeight(
-                        child: child,
-                      ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           );
@@ -237,7 +228,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                   enableSuggestions: false,
                   autocorrect: false,
                   decoration: standardInputDecoration(
-                    "Enter password",
+                    "Enter passphrase",
                     passwordFocusNode,
                     context,
                   ).copyWith(
@@ -401,7 +392,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                       children: [
                         PrimaryButton(
                           width: 183,
-                          desktopMed: true,
+                          buttonHeight: ButtonHeight.m,
                           label: "Restore",
                           enabled: !(passwordController.text.isEmpty ||
                               fileLocationController.text.isEmpty),
@@ -534,7 +525,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                                                     const EdgeInsets
                                                                         .all(32),
                                                                 child: Text(
-                                                                  "Restoring Stack Wallet",
+                                                                  "Restore Stack Wallet",
                                                                   style: STextStyles
                                                                       .desktopH3(
                                                                           context),
@@ -546,12 +537,10 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                                               const DesktopDialogCloseButton(),
                                                             ],
                                                           ),
-                                                          const SizedBox(
-                                                            height: 30,
-                                                          ),
                                                           Padding(
-                                                            padding: EdgeInsets
-                                                                .symmetric(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                        .symmetric(
                                                                     horizontal:
                                                                         32),
                                                             child:
@@ -559,6 +548,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                                               jsonString:
                                                                   jsonString,
                                                             ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 32,
                                                           ),
                                                         ],
                                                       ),
@@ -577,7 +569,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                         ),
                         SecondaryButton(
                           width: 183,
-                          desktopMed: true,
+                          buttonHeight: ButtonHeight.m,
                           label: "Cancel",
                           onPressed: () {},
                         ),

@@ -9,7 +9,6 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_deta
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -198,13 +197,9 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Builder(
                                 builder: (_) {
-                                  final amount = coin == Coin.monero
-                                      ? (_transaction.amount ~/ 10000)
-                                      : coin == Coin.wownero
-                                          ? (_transaction.amount ~/ 1000)
-                                          : _transaction.amount;
+                                  final amount = _transaction.amount;
                                   return Text(
-                                    "$prefix${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
+                                    "$prefix${Format.satoshiAmountToPrettyString(amount, locale, coin)} ${coin.ticker}",
                                     style:
                                         STextStyles.itemSubtitle12_600(context),
                                   );
@@ -242,17 +237,12 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                 fit: BoxFit.scaleDown,
                                 child: Builder(
                                   builder: (_) {
-                                    // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
                                     int value = _transaction.amount;
-                                    if (coin == Coin.monero) {
-                                      value = (value ~/ 10000);
-                                    } else if (coin == Coin.wownero) {
-                                      value = (value ~/ 1000);
-                                    }
 
                                     return Text(
                                       "$prefix${Format.localizedStringAsFixed(
-                                        value: Format.satoshisToAmount(value) *
+                                        value: Format.satoshisToAmount(value,
+                                                coin: coin) *
                                             price,
                                         locale: locale,
                                         decimalPlaces: 2,

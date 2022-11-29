@@ -8,16 +8,16 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import '../../../widgets/rounded_white_container.dart';
 
 class BaseCurrencySettingsView extends ConsumerStatefulWidget {
   const BaseCurrencySettingsView({Key? key}) : super(key: key);
@@ -37,14 +37,20 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
   final _searchFocusNode = FocusNode();
 
   void onTap(int index) {
-    if (currenciesWithoutSelected[index] == current || current.isEmpty) {
-      // ignore if already selected currency
-      return;
+    if (Util.isDesktop) {
+      setState(() {
+        current = currenciesWithoutSelected[index];
+      });
+    } else {
+      if (currenciesWithoutSelected[index] == current || current.isEmpty) {
+        // ignore if already selected currency
+        return;
+      }
+      current = currenciesWithoutSelected[index];
+      currenciesWithoutSelected.remove(current);
+      currenciesWithoutSelected.insert(0, current);
+      ref.read(prefsChangeNotifierProvider).currency = current;
     }
-    current = currenciesWithoutSelected[index];
-    currenciesWithoutSelected.remove(current);
-    currenciesWithoutSelected.insert(0, current);
-    ref.read(prefsChangeNotifierProvider).currency = current;
   }
 
   BorderRadius? _borderRadius(int index) {
@@ -82,6 +88,15 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
   @override
   void initState() {
     _searchController = TextEditingController();
+    if (Util.isDesktop) {
+      currenciesWithoutSelected =
+          ref.read(baseCurrenciesProvider).map.keys.toList();
+      current = ref.read(prefsChangeNotifierProvider).currency;
+      if (current.isNotEmpty) {
+        currenciesWithoutSelected.remove(current);
+        currenciesWithoutSelected.insert(0, current);
+      }
+    }
     super.initState();
   }
 
@@ -94,50 +109,58 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    current = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.currency));
-
-    currenciesWithoutSelected = ref
-        .watch(baseCurrenciesProvider.select((value) => value.map))
-        .keys
-        .toList();
-    if (current.isNotEmpty) {
-      currenciesWithoutSelected.remove(current);
-      currenciesWithoutSelected.insert(0, current);
-    }
-    currenciesWithoutSelected = _filtered();
     final isDesktop = Util.isDesktop;
+
+    if (!isDesktop) {
+      current = ref
+          .watch(prefsChangeNotifierProvider.select((value) => value.currency));
+
+      currenciesWithoutSelected = ref
+          .watch(baseCurrenciesProvider.select((value) => value.map))
+          .keys
+          .toList();
+
+      if (current.isNotEmpty) {
+        currenciesWithoutSelected.remove(current);
+        currenciesWithoutSelected.insert(0, current);
+      }
+    }
+
+    currenciesWithoutSelected = _filtered();
 
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 75));
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+              title: Text(
+                "Currency",
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
-            title: Text(
-              "Currency",
-              style: STextStyles.navBarTitle(context),
+            body: Padding(
+              padding: const EdgeInsets.only(
+                top: 12,
+                left: 16,
+                right: 16,
+              ),
+              child: child,
             ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              top: 12,
-              left: 16,
-              right: 16,
-            ),
-            child: child,
           ),
         );
       },
@@ -170,7 +193,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                     Expanded(
                       child: SecondaryButton(
                         label: "Cancel",
-                        desktopMed: true,
+                        buttonHeight: ButtonHeight.l,
                         onPressed: Navigator.of(context).pop,
                       ),
                     ),
@@ -180,8 +203,21 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                     Expanded(
                       child: PrimaryButton(
                         label: "Save changes",
-                        desktopMed: true,
-                        onPressed: Navigator.of(context).pop,
+                        buttonHeight: ButtonHeight.l,
+                        onPressed: () {
+                          ref.read(prefsChangeNotifierProvider).currency =
+                              current;
+
+                          if (ref
+                              .read(prefsChangeNotifierProvider)
+                              .externalCalls) {
+                            ref
+                                .read(priceAnd24hChangeNotifierProvider)
+                                .updatePrice();
+                          }
+
+                          Navigator.of(context).pop();
+                        },
                       ),
                     ),
                   ],

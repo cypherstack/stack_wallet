@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/custom_text_button.dart';
 
+export 'package:stackwallet/widgets/desktop/custom_text_button.dart';
+
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     Key? key,
@@ -13,7 +15,7 @@ class PrimaryButton extends StatelessWidget {
     this.icon,
     this.onPressed,
     this.enabled = true,
-    this.desktopMed = false,
+    this.buttonHeight,
   }) : super(key: key);
 
   final double? width;
@@ -22,22 +24,43 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool enabled;
   final Widget? icon;
-  final bool desktopMed;
+  final ButtonHeight? buttonHeight;
 
   TextStyle getStyle(bool isDesktop, BuildContext context) {
     if (isDesktop) {
-      if (desktopMed) {
-        return STextStyles.desktopTextExtraSmall(context).copyWith(
-          color: enabled
-              ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
-              : Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonTextPrimaryDisabled,
-        );
-      } else {
+      if (buttonHeight == null) {
         return enabled
             ? STextStyles.desktopButtonEnabled(context)
             : STextStyles.desktopButtonDisabled(context);
+      }
+
+      switch (buttonHeight!) {
+        case ButtonHeight.xxs:
+        case ButtonHeight.xs:
+        case ButtonHeight.s:
+          return STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+            color: enabled
+                ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
+                : Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonTextPrimaryDisabled,
+          );
+
+        case ButtonHeight.m:
+        case ButtonHeight.l:
+          return STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: enabled
+                ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
+                : Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonTextPrimaryDisabled,
+          );
+
+        case ButtonHeight.xl:
+        case ButtonHeight.xxl:
+          return enabled
+              ? STextStyles.desktopButtonEnabled(context)
+              : STextStyles.desktopButtonDisabled(context);
       }
     } else {
       return STextStyles.button(context).copyWith(
@@ -50,12 +73,51 @@ class PrimaryButton extends StatelessWidget {
     }
   }
 
+  double? _getHeight() {
+    if (buttonHeight == null) {
+      return height;
+    }
+
+    if (Util.isDesktop) {
+      switch (buttonHeight!) {
+        case ButtonHeight.xxs:
+          return 32;
+        case ButtonHeight.xs:
+          return 37;
+        case ButtonHeight.s:
+          return 40;
+        case ButtonHeight.m:
+          return 48;
+        case ButtonHeight.l:
+          return 56;
+        case ButtonHeight.xl:
+          return 70;
+        case ButtonHeight.xxl:
+          return 96;
+      }
+    } else {
+      switch (buttonHeight!) {
+        case ButtonHeight.xxs:
+        case ButtonHeight.xs:
+        case ButtonHeight.s:
+        case ButtonHeight.m:
+          return 28;
+        case ButtonHeight.l:
+          return 30;
+        case ButtonHeight.xl:
+          return 46;
+        case ButtonHeight.xxl:
+          return 56;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
     return CustomTextButtonBase(
-      height: desktopMed ? 56 : height,
+      height: _getHeight(),
       width: width,
       textButton: TextButton(
         onPressed: enabled ? onPressed : null,

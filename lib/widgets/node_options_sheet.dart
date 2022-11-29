@@ -234,7 +234,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: node.name == DefaultNodes.defaultName
+                          color: node.id
+                                  .startsWith(DefaultNodes.defaultNodeIdPrefix)
                               ? Theme.of(context)
                                   .extension<StackColors>()!
                                   .textSubtitle4
@@ -249,7 +250,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                             Assets.svg.node,
                             height: 15,
                             width: 19,
-                            color: node.name == DefaultNodes.defaultName
+                            color: node.id.startsWith(
+                                    DefaultNodes.defaultNodeIdPrefix)
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorDark

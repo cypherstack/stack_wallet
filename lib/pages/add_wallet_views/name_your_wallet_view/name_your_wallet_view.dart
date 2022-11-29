@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/name_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -108,38 +109,42 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
         ),
       );
     } else {
-      return Scaffold(
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              if (textFieldFocusNode.hasFocus) {
-                textFieldFocusNode.unfocus();
-                Future<void>.delayed(const Duration(milliseconds: 100))
-                    .then((value) => Navigator.of(context).pop());
-              } else {
-                if (mounted) {
-                  Navigator.of(context).pop();
+      return Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                if (textFieldFocusNode.hasFocus) {
+                  textFieldFocusNode.unfocus();
+                  Future<void>.delayed(const Duration(milliseconds: 100))
+                      .then((value) => Navigator.of(context).pop());
+                } else {
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
                 }
-              }
-            },
-          ),
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: LayoutBuilder(
-              builder: (ctx, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints:
-                        BoxConstraints(minHeight: constraints.maxHeight),
-                    child: IntrinsicHeight(
-                      child: _content(),
-                    ),
-                  ),
-                );
               },
+            ),
+          ),
+          body: Container(
+            color: Theme.of(context).extension<StackColors>()!.background,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: LayoutBuilder(
+                builder: (ctx, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight),
+                      child: IntrinsicHeight(
+                        child: _content(),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),

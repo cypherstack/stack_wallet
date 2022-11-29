@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/edit_auto_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/create_auto_backup.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/enable_backup_dialog.dart';
+import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -14,15 +16,17 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../../../../providers/global/auto_swb_service_provider.dart';
-import '../../../../widgets/custom_buttons/blue_text_button.dart';
 
 class BackupRestoreSettings extends ConsumerStatefulWidget {
   const BackupRestoreSettings({Key? key}) : super(key: key);
@@ -97,8 +101,46 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
       useSafeArea: false,
       barrierDismissible: true,
       builder: (context) {
-        return CreateAutoBackup();
+        return const CreateAutoBackup();
       },
+    );
+  }
+
+  Future<void> editAutoBackup() async {
+    await showDialog<dynamic>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) => DesktopDialog(
+        maxWidth: 580,
+        maxHeight: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Edit auto backup",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.only(
+                left: 32,
+                right: 32,
+                bottom: 32,
+              ),
+              child: EditAutoBackupView(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -108,42 +150,122 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
       useSafeArea: false,
       barrierDismissible: true,
       builder: (context) {
-        return StackDialog(
-          title: "Disable Auto Backup",
-          message:
-              "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
-          leftButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context),
-            child: Text(
-              "Back",
-              style: STextStyles.button(context).copyWith(
-                color:
-                    Theme.of(context).extension<StackColors>()!.accentColorDark,
-              ),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          rightButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
-            child: Text(
-              "Disable",
-              style: STextStyles.button(context),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() {
-                ref.watch(prefsChangeNotifierProvider).isAutoBackupEnabled =
-                    false;
-              });
-            },
-          ),
-        );
+        return !Util.isDesktop
+            ? StackDialog(
+                title: "Disable Auto Backup",
+                message:
+                    "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
+                leftButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonColor(context),
+                  child: Text(
+                    "Back",
+                    style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonColor(context),
+                  child: Text(
+                    "Disable",
+                    style: STextStyles.button(context),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      ref
+                          .watch(prefsChangeNotifierProvider)
+                          .isAutoBackupEnabled = false;
+                    });
+                  },
+                ),
+              )
+            : DesktopDialog(
+                maxHeight: double.infinity,
+                maxWidth: 580,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 32,
+                          ),
+                          child: Text(
+                            "Disable Auto Backup",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 32,
+                        right: 32,
+                        bottom: 32,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 600,
+                            child: Text(
+                              "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
+                              style: STextStyles.desktopTextSmall(context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 48,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: SecondaryButton(
+                                  buttonHeight: ButtonHeight.l,
+                                  label: "Cancel",
+                                  onPressed: Navigator.of(context).pop,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: PrimaryButton(
+                                  buttonHeight: ButtonHeight.l,
+                                  label: "Disable",
+                                  onPressed: () {
+                                    ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .isAutoBackupEnabled = false;
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
       },
     );
     if (mounted) {
@@ -216,6 +338,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       right: 30,
                     ),
                     child: RoundedWhiteContainer(
+                      radiusMultiplier: 2,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -299,7 +422,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                 padding: const EdgeInsets.all(10),
                                 child: !isEnabledAutoBackup
                                     ? PrimaryButton(
-                                        desktopMed: true,
+                                        buttonHeight: ButtonHeight.m,
                                         width: 200,
                                         label: "Enable auto backup",
                                         onPressed: () {
@@ -310,40 +433,32 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Container(
+                                          RoundedContainer(
                                             width: 403,
                                             color: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .background,
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Column(
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Text(
-                                                        "Backed up ${prettySinceLastBackupString(ref.watch(prefsChangeNotifierProvider.select((value) => value.lastAutoBackup)))}",
-                                                        style: STextStyles
-                                                            .itemSubtitle(
-                                                                context),
-                                                      ),
-                                                      BlueTextButton(
-                                                        text: "Back up now",
-                                                        onTap: () {
-                                                          ref
-                                                              .read(
-                                                                  autoSWBServiceProvider)
-                                                              .doBackup();
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Backed up ${prettySinceLastBackupString(ref.watch(prefsChangeNotifierProvider.select((value) => value.lastAutoBackup)))}",
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                          context),
+                                                ),
+                                                BlueTextButton(
+                                                  text: "Back up now",
+                                                  onTap: () {
+                                                    ref
+                                                        .read(
+                                                            autoSWBServiceProvider)
+                                                        .doBackup();
+                                                  },
+                                                ),
+                                              ],
                                             ),
                                           ),
                                           const SizedBox(
@@ -352,7 +467,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                           Row(
                                             children: [
                                               PrimaryButton(
-                                                desktopMed: true,
+                                                buttonHeight: ButtonHeight.m,
                                                 width: 190,
                                                 label: "Disable auto backup",
                                                 onPressed: () {
@@ -361,11 +476,11 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                               ),
                                               const SizedBox(width: 16),
                                               SecondaryButton(
-                                                desktopMed: true,
+                                                buttonHeight: ButtonHeight.m,
                                                 width: 190,
                                                 label: "Edit auto backup",
                                                 onPressed: () {
-                                                  createAutoBackup();
+                                                  editAutoBackup();
                                                 },
                                               ),
                                             ],
@@ -387,6 +502,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       right: 30,
                     ),
                     child: RoundedWhiteContainer(
+                      radiusMultiplier: 2,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -444,7 +560,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                         child: CreateBackupView(),
                                       )
                                     : PrimaryButton(
-                                        desktopMed: true,
+                                        buttonHeight: ButtonHeight.m,
                                         width: 200,
                                         label: "Create manual backup",
                                         onPressed: () {
@@ -469,6 +585,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       bottom: 40,
                     ),
                     child: RoundedWhiteContainer(
+                      radiusMultiplier: 2,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -525,7 +642,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                         child: RestoreFromFileView(),
                                       )
                                     : PrimaryButton(
-                                        desktopMed: true,
+                                        buttonHeight: ButtonHeight.m,
                                         width: 200,
                                         label: "Restore backup",
                                         onPressed: () {

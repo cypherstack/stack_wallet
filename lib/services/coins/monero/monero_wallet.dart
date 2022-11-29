@@ -23,11 +23,8 @@ import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:flutter_libmonero/core/wallet_creation_service.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -47,8 +44,10 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
 
@@ -67,12 +66,13 @@ class MoneroWallet extends CoinServiceAPI {
   Timer? moneroAutosaveTimer;
   late Coin _coin;
 
-  late FlutterSecureStorageInterface _secureStore;
+  late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
 
   Future<NodeModel> getCurrentNode() async {
-    return NodeService().getPrimaryNodeFor(coin: coin) ??
+    return NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
   }
 
@@ -81,14 +81,13 @@ class MoneroWallet extends CoinServiceAPI {
       required String walletName,
       required Coin coin,
       PriceAPI? priceAPI,
-      FlutterSecureStorageInterface? secureStore}) {
+      required SecureStorageInterface secureStore}) {
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
-    _secureStore =
-        secureStore ?? const SecureStorageWrapper(FlutterSecureStorage());
+    _secureStore = secureStore;
   }
 
   bool _shouldAutoSync = false;
@@ -154,7 +153,7 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       _height = (walletBase!.syncStatus as SyncingSyncStatus).height;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
 
     int blocksRemaining = -1;
@@ -163,7 +162,7 @@ class MoneroWallet extends CoinServiceAPI {
       blocksRemaining =
           (walletBase!.syncStatus as SyncingSyncStatus).blocksLeft;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
     int currentHeight = _height + blocksRemaining;
     if (_height == -1 || blocksRemaining == -1) {
@@ -187,8 +186,8 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       if (walletBase!.syncStatus! is SyncedSyncStatus &&
           walletBase!.syncStatus!.progress() == 1.0) {
-        Logging.instance
-            .log("currentSyncingHeight lol", level: LogLevel.Warning);
+        // Logging.instance
+        //     .log("currentSyncingHeight lol", level: LogLevel.Warning);
         return getSyncingHeight();
       }
     } catch (e, s) {}
@@ -196,7 +195,7 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       syncingHeight = (walletBase!.syncStatus as SyncingSyncStatus).height;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      // Logging.instance.log("$e $s", level: LogLevel.Warning);
     }
     final cachedHeight =
         DB.instance.get<dynamic>(boxName: walletId, key: "storedSyncingHeight")
@@ -419,7 +418,7 @@ class MoneroWallet extends CoinServiceAPI {
       try {
         progress = (walletBase!.syncStatus!).progress();
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Warning);
+        // Logging.instance.log("$e $s", level: LogLevel.Warning);
       }
       await _fetchTransactionData();
 
@@ -535,7 +534,8 @@ class MoneroWallet extends CoinServiceAPI {
   @override
   Future<Decimal> get balanceMinusMaxFee async =>
       (await availableBalance) -
-      (Decimal.fromInt((await maxFee)) / Decimal.fromInt(Constants.satsPerCoin))
+      (Decimal.fromInt((await maxFee)) /
+              Decimal.fromInt(Constants.satsPerCoin(coin)))
           .toDecimal();
 
   @override
@@ -544,16 +544,16 @@ class MoneroWallet extends CoinServiceAPI {
 
   @override
   Future<void> exit() async {
-    await stopSyncPercentTimer();
     _hasCalledExit = true;
-    isActive = false;
-    await walletBase?.save(prioritySave: true);
-    walletBase?.close();
+    stopNetworkAlivePinging();
     moneroAutosaveTimer?.cancel();
     moneroAutosaveTimer = null;
     timer?.cancel();
     timer = null;
-    stopNetworkAlivePinging();
+    await stopSyncPercentTimer();
+    await walletBase?.save(prioritySave: true);
+    walletBase?.close();
+    isActive = false;
   }
 
   bool _hasCalledExit = false;
@@ -564,13 +564,15 @@ class MoneroWallet extends CoinServiceAPI {
   Future<String>? _currentReceivingAddress;
 
   Future<FeeObject> _getFees() async {
+    // TODO: not use random hard coded values here
     return FeeObject(
-        numberOfBlocksFast: 10,
-        numberOfBlocksAverage: 10,
-        numberOfBlocksSlow: 10,
-        fast: 4,
-        medium: 2,
-        slow: 0);
+      numberOfBlocksFast: 10,
+      numberOfBlocksAverage: 15,
+      numberOfBlocksSlow: 20,
+      fast: MoneroTransactionPriority.fast.raw!,
+      medium: MoneroTransactionPriority.regular.raw!,
+      slow: MoneroTransactionPriority.slow.raw!,
+    );
   }
 
   @override
@@ -670,11 +672,9 @@ class MoneroWallet extends CoinServiceAPI {
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
 
-    storage = const FlutterSecureStorage();
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
-    keysStorage = KeyService(storage!);
+    keysStorage = KeyService(_secureStore);
     WalletInfo walletInfo;
     WalletCredentials credentials;
     try {
@@ -708,8 +708,7 @@ class MoneroWallet extends CoinServiceAPI {
       credentials.walletInfo = walletInfo;
 
       _walletCreationService = WalletCreationService(
-        secureStorage: storage,
-        sharedPreferences: prefs,
+        secureStorage: _secureStore,
         walletService: walletService,
         keyService: keysStorage,
       );
@@ -787,11 +786,10 @@ class MoneroWallet extends CoinServiceAPI {
     //   Logging.instance.log("Caught in initializeWallet(): $e\n$s");
     //   return false;
     // }
-    storage = const FlutterSecureStorage();
+
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
-    keysStorage = KeyService(storage!);
+    keysStorage = KeyService(_secureStore);
 
     await _generateNewWallet();
     // var password;
@@ -833,11 +831,9 @@ class MoneroWallet extends CoinServiceAPI {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
 
-    storage = const FlutterSecureStorage();
     walletService =
         monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-    prefs = await SharedPreferences.getInstance();
-    keysStorage = KeyService(storage!);
+    keysStorage = KeyService(_secureStore);
 
     await _prefs.init();
     final data =
@@ -876,8 +872,9 @@ class MoneroWallet extends CoinServiceAPI {
   Future<int> get maxFee async {
     var bal = await availableBalance;
     var fee = walletBase!.calculateEstimatedFee(
-            monero.getDefaultTransactionPriority(), bal.toBigInt().toInt()) ~/
-        10000;
+      monero.getDefaultTransactionPriority(),
+      Format.decimalAmountToSatoshis(bal, coin),
+    );
 
     return fee;
   }
@@ -889,9 +886,8 @@ class MoneroWallet extends CoinServiceAPI {
   bool longMutex = false;
 
   // TODO: are these needed?
-  FlutterSecureStorage? storage;
+
   WalletService? walletService;
-  SharedPreferences? prefs;
   KeyService? keysStorage;
   MoneroWalletBase? walletBase;
   WalletCreationService? _walletCreationService;
@@ -906,14 +902,8 @@ class MoneroWallet extends CoinServiceAPI {
     required String name,
     required WalletType type,
   }) async {
-    Directory root = (await getApplicationDocumentsDirectory());
-    if (Platform.isIOS) {
-      root = (await getLibraryDirectory());
-    }
-    //
-    if (Platform.isLinux) {
-      root = Directory("${root.path}/.stackwallet");
-    }
+    Directory root = await StackFileSystem.applicationRootDirectory();
+
     final prefix = walletTypeToString(type).toLowerCase();
     final walletsDir = Directory('${root.path}/wallets');
     final walletDire = Directory('${walletsDir.path}/$prefix/$name');
@@ -970,11 +960,9 @@ class MoneroWallet extends CoinServiceAPI {
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
 
-      storage = const FlutterSecureStorage();
       walletService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-      prefs = await SharedPreferences.getInstance();
-      keysStorage = KeyService(storage!);
+      keysStorage = KeyService(_secureStore);
       WalletInfo walletInfo;
       WalletCredentials credentials;
       String name = _walletId;
@@ -1001,8 +989,7 @@ class MoneroWallet extends CoinServiceAPI {
         credentials.walletInfo = walletInfo;
 
         _walletCreationService = WalletCreationService(
-          secureStorage: storage,
-          sharedPreferences: prefs,
+          secureStorage: _secureStore,
           walletService: walletService,
           keyService: keysStorage,
         );
@@ -1390,7 +1377,6 @@ class MoneroWallet extends CoinServiceAPI {
   }
 
   @override
-  // TODO: implement availableBalance
   Future<Decimal> get availableBalance async {
     var bal = 0;
     for (var element in walletBase!.balance!.entries) {
@@ -1439,13 +1425,13 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       final feeRate = args?["feeRate"];
       if (feeRate is FeeRateType) {
-        MoneroTransactionPriority feePriority = MoneroTransactionPriority.slow;
+        MoneroTransactionPriority feePriority;
         switch (feeRate) {
           case FeeRateType.fast:
-            feePriority = MoneroTransactionPriority.fastest;
+            feePriority = MoneroTransactionPriority.fast;
             break;
           case FeeRateType.average:
-            feePriority = MoneroTransactionPriority.medium;
+            feePriority = MoneroTransactionPriority.regular;
             break;
           case FeeRateType.slow:
             feePriority = MoneroTransactionPriority.slow;
@@ -1458,15 +1444,14 @@ class MoneroWallet extends CoinServiceAPI {
           bool isSendAll = false;
           final balance = await availableBalance;
           final satInDecimal = ((Decimal.fromInt(satoshiAmount) /
-                      Decimal.fromInt(Constants.satsPerCoinMonero))
-                  .toDecimal() *
-              Decimal.fromInt(10000));
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
+              .toDecimal());
           if (satInDecimal == balance) {
             isSendAll = true;
           }
           Logging.instance
               .log("$toAddress $amount $args", level: LogLevel.Info);
-          String amountToSend = moneroAmountToString(amount: amount * 10000);
+          String amountToSend = moneroAmountToString(amount: amount);
           Logging.instance.log("$amount $amountToSend", level: LogLevel.Info);
 
           monero_output.Output output = monero_output.Output(walletBase!);
@@ -1488,10 +1473,9 @@ class MoneroWallet extends CoinServiceAPI {
 
         PendingMoneroTransaction pendingMoneroTransaction =
             await (awaitPendingTransaction!) as PendingMoneroTransaction;
-        int realfee = (Decimal.parse(pendingMoneroTransaction.feeFormatted) *
-                100000000.toDecimal())
-            .toBigInt()
-            .toInt();
+
+        int realfee = Format.decimalAmountToSatoshis(
+            Decimal.parse(pendingMoneroTransaction.feeFormatted), coin);
         debugPrint("fee? $realfee");
         Map<String, dynamic> txData = {
           "pendingMoneroTransaction": pendingMoneroTransaction,
@@ -1524,12 +1508,13 @@ class MoneroWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    MoneroTransactionPriority? priority;
-    FeeRateType feeRateType = FeeRateType.slow;
+    MoneroTransactionPriority priority;
+    FeeRateType feeRateType;
+
     switch (feeRate) {
       case 1:
         priority = MoneroTransactionPriority.regular;
-        feeRateType = FeeRateType.slow;
+        feeRateType = FeeRateType.average;
         break;
       case 2:
         priority = MoneroTransactionPriority.medium;
@@ -1537,7 +1522,7 @@ class MoneroWallet extends CoinServiceAPI {
         break;
       case 3:
         priority = MoneroTransactionPriority.fast;
-        feeRateType = FeeRateType.average;
+        feeRateType = FeeRateType.fast;
         break;
       case 4:
         priority = MoneroTransactionPriority.fastest;
@@ -1549,27 +1534,29 @@ class MoneroWallet extends CoinServiceAPI {
         feeRateType = FeeRateType.slow;
         break;
     }
-    var aprox;
+    // int? aprox;
 
-    await estimateFeeMutex.protect(() async {
-      {
-        try {
-          aprox = (await prepareSend(
-              // This address is only used for getting an approximate fee, never for sending
-              address:
-                  "8347huhmj6Ggzr1BpZPJAD5oa96ob5Fe8GtQdGZDYVVYVsCgtUNH3pEEzExDuaAVZdC16D4FkAb24J6wUfsKkcZtC8EPXB7",
-              satoshiAmount: satoshiAmount,
-              args: {"feeRate": feeRateType}))['fee'];
-          await Future.delayed(const Duration(milliseconds: 1000));
-        } catch (e, s) {
-          Logging.instance.log("$feeRateType $e $s", level: LogLevel.Error);
-          aprox = -9999999999999999;
-        }
-      }
-    });
+    // corrupted size vs. prev_size occurs but not sure if related to fees or just generating monero transactions in general
+
+    // await estimateFeeMutex.protect(() async {
+    //   {
+    //     try {
+    //       aprox = (await prepareSend(
+    //           // This address is only used for getting an approximate fee, never for sending
+    //           address:
+    //               "8347huhmj6Ggzr1BpZPJAD5oa96ob5Fe8GtQdGZDYVVYVsCgtUNH3pEEzExDuaAVZdC16D4FkAb24J6wUfsKkcZtC8EPXB7",
+    //           satoshiAmount: satoshiAmount,
+    //           args: {"feeRate": feeRateType}))['fee'] as int?;
+    //       await Future<void>.delayed(const Duration(milliseconds: 1000));
+    //     } catch (e, s) {
+    //       Logging.instance.log("$feeRateType $e $s", level: LogLevel.Error);
+    final aprox = walletBase!.calculateEstimatedFee(priority, satoshiAmount);
+    //     }
+    //   }
+    // });
 
     print("this is the aprox fee $aprox for $satoshiAmount");
-    final fee = (aprox as int);
+    final fee = aprox;
     return fee;
   }
 

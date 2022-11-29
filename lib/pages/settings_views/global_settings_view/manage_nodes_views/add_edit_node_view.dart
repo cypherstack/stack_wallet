@@ -3,16 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -20,6 +19,7 @@ import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -40,9 +40,6 @@ class AddEditNodeView extends ConsumerStatefulWidget {
     required this.coin,
     required this.nodeId,
     required this.routeOnSuccessOrDelete,
-    this.secureStore = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
 
   static const String routeName = "/addEditNode";
@@ -51,7 +48,6 @@ class AddEditNodeView extends ConsumerStatefulWidget {
   final Coin coin;
   final String routeOnSuccessOrDelete;
   final String? nodeId;
-  final FlutterSecureStorageInterface secureStore;
 
   @override
   ConsumerState<AddEditNodeView> createState() => _AddEditNodeViewState();
@@ -242,7 +238,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: SecondaryButton(
                                     label: "Cancel",
-                                    desktopMed: true,
+                                    buttonHeight:
+                                        isDesktop ? ButtonHeight.l : null,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -255,7 +252,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: PrimaryButton(
                                     label: "Save",
-                                    desktopMed: true,
+                                    buttonHeight:
+                                        isDesktop ? ButtonHeight.l : null,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -413,84 +411,95 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          title: Text(
-            viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
-            style: STextStyles.navBarTitle(context),
-          ),
-          actions: [
-            if (viewType == AddEditNodeViewType.edit)
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("deleteNodeAppBarButtonKey"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.trash,
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              if (viewType == AddEditNodeViewType.edit &&
+                  ref
+                          .watch(nodeServiceChangeNotifierProvider
+                              .select((value) => value.getNodesFor(coin)))
+                          .length >
+                      1)
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("deleteNodeAppBarButtonKey"),
+                      size: 36,
+                      shadows: const [],
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
-                    ),
-                    onPressed: () async {
-                      Navigator.popUntil(context,
-                          ModalRoute.withName(widget.routeOnSuccessOrDelete));
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.trash,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () async {
+                        Navigator.popUntil(context,
+                            ModalRoute.withName(widget.routeOnSuccessOrDelete));
 
-                      await ref.read(nodeServiceChangeNotifierProvider).delete(
-                            nodeId!,
-                            true,
-                          );
-                    },
-                  ),
-                ),
-              ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 12,
-            right: 12,
-            bottom: 12,
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: ConstrainedBox(
-                    constraints:
-                        BoxConstraints(minHeight: constraints.maxHeight - 8),
-                    child: IntrinsicHeight(
-                      child: child,
+                        await ref
+                            .read(nodeServiceChangeNotifierProvider)
+                            .delete(
+                              nodeId!,
+                              true,
+                            );
+                      },
                     ),
                   ),
                 ),
-              );
-            },
+            ],
+          ),
+          body: Padding(
+            padding: const EdgeInsets.only(
+              top: 12,
+              left: 12,
+              right: 12,
+              bottom: 12,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight - 8),
+                      child: IntrinsicHeight(
+                        child: child,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -498,6 +507,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         condition: isDesktop,
         builder: (child) => DesktopDialog(
           maxWidth: 580,
+          maxHeight: 500,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -533,7 +543,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           children: [
             NodeForm(
               node: node,
-              secureStore: widget.secureStore,
+              secureStore: ref.read(secureStoreProvider),
               readOnly: false,
               coin: widget.coin,
               onChanged: (canSave, canTest) {
@@ -565,7 +575,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   child: SecondaryButton(
                     label: "Test connection",
                     enabled: testConnectionEnabled,
-                    desktopMed: true,
+                    buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: testConnectionEnabled
                         ? () async {
                             await _testConnection();
@@ -582,7 +592,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     child: PrimaryButton(
                       label: "Save",
                       enabled: saveEnabled,
-                      desktopMed: true,
+                      buttonHeight: ButtonHeight.l,
                       onPressed: saveEnabled ? attemptSave : null,
                     ),
                   ),
@@ -638,7 +648,7 @@ class NodeForm extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   final NodeModel? node;
-  final FlutterSecureStorageInterface secureStore;
+  final SecureStorageInterface secureStore;
   final bool readOnly;
   final Coin coin;
   final void Function(bool canSave, bool canTestConnection)? onChanged;
@@ -834,110 +844,100 @@ class _NodeFormState extends ConsumerState<NodeForm> {
         const SizedBox(
           height: 8,
         ),
-        Row(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
-                  key: const Key("addCustomNodeNodeAddressFieldKey"),
-                  readOnly: widget.readOnly,
-                  enabled: enableField(_hostController),
-                  controller: _hostController,
-                  focusNode: _hostFocusNode,
-                  style: STextStyles.field(context),
-                  decoration: standardInputDecoration(
-                    (widget.coin != Coin.monero &&
-                            widget.coin != Coin.wownero &&
-                            widget.coin != Coin.epicCash)
-                        ? "IP address"
-                        : "Url",
-                    _hostFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon:
-                        !widget.readOnly && _hostController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          _hostController.text = "";
-                                          _updateState();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
-                  ),
-                  onChanged: (newValue) {
-                    _updateState();
-                    setState(() {});
-                  },
-                ),
-              ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
+            key: const Key("addCustomNodeNodeAddressFieldKey"),
+            readOnly: widget.readOnly,
+            enabled: enableField(_hostController),
+            controller: _hostController,
+            focusNode: _hostFocusNode,
+            style: STextStyles.field(context),
+            decoration: standardInputDecoration(
+              (widget.coin != Coin.monero &&
+                      widget.coin != Coin.wownero &&
+                      widget.coin != Coin.epicCash)
+                  ? "IP address"
+                  : "Url",
+              _hostFocusNode,
+              context,
+            ).copyWith(
+              suffixIcon: !widget.readOnly && _hostController.text.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 0),
+                      child: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            TextFieldIconButton(
+                              child: const XIcon(),
+                              onTap: () async {
+                                _hostController.text = "";
+                                _updateState();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : null,
             ),
-            const SizedBox(
-              width: 12,
+            onChanged: (newValue) {
+              _updateState();
+              setState(() {});
+            },
+          ),
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
+            key: const Key("addCustomNodeNodePortFieldKey"),
+            readOnly: widget.readOnly,
+            enabled: enableField(_portController),
+            controller: _portController,
+            focusNode: _portFocusNode,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            keyboardType: TextInputType.number,
+            style: STextStyles.field(context),
+            decoration: standardInputDecoration(
+              "Port",
+              _portFocusNode,
+              context,
+            ).copyWith(
+              suffixIcon: !widget.readOnly && _portController.text.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 0),
+                      child: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            TextFieldIconButton(
+                              child: const XIcon(),
+                              onTap: () async {
+                                _portController.text = "";
+                                _updateState();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : null,
             ),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
-                  key: const Key("addCustomNodeNodePortFieldKey"),
-                  readOnly: widget.readOnly,
-                  enabled: enableField(_portController),
-                  controller: _portController,
-                  focusNode: _portFocusNode,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  keyboardType: TextInputType.number,
-                  style: STextStyles.field(context),
-                  decoration: standardInputDecoration(
-                    "Port",
-                    _portFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon:
-                        !widget.readOnly && _portController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          _portController.text = "";
-                                          _updateState();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
-                  ),
-                  onChanged: (newValue) {
-                    _updateState();
-                    setState(() {});
-                  },
-                ),
-              ),
-            ),
-          ],
+            onChanged: (newValue) {
+              _updateState();
+              setState(() {});
+            },
+          ),
         ),
         const SizedBox(
           height: 8,

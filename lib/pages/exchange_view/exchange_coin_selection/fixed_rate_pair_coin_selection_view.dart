@@ -8,6 +8,9 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -15,8 +18,6 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:tuple/tuple.dart';
-
-import 'package:stackwallet/utilities/util.dart';
 
 class FixedRateMarketPairCoinSelectionView extends ConsumerStatefulWidget {
   const FixedRateMarketPairCoinSelectionView({
@@ -120,95 +121,109 @@ class _FixedRateMarketPairCoinSelectionViewState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () async {
-            if (FocusScope.of(context).hasFocus) {
-              FocusScope.of(context).unfocus();
-              await Future<void>.delayed(const Duration(milliseconds: 50));
-            }
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        title: Text(
-          "Choose a coin to exchange",
-          style: STextStyles.pageTitleH2(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final isDesktop = Util.isDesktop;
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) {
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 50));
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+              title: Text(
+                "Choose a coin to exchange",
+                style: STextStyles.pageTitleH2(context),
+              ),
+            ),
+            body: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+              ),
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isDesktop)
             const SizedBox(
               height: 16,
             ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-              child: TextField(
-                autocorrect: Util.isDesktop ? false : true,
-                enableSuggestions: Util.isDesktop ? false : true,
-                controller: _searchController,
-                focusNode: _searchFocusNode,
-                onChanged: filter,
-                style: STextStyles.field(context),
-                decoration: standardInputDecoration(
-                  "Search",
-                  _searchFocusNode,
-                  context,
-                ).copyWith(
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 16,
-                    ),
-                    child: SvgPicture.asset(
-                      Assets.svg.search,
-                      width: 16,
-                      height: 16,
-                    ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              autocorrect: Util.isDesktop ? false : true,
+              enableSuggestions: Util.isDesktop ? false : true,
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              onChanged: filter,
+              style: STextStyles.field(context),
+              decoration: standardInputDecoration(
+                "Search",
+                _searchFocusNode,
+                context,
+              ).copyWith(
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 16,
                   ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _searchController.text = "";
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : null,
+                  child: SvgPicture.asset(
+                    Assets.svg.search,
+                    width: 16,
+                    height: 16,
+                  ),
                 ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.only(right: 0),
+                        child: UnconstrainedBox(
+                          child: Row(
+                            children: [
+                              TextFieldIconButton(
+                                child: const XIcon(),
+                                onTap: () async {
+                                  setState(() {
+                                    _searchController.text = "";
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : null,
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            Text(
-              "Popular coins",
-              style: STextStyles.smallMed12(context),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            Builder(builder: (context) {
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Popular coins",
+            style: STextStyles.smallMed12(context),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          Flexible(
+            child: Builder(builder: (context) {
               final items = _markets
                   .where((e) => Coin.values
                       .where((coin) =>
@@ -221,6 +236,7 @@ class _FixedRateMarketPairCoinSelectionViewState
                 padding: const EdgeInsets.all(0),
                 child: ListView.builder(
                   shrinkWrap: true,
+                  primary: isDesktop ? false : null,
                   itemCount: items.length,
                   itemBuilder: (builderContext, index) {
                     final String ticker =
@@ -282,84 +298,85 @@ class _FixedRateMarketPairCoinSelectionViewState
                 ),
               );
             }),
-            const SizedBox(
-              height: 20,
-            ),
-            Text(
-              "All coins",
-              style: STextStyles.smallMed12(context),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            Flexible(
-              child: RoundedWhiteContainer(
-                padding: const EdgeInsets.all(0),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _markets.length,
-                  itemBuilder: (builderContext, index) {
-                    final String ticker =
-                        isFrom ? _markets[index].from : _markets[index].to;
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          Text(
+            "All coins",
+            style: STextStyles.smallMed12(context),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          Flexible(
+            child: RoundedWhiteContainer(
+              padding: const EdgeInsets.all(0),
+              child: ListView.builder(
+                shrinkWrap: true,
+                primary: isDesktop ? false : null,
+                itemCount: _markets.length,
+                itemBuilder: (builderContext, index) {
+                  final String ticker =
+                      isFrom ? _markets[index].from : _markets[index].to;
 
-                    final tuple = _imageUrlAndNameFor(ticker);
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop(ticker);
-                        },
-                        child: RoundedWhiteContainer(
-                          child: Row(
-                            children: [
-                              SizedBox(
+                  final tuple = _imageUrlAndNameFor(ticker);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop(ticker);
+                      },
+                      child: RoundedWhiteContainer(
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: SvgPicture.network(
+                                tuple.item1,
                                 width: 24,
                                 height: 24,
-                                child: SvgPicture.network(
-                                  tuple.item1,
-                                  width: 24,
-                                  height: 24,
-                                  placeholderBuilder: (_) =>
-                                      const LoadingIndicator(),
-                                ),
+                                placeholderBuilder: (_) =>
+                                    const LoadingIndicator(),
                               ),
-                              const SizedBox(
-                                width: 10,
+                            ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tuple.item2,
+                                    style: STextStyles.largeMedium14(context),
+                                  ),
+                                  const SizedBox(
+                                    height: 2,
+                                  ),
+                                  Text(
+                                    ticker.toUpperCase(),
+                                    style: STextStyles.smallMed12(context)
+                                        .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle1,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      tuple.item2,
-                                      style: STextStyles.largeMedium14(context),
-                                    ),
-                                    const SizedBox(
-                                      height: 2,
-                                    ),
-                                    Text(
-                                      ticker.toUpperCase(),
-                                      style: STextStyles.smallMed12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

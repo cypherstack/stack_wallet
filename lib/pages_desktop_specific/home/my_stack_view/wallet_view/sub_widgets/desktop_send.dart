@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,9 +10,10 @@ import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
@@ -38,7 +40,6 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -93,11 +94,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late VoidCallback onCryptoAmountChanged;
 
   Future<void> previewSend() async {
-    // wait for keyboard to disappear
-    FocusScope.of(context).unfocus();
-    await Future<void>.delayed(
-      const Duration(milliseconds: 100),
-    );
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
@@ -149,7 +145,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       right: 32,
                     ),
                     child: SecondaryButton(
-                      desktopMed: true,
+                      buttonHeight: ButtonHeight.l,
                       label: "Ok",
                       onPressed: () {
                         Navigator.of(context).pop();
@@ -165,20 +161,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       return;
     }
 
-    final amount = Format.decimalAmountToSatoshis(_amountToSend!);
+    final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
     int availableBalance;
     if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
         availableBalance = Format.decimalAmountToSatoshis(
-            await (manager.wallet as FiroWallet).availablePrivateBalance());
+            await (manager.wallet as FiroWallet).availablePrivateBalance(),
+            coin);
       } else {
         availableBalance = Format.decimalAmountToSatoshis(
-            await (manager.wallet as FiroWallet).availablePublicBalance());
+            await (manager.wallet as FiroWallet).availablePublicBalance(),
+            coin);
       }
     } else {
       availableBalance =
-          Format.decimalAmountToSatoshis(await manager.availableBalance);
+          Format.decimalAmountToSatoshis(await manager.availableBalance, coin);
     }
 
     // confirm send all
@@ -236,7 +234,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       children: [
                         Expanded(
                           child: SecondaryButton(
-                            desktopMed: true,
+                            buttonHeight: ButtonHeight.l,
                             label: "Cancel",
                             onPressed: () {
                               Navigator.of(context).pop(false);
@@ -248,10 +246,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         ),
                         Expanded(
                           child: PrimaryButton(
-                            desktopMed: true,
+                            buttonHeight: ButtonHeight.l,
                             label: "Yes",
                             onPressed: () {
                               Navigator.of(context).pop(true);
+
+                              setState(() {
+                                sendToController.text = "";
+                                cryptoAmountController.text = "";
+                                baseAmountController.text = "";
+                                noteController.text = "";
+                              });
                             },
                           ),
                         ),
@@ -332,6 +337,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               child: ConfirmTransactionView(
                 transactionInfo: txData,
                 walletId: walletId,
+                routeOnSuccessName: DesktopHomeView.routeName,
               ),
             ),
           ),
@@ -395,7 +401,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         ),
                         child: Expanded(
                           child: SecondaryButton(
-                            desktopMed: true,
+                            buttonHeight: ButtonHeight.l,
                             label: "Yes",
                             onPressed: () {
                               Navigator.of(
@@ -550,13 +556,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Future<String?> _firoBalanceFuture(
     ChangeNotifierProvider<Manager> provider,
     String locale,
+    bool private,
   ) async {
     final wallet = ref.read(provider).wallet as FiroWallet?;
 
     if (wallet != null) {
       Decimal? balance;
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
+      if (private) {
         balance = await wallet.availablePrivateBalance();
       } else {
         balance = await wallet.availablePublicBalance();
@@ -572,24 +578,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Widget firoBalanceFutureBuilder(
     BuildContext context,
     AsyncSnapshot<String?> snapshot,
+    bool private,
   ) {
     if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
+      if (private) {
         _privateBalanceString = snapshot.data!;
       } else {
         _publicBalanceString = snapshot.data!;
       }
     }
-    if (ref.read(publicPrivateBalanceStateProvider.state).state == "Private" &&
-        _privateBalanceString != null) {
+    if (private && _privateBalanceString != null) {
       return Text(
         "$_privateBalanceString ${coin.ticker}",
         style: STextStyles.itemSubtitle(context),
       );
-    } else if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-            "Public" &&
-        _publicBalanceString != null) {
+    } else if (!private && _publicBalanceString != null) {
       return Text(
         "$_publicBalanceString ${coin.ticker}",
         style: STextStyles.itemSubtitle(context),
@@ -641,7 +644,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           cryptoAmountController.text = Format.localizedStringAsFixed(
             value: amount,
             locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: Constants.decimalPlaces,
+            decimalPlaces: Constants.decimalPlacesForCoin(coin),
           );
           amount.toString();
           _amountToSend = amount;
@@ -708,8 +711,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       } else {
         _amountToSend = baseAmount <= Decimal.zero
             ? Decimal.zero
-            : (baseAmount / _price)
-                .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces);
+            : (baseAmount / _price).toDecimal(
+                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin));
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
         return;
@@ -721,7 +724,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       final amountString = Format.localizedStringAsFixed(
         value: _amountToSend!,
         locale: ref.read(localeServiceChangeNotifierProvider).locale,
-        decimalPlaces: Constants.decimalPlaces,
+        decimalPlaces: Constants.decimalPlacesForCoin(coin),
       );
 
       _cryptoAmountChangeLock = true;
@@ -751,18 +754,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           "Private") {
         cryptoAmountController.text =
             (await firoWallet.availablePrivateBalance())
-                .toStringAsFixed(Constants.decimalPlaces);
+                .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
       } else {
         cryptoAmountController.text =
             (await firoWallet.availablePublicBalance())
-                .toStringAsFixed(Constants.decimalPlaces);
+                .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
       }
     } else {
       cryptoAmountController.text = (await ref
               .read(walletsChangeNotifierProvider)
               .getManager(walletId)
               .availableBalance)
-          .toStringAsFixed(Constants.decimalPlaces);
+          .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
     }
   }
 
@@ -795,35 +798,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       _addressToggleFlag = true;
     }
 
-    // _cryptoFocus.addListener(() {
-    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture =
-    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-    //       });
-    //     }
-    //   }
-    // });
-    //
-    // _baseFocus.addListener(() {
-    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture =
-    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-    //       });
-    //     }
-    //   }
-    // });
+    _cryptoFocus.addListener(() {
+      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+        if (_amountToSend == null) {
+          ref.refresh(sendAmountProvider);
+        } else {
+          ref.read(sendAmountProvider.state).state = _amountToSend!;
+        }
+      }
+    });
+
+    _baseFocus.addListener(() {
+      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+        if (_amountToSend == null) {
+          ref.refresh(sendAmountProvider);
+        } else {
+          ref.read(sendAmountProvider.state).state = _amountToSend!;
+        }
+      }
+    });
 
     super.initState();
   }
@@ -889,71 +882,95 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             height: 10,
           ),
         if (coin == Coin.firo)
-          Stack(
-            children: [
-              TextField(
-                autocorrect: Util.isDesktop ? false : true,
-                enableSuggestions: Util.isDesktop ? false : true,
-                readOnly: true,
-                textInputAction: TextInputAction.none,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                ),
-                child: RawMaterialButton(
-                  splashColor:
-                      Theme.of(context).extension<StackColors>()!.highlight,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                  onPressed: () {
-                    showModalBottomSheet<dynamic>(
-                      backgroundColor: Colors.transparent,
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                      ),
-                      builder: (_) => FiroBalanceSelectionSheet(
-                        walletId: walletId,
-                      ),
-                    );
-                  },
+          DropdownButtonHideUnderline(
+            child: DropdownButton2(
+              offset: const Offset(0, -10),
+              isExpanded: true,
+              dropdownElevation: 0,
+              value: ref.watch(publicPrivateBalanceStateProvider.state).state,
+              items: [
+                DropdownMenuItem(
+                  value: "Private",
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          FutureBuilder(
-                            future: _firoBalanceFuture(provider, locale),
-                            builder: firoBalanceFutureBuilder,
-                          ),
-                        ],
+                      Text(
+                        "Private balance",
+                        style: STextStyles.itemSubtitle12(context),
                       ),
-                      SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        width: 8,
-                        height: 4,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle2,
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      FutureBuilder(
+                        future: _firoBalanceFuture(provider, locale, true),
+                        builder: (context, AsyncSnapshot<String?> snapshot) =>
+                            firoBalanceFutureBuilder(
+                          context,
+                          snapshot,
+                          true,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              )
-            ],
+                DropdownMenuItem(
+                  value: "Public",
+                  child: Row(
+                    children: [
+                      Text(
+                        "Public balance",
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      FutureBuilder(
+                        future: _firoBalanceFuture(provider, locale, false),
+                        builder: (context, AsyncSnapshot<String?> snapshot) =>
+                            firoBalanceFutureBuilder(
+                          context,
+                          snapshot,
+                          false,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              onChanged: (value) {
+                if (value is String) {
+                  setState(() {
+                    ref.watch(publicPrivateBalanceStateProvider.state).state =
+                        value;
+                  });
+                }
+              },
+              icon: SvgPicture.asset(
+                Assets.svg.chevronDown,
+                width: 12,
+                height: 6,
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+              buttonPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              buttonDecoration: BoxDecoration(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+              ),
+              dropdownDecoration: BoxDecoration(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+              ),
+            ),
           ),
         if (coin == Coin.firo)
           const SizedBox(
@@ -1238,12 +1255,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           },
                           child: const AddressBookIcon(),
                         ),
-                      if (sendToController.text.isEmpty)
-                        TextFieldIconButton(
-                          key: const Key("sendViewScanQrButtonKey"),
-                          onTap: scanQr,
-                          child: const QrCodeIcon(),
-                        )
+                      // if (sendToController.text.isEmpty)
+                      //   TextFieldIconButton(
+                      //     key: const Key("sendViewScanQrButtonKey"),
+                      //     onTap: scanQr,
+                      //     child: const QrCodeIcon(),
+                      //   )
                     ],
                   ),
                 ),
@@ -1349,10 +1366,28 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         ),
         const SizedBox(
+          height: 20,
+        ),
+        Text(
+          "Transaction fee (estimated)",
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
+          ),
+          textAlign: TextAlign.left,
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        DesktopFeeDropDown(
+          walletId: walletId,
+        ),
+        const SizedBox(
           height: 36,
         ),
         PrimaryButton(
-          desktopMed: true,
+          buttonHeight: ButtonHeight.l,
           label: "Preview send",
           enabled: ref.watch(previewTxButtonStateProvider.state).state,
           onPressed: ref.watch(previewTxButtonStateProvider.state).state

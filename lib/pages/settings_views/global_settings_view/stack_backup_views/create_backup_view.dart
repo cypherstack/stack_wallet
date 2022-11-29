@@ -7,7 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
@@ -15,8 +16,10 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
@@ -40,7 +43,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
 
   late final FocusNode passwordFocusNode;
   late final FocusNode passwordRepeatFocusNode;
-  late final StackFileSystem stackFileSystem;
+  late final SWBFileSystem stackFileSystem;
   final zxcvbn = Zxcvbn();
 
   String passwordFeedback =
@@ -60,7 +63,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
 
   @override
   void initState() {
-    stackFileSystem = StackFileSystem();
+    stackFileSystem = SWBFileSystem();
     fileLocationController = TextEditingController();
     passwordController = TextEditingController();
     passwordRepeatController = TextEditingController();
@@ -101,41 +104,44 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 75));
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+              title: Text(
+                "Create backup",
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
-            title: Text(
-              "Create backup",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: child,
+                      ),
                     ),
-                    child: IntrinsicHeight(
-                      child: child,
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -443,228 +449,342 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
             ),
             if (!isDesktop) const Spacer(),
             !isDesktop
-                ? TextButton(
-                    style: shouldEnableCreate
-                        ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .getPrimaryEnabledButtonColor(context)
-                        : Theme.of(context)
-                            .extension<StackColors>()!
-                            .getPrimaryDisabledButtonColor(context),
-                    onPressed: !shouldEnableCreate
-                        ? null
-                        : () async {
-                            final String pathToSave =
-                                fileLocationController.text;
-                            final String passphrase = passwordController.text;
-                            final String repeatPassphrase =
-                                passwordRepeatController.text;
+                ? Consumer(builder: (context, ref, __) {
+                    return TextButton(
+                      style: shouldEnableCreate
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonColor(context)
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryDisabledButtonColor(context),
+                      onPressed: !shouldEnableCreate
+                          ? null
+                          : () async {
+                              final String pathToSave =
+                                  fileLocationController.text;
+                              final String passphrase = passwordController.text;
+                              final String repeatPassphrase =
+                                  passwordRepeatController.text;
 
-                            if (pathToSave.isEmpty) {
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Directory not chosen",
-                                context: context,
-                              ));
-                              return;
-                            }
-                            if (!(await Directory(pathToSave).exists())) {
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Directory does not exist",
-                                context: context,
-                              ));
-                              return;
-                            }
-                            if (passphrase.isEmpty) {
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "A passphrase is required",
-                                context: context,
-                              ));
-                              return;
-                            }
-                            if (passphrase != repeatPassphrase) {
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Passphrase does not match",
-                                context: context,
-                              ));
-                              return;
-                            }
-
-                            unawaited(showDialog<dynamic>(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (_) => const StackDialog(
-                                title: "Encrypting backup",
-                                message: "This shouldn't take long",
-                              ),
-                            ));
-                            // make sure the dialog is able to be displayed for at least 1 second
-                            await Future<void>.delayed(
-                                const Duration(seconds: 1));
-
-                            final DateTime now = DateTime.now();
-                            final String fileToSave =
-                                "$pathToSave/stackbackup_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.swb";
-
-                            final backup = await SWB.createStackWalletJSON();
-
-                            bool result =
-                                await SWB.encryptStackWalletWithPassphrase(
-                              fileToSave,
-                              passphrase,
-                              jsonEncode(backup),
-                            );
-
-                            if (mounted) {
-                              // pop encryption progress dialog
-                              Navigator.of(context).pop();
-
-                              if (result) {
-                                await showDialog<dynamic>(
+                              if (pathToSave.isEmpty) {
+                                unawaited(showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "Directory not chosen",
                                   context: context,
-                                  barrierDismissible: false,
-                                  builder: (_) => Platform.isAndroid
-                                      ? StackOkDialog(
-                                          title: "Backup saved to:",
-                                          message: fileToSave,
-                                        )
-                                      : const StackOkDialog(
-                                          title: "Backup creation succeeded"),
-                                );
-                                passwordController.text = "";
-                                passwordRepeatController.text = "";
-                                setState(() {});
-                              } else {
-                                await showDialog<dynamic>(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (_) => const StackOkDialog(
-                                      title: "Backup creation failed"),
-                                );
+                                ));
+                                return;
                               }
-                            }
-                          },
-                    child: Text(
-                      "Create backup",
-                      style: STextStyles.button(context),
-                    ),
-                  )
+                              if (!(await Directory(pathToSave).exists())) {
+                                unawaited(showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "Directory does not exist",
+                                  context: context,
+                                ));
+                                return;
+                              }
+                              if (passphrase.isEmpty) {
+                                unawaited(showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "A passphrase is required",
+                                  context: context,
+                                ));
+                                return;
+                              }
+                              if (passphrase != repeatPassphrase) {
+                                unawaited(showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "Passphrase does not match",
+                                  context: context,
+                                ));
+                                return;
+                              }
+
+                              unawaited(showDialog<dynamic>(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (_) => const StackDialog(
+                                  title: "Encrypting backup",
+                                  message: "This shouldn't take long",
+                                ),
+                              ));
+                              // make sure the dialog is able to be displayed for at least 1 second
+                              await Future<void>.delayed(
+                                  const Duration(seconds: 1));
+
+                              final DateTime now = DateTime.now();
+                              final String fileToSave =
+                                  "$pathToSave/stackbackup_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.swb";
+
+                              final backup = await SWB.createStackWalletJSON(
+                                  secureStorage: ref.read(secureStoreProvider));
+
+                              bool result =
+                                  await SWB.encryptStackWalletWithPassphrase(
+                                fileToSave,
+                                passphrase,
+                                jsonEncode(backup),
+                              );
+
+                              if (mounted) {
+                                // pop encryption progress dialog
+                                if (!isDesktop) Navigator.of(context).pop();
+
+                                if (result) {
+                                  await showDialog<dynamic>(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => Platform.isAndroid
+                                        ? StackOkDialog(
+                                            title: "Backup saved to:",
+                                            message: fileToSave,
+                                          )
+                                        : const StackOkDialog(
+                                            title: "Backup creation succeeded"),
+                                  );
+                                  passwordController.text = "";
+                                  passwordRepeatController.text = "";
+                                  setState(() {});
+                                } else {
+                                  await showDialog<dynamic>(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => const StackOkDialog(
+                                        title: "Backup creation failed"),
+                                  );
+                                }
+                              }
+                            },
+                      child: Text(
+                        "Create backup",
+                        style: STextStyles.button(context),
+                      ),
+                    );
+                  })
                 : Row(
                     children: [
-                      PrimaryButton(
-                        width: 183,
-                        desktopMed: true,
-                        label: "Create backup",
-                        enabled: shouldEnableCreate,
-                        onPressed: !shouldEnableCreate
-                            ? null
-                            : () async {
-                                final String pathToSave =
-                                    fileLocationController.text;
-                                final String passphrase =
-                                    passwordController.text;
-                                final String repeatPassphrase =
-                                    passwordRepeatController.text;
+                      Consumer(builder: (context, ref, __) {
+                        return PrimaryButton(
+                          width: 183,
+                          buttonHeight: ButtonHeight.m,
+                          label: "Create backup",
+                          enabled: shouldEnableCreate,
+                          onPressed: !shouldEnableCreate
+                              ? null
+                              : () async {
+                                  final String pathToSave =
+                                      fileLocationController.text;
+                                  final String passphrase =
+                                      passwordController.text;
+                                  final String repeatPassphrase =
+                                      passwordRepeatController.text;
 
-                                if (pathToSave.isEmpty) {
-                                  unawaited(showFloatingFlushBar(
-                                    type: FlushBarType.warning,
-                                    message: "Directory not chosen",
-                                    context: context,
-                                  ));
-                                  return;
-                                }
-                                if (!(await Directory(pathToSave).exists())) {
-                                  unawaited(showFloatingFlushBar(
-                                    type: FlushBarType.warning,
-                                    message: "Directory does not exist",
-                                    context: context,
-                                  ));
-                                  return;
-                                }
-                                if (passphrase.isEmpty) {
-                                  unawaited(showFloatingFlushBar(
-                                    type: FlushBarType.warning,
-                                    message: "A passphrase is required",
-                                    context: context,
-                                  ));
-                                  return;
-                                }
-                                if (passphrase != repeatPassphrase) {
-                                  unawaited(showFloatingFlushBar(
-                                    type: FlushBarType.warning,
-                                    message: "Passphrase does not match",
-                                    context: context,
-                                  ));
-                                  return;
-                                }
-
-                                unawaited(showDialog<dynamic>(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (_) => const StackDialog(
-                                    title: "Encrypting backup",
-                                    message: "This shouldn't take long",
-                                  ),
-                                ));
-                                // make sure the dialog is able to be displayed for at least 1 second
-                                await Future<void>.delayed(
-                                    const Duration(seconds: 1));
-
-                                final DateTime now = DateTime.now();
-                                final String fileToSave =
-                                    "$pathToSave/stackbackup_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.swb";
-
-                                final backup =
-                                    await SWB.createStackWalletJSON();
-
-                                bool result =
-                                    await SWB.encryptStackWalletWithPassphrase(
-                                  fileToSave,
-                                  passphrase,
-                                  jsonEncode(backup),
-                                );
-
-                                if (mounted) {
-                                  // pop encryption progress dialog
-                                  Navigator.of(context).pop();
-
-                                  if (result) {
-                                    await showDialog<dynamic>(
+                                  if (pathToSave.isEmpty) {
+                                    unawaited(showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: "Directory not chosen",
                                       context: context,
-                                      barrierDismissible: false,
-                                      builder: (_) => Platform.isAndroid
-                                          ? StackOkDialog(
-                                              title: "Backup saved to:",
-                                              message: fileToSave,
-                                            )
-                                          : const StackOkDialog(
-                                              title:
-                                                  "Backup creation succeeded"),
-                                    );
-                                    passwordController.text = "";
-                                    passwordRepeatController.text = "";
-                                    setState(() {});
-                                  } else {
-                                    await showDialog<dynamic>(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (_) => const StackOkDialog(
-                                          title: "Backup creation failed"),
-                                    );
+                                    ));
+                                    return;
                                   }
-                                }
-                              },
-                      ),
+                                  if (!(await Directory(pathToSave).exists())) {
+                                    unawaited(showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: "Directory does not exist",
+                                      context: context,
+                                    ));
+                                    return;
+                                  }
+                                  if (passphrase.isEmpty) {
+                                    unawaited(showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: "A passphrase is required",
+                                      context: context,
+                                    ));
+                                    return;
+                                  }
+                                  if (passphrase != repeatPassphrase) {
+                                    unawaited(showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: "Passphrase does not match",
+                                      context: context,
+                                    ));
+                                    return;
+                                  }
+
+                                  unawaited(
+                                    showDialog<dynamic>(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (_) {
+                                        if (Util.isDesktop) {
+                                          return DesktopDialog(
+                                            maxHeight: double.infinity,
+                                            maxWidth: 450,
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(
+                                                32,
+                                              ),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "Encrypting initial backup",
+                                                    style:
+                                                        STextStyles.desktopH3(
+                                                            context),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 40,
+                                                  ),
+                                                  Text(
+                                                    "This shouldn't take long",
+                                                    style: STextStyles
+                                                        .desktopTextExtraExtraSmall(
+                                                            context),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          return const StackDialog(
+                                            title: "Encrypting initial backup",
+                                            message: "This shouldn't take long",
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  );
+
+                                  await Future<void>.delayed(
+                                      const Duration(seconds: 1));
+
+                                  // make sure the dialog is able to be displayed for at least 1 second
+                                  final fut = Future<void>.delayed(
+                                      const Duration(seconds: 1));
+
+                                  final DateTime now = DateTime.now();
+                                  final String fileToSave =
+                                      "$pathToSave/stackbackup_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.swb";
+
+                                  final backup =
+                                      await SWB.createStackWalletJSON(
+                                          secureStorage:
+                                              ref.read(secureStoreProvider));
+
+                                  bool result = await SWB
+                                      .encryptStackWalletWithPassphrase(
+                                    fileToSave,
+                                    passphrase,
+                                    jsonEncode(backup),
+                                  );
+
+                                  await Future.wait([fut]);
+
+                                  if (mounted) {
+                                    // pop encryption progress dialog
+                                    if (!isDesktop) Navigator.of(context).pop();
+
+                                    if (result) {
+                                      await showDialog<dynamic>(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (context) {
+                                            if (Platform.isAndroid) {
+                                              return StackOkDialog(
+                                                title: "Backup saved to:",
+                                                message: fileToSave,
+                                              );
+                                            } else if (isDesktop) {
+                                              return DesktopDialog(
+                                                maxHeight: double.infinity,
+                                                maxWidth: 500,
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                    left: 32,
+                                                    right: 32,
+                                                    bottom: 32,
+                                                  ),
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      const SizedBox(
+                                                          height: 26),
+                                                      Text(
+                                                        "Stack backup saved to: \n",
+                                                        style: STextStyles
+                                                            .desktopH3(context),
+                                                      ),
+                                                      Text(
+                                                        fileToSave,
+                                                        style: STextStyles
+                                                            .desktopTextExtraExtraSmall(
+                                                                context),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 40,
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          // const Spacer(),
+                                                          Expanded(
+                                                            child:
+                                                                PrimaryButton(
+                                                              label: "Ok",
+                                                              buttonHeight:
+                                                                  ButtonHeight
+                                                                      .l,
+                                                              onPressed: () {
+                                                                int count = 0;
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .popUntil((_) =>
+                                                                        count++ >=
+                                                                        2);
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              return const StackOkDialog(
+                                                  title:
+                                                      "Backup creation succeeded");
+                                            }
+                                          });
+                                      passwordController.text = "";
+                                      passwordRepeatController.text = "";
+                                      setState(() {});
+                                    } else {
+                                      await showDialog<dynamic>(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (_) => const StackOkDialog(
+                                            title: "Backup creation failed"),
+                                      );
+                                    }
+                                  }
+                                },
+                        );
+                      }),
                       const SizedBox(
                         width: 16,
                       ),
                       SecondaryButton(
                         width: 183,
-                        desktopMed: true,
+                        buttonHeight: ButtonHeight.m,
                         label: "Cancel",
                         onPressed: () {},
                       ),
