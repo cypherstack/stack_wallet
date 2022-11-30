@@ -49,7 +49,7 @@ class DesktopAddressCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SelectableText(
-                "${entry.label} (${entry.coin.ticker})",
+                "${contactId == "default" ? entry.other! : entry.label} (${entry.coin.ticker})",
                 style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                   color: Theme.of(context).extension<StackColors>()!.textDark,
                 ),
