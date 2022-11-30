@@ -3308,7 +3308,7 @@ class ParticlWallet extends CoinServiceAPI {
     for (var i = 0; i < utxosToUse.length; i++) {
       final txid = utxosToUse[i].txid;
       txb.addInput(txid, utxosToUse[i].vout, null,
-          utxoSigningData[txid]["output"] as Uint8List);
+          utxoSigningData[txid]["output"] as Uint8List, '', true);
     }
 
     // Add transaction output
@@ -3321,11 +3321,11 @@ class ParticlWallet extends CoinServiceAPI {
       for (var i = 0; i < utxosToUse.length; i++) {
         final txid = utxosToUse[i].txid;
         txb.sign(
-          vin: i,
-          keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
-          witnessValue: utxosToUse[i].value,
-          redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
-        );
+            vin: i,
+            keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
+            witnessValue: utxosToUse[i].value,
+            redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
+            isParticl: true);
       }
     } catch (e, s) {
       Logging.instance.log("Caught exception while signing transaction: $e\n$s",
