@@ -5,12 +5,6 @@ import 'dart:math';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_libmonero/monero/monero.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/confirm_recovery_dialog.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_dialog.dart';
@@ -46,6 +40,10 @@ import 'package:epicmobile/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:epicmobile/widgets/table_view/table_view.dart';
 import 'package:epicmobile/widgets/table_view/table_view_cell.dart';
 import 'package:epicmobile/widgets/table_view/table_view_row.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wakelock/wakelock.dart';
 
 class RestoreWalletView extends ConsumerStatefulWidget {
@@ -153,15 +151,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   // TODO: check for wownero wordlist?
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
-    if (widget.coin == Coin.monero) {
-      var moneroWordList = monero.getMoneroWordList("English");
-      return moneroWordList.contains(word);
-    }
-    if (widget.coin == Coin.wownero) {
-      var wowneroWordList = wownero.getWowneroWordList("English",
-          seedWordsLength: widget.seedWordsLength);
-      return wowneroWordList.contains(word);
-    }
     return _wordListHashSet.contains(word);
   }
 
@@ -184,16 +173,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       mnemonic = mnemonic.trim();
 
       int height = 0;
-
-      if (widget.coin == Coin.monero) {
-        height = monero.getHeigthByDate(date: widget.restoreFromDate);
-      } else if (widget.coin == Coin.wownero) {
-        height = wownero.getHeightByDate(date: widget.restoreFromDate);
-      }
-      // todo: wait until this implemented
-      // else if (widget.coin == Coin.wownero) {
-      //   height = wownero.getHeightByDate(date: widget.restoreFromDate);
-      // }
 
       // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
       if (widget.coin == Coin.epicCash) {

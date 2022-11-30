@@ -53,7 +53,7 @@ class DB {
   late final Box<Trade> _boxTradesV2;
   late final Box<String> _boxTradeNotes;
   late final Box<String> _boxFavoriteWallets;
-  late final Box<xmr.WalletInfo> _walletInfoSource;
+  // late final Box<xmr.WalletInfo> _walletInfoSource;
   late final Box<dynamic> _boxPrefs;
   late final Box<TradeWalletLookup> _boxTradeLookup;
   late final Box<dynamic> _boxDBInfo;
@@ -65,7 +65,7 @@ class DB {
   final Map<Coin, Box<dynamic>> _usedSerialsCacheBoxes = {};
 
   // exposed for monero
-  Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource;
+  // Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource;
 
   // mutex for stack backup
   final mutex = Mutex();
@@ -132,8 +132,8 @@ class DB {
       _boxTradeNotes = await Hive.openBox<String>(boxNameTradeNotes);
       _boxTradeLookup =
           await Hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
-      _walletInfoSource =
-          await Hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
+      // _walletInfoSource =
+      //     await Hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
       _boxFavoriteWallets = await Hive.openBox<String>(boxNameFavoriteWallets);
 
       await Future.wait([
