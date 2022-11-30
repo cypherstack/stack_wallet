@@ -1521,23 +1521,29 @@ class LitecoinWallet extends CoinServiceAPI {
     Logging.instance
         .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
     if (!integrationTestFlag) {
-      final features = await electrumXClient.getServerFeatures();
-      Logging.instance.log("features: $features", level: LogLevel.Info);
-      switch (coin) {
-        case Coin.litecoin:
-          if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
-            print(features['genesis_hash']);
-            throw Exception("genesis hash does not match main net!");
-          }
-          break;
-        case Coin.litecoinTestNet:
-          if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
-            throw Exception("genesis hash does not match test net!");
-          }
-          break;
-        default:
-          throw Exception(
-              "Attempted to generate a LitecoinWallet using a non litecoin coin type: ${coin.name}");
+      try {
+        final features = await electrumXClient
+            .getServerFeatures()
+            .timeout(const Duration(seconds: 3));
+        Logging.instance.log("features: $features", level: LogLevel.Info);
+        switch (coin) {
+          case Coin.litecoin:
+            if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
+              print(features['genesis_hash']);
+              throw Exception("genesis hash does not match main net!");
+            }
+            break;
+          case Coin.litecoinTestNet:
+            if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
+              throw Exception("genesis hash does not match test net!");
+            }
+            break;
+          default:
+            throw Exception(
+                "Attempted to generate a LitecoinWallet using a non litecoin coin type: ${coin.name}");
+        }
+      } catch (e, s) {
+        Logging.instance.log("$e/n$s", level: LogLevel.Info);
       }
     }
 
