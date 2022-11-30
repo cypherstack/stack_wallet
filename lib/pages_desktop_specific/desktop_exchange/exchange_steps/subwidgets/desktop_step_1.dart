@@ -1,25 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_2.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class DesktopStep1 extends ConsumerWidget {
   const DesktopStep1({
     Key? key,
-    required this.model,
   }) : super(key: key);
-
-  final IncompleteExchangeModel model;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,7 +47,7 @@ class DesktopStep1 extends ConsumerWidget {
               DesktopStepItem(
                 label: "You send",
                 value:
-                    "${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker.toUpperCase()}",
+                    "${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))}",
               ),
               Container(
                 height: 1,
@@ -64,63 +56,20 @@ class DesktopStep1 extends ConsumerWidget {
               DesktopStepItem(
                 label: "You receive",
                 value:
-                    "~${model.receiveAmount.toStringAsFixed(8)} ${model.receiveTicker.toUpperCase()}",
+                    "~${ref.watch(desktopExchangeModelProvider.select((value) => value!.receiveAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.receiveTicker.toUpperCase()))}",
               ),
               Container(
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
               DesktopStepItem(
-                label: model.rateType == ExchangeRateType.estimated
+                label: ref.watch(desktopExchangeModelProvider
+                            .select((value) => value!.rateType)) ==
+                        ExchangeRateType.estimated
                     ? "Estimated rate"
                     : "Fixed rate",
-                value: model.rateInfo,
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(
-            top: 20,
-            bottom: 32,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: SecondaryButton(
-                  label: "Back",
-                  buttonHeight: ButtonHeight.l,
-                  onPressed: Navigator.of(context).pop,
-                ),
-              ),
-              const SizedBox(
-                width: 16,
-              ),
-              Expanded(
-                child: PrimaryButton(
-                  label: "Next",
-                  buttonHeight: ButtonHeight.l,
-                  onPressed: () async {
-                    await showDialog<void>(
-                      context: context,
-                      barrierColor: Colors.transparent,
-                      barrierDismissible: false,
-                      builder: (context) {
-                        return DesktopDialog(
-                          maxWidth: 720,
-                          maxHeight: double.infinity,
-                          child: StepScaffold(
-                            step: 2,
-                            model: model,
-                            body: DesktopStep2(
-                              model: model,
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                value: ref.watch(desktopExchangeModelProvider
+                    .select((value) => value!.rateInfo)),
               ),
             ],
           ),

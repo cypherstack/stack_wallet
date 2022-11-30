@@ -1,39 +1,190 @@
-import 'package:flutter/material.dart';
-import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_exchange_steps_indicator.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'dart:async';
 
-class StepScaffold extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
+import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_1.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_2.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_3.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_4.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_exchange_steps_indicator.dart';
+import 'package:stackwallet/providers/exchange/exchange_provider.dart';
+import 'package:stackwallet/providers/global/trades_service_provider.dart';
+import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/services/notifications_api.dart';
+import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/desktop/simple_desktop_dialog.dart';
+import 'package:stackwallet/widgets/fade_stack.dart';
+
+final ssss = StateProvider<IncompleteExchangeModel?>((_) => null);
+
+final desktopExchangeModelProvider =
+    ChangeNotifierProvider<IncompleteExchangeModel?>(
+        (ref) => ref.watch(ssss.state).state);
+
+class StepScaffold extends ConsumerStatefulWidget {
   const StepScaffold({
     Key? key,
-    required this.body,
-    required this.step,
-    required this.model,
+    required this.initialStep,
   }) : super(key: key);
 
-  final Widget body;
-  final int step;
-  final IncompleteExchangeModel model;
+  final int initialStep;
 
   @override
-  State<StepScaffold> createState() => _StepScaffoldState();
+  ConsumerState<StepScaffold> createState() => _StepScaffoldState();
 }
 
-class _StepScaffoldState extends State<StepScaffold> {
-  int currentStep = 0;
-  late final IncompleteExchangeModel model;
+class _StepScaffoldState extends ConsumerState<StepScaffold> {
+  int currentStep = 1;
+  bool enableNext = false;
+
+  late final Duration duration;
+
+  void updateEnableNext(bool enableNext) {
+    if (enableNext != this.enableNext) {
+      setState(() => this.enableNext = enableNext);
+    }
+  }
+
+  Future<bool> createTrade() async {
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
+            child: const CustomLoadingOverlay(
+              message: "Creating a trade",
+              eventBus: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final ExchangeResponse<Trade> response = await ref
+        .read(exchangeProvider)
+        .createTrade(
+          from: ref.read(desktopExchangeModelProvider)!.sendTicker,
+          to: ref.read(desktopExchangeModelProvider)!.receiveTicker,
+          fixedRate: ref.read(desktopExchangeModelProvider)!.rateType !=
+              ExchangeRateType.estimated,
+          amount: ref.read(desktopExchangeModelProvider)!.reversed
+              ? ref.read(desktopExchangeModelProvider)!.receiveAmount
+              : ref.read(desktopExchangeModelProvider)!.sendAmount,
+          addressTo: ref.read(desktopExchangeModelProvider)!.recipientAddress!,
+          extraId: null,
+          addressRefund: ref.read(desktopExchangeModelProvider)!.refundAddress!,
+          refundExtraId: "",
+          rateId: ref.read(desktopExchangeModelProvider)!.rateId,
+          reversed: ref.read(desktopExchangeModelProvider)!.reversed,
+        );
+
+    if (response.value == null) {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: true,
+          builder: (_) => SimpleDesktopDialog(
+              title: "Failed to create trade",
+              message: response.exception?.toString() ?? ""),
+        ),
+      );
+      return false;
+    }
+
+    // save trade to hive
+    await ref.read(tradesServiceProvider).add(
+          trade: response.value!,
+          shouldNotifyListeners: true,
+        );
+
+    String status = response.value!.status;
+
+    ref.read(desktopExchangeModelProvider)!.trade = response.value!;
+
+    // extra info if status is waiting
+    if (status == "Waiting") {
+      status += " for deposit";
+    }
+
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+
+    unawaited(
+      NotificationApi.showNotification(
+        changeNowId: ref.read(desktopExchangeModelProvider)!.trade!.tradeId,
+        title: status,
+        body:
+            "Trade ID ${ref.read(desktopExchangeModelProvider)!.trade!.tradeId}",
+        walletId: "",
+        iconAssetName: Assets.svg.arrowRotate,
+        date: ref.read(desktopExchangeModelProvider)!.trade!.timestamp,
+        shouldWatchForUpdates: true,
+        coinName: "coinName",
+      ),
+    );
+
+    return true;
+    // if (mounted) {
+    //   unawaited(
+    //     showDialog<void>(
+    //       context: context,
+    //       barrierColor: Colors.transparent,
+    //       barrierDismissible: false,
+    //       builder: (context) {
+    //         return DesktopDialog(
+    //           maxWidth: 720,
+    //           maxHeight: double.infinity,
+    //           child: StepScaffold(
+    //             initialStep: 4,
+    //           ),
+    //         );
+    //       },
+    //     ),
+    //   );
+    // }
+  }
+
+  void onBack() {
+    if (currentStep > 1 && currentStep < 4) {
+      setState(() => currentStep = currentStep - 1);
+    } else if (currentStep == 1) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
 
   @override
   void initState() {
-    currentStep = widget.step;
-    model = widget.model;
+    duration = const Duration(milliseconds: 250);
+    currentStep = widget.initialStep;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    final model = ref.watch(desktopExchangeModelProvider);
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -43,15 +194,16 @@ class _StepScaffoldState extends State<StepScaffold> {
             Row(
               children: [
                 currentStep != 4
-                    ? const AppBarBackButton(
+                    ? AppBarBackButton(
                         isCompact: true,
                         iconSize: 23,
+                        onPressed: onBack,
                       )
                     : const SizedBox(
                         width: 32,
                       ),
                 Text(
-                  "Exchange ${model.sendTicker.toUpperCase()} to ${model.receiveTicker.toUpperCase()}",
+                  "Exchange ${model?.sendTicker.toUpperCase()} to ${model?.receiveTicker.toUpperCase()}",
                   style: STextStyles.desktopH3(context),
                 ),
               ],
@@ -59,9 +211,6 @@ class _StepScaffoldState extends State<StepScaffold> {
             if (currentStep == 4)
               DesktopDialogCloseButton(
                 onPressedOverride: () {
-                  Navigator.of(context, rootNavigator: true).pop();
-                  Navigator.of(context, rootNavigator: true).pop();
-                  Navigator.of(context, rootNavigator: true).pop();
                   Navigator.of(context, rootNavigator: true).pop();
                 },
               ),
@@ -85,7 +234,139 @@ class _StepScaffoldState extends State<StepScaffold> {
           padding: const EdgeInsets.symmetric(
             horizontal: 32,
           ),
-          child: widget.body,
+          child: FadeStack(
+            index: currentStep - 1,
+            children: [
+              const DesktopStep1(),
+              DesktopStep2(
+                enableNextChanged: updateEnableNext,
+              ),
+              const DesktopStep3(),
+              const DesktopStep4(),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            top: 20,
+            left: 32,
+            right: 32,
+            bottom: 32,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 250),
+                  crossFadeState: currentStep == 4
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  firstChild: SecondaryButton(
+                    label: "Back",
+                    buttonHeight: ButtonHeight.l,
+                    onPressed: onBack,
+                  ),
+                  secondChild: SecondaryButton(
+                    label: "Send from Stack Wallet",
+                    buttonHeight: ButtonHeight.l,
+                    onPressed: onBack,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                width: 16,
+              ),
+              Expanded(
+                child: AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 250),
+                  crossFadeState: currentStep == 4
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  firstChild: AnimatedCrossFade(
+                    duration: const Duration(milliseconds: 250),
+                    crossFadeState: currentStep == 3
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
+                    firstChild: PrimaryButton(
+                      label: "Next",
+                      enabled: currentStep != 2 ? true : enableNext,
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: () async {
+                        setState(() => currentStep = currentStep + 1);
+                      },
+                    ),
+                    secondChild: PrimaryButton(
+                      label: "Confirm",
+                      enabled: currentStep != 2 ? true : enableNext,
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: () async {
+                        if (currentStep == 3) {
+                          final success = await createTrade();
+                          if (!success) {
+                            return;
+                          }
+                        }
+                        setState(() => currentStep = currentStep + 1);
+                      },
+                    ),
+                  ),
+                  secondChild: PrimaryButton(
+                    label: "Show QR code",
+                    enabled: currentStep != 2 ? true : enableNext,
+                    buttonHeight: ButtonHeight.l,
+                    onPressed: () {
+                      showDialog<dynamic>(
+                        context: context,
+                        barrierColor: Colors.transparent,
+                        barrierDismissible: true,
+                        builder: (_) {
+                          return DesktopDialog(
+                            maxHeight: 720,
+                            maxWidth: 720,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))} to this address",
+                                  style: STextStyles.desktopH3(context),
+                                ),
+                                const SizedBox(
+                                  height: 48,
+                                ),
+                                Center(
+                                  child: QrImage(
+                                    // TODO: grab coin uri scheme from somewhere
+                                    // data: "${coin.uriScheme}:$receivingAddress",
+                                    data: ref.watch(desktopExchangeModelProvider
+                                        .select((value) =>
+                                            value!.trade!.payInAddress)),
+                                    size: 290,
+                                    foregroundColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 48,
+                                ),
+                                SecondaryButton(
+                                  label: "Cancel",
+                                  width: 310,
+                                  buttonHeight: ButtonHeight.l,
+                                  onPressed: Navigator.of(context).pop,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
