@@ -127,7 +127,7 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
   @override
   Widget build(BuildContext context) {
     final group = ref.watch(currentDesktopMenuItemProvider.state).state;
-    debugPrint("============ value:$value ============ group:$group");
+
     return TextButton(
       style: value == group
           ? Theme.of(context)
