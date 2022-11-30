@@ -1,10 +1,6 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/models/send_view_auto_fill_data.dart';
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/send_view/confirm_transaction_view.dart';
@@ -40,7 +36,13 @@ import 'package:epicmobile/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
-import 'package:epicmobile/widgets/textfield_icon_buttonumerStatefulWidget {
+import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+class SendView extends ConsumerStatefulWidget {
   const SendView({
     Key? key,
     required this.walletId,

@@ -1,7 +1,4 @@
 import 'package:emojis/emoji.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/models/contact.dart';
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/new_contact_address_entry_form.dart';
@@ -21,7 +18,13 @@ import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:epicmobile/widgets/emoji_select_sheet.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
-import 'package:epicmobile/widgets/textfield_icon_buttondressBookEntryView extends ConsumerStatefulWidget {
+import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+// import 'package:epicmobile/widgets/textfield_icon_button';
+
+class AddAddressBookEntryView extends ConsumerStatefulWidget {
   const AddAddressBookEntryView({
     Key? key,
     this.barcodeScanner = const BarcodeScannerWrapper(),

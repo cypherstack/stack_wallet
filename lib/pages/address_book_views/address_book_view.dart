@@ -20,7 +20,9 @@ import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svgxtfield_icon_buttonssBookView extends ConsumerStatefulWidget {
+import 'package:flutter_svg/svg.dart';
+
+class AddressBookView extends ConsumerStatefulWidget {
   const AddressBookView({Key? key, this.coin}) : super(key: key);
 
   static const String routeName = "/addressBook";
