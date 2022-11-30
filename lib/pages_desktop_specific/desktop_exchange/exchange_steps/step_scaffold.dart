@@ -3,6 +3,7 @@ import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_exchange_steps_indicator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 
 class StepScaffold extends StatefulWidget {
   const StepScaffold({
@@ -37,15 +38,33 @@ class _StepScaffoldState extends State<StepScaffold> {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const AppBarBackButton(
-              isCompact: true,
-              iconSize: 23,
+            Row(
+              children: [
+                currentStep != 4
+                    ? const AppBarBackButton(
+                        isCompact: true,
+                        iconSize: 23,
+                      )
+                    : const SizedBox(
+                        width: 32,
+                      ),
+                Text(
+                  "Exchange ${model.sendTicker.toUpperCase()} to ${model.receiveTicker.toUpperCase()}",
+                  style: STextStyles.desktopH3(context),
+                ),
+              ],
             ),
-            Text(
-              "Exchange ${model.sendTicker.toUpperCase()} to ${model.receiveTicker.toUpperCase()}",
-              style: STextStyles.desktopH3(context),
-            ),
+            if (currentStep == 4)
+              DesktopDialogCloseButton(
+                onPressedOverride: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  Navigator.of(context, rootNavigator: true).pop();
+                  Navigator.of(context, rootNavigator: true).pop();
+                  Navigator.of(context, rootNavigator: true).pop();
+                },
+              ),
           ],
         ),
         const SizedBox(
