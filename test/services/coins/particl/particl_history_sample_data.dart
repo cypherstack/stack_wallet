@@ -1,5 +1,3 @@
-// TODO these test vectors are valid for Namecoin: update for Particl
-
 final Map<String, List<dynamic>> historyBatchArgs0 = {
   "k_0_0": ["29e9e6410954dea9e527a0d2cac5de4dea5fb600b719badff90d6d43518d3ed8"],
   "k_0_1": ["9b56ab30c7bef0e1eaa10a632c8e2dcdd11b2158d7a917c03d62936afd0015fc"],
