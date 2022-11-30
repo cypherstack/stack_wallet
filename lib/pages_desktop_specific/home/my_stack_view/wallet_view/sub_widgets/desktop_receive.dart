@@ -134,8 +134,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  width: 2,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .backgroundAppBar,
+                  width: 1,
                 ),
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,

@@ -63,24 +63,25 @@ class _MyWalletState extends State<MyWallet> {
               ),
             ),
           ),
-          child: IndexedStack(
-            index: _selectedIndex,
-            children: [
-              Padding(
-                key: const Key("desktopSendViewPortKey"),
-                padding: const EdgeInsets.all(20),
-                child: DesktopSend(
-                  walletId: widget.walletId,
-                ),
+          child: AnimatedCrossFade(
+            firstChild: Padding(
+              key: const Key("desktopSendViewPortKey"),
+              padding: const EdgeInsets.all(20),
+              child: DesktopSend(
+                walletId: widget.walletId,
               ),
-              Padding(
-                key: const Key("desktopReceiveViewPortKey"),
-                padding: const EdgeInsets.all(20),
-                child: DesktopReceive(
-                  walletId: widget.walletId,
-                ),
+            ),
+            secondChild: Padding(
+              key: const Key("desktopReceiveViewPortKey"),
+              padding: const EdgeInsets.all(20),
+              child: DesktopReceive(
+                walletId: widget.walletId,
               ),
-            ],
+            ),
+            crossFadeState: _selectedIndex == 0
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            duration: const Duration(milliseconds: 250),
           ),
         ),
       ],

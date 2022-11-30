@@ -50,18 +50,29 @@ class _SendReceiveTabMenuState extends State<SendReceiveTabMenu> {
                     const SizedBox(
                       height: 16,
                     ),
-                    Text(
-                      "Send",
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: _selectedIndex == 0
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorBlue
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
+                    AnimatedCrossFade(
+                      firstChild: Text(
+                        "Send",
+                        style:
+                            STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue,
+                        ),
                       ),
+                      secondChild: Text(
+                        "Send",
+                        style:
+                            STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        ),
+                      ),
+                      crossFadeState: _selectedIndex == 0
+                          ? CrossFadeState.showFirst
+                          : CrossFadeState.showSecond,
+                      duration: const Duration(milliseconds: 250),
                     ),
                     const SizedBox(
                       height: 19,
@@ -69,13 +80,9 @@ class _SendReceiveTabMenuState extends State<SendReceiveTabMenu> {
                     Container(
                       height: 2,
                       decoration: BoxDecoration(
-                        color: _selectedIndex == 0
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorBlue
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .background,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .backgroundAppBar,
                       ),
                     ),
                   ],
@@ -96,33 +103,55 @@ class _SendReceiveTabMenuState extends State<SendReceiveTabMenu> {
                     const SizedBox(
                       height: 16,
                     ),
-                    Text(
-                      "Receive",
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: _selectedIndex == 1
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorBlue
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
+                    AnimatedCrossFade(
+                      firstChild: Text(
+                        "Receive",
+                        style:
+                            STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue,
+                        ),
                       ),
+                      secondChild: Text(
+                        "Receive",
+                        style:
+                            STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        ),
+                      ),
+                      crossFadeState: _selectedIndex == 1
+                          ? CrossFadeState.showFirst
+                          : CrossFadeState.showSecond,
+                      duration: const Duration(milliseconds: 250),
                     ),
                     const SizedBox(
                       height: 19,
                     ),
-                    Container(
-                      height: 2,
-                      decoration: BoxDecoration(
-                        color: _selectedIndex == 1
-                            ? Theme.of(context)
+                    Stack(
+                      children: [
+                        Container(
+                          height: 2,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
                                 .extension<StackColors>()!
-                                .accentColorBlue
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .background,
-                      ),
+                                .backgroundAppBar,
+                          ),
+                        ),
+                        AnimatedSlide(
+                          offset: Offset(_selectedIndex == 0 ? -1 : 0, 0),
+                          duration: const Duration(milliseconds: 250),
+                          child: Container(
+                            height: 2,
+                            decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorBlue),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
