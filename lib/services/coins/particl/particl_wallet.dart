@@ -201,17 +201,15 @@ class ParticlWallet extends CoinServiceAPI {
   @override
   Future<Decimal> get pendingBalance async {
     final data = await utxoData;
-    return Format.satoshisToAmount(
-        data.satoshiBalanceUnconfirmed,
-        coin: coin);
+    return Format.satoshisToAmount(data.satoshiBalanceUnconfirmed, coin: coin);
   }
 
   @override
   Future<Decimal> get balanceMinusMaxFee async =>
       (await availableBalance) -
-          (Decimal.fromInt((await maxFee)) /
+      (Decimal.fromInt((await maxFee)) /
               Decimal.fromInt(Constants.satsPerCoin(coin)))
-              .toDecimal();
+          .toDecimal();
 
   @override
   Future<Decimal> get totalBalance async {
@@ -220,19 +218,13 @@ class ParticlWallet extends CoinServiceAPI {
           .get<dynamic>(boxName: walletId, key: 'totalBalance') as int?;
       if (totalBalance == null) {
         final data = await utxoData;
-        return Format.satoshisToAmount(
-            data.satoshiBalance,
-            coin: coin);
+        return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
       } else {
-        return Format.satoshisToAmount(
-            totalBalance,
-            coin: coin);
+        return Format.satoshisToAmount(totalBalance, coin: coin);
       }
     }
     final data = await utxoData;
-    return Format.satoshisToAmount(
-        data.satoshiBalance,
-        coin: coin);
+    return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
   }
 
   @override
@@ -320,7 +312,7 @@ class ParticlWallet extends CoinServiceAPI {
       throw ArgumentError('Invalid version or Network mismatch');
     } else {
       try {
-        decodeBech32 = segwit.decode(address);
+        decodeBech32 = segwit.decode(address, particl.bech32!);
       } catch (err) {
         // Bech32 decode fail
       }
@@ -1095,7 +1087,7 @@ class ParticlWallet extends CoinServiceAPI {
         // check for send all
         bool isSendAll = false;
         final balance =
-          Format.decimalAmountToSatoshis(await availableBalance, coin);
+            Format.decimalAmountToSatoshis(await availableBalance, coin);
         if (satoshiAmount == balance) {
           isSendAll = true;
         }
@@ -1294,14 +1286,14 @@ class ParticlWallet extends CoinServiceAPI {
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
     final priceData =
-    await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
     final locale = await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
-        ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
-            Decimal.fromInt(Constants.satsPerCoin(coin)))
-            .toDecimal(scaleOnInfinitePrecision: 2),
+            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                .toDecimal(scaleOnInfinitePrecision: 2),
         decimalPlaces: 2,
         locale: locale!);
 
@@ -1336,7 +1328,7 @@ class ParticlWallet extends CoinServiceAPI {
 
   @override
   bool validateAddress(String address) {
-    return Address.validateAddress(address, _network);
+    return Address.validateAddress(address, _network, particl.bech32!);
   }
 
   @override
@@ -1424,7 +1416,8 @@ class ParticlWallet extends CoinServiceAPI {
   }
 
   Future<ElectrumXNode> getCurrentNode() async {
-    final node = NodeService(secureStorageInterface: _secureStore).getPrimaryNodeFor(coin: coin) ??
+    final node = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
 
     return ElectrumXNode(
@@ -1965,7 +1958,7 @@ class ParticlWallet extends CoinServiceAPI {
           utxo["status"]["block_time"] = txn["blocktime"];
 
           final fiatValue = ((Decimal.fromInt(value) * currentPrice) /
-              Decimal.fromInt(Constants.satsPerCoin(coin)))
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toDecimal(scaleOnInfinitePrecision: 2);
           utxo["rawWorth"] = fiatValue;
           utxo["fiatWorth"] = fiatValue.toString();
@@ -1974,17 +1967,17 @@ class ParticlWallet extends CoinServiceAPI {
       }
 
       Decimal currencyBalanceRaw =
-      ((Decimal.fromInt(satoshiBalance) * currentPrice) /
-          Decimal.fromInt(Constants.satsPerCoin(coin)))
-          .toDecimal(scaleOnInfinitePrecision: 2);
+          ((Decimal.fromInt(satoshiBalance) * currentPrice) /
+                  Decimal.fromInt(Constants.satsPerCoin(coin)))
+              .toDecimal(scaleOnInfinitePrecision: 2);
 
       final Map<String, dynamic> result = {
         "total_user_currency": currencyBalanceRaw.toString(),
         "total_sats": satoshiBalance,
         "total_btc": (Decimal.fromInt(satoshiBalance) /
-            Decimal.fromInt(Constants.satsPerCoin(coin)))
+                Decimal.fromInt(Constants.satsPerCoin(coin)))
             .toDecimal(
-            scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin))
+                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin))
             .toString(),
         "outputArray": outputArray,
         "unconfirmed": satoshiBalancePending,
@@ -2266,7 +2259,8 @@ class ParticlWallet extends CoinServiceAPI {
   /// Returns the scripthash or throws an exception on invalid particl address
   String _convertToScriptHash(String particlAddress, NetworkType network) {
     try {
-      final output = Address.addressToOutputScript(particlAddress, network);
+      final output = Address.addressToOutputScript(
+          particlAddress, network, particl.bech32!);
       final hash = sha256.convert(output.toList(growable: false)).toString();
 
       final chars = hash.split("");
@@ -3319,7 +3313,7 @@ class ParticlWallet extends CoinServiceAPI {
 
     // Add transaction output
     for (var i = 0; i < recipients.length; i++) {
-      txb.addOutput(recipients[i], satoshiAmounts[i]);
+      txb.addOutput(recipients[i], satoshiAmounts[i], particl.bech32!);
     }
 
     try {
@@ -3750,7 +3744,8 @@ class ParticlWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final available = Format.decimalAmountToSatoshis(await availableBalance, coin);
+    final available =
+        Format.decimalAmountToSatoshis(await availableBalance, coin);
 
     if (available == satoshiAmount) {
       return satoshiAmount - sweepAllEstimate(feeRate);
