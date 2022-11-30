@@ -1,6 +1,4 @@
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
@@ -8,7 +6,10 @@ import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class WalletBalanceToggleSheet extends ConsumerWidget {
   const WalletBalanceToggleSheet({
     Key? key,
