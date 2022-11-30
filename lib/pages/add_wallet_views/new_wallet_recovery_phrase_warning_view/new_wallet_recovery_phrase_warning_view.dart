@@ -97,7 +97,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                     onPressed: () async {
                       await showDialog<void>(
                         context: context,
-                        builder: (context) => const RecoveryPhraseExplanationDialog(),
+                        builder: (context) =>
+                            const RecoveryPhraseExplanationDialog(),
                       );
                     },
                   ),
@@ -179,6 +180,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       .extension<StackColors>()!
                                       .textDark,
                                   fontSize: 18,
+                                  height: 1.3,
                                 ),
                               ),
                               TextSpan(
@@ -188,6 +190,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       .extension<StackColors>()!
                                       .accentColorBlue,
                                   fontSize: 18,
+                                  height: 1.3,
                                 ),
                               ),
                               TextSpan(
@@ -197,6 +200,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       .extension<StackColors>()!
                                       .textDark,
                                   fontSize: 18,
+                                  height: 1.3,
                                 ),
                               ),
                               TextSpan(
@@ -206,6 +210,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       .extension<StackColors>()!
                                       .accentColorBlue,
                                   fontSize: 18,
+                                  height: 1.3,
                                 ),
                               ),
                               TextSpan(
@@ -215,6 +220,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       .extension<StackColors>()!
                                       .textDark,
                                   fontSize: 18,
+                                  height: 1.3,
                                 ),
                               ),
                             ],
@@ -367,10 +373,12 @@ class _NewWalletRecoveryPhraseWarningViewState
                               ),
                               Flexible(
                                 child: Text(
-                                  "I understand that Stack Wallet does not keep and cannot restore your recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
+                                  "I understand that Stack Wallet does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
                                   style: isDesktop
                                       ? STextStyles.desktopTextMedium(context)
-                                      : STextStyles.baseXS(context),
+                                      : STextStyles.baseXS(context).copyWith(
+                                          height: 1.3,
+                                        ),
                                 ),
                               ),
                             ],
