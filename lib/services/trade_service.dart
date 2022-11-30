@@ -11,6 +11,16 @@ class TradesService extends ChangeNotifier {
     return list;
   }
 
+  Trade? get(String tradeId) {
+    try {
+      return DB.instance
+          .values<Trade>(boxName: DB.boxNameTradesV2)
+          .firstWhere((e) => e.tradeId == tradeId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> add({
     required Trade trade,
     required bool shouldNotifyListeners,

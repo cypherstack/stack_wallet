@@ -3,18 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
-
-import '../../../route_generator.dart';
-import '../../../widgets/desktop/desktop_dialog.dart';
-import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 
 class DesktopTradeHistory extends ConsumerStatefulWidget {
   const DesktopTradeHistory({Key? key}) : super(key: key);
@@ -60,9 +61,21 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Exchange details",
-            style: STextStyles.desktopTextExtraExtraSmall(context),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Recent trades",
+                style: STextStyles.desktopTextExtraExtraSmall(context),
+              ),
+              BlueTextButton(
+                text: "See all",
+                onTap: () {
+                  Navigator.of(context)
+                      .pushNamed(DesktopAllTradesView.routeName);
+                },
+              ),
+            ],
           ),
           const SizedBox(
             height: 16,
@@ -126,9 +139,7 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                 return [
                                   FadePageRoute(
                                     DesktopDialog(
-                                      // maxHeight:
-                                      //     MediaQuery.of(context).size.height - 64,
-                                      maxHeight: double.infinity,
+                                      maxHeight: null,
                                       maxWidth: 580,
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
@@ -159,11 +170,14 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                             ),
                                           ),
                                           Flexible(
-                                            child: TradeDetailsView(
-                                              tradeId: tradeId,
-                                              transactionIfSentFromStack: tx,
-                                              walletName: manager.walletName,
-                                              walletId: walletIds.first,
+                                            child: SingleChildScrollView(
+                                              primary: false,
+                                              child: TradeDetailsView(
+                                                tradeId: tradeId,
+                                                transactionIfSentFromStack: tx,
+                                                walletName: manager.walletName,
+                                                walletId: walletIds.first,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -189,9 +203,7 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                 return [
                                   FadePageRoute(
                                     DesktopDialog(
-                                      // maxHeight:
-                                      //     MediaQuery.of(context).size.height - 64,
-                                      maxHeight: double.infinity,
+                                      maxHeight: null,
                                       maxWidth: 580,
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
@@ -222,11 +234,15 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                             ),
                                           ),
                                           Flexible(
-                                            child: TradeDetailsView(
-                                              tradeId: tradeId,
-                                              transactionIfSentFromStack: null,
-                                              walletName: null,
-                                              walletId: walletIds?.first,
+                                            child: SingleChildScrollView(
+                                              primary: false,
+                                              child: TradeDetailsView(
+                                                tradeId: tradeId,
+                                                transactionIfSentFromStack:
+                                                    null,
+                                                walletName: null,
+                                                walletId: walletIds?.first,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -258,13 +274,26 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
         ],
       );
     } else {
-      return RoundedWhiteContainer(
-        child: Center(
-          child: Text(
-            "Trades will appear here",
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Recent trades",
             style: STextStyles.desktopTextExtraExtraSmall(context),
           ),
-        ),
+          const SizedBox(
+            height: 16,
+          ),
+          RoundedWhiteContainer(
+            child: Center(
+              child: Text(
+                "Trades will appear here",
+                style: STextStyles.desktopTextExtraExtraSmall(context),
+              ),
+            ),
+          ),
+        ],
       );
     }
   }

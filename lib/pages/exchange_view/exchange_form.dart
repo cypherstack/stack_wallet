@@ -1359,8 +1359,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         SizedBox(
           height: isDesktop ? 20 : 12,
         ),
-        RateTypeToggle(
-          onChanged: onRateTypeChanged,
+        SizedBox(
+          height: 60,
+          child: RateTypeToggle(
+            onChanged: onRateTypeChanged,
+          ),
         ),
         if (ref.read(exchangeFormStateProvider).fromAmount != null &&
             ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)

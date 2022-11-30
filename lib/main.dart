@@ -77,12 +77,12 @@ void main() async {
   }
 
   Screen? screen;
-  if (Platform.isLinux || Util.isDesktop) {
+  if (Platform.isLinux || (Util.isDesktop && !Platform.isIOS)) {
     screen = await getCurrentScreen();
     Util.screenWidth = screen?.frame.width;
   }
 
-  if (Util.isDesktop) {
+  if (Util.isDesktop && !Platform.isIOS) {
     setWindowTitle('Stack Wallet');
     setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);

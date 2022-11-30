@@ -85,6 +85,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/pages_desktop_specific/forgot_password_desktop_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
@@ -96,12 +97,14 @@ import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_vie
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
 import 'package:stackwallet/pages_desktop_specific/home/notifications/desktop_notifications_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings/advanced_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings/currency_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
@@ -114,9 +117,6 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
-
-import 'pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
-import 'pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
 
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;
@@ -1027,6 +1027,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const DesktopExchangeView(),
+            settings: RouteSettings(name: settings.name));
+
+      case DesktopAllTradesView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopAllTradesView(),
             settings: RouteSettings(name: settings.name));
 
       case DesktopSettingsView.routeName:

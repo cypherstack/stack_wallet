@@ -214,8 +214,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundedWhiteContainer(
-                    borderColor:
-                        Theme.of(context).extension<StackColors>()!.background,
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
                     padding: const EdgeInsets.all(0),
                     child: ListView(
                       primary: false,
@@ -281,7 +282,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     ? BoxDecoration(
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .background,
+                            .backgroundAppBar,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(
                             Constants.size.circularBorderRadius,
@@ -1115,31 +1116,40 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   const SizedBox(
                     height: 4,
                   ),
-                  Builder(builder: (context) {
-                    late final String url;
-                    switch (trade.exchangeName) {
-                      case ChangeNowExchange.exchangeName:
-                        url =
-                            "https://changenow.io/exchange/txs/${trade.tradeId}";
-                        break;
-                      case SimpleSwapExchange.exchangeName:
-                        url =
-                            "https://simpleswap.io/exchange?id=${trade.tradeId}";
-                        break;
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        launchUrl(
-                          Uri.parse(url),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      },
-                      child: Text(
-                        url,
-                        style: STextStyles.link2(context),
-                      ),
-                    );
-                  }),
+                  Builder(
+                    builder: (context) {
+                      late final String url;
+                      switch (trade.exchangeName) {
+                        case ChangeNowExchange.exchangeName:
+                          url =
+                              "https://changenow.io/exchange/txs/${trade.tradeId}";
+                          break;
+                        case SimpleSwapExchange.exchangeName:
+                          url =
+                              "https://simpleswap.io/exchange?id=${trade.tradeId}";
+                          break;
+                      }
+                      return ConditionalParent(
+                        condition: isDesktop,
+                        builder: (child) => MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: child,
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            launchUrl(
+                              Uri.parse(url),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          child: Text(
+                            url,
+                            style: STextStyles.link2(context),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -1188,7 +1198,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      color: Theme.of(context).extension<StackColors>()!.background,
+      color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
     );
   }
 }
