@@ -71,15 +71,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
-  late TextEditingController noteController;
   // late TextEditingController feeController;
 
   late final SendViewAutoFillData? _data;
 
   final _addressFocusNode = FocusNode();
-  final _noteFocusNode = FocusNode();
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
+
+  String? _note;
 
   Decimal? _amountToSend;
   Decimal? _cachedAmountToSend;
@@ -255,7 +255,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                 sendToController.text = "";
                                 cryptoAmountController.text = "";
                                 baseAmountController.text = "";
-                                noteController.text = "";
                               });
                             },
                           ),
@@ -325,7 +324,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           context,
           rootNavigator: true,
         ).pop();
-        txData["note"] = noteController.text;
+        txData["note"] = _note;
         txData["address"] = _address;
 
         unawaited(
@@ -633,9 +632,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
         // autofill notes field
         if (results["message"] != null) {
-          noteController.text = results["message"]!;
+          _note = results["message"]!;
         } else if (results["label"] != null) {
-          noteController.text = results["label"]!;
+          _note = results["label"]!;
         }
 
         // autofill amount field
@@ -783,7 +782,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
-    noteController = TextEditingController();
     // feeController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
@@ -828,10 +826,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     sendToController.dispose();
     cryptoAmountController.dispose();
     baseAmountController.dispose();
-    noteController.dispose();
     // feeController.dispose();
 
-    _noteFocusNode.dispose();
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
@@ -1298,73 +1294,73 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             }
           },
         ),
-        const SizedBox(
-          height: 20,
-        ),
-        Text(
-          "Note (optional)",
-          style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconRight,
-          ),
-          textAlign: TextAlign.left,
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
-          ),
-          child: TextField(
-            minLines: 1,
-            maxLines: 5,
-            autocorrect: Util.isDesktop ? false : true,
-            enableSuggestions: Util.isDesktop ? false : true,
-            controller: noteController,
-            focusNode: _noteFocusNode,
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveText,
-              height: 1.8,
-            ),
-            onChanged: (_) => setState(() {}),
-            decoration: standardInputDecoration(
-              "Type something...",
-              _noteFocusNode,
-              context,
-              desktopMed: true,
-            ).copyWith(
-              contentPadding: const EdgeInsets.only(
-                left: 16,
-                top: 11,
-                bottom: 12,
-                right: 5,
-              ),
-              suffixIcon: noteController.text.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(right: 0),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            TextFieldIconButton(
-                              child: const XIcon(),
-                              onTap: () async {
-                                setState(() {
-                                  noteController.text = "";
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-          ),
-        ),
+        // const SizedBox(
+        //   height: 20,
+        // ),
+        // Text(
+        //   "Note (optional)",
+        //   style: STextStyles.desktopTextExtraSmall(context).copyWith(
+        //     color: Theme.of(context)
+        //         .extension<StackColors>()!
+        //         .textFieldActiveSearchIconRight,
+        //   ),
+        //   textAlign: TextAlign.left,
+        // ),
+        // const SizedBox(
+        //   height: 10,
+        // ),
+        // ClipRRect(
+        //   borderRadius: BorderRadius.circular(
+        //     Constants.size.circularBorderRadius,
+        //   ),
+        //   child: TextField(
+        //     minLines: 1,
+        //     maxLines: 5,
+        //     autocorrect: Util.isDesktop ? false : true,
+        //     enableSuggestions: Util.isDesktop ? false : true,
+        //     controller: noteController,
+        //     focusNode: _noteFocusNode,
+        //     style: STextStyles.desktopTextExtraSmall(context).copyWith(
+        //       color: Theme.of(context)
+        //           .extension<StackColors>()!
+        //           .textFieldActiveText,
+        //       height: 1.8,
+        //     ),
+        //     onChanged: (_) => setState(() {}),
+        //     decoration: standardInputDecoration(
+        //       "Type something...",
+        //       _noteFocusNode,
+        //       context,
+        //       desktopMed: true,
+        //     ).copyWith(
+        //       contentPadding: const EdgeInsets.only(
+        //         left: 16,
+        //         top: 11,
+        //         bottom: 12,
+        //         right: 5,
+        //       ),
+        //       suffixIcon: noteController.text.isNotEmpty
+        //           ? Padding(
+        //               padding: const EdgeInsets.only(right: 0),
+        //               child: UnconstrainedBox(
+        //                 child: Row(
+        //                   children: [
+        //                     TextFieldIconButton(
+        //                       child: const XIcon(),
+        //                       onTap: () async {
+        //                         setState(() {
+        //                           noteController.text = "";
+        //                         });
+        //                       },
+        //                     ),
+        //                   ],
+        //                 ),
+        //               ),
+        //             )
+        //           : null,
+        //     ),
+        //   ),
+        // ),
         const SizedBox(
           height: 20,
         ),
