@@ -1,9 +1,4 @@
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/models/transaction_filter.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/color_theme_provider.dart';
@@ -24,6 +19,11 @@ import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
+import 'package:flutter_svg/svg.dart';
 
 class TransactionSearchFilterView extends ConsumerStatefulWidget {
   const TransactionSearchFilterView({
@@ -926,23 +926,6 @@ class _TransactionSearchViewState
                 label: "Save",
               ),
             ),
-            // Expanded(
-            //   child: SizedBox(
-            //     height: 48,
-            //     child: TextButton(
-            //       style: Theme.of(context)
-            //           .extension<StackColors>()!
-            //           .getPrimaryEnabledButtonColor(context),
-            //       onPressed: () async {
-            //         await _onApplyPressed();
-            //       },
-            //       child: Text(
-            //         "Save",
-            //         style: STextStyles.button(context),
-            //       ),
-            //     ),
-            //   ),
-            // ),
             if (isDesktop)
               const SizedBox(
                 width: 32,
@@ -967,22 +950,10 @@ class _TransactionSearchViewState
     }
     int? amount;
     if (amountDecimal != null) {
-      if (widget.coin == Coin.monero) {
-        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinMonero))
-            .floor()
-            .toBigInt()
-            .toInt();
-      } else if (widget.coin == Coin.wownero) {
-        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinWownero))
-            .floor()
-            .toBigInt()
-            .toInt();
-      } else {
-        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoin))
-            .floor()
-            .toBigInt()
-            .toInt();
-      }
+      amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoin))
+          .floor()
+          .toBigInt()
+          .toInt();
     }
 
     final TransactionFilter filter = TransactionFilter(

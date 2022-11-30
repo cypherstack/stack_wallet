@@ -183,12 +183,9 @@ class CoinThemeColor {
   Color get bitcoin => const Color(0xFFFCC17B);
   Color get litecoin => const Color(0xFF7FA6E1);
   Color get bitcoincash => const Color(0xFF7BCFB8);
-  Color get firo => const Color(0xFFFF897A);
   Color get dogecoin => const Color(0xFFFFE079);
   Color get epicCash => const Color(0xFFC5C7CB);
-  Color get monero => const Color(0xFFFF9E6B);
   Color get namecoin => const Color(0xFF91B1E1);
-  Color get wownero => const Color(0xFFED80C1);
 
   Color forCoin(Coin coin) {
     switch (coin) {
@@ -206,15 +203,8 @@ class CoinThemeColor {
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
-      case Coin.firo:
-      case Coin.firoTestNet:
-        return firo;
-      case Coin.monero:
-        return monero;
       case Coin.namecoin:
         return namecoin;
-      case Coin.wownero:
-        return wownero;
     }
   }
 }

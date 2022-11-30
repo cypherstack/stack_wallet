@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:epicmobile/electrumx_rpc/electrumx.dart';
 import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/prefs.dart';

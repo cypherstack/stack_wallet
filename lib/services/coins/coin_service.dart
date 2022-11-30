@@ -7,15 +7,11 @@ import 'package:epicmobile/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:epicmobile/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:epicmobile/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
-import 'package:epicmobile/services/coins/monero/monero_wallet.dart';
+import 'package:epicmobile/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:epicmobile/services/coins/namecoin/namecoin_wallet.dart';
-import 'package:epicmobile/services/coins/wownero/wownero_wallet.dart';
 import 'package:epicmobile/services/transaction_notification_tracker.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/prefs.dart';
-
-import 'litecoin/litecoin_wallet.dart';
 
 abstract class CoinServiceAPI {
   CoinServiceAPI();
@@ -62,26 +58,8 @@ abstract class CoinServiceAPI {
           .toList(),
       prefs: prefs,
     );
-    switch (coin) {
-      case Coin.firo:
-        return FiroWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
-      case Coin.firoTestNet:
-        return FiroWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
 
+    switch (coin) {
       case Coin.bitcoin:
         return BitcoinWallet(
           walletId: walletId,
@@ -154,22 +132,6 @@ abstract class CoinServiceAPI {
 
       case Coin.epicCash:
         return EpicCashWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          // tracker: tracker,
-        );
-
-      case Coin.monero:
-        return MoneroWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          // tracker: tracker,
-        );
-
-      case Coin.wownero:
-        return WowneroWallet(
           walletId: walletId,
           walletName: walletName,
           coin: coin,

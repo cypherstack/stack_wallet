@@ -1,12 +1,8 @@
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -16,6 +12,9 @@ import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/animated_text.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class WalletSummaryInfo extends StatefulWidget {
   const WalletSummaryInfo({
@@ -75,19 +74,11 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
 
               Future<Decimal>? totalBalanceFuture;
               Future<Decimal>? availableBalanceFuture;
-              if (coin == Coin.firo || coin == Coin.firoTestNet) {
-                final firoWallet =
-                    ref.watch(managerProvider.select((value) => value.wallet))
-                        as FiroWallet;
-                totalBalanceFuture = firoWallet.availablePublicBalance();
-                availableBalanceFuture = firoWallet.availablePrivateBalance();
-              } else {
-                totalBalanceFuture = ref.watch(
-                    managerProvider.select((value) => value.totalBalance));
+              totalBalanceFuture = ref
+                  .watch(managerProvider.select((value) => value.totalBalance));
 
-                availableBalanceFuture = ref.watch(
-                    managerProvider.select((value) => value.availableBalance));
-              }
+              availableBalanceFuture = ref.watch(
+                  managerProvider.select((value) => value.availableBalance));
 
               final locale = ref.watch(localeServiceChangeNotifierProvider
                   .select((value) => value.locale));
@@ -127,26 +118,15 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                           onTap: showSheet,
                           child: Row(
                             children: [
-                              if (coin == Coin.firo || coin == Coin.firoTestNet)
-                                Text(
-                                  "${_showAvailable ? "Private" : "Public"} Balance",
-                                  style:
-                                      STextStyles.subtitle500(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFavoriteCard,
-                                  ),
+                              Text(
+                                "${_showAvailable ? "Available" : "Full"} Balance",
+                                style:
+                                    STextStyles.subtitle500(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFavoriteCard,
                                 ),
-                              if (coin != Coin.firo && coin != Coin.firoTestNet)
-                                Text(
-                                  "${_showAvailable ? "Available" : "Full"} Balance",
-                                  style:
-                                      STextStyles.subtitle500(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFavoriteCard,
-                                  ),
-                                ),
+                              ),
                               const SizedBox(
                                 width: 4,
                               ),
@@ -201,26 +181,15 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                           onTap: showSheet,
                           child: Row(
                             children: [
-                              if (coin == Coin.firo || coin == Coin.firoTestNet)
-                                Text(
-                                  "${_showAvailable ? "Private" : "Public"} Balance",
-                                  style:
-                                      STextStyles.subtitle500(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFavoriteCard,
-                                  ),
+                              Text(
+                                "${_showAvailable ? "Available" : "Full"} Balance",
+                                style:
+                                    STextStyles.subtitle500(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFavoriteCard,
                                 ),
-                              if (coin != Coin.firo && coin != Coin.firoTestNet)
-                                Text(
-                                  "${_showAvailable ? "Available" : "Full"} Balance",
-                                  style:
-                                      STextStyles.subtitle500(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFavoriteCard,
-                                  ),
-                                ),
+                              ),
                               const SizedBox(
                                 width: 4,
                               ),

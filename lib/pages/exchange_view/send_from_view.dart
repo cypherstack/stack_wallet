@@ -1,16 +1,12 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/models/exchange/response_objects/trade.dart';
 import 'package:epicmobile/pages/exchange_view/confirm_change_now_send.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/route_generator.dart';
-import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
@@ -20,11 +16,12 @@ import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/animated_text.dart';
-import 'package:epicmobile/widgets/conditional_parent.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/expandable.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class SendFromView extends ConsumerStatefulWidget {
   const SendFromView({
@@ -201,33 +198,10 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             // ref.read(feeRateTypeStateProvider)
           },
         );
-      } else {
-        final firoWallet = manager.wallet as FiroWallet;
-        // otherwise do firo send based on balance selected
-        if (shouldSendPublicFiroFunds) {
-          txData = await firoWallet.prepareSendPublic(
-            address: address,
-            satoshiAmount: _amount,
-            args: {
-              "feeRate": FeeRateType.average,
-              // ref.read(feeRateTypeStateProvider)
-            },
-          );
-        } else {
-          txData = await firoWallet.prepareSend(
-            address: address,
-            satoshiAmount: _amount,
-            args: {
-              "feeRate": FeeRateType.average,
-              // ref.read(feeRateTypeStateProvider)
-            },
-          );
-        }
       }
 
       if (!wasCancelled) {
         // pop building dialog
-
         if (mounted) {
           Navigator.of(context).pop();
         }
@@ -314,274 +288,86 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
-      child: ConditionalParent(
-        condition: isFiro,
-        builder: (child) => Expandable(
-          header: Container(
-            color: Colors.transparent,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: child,
-            ),
-          ),
-          body: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MaterialButton(
-                splashColor:
-                    Theme.of(context).extension<StackColors>()!.highlight,
-                key: Key("walletsSheetItemButtonFiroPrivateKey_$walletId"),
-                padding: const EdgeInsets.all(0),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-                onPressed: () => _send(
-                  manager,
-                  shouldSendPublicFiroFunds: false,
-                ),
-                child: Container(
-                  color: Colors.transparent,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 6,
-                      left: 16,
-                      right: 16,
-                      bottom: 6,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Use private balance",
-                              style: STextStyles.itemSubtitle(context),
-                            ),
-                            FutureBuilder(
-                              future: (manager.wallet as FiroWallet)
-                                  .availablePrivateBalance(),
-                              builder: (builderContext,
-                                  AsyncSnapshot<Decimal> snapshot) {
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  return Text(
-                                    "${Format.localizedStringAsFixed(
-                                      value: snapshot.data!,
-                                      locale: locale,
-                                      decimalPlaces: Constants.decimalPlaces,
-                                    )} ${coin.ticker}",
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                } else {
-                                  return AnimatedText(
-                                    stringsToLoopThrough: const [
-                                      "Loading balance",
-                                      "Loading balance.",
-                                      "Loading balance..",
-                                      "Loading balance..."
-                                    ],
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                        SvgPicture.asset(
-                          Assets.svg.chevronRight,
-                          height: 14,
-                          width: 7,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemLabel,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              MaterialButton(
-                splashColor:
-                    Theme.of(context).extension<StackColors>()!.highlight,
-                key: Key("walletsSheetItemButtonFiroPublicKey_$walletId"),
-                padding: const EdgeInsets.all(0),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-                onPressed: () => _send(
-                  manager,
-                  shouldSendPublicFiroFunds: true,
-                ),
-                child: Container(
-                  color: Colors.transparent,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 6,
-                      left: 16,
-                      right: 16,
-                      bottom: 6,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Use public balance",
-                              style: STextStyles.itemSubtitle(context),
-                            ),
-                            FutureBuilder(
-                              future: (manager.wallet as FiroWallet)
-                                  .availablePublicBalance(),
-                              builder: (builderContext,
-                                  AsyncSnapshot<Decimal> snapshot) {
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  return Text(
-                                    "${Format.localizedStringAsFixed(
-                                      value: snapshot.data!,
-                                      locale: locale,
-                                      decimalPlaces: Constants.decimalPlaces,
-                                    )} ${coin.ticker}",
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                } else {
-                                  return AnimatedText(
-                                    stringsToLoopThrough: const [
-                                      "Loading balance",
-                                      "Loading balance.",
-                                      "Loading balance..",
-                                      "Loading balance..."
-                                    ],
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                        SvgPicture.asset(
-                          Assets.svg.chevronRight,
-                          height: 14,
-                          width: 7,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemLabel,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 6,
-              ),
-            ],
+      child: MaterialButton(
+        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+        key: Key("walletsSheetItemButtonKey_$walletId"),
+        padding: const EdgeInsets.all(8),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
           ),
         ),
-        child: ConditionalParent(
-          condition: !isFiro,
-          builder: (child) => MaterialButton(
-            splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-            key: Key("walletsSheetItemButtonKey_$walletId"),
-            padding: const EdgeInsets.all(8),
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
+        onPressed: () => _send(manager),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .colorForCoin(manager.coin)
+                    .withOpacity(0.5),
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: SvgPicture.asset(
+                  Assets.svg.iconFor(coin: coin),
+                  width: 24,
+                  height: 24,
+                ),
               ),
             ),
-            onPressed: () => _send(manager),
-            child: child,
-          ),
-          child: Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .colorForCoin(manager.coin)
-                      .withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
+            const SizedBox(
+              width: 12,
+            ),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    manager.walletName,
+                    style: STextStyles.titleBold12(context),
                   ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: SvgPicture.asset(
-                    Assets.svg.iconFor(coin: coin),
-                    width: 24,
-                    height: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      manager.walletName,
-                      style: STextStyles.titleBold12(context),
+                  if (!isFiro)
+                    const SizedBox(
+                      height: 2,
                     ),
-                    if (!isFiro)
-                      const SizedBox(
-                        height: 2,
-                      ),
-                    if (!isFiro)
-                      FutureBuilder(
-                        future: manager.totalBalance,
-                        builder:
-                            (builderContext, AsyncSnapshot<Decimal> snapshot) {
-                          if (snapshot.connectionState ==
-                                  ConnectionState.done &&
-                              snapshot.hasData) {
-                            return Text(
-                              "${Format.localizedStringAsFixed(
-                                value: snapshot.data!,
-                                locale: locale,
-                                decimalPlaces: coin == Coin.monero
-                                    ? Constants.decimalPlacesMonero
-                                    : coin == Coin.wownero
-                                        ? Constants.decimalPlacesWownero
-                                        : Constants.decimalPlaces,
-                              )} ${coin.ticker}",
-                              style: STextStyles.itemSubtitle(context),
-                            );
-                          } else {
-                            return AnimatedText(
-                              stringsToLoopThrough: const [
-                                "Loading balance",
-                                "Loading balance.",
-                                "Loading balance..",
-                                "Loading balance..."
-                              ],
-                              style: STextStyles.itemSubtitle(context),
-                            );
-                          }
-                        },
-                      ),
-                  ],
-                ),
+                  if (!isFiro)
+                    FutureBuilder(
+                      future: manager.totalBalance,
+                      builder:
+                          (builderContext, AsyncSnapshot<Decimal> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.hasData) {
+                          return Text(
+                            "${Format.localizedStringAsFixed(
+                              value: snapshot.data!,
+                              locale: locale,
+                              decimalPlaces: Constants.decimalPlaces,
+                            )} ${coin.ticker}",
+                            style: STextStyles.itemSubtitle(context),
+                          );
+                        } else {
+                          return AnimatedText(
+                            stringsToLoopThrough: const [
+                              "Loading balance",
+                              "Loading balance.",
+                              "Loading balance..",
+                              "Loading balance..."
+                            ],
+                            style: STextStyles.itemSubtitle(context),
+                          );
+                        }
+                      },
+                    ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

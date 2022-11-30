@@ -1,25 +1,18 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/models/send_view_auto_fill_data.dart';
 import 'package:epicmobile/pages/send_view/confirm_transaction_view.dart';
 import 'package:epicmobile/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import 'package:epicmobile/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
 import 'package:epicmobile/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:epicmobile/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:epicmobile/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/address_utils.dart';
-import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
 import 'package:epicmobile/utilities/constants.dart';
@@ -42,6 +35,9 @@ import 'package:epicmobile/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -166,20 +162,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
 
     final amount = Format.decimalAmountToSatoshis(_amountToSend!);
-    int availableBalance;
-    if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        availableBalance = Format.decimalAmountToSatoshis(
-            await (manager.wallet as FiroWallet).availablePrivateBalance());
-      } else {
-        availableBalance = Format.decimalAmountToSatoshis(
-            await (manager.wallet as FiroWallet).availablePublicBalance());
-      }
-    } else {
-      availableBalance =
-          Format.decimalAmountToSatoshis(await manager.availableBalance);
-    }
+    int availableBalance =
+        Format.decimalAmountToSatoshis(await manager.availableBalance);
 
     // confirm send all
     if (amount == availableBalance) {
@@ -298,21 +282,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       Map<String, dynamic> txData;
 
-      if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-          ref.read(publicPrivateBalanceStateProvider.state).state !=
-              "Private") {
-        txData = await (manager.wallet as FiroWallet).prepareSendPublic(
-          address: _address!,
-          satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
-        );
-      } else {
-        txData = await manager.prepareSend(
-          address: _address!,
-          satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
-        );
-      }
+      txData = await manager.prepareSend(
+        address: _address!,
+        satoshiAmount: amount,
+        args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+      );
 
       if (!wasCancelled && mounted) {
         // pop building dialog
@@ -474,101 +448,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         (isValidAddress && amount != null && amount > Decimal.zero);
   }
 
-  // late Future<String> _calculateFeesFuture;
-
-  // Map<int, String> cachedFees = {};
-  // Map<int, String> cachedFiroPrivateFees = {};
-  // Map<int, String> cachedFiroPublicFees = {};
-
-  // Future<String> calculateFees(int amount) async {
-  //   if (amount <= 0) {
-  //     return "0";
-  //   }
-  //
-  //   if (coin == Coin.firo || coin == Coin.firoTestNet) {
-  //     if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-  //         "Private") {
-  //       if (cachedFiroPrivateFees[amount] != null) {
-  //         return cachedFiroPrivateFees[amount]!;
-  //       }
-  //     } else {
-  //       if (cachedFiroPublicFees[amount] != null) {
-  //         return cachedFiroPublicFees[amount]!;
-  //       }
-  //     }
-  //   } else if (cachedFees[amount] != null) {
-  //     return cachedFees[amount]!;
-  //   }
-  //
-  //   final manager =
-  //       ref.read(walletsChangeNotifierProvider).getManager(walletId);
-  //   final feeObject = await manager.fees;
-  //
-  //   late final int feeRate;
-  //
-  //   switch (ref.read(feeRateTypeStateProvider.state).state) {
-  //     case FeeRateType.fast:
-  //       feeRate = feeObject.fast;
-  //       break;
-  //     case FeeRateType.average:
-  //       feeRate = feeObject.medium;
-  //       break;
-  //     case FeeRateType.slow:
-  //       feeRate = feeObject.slow;
-  //       break;
-  //   }
-  //
-  //   int fee;
-  //
-  //   if (coin == Coin.firo || coin == Coin.firoTestNet) {
-  //     if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-  //         "Private") {
-  //       fee = await manager.estimateFeeFor(amount, feeRate);
-  //
-  //       cachedFiroPrivateFees[amount] = Format.satoshisToAmount(fee)
-  //           .toStringAsFixed(Constants.decimalPlaces);
-  //
-  //       return cachedFiroPrivateFees[amount]!;
-  //     } else {
-  //       fee = await (manager.wallet as FiroWallet)
-  //           .estimateFeeForPublic(amount, feeRate);
-  //
-  //       cachedFiroPublicFees[amount] = Format.satoshisToAmount(fee)
-  //           .toStringAsFixed(Constants.decimalPlaces);
-  //
-  //       return cachedFiroPublicFees[amount]!;
-  //     }
-  //   } else {
-  //     fee = await manager.estimateFeeFor(amount, feeRate);
-  //     cachedFees[amount] =
-  //         Format.satoshisToAmount(fee).toStringAsFixed(Constants.decimalPlaces);
-  //
-  //     return cachedFees[amount]!;
-  //   }
-  // }
-
-  Future<String?> _firoBalanceFuture(
-    ChangeNotifierProvider<Manager> provider,
-    String locale,
-  ) async {
-    final wallet = ref.read(provider).wallet as FiroWallet?;
-
-    if (wallet != null) {
-      Decimal? balance;
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        balance = await wallet.availablePrivateBalance();
-      } else {
-        balance = await wallet.availablePublicBalance();
-      }
-
-      return Format.localizedStringAsFixed(
-          value: balance, locale: locale, decimalPlaces: 8);
-    }
-
-    return null;
-  }
-
+  /// took if (Coin == Coin.firo) out
   Widget firoBalanceFutureBuilder(
     BuildContext context,
     AsyncSnapshot<String?> snapshot,
@@ -733,37 +613,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
     }
-    // setState(() {
-    //   _calculateFeesFuture = calculateFees(
-    //       Format.decimalAmountToSatoshis(
-    //           _amountToSend!));
-    // });
     _updatePreviewButtonState(_address, _amountToSend);
   }
 
   Future<void> sendAllTapped() async {
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final firoWallet = ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(walletId)
-          .wallet as FiroWallet;
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        cryptoAmountController.text =
-            (await firoWallet.availablePrivateBalance())
-                .toStringAsFixed(Constants.decimalPlaces);
-      } else {
-        cryptoAmountController.text =
-            (await firoWallet.availablePublicBalance())
-                .toStringAsFixed(Constants.decimalPlaces);
-      }
-    } else {
-      cryptoAmountController.text = (await ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(walletId)
-              .availableBalance)
-          .toStringAsFixed(Constants.decimalPlaces);
-    }
+    cryptoAmountController.text = (await ref
+            .read(walletsChangeNotifierProvider)
+            .getManager(walletId)
+            .availableBalance)
+        .toStringAsFixed(Constants.decimalPlaces);
   }
 
   @override
@@ -887,77 +745,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (coin == Coin.firo)
           const SizedBox(
             height: 10,
-          ),
-        if (coin == Coin.firo)
-          Stack(
-            children: [
-              TextField(
-                autocorrect: Util.isDesktop ? false : true,
-                enableSuggestions: Util.isDesktop ? false : true,
-                readOnly: true,
-                textInputAction: TextInputAction.none,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                ),
-                child: RawMaterialButton(
-                  splashColor:
-                      Theme.of(context).extension<StackColors>()!.highlight,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                  onPressed: () {
-                    showModalBottomSheet<dynamic>(
-                      backgroundColor: Colors.transparent,
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                      ),
-                      builder: (_) => FiroBalanceSelectionSheet(
-                        walletId: walletId,
-                      ),
-                    );
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          FutureBuilder(
-                            future: _firoBalanceFuture(provider, locale),
-                            builder: firoBalanceFutureBuilder,
-                          ),
-                        ],
-                      ),
-                      SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        width: 8,
-                        height: 4,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle2,
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          ),
-        if (coin == Coin.firo)
-          const SizedBox(
-            height: 20,
           ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/theme/color_theme.dart';
+import 'package:flutter/material.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
   final ThemeType themeType;
@@ -1417,15 +1417,8 @@ class StackColors extends ThemeExtension<StackColors> {
         return _coin.dogecoin;
       case Coin.epicCash:
         return _coin.epicCash;
-      case Coin.firo:
-      case Coin.firoTestNet:
-        return _coin.firo;
-      case Coin.monero:
-        return _coin.monero;
       case Coin.namecoin:
         return _coin.namecoin;
-      case Coin.wownero:
-        return _coin.wownero;
     }
   }
 

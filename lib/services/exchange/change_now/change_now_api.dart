@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:epicmobile/external_api_keys.dart';
 import 'package:epicmobile/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:epicmobile/models/exchange/change_now/estimated_exchange_amount.dart';
@@ -15,6 +13,8 @@ import 'package:epicmobile/models/exchange/response_objects/pair.dart';
 import 'package:epicmobile/models/exchange/response_objects/range.dart';
 import 'package:epicmobile/services/exchange/exchange_response.dart';
 import 'package:epicmobile/utilities/logger.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class ChangeNowAPI {
   static const String scheme = "https";

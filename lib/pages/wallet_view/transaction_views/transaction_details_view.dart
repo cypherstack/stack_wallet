@@ -1,10 +1,6 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/models/models.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/tx_icon.dart';
@@ -34,6 +30,10 @@ import 'package:epicmobile/widgets/icon_widgets/copy_icon.dart';
 import 'package:epicmobile/widgets/icon_widgets/pencil_icon.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -79,12 +79,7 @@ class _TransactionDetailsViewState
     amount = Format.satoshisToAmount(_transaction.amount);
     fee = Format.satoshisToAmount(_transaction.fees);
 
-    if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-        _transaction.subType == "mint") {
-      amountPrefix = "";
-    } else {
-      amountPrefix = _transaction.txType.toLowerCase() == "sent" ? "-" : "+";
-    }
+    amountPrefix = _transaction.txType.toLowerCase() == "sent" ? "-" : "+";
 
     // if (coin == Coin.firo || coin == Coin.firoTestNet) {
     //   showFeePending = true;
@@ -100,16 +95,6 @@ class _TransactionDetailsViewState
   }
 
   String whatIsIt(String type) {
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (_transaction.subType == "mint") {
-        if (_transaction.confirmedStatus) {
-          return "Minted";
-        } else {
-          return "Minting";
-        }
-      }
-    }
-
     if (type == "Received") {
       // if (_transaction.isMinting) {
       //   return "Minting";
@@ -334,14 +319,7 @@ class _TransactionDetailsViewState
                                       children: [
                                         SelectableText(
                                           "$amountPrefix${Format.localizedStringAsFixed(
-                                            value: coin == Coin.monero
-                                                ? (amount / 10000.toDecimal())
-                                                    .toDecimal()
-                                                : coin == Coin.wownero
-                                                    ? (amount /
-                                                            1000.toDecimal())
-                                                        .toDecimal()
-                                                    : amount,
+                                            value: amount,
                                             locale: ref.watch(
                                               localeServiceChangeNotifierProvider
                                                   .select(
@@ -370,7 +348,7 @@ class _TransactionDetailsViewState
                                                 (value) =>
                                                     value.externalCalls)))
                                           SelectableText(
-                                            "$amountPrefix${Format.localizedStringAsFixed(value: (coin == Coin.monero ? (amount / 10000.toDecimal()).toDecimal() : coin == Coin.wownero ? (amount / 1000.toDecimal()).toDecimal() : amount) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
+                                            "$amountPrefix${Format.localizedStringAsFixed(value: amount * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
                                                   localeServiceChangeNotifierProvider
                                                       .select((value) =>
                                                           value.locale),
@@ -445,23 +423,15 @@ class _TransactionDetailsViewState
                               ],
                             ),
                           ),
-                          if (!((coin == Coin.monero || coin == Coin.wownero) &&
-                                  _transaction.txType.toLowerCase() ==
-                                      "sent") &&
-                              !((coin == Coin.firo ||
-                                      coin == Coin.firoTestNet) &&
-                                  _transaction.subType == "mint"))
+                          if (!(_transaction.txType.toLowerCase() == "sent") &&
+                              !(_transaction.subType == "mint"))
                             isDesktop
                                 ? const _Divider()
                                 : const SizedBox(
                                     height: 12,
                                   ),
-                          if (!((coin == Coin.monero || coin == Coin.wownero) &&
-                                  _transaction.txType.toLowerCase() ==
-                                      "sent") &&
-                              !((coin == Coin.firo ||
-                                      coin == Coin.firoTestNet) &&
-                                  _transaction.subType == "mint"))
+                          if (!(_transaction.txType.toLowerCase() == "sent") &&
+                              !(_transaction.subType == "mint"))
                             RoundedWhiteContainer(
                               padding: isDesktop
                                   ? const EdgeInsets.all(16)
@@ -750,13 +720,7 @@ class _TransactionDetailsViewState
                               final feeString = showFeePending
                                   ? _transaction.confirmedStatus
                                       ? Format.localizedStringAsFixed(
-                                          value: coin == Coin.monero
-                                              ? (fee / 10000.toDecimal())
-                                                  .toDecimal()
-                                              : coin == Coin.wownero
-                                                  ? (fee / 1000.toDecimal())
-                                                      .toDecimal()
-                                                  : fee,
+                                          value: fee,
                                           locale: ref.watch(
                                               localeServiceChangeNotifierProvider
                                                   .select(
@@ -765,13 +729,7 @@ class _TransactionDetailsViewState
                                               Constants.decimalPlaces)
                                       : "Pending"
                                   : Format.localizedStringAsFixed(
-                                      value: coin == Coin.monero
-                                          ? (fee / 10000.toDecimal())
-                                              .toDecimal()
-                                          : coin == Coin.wownero
-                                              ? (fee / 1000.toDecimal())
-                                                  .toDecimal()
-                                              : fee,
+                                      value: fee,
                                       locale: ref.watch(
                                           localeServiceChangeNotifierProvider
                                               .select((value) => value.locale)),

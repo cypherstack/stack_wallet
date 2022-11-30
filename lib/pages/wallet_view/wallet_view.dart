@@ -1,11 +1,5 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
-import 'package:event_bus/event_bus.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:epicmobile/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
@@ -24,7 +18,6 @@ import 'package:epicmobile/providers/ui/transaction_filter_provider.dart';
 import 'package:epicmobile/providers/ui/unread_notifications_provider.dart';
 import 'package:epicmobile/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -35,15 +28,17 @@ import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
-import 'package:epicmobile/widgets/custom_loading_overlay.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:event_bus/event_bus.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
@@ -117,14 +112,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
         eventBus.on<WalletSyncStatusChangedEvent>().listen(
       (event) async {
         if (event.walletId == widget.walletId) {
-          // switch (event.newStatus) {
-          //   case WalletSyncStatus.unableToSync:
-          //     break;
-          //   case WalletSyncStatus.synced:
-          //     break;
-          //   case WalletSyncStatus.syncing:
-          //     break;
-          // }
           setState(() {
             _currentSyncStatus = event.newStatus;
           });
@@ -288,72 +275,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
               coin,
               _loadCNData,
             ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> attemptAnonymize() async {
-    bool shouldPop = false;
-    unawaited(
-      showDialog(
-        context: context,
-        builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
-            message: "Anonymizing balance",
-            eventBus: null,
-          ),
-          onWillPop: () async => shouldPop,
-        ),
-      ),
-    );
-    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
-
-    final publicBalance = await firoWallet.availablePublicBalance();
-    if (publicBalance <= Decimal.zero) {
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.info,
-            message: "No funds available to anonymize!",
-            context: context,
-          ),
-        );
-      }
-      return;
-    }
-
-    try {
-      await firoWallet.anonymizeAllPublicFunds();
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
-            context: context,
-          ),
-        );
-      }
-    } catch (e) {
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
-        );
-        await showDialog<dynamic>(
-          context: context,
-          builder: (_) => StackOkDialog(
-            title: "Anonymize all failed",
-            message: "Reason: $e",
           ),
         );
       }
@@ -557,71 +478,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   ),
                 ),
-                if (coin == Coin.firo)
-                  const SizedBox(
-                    height: 10,
-                  ),
-                if (coin == Coin.firo)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            style: Theme.of(context)
-                                .extension<StackColors>()!
-                                .getSecondaryEnabledButtonColor(context),
-                            onPressed: () async {
-                              await showDialog<void>(
-                                context: context,
-                                builder: (context) => StackDialog(
-                                  title: "Attention!",
-                                  message:
-                                      "You're about to anonymize all of your public funds.",
-                                  leftButton: TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text(
-                                      "Cancel",
-                                      style:
-                                          STextStyles.button(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark,
-                                      ),
-                                    ),
-                                  ),
-                                  rightButton: TextButton(
-                                    onPressed: () async {
-                                      Navigator.of(context).pop();
-
-                                      unawaited(attemptAnonymize());
-                                    },
-                                    style: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getPrimaryEnabledButtonColor(context),
-                                    child: Text(
-                                      "Continue",
-                                      style: STextStyles.button(context),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              "Anonymize funds",
-                              style: STextStyles.button(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonTextSecondary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 const SizedBox(
                   height: 20,
                 ),

@@ -1,8 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/models/contact.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
 import 'package:epicmobile/models/transaction_filter.dart';
@@ -33,6 +30,9 @@ import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:epicmobile/widgets/transaction_card.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 class AllTransactionsView extends ConsumerStatefulWidget {
@@ -937,11 +937,7 @@ class _DesktopTransactionCardRowState
                 flex: 6,
                 child: Builder(
                   builder: (_) {
-                    final amount = coin == Coin.monero
-                        ? (_transaction.amount ~/ 10000)
-                        : coin == Coin.wownero
-                            ? (_transaction.amount ~/ 1000)
-                            : _transaction.amount;
+                    final amount = _transaction.amount;
                     return Text(
                       "$prefix${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
@@ -962,11 +958,6 @@ class _DesktopTransactionCardRowState
                     builder: (_) {
                       // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
                       int value = _transaction.amount;
-                      if (coin == Coin.monero) {
-                        value = (value ~/ 10000);
-                      } else if (coin == Coin.wownero) {
-                        value = (value ~/ 1000);
-                      }
 
                       return Text(
                         "$prefix${Format.localizedStringAsFixed(

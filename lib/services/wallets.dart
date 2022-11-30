@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/hive/db.dart';
 import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/services/coins/coin_service.dart';
@@ -14,6 +12,8 @@ import 'package:epicmobile/utilities/listenable_list.dart';
 import 'package:epicmobile/utilities/listenable_map.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/prefs.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
 final ListenableList<ChangeNotifierProvider<Manager>> _nonFavorites =
@@ -223,15 +223,11 @@ class Wallets extends ChangeNotifier {
             final shouldSetAutoSync = shouldAutoSyncAll ||
                 walletIdsToEnableAutoSync.contains(manager.walletId);
 
-            if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
-              walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-            } else {
-              walletInitFutures.add(manager.initializeExisting().then((value) {
-                if (shouldSetAutoSync) {
-                  manager.shouldAutoSync = true;
-                }
-              }));
-            }
+            walletInitFutures.add(manager.initializeExisting().then((value) {
+              if (shouldSetAutoSync) {
+                manager.shouldAutoSync = true;
+              }
+            }));
 
             _managerMap.add(walletId, manager, false);
 
@@ -312,15 +308,11 @@ class Wallets extends ChangeNotifier {
           final shouldSetAutoSync = shouldAutoSyncAll ||
               walletIdsToEnableAutoSync.contains(manager.walletId);
 
-          if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
-            walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-          } else {
-            walletInitFutures.add(manager.initializeExisting().then((value) {
-              if (shouldSetAutoSync) {
-                manager.shouldAutoSync = true;
-              }
-            }));
-          }
+          walletInitFutures.add(manager.initializeExisting().then((value) {
+            if (shouldSetAutoSync) {
+              manager.shouldAutoSync = true;
+            }
+          }));
 
           _managerMap.add(walletId, manager, false);
 

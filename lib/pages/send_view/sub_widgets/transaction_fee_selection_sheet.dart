@@ -1,11 +1,7 @@
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/models/paymint/fee_object_model.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/fee_rate_type_state_provider.dart';
-import 'package:epicmobile/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/enums/fee_rate_type_enum.dart';
@@ -13,6 +9,8 @@ import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/animated_text.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final feeSheetSessionCacheProvider =
     ChangeNotifierProvider<FeeSheetSessionCache>((ref) {
@@ -70,17 +68,9 @@ class _TransactionFeeSelectionSheetState
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate));
-          } else {
-            ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                Format.satoshisToAmount(
-                    await manager.estimateFeeFor(amount, feeRate));
-          }
+          ref.read(feeSheetSessionCacheProvider).fast[amount] =
+              Format.satoshisToAmount(
+                  await manager.estimateFeeFor(amount, feeRate));
         }
         return ref.read(feeSheetSessionCacheProvider).fast[amount]!;
 
@@ -89,17 +79,9 @@ class _TransactionFeeSelectionSheetState
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).average[amount] =
-                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate));
-          } else {
-            ref.read(feeSheetSessionCacheProvider).average[amount] =
-                Format.satoshisToAmount(
-                    await manager.estimateFeeFor(amount, feeRate));
-          }
+          ref.read(feeSheetSessionCacheProvider).average[amount] =
+              Format.satoshisToAmount(
+                  await manager.estimateFeeFor(amount, feeRate));
         }
         return ref.read(feeSheetSessionCacheProvider).average[amount]!;
 
@@ -108,17 +90,9 @@ class _TransactionFeeSelectionSheetState
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate));
-          } else {
-            ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                Format.satoshisToAmount(
-                    await manager.estimateFeeFor(amount, feeRate));
-          }
+          ref.read(feeSheetSessionCacheProvider).slow[amount] =
+              Format.satoshisToAmount(
+                  await manager.estimateFeeFor(amount, feeRate));
         }
         return ref.read(feeSheetSessionCacheProvider).slow[amount]!;
     }

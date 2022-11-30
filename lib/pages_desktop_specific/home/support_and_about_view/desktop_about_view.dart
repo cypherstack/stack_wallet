@@ -1,13 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
-import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart';
-import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -15,6 +7,12 @@ import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const kGithubAPI = "https://api.github.com";
@@ -98,25 +96,13 @@ class DesktopAboutView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    String firoCommit = FIRO_VERSIONS.getPluginVersion();
     String epicCashCommit = EPIC_VERSIONS.getPluginVersion();
-    String moneroCommit = MONERO_VERSIONS.getPluginVersion();
-    List<Future> futureFiroList = [
-      doesCommitExist("cypherstack", "flutter_liblelantus", firoCommit),
-      isHeadCommit("cypherstack", "flutter_liblelantus", "main", firoCommit),
-    ];
-    Future commitFiroFuture = Future.wait(futureFiroList);
     List<Future> futureEpicList = [
       doesCommitExist("cypherstack", "flutter_libepiccash", epicCashCommit),
       isHeadCommit(
           "cypherstack", "flutter_libepiccash", "main", epicCashCommit),
     ];
     Future commitEpicFuture = Future.wait(futureEpicList);
-    List<Future> futureMoneroList = [
-      doesCommitExist("cypherstack", "flutter_libmonero", moneroCommit),
-      isHeadCommit("cypherstack", "flutter_libmonero", "main", moneroCommit),
-    ];
-    Future commitMoneroFuture = Future.wait(futureMoneroList);
 
     debugPrint("BUILD: $runtimeType");
     return DesktopScaffold(
@@ -343,357 +329,158 @@ class DesktopAboutView extends ConsumerWidget {
                                             const SizedBox(
                                               width: 350,
                                             ),
-                                            FutureBuilder(
-                                                future: commitFiroFuture,
-                                                builder: (context,
-                                                    AsyncSnapshot<dynamic>
-                                                        snapshot) {
-                                                  bool commitExists = false;
-                                                  bool isHead = false;
-                                                  CommitStatus stateOfCommit =
-                                                      CommitStatus.notLoaded;
-
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    commitExists = snapshot
-                                                        .data![0] as bool;
-                                                    isHead = snapshot.data![1]
-                                                        as bool;
-                                                    if (commitExists &&
-                                                        isHead) {
-                                                      stateOfCommit =
-                                                          CommitStatus.isHead;
-                                                    } else if (commitExists) {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .isOldCommit;
-                                                    } else {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .notACommit;
-                                                    }
-                                                  }
-                                                  TextStyle indicationStyle =
-                                                      STextStyles.itemSubtitle(
-                                                          context);
-                                                  switch (stateOfCommit) {
-                                                    case CommitStatus.isHead:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorGreen);
-                                                      break;
-                                                    case CommitStatus
-                                                        .isOldCommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorYellow);
-                                                      break;
-                                                    case CommitStatus
-                                                        .notACommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorRed);
-                                                      break;
-                                                    default:
-                                                      break;
-                                                  }
-                                                  return Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        "Firo Build Commit",
-                                                        style: STextStyles
-                                                                .desktopTextExtraExtraSmall(
-                                                                    context)
-                                                            .copyWith(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .extension<
-                                                                        StackColors>()!
-                                                                    .textDark),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
-                                                      SelectableText(
-                                                        firoCommit,
-                                                        style: indicationStyle,
-                                                      ),
-                                                    ],
-                                                  );
-                                                }),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 35),
-                                        Row(
-                                          children: [
-                                            FutureBuilder(
-                                                future: commitEpicFuture,
-                                                builder: (context,
-                                                    AsyncSnapshot<dynamic>
-                                                        snapshot) {
-                                                  bool commitExists = false;
-                                                  bool isHead = false;
-                                                  CommitStatus stateOfCommit =
-                                                      CommitStatus.notLoaded;
-
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    commitExists = snapshot
-                                                        .data![0] as bool;
-                                                    isHead = snapshot.data![1]
-                                                        as bool;
-                                                    if (commitExists &&
-                                                        isHead) {
-                                                      stateOfCommit =
-                                                          CommitStatus.isHead;
-                                                    } else if (commitExists) {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .isOldCommit;
-                                                    } else {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .notACommit;
-                                                    }
-                                                  }
-                                                  TextStyle indicationStyle =
-                                                      STextStyles.itemSubtitle(
-                                                          context);
-                                                  switch (stateOfCommit) {
-                                                    case CommitStatus.isHead:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorGreen);
-                                                      break;
-                                                    case CommitStatus
-                                                        .isOldCommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorYellow);
-                                                      break;
-                                                    case CommitStatus
-                                                        .notACommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorRed);
-                                                      break;
-                                                    default:
-                                                      break;
-                                                  }
-                                                  return Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        "Epic Cash Build Commit",
-                                                        style: STextStyles
-                                                                .desktopTextExtraExtraSmall(
-                                                                    context)
-                                                            .copyWith(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .extension<
-                                                                        StackColors>()!
-                                                                    .textDark),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
-                                                      SelectableText(
-                                                        epicCashCommit,
-                                                        style: indicationStyle,
-                                                      ),
-                                                    ],
-                                                  );
-                                                }),
-                                            const SizedBox(
-                                              width: 105,
-                                            ),
-                                            FutureBuilder(
-                                                future: commitMoneroFuture,
-                                                builder: (context,
-                                                    AsyncSnapshot<dynamic>
-                                                        snapshot) {
-                                                  bool commitExists = false;
-                                                  bool isHead = false;
-                                                  CommitStatus stateOfCommit =
-                                                      CommitStatus.notLoaded;
-
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    commitExists = snapshot
-                                                        .data![0] as bool;
-                                                    isHead = snapshot.data![1]
-                                                        as bool;
-                                                    if (commitExists &&
-                                                        isHead) {
-                                                      stateOfCommit =
-                                                          CommitStatus.isHead;
-                                                    } else if (commitExists) {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .isOldCommit;
-                                                    } else {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .notACommit;
-                                                    }
-                                                  }
-                                                  TextStyle indicationStyle =
-                                                      STextStyles.itemSubtitle(
-                                                          context);
-                                                  switch (stateOfCommit) {
-                                                    case CommitStatus.isHead:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorGreen);
-                                                      break;
-                                                    case CommitStatus
-                                                        .isOldCommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorYellow);
-                                                      break;
-                                                    case CommitStatus
-                                                        .notACommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorRed);
-                                                      break;
-                                                    default:
-                                                      break;
-                                                  }
-                                                  return Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        "Monero Build Commit",
-                                                        style: STextStyles
-                                                                .desktopTextExtraExtraSmall(
-                                                                    context)
-                                                            .copyWith(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .extension<
-                                                                        StackColors>()!
-                                                                    .textDark),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
-                                                      SelectableText(
-                                                        moneroCommit,
-                                                        style: indicationStyle,
-                                                      ),
-                                                    ],
-                                                  );
-                                                }),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 35),
-                                        Row(
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                            Row(
                                               children: [
-                                                Text(
-                                                  "Website",
-                                                  style: STextStyles
-                                                          .desktopTextExtraExtraSmall(
-                                                              context)
-                                                      .copyWith(
-                                                          color: Theme.of(
+                                                FutureBuilder(
+                                                    future: commitEpicFuture,
+                                                    builder: (context,
+                                                        AsyncSnapshot<dynamic>
+                                                            snapshot) {
+                                                      bool commitExists = false;
+                                                      bool isHead = false;
+                                                      CommitStatus
+                                                          stateOfCommit =
+                                                          CommitStatus
+                                                              .notLoaded;
+
+                                                      if (snapshot.connectionState ==
+                                                              ConnectionState
+                                                                  .done &&
+                                                          snapshot.hasData) {
+                                                        commitExists = snapshot
+                                                            .data![0] as bool;
+                                                        isHead = snapshot
+                                                            .data![1] as bool;
+                                                        if (commitExists &&
+                                                            isHead) {
+                                                          stateOfCommit =
+                                                              CommitStatus
+                                                                  .isHead;
+                                                        } else if (commitExists) {
+                                                          stateOfCommit =
+                                                              CommitStatus
+                                                                  .isOldCommit;
+                                                        } else {
+                                                          stateOfCommit =
+                                                              CommitStatus
+                                                                  .notACommit;
+                                                        }
+                                                      }
+                                                      TextStyle
+                                                          indicationStyle =
+                                                          STextStyles
+                                                              .itemSubtitle(
+                                                                  context);
+                                                      switch (stateOfCommit) {
+                                                        case CommitStatus
+                                                            .isHead:
+                                                          indicationStyle = STextStyles
+                                                                  .itemSubtitle(
+                                                                      context)
+                                                              .copyWith(
+                                                                  color: Theme.of(
+                                                                          context)
+                                                                      .extension<
+                                                                          StackColors>()!
+                                                                      .accentColorGreen);
+                                                          break;
+                                                        case CommitStatus
+                                                            .isOldCommit:
+                                                          indicationStyle = STextStyles
+                                                                  .itemSubtitle(
+                                                                      context)
+                                                              .copyWith(
+                                                                  color: Theme.of(
+                                                                          context)
+                                                                      .extension<
+                                                                          StackColors>()!
+                                                                      .accentColorYellow);
+                                                          break;
+                                                        case CommitStatus
+                                                            .notACommit:
+                                                          indicationStyle = STextStyles
+                                                                  .itemSubtitle(
+                                                                      context)
+                                                              .copyWith(
+                                                                  color: Theme.of(
+                                                                          context)
+                                                                      .extension<
+                                                                          StackColors>()!
+                                                                      .accentColorRed);
+                                                          break;
+                                                        default:
+                                                          break;
+                                                      }
+                                                      return Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            "Epic Cash Build Commit",
+                                                            style: STextStyles
+                                                                    .desktopTextExtraExtraSmall(
+                                                                        context)
+                                                                .copyWith(
+                                                                    color: Theme.of(
+                                                                            context)
+                                                                        .extension<
+                                                                            StackColors>()!
+                                                                        .textDark),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          SelectableText(
+                                                            epicCashCommit,
+                                                            style:
+                                                                indicationStyle,
+                                                          ),
+                                                        ],
+                                                      );
+                                                    }),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 35),
+                                            Row(
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "Website",
+                                                      style: STextStyles
+                                                              .desktopTextExtraExtraSmall(
                                                                   context)
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark),
-                                                ),
-                                                const SizedBox(
-                                                  height: 2,
-                                                ),
-                                                BlueTextButton(
-                                                  text:
-                                                      "https://epicmobile.com",
-                                                  onTap: () {
-                                                    launchUrl(
-                                                      Uri.parse(
-                                                          "https://epicmobile.com"),
-                                                      mode: LaunchMode
-                                                          .externalApplication,
-                                                    );
-                                                  },
-                                                ),
+                                                          .copyWith(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .extension<
+                                                                      StackColors>()!
+                                                                  .textDark),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 2,
+                                                    ),
+                                                    BlueTextButton(
+                                                      text:
+                                                          "https://epicmobile.com",
+                                                      onTap: () {
+                                                        launchUrl(
+                                                          Uri.parse(
+                                                              "https://epicmobile.com"),
+                                                          mode: LaunchMode
+                                                              .externalApplication,
+                                                        );
+                                                      },
+                                                    ),
+                                                  ],
+                                                )
                                               ],
                                             )
                                           ],
-                                        )
+                                        ),
                                       ],
                                     );
                                   },
