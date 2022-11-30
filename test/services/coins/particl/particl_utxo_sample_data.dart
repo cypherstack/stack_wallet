@@ -1,22 +1,20 @@
-// TODO these test vectors are valid for Namecoin: update for Particl
-
 import 'package:stackwallet/models/paymint/utxo_model.dart';
 
 final Map<String, List<Map<String, dynamic>>> batchGetUTXOResponse0 = {
   "some id 0": [
     {
       "tx_pos": 0,
-      "value": 988567,
+      "value": 9973187,
       "tx_hash":
-          "32dbc0d21327e0cb94ec6069a8d235affd99689ffc5f68959bfb720bafc04bcf",
-      "height": 629695
+          "7b932948c95cf483798011da3fc77b6d53ee26d3d2ba4d90748cd007bdce48e8",
+      "height": 1314869
     },
     {
       "tx_pos": 0,
-      "value": 1000000,
+      "value": 50000000,
       "tx_hash":
-          "40c8dd876cf111dc00d3aa2fedc93a77c18b391931939d4f99a760226cbff675",
-      "height": 629633
+          "aae9e712e26e5ff77ac2258c47a845ad6e952d580c2ad805e2b5d7667f3d4e42",
+      "height": 1297229
     },
   ],
   "some id 1": [],
@@ -24,36 +22,36 @@ final Map<String, List<Map<String, dynamic>>> batchGetUTXOResponse0 = {
 
 final utxoList = [
   UtxoObject(
-    txid: "dffa9543852197f9fb90f8adafaab8a0b9b4925e9ada8c6bdcaf00bf2e9f60d7",
+    txid: "aab01876c4db40b35ba00bbfb7c58aaec32cad7dc136214b7344a944606cbe73",
     vout: 0,
     status: Status(
       confirmed: true,
-      confirmations: 150,
-      blockHeight: 629695,
-      blockTime: 1663142110,
+      confirmations: 516,
+      blockHeight: 1314869,
+      blockTime: 1669740688,
       blockHash:
-          "32dbc0d21327e0cb94ec6069a8d235affd99689ffc5f68959bfb720bafc04bcf",
+          "6146005e4b21b72d0e2afe5b0cce3abd6e9e9e71c6cf6a1e1150d33e33ba81d4",
     ),
-    value: 988567,
+    value: 9973187,
     fiatWorth: "\$0",
-    txName: "nc1qraffwaq3cxngwp609e03ynwsx8ykgjnjve9f3y",
+    txName: "pw1qj6t0kvsmx8qd95pdh4rwxaz5qp5qtfz0xq2rja",
     blocked: false,
     isCoinbase: false,
   ),
   UtxoObject(
-    txid: "3ef543d0887c3e9f9924f1b2d3b21410d0238937364663ed3414a2c2ddf4ccc6",
+    txid: "909bdf555736c272df0e1df52ca5fcce4f1090b74c0e5d9319bb40e02f4b3add",
     vout: 0,
     status: Status(
       confirmed: true,
-      confirmations: 212,
-      blockHeight: 629633,
-      blockTime: 1663093275,
+      confirmations: 18173,
+      blockHeight: 1297229,
+      blockTime: 1667469296,
       blockHash:
-          "40c8dd876cf111dc00d3aa2fedc93a77c18b391931939d4f99a760226cbff675",
+          "5c5c1a4e2d9cc77a1df4337359f901c92bb4907cff85312599b06141fd1d96d9",
     ),
-    value: 1000000,
+    value: 50000000,
     fiatWorth: "\$0",
-    txName: "nc1qwfda4s9qmdqpnykgpjf85n09ath983srtuxcqx",
+    txName: "PhDSyHLt7ejdPXGve3HFr93pSdFLHUBwdr",
     blocked: false,
     isCoinbase: false,
   ),

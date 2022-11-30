@@ -165,9 +165,9 @@ class _FakeElectrumXNode_11 extends _i1.SmartFake
         );
 }
 
-class _FakeFlutterSecureStorageInterface_12 extends _i1.SmartFake
+class _FakeSecureStorageInterface_12 extends _i1.SmartFake
     implements _i12.SecureStorageInterface {
-  _FakeFlutterSecureStorageInterface_12(
+  _FakeSecureStorageInterface_12(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -1400,7 +1400,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
   @override
   _i12.SecureStorageInterface get secureStorageInterface => (super.noSuchMethod(
         Invocation.getter(#secureStorageInterface),
-        returnValue: _FakeFlutterSecureStorageInterface_12(
+        returnValue: _FakeSecureStorageInterface_12(
           this,
           Invocation.getter(#secureStorageInterface),
         ),

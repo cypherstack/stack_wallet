@@ -1,251 +1,265 @@
-// TODO these test vectors are valid for Namecoin: update for Particl
-
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 
 final transactionData = TransactionData.fromMap({
-  "3ef543d0887c3e9f9924f1b2d3b21410d0238937364663ed3414a2c2ddf4ccc6": tx1,
-  "dffa9543852197f9fb90f8adafaab8a0b9b4925e9ada8c6bdcaf00bf2e9f60d7": tx2,
-  "71b56532e9e7321bd8c30d0f8b14530743049d2f3edd5623065c46eee1dda04d": tx3,
-  "c7e700f7e23a85bbdd9de86d502322a933607ee7ea7e16adaf02e477cdd849b9": tx4,
+  "a51831f09072dc9edb3130f677a484ca03bced8f6d803e8df83a1ed84bc06c0a": tx1,
+  "39a9c37d54d04f9ac6ed45aaa1a02b058391b5d1fc0e2e1d67e50f36b1d82896": tx2,
+  "e53ef367a5f9d8493825400a291136870ea24a750f63897f559851ab80ea1020": tx3,
+  "10e14b1d34c18a563b476c4c36688eb7caebf6658e25753074471d2adef460ba": tx4,
 });
 
 final tx1 = Transaction(
-  txid: "3ef543d0887c3e9f9924f1b2d3b21410d0238937364663ed3414a2c2ddf4ccc6",
+  txid: "a51831f09072dc9edb3130f677a484ca03bced8f6d803e8df83a1ed84bc06c0a",
   confirmedStatus: true,
-  confirmations: 212,
+  confirmations: 15447,
   txType: "Received",
-  amount: 1000000,
-  fees: 23896,
-  height: 629633,
-  address: "nc1qwfda4s9qmdqpnykgpjf85n09ath983srtuxcqx",
-  timestamp: 1663093275,
+  amount: 10000000,
+  fees: 53600,
+  height: 1299909,
+  address: "PtQCgwUx9mLmRDWxB3J7MPnNsWDcce7a5g",
+  timestamp: 1667814832,
   worthNow: "0.00",
   worthAtBlockTimestamp: "0.00",
   inputSize: 2,
   outputSize: 2,
   inputs: [
     Input(
-      txid: "290904699ccbebd0921c4acc4f7a10f41141ee6a07bc64ebca5674c1e5ee8dfa",
+      txid: "e53ef367a5f9d8493825400a291136870ea24a750f63897f559851ab80ea1020",
       vout: 1,
     ),
     Input(
-      txid: "bd84ae7e09414b0ccf5dcbf70a1f89f2fd42119a98af35dd4ecc80210fed0487",
+      txid: "b255bf1b4b2f1a76eab45fd69e589b655261b049f238807b0acbf304d1b8195b",
       vout: 0,
     ),
   ],
   outputs: [
     Output(
-      scriptpubkeyAddress: "nc1qwfda4s9qmdqpnykgpjf85n09ath983srtuxcqx",
-      value: 1000000,
+      scriptpubkeyAddress: "PtQCgwUx9mLmRDWxB3J7MPnNsWDcce7a5g",
+      value: 10000000,
     ),
     Output(
-      scriptpubkeyAddress: "nc1qp7h7fxcnkqcpul202z6nh8yjy8jpt39jcpeapj",
-      value: 29853562,
+      scriptpubkeyAddress: "PsHtVuRCybcTpJQN6ckLFptPB7k9ZkqztA",
+      value: 9946400,
     )
   ],
 );
 
 final tx2 = Transaction(
-  txid: "dffa9543852197f9fb90f8adafaab8a0b9b4925e9ada8c6bdcaf00bf2e9f60d7",
+  txid: "39a9c37d54d04f9ac6ed45aaa1a02b058391b5d1fc0e2e1d67e50f36b1d82896",
   confirmedStatus: true,
-  confirmations: 150,
+  confirmations: 13927,
   txType: "Sent",
-  amount: 988567,
-  fees: 11433,
-  height: 629695,
-  address: "nc1qraffwaq3cxngwp609e03ynwsx8ykgjnjve9f3y",
-  timestamp: 1663142110,
+  amount: 50000000,
+  fees: 49500,
+  height: 1301433,
+  address: "PcKLXor8hqb3qSjtoHQThapJSbPapSDt4C",
+  timestamp: 1668010880,
   worthNow: "0.00",
   worthAtBlockTimestamp: "0.00",
   inputSize: 1,
-  outputSize: 1,
+  outputSize: 2,
   inputs: [
     Input(
-      txid: "3ef543d0887c3e9f9924f1b2d3b21410d0238937364663ed3414a2c2ddf4ccc6",
-      vout: 0,
-    ),
-  ],
-  outputs: [
-    Output(
-      scriptpubkeyAddress: "nc1qraffwaq3cxngwp609e03ynwsx8ykgjnjve9f3y",
-      value: 988567,
-    ),
-  ],
-);
-
-final tx3 = Transaction(
-  txid: "71b56532e9e7321bd8c30d0f8b14530743049d2f3edd5623065c46eee1dda04d",
-  confirmedStatus: true,
-  confirmations: 147,
-  txType: "Received",
-  amount: 988567,
-  fees: 11433,
-  height: 629699,
-  address: "nc1qw4srwqq2semrxje4x6zcrg53g07q0pr3yqv5kr",
-  timestamp: 1663145287,
-  worthNow: "0.00",
-  worthAtBlockTimestamp: "0.00",
-  inputSize: 2,
-  outputSize: 1,
-  inputs: [
-    Input(
-      txid: "dffa9543852197f9fb90f8adafaab8a0b9b4925e9ada8c6bdcaf00bf2e9f60d7",
-      vout: 0,
-    ),
-    Input(
-      txid: "80f8c6de5be2243013348219bbb7043a6d8d00ddc716baf6a69eab517f9a6fc1",
+      txid: "909bdf555736c272df0e1df52ca5fcce4f1090b74c0e5d9319bb40e02f4b3add",
       vout: 1,
     ),
   ],
   outputs: [
     Output(
-      scriptpubkeyAddress: "nc1qw4srwqq2semrxje4x6zcrg53g07q0pr3yqv5kr",
-      value: 1000000,
+      scriptpubkeyAddress: "PcKLXor8hqb3qSjtoHQThapJSbPapSDt4C",
+      value: 50000000,
     ),
     Output(
-      scriptpubkeyAddress: "nc1qsgr7u4hd22rc64r9vlef69en9wzlvmjt8dzyrm",
-      value: 28805770,
+      scriptpubkeyAddress: "PjDq9kwadvgKNtQLTdGqcDsFzPmk9LMjT7",
+      value: 1749802000,
+    ),
+  ],
+);
+
+final tx3 = Transaction(
+  txid: "e53ef367a5f9d8493825400a291136870ea24a750f63897f559851ab80ea1020",
+  confirmedStatus: true,
+  confirmations: 23103,
+  txType: "Received",
+  amount: 10000000,
+  fees: 34623,
+  height: 1292263,
+  address: "PhDSyHLt7ejdPXGve3HFr93pSdFLHUBwdr",
+  timestamp: 1666827392,
+  worthNow: "0.00",
+  worthAtBlockTimestamp: "0.00",
+  inputSize: 1,
+  outputSize: 2,
+  inputs: [
+    Input(
+      txid: "8a2c6a4c0797d057f20f93b5e3b6e5f306493c67b2341626e0375f30f35a2d47",
+      vout: 0,
+    )
+  ],
+  outputs: [
+    Output(
+      scriptpubkeyAddress: "PYv7kk7TKQsSosWLuLveMJqAYxTiDiK5kp",
+      value: 39915877,
+    ),
+    Output(
+      scriptpubkeyAddress: "PhDSyHLt7ejdPXGve3HFr93pSdFLHUBwdr",
+      value: 10000000,
     ),
   ],
 );
 
 final tx4 = Transaction(
-  txid: "c7e700f7e23a85bbdd9de86d502322a933607ee7ea7e16adaf02e477cdd849b9",
+  txid: "10e14b1d34c18a563b476c4c36688eb7caebf6658e25753074471d2adef460ba",
   confirmedStatus: true,
-  confirmations: 130,
+  confirmations: 493,
   txType: "Sent",
-  amount: 988567,
-  fees: 11433,
-  height: 629717,
-  address: "nc1qmdt0fxhpwx7x5ymmm9gvh229adu0kmtukfcsjk",
-  timestamp: 1663155739,
+  amount: 9945773,
+  fees: 27414,
+  height: 1314873,
+  address: "PpqgMahyfqfasunUKfkmVfdpyhhrHa2ibY",
+  timestamp: 1669740960,
   worthNow: "0.00",
   worthAtBlockTimestamp: "0.00",
   inputSize: 1,
   outputSize: 1,
   inputs: [
     Input(
-      txid: "71b56532e9e7321bd8c30d0f8b14530743049d2f3edd5623065c46eee1dda04d",
+      txid: "aab01876c4db40b35ba00bbfb7c58aaec32cad7dc136214b7344a944606cbe73",
       vout: 0,
     ),
   ],
   outputs: [
     Output(
-      scriptpubkeyAddress: "nc1qmdt0fxhpwx7x5ymmm9gvh229adu0kmtukfcsjk",
-      value: 988567,
+      scriptpubkeyAddress: "PpqgMahyfqfasunUKfkmVfdpyhhrHa2ibY",
+      value: 9945773,
     ),
   ],
 );
 
 final tx1Raw = {
-  "txid": "3ef543d0887c3e9f9924f1b2d3b21410d0238937364663ed3414a2c2ddf4ccc6",
-  "hash": "40c8dd876cf111dc00d3aa2fedc93a77c18b391931939d4f99a760226cbff675",
-  "version": 2,
-  "size": 394,
-  "vsize": 232,
-  "weight": 925,
-  "locktime": 0,
+  "txid": "a51831f09072dc9edb3130f677a484ca03bced8f6d803e8df83a1ed84bc06c0a",
+  "hash": "46b7358ccbc018da4e144188f311657e8b694f056211d7511726c4259dca86b4",
+  "size": 374,
+  "vsize": 267,
+  "version": 160,
+  "locktime": 1299908,
   "vin": [
     {
       "txid":
-          "290904699ccbebd0921c4acc4f7a10f41141ee6a07bc64ebca5674c1e5ee8dfa",
+          "e53ef367a5f9d8493825400a291136870ea24a750f63897f559851ab80ea1020",
       "vout": 1,
-      "scriptSig": {
-        "asm": "001466d2173325f3d379c6beb0a4949e937308edb152",
-        "hex": "16001466d2173325f3d379c6beb0a4949e937308edb152"
-      },
+      "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
-        "3044022062d0f32dc051ed1e91889a96070121c77d895f69d2ed5a307d8b320e0352186702206a0c2613e708e5ef8a935aba61b8fa14ddd6ca4e9a80a8b4ded126a879217dd101",
-        "0303cd92ed121ef22398826af055f3006769210e019f8fb43bd2f5556282d84997"
+        "30440220336bf0952b543314ba37b1bb8866a65b2482b499c715d778e92e90d7d59c6a39022072cae4341ca8825bee8043ae91f18de5776edd069ed228142eca55a16c887d6b01",
+        "026b4ca62de9e8f63abd0a6cf176536fe8e6a64d6343b6396aa9fb35232520e4a7"
       ],
-      "sequence": 4294967295
+      "sequence": 4294967293
     },
     {
       "txid":
-          "bd84ae7e09414b0ccf5dcbf70a1f89f2fd42119a98af35dd4ecc80210fed0487",
+          "b255bf1b4b2f1a76eab45fd69e589b655261b049f238807b0acbf304d1b8195b",
       "vout": 0,
       "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
-        "3045022100e8814706766a2d7588908c51209c3b7095241bbc681febdd6b317b7e9b6ea97502205c33c63e4d8a675c19122bfe0057afce2159e6bd86f2c9aced214de77099dc8b01",
-        "03c35212e3a4c0734735eccae9219987dc78d9cf6245ab247942d430d0a01d61be"
+        "304402205b914f31952958d54f0290d47eef6d9042259387c9493993882e24bd9acefe00022066b16f2f41885a85051c9bff4c119ecddc0209520e9a93d75866624f11b4e82d01",
+        "026b4ca62de9e8f63abd0a6cf176536fe8e6a64d6343b6396aa9fb35232520e4a7"
       ],
-      "sequence": 4294967295
+      "sequence": 4294967293
     }
   ],
   "vout": [
     {
-      "value": 0.01,
       "n": 0,
+      "type": "standard",
+      "value": 0.1,
+      "valueSat": 10000000,
       "scriptPubKey": {
-        "asm": "0 725bdac0a0db401992c80c927a4de5eaee53c603",
-        "hex": "0014725bdac0a0db401992c80c927a4de5eaee53c603",
+        "asm":
+            "OP_DUP OP_HASH160 e0923d464a2c30438f0808e4af94868253b63ca0 OP_EQUALVERIFY OP_CHECKSIG",
+        "hex": "76a914e0923d464a2c30438f0808e4af94868253b63ca088ac",
         "reqSigs": 1,
-        "type": "witness_v0_keyhash",
-        "addresses": ["nc1qwfda4s9qmdqpnykgpjf85n09ath983srtuxcqx"]
+        "type": "pubkeyhash",
+        "addresses": ["PtQCgwUx9mLmRDWxB3J7MPnNsWDcce7a5g"]
       }
     },
     {
-      "value": 0.29853562,
       "n": 1,
+      "type": "standard",
+      "value": 0.099464,
+      "valueSat": 9946400,
       "scriptPubKey": {
-        "asm": "0 0fafe49b13b0301e7d4f50b53b9c9221e415c4b2",
-        "hex": "00140fafe49b13b0301e7d4f50b53b9c9221e415c4b2",
+        "asm":
+            "OP_DUP OP_HASH160 d4686eee8cd127b50d28869627d61b38cc63fe4a OP_EQUALVERIFY OP_CHECKSIG",
+        "hex": "76a914d4686eee8cd127b50d28869627d61b38cc63fe4a88ac",
         "reqSigs": 1,
-        "type": "witness_v0_keyhash",
-        "addresses": ["nc1qp7h7fxcnkqcpul202z6nh8yjy8jpt39jcpeapj"]
+        "type": "pubkeyhash",
+        "addresses": ["PsHtVuRCybcTpJQN6ckLFptPB7k9ZkqztA"]
       }
     }
   ],
-  "hex":
-      "02000000000102fa8deee5c17456caeb64bc076aee4111f4107a4fcc4a1c92d0ebcb9c69040929010000001716001466d2173325f3d379c6beb0a4949e937308edb152ffffffff8704ed0f2180cc4edd35af989a1142fdf2891f0af7cb5dcf0c4b41097eae84bd0000000000ffffffff0240420f0000000000160014725bdac0a0db401992c80c927a4de5eaee53c6037a87c701000000001600140fafe49b13b0301e7d4f50b53b9c9221e415c4b202473044022062d0f32dc051ed1e91889a96070121c77d895f69d2ed5a307d8b320e0352186702206a0c2613e708e5ef8a935aba61b8fa14ddd6ca4e9a80a8b4ded126a879217dd101210303cd92ed121ef22398826af055f3006769210e019f8fb43bd2f5556282d8499702483045022100e8814706766a2d7588908c51209c3b7095241bbc681febdd6b317b7e9b6ea97502205c33c63e4d8a675c19122bfe0057afce2159e6bd86f2c9aced214de77099dc8b012103c35212e3a4c0734735eccae9219987dc78d9cf6245ab247942d430d0a01d61be00000000",
   "blockhash":
-      "c9f53cc7cbf654cbcc400e17b33e03a32706d6e6647ad7085c688540f980a378",
-  "confirmations": 212,
-  "time": 1663093275,
-  "blocktime": 1663093275
+      "b7cb29eb9cb4fa73c4da32f5cf8dfd90194eb6b689d4e547fa9b3176a698a741",
+  "height": 1299909,
+  "confirmations": 15447,
+  "time": 1667814832,
+  "blocktime": 1667814832
 };
 
 final tx2Raw = {
-  "txid": "dffa9543852197f9fb90f8adafaab8a0b9b4925e9ada8c6bdcaf00bf2e9f60d7",
-  "hash": "32dbc0d21327e0cb94ec6069a8d235affd99689ffc5f68959bfb720bafc04bcf",
-  "version": 2,
-  "size": 192,
-  "vsize": 110,
-  "weight": 438,
-  "locktime": 0,
+  "txid": "39a9c37d54d04f9ac6ed45aaa1a02b058391b5d1fc0e2e1d67e50f36b1d82896",
+  "hash": "85130125ec9e37a48670fb5eb0a2780b94ea958cd700a1237ff75775d8a0edb0",
+  "size": 226,
+  "vsize": 173,
+  "version": 160,
+  "locktime": 1301432,
   "vin": [
     {
       "txid":
-          "3ef543d0887c3e9f9924f1b2d3b21410d0238937364663ed3414a2c2ddf4ccc6",
-      "vout": 0,
+          "909bdf555736c272df0e1df52ca5fcce4f1090b74c0e5d9319bb40e02f4b3add",
+      "vout": 1,
       "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
-        "30450221009d58ebfaab8eae297910bca93a7fd48f94ce52a1731cf27fb4c043368fa10e8d02207e88f5d868113d9567999793be0a5b752ad704d04224046839763cefe46463a501",
-        "02f6ca5274b59dfb014f6a0d690671964290dac7f97fe825f723204e6cb8daf086"
+        "30440220486c87376122e2d3ca7154f41a45fdafa2865412ec90e4b3db791915eee1d13002204cca8520a655b43c3cddc216725cc8508cd9b326a39ed99ed893be59167289af01",
+        "03acc7ad6e2e9560db73f7ec7ef2f55a6115d85069cf0eacfe3ab663f33415573c"
       ],
-      "sequence": 4294967295
+      "sequence": 4294967293
     }
   ],
   "vout": [
     {
-      "value": 0.00988567,
       "n": 0,
+      "type": "standard",
+      "value": 0.5,
+      "valueSat": 50000000,
       "scriptPubKey": {
-        "asm": "0 1f52977411c1a687074f2e5f124dd031c9644a72",
-        "hex": "00141f52977411c1a687074f2e5f124dd031c9644a72",
+        "asm":
+            "OP_DUP OP_HASH160 3024b192883be45b197b548f71155829af980724 OP_EQUALVERIFY OP_CHECKSIG",
+        "hex": "76a9143024b192883be45b197b548f71155829af98072488ac",
         "reqSigs": 1,
-        "type": "witness_v0_keyhash",
-        "addresses": ["nc1qraffwaq3cxngwp609e03ynwsx8ykgjnjve9f3y"]
+        "type": "pubkeyhash",
+        "addresses": ["PcKLXor8hqb3qSjtoHQThapJSbPapSDt4C"]
+      }
+    },
+    {
+      "n": 1,
+      "type": "standard",
+      "value": 17.49802,
+      "valueSat": 1749802000,
+      "scriptPubKey": {
+        "asm":
+            "OP_DUP OP_HASH160 7be2f80f6b9f6df740142fb34668c25c4e5c8bd5 OP_EQUALVERIFY OP_CHECKSIG",
+        "hex": "76a9147be2f80f6b9f6df740142fb34668c25c4e5c8bd588ac",
+        "reqSigs": 1,
+        "type": "pubkeyhash",
+        "addresses": ["PjDq9kwadvgKNtQLTdGqcDsFzPmk9LMjT7"]
       }
     }
   ],
-  "hex":
-      "02000000000101c6ccf4ddc2a21434ed634636378923d01014b2d3b2f124999f3e7c88d043f53e0000000000ffffffff0197150f00000000001600141f52977411c1a687074f2e5f124dd031c9644a72024830450221009d58ebfaab8eae297910bca93a7fd48f94ce52a1731cf27fb4c043368fa10e8d02207e88f5d868113d9567999793be0a5b752ad704d04224046839763cefe46463a5012102f6ca5274b59dfb014f6a0d690671964290dac7f97fe825f723204e6cb8daf08600000000",
   "blockhash":
-      "ae1129ee834853c45b9edbb7228497c7fa423d7d1bdec8fd155f9e3c429c84d3",
-  "confirmations": 150,
-  "time": 1663142110,
-  "blocktime": 1663142110
+      "065c7328f1a768f3005ab7bfb322806bcc0cf88a96e89830b44991cc434c9955",
+  "height": 1301433,
+  "confirmations": 13927,
+  "time": 1668010880,
+  "blocktime": 1668010880
 };
 
 final tx3Raw = {
@@ -314,44 +328,45 @@ final tx3Raw = {
 };
 
 final tx4Raw = {
-  "txid": "c7e700f7e23a85bbdd9de86d502322a933607ee7ea7e16adaf02e477cdd849b9",
-  "hash": "c6b544ddd7d901fcc7218208a6cfc8e1819c403a22cc8a1f1a7029aafa427925",
-  "version": 2,
-  "size": 192,
-  "vsize": 110,
-  "weight": 438,
-  "locktime": 0,
+  "txid": "10e14b1d34c18a563b476c4c36688eb7caebf6658e25753074471d2adef460ba",
+  "hash": "cb0d83958db55c91fb9cd9cab65ee516e63aea68ae5650a692918779ceb46576",
+  "size": 191,
+  "vsize": 138,
+  "version": 160,
+  "locktime": 1314871,
   "vin": [
     {
       "txid":
-          "71b56532e9e7321bd8c30d0f8b14530743049d2f3edd5623065c46eee1dda04d",
+          "aab01876c4db40b35ba00bbfb7c58aaec32cad7dc136214b7344a944606cbe73",
       "vout": 0,
       "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
-        "3045022100c664c6ad206999e019954c5206a26c2eca1ae2572288c0f78074c279a4a210ce022017456fdf85f744d694fa2e4638acee782d809268ea4808c04d91da3ac4fe7fd401",
-        "035456b63e86c0a6235cb3debfb9654966a4c2362ec678ae3b9beec53d31a25eba"
+        "304402202e33ab9c5bb6a50c24de9ebfd1b2f398b4c9027787fb9620fda515a25b62ffcf02205e8371aeeda3b3765fa1e2a5c7ebce5dffbf18932012670c1f5266992f9ed9c901",
+        "039ca6c697fed4daf1697f137e7d5b113ff7b6c48ea48d707addd9cfa51889a42a"
       ],
-      "sequence": 4294967295
+      "sequence": 4294967293
     }
   ],
   "vout": [
     {
-      "value": 0.00988567,
       "n": 0,
+      "type": "standard",
+      "value": 0.09945773,
+      "valueSat": 9945773,
       "scriptPubKey": {
-        "asm": "0 db56f49ae171bc6a137bd950cba945eb78fb6d7c",
-        "hex": "0014db56f49ae171bc6a137bd950cba945eb78fb6d7c",
+        "asm":
+            "OP_DUP OP_HASH160 b9833ad924ab05567ea2b679a5c523c66a1da6d7 OP_EQUALVERIFY OP_CHECKSIG",
+        "hex": "76a914b9833ad924ab05567ea2b679a5c523c66a1da6d788ac",
         "reqSigs": 1,
-        "type": "witness_v0_keyhash",
-        "addresses": ["nc1qmdt0fxhpwx7x5ymmm9gvh229adu0kmtukfcsjk"]
+        "type": "pubkeyhash",
+        "addresses": ["PpqgMahyfqfasunUKfkmVfdpyhhrHa2ibY"]
       }
     }
   ],
-  "hex":
-      "020000000001014da0dde1ee465c062356dd3e2f9d04430753148b0f0dc3d81b32e7e93265b5710000000000ffffffff0197150f0000000000160014db56f49ae171bc6a137bd950cba945eb78fb6d7c02483045022100c664c6ad206999e019954c5206a26c2eca1ae2572288c0f78074c279a4a210ce022017456fdf85f744d694fa2e4638acee782d809268ea4808c04d91da3ac4fe7fd40121035456b63e86c0a6235cb3debfb9654966a4c2362ec678ae3b9beec53d31a25eba00000000",
   "blockhash":
-      "6f60029ff3a32ca2d7e7e23c02b9cb35f61e7f9481992f9c3ded2c60c7b1de9b",
-  "confirmations": 130,
-  "time": 1663155739,
-  "blocktime": 1663155739
+      "74e2d8acec688645120925c8a10d2fdf9ec61278534c0788d749162a6899ddaf",
+  "height": 1314873,
+  "confirmations": 493,
+  "time": 1669740960,
+  "blocktime": 1669740960
 };
