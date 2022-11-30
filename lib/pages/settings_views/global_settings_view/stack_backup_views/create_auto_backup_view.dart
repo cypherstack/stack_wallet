@@ -1,12 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/auto_backup_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
@@ -26,7 +20,15 @@ import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/progress_bar.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
-import 'package:zxcvbn/zxcvbnteAutoBackupView extends ConsumerStatefulWidget {
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:stack_wallet_backup/stack_wallet_backup.dart';
+import 'package:zxcvbn/zxcvbn.dart';
+
+class CreateAutoBackupView extends ConsumerStatefulWidget {
   const CreateAutoBackupView({
     Key? key,
     this.secureStore = const SecureStorageWrapper(

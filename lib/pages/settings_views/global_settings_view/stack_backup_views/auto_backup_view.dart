@@ -1,7 +1,3 @@
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/create_auto_backup_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/edit_auto_backup_view.dart';
 import 'package:epicmobile/providers/global/auto_swb_service_provider.dart';
@@ -18,7 +14,13 @@ import 'package:epicmobile/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
-import 'package:url_launcher/url_launcherutoBackupView extends ConsumerStatefulWidget {
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class AutoBackupView extends ConsumerStatefulWidget {
   const AutoBackupView({Key? key}) : super(key: key);
 
   static const String routeName = "/stackAutoBackup";

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:epicmobile/pages/intro_view.dart';
 import 'package:epicmobile/utilities/delete_everything.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
@@ -9,7 +8,10 @@ import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
-import 'package:epicmobile/widgets/stack_dialogass DeleteAccountView extends StatefulWidget {
+import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:flutter/material.dart';
+
+class DeleteAccountView extends StatefulWidget {
   const DeleteAccountView({Key? key}) : super(key: key);
 
   static const String routeName = "/deleteAccountView";

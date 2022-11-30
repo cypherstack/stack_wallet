@@ -3,17 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:event_bus/event_bus.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
-import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:epicmobile/models/isar/models/log.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/helpers/stack_file_system.dart';
@@ -33,7 +22,18 @@ import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
-import 'package:epicmobile/widgets/textfield_icon_buttonView extends ConsumerStatefulWidget {
+import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:event_bus/event_bus.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+
+class DebugView extends ConsumerStatefulWidget {
   const DebugView({Key? key}) : super(key: key);
 
   static const String routeName = "/debug";
@@ -288,12 +288,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                   final build = packageInfo.buildNumber;
                                   final signature = packageInfo.buildSignature;
                                   final appName = packageInfo.appName;
-                                  String firoCommit =
-                                      FIRO_VERSIONS.getPluginVersion();
                                   String epicCashCommit =
                                       EPIC_VERSIONS.getPluginVersion();
-                                  String moneroCommit =
-                                      MONERO_VERSIONS.getPluginVersion();
                                   DeviceInfoPlugin deviceInfoPlugin =
                                       DeviceInfoPlugin();
                                   final deviceInfo =
@@ -321,9 +317,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                     "build": build,
                                     "signature": signature,
                                     "appName": appName,
-                                    "firoCommit": firoCommit,
                                     "epicCashCommit": epicCashCommit,
-                                    "moneroCommit": moneroCommit,
                                     "deviceInfoMap": deviceInfoMap,
                                     "errorLogs": errorLogs,
                                   };

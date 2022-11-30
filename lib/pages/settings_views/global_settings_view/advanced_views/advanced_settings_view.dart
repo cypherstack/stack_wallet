@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:epicmobile/pages/stack_privacy_calls.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
@@ -9,7 +7,10 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
-import 'package:tuple/tupleclass AdvancedSettingsView extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class AdvancedSettingsView extends StatelessWidget {
   const AdvancedSettingsView({
     Key? key,
   }) : super(key: key);
