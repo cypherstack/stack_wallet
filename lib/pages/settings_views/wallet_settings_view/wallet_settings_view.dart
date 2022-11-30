@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:event_bus/event_bus.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
@@ -29,7 +26,12 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
-import 'package:tuple/tuplehould only be set during testing
+import 'package:event_bus/event_bus.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
+
+/// [eventBus] should only be set during testing
 class WalletSettingsView extends StatefulWidget {
   const WalletSettingsView({
     Key? key,
