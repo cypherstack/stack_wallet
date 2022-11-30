@@ -341,31 +341,22 @@ class NamecoinWallet extends CoinServiceAPI {
     longMutex = true;
     final start = DateTime.now();
     try {
-      Logging.instance.log("IS_INTEGRATION_TEST: $integrationTestFlag",
-          level: LogLevel.Info);
-      if (!integrationTestFlag) {
-        final features = await electrumXClient.getServerFeatures();
-        Logging.instance.log("features: $features", level: LogLevel.Info);
-        switch (coin) {
-          case Coin.namecoin:
-            if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
-              throw Exception("genesis hash does not match main net!");
-            }
-            break;
-          default:
-            throw Exception(
-                "Attempted to generate a NamecoinWallet using a non namecoin coin type: ${coin.name}");
-        }
-        // if (_networkType == BasicNetworkType.main) {
-        //   if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
-        //     throw Exception("genesis hash does not match main net!");
-        //   }
-        // } else if (_networkType == BasicNetworkType.test) {
-        //   if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
-        //     throw Exception("genesis hash does not match test net!");
-        //   }
-        // }
-      }
+      // Logging.instance.log("IS_INTEGRATION_TEST: $integrationTestFlag",
+      //     level: LogLevel.Info);
+      // if (!integrationTestFlag) {
+      //   final features = await electrumXClient.getServerFeatures();
+      //   Logging.instance.log("features: $features", level: LogLevel.Info);
+      //   switch (coin) {
+      //     case Coin.namecoin:
+      //       if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
+      //         throw Exception("genesis hash does not match main net!");
+      //       }
+      //       break;
+      //     default:
+      //       throw Exception(
+      //           "Attempted to generate a NamecoinWallet using a non namecoin coin type: ${coin.name}");
+      //   }
+      // }
       // check to make sure we aren't overwriting a mnemonic
       // this should never fail
       if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {

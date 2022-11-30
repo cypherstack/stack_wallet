@@ -2145,36 +2145,27 @@ class FiroWallet extends CoinServiceAPI {
 
   /// Generates initial wallet values such as mnemonic, chain (receive/change) arrays and indexes.
   Future<void> _generateNewWallet() async {
-    Logging.instance
-        .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
-    if (!integrationTestFlag) {
-      final features = await electrumXClient.getServerFeatures();
-      Logging.instance.log("features: $features", level: LogLevel.Info);
-      switch (coin) {
-        case Coin.firo:
-          if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
-            throw Exception("genesis hash does not match main net!");
-          }
-          break;
-        case Coin.firoTestNet:
-          if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
-            throw Exception("genesis hash does not match test net!");
-          }
-          break;
-        default:
-          throw Exception(
-              "Attempted to generate a FiroWallet using a non firo coin type: ${coin.name}");
-      }
-      // if (_networkType == BasicNetworkType.main) {
-      //   if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
-      //     throw Exception("genesis hash does not match!");
-      //   }
-      // } else if (_networkType == BasicNetworkType.test) {
-      //   if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
-      //     throw Exception("genesis hash does not match!");
-      //   }
-      // }
-    }
+    // Logging.instance
+    //     .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
+    // if (!integrationTestFlag) {
+    //   final features = await electrumXClient.getServerFeatures();
+    //   Logging.instance.log("features: $features", level: LogLevel.Info);
+    //   switch (coin) {
+    //     case Coin.firo:
+    //       if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
+    //         throw Exception("genesis hash does not match main net!");
+    //       }
+    //       break;
+    //     case Coin.firoTestNet:
+    //       if (features['genesis_hash'] != GENESIS_HASH_TESTNET) {
+    //         throw Exception("genesis hash does not match test net!");
+    //       }
+    //       break;
+    //     default:
+    //       throw Exception(
+    //           "Attempted to generate a FiroWallet using a non firo coin type: ${coin.name}");
+    //   }
+    // }
 
     // this should never fail as overwriting a mnemonic is big bad
     assert((await _secureStore.read(key: '${_walletId}_mnemonic')) == null);
