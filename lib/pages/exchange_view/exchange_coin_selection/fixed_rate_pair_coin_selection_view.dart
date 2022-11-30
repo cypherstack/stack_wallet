@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/models/exchange/response_objects/currency.dart';
 import 'package:epicmobile/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -15,7 +12,12 @@ import 'package:epicmobile/widgets/loading_indicator.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
-import 'package:tuple/tuple FixedRateMarketPairCoinSelectionView extends ConsumerStatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
+
+class FixedRateMarketPairCoinSelectionView extends ConsumerStatefulWidget {
   const FixedRateMarketPairCoinSelectionView({
     Key? key,
     required this.markets,

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/providers/exchange/trade_note_service_provider.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
@@ -8,7 +6,11 @@ import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
-import 'package:epicmobile/widgets/textfield_icon_buttonclass EditTradeNoteView extends ConsumerStatefulWidget {
+import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class EditTradeNoteView extends ConsumerStatefulWidget {
   const EditTradeNoteView({
     Key? key,
     required this.tradeId,

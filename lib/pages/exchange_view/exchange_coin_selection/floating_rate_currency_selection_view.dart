@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/models/exchange/response_objects/currency.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
@@ -12,7 +10,12 @@ import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/loading_indicator.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
-import 'package:epicmobile/widgets/textfield_icon_buttons FloatingRateCurrencySelectionView extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+import '../../../widgets/textfield_icon_button.dart';
+
+class FloatingRateCurrencySelectionView extends StatefulWidget {
   const FloatingRateCurrencySelectionView({
     Key? key,
     required this.currencies,
