@@ -1,24 +1,14 @@
-import 'dart:io';
-
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/about_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/appearance_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/currency_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/delete_account_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/language_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/startup_preferences/startup_preferences_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/support_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'package:epicmobile/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:flutter/material.dart';
 
 class GlobalSettingsView extends StatelessWidget {
@@ -40,6 +30,7 @@ class GlobalSettingsView extends StatelessWidget {
               Navigator.of(context).pop();
             },
           ),
+          centerTitle: true,
           title: Text(
             "Settings",
             style: STextStyles.navBarTitle(context),
@@ -64,185 +55,77 @@ class GlobalSettingsView extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          RoundedWhiteContainer(
-                            padding: const EdgeInsets.all(4),
-                            child: Column(
-                              children: [
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.addressBook,
-                                  iconSize: 16,
-                                  title: "Address book",
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pushNamed(AddressBookView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.lock,
-                                  iconSize: 16,
-                                  title: "Security",
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pushNamed(SecurityView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.dollarSign,
-                                  iconSize: 18,
-                                  title: "Currency",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                        BaseCurrencySettingsView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.language,
-                                  iconSize: 18,
-                                  title: "Language",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                        LanguageSettingsView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.node,
-                                  iconSize: 16,
-                                  title: "Manage nodes",
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pushNamed(ManageNodesView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.arrowRotate3,
-                                  iconSize: 18,
-                                  title: "Syncing preferences",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                        SyncingPreferencesView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.arrowUpRight,
-                                  iconSize: 16,
-                                  title: "Startup",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                        StartupPreferencesView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.sun,
-                                  iconSize: 18,
-                                  title: "Appearance",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                        AppearanceSettingsView.routeName);
-                                  },
-                                ),
-                                if (Platform.isIOS)
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                if (Platform.isIOS)
-                                  SettingsListButton(
-                                    iconAssetName: Assets.svg.circleAlert,
-                                    iconSize: 16,
-                                    title: "Delete account",
-                                    onPressed: () async {
-                                      await Navigator.of(context).pushNamed(
-                                          DeleteAccountView.routeName);
-                                    },
-                                  ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.ellipsis,
-                                  iconSize: 18,
-                                  title: "About",
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pushNamed(AboutView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.solidSliders,
-                                  iconSize: 16,
-                                  title: "Advanced",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                        AdvancedSettingsView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.questionMessage,
-                                  iconSize: 16,
-                                  title: "Support",
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pushNamed(SupportView.routeName);
-                                  },
-                                ),
-                                // TextButton(
-                                //   style: Theme.of(context)
-                                //       .textButtonTheme
-                                //       .style
-                                //       ?.copyWith(
-                                //         backgroundColor:
-                                //             MaterialStateProperty.all<Color>(
-                                //           Theme.of(context).extension<StackColors>()!.accentColorDark
-                                //         ),
-                                //       ),
-                                //   child: Text(
-                                //     "fire test notification",
-                                //     style: STextStyles.button(context),
-                                //   ),
-                                //   onPressed: () async {
-                                //     NotificationApi.showNotification2(
-                                //       title: "Test notification",
-                                //       body: "My doggy wallet",
-                                //       walletId:
-                                //           "3c5e2d70-fcc3-11ec-86a3-31a106a81c3b",
-                                //       iconAssetName:
-                                //           Assets.svg.iconFor(coin: Coin.dogecoin),
-                                //       date: DateTime.now(),
-                                //     );
-                                //   },
-                                // ),
-                              ],
-                            ),
+                          const _Div(),
+                          SettingsListButton(
+                            iconAssetName: Assets.svg.node,
+                            iconSize: 16,
+                            title: "Connections",
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushNamed(ManageNodesView.routeName);
+                            },
                           ),
-                          const SizedBox(
-                            height: 12,
+                          const _Div(),
+                          SettingsListButton(
+                            iconAssetName: Assets.svg.addressBook,
+                            iconSize: 16,
+                            title: "Address book",
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushNamed(AddressBookView.routeName);
+                            },
                           ),
+                          const _Div(),
+                          SettingsListButton(
+                            iconAssetName: Assets.svg.lock,
+                            iconSize: 16,
+                            title: "Security",
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushNamed(SecurityView.routeName);
+                            },
+                          ),
+                          const _Div(),
+                          SettingsListButton(
+                            iconAssetName: Assets.svg.ellipsis,
+                            iconSize: 18,
+                            title: "Backup Wallet",
+                            onPressed: () {
+                              // Navigator.of(context)
+                              //     .pushNamed(AboutView.routeName);
+                            },
+                          ),
+                          const _Div(),
+                          SettingsListButton(
+                            iconAssetName: Assets.svg.solidSliders,
+                            iconSize: 16,
+                            title: "Wallet Settings",
+                            onPressed: () {
+                              // Navigator.of(context).pushNamed(
+                              //     AdvancedSettingsView.routeName);
+                            },
+                          ),
+                          const _Div(),
+                          SettingsListButton(
+                            iconAssetName: Assets.svg.dollarSign,
+                            iconSize: 18,
+                            title: "Currency",
+                            onPressed: () {
+                              Navigator.of(context).pushNamed(
+                                  BaseCurrencySettingsView.routeName);
+                            },
+                          ),
+                          const _Div(),
+                          SettingsListButton(
+                            iconAssetName: Assets.svg.language,
+                            iconSize: 18,
+                            title: "Language",
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushNamed(LanguageSettingsView.routeName);
+                            },
+                          ),
+                          const _Div(),
                         ],
                       ),
                     ),
@@ -252,6 +135,21 @@ class GlobalSettingsView extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _Div extends StatelessWidget {
+  const _Div({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1),
+      child: Container(
+        height: 0.5,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
       ),
     );
   }

@@ -280,7 +280,7 @@ class DarkColors extends StackColorTheme {
 
   // popup
   @override
-  Color get popupBG => const Color(0xFF333942);
+  Color get popupBG => const Color(0xFF222227);
 
   // currency list
   @override

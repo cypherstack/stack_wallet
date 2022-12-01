@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class SettingsListButton extends StatelessWidget {
   const SettingsListButton({
@@ -34,16 +34,14 @@ class SettingsListButton extends StatelessWidget {
       ),
       onPressed: onPressed,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
         child: Row(
           children: [
             Container(
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .buttonBackSecondary,
+                color: Theme.of(context).extension<StackColors>()!.background,
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Center(
