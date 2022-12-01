@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_1.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_2.dart';
@@ -13,9 +15,11 @@ import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_ste
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_exchange_steps_indicator.dart';
 import 'package:stackwallet/providers/exchange/exchange_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -175,6 +179,39 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
     }
   }
 
+  void sendFromStack() {
+    final trade = ref.read(desktopExchangeModelProvider)!.trade!;
+    final amount = Decimal.parse(trade.payInAmount);
+    final address = trade.payInAddress;
+
+    final coin = coinFromTickerCaseInsensitive(trade.payInCurrency);
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => Navigator(
+        initialRoute: SendFromView.routeName,
+        onGenerateRoute: RouteGenerator.generateRoute,
+        onGenerateInitialRoutes: (_, __) {
+          return [
+            FadePageRoute(
+              SendFromView(
+                coin: coin,
+                trade: trade,
+                amount: amount,
+                address: address,
+                shouldPopRoot: true,
+                fromDesktopStep4: true,
+              ),
+              const RouteSettings(
+                name: SendFromView.routeName,
+              ),
+            ),
+          ];
+        },
+      ),
+    );
+  }
+
   @override
   void initState() {
     duration = const Duration(milliseconds: 250);
@@ -269,7 +306,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                   secondChild: SecondaryButton(
                     label: "Send from Stack Wallet",
                     buttonHeight: ButtonHeight.l,
-                    onPressed: onBack,
+                    onPressed: sendFromStack,
                   ),
                 ),
               ),
