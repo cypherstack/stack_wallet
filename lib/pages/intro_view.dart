@@ -1,9 +1,9 @@
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:epicmobile/widgets/background.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'create_restore_wallet_view.dart';
@@ -30,35 +30,35 @@ class _IntroViewState extends State<IntroView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
     return Background(
-        child: Scaffold(
-            backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-            body: Padding(
-              padding: const EdgeInsets.all(40.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Spacer(
-                    flex: 5,
-                  ),
-                  AppNameText(),
-                  const SizedBox(
-                    height: 32,
-                  ),
-                  // todo add screen swipe text
-                  const SizedBox(
-                    height: 118,
-                  ),
-                  Row(
-                    children: const [
-                      Expanded(
-                        child: GetStartedButton(),
-                      ),
-                    ],
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        body: Padding(
+          padding: const EdgeInsets.all(40.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Spacer(
+                flex: 5,
+              ),
+              AppNameText(),
+              const SizedBox(
+                height: 32,
+              ),
+              // todo add screen swipe text
+              const SizedBox(
+                height: 118,
+              ),
+              Row(
+                children: const [
+                  Expanded(
+                    child: GetStartedButton(),
                   ),
                 ],
               ),
-            ),
+            ],
+          ),
         ),
+      ),
     );
   }
 }

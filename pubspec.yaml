@@ -172,6 +172,7 @@ flutter:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
   assets:
+    - assets/images/epic-plain.gif
     - assets/images/splash.png
     - assets/icon/icon.png
     - google_fonts/

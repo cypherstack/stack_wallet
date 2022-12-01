@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 abstract class Assets {
   static const svg = _SVG();
   static const png = _PNG();
+  static const gif = _GIF();
   static const lottie = _ANIMATIONS();
   static const socials = _SOCIALS();
   static const exchange = _EXCHANGE();
@@ -182,6 +183,12 @@ class _SVG {
         return epicCash;
     }
   }
+}
+
+class _GIF {
+  const _GIF();
+
+  String get epicPlain => "assets/images/epic-plain.gif";
 }
 
 class _PNG {
