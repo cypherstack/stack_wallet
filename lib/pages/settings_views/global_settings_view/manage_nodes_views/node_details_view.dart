@@ -1,11 +1,9 @@
 import 'dart:async';
 
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/test_epic_box_connection.dart';
@@ -89,21 +87,21 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
     }
 
     if (testPassed) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.success,
-          message: "Server ping success",
-          context: context,
-        ),
-      );
+      // unawaited(
+      //   showFloatingFlushBar(
+      //     type: FlushBarType.success,
+      //     message: "Server ping success",
+      //     context: context,
+      //   ),
+      // );
     } else {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Server unreachable",
-          context: context,
-        ),
-      );
+      // unawaited(
+      //   showFloatingFlushBar(
+      //     type: FlushBarType.warning,
+      //     message: "Server unreachable",
+      //     context: context,
+      //   ),
+      // );
     }
   }
 

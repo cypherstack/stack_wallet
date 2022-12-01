@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
@@ -10,7 +9,6 @@ import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -76,12 +74,12 @@ class _NewWalletRecoveryPhraseViewState
   Future<void> _copy() async {
     final words = await _manager.mnemonic;
     await _clipboardInterface.setData(ClipboardData(text: words.join(" ")));
-    unawaited(showFloatingFlushBar(
-      type: FlushBarType.info,
-      message: "Copied to clipboard",
-      iconAsset: Assets.svg.copy,
-      context: context,
-    ));
+    // unawaited(showFloatingFlushBar(
+    //   type: FlushBarType.info,
+    //   message: "Copied to clipboard",
+    //   iconAsset: Assets.svg.copy,
+    //   context: context,
+    // ));
   }
 
   @override

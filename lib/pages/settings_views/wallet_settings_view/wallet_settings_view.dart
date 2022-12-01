@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
@@ -20,7 +19,6 @@ import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_c
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -404,18 +402,18 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
                   hostController.text,
                   int.parse(portController.text),
                 );
-                showFloatingFlushBar(
-                  context: context,
-                  message: "Epicbox info saved!",
-                  type: FlushBarType.success,
-                );
+                // showFloatingFlushBar(
+                //   context: context,
+                //   message: "Epicbox info saved!",
+                //   type: FlushBarType.success,
+                // );
                 wallet.refresh();
               } catch (e) {
-                showFloatingFlushBar(
-                  context: context,
-                  message: "Failed to save epicbox info: $e",
-                  type: FlushBarType.warning,
-                );
+                // showFloatingFlushBar(
+                //   context: context,
+                //   message: "Failed to save epicbox info: $e",
+                //   type: FlushBarType.warning,
+                // );
               }
             },
             child: Text(

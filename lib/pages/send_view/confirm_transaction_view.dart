@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicmobile/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
@@ -11,7 +10,6 @@ import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -94,14 +92,14 @@ class _ConfirmTransactionViewState
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message:
-                "Connection failed. Please check the address and try again.",
-            context: context,
-          ),
-        );
+        // unawaited(
+        // showFloatingFlushBar(
+        //   type: FlushBarType.warning,
+        //   message:
+        //       "Connection failed. Please check the address and try again.",
+        //   context: context,
+        // ),
+        // );
         return;
       }
     } catch (e, s) {

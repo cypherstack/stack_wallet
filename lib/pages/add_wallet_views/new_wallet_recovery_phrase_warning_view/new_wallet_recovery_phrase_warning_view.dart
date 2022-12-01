@@ -4,7 +4,6 @@ import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_vie
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/coins/coin_service.dart';
 import 'package:epicmobile/services/coins/manager.dart';
-import 'package:epicmobile/services/transaction_notification_tracker.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/default_nodes.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
@@ -217,20 +216,15 @@ class _NewWalletRecoveryPhraseWarningViewState
                                           );
                                     }
 
-                                    final txTracker =
-                                        TransactionNotificationTracker(
-                                            walletId: walletId!);
-
                                     final failovers = ref
                                         .read(nodeServiceChangeNotifierProvider)
                                         .failoverNodesFor(coin: widget.coin);
 
                                     final wallet = CoinServiceAPI.from(
                                       coin,
-                                      walletId,
+                                      walletId!,
                                       walletName,
                                       node,
-                                      txTracker,
                                       ref.read(prefsChangeNotifierProvider),
                                       failovers,
                                     );

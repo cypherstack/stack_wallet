@@ -3,7 +3,6 @@ import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/services/coins/coin_service.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/node_service.dart';
-import 'package:epicmobile/services/transaction_notification_tracker.dart';
 import 'package:epicmobile/services/wallets_service.dart';
 import 'package:epicmobile/utilities/default_nodes.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
@@ -202,9 +201,6 @@ class Wallets extends ChangeNotifier {
             //   nodeService.add(node, false);
             // }
 
-            final txTracker =
-                TransactionNotificationTracker(walletId: walletId);
-
             final failovers = NodeService().failoverNodesFor(coin: coin);
 
             // load wallet
@@ -213,7 +209,6 @@ class Wallets extends ChangeNotifier {
               walletId,
               entry.value.name,
               node,
-              txTracker,
               prefs,
               failovers,
             );

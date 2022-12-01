@@ -1,9 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -12,6 +8,8 @@ import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RenameWalletView extends ConsumerStatefulWidget {
   const RenameWalletView({
@@ -131,17 +129,17 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                         .getManager(walletId)
                         .walletName = newName;
                     Navigator.of(context).pop();
-                    showFloatingFlushBar(
-                      type: FlushBarType.success,
-                      message: "Wallet renamed",
-                      context: context,
-                    );
+                    // showFloatingFlushBar(
+                    //   type: FlushBarType.success,
+                    //   message: "Wallet renamed",
+                    //   context: context,
+                    // );
                   } else {
-                    showFloatingFlushBar(
-                      type: FlushBarType.warning,
-                      message: "Wallet named \"$newName\" already exists",
-                      context: context,
-                    );
+                    // showFloatingFlushBar(
+                    //   type: FlushBarType.warning,
+                    //   message: "Wallet named \"$newName\" already exists",
+                    //   context: context,
+                    // );
                   }
                 },
                 child: Text(

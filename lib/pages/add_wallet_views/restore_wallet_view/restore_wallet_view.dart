@@ -5,7 +5,6 @@ import 'dart:math';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/confirm_recovery_dialog.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_dialog.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
@@ -14,7 +13,6 @@ import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/coins/coin_service.dart';
 import 'package:epicmobile/services/coins/manager.dart';
-import 'package:epicmobile/services/transaction_notification_tracker.dart';
 import 'package:epicmobile/utilities/address_utils.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
@@ -23,7 +21,6 @@ import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/custom_text_selection_controls.dart';
 import 'package:epicmobile/utilities/default_nodes.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/enums/form_input_status_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
@@ -187,13 +184,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         }
       }
 
-      // TODO: do actual check to make sure it is a valid mnemonic for monero
       if (bip39.validateMnemonic(mnemonic) == false) {
-        unawaited(showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Invalid seed phrase!",
-          context: context,
-        ));
+        // unawaited(showFloatingFlushBar(
+        //   type: FlushBarType.warning,
+        //   message: "Invalid seed phrase!",
+        //   context: context,
+        // ));
       } else {
         if (!Platform.isLinux) await Wakelock.enable();
         final walletsService = ref.read(walletsServiceChangeNotifierProvider);
@@ -238,18 +234,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               );
         }
 
-        final txTracker = TransactionNotificationTracker(walletId: walletId!);
-
         final failovers = ref
             .read(nodeServiceChangeNotifierProvider)
             .failoverNodesFor(coin: widget.coin);
 
         final wallet = CoinServiceAPI.from(
           widget.coin,
-          walletId,
+          walletId!,
           widget.walletName,
           node,
-          txTracker,
           ref.read(prefsChangeNotifierProvider),
           failovers,
         );

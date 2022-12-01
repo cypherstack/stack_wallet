@@ -1,16 +1,12 @@
 import 'dart:async';
 
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 // import 'package:epicmobile/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
 import 'package:epicmobile/providers/global/wallets_provider.dart';
-// import 'package:epicmobile/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
-import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/biometrics.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -292,13 +288,13 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                                 prettyTime += "${_timeout.inSeconds} seconds";
                               }
 
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message:
-                                    "Incorrect PIN entered too many times. Please wait $prettyTime",
-                                context: context,
-                                iconAsset: Assets.svg.alertCircle,
-                              ));
+                              // unawaited(showFloatingFlushBar(
+                              //   type: FlushBarType.warning,
+                              //   message:
+                              //       "Incorrect PIN entered too many times. Please wait $prettyTime",
+                              //   context: context,
+                              //   iconAsset: Assets.svg.alertCircle,
+                              // ));
 
                               await Future<void>.delayed(
                                   const Duration(milliseconds: 100));
@@ -317,12 +313,12 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                               unawaited(_onUnlock());
                             } else {
                               unawaited(_shakeController.shake());
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "Incorrect PIN. Please try again",
-                                context: context,
-                                iconAsset: Assets.svg.alertCircle,
-                              ));
+                              // unawaited(showFloatingFlushBar(
+                              //   type: FlushBarType.warning,
+                              //   message: "Incorrect PIN. Please try again",
+                              //   context: context,
+                              //   iconAsset: Assets.svg.alertCircle,
+                              // ));
 
                               await Future<void>.delayed(
                                   const Duration(milliseconds: 100));

@@ -1,13 +1,11 @@
 import 'dart:async';
 
 import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -128,13 +126,13 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
           ),
           onPressed: () async {
             if (coin == Coin.epicCash && _transaction.slateId == null) {
-              unawaited(showFloatingFlushBar(
-                context: context,
-                message:
-                    "Restored Epic funds from your Seed have no Data.\nUse Stack Backup to keep your transaction history.",
-                type: FlushBarType.warning,
-                duration: const Duration(seconds: 5),
-              ));
+              // unawaited(showFloatingFlushBar(
+              //   context: context,
+              //   message:
+              //       "Restored Epic funds from your Seed have no Data.\nUse Stack Backup to keep your transaction history.",
+              //   type: FlushBarType.warning,
+              //   duration: const Duration(seconds: 5),
+              // ));
               return;
             }
             if (Util.isDesktop) {

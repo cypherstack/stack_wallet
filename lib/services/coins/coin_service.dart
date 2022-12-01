@@ -4,7 +4,6 @@ import 'package:epicmobile/electrumx_rpc/electrumx.dart';
 import 'package:epicmobile/models/models.dart';
 import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:epicmobile/services/transaction_notification_tracker.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/prefs.dart';
 
@@ -16,7 +15,6 @@ abstract class CoinServiceAPI {
     String walletId,
     String walletName,
     NodeModel node,
-    TransactionNotificationTracker tracker,
     Prefs prefs,
     List<NodeModel> failovers,
   ) {

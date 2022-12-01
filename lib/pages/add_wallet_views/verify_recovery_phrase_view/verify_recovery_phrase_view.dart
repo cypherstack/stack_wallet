@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/verify_recovery_phrase_view/sub_widgets/word_table.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/coins/manager.dart';
-import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -102,19 +99,19 @@ class _VerifyRecoveryPhraseViewState
         }
       }
 
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.success,
-        message: "Correct! Your wallet is set up.",
-        iconAsset: Assets.svg.check,
-        context: context,
-      ));
+      // unawaited(showFloatingFlushBar(
+      //   type: FlushBarType.success,
+      //   message: "Correct! Your wallet is set up.",
+      //   iconAsset: Assets.svg.check,
+      //   context: context,
+      // ));
     } else {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "Incorrect. Please try again.",
-        iconAsset: Assets.svg.circleX,
-        context: context,
-      ));
+      // unawaited(showFloatingFlushBar(
+      //   type: FlushBarType.warning,
+      //   message: "Incorrect. Please try again.",
+      //   iconAsset: Assets.svg.circleX,
+      //   context: context,
+      // ));
 
       final int next = Random().nextInt(_mnemonic.length);
       ref

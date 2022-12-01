@@ -20,7 +20,6 @@ import 'package:epicmobile/pages/create_restore_wallet_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
 import 'package:epicmobile/pages/manage_favorites_view/manage_favorites_view.dart';
-import 'package:epicmobile/pages/notification_views/notifications_view.dart';
 import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
 import 'package:epicmobile/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:epicmobile/pages/receive_view/receive_view.dart';
@@ -688,20 +687,6 @@ class RouteGenerator {
             builder: (_) => ConfirmTransactionView(
               transactionInfo: args.item1,
               walletId: args.item2,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case NotificationsView.routeName:
-        if (args is String?) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => NotificationsView(
-              walletId: args,
             ),
             settings: RouteSettings(
               name: settings.name,

@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:epicmobile/hive/db.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:epicmobile/services/notifications_service.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/logger.dart';
@@ -379,13 +378,6 @@ class WalletsService extends ChangeNotifier {
     // as needs delete by adding it's id to a list which gets checked on app start
     await DB.instance.add<String>(
         boxName: DB.boxNameWalletsToDeleteOnStart, value: walletId);
-
-    // delete notifications tied to deleted wallet
-    for (final notification in NotificationsService.instance.notifications) {
-      if (notification.walletId == walletId) {
-        await NotificationsService.instance.delete(notification, false);
-      }
-    }
 
     if (names.isEmpty) {
       await DB.instance.deleteAll<dynamic>(boxName: DB.boxNameAllWalletsData);

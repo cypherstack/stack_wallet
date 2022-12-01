@@ -5,7 +5,6 @@ import 'package:epicmobile/hive/db.dart';
 import 'package:epicmobile/models/isar/models/log.dart';
 import 'package:epicmobile/models/models.dart';
 import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/models/notification_model.dart';
 import 'package:epicmobile/models/trade_wallet_lookup.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
@@ -19,8 +18,6 @@ import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/services/debug_service.dart';
 import 'package:epicmobile/services/locale_service.dart';
 import 'package:epicmobile/services/node_service.dart';
-import 'package:epicmobile/services/notifications_api.dart';
-import 'package:epicmobile/services/notifications_service.dart';
 import 'package:epicmobile/services/wallets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/db_version_migration.dart';
@@ -89,12 +86,6 @@ void main() async {
   Hive.registerAdapter(UtxoObjectAdapter());
   Hive.registerAdapter(StatusAdapter());
 
-  // Registering Lelantus Model Adapters
-  Hive.registerAdapter(LelantusCoinAdapter());
-
-  // notification model adapter
-  Hive.registerAdapter(NotificationModelAdapter());
-
   // reference lookup data adapter
   Hive.registerAdapter(TradeWalletLookupAdapter());
 
@@ -120,7 +111,6 @@ void main() async {
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
-  await NotificationApi.init();
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -159,7 +149,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   late final Wallets _wallets;
   late final Prefs _prefs;
-  late final NotificationsService _notificationsService;
   late final NodeService _nodeService;
 
   late final Completer<void> loadingCompleter;
@@ -182,19 +171,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             await ref.read(storageCryptoHandlerProvider).hasPassword();
       }
 
-      _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
-
-      NotificationApi.prefs = _prefs;
-      NotificationApi.notificationsService = _notificationsService;
 
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
-      await _notificationsService.init(
-        nodeService: _nodeService,
-        prefs: _prefs,
-      );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
       await _wallets.load(_prefs);
       loadingCompleter.complete();

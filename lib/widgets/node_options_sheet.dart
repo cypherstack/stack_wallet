@@ -1,14 +1,12 @@
 import 'dart:async';
 
 import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/default_nodes.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/enums/sync_type_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/test_epic_box_connection.dart';
@@ -90,12 +88,12 @@ class NodeOptionsSheet extends ConsumerWidget {
       //   context: context,
       // );
     } else {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        iconAsset: Assets.svg.circleAlert,
-        message: "Could not connect to node",
-        context: context,
-      ));
+      // unawaited(showFloatingFlushBar(
+      //   type: FlushBarType.warning,
+      //   iconAsset: Assets.svg.circleAlert,
+      //   message: "Could not connect to node",
+      //   context: context,
+      // ));
     }
 
     return testPassed;

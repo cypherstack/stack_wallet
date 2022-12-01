@@ -1,7 +1,6 @@
 import 'dart:isolate';
 
 import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/models/notification_model.dart';
 import 'package:epicmobile/services/wallets_service.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
@@ -39,8 +38,6 @@ class DB {
   late final Box<NodeModel> _boxNodeModels;
   late final Box<NodeModel> _boxPrimaryNodes;
   late final Box<dynamic> _boxAllWalletsData;
-  late final Box<NotificationModel> _boxNotifications;
-  late final Box<NotificationModel> _boxWatchedTransactions;
 
   late final Box<String> _boxFavoriteWallets;
   // late final Box<xmr.WalletInfo> _walletInfoSource;
@@ -109,11 +106,6 @@ class DB {
       } else {
         _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
       }
-
-      _boxNotifications =
-          await Hive.openBox<NotificationModel>(boxNameNotifications);
-      _boxWatchedTransactions =
-          await Hive.openBox<NotificationModel>(boxNameWatchedTransactions);
 
       // _walletInfoSource =
       //     await Hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);

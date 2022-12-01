@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:epicmobile/pages/home_view/home_view.dart';
-import 'package:epicmobile/pages/notification_views/notifications_view.dart';
 import 'package:epicmobile/pages/receive_view/receive_view.dart';
 import 'package:epicmobile/pages/send_view/send_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
@@ -10,9 +9,7 @@ import 'package:epicmobile/pages/wallet_view/sub_widgets/transactions_list.dart'
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_navigation_bar.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
-import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/transaction_filter_provider.dart';
-import 'package:epicmobile/providers/ui/unread_notifications_provider.dart';
 import 'package:epicmobile/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:epicmobile/services/coins/manager.dart';
@@ -269,71 +266,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           _currentNodeStatus,
                         ),
                       );
-                    },
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("walletViewAlertsButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      ref.watch(notificationsProvider.select((value) =>
-                              value.hasUnreadNotificationsFor(walletId)))
-                          ? Assets.svg.bellNew(context)
-                          : Assets.svg.bell,
-                      width: 20,
-                      height: 20,
-                      color: ref.watch(notificationsProvider.select((value) =>
-                              value.hasUnreadNotificationsFor(walletId)))
-                          ? null
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
-                    ),
-                    onPressed: () {
-                      // reset unread state
-                      ref.refresh(unreadNotificationsStateProvider);
-
-                      Navigator.of(context)
-                          .pushNamed(
-                        NotificationsView.routeName,
-                        arguments: walletId,
-                      )
-                          .then((_) {
-                        final Set<int> unreadNotificationIds = ref
-                            .read(unreadNotificationsStateProvider.state)
-                            .state;
-                        if (unreadNotificationIds.isEmpty) return;
-
-                        List<Future<dynamic>> futures = [];
-                        for (int i = 0;
-                            i < unreadNotificationIds.length - 1;
-                            i++) {
-                          futures.add(ref
-                              .read(notificationsProvider)
-                              .markAsRead(
-                                  unreadNotificationIds.elementAt(i), false));
-                        }
-
-                        // wait for multiple to update if any
-                        Future.wait(futures).then((_) {
-                          // only notify listeners once
-                          ref
-                              .read(notificationsProvider)
-                              .markAsRead(unreadNotificationIds.last, true);
-                        });
-                      });
                     },
                   ),
                 ),

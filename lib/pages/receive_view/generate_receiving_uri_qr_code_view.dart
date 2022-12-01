@@ -4,13 +4,11 @@ import 'dart:ui' as ui;
 
 // import 'package:document_file_save_plus/document_file_save_plus.dart';
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/utilities/address_utils.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -95,11 +93,11 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     final noteString = noteController.text;
 
     if (amountString.isNotEmpty && Decimal.tryParse(amountString) == null) {
-      showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "Invalid amount",
-        context: context,
-      );
+      // showFloatingFlushBar(
+      //   type: FlushBarType.warning,
+      //   message: "Invalid amount",
+      //   context: context,
+      // );
       return null;
     }
 

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:epicmobile/models/models.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/edit_note_view.dart';
@@ -15,7 +14,6 @@ import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/block_explorers.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
@@ -1191,11 +1189,11 @@ class _TransactionDetailsViewState
                     if (manager.wallet is EpicCashWallet) {
                       final String? id = _transaction.slateId;
                       if (id == null) {
-                        unawaited(showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "Could not find Epic transaction ID",
-                          context: context,
-                        ));
+                        // unawaited(showFloatingFlushBar(
+                        //   type: FlushBarType.warning,
+                        //   message: "Could not find Epic transaction ID",
+                        //   context: context,
+                        // ));
                         return;
                       }
 
@@ -1235,11 +1233,11 @@ class _TransactionDetailsViewState
                         }
                       }
                     } else {
-                      unawaited(showFloatingFlushBar(
-                        type: FlushBarType.warning,
-                        message: "ERROR: Wallet type is not Epic Cash",
-                        context: context,
-                      ));
+                      // unawaited(showFloatingFlushBar(
+                      //   type: FlushBarType.warning,
+                      //   message: "ERROR: Wallet type is not Epic Cash",
+                      //   context: context,
+                      // ));
                       return;
                     }
                   },
@@ -1290,13 +1288,13 @@ class IconCopyButton extends StatelessWidget {
         ),
         onPressed: () async {
           await Clipboard.setData(ClipboardData(text: data));
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.info,
-              message: "Copied to clipboard",
-              context: context,
-            ),
-          );
+          // unawaited(
+          //   showFloatingFlushBar(
+          //     type: FlushBarType.info,
+          //     message: "Copied to clipboard",
+          //     context: context,
+          //   ),
+          // );
         },
         child: Padding(
           padding: const EdgeInsets.all(5),

@@ -1,9 +1,4 @@
-import 'dart:async';
-
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/providers/global/debug_service_provider.dart';
-import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
@@ -41,38 +36,6 @@ class HiddenSettings extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Consumer(builder: (_, ref, __) {
-                          return GestureDetector(
-                            onTap: () async {
-                              final notifs =
-                                  ref.read(notificationsProvider).notifications;
-
-                              for (final n in notifs) {
-                                await ref
-                                    .read(notificationsProvider)
-                                    .delete(n, false);
-                              }
-                              await ref
-                                  .read(notificationsProvider)
-                                  .delete(notifs[0], true);
-
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.success,
-                                message: "Notification history deleted",
-                                context: context,
-                              ));
-                            },
-                            child: RoundedWhiteContainer(
-                              child: Text(
-                                "Delete notifications",
-                                style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark),
-                              ),
-                            ),
-                          );
-                        }),
                         // const SizedBox(
                         //   height: 12,
                         // ),
@@ -111,11 +74,11 @@ class HiddenSettings extends StatelessWidget {
                                   .read(debugServiceProvider)
                                   .deleteAllMessages();
 
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.success,
-                                message: "Debug Logs deleted",
-                                context: context,
-                              ));
+                              // unawaited(showFloatingFlushBar(
+                              //   type: FlushBarType.success,
+                              //   message: "Debug Logs deleted",
+                              //   context: context,
+                              // ));
                             },
                             child: RoundedWhiteContainer(
                               child: Text(

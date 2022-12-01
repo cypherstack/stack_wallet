@@ -1,13 +1,11 @@
 import 'dart:async';
 
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
@@ -143,12 +141,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       clipboard.setData(
                         ClipboardData(text: receivingAddress),
                       );
-                      showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message: "Copied to clipboard",
-                        iconAsset: Assets.svg.copy,
-                        context: context,
-                      );
+                      // showFloatingFlushBar(
+                      //   type: FlushBarType.info,
+                      //   message: "Copied to clipboard",
+                      //   iconAsset: Assets.svg.copy,
+                      //   context: context,
+                      // );
                     },
                     child: RoundedWhiteContainer(
                       child: Column(

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:epicmobile/providers/global/wallets_service_provider.dart';
@@ -9,7 +8,6 @@ import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/add_wallet_type_enum.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/name_generator.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -306,12 +304,12 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                       final name = textEditingController.text;
 
                       if (await walletsService.checkForDuplicate(name)) {
-                        unawaited(showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "Wallet name already in use.",
-                          iconAsset: Assets.svg.circleAlert,
-                          context: context,
-                        ));
+                        // unawaited(showFloatingFlushBar(
+                        //   type: FlushBarType.warning,
+                        //   message: "Wallet name already in use.",
+                        //   iconAsset: Assets.svg.circleAlert,
+                        //   context: context,
+                        // ));
                       } else {
                         // hide keyboard if has focus
                         if (FocusScope.of(context).hasFocus) {

@@ -1,8 +1,5 @@
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
-import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -212,12 +209,12 @@ class _ChangePinViewState extends State<ChangePinView> {
                             null);
                         await _secureStore.write(key: "stack_pin", value: pin);
 
-                        showFloatingFlushBar(
-                          type: FlushBarType.success,
-                          message: "New PIN is set up",
-                          context: context,
-                          iconAsset: Assets.svg.check,
-                        );
+                        // showFloatingFlushBar(
+                        //   type: FlushBarType.success,
+                        //   message: "New PIN is set up",
+                        //   context: context,
+                        //   iconAsset: Assets.svg.check,
+                        // );
 
                         await Future<void>.delayed(
                             const Duration(milliseconds: 1200));
@@ -234,12 +231,12 @@ class _ChangePinViewState extends State<ChangePinView> {
                           curve: Curves.linear,
                         );
 
-                        showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "PIN codes do not match. Try again.",
-                          context: context,
-                          iconAsset: Assets.svg.alertCircle,
-                        );
+                        // showFloatingFlushBar(
+                        //   type: FlushBarType.warning,
+                        //   message: "PIN codes do not match. Try again.",
+                        //   context: context,
+                        //   iconAsset: Assets.svg.alertCircle,
+                        // );
 
                         _pinPutController1.text = '';
                         _pinPutController2.text = '';

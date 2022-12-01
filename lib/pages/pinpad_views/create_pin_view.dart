@@ -1,12 +1,9 @@
 import 'dart:io';
 
-import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
-import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/biometrics.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -278,12 +275,12 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                           curve: Curves.linear,
                         );
 
-                        showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "PIN codes do not match. Try again.",
-                          context: context,
-                          iconAsset: Assets.svg.alertCircle,
-                        );
+                        // showFloatingFlushBar(
+                        //   type: FlushBarType.warning,
+                        //   message: "PIN codes do not match. Try again.",
+                        //   context: context,
+                        //   iconAsset: Assets.svg.alertCircle,
+                        // );
 
                         _pinPutController1.text = '';
                         _pinPutController2.text = '';
