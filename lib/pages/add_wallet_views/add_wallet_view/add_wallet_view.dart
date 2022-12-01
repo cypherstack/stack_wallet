@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_text.dart';
 import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
 import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
@@ -18,6 +16,8 @@ import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class AddWalletView extends StatefulWidget {
   const AddWalletView({Key? key}) : super(key: key);
@@ -40,7 +40,6 @@ class _AddWalletViewState extends State<AddWalletView> {
   void initState() {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
-    coins.remove(Coin.firoTestNet);
     super.initState();
   }
 

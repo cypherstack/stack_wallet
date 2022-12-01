@@ -1,9 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/electrumx_rpc/electrumx.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -14,7 +10,6 @@ import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/test_epic_box_connection.dart';
-import 'package:epicmobile/utilities/test_monero_node_connection.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -24,6 +19,10 @@ import 'package:epicmobile/widgets/desktop/delete_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 class NodeDetailsView extends ConsumerStatefulWidget {
@@ -88,51 +87,10 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
         }
         break;
 
-      case Coin.monero:
-      case Coin.wownero:
-        try {
-          final uri = Uri.parse(node!.host);
-          if (uri.scheme.startsWith("http")) {
-            final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
-
-            String uriString = "${uri.scheme}://${uri.host}:${node.port}$path";
-
-            final response = await testMoneroNodeConnection(
-              Uri.parse(uriString),
-              false,
-            );
-
-            if (response.cert != null) {
-              if (mounted) {
-                final shouldAllowBadCert = await showBadX509CertificateDialog(
-                  response.cert!,
-                  response.url!,
-                  response.port!,
-                  context,
-                );
-
-                if (shouldAllowBadCert) {
-                  final response = await testMoneroNodeConnection(
-                      Uri.parse(uriString), true);
-                  testPassed = response.success;
-                }
-              }
-            } else {
-              testPassed = response.success;
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-
-        break;
-
       case Coin.bitcoin:
       case Coin.litecoin:
       case Coin.dogecoin:
-      case Coin.firo:
       case Coin.bitcoinTestNet:
-      case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
       case Coin.bitcoincash:
       case Coin.namecoin:

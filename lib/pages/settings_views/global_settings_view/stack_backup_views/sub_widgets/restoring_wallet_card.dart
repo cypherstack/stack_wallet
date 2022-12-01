@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/models/wallet_restore_state.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/sub_views/recovery_phrase_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
@@ -13,6 +10,9 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/loading_indicator.dart';
 import 'package:epicmobile/widgets/rounded_container.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class RestoringWalletCard extends ConsumerStatefulWidget {
   const RestoringWalletCard({
@@ -97,9 +97,6 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
               try {
                 final mnemonicList = await manager.mnemonic;
                 int maxUnusedAddressGap = 20;
-                if (coin == Coin.firo) {
-                  maxUnusedAddressGap = 50;
-                }
                 const maxNumberOfIndexesToCheck = 1000;
 
                 if (mnemonicList.isEmpty) {

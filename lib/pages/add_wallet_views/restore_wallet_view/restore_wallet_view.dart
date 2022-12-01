@@ -191,8 +191,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
 
       // TODO: do actual check to make sure it is a valid mnemonic for monero
-      if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin == Coin.monero || widget.coin == Coin.wownero)) {
+      if (bip39.validateMnemonic(mnemonic) == false) {
         unawaited(showFloatingFlushBar(
           type: FlushBarType.warning,
           message: "Invalid seed phrase!",
@@ -267,7 +266,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // without using them
           await manager.recoverFromMnemonic(
             mnemonic: mnemonic,
-            maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
+            maxUnusedAddressGap: 20,
             maxNumberOfIndexesToCheck: 1000,
             height: height,
           );

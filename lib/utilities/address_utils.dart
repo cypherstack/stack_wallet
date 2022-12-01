@@ -2,14 +2,13 @@ import 'dart:convert';
 
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
-import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:epicmobile/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:epicmobile/services/coins/dogecoin/dogecoin_wallet.dart';
-import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
 import 'package:epicmobile/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:epicmobile/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
+import 'package:flutter_libepiccash/epic_cash.dart';
 
 class AddressUtils {
   static String condenseAddress(String address) {
@@ -51,14 +50,6 @@ class AddressUtils {
         return Address.validateAddress(address, dogecoin);
       case Coin.epicCash:
         return validateSendAddress(address) == "1";
-      case Coin.firo:
-        return Address.validateAddress(address, firoNetwork);
-      case Coin.monero:
-        return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
-            RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
-      case Coin.wownero:
-        return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
-            RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
       case Coin.namecoin:
         return Address.validateAddress(address, namecoin, namecoin.bech32!);
       case Coin.bitcoinTestNet:
@@ -67,8 +58,6 @@ class AddressUtils {
         return Address.validateAddress(address, litecointestnet);
       case Coin.bitcoincashTestnet:
         return Address.validateAddress(address, bitcoincashtestnet);
-      case Coin.firoTestNet:
-        return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:
         return Address.validateAddress(address, dogecointestnet);
     }

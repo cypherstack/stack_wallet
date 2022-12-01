@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/sub_widgets/coin_select_item.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SearchableCoinList extends ConsumerWidget {
   const SearchableCoinList({
@@ -29,8 +29,6 @@ class SearchableCoinList extends ConsumerWidget {
       _coins.removeWhere(
           (e) => e.name.endsWith("TestNet") || e == Coin.bitcoincashTestnet);
     }
-    // remove firo testnet regardless
-    _coins.remove(Coin.firoTestNet);
 
     return _coins;
   }

@@ -1,7 +1,4 @@
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/models/exchange/response_objects/estimate.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/exchange/change_now/change_now_exchange.dart';
@@ -10,13 +7,15 @@ import 'package:epicmobile/services/exchange/exchange_response.dart';
 import 'package:epicmobile/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/animated_text.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ExchangeProviderOptions extends ConsumerWidget {
   const ExchangeProviderOptions({
@@ -147,10 +146,7 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                         localeServiceChangeNotifierProvider
                                             .select((value) => value.locale),
                                       ),
-                                      decimalPlaces: to!.toUpperCase() ==
-                                              Coin.monero.ticker.toUpperCase()
-                                          ? Constants.decimalPlacesMonero
-                                          : Constants.decimalPlaces,
+                                      decimalPlaces: Constants.decimalPlaces,
                                     )} ${to!.toUpperCase()}",
                                     style: STextStyles.itemSubtitle12(context)
                                         .copyWith(
@@ -316,10 +312,7 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                         localeServiceChangeNotifierProvider
                                             .select((value) => value.locale),
                                       ),
-                                      decimalPlaces: to!.toUpperCase() ==
-                                              Coin.monero.ticker.toUpperCase()
-                                          ? Constants.decimalPlacesMonero
-                                          : Constants.decimalPlaces,
+                                      decimalPlaces: Constants.decimalPlaces,
                                     )} ${to!.toUpperCase()}",
                                     style: STextStyles.itemSubtitle12(context)
                                         .copyWith(

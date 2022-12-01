@@ -51,7 +51,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     if (widget.coin == null) {
       List<Coin> coins =
           Coin.values.where((e) => !(e == Coin.epicCash)).toList();
-      coins.remove(Coin.firoTestNet);
 
       bool showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
 

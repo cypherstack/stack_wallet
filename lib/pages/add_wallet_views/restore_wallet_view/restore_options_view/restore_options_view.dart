@@ -1,9 +1,4 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/mobile_mnemonic_length_selector.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_from_date_picker.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_next_button.dart';
@@ -24,6 +19,11 @@ import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tuple/tuple.dart';
 
 class RestoreOptionsView extends ConsumerStatefulWidget {
@@ -252,11 +252,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               SizedBox(
                 height: isDesktop ? 40 : 24,
               ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.epicCash ||
+                  ref.watch(mnemonicWordCountStateProvider.state).state == 25)
                 Text(
                   "Choose start date",
                   style: isDesktop
@@ -268,19 +265,13 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.epicCash ||
+                  ref.watch(mnemonicWordCountStateProvider.state).state == 25)
                 SizedBox(
                   height: isDesktop ? 16 : 8,
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.epicCash ||
+                  ref.watch(mnemonicWordCountStateProvider.state).state == 25)
 
                 // if (!isDesktop)
                 RestoreFromDatePicker(
@@ -290,19 +281,14 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
               // if (isDesktop)
               //   // TODO desktop date picker
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.epicCash ||
+                  ref.watch(mnemonicWordCountStateProvider.state).state == 25)
                 const SizedBox(
                   height: 8,
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.epicCash ||
+                  ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25)
                 RoundedWhiteContainer(
                   child: Center(
                     child: Text(
@@ -319,11 +305,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     ),
                   ),
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.epicCash ||
+                  ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25)
                 SizedBox(
                   height: isDesktop ? 24 : 16,
                 ),

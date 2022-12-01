@@ -94,13 +94,6 @@ class _WalletNetworkSettingsViewState
     );
 
     try {
-      if (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .coin ==
-          Coin.firo) {
-        maxUnusedAddressGap = 50;
-      }
       await ref
           .read(walletsChangeNotifierProvider)
           .getManager(widget.walletId)
@@ -219,7 +212,7 @@ class _WalletNetworkSettingsViewState
         .getManager(widget.walletId)
         .coin;
 
-    if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
+    if (coin == Coin.epicCash) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
         (event) async {
           if (event.walletId == widget.walletId) {
@@ -575,9 +568,7 @@ class _WalletNetworkSettingsViewState
                                         .accentColorYellow,
                                   ),
                                 ),
-                                if (coin == Coin.monero ||
-                                    coin == Coin.wownero ||
-                                    coin == Coin.epicCash)
+                                if (coin == Coin.epicCash)
                                   Text(
                                     " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
                                     style: STextStyles.syncPercent(context)

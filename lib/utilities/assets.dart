@@ -1,6 +1,6 @@
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:flutter/material.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
 
 abstract class Assets {
   static const svg = _SVG();
@@ -190,20 +190,12 @@ class _SVG {
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
-      case Coin.firo:
-        return firo;
-      case Coin.monero:
-        return monero;
-      case Coin.wownero:
-        return wownero;
       case Coin.namecoin:
         return namecoin;
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
       case Coin.bitcoincashTestnet:
         return bitcoincashTestnet;
-      case Coin.firoTestNet:
-        return firoTestnet;
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
     }
@@ -242,13 +234,6 @@ class _PNG {
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
-      case Coin.firo:
-        return firo;
-      case Coin.firoTestNet:
-        return firo;
-      case Coin.monero:
-        return monero;
-      case Coin.wownero:
         return wownero;
       case Coin.namecoin:
         return namecoin;

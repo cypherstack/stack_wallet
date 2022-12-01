@@ -1,10 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/electrumx_rpc/electrumx.dart';
 import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
@@ -16,7 +11,6 @@ import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/test_epic_box_connection.dart';
-import 'package:epicmobile/utilities/test_monero_node_connection.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -29,6 +23,11 @@ import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:uuid/uuid.dart';
 
 enum AddEditNodeViewType { add, edit }
@@ -93,63 +92,14 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
         }
         break;
-
-      case Coin.monero:
-      case Coin.wownero:
-        try {
-          final uri = Uri.parse(formData.host!);
-          if (uri.scheme.startsWith("http")) {
-            final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
-
-            String uriString =
-                "${uri.scheme}://${uri.host}:${formData.port ?? 0}$path";
-
-            if (uri.host == "https") {
-              ref.read(nodeFormDataProvider).useSSL = true;
-            } else {
-              ref.read(nodeFormDataProvider).useSSL = false;
-            }
-
-            final response = await testMoneroNodeConnection(
-              Uri.parse(uriString),
-              false,
-            );
-
-            if (response.cert != null) {
-              if (mounted) {
-                final shouldAllowBadCert = await showBadX509CertificateDialog(
-                  response.cert!,
-                  response.url!,
-                  response.port!,
-                  context,
-                );
-
-                if (shouldAllowBadCert) {
-                  final response = await testMoneroNodeConnection(
-                      Uri.parse(uriString), true);
-                  testPassed = response.success;
-                }
-              }
-            } else {
-              testPassed = response.success;
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-
-        break;
-
       case Coin.bitcoin:
       case Coin.bitcoincash:
       case Coin.litecoin:
       case Coin.dogecoin:
-      case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
-      case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
         final client = ElectrumX(
           host: formData.host!,
@@ -317,7 +267,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
+    if (coin == Coin.epicCash) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
@@ -674,19 +624,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.bitcoin:
       case Coin.litecoin:
       case Coin.dogecoin:
-      case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
-      case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
         return false;
 
       case Coin.epicCash:
-      case Coin.monero:
-      case Coin.wownero:
         return true;
     }
   }
@@ -851,11 +797,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   focusNode: _hostFocusNode,
                   style: STextStyles.field(context),
                   decoration: standardInputDecoration(
-                    (widget.coin != Coin.monero &&
-                            widget.coin != Coin.wownero &&
-                            widget.coin != Coin.epicCash)
-                        ? "IP address"
-                        : "Url",
+                    (widget.coin != Coin.epicCash) ? "IP address" : "Url",
                     _hostFocusNode,
                     context,
                   ).copyWith(
@@ -1040,9 +982,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero &&
-            widget.coin != Coin.wownero &&
-            widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.epicCash)
           Row(
             children: [
               GestureDetector(
@@ -1093,15 +1033,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin != Coin.monero &&
-            widget.coin != Coin.wownero &&
-            widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.epicCash)
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero &&
-            widget.coin != Coin.wownero &&
-            widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.epicCash)
           Row(
             children: [
               GestureDetector(

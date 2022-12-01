@@ -1,20 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cw_core/node.dart';
-import 'package:cw_core/unspent_coins_info.dart';
-import 'package:cw_core/wallet_info.dart';
-import 'package:cw_core/wallet_type.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_libmonero/monero/monero.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:isar/isar.dart';
-import 'package:keyboard_dismisser/keyboard_dismisser.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:epicmobile/hive/db.dart';
 import 'package:epicmobile/models/exchange/change_now/exchange_transaction.dart';
 import 'package:epicmobile/models/exchange/change_now/exchange_transaction_status.dart';
@@ -34,7 +20,6 @@ import 'package:epicmobile/pages_desktop_specific/desktop_login_view.dart';
 import 'package:epicmobile/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:epicmobile/providers/global/auto_swb_service_provider.dart';
 import 'package:epicmobile/providers/global/base_currencies_provider.dart';
-// import 'package:epicmobile/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:epicmobile/providers/global/trades_service_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/color_theme_provider.dart';
@@ -58,6 +43,14 @@ import 'package:epicmobile/utilities/theme/dark_colors.dart';
 import 'package:epicmobile/utilities/theme/light_colors.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:isar/isar.dart';
+import 'package:keyboard_dismisser/keyboard_dismisser.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
@@ -131,15 +124,6 @@ void main() async {
   // node model adapter
   Hive.registerAdapter(NodeModelAdapter());
 
-  Hive.registerAdapter(NodeAdapter());
-
-  if (!Hive.isAdapterRegistered(WalletInfoAdapter().typeId)) {
-    Hive.registerAdapter(WalletInfoAdapter());
-  }
-
-  Hive.registerAdapter(WalletTypeAdapter());
-
-  Hive.registerAdapter(UnspentCoinsInfoAdapter());
   await Hive.initFlutter(appDirectory.path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
@@ -154,9 +138,6 @@ void main() async {
           level: LogLevel.Error, printFullLength: true);
     }
   }
-
-  monero.onStartup();
-  wownero.onStartup();
 
   await Hive.openBox<dynamic>(DB.boxNameTheme);
 

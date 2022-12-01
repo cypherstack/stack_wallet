@@ -1,35 +1,27 @@
 import 'dart:typed_data';
 
 import 'package:decimal/decimal.dart';
-import 'package:intl/number_symbols.dart';
-import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:intl/number_symbols.dart';
+import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 
 abstract class Format {
   static Decimal satoshisToAmount(int sats, {Coin? coin}) {
     late final int satsPerCoin;
 
     switch (coin) {
-      case Coin.wownero:
-        satsPerCoin = Constants.satsPerCoinWownero;
-        break;
-      case Coin.monero:
-        satsPerCoin = Constants.satsPerCoinMonero;
-        break;
       case Coin.bitcoin:
       case Coin.bitcoincash:
       case Coin.dogecoin:
       case Coin.epicCash:
-      case Coin.firo:
       case Coin.litecoin:
       case Coin.namecoin:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.dogecoinTestNet:
-      case Coin.firoTestNet:
       default:
         satsPerCoin = Constants.satsPerCoin;
     }

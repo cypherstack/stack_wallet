@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:epicmobile/providers/providers.dart';
@@ -20,6 +18,8 @@ import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 import 'package:epicmobile/widgets/loading_indicator.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
 class NewWalletRecoveryPhraseWarningView extends StatefulWidget {
@@ -57,11 +57,7 @@ class _NewWalletRecoveryPhraseWarningViewState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final _numberOfPhraseWords = coin == Coin.monero
-        ? Constants.seedPhraseWordCountMonero
-        : coin == Coin.wownero
-            ? 14
-            : Constants.seedPhraseWordCountBip39;
+    final _numberOfPhraseWords = Constants.seedPhraseWordCountBip39;
 
     return MasterScaffold(
       isDesktop: isDesktop,

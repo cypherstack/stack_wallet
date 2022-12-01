@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:epicmobile/providers/global/node_service_provider.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
@@ -13,6 +10,9 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class NodesSettings extends ConsumerStatefulWidget {
   const NodesSettings({Key? key}) : super(key: key);
@@ -34,8 +34,6 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.remove(Coin.firoTestNet);
-
     searchNodeController = TextEditingController();
     searchNodeFocusNode = FocusNode();
 

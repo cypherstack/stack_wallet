@@ -56,18 +56,12 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
       case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.epicCash:
-      case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.dogecoinTestNet:
-      case Coin.firoTestNet:
         return amount.toStringAsFixed(Constants.decimalPlaces);
-      case Coin.monero:
-        return amount.toStringAsFixed(Constants.decimalPlacesMonero);
-      case Coin.wownero:
-        return amount.toStringAsFixed(Constants.decimalPlacesWownero);
     }
   }
 
@@ -284,8 +278,6 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
     final coin = manager.coin;
 
-    final isFiro = coin == Coin.firoTestNet || coin == Coin.firo;
-
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
@@ -332,38 +324,35 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     manager.walletName,
                     style: STextStyles.titleBold12(context),
                   ),
-                  if (!isFiro)
-                    const SizedBox(
-                      height: 2,
-                    ),
-                  if (!isFiro)
-                    FutureBuilder(
-                      future: manager.totalBalance,
-                      builder:
-                          (builderContext, AsyncSnapshot<Decimal> snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData) {
-                          return Text(
-                            "${Format.localizedStringAsFixed(
-                              value: snapshot.data!,
-                              locale: locale,
-                              decimalPlaces: Constants.decimalPlaces,
-                            )} ${coin.ticker}",
-                            style: STextStyles.itemSubtitle(context),
-                          );
-                        } else {
-                          return AnimatedText(
-                            stringsToLoopThrough: const [
-                              "Loading balance",
-                              "Loading balance.",
-                              "Loading balance..",
-                              "Loading balance..."
-                            ],
-                            style: STextStyles.itemSubtitle(context),
-                          );
-                        }
-                      },
-                    ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  FutureBuilder(
+                    future: manager.totalBalance,
+                    builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        return Text(
+                          "${Format.localizedStringAsFixed(
+                            value: snapshot.data!,
+                            locale: locale,
+                            decimalPlaces: Constants.decimalPlaces,
+                          )} ${coin.ticker}",
+                          style: STextStyles.itemSubtitle(context),
+                        );
+                      } else {
+                        return AnimatedText(
+                          stringsToLoopThrough: const [
+                            "Loading balance",
+                            "Loading balance.",
+                            "Loading balance..",
+                            "Loading balance..."
+                          ],
+                          style: STextStyles.itemSubtitle(context),
+                        );
+                      }
+                    },
+                  ),
                 ],
               ),
             ),

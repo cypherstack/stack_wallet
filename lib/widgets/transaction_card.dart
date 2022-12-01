@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/tx_icon.dart';
@@ -15,6 +13,8 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
 class TransactionCard extends ConsumerStatefulWidget {
@@ -198,11 +198,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Builder(
                                 builder: (_) {
-                                  final amount = coin == Coin.monero
-                                      ? (_transaction.amount ~/ 10000)
-                                      : coin == Coin.wownero
-                                          ? (_transaction.amount ~/ 1000)
-                                          : _transaction.amount;
+                                  final amount = _transaction.amount;
                                   return Text(
                                     "$prefix${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
                                     style:
@@ -244,11 +240,6 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                   builder: (_) {
                                     // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
                                     int value = _transaction.amount;
-                                    if (coin == Coin.monero) {
-                                      value = (value ~/ 10000);
-                                    } else if (coin == Coin.wownero) {
-                                      value = (value ~/ 1000);
-                                    }
 
                                     return Text(
                                       "$prefix${Format.localizedStringAsFixed(

@@ -11,17 +11,13 @@ abstract class DefaultNodes {
         bitcoin,
         litecoin,
         dogecoin,
-        firo,
-        monero,
         epicCash,
         bitcoincash,
         namecoin,
-        wownero,
         bitcoinTestnet,
         litecoinTestNet,
         bitcoincashTestnet,
         dogecoinTestnet,
-        firoTestnet,
       ];
 
   static NodeModel get bitcoin => NodeModel(
@@ -84,42 +80,6 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
-  static NodeModel get firo => NodeModel(
-        host: "firo.epicmobile.com",
-        port: 50002,
-        name: defaultName,
-        id: _nodeId(Coin.firo),
-        useSSL: true,
-        enabled: true,
-        coinName: Coin.firo.name,
-        isFailover: true,
-        isDown: false,
-      );
-
-  static NodeModel get monero => NodeModel(
-        host: "https://monero.epicmobile.com",
-        port: 18081,
-        name: defaultName,
-        id: _nodeId(Coin.monero),
-        useSSL: true,
-        enabled: true,
-        coinName: Coin.monero.name,
-        isFailover: true,
-        isDown: false,
-      );
-
-  static NodeModel get wownero => NodeModel(
-        host: "https://wownero.epicmobile.com",
-        port: 34568,
-        name: defaultName,
-        id: _nodeId(Coin.wownero),
-        useSSL: true,
-        enabled: true,
-        coinName: Coin.wownero.name,
-        isFailover: true,
-        isDown: false,
-      );
-
   static NodeModel get epicCash => NodeModel(
         host: "http://epiccash.epicmobile.com",
         port: 3413,
@@ -152,18 +112,6 @@ abstract class DefaultNodes {
         useSSL: true,
         enabled: true,
         coinName: Coin.bitcoinTestNet.name,
-        isFailover: true,
-        isDown: false,
-      );
-
-  static NodeModel get firoTestnet => NodeModel(
-        host: "firo-testnet.epicmobile.com",
-        port: 50002,
-        name: defaultName,
-        id: _nodeId(Coin.firoTestNet),
-        useSSL: true,
-        enabled: true,
-        coinName: Coin.firoTestNet.name,
         isFailover: true,
         isDown: false,
       );
@@ -209,15 +157,6 @@ abstract class DefaultNodes {
       case Coin.epicCash:
         return epicCash;
 
-      case Coin.firo:
-        return firo;
-
-      case Coin.monero:
-        return monero;
-
-      case Coin.wownero:
-        return wownero;
-
       case Coin.namecoin:
         return namecoin;
 
@@ -229,9 +168,6 @@ abstract class DefaultNodes {
 
       case Coin.bitcoincashTestnet:
         return bitcoincashTestnet;
-
-      case Coin.firoTestNet:
-        return firoTestnet;
 
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;

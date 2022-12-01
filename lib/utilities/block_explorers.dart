@@ -20,14 +20,6 @@ Uri getBlockExplorerTransactionUrlFor({
     case Coin.epicCash:
       // TODO: Handle this case.
       throw UnimplementedError("missing block explorer for epic cash");
-    case Coin.monero:
-      return Uri.parse("https://xmrchain.net/tx/$txid");
-    case Coin.wownero:
-      return Uri.parse("https://explore.wownero.com/search?value=$txid");
-    case Coin.firo:
-      return Uri.parse("https://explorer.firo.org/tx/$txid");
-    case Coin.firoTestNet:
-      return Uri.parse("https://testexplorer.firo.org/tx/$txid");
     case Coin.bitcoincash:
       return Uri.parse("https://blockchair.com/bitcoin-cash/transaction/$txid");
     case Coin.bitcoincashTestnet:

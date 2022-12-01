@@ -711,41 +711,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
-    // if (coin == Coin.firo || coin == Coin.firoTestNet) {
-    //   ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture =
-    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-    //       });
-    //     }
-    //   });
-    // }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(
           height: 4,
         ),
-        if (coin == Coin.firo)
-          Text(
-            "Send from",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveSearchIconRight,
-            ),
-            textAlign: TextAlign.left,
-          ),
-        if (coin == Coin.firo)
-          const SizedBox(
-            height: 10,
-          ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
