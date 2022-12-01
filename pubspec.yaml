@@ -52,11 +52,6 @@ dependencies:
 #  zxcvbn: ^1.0.0
   dart_numerics: ^0.0.6
 
-  window_size:
-    git:
-      url: https://github.com/google/flutter-desktop-embedding.git
-      path: plugins/window_size
-
   # Bitcoin plugins
   bip39:
     git:

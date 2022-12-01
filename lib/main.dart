@@ -34,7 +34,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:window_size/window_size.dart';
 
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
@@ -44,12 +43,6 @@ void main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
-  }
-
-  if (Util.isDesktop) {
-    setWindowTitle('Stack Wallet');
-    setWindowMinSize(const Size(1200, 900));
-    setWindowMaxSize(Size.infinite);
   }
 
   Directory appDirectory = (await getApplicationDocumentsDirectory());
