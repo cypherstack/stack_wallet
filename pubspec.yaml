@@ -294,6 +294,8 @@ flutter:
     - assets/svg/exit-desktop.svg
     - assets/svg/keys.svg
     - assets/svg/arrow-down.svg
+    - assets/svg/thin-x-circle.svg
+    - assets/svg/check-circle.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Litecoin.svg
