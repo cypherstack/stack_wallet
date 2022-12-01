@@ -3302,17 +3302,19 @@ class ParticlWallet extends CoinServiceAPI {
         .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
     final txb = TransactionBuilder(network: _network);
-    txb.setVersion(1);
+    txb.setVersion(160);
 
     // Add transaction inputs
     for (var i = 0; i < utxosToUse.length; i++) {
       final txid = utxosToUse[i].txid;
       txb.addInput(txid, utxosToUse[i].vout, null,
-          utxoSigningData[txid]["output"] as Uint8List, '', true);
+          utxoSigningData[txid]["output"] as Uint8List, '');
     }
 
     // Add transaction output
     for (var i = 0; i < recipients.length; i++) {
+      print("RECIPIENT IS ${recipients[i]}");
+      print("AMOINT IS ${satoshiAmounts[i]}");
       txb.addOutput(recipients[i], satoshiAmounts[i], particl.bech32!);
     }
 
@@ -3324,8 +3326,7 @@ class ParticlWallet extends CoinServiceAPI {
             vin: i,
             keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
             witnessValue: utxosToUse[i].value,
-            redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
-            isParticl: true);
+            redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?);
       }
     } catch (e, s) {
       Logging.instance.log("Caught exception while signing transaction: $e\n$s",
@@ -3333,8 +3334,10 @@ class ParticlWallet extends CoinServiceAPI {
       rethrow;
     }
 
-    final builtTx = txb.build();
+    final builtTx = txb.buildIncomplete();
     final vSize = builtTx.virtualSize();
+
+    print("BUILT TX IS ${builtTx.toHex()}");
 
     return {"hex": builtTx.toHex(), "vSize": vSize};
   }
