@@ -1,3 +1,4 @@
+import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -39,6 +40,24 @@ class _IntroViewState extends State<IntroView> {
             children: [
               const Spacer(
                 flex: 5,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: 300,
+                  ),
+                  child: Image(
+                    image: AssetImage(
+                      Assets.gif.epicPlain,
+                    ),
+                  ),
+                ),
+              ),
+              const Spacer(
+                flex: 3,
               ),
               AppNameText(),
               const SizedBox(
