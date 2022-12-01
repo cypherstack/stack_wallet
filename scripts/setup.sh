@@ -22,7 +22,7 @@ flutter doctor
 cd $PROJECTS
 git clone https://github.com/cypherstack/stack_wallet.git
 cd stack_wallet
-export STACK_WALLET=$(pwd)
+export EPIC_MOBILE=$(pwd)
 git submodule update --init --recursive
 
 #install stack wallet dependencies
@@ -39,6 +39,6 @@ cargo install cargo-ndk
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 
 # build stack wallet plugins
-cd $STACK_WALLET
+cd $EPIC_MOBILE
 cd scripts/android
 ./build_all.sh

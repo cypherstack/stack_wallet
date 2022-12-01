@@ -241,7 +241,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     return MaterialApp(
       key: GlobalKey(),
       navigatorKey: navigatorKey,
-      title: 'Stack Wallet',
+      title: 'Epic Mobile',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
         extensions: [colorScheme],
@@ -354,7 +354,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                 routeOnSuccessArguments: startupWalletId,
                 biometricsAuthenticationTitle: "Unlock Stack",
                 biometricsLocalizedReason:
-                    "Unlock your stack wallet using biometrics",
+                    "Unlock your Epic wallet using biometrics",
                 biometricsCancelButtonString: "Cancel",
               );
             } else {

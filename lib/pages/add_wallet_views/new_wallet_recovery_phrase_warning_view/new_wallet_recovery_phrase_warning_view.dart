@@ -104,7 +104,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                   : const EdgeInsets.all(12),
               width: isDesktop ? 480 : null,
               child: Text(
-                "On the next screen you will see $_numberOfPhraseWords words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
+                "On the next screen you will see $_numberOfPhraseWords words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nEpic Mobile does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
                 style: isDesktop
                     ? STextStyles.desktopTextMediumRegular(context)
                     : STextStyles.subtitle(context).copyWith(

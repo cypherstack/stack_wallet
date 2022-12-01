@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.cypherstack.stackwallet">
+    package="com.cypherstack.epicmobile">
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
          In most cases you can leave this as-is, but you if you want to provide
@@ -19,7 +19,7 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <application
         android:name="${applicationName}"
-        android:label="Stack Wallet"
+        android:label="Epic Mobile"
         android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
@@ -39,7 +39,7 @@
             </intent-filter>
             <intent-filter
                 android:icon="@mipmap/ic_launcher"
-                android:label="Stack Wallet"
+                android:label="Epic Mobile"
                 android:priority="1">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
