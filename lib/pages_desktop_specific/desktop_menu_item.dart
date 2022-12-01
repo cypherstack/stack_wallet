@@ -15,18 +15,51 @@ class DMIController {
   }
 }
 
-class DesktopNotificationsIcon extends ConsumerStatefulWidget {
+class DesktopMyStackIcon extends ConsumerWidget {
+  const DesktopMyStackIcon({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SvgPicture.asset(
+      Assets.svg.walletDesktop,
+      width: 20,
+      height: 20,
+      color: DesktopMenuItemId.myStack ==
+              ref.watch(currentDesktopMenuItemProvider.state).state
+          ? Theme.of(context).extension<StackColors>()!.accentColorDark
+          : Theme.of(context)
+              .extension<StackColors>()!
+              .accentColorDark
+              .withOpacity(0.8),
+    );
+  }
+}
+
+class DesktopExchangeIcon extends ConsumerWidget {
+  const DesktopExchangeIcon({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SvgPicture.asset(
+      Assets.svg.exchangeDesktop,
+      width: 20,
+      height: 20,
+      color: DesktopMenuItemId.exchange ==
+              ref.watch(currentDesktopMenuItemProvider.state).state
+          ? Theme.of(context).extension<StackColors>()!.accentColorDark
+          : Theme.of(context)
+              .extension<StackColors>()!
+              .accentColorDark
+              .withOpacity(0.8),
+    );
+  }
+}
+
+class DesktopNotificationsIcon extends ConsumerWidget {
   const DesktopNotificationsIcon({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<DesktopNotificationsIcon> createState() =>
-      _DesktopNotificationsIconState();
-}
-
-class _DesktopNotificationsIconState
-    extends ConsumerState<DesktopNotificationsIcon> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SvgPicture.asset(
       ref.watch(notificationsProvider
               .select((value) => value.hasUnreadNotifications))
@@ -44,6 +77,103 @@ class _DesktopNotificationsIconState
                   .extension<StackColors>()!
                   .accentColorDark
                   .withOpacity(0.8),
+    );
+  }
+}
+
+class DesktopAddressBookIcon extends ConsumerWidget {
+  const DesktopAddressBookIcon({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SvgPicture.asset(
+      Assets.svg.addressBookDesktop,
+      width: 20,
+      height: 20,
+      color: DesktopMenuItemId.addressBook ==
+              ref.watch(currentDesktopMenuItemProvider.state).state
+          ? Theme.of(context).extension<StackColors>()!.accentColorDark
+          : Theme.of(context)
+              .extension<StackColors>()!
+              .accentColorDark
+              .withOpacity(0.8),
+    );
+  }
+}
+
+class DesktopSettingsIcon extends ConsumerWidget {
+  const DesktopSettingsIcon({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SvgPicture.asset(
+      Assets.svg.gear,
+      width: 20,
+      height: 20,
+      color: DesktopMenuItemId.settings ==
+              ref.watch(currentDesktopMenuItemProvider.state).state
+          ? Theme.of(context).extension<StackColors>()!.accentColorDark
+          : Theme.of(context)
+              .extension<StackColors>()!
+              .accentColorDark
+              .withOpacity(0.8),
+    );
+  }
+}
+
+class DesktopSupportIcon extends ConsumerWidget {
+  const DesktopSupportIcon({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SvgPicture.asset(
+      Assets.svg.messageQuestion,
+      width: 20,
+      height: 20,
+      color: DesktopMenuItemId.support ==
+              ref.watch(currentDesktopMenuItemProvider.state).state
+          ? Theme.of(context).extension<StackColors>()!.accentColorDark
+          : Theme.of(context)
+              .extension<StackColors>()!
+              .accentColorDark
+              .withOpacity(0.8),
+    );
+  }
+}
+
+class DesktopAboutIcon extends ConsumerWidget {
+  const DesktopAboutIcon({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SvgPicture.asset(
+      Assets.svg.aboutDesktop,
+      width: 20,
+      height: 20,
+      color: DesktopMenuItemId.about ==
+              ref.watch(currentDesktopMenuItemProvider.state).state
+          ? Theme.of(context).extension<StackColors>()!.accentColorDark
+          : Theme.of(context)
+              .extension<StackColors>()!
+              .accentColorDark
+              .withOpacity(0.8),
+    );
+  }
+}
+
+class DesktopExitIcon extends ConsumerWidget {
+  const DesktopExitIcon({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SvgPicture.asset(
+      Assets.svg.exitDesktop,
+      width: 20,
+      height: 20,
+      color: Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorDark
+          .withOpacity(0.8),
     );
   }
 }

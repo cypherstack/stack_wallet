@@ -6,8 +6,8 @@ import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import 'package:stackwallet/pages_desktop_specific/notifications/desktop_notifications_view.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/desktop_settings_view.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/support_and_about_view/desktop_about_view.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/support_and_about_view/desktop_support_view.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_about_view.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_support_view.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
@@ -32,13 +32,13 @@ class DesktopHomeView extends ConsumerStatefulWidget {
 }
 
 class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
-  final GlobalKey key = GlobalKey<NavigatorState>();
+  final GlobalKey myStackViewNavKey = GlobalKey<NavigatorState>();
   late final Navigator myStackViewNav;
 
   @override
   void initState() {
     myStackViewNav = Navigator(
-      key: key,
+      key: myStackViewNavKey,
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: MyStackView.routeName,
     );
@@ -87,7 +87,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
   void onMenuSelectionWillChange(DesktopMenuItemId newKey) {
     if (prev == DesktopMenuItemId.myStack && prev == newKey) {
-      Navigator.of(key.currentContext!)
+      Navigator.of(myStackViewNavKey.currentContext!)
           .popUntil(ModalRoute.withName(MyStackView.routeName));
       if (ref.read(currentWalletIdProvider.state).state != null) {
         final managerProvider = ref

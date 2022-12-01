@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
@@ -7,7 +8,6 @@ import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/curren
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/settings_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -26,7 +26,6 @@ class DesktopSettingsView extends ConsumerStatefulWidget {
 }
 
 class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
-  int currentViewIndex = 0;
   final List<Widget> contentViews = [
     const Navigator(
       key: Key("settingsBackupRestoreDesktopKey"),
@@ -70,12 +69,6 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
     ), //advanced
   ];
 
-  void onMenuSelectionChanged(int newIndex) {
-    setState(() {
-      currentViewIndex = newIndex;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return DesktopScaffold(
@@ -83,28 +76,36 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
       appBar: DesktopAppBar(
         isCompactHeight: true,
         leading: Row(
-          children: [
-            const SizedBox(
+          children: const [
+            SizedBox(
               width: 24,
               height: 24,
             ),
-            Text(
-              "Settings",
-              style: STextStyles.desktopH3(context),
-            )
+            DesktopSettingsTitle(),
           ],
         ),
       ),
       body: Row(
         children: [
-          SettingsMenu(
-            onSelectionChanged: onMenuSelectionChanged,
-          ),
+          const SettingsMenu(),
           Expanded(
-            child: contentViews[currentViewIndex],
+            child: contentViews[
+                ref.watch(selectedSettingsMenuItemStateProvider.state).state],
           ),
         ],
       ),
+    );
+  }
+}
+
+class DesktopSettingsTitle extends StatelessWidget {
+  const DesktopSettingsTitle({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      "Settings",
+      style: STextStyles.desktopH3(context),
     );
   }
 }

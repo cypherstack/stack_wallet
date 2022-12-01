@@ -8,9 +8,6 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/dark_colors.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -27,19 +24,6 @@ class AppearanceOptionSettings extends ConsumerStatefulWidget {
 
 class _AppearanceOptionSettings
     extends ConsumerState<AppearanceOptionSettings> {
-  // late bool isLight;
-
-  // @override
-  // void initState() {
-  //
-  //   super.initState();
-  // }
-  //
-  // @override
-  // void dispose() {
-  //   super.dispose();
-  // }
-
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -166,335 +150,121 @@ class ThemeToggle extends ConsumerStatefulWidget {
     Key? key,
   }) : super(key: key);
 
-  // final bool externalCallsEnabled;
-  // final void Function(bool)? onChanged;
-
   @override
   ConsumerState<ThemeToggle> createState() => _ThemeToggle();
 }
 
 class _ThemeToggle extends ConsumerState<ThemeToggle> {
-  // late bool externalCallsEnabled;
-
-  late String _selectedTheme;
-
-  @override
-  void initState() {
-    _selectedTheme =
-        DB.instance.get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme")
-                as String? ??
-            "light";
-
-    super.initState();
+  String assetNameFor(ThemeType type) {
+    switch (type) {
+      case ThemeType.light:
+        return Assets.svg.themeLight;
+      case ThemeType.dark:
+        return Assets.svg.themeDark;
+      case ThemeType.oceanBreeze:
+        return Assets.svg.themeOcean;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        MaterialButton(
-          splashColor: Colors.transparent,
-          hoverColor: Colors.transparent,
-          padding: const EdgeInsets.all(0),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-          ),
-          onPressed: () {
-            DB.instance.put<dynamic>(
-              boxName: DB.boxNameTheme,
-              key: "colorScheme",
-              value: ThemeType.light.name,
-            );
-            ref.read(colorThemeProvider.state).state =
-                StackColors.fromStackColorTheme(
-              LightColors(),
-            );
-
-            setState(() {
-              _selectedTheme = "light";
-            });
-          },
-          child: SizedBox(
-            width: 200,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 2.5,
-                      color: _selectedTheme == "light"
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemIcons
-                          : Theme.of(context).extension<StackColors>()!.popupBG,
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                  child: SvgPicture.asset(
-                    Assets.svg.themeLight,
-                  ),
-                ),
+        for (int i = 0; i < ThemeType.values.length; i++)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (i > 0)
                 const SizedBox(
-                  height: 12,
+                  width: 10,
                 ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Radio(
-                        activeColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .radioButtonIconEnabled,
-                        value: "light",
-                        groupValue: _selectedTheme,
-                        onChanged: (newValue) {
-                          if (newValue is String && newValue == "light") {
-                            DB.instance.put<dynamic>(
-                              boxName: DB.boxNameTheme,
-                              key: "colorScheme",
-                              value: ThemeType.light.name,
-                            );
-                            ref.read(colorThemeProvider.state).state =
-                                StackColors.fromStackColorTheme(
-                              LightColors(),
-                            );
-
-                            setState(() {
-                              _selectedTheme = "light";
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 14,
-                    ),
-                    Text(
-                      "Light",
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(
-          width: 10,
-        ),
-        MaterialButton(
-          splashColor: Colors.transparent,
-          hoverColor: Colors.transparent,
-          padding: const EdgeInsets.all(0),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-          ),
-          onPressed: () {
-            DB.instance.put<dynamic>(
-              boxName: DB.boxNameTheme,
-              key: "colorScheme",
-              value: ThemeType.oceanBreeze.name,
-            );
-            ref.read(colorThemeProvider.state).state =
-                StackColors.fromStackColorTheme(
-              OceanBreezeColors(),
-            );
-
-            setState(() {
-              _selectedTheme = "oceanBreeze";
-            });
-          },
-          child: SizedBox(
-            width: 200,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 2.5,
-                      color: _selectedTheme == "oceanBreeze"
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemIcons
-                          : Theme.of(context).extension<StackColors>()!.popupBG,
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    if (ref.read(colorThemeProvider.state).state.themeType !=
+                        ThemeType.values[i]) {
+                      DB.instance.put<dynamic>(
+                        boxName: DB.boxNameTheme,
+                        key: "colorScheme",
+                        value: ThemeType.values[i].name,
+                      );
+                      ref.read(colorThemeProvider.state).state =
+                          StackColors.fromStackColorTheme(
+                              ThemeType.values[i].colorTheme);
+                    }
+                  },
+                  child: Container(
+                    width: 200,
+                    color: Colors.transparent,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              width: 2.5,
+                              color: ref
+                                          .read(colorThemeProvider.state)
+                                          .state
+                                          .themeType ==
+                                      ThemeType.values[i]
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                          ),
+                          child: SvgPicture.asset(
+                            assetNameFor(ThemeType.values[i]),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Radio<ThemeType>(
+                                activeColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .radioButtonIconEnabled,
+                                value: ThemeType.values[i],
+                                groupValue: ref
+                                    .read(colorThemeProvider.state)
+                                    .state
+                                    .themeType,
+                                onChanged: (_) {},
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 14,
+                            ),
+                            Text(
+                              ThemeType.values[i].prettyName,
+                              style: STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  child: SvgPicture.asset(
-                    Assets.svg.themeOcean,
-                  ),
                 ),
-                const SizedBox(
-                  height: 12,
-                ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Radio(
-                        activeColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .radioButtonIconEnabled,
-                        value: "oceanBreeze",
-                        groupValue: _selectedTheme,
-                        onChanged: (newValue) {
-                          if (newValue is String && newValue == "oceanBreeze") {
-                            DB.instance.put<dynamic>(
-                              boxName: DB.boxNameTheme,
-                              key: "colorScheme",
-                              value: ThemeType.oceanBreeze.name,
-                            );
-                            ref.read(colorThemeProvider.state).state =
-                                StackColors.fromStackColorTheme(
-                              OceanBreezeColors(),
-                            );
-
-                            setState(() {
-                              _selectedTheme = "oceanBreeze";
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 14,
-                    ),
-                    Text(
-                      "Ocean Breeze",
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              )
+            ],
           ),
-        ),
-        const SizedBox(
-          width: 10,
-        ),
-        MaterialButton(
-          splashColor: Colors.transparent,
-          hoverColor: Colors.transparent,
-          padding: const EdgeInsets.all(0),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-          ),
-          onPressed: () {
-            DB.instance.put<dynamic>(
-              boxName: DB.boxNameTheme,
-              key: "colorScheme",
-              value: ThemeType.dark.name,
-            );
-            ref.read(colorThemeProvider.state).state =
-                StackColors.fromStackColorTheme(
-              DarkColors(),
-            );
-
-            setState(() {
-              _selectedTheme = "dark";
-            });
-          },
-          child: SizedBox(
-            width: 200,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 2.5,
-                      color: _selectedTheme == "dark"
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemIcons
-                          : Theme.of(context).extension<StackColors>()!.popupBG,
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                  child: SvgPicture.asset(
-                    Assets.svg.themeDark,
-                  ),
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Radio(
-                        activeColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .radioButtonIconEnabled,
-                        value: "dark",
-                        groupValue: _selectedTheme,
-                        onChanged: (newValue) {
-                          if (newValue is String && newValue == "dark") {
-                            DB.instance.put<dynamic>(
-                              boxName: DB.boxNameTheme,
-                              key: "colorScheme",
-                              value: ThemeType.dark.name,
-                            );
-                            ref.read(colorThemeProvider.state).state =
-                                StackColors.fromStackColorTheme(
-                              DarkColors(),
-                            );
-
-                            setState(() {
-                              _selectedTheme = "dark";
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 14,
-                    ),
-                    Text(
-                      "Dark",
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }

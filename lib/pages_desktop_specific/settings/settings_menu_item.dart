@@ -33,7 +33,7 @@ class SettingsMenuItem<T> extends StatelessWidget {
         onChanged(value);
       },
       child: Padding(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 16,
         ),

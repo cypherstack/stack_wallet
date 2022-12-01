@@ -104,13 +104,12 @@ import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanc
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/currency_settings/currency_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_about_view.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_support_view.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/settings_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/support_and_about_view/desktop_about_view.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/support_and_about_view/desktop_support_view.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -1060,14 +1059,6 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case SettingsMenu.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => SettingsMenu(
-                  onSelectionChanged: (int) {},
-                ),
-            settings: RouteSettings(name: settings.name));
 
       case BackupRestoreSettings.routeName:
         return getRoute(

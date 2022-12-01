@@ -138,22 +138,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   children: [
                     DesktopMenuItem(
                       duration: duration,
-                      icon: SvgPicture.asset(
-                        Assets.svg.walletDesktop,
-                        width: 20,
-                        height: 20,
-                        color: DesktopMenuItemId.myStack ==
-                                ref
-                                    .watch(currentDesktopMenuItemProvider.state)
-                                    .state
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                                .withOpacity(0.8),
-                      ),
+                      icon: const DesktopMyStackIcon(),
                       label: "My Stack",
                       value: DesktopMenuItemId.myStack,
                       onChanged: updateSelectedMenuItem,
@@ -164,22 +149,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ),
                     DesktopMenuItem(
                       duration: duration,
-                      icon: SvgPicture.asset(
-                        Assets.svg.exchangeDesktop,
-                        width: 20,
-                        height: 20,
-                        color: DesktopMenuItemId.exchange ==
-                                ref
-                                    .watch(currentDesktopMenuItemProvider.state)
-                                    .state
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                                .withOpacity(0.8),
-                      ),
+                      icon: const DesktopExchangeIcon(),
                       label: "Exchange",
                       value: DesktopMenuItemId.exchange,
                       onChanged: updateSelectedMenuItem,
@@ -201,22 +171,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ),
                     DesktopMenuItem(
                       duration: duration,
-                      icon: SvgPicture.asset(
-                        Assets.svg.addressBookDesktop,
-                        width: 20,
-                        height: 20,
-                        color: DesktopMenuItemId.addressBook ==
-                                ref
-                                    .watch(currentDesktopMenuItemProvider.state)
-                                    .state
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                                .withOpacity(0.8),
-                      ),
+                      icon: const DesktopAddressBookIcon(),
                       label: "Address Book",
                       value: DesktopMenuItemId.addressBook,
                       onChanged: updateSelectedMenuItem,
@@ -227,22 +182,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ),
                     DesktopMenuItem(
                       duration: duration,
-                      icon: SvgPicture.asset(
-                        Assets.svg.gear,
-                        width: 20,
-                        height: 20,
-                        color: DesktopMenuItemId.settings ==
-                                ref
-                                    .watch(currentDesktopMenuItemProvider.state)
-                                    .state
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                                .withOpacity(0.8),
-                      ),
+                      icon: const DesktopSettingsIcon(),
                       label: "Settings",
                       value: DesktopMenuItemId.settings,
                       onChanged: updateSelectedMenuItem,
@@ -253,22 +193,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ),
                     DesktopMenuItem(
                       duration: duration,
-                      icon: SvgPicture.asset(
-                        Assets.svg.messageQuestion,
-                        width: 20,
-                        height: 20,
-                        color: DesktopMenuItemId.support ==
-                                ref
-                                    .watch(currentDesktopMenuItemProvider.state)
-                                    .state
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                                .withOpacity(0.8),
-                      ),
+                      icon: const DesktopSupportIcon(),
                       label: "Support",
                       value: DesktopMenuItemId.support,
                       onChanged: updateSelectedMenuItem,
@@ -279,22 +204,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ),
                     DesktopMenuItem(
                       duration: duration,
-                      icon: SvgPicture.asset(
-                        Assets.svg.aboutDesktop,
-                        width: 20,
-                        height: 20,
-                        color: DesktopMenuItemId.about ==
-                                ref
-                                    .watch(currentDesktopMenuItemProvider.state)
-                                    .state
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark
-                                .withOpacity(0.8),
-                      ),
+                      icon: const DesktopAboutIcon(),
                       label: "About",
                       value: DesktopMenuItemId.about,
                       onChanged: updateSelectedMenuItem,
@@ -304,15 +214,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     DesktopMenuItem(
                       duration: duration,
                       labelLength: 123,
-                      icon: SvgPicture.asset(
-                        Assets.svg.exitDesktop,
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark
-                            .withOpacity(0.8),
-                      ),
+                      icon: const DesktopExitIcon(),
                       label: "Exit",
                       value: 7,
                       onChanged: (_) {

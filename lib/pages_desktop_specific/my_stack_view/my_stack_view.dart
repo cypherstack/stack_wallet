@@ -27,35 +27,44 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
     return Background(
       child: Column(
         children: [
-          DesktopAppBar(
+          const DesktopAppBar(
             isCompactHeight: true,
-            leading: Row(
-              children: [
-                const SizedBox(
-                  width: 24,
-                ),
-                SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: SvgPicture.asset(
-                    Assets.svg.stackIcon(context),
-                  ),
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
-                Text(
-                  "My Stack",
-                  style: STextStyles.desktopH3(context),
-                )
-              ],
-            ),
+            leading: DesktopMyStackTitle(),
           ),
           Expanded(
             child: hasWallets ? const MyWallets() : const EmptyWallets(),
           ),
         ],
       ),
+    );
+  }
+}
+
+class DesktopMyStackTitle extends StatelessWidget {
+  const DesktopMyStackTitle({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const SizedBox(
+          width: 24,
+        ),
+        SizedBox(
+          width: 32,
+          height: 32,
+          child: SvgPicture.asset(
+            Assets.svg.stackIcon(context),
+          ),
+        ),
+        const SizedBox(
+          width: 12,
+        ),
+        Text(
+          "My Stack",
+          style: STextStyles.desktopH3(context),
+        )
+      ],
     );
   }
 }
