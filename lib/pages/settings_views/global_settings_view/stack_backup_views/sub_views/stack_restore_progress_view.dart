@@ -25,8 +25,8 @@ import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
-import '../../../../../pages_desktop_specific/home/desktop_home_view.dart';
-import '../../../../../pages_desktop_specific/home/desktop_menu.dart';
+import '../../../../../pages_desktop_specific/desktop_home_view.dart';
+import '../../../../../pages_desktop_specific/desktop_menu.dart';
 import '../../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
 

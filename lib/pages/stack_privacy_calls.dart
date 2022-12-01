@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
-import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
@@ -141,7 +141,8 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                           textAlign: TextAlign.left,
                           text: TextSpan(
                             style: isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(context)
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                    context)
                                 : STextStyles.label(context).copyWith(
                                     fontSize: 12.0,
                                   ),
@@ -214,8 +215,9 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                       children: [
                         Expanded(
                           child: PrimaryButton(
-                            label:
-                                !widget.isSettings ? "Continue" : "Save changes",
+                            label: !widget.isSettings
+                                ? "Continue"
+                                : "Save changes",
                             onPressed: () {
                               ref
                                   .read(prefsChangeNotifierProvider)
@@ -228,8 +230,8 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                       value: isEasy)
                                   .then((_) {
                                 if (isEasy) {
-                                  unawaited(
-                                      ExchangeDataLoadingService().loadAll(ref));
+                                  unawaited(ExchangeDataLoadingService()
+                                      .loadAll(ref));
                                   ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .start(true);

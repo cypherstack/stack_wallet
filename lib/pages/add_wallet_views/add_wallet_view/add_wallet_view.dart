@@ -4,7 +4,7 @@ import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/a
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/searchable_coin_list.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_choose_from_stack.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';

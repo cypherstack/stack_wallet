@@ -17,8 +17,8 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widge
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -32,7 +32,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/custom_text_selection_controls.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
