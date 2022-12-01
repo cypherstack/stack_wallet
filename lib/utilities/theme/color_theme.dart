@@ -3,8 +3,8 @@ import 'dart:ui';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 enum ThemeType {
-  light,
   dark,
+  light,
 }
 
 abstract class StackColorTheme {

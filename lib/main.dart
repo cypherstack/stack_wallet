@@ -26,9 +26,7 @@ import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/db_version_migration.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/prefs.dart';
-import 'package:epicmobile/utilities/theme/color_theme.dart';
 import 'package:epicmobile/utilities/theme/dark_colors.dart';
-import 'package:epicmobile/utilities/theme/light_colors.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:flutter/material.dart';
@@ -210,18 +208,18 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    final colorScheme = DB.instance
-        .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
-
-    ThemeType themeType;
-    switch (colorScheme) {
-      case "dark":
-        themeType = ThemeType.dark;
-        break;
-      case "light":
-      default:
-        themeType = ThemeType.light;
-    }
+    // final colorScheme = DB.instance
+    //     .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
+    //
+    // ThemeType themeType;
+    // switch (colorScheme) {
+    //   case "dark":
+    //     themeType = ThemeType.dark;
+    //     break;
+    //   case "light":
+    //   default:
+    //     themeType = ThemeType.light;
+    // }
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
     // load locale and prefs
@@ -234,8 +232,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(colorThemeProvider.state).state =
-          StackColors.fromStackColorTheme(
-              themeType == ThemeType.dark ? DarkColors() : LightColors());
+          StackColors.fromStackColorTheme(DarkColors());
     });
 
     super.initState();
