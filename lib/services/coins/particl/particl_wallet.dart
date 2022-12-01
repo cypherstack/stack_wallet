@@ -2725,7 +2725,7 @@ class ParticlWallet extends CoinServiceAPI {
     final List<UtxoObject> availableOutputs = utxos ?? outputsList;
     final List<UtxoObject> spendableOutputs = [];
     int spendableSatoshiValue = 0;
-
+    print("AVAILABLE UTXOS IS ::::: ${availableOutputs}");
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
       if (availableOutputs[i].blocked == false &&
@@ -3075,6 +3075,7 @@ class ParticlWallet extends CoinServiceAPI {
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
+            print("SCRIPT PUB KEY IS ${output["scriptPubKey"]}");
             final address = output["scriptPubKey"]["address"] as String;
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
@@ -3156,6 +3157,7 @@ class ParticlWallet extends CoinServiceAPI {
       // p2sh / bip49
       final p2shLength = addressesP2SH.length;
       if (p2shLength > 0) {
+        print("THIS P2SH IS NOT NULL");
         final receiveDerivations = await _fetchDerivations(
           chain: 0,
           derivePathType: DerivePathType.bip49,
@@ -3192,6 +3194,7 @@ class ParticlWallet extends CoinServiceAPI {
               };
             }
           } else {
+            print("THIS IS WHERE ITS AT - CHANGE p2wpkh");
             // if its not a receive, check change
             final changeDerivation = changeDerivations[addressesP2SH[i]];
             // if a match exists it will not be null
@@ -3282,7 +3285,8 @@ class ParticlWallet extends CoinServiceAPI {
           }
         }
       }
-
+      Logging.instance.log("FETCHED TX BUILD DATA IS -----$results",
+          level: LogLevel.Info, printFullLength: true);
       return results;
     } catch (e, s) {
       Logging.instance
@@ -3301,11 +3305,17 @@ class ParticlWallet extends CoinServiceAPI {
     Logging.instance
         .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
+    Logging.instance.log("UTXOs SIGNING DATA IS -----$utxoSigningData",
+        level: LogLevel.Info, printFullLength: true);
+
     final txb = TransactionBuilder(network: _network);
     txb.setVersion(160);
 
     // Add transaction inputs
     for (var i = 0; i < utxosToUse.length; i++) {
+      Logging.instance.log("UTXOs TO USE IS -----${utxosToUse[i].vout}",
+          level: LogLevel.Info, printFullLength: true);
+
       final txid = utxosToUse[i].txid;
       txb.addInput(txid, utxosToUse[i].vout, null,
           utxoSigningData[txid]["output"] as Uint8List, '');
@@ -3313,8 +3323,6 @@ class ParticlWallet extends CoinServiceAPI {
 
     // Add transaction output
     for (var i = 0; i < recipients.length; i++) {
-      print("RECIPIENT IS ${recipients[i]}");
-      print("AMOINT IS ${satoshiAmounts[i]}");
       txb.addOutput(recipients[i], satoshiAmounts[i], particl.bech32!);
     }
 
@@ -3322,6 +3330,16 @@ class ParticlWallet extends CoinServiceAPI {
       // Sign the transaction accordingly
       for (var i = 0; i < utxosToUse.length; i++) {
         final txid = utxosToUse[i].txid;
+        Logging.instance.log("WITNESS VALUE IS -----${utxosToUse[i].value}",
+            level: LogLevel.Info, printFullLength: true);
+
+        Logging.instance.log(
+            "REDEEM SCRIPT IS -----${utxoSigningData[txid]["redeemScript"]}",
+            level: LogLevel.Info,
+            printFullLength: true);
+
+        Logging.instance.log("AND THIS DATA IS -----${utxoSigningData[txid]}",
+            level: LogLevel.Info, printFullLength: true);
         txb.sign(
             vin: i,
             keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
@@ -3334,7 +3352,7 @@ class ParticlWallet extends CoinServiceAPI {
       rethrow;
     }
 
-    final builtTx = txb.buildIncomplete();
+    final builtTx = txb.build();
     final vSize = builtTx.virtualSize();
 
     print("BUILT TX IS ${builtTx.toHex()}");
