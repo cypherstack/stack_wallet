@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:epicmobile/pages/home_view/sub_widgets/home_view_button_bar.dart';
 import 'package:epicmobile/pages/notification_views/notifications_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/global_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/hidden_settings.dart';
@@ -9,7 +8,6 @@ import 'package:epicmobile/providers/global/notifications_provider.dart';
 import 'package:epicmobile/providers/ui/home_view_index_provider.dart';
 import 'package:epicmobile/providers/ui/unread_notifications_provider.dart';
 import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
@@ -119,6 +117,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
       onWillPop: _onWillPop,
       child: Background(
         child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
           key: _key,
           appBar: AppBar(
             automaticallyImplyLeading: false,
@@ -236,65 +236,40 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ),
             ],
           ),
-          body: Container(
-            color: Theme.of(context).extension<StackColors>()!.background,
-            child: Column(
-              children: [
-                if (Constants.enableExchange)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      boxShadow: [
-                        Theme.of(context)
-                            .extension<StackColors>()!
-                            .standardBoxShadow,
-                      ],
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.only(
-                        left: 16,
-                        bottom: 12,
-                        right: 16,
-                        top: 0,
-                      ),
-                      child: HomeViewButtonBar(),
-                    ),
-                  ),
-                Expanded(
-                  child: Consumer(
-                    builder: (_, _ref, __) {
-                      _ref.listen(homeViewPageIndexStateProvider,
-                          (previous, next) {
-                        if (next is int) {
-                          if (next >= 0 && next <= 1) {
-                            _pageController.animateToPage(
-                              next,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.decelerate,
-                            );
-                          }
+          body: Column(
+            children: [
+              Expanded(
+                child: Consumer(
+                  builder: (_, _ref, __) {
+                    _ref.listen(homeViewPageIndexStateProvider,
+                        (previous, next) {
+                      if (next is int) {
+                        if (next >= 0 && next <= 1) {
+                          _pageController.animateToPage(
+                            next,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.decelerate,
+                          );
                         }
-                      });
-                      return PageView(
-                        controller: _pageController,
-                        children: _children,
-                        onPageChanged: (pageIndex) {
-                          ref.read(homeViewPageIndexStateProvider.state).state =
-                              pageIndex;
-                        },
-                      );
-                    },
-                  ),
+                      }
+                    });
+                    return PageView(
+                      controller: _pageController,
+                      children: _children,
+                      onPageChanged: (pageIndex) {
+                        ref.read(homeViewPageIndexStateProvider.state).state =
+                            pageIndex;
+                      },
+                    );
+                  },
                 ),
-                // Expanded(
-                //   child: HomeStack(
-                //     children: _children,
-                //   ),
-                // ),
-              ],
-            ),
+              ),
+              // Expanded(
+              //   child: HomeStack(
+              //     children: _children,
+              //   ),
+              // ),
+            ],
           ),
         ),
       ),

@@ -182,6 +182,8 @@ class _AddWalletViewState extends State<AddWalletView> {
     } else {
       return Background(
         child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {

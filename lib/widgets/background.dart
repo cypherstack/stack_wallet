@@ -24,7 +24,6 @@ class Background extends ConsumerWidget {
     switch (colorTheme.themeType) {
       case ThemeType.light:
       case ThemeType.dark:
-        color = Theme.of(context).extension<StackColors>()!.background;
         break;
     }
 

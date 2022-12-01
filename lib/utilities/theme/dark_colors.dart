@@ -1,22 +1,31 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
+
 import 'package:epicmobile/utilities/theme/color_theme.dart';
+import 'package:flutter/material.dart';
 
 class DarkColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.dark;
 
   @override
-  Color get background => const Color(0xFF2A2D34);
+  Color get background => Colors.transparent;
   @override
   Color get backgroundAppBar => background;
   @override
-  Gradient? get gradientBackground => null;
+  Gradient? get gradientBackground => const LinearGradient(
+        colors: [
+          Color(0xFF121215),
+          Color(0xFF222227),
+        ],
+        begin: Alignment.bottomLeft,
+        end: Alignment.topRight,
+      );
 
   @override
   Color get overlay => const Color(0xFF111215);
 
   @override
-  Color get accentColorBlue => const Color(0xFF4C86E9);
+  Color get accentColorBlue => const Color(0xFFD1A55C);
   @override
   Color get accentColorGreen => const Color(0xFF4CC0A0);
   @override
@@ -32,7 +41,7 @@ class DarkColors extends StackColorTheme {
   Color get shadow => const Color(0x0F2D3132);
 
   @override
-  Color get textDark => const Color(0xFFF3F3F3);
+  Color get textDark => const Color(0xFFE2E2E3);
   @override
   Color get textDark2 => const Color(0xFFDBDBDB);
   @override
@@ -58,42 +67,42 @@ class DarkColors extends StackColorTheme {
 
   // button background
   @override
-  Color get buttonBackPrimary => const Color(0xFF4C86E9);
+  Color get buttonBackPrimary => const Color(0xFFD1A55C);
   @override
-  Color get buttonBackSecondary => const Color(0xFF444E5C);
+  Color get buttonBackSecondary => const Color(0xFF121215);
   @override
   Color get buttonBackPrimaryDisabled => const Color(0xFF38517C);
   @override
   Color get buttonBackSecondaryDisabled => const Color(0xFF3B3F46);
   @override
-  Color get buttonBackBorder => const Color(0xFF4C86E9);
+  Color get buttonBackBorder => const Color(0xFFD1A55C);
   @override
   Color get buttonBackBorderDisabled => const Color(0xFF314265);
 
   @override
   Color get numberBackDefault => const Color(0xFF484B51);
   @override
-  Color get numpadBackDefault => const Color(0xFF4C86E9);
+  Color get numpadBackDefault => const Color(0xFFD1A55C);
   @override
   Color get bottomNavBack => const Color(0xFF3E4148);
 
   // button text/element
   @override
-  Color get buttonTextPrimary => const Color(0xFFFFFFFF);
+  Color get buttonTextPrimary => const Color(0xFF121215);
   @override
-  Color get buttonTextSecondary => const Color(0xFFFFFFFF);
+  Color get buttonTextSecondary => const Color(0xFFD1A55C);
   @override
-  Color get buttonTextPrimaryDisabled => const Color(0xFFFFFFFF);
+  Color get buttonTextPrimaryDisabled => const Color(0xFF121215);
   @override
-  Color get buttonTextSecondaryDisabled => const Color(0xFF6A6C71);
+  Color get buttonTextSecondaryDisabled => const Color(0xFFD1A55C);
   @override
-  Color get buttonTextBorder => const Color(0xFF4C86E9);
+  Color get buttonTextBorder => const Color(0xFFD1A55C);
   @override
   Color get buttonTextDisabled => const Color(0xFF314265);
   @override
-  Color get buttonTextBorderless => const Color(0xFF4C86E9);
+  Color get buttonTextBorderless => const Color(0xFFD1A55C);
   @override
-  Color get buttonTextBorderlessDisabled => const Color(0xFFB6B6B6);
+  Color get buttonTextBorderlessDisabled => const Color(0xFFD1A55C);
   @override
   Color get numberTextDefault => const Color(0xFFFFFFFF);
   @override
@@ -103,7 +112,7 @@ class DarkColors extends StackColorTheme {
 
   // switch
   @override
-  Color get switchBGOn => const Color(0xFF4C86E9);
+  Color get switchBGOn => const Color(0xFFD1A55C);
   @override
   Color get switchBGOff => const Color(0xFFC1D9FF);
   @override
@@ -117,13 +126,13 @@ class DarkColors extends StackColorTheme {
 
   // step indicator background
   @override
-  Color get stepIndicatorBGCheck => const Color(0xFF4C86E9);
+  Color get stepIndicatorBGCheck => const Color(0xFFD1A55C);
   @override
-  Color get stepIndicatorBGNumber => const Color(0xFF4C86E9);
+  Color get stepIndicatorBGNumber => const Color(0xFFD1A55C);
   @override
   Color get stepIndicatorBGInactive => const Color(0xFF3B3F46);
   @override
-  Color get stepIndicatorBGLines => const Color(0xFF4C86E9);
+  Color get stepIndicatorBGLines => const Color(0xFFD1A55C);
   @override
   Color get stepIndicatorBGLinesInactive => const Color(0xFF3B3F46);
   @override
@@ -135,7 +144,7 @@ class DarkColors extends StackColorTheme {
 
   // checkbox
   @override
-  Color get checkboxBGChecked => const Color(0xFF4C86E9);
+  Color get checkboxBGChecked => const Color(0xFFD1A55C);
   @override
   Color get checkboxBorderEmpty => const Color(0xFF8E9192);
   @override
@@ -239,17 +248,17 @@ class DarkColors extends StackColorTheme {
 
   // radio buttons
   @override
-  Color get radioButtonIconBorder => const Color(0xFF4C86E9);
+  Color get radioButtonIconBorder => const Color(0xFFD1A55C);
   @override
   Color get radioButtonIconBorderDisabled => const Color(0xFF9E9E9E);
   @override
-  Color get radioButtonBorderEnabled => const Color(0xFF4C86E9);
+  Color get radioButtonBorderEnabled => const Color(0xFFD1A55C);
   @override
   Color get radioButtonBorderDisabled => const Color(0xFFCDCDCD);
   @override
   Color get radioButtonIconCircle => const Color(0xFF9E9E9E);
   @override
-  Color get radioButtonIconEnabled => const Color(0xFF4C86E9);
+  Color get radioButtonIconEnabled => const Color(0xFFD1A55C);
   @override
   Color get radioButtonTextEnabled => const Color(0xFF44464E);
   @override
@@ -267,7 +276,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get infoItemText => const Color(0xFFFFFFFF);
   @override
-  Color get infoItemIcons => const Color(0xFF4C86E9);
+  Color get infoItemIcons => const Color(0xFFD1A55C);
 
   // popup
   @override
