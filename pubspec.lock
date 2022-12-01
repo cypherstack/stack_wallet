@@ -15,20 +15,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.7.0"
-  animations:
-    dependency: "direct main"
-    description:
-      name: animations
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.7"
-  another_flushbar:
-    dependency: "direct main"
-    description:
-      name: another_flushbar
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.12.29"
   app_settings:
     dependency: "direct main"
     description:
@@ -65,7 +51,7 @@ packages:
     source: hosted
     version: "4.2.1"
   bech32:
-    dependency: "direct main"
+    dependency: transitive
     description:
       path: "."
       ref: "22279d4bb24ed541b431acd269a1bc50af0f36a0"
@@ -74,7 +60,7 @@ packages:
     source: git
     version: "0.2.1"
   bip32:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: bip32
       url: "https://pub.dartlang.org"
@@ -89,15 +75,6 @@ packages:
       url: "https://github.com/cypherstack/stack-bip39.git"
     source: git
     version: "1.0.6"
-  bitbox:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
-      resolved-ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
-      url: "https://github.com/Quppy/bitbox-flutter.git"
-    source: git
-    version: "1.0.1"
   bitcoindart:
     dependency: "direct main"
     description:
@@ -115,7 +92,7 @@ packages:
     source: hosted
     version: "2.1.0"
   bs58check:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: bs58check
       url: "https://pub.dartlang.org"
@@ -415,13 +392,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
-  flare_flutter:
-    dependency: "direct main"
-    description:
-      name: flare_flutter
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.2"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -460,27 +430,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  flutter_local_notifications:
-    dependency: "direct main"
-    description:
-      name: flutter_local_notifications
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "9.9.1"
-  flutter_local_notifications_linux:
-    dependency: transitive
-    description:
-      name: flutter_local_notifications_linux
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.5.1"
-  flutter_local_notifications_platform_interface:
-    dependency: transitive
-    description:
-      name: flutter_local_notifications_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "5.0.0"
   flutter_native_splash:
     dependency: "direct main"
     description:
@@ -739,13 +688,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.7.0"
-  jsonrpc2:
-    dependency: "direct main"
-    description:
-      name: jsonrpc2
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.1"
   keyboard_dismisser:
     dependency: "direct main"
     description:
@@ -1034,7 +976,7 @@ packages:
     source: hosted
     version: "2.1.3"
   pointycastle:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: pointycastle
       url: "https://pub.dartlang.org"
@@ -1103,27 +1045,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.3"
-  rpc_dispatcher:
-    dependency: transitive
-    description:
-      name: rpc_dispatcher
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.1"
-  rpc_exceptions:
-    dependency: transitive
-    description:
-      name: rpc_exceptions
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.1"
-  rxdart:
-    dependency: "direct main"
-    description:
-      name: rxdart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.27.5"
   share_plus:
     dependency: "direct main"
     description:
@@ -1166,62 +1087,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
-  shared_preferences:
-    dependency: "direct main"
-    description:
-      name: shared_preferences
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.15"
-  shared_preferences_android:
-    dependency: transitive
-    description:
-      name: shared_preferences_android
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.14"
-  shared_preferences_ios:
-    dependency: transitive
-    description:
-      name: shared_preferences_ios
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
-  shared_preferences_linux:
-    dependency: transitive
-    description:
-      name: shared_preferences_linux
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
-  shared_preferences_macos:
-    dependency: transitive
-    description:
-      name: shared_preferences_macos
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.4"
-  shared_preferences_platform_interface:
-    dependency: transitive
-    description:
-      name: shared_preferences_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.0"
-  shared_preferences_web:
-    dependency: transitive
-    description:
-      name: shared_preferences_web
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.4"
-  shared_preferences_windows:
-    dependency: transitive
-    description:
-      name: shared_preferences_windows
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
   shelf:
     dependency: transitive
     description:
@@ -1383,13 +1248,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.2"
-  timezone:
-    dependency: transitive
-    description:
-      name: timezone
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.0"
   timing:
     dependency: transitive
     description:
@@ -1404,13 +1262,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
-  toast:
-    dependency: "direct main"
-    description:
-      name: toast
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.5"
   tuple:
     dependency: "direct main"
     description:
@@ -1616,13 +1467,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.1"
-  zxcvbn:
-    dependency: "direct main"
-    description:
-      name: zxcvbn
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.0"
 sdks:
   dart: ">=2.17.5 <3.0.0"
   flutter: ">=3.0.1"

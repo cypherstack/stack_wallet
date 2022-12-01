@@ -46,10 +46,10 @@ dependencies:
   http: ^0.13.4
   local_auth: ^1.1.10
   permission_handler: ^10.0.0
-  flutter_local_notifications: ^9.4.0
-  rxdart: ^0.27.3
+#  flutter_local_notifications: ^9.4.0
+#  rxdart: ^0.27.3
 #  filesystem_picker: ^3.0.0-beta.1
-  zxcvbn: ^1.0.0
+#  zxcvbn: ^1.0.0
   dart_numerics: ^0.0.6
 
   window_size:
@@ -62,16 +62,16 @@ dependencies:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
       ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
-  bitbox:
-    git:
-      url: https://github.com/Quppy/bitbox-flutter.git
-      ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
-  bip32: ^2.0.0
-  bech32:
-    git:
-      url: https://github.com/cypherstack/bech32.git
-      ref: 22279d4bb24ed541b431acd269a1bc50af0f36a0
-  bs58check: ^1.0.2
+#  bitbox:
+#    git:
+#      url: https://github.com/Quppy/bitbox-flutter.git
+#      ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
+#  bip32: ^2.0.0
+#  bech32:
+#    git:
+#      url: https://github.com/cypherstack/bech32.git
+#      ref: 22279d4bb24ed541b431acd269a1bc50af0f36a0
+#  bs58check: ^1.0.2
 
   # Storage plugins
   flutter_secure_storage: ^5.0.2
@@ -81,9 +81,9 @@ dependencies:
 
   # UI/Component plugins
   flutter_native_splash: ^2.2.4
-  animations: ^2.0.2
-  toast: ^0.1.5
-  flare_flutter: ^3.0.2
+#  animations: ^2.0.2
+#  toast: ^0.1.5
+#  flare_flutter: ^3.0.2
   google_fonts: ^2.2.0
   url_launcher: ^6.0.5
   flutter_svg: ^1.0.1
@@ -94,7 +94,7 @@ dependencies:
   uuid: ^3.0.5
   flutter_rounded_date_picker: ^3.0.1
   crypto: ^3.0.2
-  jsonrpc2: ^3.0.1
+#  jsonrpc2: ^3.0.1
   barcode_scan2: ^4.2.0
   app_settings: ^4.1.1
   wakelock: ^0.6.2
@@ -102,19 +102,18 @@ dependencies:
   devicelocale: ^0.5.0
   device_info_plus: ^7.0.1
   keyboard_dismisser: ^3.0.0
-  another_flushbar: ^1.10.28
+#  another_flushbar: ^1.10.28
   tuple: ^2.0.0
   flutter_riverpod: ^1.0.3
   qr_flutter: ^4.0.0
   share_plus: ^4.0.10
   emojis: ^0.9.9
-  pointycastle: ^3.6.0
+#  pointycastle: ^3.6.0
   package_info_plus: ^1.4.2
   lottie: ^1.3.0
-  shared_preferences: ^2.0.15
+#  shared_preferences: ^2.0.15
   file_picker: ^5.0.1
   connectivity_plus: 2.3.6+1
-#  document_file_save_plus: ^1.0.5
   isar: 3.0.0-dev.10
   isar_flutter_libs: 3.0.0-dev.10 # contains the binaries
   dropdown_button2: 1.7.2
