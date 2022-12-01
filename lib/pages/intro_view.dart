@@ -5,6 +5,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'create_restore_wallet_view.dart';
+
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
 
@@ -38,8 +40,9 @@ class _IntroViewState extends State<IntroView> {
             ),
             AppNameText(),
             const SizedBox(
-              height: 8,
+              height: 32,
             ),
+            // todo add screen swipe text
             const SizedBox(
               height: 118,
             ),
@@ -127,7 +130,9 @@ class GetStartedButton extends StatelessWidget {
       style: Theme.of(context)
           .extension<StackColors>()!
           .getPrimaryEnabledButtonColor(context),
-      onPressed: () {},
+      onPressed: () {
+        Navigator.of(context).pushNamed(CreateRestoreWalletView.routeName);
+      },
       child: Text(
         "Get started",
         style: STextStyles.button(context),

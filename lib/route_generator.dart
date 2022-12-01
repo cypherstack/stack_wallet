@@ -16,6 +16,7 @@ import 'package:epicmobile/pages/address_book_views/subviews/address_book_filter
 import 'package:epicmobile/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
+import 'package:epicmobile/pages/create_restore_wallet_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
 import 'package:epicmobile/pages/manage_favorites_view/manage_favorites_view.dart';
@@ -82,6 +83,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const IntroView(),
+            settings: RouteSettings(name: settings.name));
+
+      case CreateRestoreWalletView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const CreateRestoreWalletView(),
             settings: RouteSettings(name: settings.name));
 
       case DeleteAccountView.routeName:
