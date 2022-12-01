@@ -1,15 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:epicmobile/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
 import 'package:epicmobile/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_subtitle.dart';
 import 'package:epicmobile/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_title.dart';
 import 'package:epicmobile/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_wallet_button_group.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
+import 'package:flutter/material.dart';
 
 class CreateOrRestoreWalletView extends StatelessWidget {
   const CreateOrRestoreWalletView({
@@ -32,7 +31,6 @@ class CreateOrRestoreWalletView extends StatelessWidget {
         appBar: const DesktopAppBar(
           isCompactHeight: false,
           leading: AppBarBackButton(),
-          trailing: ExitToMyStackButton(),
         ),
         body: SizedBox(
           width: 480,

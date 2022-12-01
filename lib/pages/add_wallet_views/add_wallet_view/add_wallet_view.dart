@@ -2,7 +2,6 @@ import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/sub_widgets/ad
 import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
 import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
 import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/sub_widgets/searchable_coin_list.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
@@ -59,7 +58,6 @@ class _AddWalletViewState extends State<AddWalletView> {
         appBar: const DesktopAppBar(
           isCompactHeight: false,
           leading: AppBarBackButton(),
-          trailing: ExitToMyStackButton(),
         ),
         body: Column(
           children: [

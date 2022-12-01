@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:mockingjay/mockingjay.dart' as mockingjay;
-
-void main() {
+import 'package:stackwallet/widgets/stack_dialog.dart'void main() {
   testWidgets("test StackDialogBase", (widgetTester) async {
     await widgetTester.pumpWidget(
       MaterialApp(

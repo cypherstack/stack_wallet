@@ -2,7 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 
 import 'flutter_secure_storage_interface_test.mocks.dart';
 

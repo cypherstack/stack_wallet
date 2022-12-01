@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
-// import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets_service.dart';
+// import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/services/node_service.dart';
+import 'package:epicmobile/services/wallets_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),

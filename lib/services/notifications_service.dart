@@ -1,23 +1,17 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:epicmobile/electrumx_rpc/electrumx.dart';
 import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/models/exchange/response_objects/trade.dart';
 import 'package:epicmobile/models/notification_model.dart';
-import 'package:epicmobile/services/exchange/change_now/change_now_exchange.dart';
-import 'package:epicmobile/services/exchange/exchange_response.dart';
-import 'package:epicmobile/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:epicmobile/services/node_service.dart';
 import 'package:epicmobile/services/notifications_api.dart';
-import 'package:epicmobile/services/trade_service.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/prefs.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationsService extends ChangeNotifier {
   late NodeService nodeService;
-  late TradesService tradesService;
   late Prefs prefs;
 
   NotificationsService._();
@@ -26,11 +20,9 @@ class NotificationsService extends ChangeNotifier {
 
   Future<void> init({
     required NodeService nodeService,
-    required TradesService tradesService,
     required Prefs prefs,
   }) async {
     this.nodeService = nodeService;
-    this.tradesService = tradesService;
     this.prefs = prefs;
   }
 
@@ -53,26 +45,6 @@ class NotificationsService extends ChangeNotifier {
         boxName: DB.boxNameWatchedTransactions, key: notification.id);
   }
 
-  // watched trades
-  List<NotificationModel> get _watchedChangeNowTradeNotifications {
-    return DB.instance
-        .values<NotificationModel>(boxName: DB.boxNameWatchedTrades);
-  }
-
-  Future<void> _addWatchedTradeNotification(
-      NotificationModel notification) async {
-    await DB.instance.put<NotificationModel>(
-        boxName: DB.boxNameWatchedTrades,
-        key: notification.id,
-        value: notification);
-  }
-
-  Future<void> _deleteWatchedTradeNotification(
-      NotificationModel notification) async {
-    await DB.instance.delete<NotificationModel>(
-        boxName: DB.boxNameWatchedTrades, key: notification.id);
-  }
-
   static Timer? _timer;
 
   // todo: change this number?
@@ -84,9 +56,6 @@ class NotificationsService extends ChangeNotifier {
     _timer = Timer.periodic(notificationRefreshInterval, (_) {
       Logging.instance
           .log("Periodic notifications update check", level: LogLevel.Info);
-      if (prefs.externalCalls) {
-        _checkTrades();
-      }
       _checkTransactions();
     });
   }
@@ -181,74 +150,6 @@ class NotificationsService extends ChangeNotifier {
     }
   }
 
-  void _checkTrades() async {
-    for (final notification in _watchedChangeNowTradeNotifications) {
-      final id = notification.changeNowId!;
-
-      final trades =
-          tradesService.trades.where((element) => element.tradeId == id);
-
-      if (trades.isEmpty) {
-        return;
-      }
-      final oldTrade = trades.first;
-      late final ExchangeResponse<Trade> response;
-      switch (oldTrade.exchangeName) {
-        case SimpleSwapExchange.exchangeName:
-          response = await SimpleSwapExchange().updateTrade(oldTrade);
-          break;
-        case ChangeNowExchange.exchangeName:
-          response = await ChangeNowExchange().updateTrade(oldTrade);
-          break;
-        default:
-          return;
-      }
-
-      if (response.value == null) {
-        return;
-      }
-
-      final trade = response.value!;
-
-      // only update if status has changed
-      if (trade.status != notification.title) {
-        bool shouldWatchForUpdates = true;
-        // TODO: make sure we set shouldWatchForUpdates to correct value here
-        switch (trade.status) {
-          case "Refunded":
-          case "refunded":
-          case "Failed":
-          case "failed":
-          case "closed":
-          case "expired":
-          case "Finished":
-          case "finished":
-            shouldWatchForUpdates = false;
-            break;
-          default:
-            shouldWatchForUpdates = true;
-        }
-
-        final updatedNotification = notification.copyWith(
-          title: trade.status,
-          shouldWatchForUpdates: shouldWatchForUpdates,
-        );
-
-        // remove from watch list if shouldWatchForUpdates was changed
-        if (!shouldWatchForUpdates) {
-          await _deleteWatchedTradeNotification(notification);
-        }
-
-        // replaces the current notification with the updated one
-        unawaited(add(updatedNotification, true));
-
-        // update the trade in db
-        // over write trade stored in db with updated version
-        await tradesService.edit(trade: trade, shouldNotifyListeners: true);
-      }
-    }
-  }
-
   bool get hasUnreadNotifications {
     // final count = (_unreadCountBox.get("count") ?? 0) > 0;
     // debugPrint("NOTIF_COUNT: ${_unreadCountBox.get("count")}");
@@ -289,9 +190,6 @@ class NotificationsService extends ChangeNotifier {
       if (notification.txid != null) {
         _addWatchedTxNotification(notification);
       }
-      if (notification.changeNowId != null) {
-        _addWatchedTradeNotification(notification);
-      }
     }
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -305,7 +203,6 @@ class NotificationsService extends ChangeNotifier {
     await DB.instance.delete<NotificationModel>(
         boxName: DB.boxNameNotifications, key: notification.id);
 
-    await _deleteWatchedTradeNotification(notification);
     await _deleteWatchedTxNotification(notification);
 
     if (shouldNotifyListeners) {

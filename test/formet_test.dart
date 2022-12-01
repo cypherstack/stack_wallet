@@ -1,6 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/format.dart';
+import 'package:epicmobile/utilities/format.dart';
 
 void main() {
   group("satoshisToAmount", () {

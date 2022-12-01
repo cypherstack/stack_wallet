@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/table_view/table_view.dart';
-import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
-import 'package:stackwallet/widgets/table_view/table_view_row.dart';
+import 'package:epicmobile/utilities/theme/light_colors.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/table_view/table_view.dart';
+import 'package:epicmobile/widgets/table_view/table_view_cell.dart';
+import 'package:epicmobile/widgets/table_view/table_view_row.dart';
 
 void main() {
   testWidgets("Test create table row widget ", (widgetTester) async {

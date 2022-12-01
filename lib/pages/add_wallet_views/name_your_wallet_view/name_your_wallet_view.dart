@@ -1,11 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:epicmobile/providers/global/wallets_service_provider.dart';
 import 'package:epicmobile/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -25,6 +22,8 @@ import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
 class NameYourWalletView extends ConsumerStatefulWidget {
@@ -99,7 +98,6 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
       return DesktopScaffold(
         appBar: const DesktopAppBar(
           leading: AppBarBackButton(),
-          trailing: ExitToMyStackButton(),
           isCompactHeight: false,
         ),
         body: SizedBox(

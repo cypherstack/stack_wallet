@@ -1,20 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/pages/exchange_view/trade_details_view.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:epicmobile/providers/global/trades_service_provider.dart';
 import 'package:epicmobile/providers/global/wallets_provider.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/loading_indicator.dart';
-import 'package:epicmobile/widgets/trade_card.dart';
 import 'package:epicmobile/widgets/transaction_card.dart';
-import 'package:tuple/tuple.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
@@ -70,61 +66,18 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   Widget itemBuilder(
       BuildContext context, Transaction tx, BorderRadius? radius) {
-    final matchingTrades = ref
-        .read(tradesServiceProvider)
-        .trades
-        .where((e) => e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
-    if (tx.txType == "Sent" && matchingTrades.isNotEmpty) {
-      final trade = matchingTrades.first;
-      return Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: radius,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TransactionCard(
-              // this may mess with combined firo transactions
-              key: Key(tx.toString()), //
-              transaction: tx,
-              walletId: widget.walletId,
-            ),
-            TradeCard(
-              // this may mess with combined firo transactions
-              key: Key(tx.toString() + trade.uuid), //
-              trade: trade,
-              onTap: () {
-                unawaited(
-                  Navigator.of(context).pushNamed(
-                    TradeDetailsView.routeName,
-                    arguments: Tuple4(
-                      trade.tradeId,
-                      tx,
-                      widget.walletId,
-                      ref.read(managerProvider).walletName,
-                    ),
-                  ),
-                );
-              },
-            )
-          ],
-        ),
-      );
-    } else {
-      return Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: radius,
-        ),
-        child: TransactionCard(
-          // this may mess with combined firo transactions
-          key: Key(tx.toString()), //
-          transaction: tx,
-          walletId: widget.walletId,
-        ),
-      );
-    }
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        borderRadius: radius,
+      ),
+      child: TransactionCard(
+        // this may mess with combined firo transactions
+        key: Key(tx.toString()), //
+        transaction: tx,
+        walletId: widget.walletId,
+      ),
+    );
   }
 
   @override

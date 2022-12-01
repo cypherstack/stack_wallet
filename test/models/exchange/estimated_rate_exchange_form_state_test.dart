@@ -2,11 +2,11 @@
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
-// import 'package:stackwallet/models/exchange/estimated_rate_exchange_form_state.dart';
-// import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-// import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-// import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
-// import 'package:stackwallet/services/exchange/exchange_response.dart';
+// import 'package:epicmobile/models/exchange/estimated_rate_exchange_form_state.dart';
+// import 'package:epicmobile/models/exchange/response_objects/currency.dart';
+// import 'package:epicmobile/models/exchange/response_objects/estimate.dart';
+// import 'package:epicmobile/services/exchange/change_now/change_now_api.dart';
+// import 'package:epicmobile/services/exchange/exchange_response.dart';
 //
 // import 'estimated_rate_exchange_form_state_test.mocks.dart';
 //

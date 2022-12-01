@@ -2,10 +2,10 @@
 // import 'package:flutter_svg/svg.dart';
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:mockingjay/mockingjay.dart' as mockingjay;
-// import 'package:stackwallet/pages/settings_view/settings_subviews/wallet_settings_subviews/delete_wallet_warning_view.dart';
-// import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-// import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
-// import 'package:stackwallet/widgets/custom_buttons/simple_button.dart';
+// import 'package:epicmobile/pages/settings_view/settings_subviews/wallet_settings_subviews/delete_wallet_warning_view.dart';
+// import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+// import 'package:epicmobile/widgets/custom_buttons/gradient_button.dart';
+// import 'package:epicmobile/widgets/custom_buttons/simple_button.dart';
 
 void main() {
 //   testWidgets("DeleteWalletWarningView builds correctly", (tester) async {

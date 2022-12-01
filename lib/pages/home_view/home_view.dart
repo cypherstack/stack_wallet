@@ -1,27 +1,22 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:epicmobile/pages/exchange_view/exchange_loading_overlay.dart';
-import 'package:epicmobile/pages/exchange_view/exchange_view.dart';
 import 'package:epicmobile/pages/home_view/sub_widgets/home_view_button_bar.dart';
 import 'package:epicmobile/pages/notification_views/notifications_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/global_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/hidden_settings.dart';
 import 'package:epicmobile/pages/wallets_view/wallets_view.dart';
 import 'package:epicmobile/providers/global/notifications_provider.dart';
-import 'package:epicmobile/providers/global/prefs_provider.dart';
 import 'package:epicmobile/providers/ui/home_view_index_provider.dart';
 import 'package:epicmobile/providers/ui/unread_notifications_provider.dart';
-import 'package:epicmobile/services/exchange/exchange_data_loading_service.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -42,8 +37,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
   DateTime? _cachedTime;
 
   bool _exitEnabled = false;
-
-  final _exchangeDataLoadingService = ExchangeDataLoadingService();
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
@@ -81,30 +74,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
     return _exitEnabled;
   }
 
-  void _loadCNData() {
-    // unawaited future
-    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      _exchangeDataLoadingService.loadAll(ref);
-    } else {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
-    }
-  }
-
   @override
   void initState() {
     _pageController = PageController();
     _children = [
       const WalletsView(),
-      if (Constants.enableExchange)
-        Stack(
-          children: [
-            const ExchangeView(),
-            ExchangeLoadingOverlayView(
-              unawaitedLoad: _loadCNData,
-            ),
-          ],
-        ),
+
       // const BuyView(),
     ];
 
@@ -286,9 +261,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     _ref.listen(homeViewPageIndexStateProvider,
                         (previous, next) {
                       if (next is int) {
-                        if (next == 1) {
-                          _exchangeDataLoadingService.loadAll(ref);
-                        }
                         if (next >= 0 && next <= 1) {
                           _pageController.animateToPage(
                             next,

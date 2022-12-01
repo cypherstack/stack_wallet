@@ -1,13 +1,12 @@
+import 'package:epicmobile/models/notification_model.dart';
+import 'package:epicmobile/notifications/notification_card.dart';
+import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/theme/light_colors.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/notifications/notification_card.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 void main() {
   testWidgets("test notification card", (widgetTester) async {
@@ -18,7 +17,7 @@ void main() {
           id: 1,
           title: "notification title",
           description: "notification description",
-          iconAssetName: Assets.svg.iconFor(coin: Coin.bitcoin),
+          iconAssetName: Assets.svg.iconFor(coin: Coin.epicCash),
           date: DateTime.parse("1662544771"),
           walletId: "wallet id",
           read: true,

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/coins/coin_service.dart';
 import 'package:epicmobile/services/coins/manager.dart';
@@ -14,7 +13,6 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 import 'package:epicmobile/widgets/loading_indicator.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
@@ -61,15 +59,9 @@ class _NewWalletRecoveryPhraseWarningViewState
 
     return MasterScaffold(
       isDesktop: isDesktop,
-      appBar: isDesktop
-          ? const DesktopAppBar(
-              isCompactHeight: false,
-              leading: AppBarBackButton(),
-              trailing: ExitToMyStackButton(),
-            )
-          : AppBar(
-              leading: const AppBarBackButton(),
-            ),
+      appBar: AppBar(
+        leading: const AppBarBackButton(),
+      ),
       body: Padding(
         padding: EdgeInsets.all(isDesktop ? 0 : 16),
         child: Column(

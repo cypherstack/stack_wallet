@@ -1,14 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/verify_recovery_phrase_view/sub_widgets/word_table.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -18,8 +14,9 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
 class VerifyRecoveryPhraseView extends ConsumerStatefulWidget {
@@ -95,11 +92,6 @@ class _VerifyRecoveryPhraseViewState
 
       if (mounted) {
         if (isDesktop) {
-          Navigator.of(context).popUntil(
-            ModalRoute.withName(
-              DesktopHomeView.routeName,
-            ),
-          );
         } else {
           unawaited(
             Navigator.of(context).pushNamedAndRemoveUntil(
@@ -194,40 +186,17 @@ class _VerifyRecoveryPhraseViewState
       onWillPop: onWillPop,
       child: MasterScaffold(
         isDesktop: isDesktop,
-        appBar: isDesktop
-            ? DesktopAppBar(
-                isCompactHeight: false,
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    Navigator.of(context).popUntil(
-                      ModalRoute.withName(
-                        NewWalletRecoveryPhraseView.routeName,
-                      ),
-                    );
-                  },
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () async {
+              Navigator.of(context).popUntil(
+                ModalRoute.withName(
+                  NewWalletRecoveryPhraseView.routeName,
                 ),
-                trailing: ExitToMyStackButton(
-                  onPressed: () async {
-                    await delete();
-                    if (mounted) {
-                      Navigator.of(context).popUntil(
-                        ModalRoute.withName(DesktopHomeView.routeName),
-                      );
-                    }
-                  },
-                ),
-              )
-            : AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    Navigator.of(context).popUntil(
-                      ModalRoute.withName(
-                        NewWalletRecoveryPhraseView.routeName,
-                      ),
-                    );
-                  },
-                ),
-              ),
+              );
+            },
+          ),
+        ),
         body: SizedBox(
           width: isDesktop ? 410 : null,
           child: Padding(

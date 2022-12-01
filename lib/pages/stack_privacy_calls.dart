@@ -1,11 +1,7 @@
-import 'dart:async';
-
 import 'package:epicmobile/hive/db.dart';
 import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
-import 'package:epicmobile/pages_desktop_specific/create_password/create_password_view.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
 import 'package:epicmobile/providers/global/price_provider.dart';
-import 'package:epicmobile/services/exchange/exchange_data_loading_service.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
@@ -230,8 +226,6 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                       value: isEasy)
                                   .then((_) {
                                 if (isEasy) {
-                                  unawaited(ExchangeDataLoadingService()
-                                      .loadAll(ref));
                                   ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .start(true);
@@ -239,9 +233,6 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                               });
                               if (!widget.isSettings) {
                                 if (isDesktop) {
-                                  Navigator.of(context).pushNamed(
-                                    CreatePasswordView.routeName,
-                                  );
                                 } else {
                                   Navigator.of(context).pushNamed(
                                     CreatePinView.routeName,

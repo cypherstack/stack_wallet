@@ -2,9 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/models/exchange/change_now/exchange_transaction.dart';
-import 'package:epicmobile/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:epicmobile/models/exchange/response_objects/trade.dart';
 import 'package:epicmobile/models/isar/models/log.dart';
 import 'package:epicmobile/models/models.dart';
 import 'package:epicmobile/models/node_model.dart';
@@ -13,29 +10,20 @@ import 'package:epicmobile/models/trade_wallet_lookup.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
 import 'package:epicmobile/pages/loading_view.dart';
-import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:epicmobile/pages_desktop_specific/desktop_login_view.dart';
 import 'package:epicmobile/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:epicmobile/providers/global/auto_swb_service_provider.dart';
 import 'package:epicmobile/providers/global/base_currencies_provider.dart';
-import 'package:epicmobile/providers/global/trades_service_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/color_theme_provider.dart';
 import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/services/debug_service.dart';
-import 'package:epicmobile/services/exchange/change_now/change_now_exchange.dart';
-import 'package:epicmobile/services/exchange/exchange_data_loading_service.dart';
 import 'package:epicmobile/services/locale_service.dart';
 import 'package:epicmobile/services/node_service.dart';
 import 'package:epicmobile/services/notifications_api.dart';
 import 'package:epicmobile/services/notifications_service.dart';
-import 'package:epicmobile/services/trade_service.dart';
 import 'package:epicmobile/services/wallets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/db_version_migration.dart';
-import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/prefs.dart';
 import 'package:epicmobile/utilities/theme/color_theme.dart';
@@ -52,9 +40,6 @@ import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
-
-final openedFromSWBFileStringStateProvider =
-    StateProvider<String?>((ref) => null);
 
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
@@ -111,12 +96,6 @@ void main() async {
 
   // notification model adapter
   Hive.registerAdapter(NotificationModelAdapter());
-
-  // change now trade adapters
-  Hive.registerAdapter(ExchangeTransactionAdapter());
-  Hive.registerAdapter(ExchangeTransactionStatusAdapter());
-
-  Hive.registerAdapter(TradeAdapter());
 
   // reference lookup data adapter
   Hive.registerAdapter(TradeWalletLookupAdapter());
@@ -184,7 +163,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   late final Prefs _prefs;
   late final NotificationsService _notificationsService;
   late final NodeService _nodeService;
-  late final TradesService _tradesService;
 
   late final Completer<void> loadingCompleter;
 
@@ -208,7 +186,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
-      _tradesService = ref.read(tradesServiceProvider);
 
       NotificationApi.prefs = _prefs;
       NotificationApi.notificationsService = _notificationsService;
@@ -218,7 +195,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       await _nodeService.updateDefaults();
       await _notificationsService.init(
         nodeService: _nodeService,
-        tradesService: _tradesService,
         prefs: _prefs,
       );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
@@ -227,27 +203,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
-      // run without awaiting
-      if (Constants.enableExchange &&
-          _prefs.externalCalls &&
-          await _prefs.isExternalCallsSet()) {
-        unawaited(ExchangeDataLoadingService().loadAll(ref));
-      }
-
-      if (_prefs.isAutoBackupEnabled) {
-        switch (_prefs.backupFrequencyType) {
-          case BackupFrequencyType.everyTenMinutes:
-            ref.read(autoSWBServiceProvider).startPeriodicBackupTimer(
-                duration: const Duration(minutes: 10));
-            break;
-          case BackupFrequencyType.everyAppStart:
-            unawaited(ref.read(autoSWBServiceProvider).doBackup());
-            break;
-          case BackupFrequencyType.afterClosingAWallet:
-            // ignore this case here
-            break;
-        }
-      }
     } catch (e, s) {
       Logger.print("$e $s", normalLength: false);
     }
@@ -255,7 +210,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    ref.read(exchangeFormStateProvider).exchange = ChangeNowExchange();
     final colorScheme = DB.instance
         .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
 
@@ -282,22 +236,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       ref.read(colorThemeProvider.state).state =
           StackColors.fromStackColorTheme(
               themeType == ThemeType.dark ? DarkColors() : LightColors());
-
-      if (Platform.isAndroid) {
-        // fetch open file if it exists
-        await getOpenFile();
-
-        if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
-            null) {
-          // waiting for loading to complete before going straight to restore if the app was opened via file
-          await loadingCompleter.future;
-
-          await goToRestoreSWB(
-              ref.read(openedFromSWBFileStringStateProvider.state).state!);
-          ref.read(openedFromSWBFileStringStateProvider.state).state = null;
-        }
-        // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
-      }
     });
 
     super.initState();
@@ -307,109 +245,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    debugPrint("didChangeAppLifecycleState: ${state.name}");
-    if (state == AppLifecycleState.resumed) {}
-    switch (state) {
-      case AppLifecycleState.inactive:
-        break;
-      case AppLifecycleState.paused:
-        break;
-      case AppLifecycleState.resumed:
-        if (Platform.isAndroid) {
-          // fetch open file if it exists
-          await getOpenFile();
-          // go straight to restore if the app was resumed via file
-          if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
-              null) {
-            await goToRestoreSWB(
-                ref.read(openedFromSWBFileStringStateProvider.state).state!);
-            ref.read(openedFromSWBFileStringStateProvider.state).state = null;
-          }
-        }
-        // if (ref.read(hasAuthenticatedOnStartStateProvider.state).state &&
-        //     ref.read(shouldShowLockscreenOnResumeStateProvider.state).state) {
-        //   final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
-        //
-        //   if (now - _prefs.lastUnlocked > _prefs.lastUnlockedTimeout) {
-        //     ref.read(shouldShowLockscreenOnResumeStateProvider.state).state =
-        //         false;
-        //     Navigator.of(navigatorKey.currentContext!).push(
-        //       MaterialPageRoute<dynamic>(
-        //         builder: (_) => LockscreenView(
-        //           routeOnSuccess: "",
-        //           popOnSuccess: true,
-        //           biometricsAuthenticationTitle: "Unlock Stack",
-        //           biometricsLocalizedReason:
-        //               "Unlock your stack wallet using biometrics",
-        //           biometricsCancelButtonString: "Cancel",
-        //           onSuccess: () {
-        //             ref
-        //                 .read(shouldShowLockscreenOnResumeStateProvider.state)
-        //                 .state = true;
-        //           },
-        //         ),
-        //       ),
-        //     );
-        //   }
-        // }
-        break;
-      case AppLifecycleState.detached:
-        break;
-    }
-  }
-
-  /// should only be called on android currently
-  Future<void> getOpenFile() async {
-    // update provider with new file content state
-    ref.read(openedFromSWBFileStringStateProvider.state).state =
-        await platform.invokeMethod("getOpenFile");
-
-    // call reset to clear cached value
-    await resetOpenPath();
-
-    Logging.instance.log(
-        "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider.state).state}",
-        level: LogLevel.Info);
-  }
-
-  /// should only be called on android currently
-  Future<void> resetOpenPath() async {
-    await platform.invokeMethod("resetOpenPath");
-  }
-
-  Future<void> goToRestoreSWB(String encrypted) async {
-    if (!_prefs.hasPin) {
-      await Navigator.of(navigatorKey.currentContext!)
-          .pushNamed(CreatePinView.routeName, arguments: true)
-          .then((value) {
-        if (value is! bool || value == false) {
-          Navigator.of(navigatorKey.currentContext!).pushNamed(
-              RestoreFromEncryptedStringView.routeName,
-              arguments: encrypted);
-        }
-      });
-    } else {
-      unawaited(Navigator.push(
-        navigatorKey.currentContext!,
-        RouteGenerator.getRoute(
-          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => LockscreenView(
-            showBackButton: true,
-            routeOnSuccess: RestoreFromEncryptedStringView.routeName,
-            routeOnSuccessArguments: encrypted,
-            biometricsCancelButtonString: "CANCEL",
-            biometricsLocalizedReason:
-                "Authenticate to restore Stack Wallet backup",
-            biometricsAuthenticationTitle: "Restore Stack backup",
-          ),
-          settings: const RouteSettings(name: "/swbrestorelockscreen"),
-        ),
-      ));
-    }
   }
 
   InputBorder _buildOutlineInputBorder(Color color) {
@@ -533,17 +368,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             // FlutterNativeSplash.remove();
-            if (Util.isDesktop &&
-                (_wallets.hasWallets || _desktopHasPassword)) {
-              String? startupWalletId;
-              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
-                startupWalletId =
-                    ref.read(prefsChangeNotifierProvider).startupWalletId;
-              }
-
-              return DesktopLoginView(startupWalletId: startupWalletId);
-            } else if (!Util.isDesktop &&
-                (_wallets.hasWallets || _prefs.hasPin)) {
+            if (!Util.isDesktop && (_wallets.hasWallets || _prefs.hasPin)) {
               // return HomeView();
 
               String? startupWalletId;

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/models/models.dart';
+import 'package:epicmobile/models/models.dart';
 
 void main() {
   test("FeeObject constructor", () {

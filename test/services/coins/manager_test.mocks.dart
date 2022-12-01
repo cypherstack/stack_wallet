@@ -7,14 +7,14 @@ import 'dart:async' as _i8;
 
 import 'package:decimal/decimal.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i6;
-import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i5;
-import 'package:stackwallet/models/lelantus_coin.dart' as _i10;
-import 'package:stackwallet/models/models.dart' as _i4;
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i7;
-import 'package:stackwallet/services/transaction_notification_tracker.dart'
+import 'package:epicmobile/electrumx_rpc/cached_electrumx.dart' as _i6;
+import 'package:epicmobile/electrumx_rpc/electrumx.dart' as _i5;
+import 'package:epicmobile/models/lelantus_coin.dart' as _i10;
+import 'package:epicmobile/models/models.dart' as _i4;
+import 'package:epicmobile/services/coins/firo/firo_wallet.dart' as _i7;
+import 'package:epicmobile/services/transaction_notification_tracker.dart'
     as _i2;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i9;
+import 'package:epicmobile/utilities/enums/coin_enum.dart' as _i9;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values

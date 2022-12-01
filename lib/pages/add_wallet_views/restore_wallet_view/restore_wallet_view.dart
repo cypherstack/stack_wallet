@@ -11,8 +11,6 @@ import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widget
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/coins/coin_service.dart';
 import 'package:epicmobile/services/coins/manager.dart';
@@ -32,7 +30,6 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/clipboard_icon.dart';
@@ -285,8 +282,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
             if (mounted) {
               if (isDesktop) {
-                Navigator.of(context)
-                    .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
               } else {
                 unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
                     HomeView.routeName, (route) => false));
@@ -531,80 +526,69 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     final isDesktop = Util.isDesktop;
     return MasterScaffold(
       isDesktop: isDesktop,
-      appBar: isDesktop
-          ? const DesktopAppBar(
-              isCompactHeight: false,
-              leading: AppBarBackButton(),
-              trailing: ExitToMyStackButton(),
-            )
-          : AppBar(
-              leading: AppBarBackButton(
-                onPressed: () async {
-                  if (FocusScope.of(context).hasFocus) {
-                    FocusScope.of(context).unfocus();
-                    await Future<void>.delayed(
-                        const Duration(milliseconds: 50));
-                  }
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("restoreWalletViewQrCodeButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: QrCodeIcon(
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                      onPressed: scanMnemonicQr,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("restoreWalletPasteButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: ClipboardIcon(
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                      onPressed: pasteMnemonic,
-                    ),
-                  ),
-                ),
-              ],
+      appBar: AppBar(
+        leading: AppBarBackButton(
+          onPressed: () async {
+            if (FocusScope.of(context).hasFocus) {
+              FocusScope.of(context).unfocus();
+              await Future<void>.delayed(const Duration(milliseconds: 50));
+            }
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(
+              top: 10,
+              bottom: 10,
+              right: 10,
             ),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: AppBarIconButton(
+                key: const Key("restoreWalletViewQrCodeButton"),
+                size: 36,
+                shadows: const [],
+                color: Theme.of(context).extension<StackColors>()!.background,
+                icon: QrCodeIcon(
+                  width: 20,
+                  height: 20,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
+                ),
+                onPressed: scanMnemonicQr,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              top: 10,
+              bottom: 10,
+              right: 10,
+            ),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: AppBarIconButton(
+                key: const Key("restoreWalletPasteButton"),
+                size: 36,
+                shadows: const [],
+                color: Theme.of(context).extension<StackColors>()!.background,
+                icon: ClipboardIcon(
+                  width: 20,
+                  height: 20,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
+                ),
+                onPressed: pasteMnemonic,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Container(
         color: Theme.of(context).extension<StackColors>()!.background,
         child: Padding(

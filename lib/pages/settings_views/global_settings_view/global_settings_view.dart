@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
-import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/about_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/appearance_settings_view.dart';
@@ -10,12 +9,10 @@ import 'package:epicmobile/pages/settings_views/global_settings_view/delete_acco
 import 'package:epicmobile/pages/settings_views/global_settings_view/language_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/stack_backup_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/startup_preferences/startup_preferences_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/support_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'package:epicmobile/pages/settings_views/sub_widgets/settings_list_button.dart';
-import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -76,35 +73,6 @@ class GlobalSettingsView extends StatelessWidget {
                                 onPressed: () {
                                   Navigator.of(context)
                                       .pushNamed(AddressBookView.routeName);
-                                },
-                              ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              SettingsListButton(
-                                iconAssetName: Assets.svg.downloadFolder,
-                                iconSize: 14,
-                                title: "Stack backup & restore",
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    RouteGenerator.getRoute(
-                                      shouldUseMaterialRoute:
-                                          RouteGenerator.useMaterialPageRoute,
-                                      builder: (_) => const LockscreenView(
-                                        showBackButton: true,
-                                        routeOnSuccess:
-                                            StackBackupView.routeName,
-                                        biometricsCancelButtonString: "CANCEL",
-                                        biometricsLocalizedReason:
-                                            "Authenticate to access Stack backup & restore settings",
-                                        biometricsAuthenticationTitle:
-                                            "Stack backup",
-                                      ),
-                                      settings: const RouteSettings(
-                                          name: "/swblockscreen"),
-                                    ),
-                                  );
                                 },
                               ),
                               const SizedBox(

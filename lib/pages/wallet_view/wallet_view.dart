@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:epicmobile/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:epicmobile/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/notification_views/notifications_view.dart';
 import 'package:epicmobile/pages/receive_view/receive_view.dart';
@@ -12,7 +10,6 @@ import 'package:epicmobile/pages/wallet_view/sub_widgets/transactions_list.dart'
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_navigation_bar.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
-import 'package:epicmobile/providers/global/auto_swb_service_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/transaction_filter_provider.dart';
 import 'package:epicmobile/providers/ui/unread_notifications_provider.dart';
@@ -22,14 +19,10 @@ import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
-import 'package:epicmobile/services/exchange/change_now/change_now_exchange.dart';
-import 'package:epicmobile/services/exchange/exchange_data_loading_service.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -73,8 +66,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
-
-  final _cnLoadingService = ExchangeDataLoadingService();
 
   @override
   void initState() {
@@ -183,11 +174,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
     ref.read(managerProvider.notifier).isActiveWallet = false;
     ref.read(transactionFilterProvider.state).state = null;
-    if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
-        ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
-            BackupFrequencyType.afterClosingAWallet) {
-      unawaited(ref.read(autoSWBServiceProvider).doBackup());
-    }
   }
 
   Widget _buildNetworkIcon(WalletSyncStatus status) {
@@ -213,81 +199,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
           width: 20,
           height: 20,
         );
-    }
-  }
-
-  void _onExchangePressed(BuildContext context) async {
-    unawaited(_cnLoadingService.loadAll(ref));
-
-    final coin = ref.read(managerProvider).coin;
-
-    if (coin == Coin.epicCash) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for Epic Cash",
-        ),
-      );
-    } else if (coin.name.endsWith("TestNet")) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for test net coins",
-        ),
-      );
-    } else {
-      ref.read(currentExchangeNameStateProvider.state).state =
-          ChangeNowExchange.exchangeName;
-      final walletId = ref.read(managerProvider).walletId;
-      ref.read(prefsChangeNotifierProvider).exchangeRateType =
-          ExchangeRateType.estimated;
-
-      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
-      ref.read(exchangeFormStateProvider).exchangeType =
-          ExchangeRateType.estimated;
-
-      final currencies = ref
-          .read(availableChangeNowCurrenciesProvider)
-          .currencies
-          .where((element) =>
-              element.ticker.toLowerCase() == coin.ticker.toLowerCase());
-
-      if (currencies.isNotEmpty) {
-        ref.read(exchangeFormStateProvider).setCurrencies(
-              currencies.first,
-              ref
-                  .read(availableChangeNowCurrenciesProvider)
-                  .currencies
-                  .firstWhere(
-                    (element) =>
-                        element.ticker.toLowerCase() !=
-                        coin.ticker.toLowerCase(),
-                  ),
-            );
-      }
-
-      if (mounted) {
-        unawaited(
-          Navigator.of(context).pushNamed(
-            WalletInitiatedExchangeView.routeName,
-            arguments: Tuple3(
-              walletId,
-              coin,
-              _loadCNData,
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  void _loadCNData() {
-    // unawaited future
-    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      _cnLoadingService.loadAll(ref, coin: ref.read(managerProvider).coin);
-    } else {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
     }
   }
 
@@ -569,8 +480,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                                 (value) => value.coin)) !=
                                             Coin.epicCash,
                                     height: WalletView.navBarHeight,
-                                    onExchangePressed: () =>
-                                        _onExchangePressed(context),
+                                    onExchangePressed: () {},
                                     onReceivePressed: () async {
                                       final coin =
                                           ref.read(managerProvider).coin;

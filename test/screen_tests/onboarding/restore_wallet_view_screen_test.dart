@@ -7,16 +7,16 @@
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:provider/provider.dart';
-// import 'package:stackwallet/notifications/campfire_alert.dart';
-// import 'package:stackwallet/pages/onboarding_view/restore_wallet_form_view.dart';
-// import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-// import 'package:stackwallet/utilities/clipboard_interface.dart';
-// import 'package:stackwallet/utilities/misc_global_constants.dart';
-// import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
+// import 'package:epicmobile/notifications/campfire_alert.dart';
+// import 'package:epicmobile/pages/onboarding_view/restore_wallet_form_view.dart';
+// import 'package:epicmobile/services/coins/firo/firo_wallet.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/services/node_service.dart';
+import 'package:epicmobile/services/wallets_service.dart';
+import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
+// import 'package:epicmobile/utilities/clipboard_interface.dart';
+// import 'package:epicmobile/utilities/misc_global_constants.dart';
+// import 'package:epicmobile/widgets/custom_buttons/gradient_button.dart';
 //
 // import '../../services/coins/firo/firo_wallet_test_parameters.dart';
 // import 'restore_wallet_view_screen_test.mocks.dart';

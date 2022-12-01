@@ -1,10 +1,4 @@
-import 'package:decimal/decimal.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/models/contact_address_entry.dart';
-import 'package:epicmobile/models/exchange/incomplete_exchange.dart';
-import 'package:epicmobile/models/exchange/response_objects/trade.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
 import 'package:epicmobile/models/send_view_auto_fill_data.dart';
 import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
@@ -22,16 +16,6 @@ import 'package:epicmobile/pages/address_book_views/subviews/address_book_filter
 import 'package:epicmobile/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
-import 'package:epicmobile/pages/exchange_view/choose_from_stack_view.dart';
-import 'package:epicmobile/pages/exchange_view/edit_trade_note_view.dart';
-import 'package:epicmobile/pages/exchange_view/exchange_loading_overlay.dart';
-import 'package:epicmobile/pages/exchange_view/exchange_step_views/step_1_view.dart';
-import 'package:epicmobile/pages/exchange_view/exchange_step_views/step_2_view.dart';
-import 'package:epicmobile/pages/exchange_view/exchange_step_views/step_3_view.dart';
-import 'package:epicmobile/pages/exchange_view/exchange_step_views/step_4_view.dart';
-import 'package:epicmobile/pages/exchange_view/send_from_view.dart';
-import 'package:epicmobile/pages/exchange_view/trade_details_view.dart';
-import 'package:epicmobile/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
 import 'package:epicmobile/pages/manage_favorites_view/manage_favorites_view.dart';
@@ -56,14 +40,6 @@ import 'package:epicmobile/pages/settings_views/global_settings_view/manage_node
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/auto_backup_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/create_auto_backup_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/create_backup_information_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/edit_auto_backup_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/stack_backup_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/startup_preferences/startup_preferences_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/startup_preferences/startup_wallet_selection_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/support_view.dart';
@@ -84,34 +60,15 @@ import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_detai
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/pages/wallets_view/wallets_view.dart';
-import 'package:epicmobile/pages_desktop_specific/create_password/create_password_view.dart';
-import 'package:epicmobile/pages_desktop_specific/forgot_password_desktop_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
-import 'package:epicmobile/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/desktop_settings_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
-import 'package:epicmobile/pages_desktop_specific/home/settings_menu/advanced_settings/advanced_settings.dart';
-import 'package:epicmobile/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
-import 'package:epicmobile/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
-import 'package:epicmobile/pages_desktop_specific/home/settings_menu/currency_settings/currency_settings.dart';
-import 'package:epicmobile/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
-import 'package:epicmobile/pages_desktop_specific/home/settings_menu/security_settings.dart';
-import 'package:epicmobile/pages_desktop_specific/home/settings_menu/settings_menu.dart';
-import 'package:epicmobile/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
-import 'package:epicmobile/pages_desktop_specific/home/support_and_about_view/desktop_about_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/support_and_about_view/desktop_support_view.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/utilities/enums/add_wallet_type_enum.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
-
-import 'pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
-import 'pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
 
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;
@@ -210,30 +167,6 @@ class RouteGenerator {
             builder: (_) => const AddressBookFilterView(),
             settings: RouteSettings(name: settings.name));
 
-      case StackBackupView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const StackBackupView(),
-            settings: RouteSettings(name: settings.name));
-
-      case AutoBackupView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AutoBackupView(),
-            settings: RouteSettings(name: settings.name));
-
-      case EditAutoBackupView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const EditAutoBackupView(),
-            settings: RouteSettings(name: settings.name));
-
-      case CreateAutoBackupView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreateAutoBackupView(),
-            settings: RouteSettings(name: settings.name));
-
       case SecurityView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -330,38 +263,6 @@ class RouteGenerator {
             builder: (_) => const AddAddressBookEntryView(),
             settings: RouteSettings(name: settings.name));
 
-      case RestoreFromFileView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const RestoreFromFileView(),
-            settings: RouteSettings(name: settings.name));
-
-      case RestoreFromEncryptedStringView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => RestoreFromEncryptedStringView(
-              encrypted: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case CreateBackupInfoView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreateBackupInfoView(),
-            settings: RouteSettings(name: settings.name));
-
-      case CreateBackupView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreateBackupView(),
-            settings: RouteSettings(name: settings.name));
-
       case HiddenSettings.routeName:
         return getRoute(
             shouldUseMaterialRoute: false,
@@ -406,21 +307,6 @@ class RouteGenerator {
               txid: args.item1,
               walletId: args.item2,
               note: args.item3,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case EditTradeNoteView.routeName:
-        if (args is Tuple2<String, String>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => EditTradeNoteView(
-              tradeId: args.item1,
-              note: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -803,28 +689,6 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case WalletInitiatedExchangeView.routeName:
-        if (args is Tuple3<String, Coin, VoidCallback>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => Stack(
-              children: [
-                WalletInitiatedExchangeView(
-                  walletId: args.item1,
-                  coin: args.item2,
-                ),
-                ExchangeLoadingOverlayView(
-                  unawaitedLoad: args.item3,
-                ),
-              ],
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
       case NotificationsView.routeName:
         if (args is String?) {
           return getRoute(
@@ -872,112 +736,6 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      // exchange steps
-
-      case Step1View.routeName:
-        if (args is IncompleteExchangeModel) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => Step1View(
-              model: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case Step2View.routeName:
-        if (args is IncompleteExchangeModel) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => Step2View(
-              model: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case Step3View.routeName:
-        if (args is IncompleteExchangeModel) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => Step3View(
-              model: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case Step4View.routeName:
-        if (args is IncompleteExchangeModel) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => Step4View(
-              model: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case TradeDetailsView.routeName:
-        if (args is Tuple4<String, Transaction?, String?, String?>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => TradeDetailsView(
-              tradeId: args.item1,
-              transactionIfSentFromStack: args.item2,
-              walletId: args.item3,
-              walletName: args.item4,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case ChooseFromStackView.routeName:
-        if (args is Coin) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ChooseFromStackView(
-              coin: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case SendFromView.routeName:
-        if (args is Tuple4<Coin, Decimal, String, Trade>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => SendFromView(
-              coin: args.item1,
-              amount: args.item2,
-              trade: args.item4,
-              address: args.item3,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
       case GenerateUriQrCodeView.routeName:
         if (args is Tuple2<Coin, String>) {
           return getRoute(
@@ -992,193 +750,6 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      // == Desktop specific routes ============================================
-      case CreatePasswordView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreatePasswordView(),
-            settings: RouteSettings(name: settings.name));
-
-      case ForgotPasswordDesktopView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const ForgotPasswordDesktopView(),
-            settings: RouteSettings(name: settings.name));
-
-      case DesktopHomeView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopHomeView(),
-            settings: RouteSettings(name: settings.name));
-
-      case DesktopSettingsView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopSettingsView(),
-            settings: RouteSettings(name: settings.name));
-
-      case MyStackView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const MyStackView(),
-            settings: RouteSettings(name: settings.name));
-
-      case DesktopWalletView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => DesktopWalletView(
-              walletId: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case SettingsMenu.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => SettingsMenu(
-                  onSelectionChanged: (int) {},
-                ),
-            settings: RouteSettings(name: settings.name));
-
-      case BackupRestoreSettings.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const BackupRestoreSettings(),
-            settings: RouteSettings(name: settings.name));
-
-      case SecuritySettings.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SecuritySettings(),
-            settings: RouteSettings(name: settings.name));
-
-      case CurrencySettings.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CurrencySettings(),
-            settings: RouteSettings(name: settings.name));
-
-      case LanguageOptionSettings.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const LanguageOptionSettings(),
-            settings: RouteSettings(name: settings.name));
-
-      case NodesSettings.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const NodesSettings(),
-            settings: RouteSettings(name: settings.name));
-
-      case SyncingPreferencesSettings.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SyncingPreferencesSettings(),
-            settings: RouteSettings(name: settings.name));
-
-      case AppearanceOptionSettings.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AppearanceOptionSettings(),
-            settings: RouteSettings(name: settings.name));
-
-      case AdvancedSettings.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AdvancedSettings(),
-            settings: RouteSettings(name: settings.name));
-
-      case DesktopSupportView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopSupportView(),
-            settings: RouteSettings(name: settings.name));
-
-      case DesktopAboutView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopAboutView(),
-            settings: RouteSettings(name: settings.name));
-
-      case DesktopAddressBook.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopAddressBook(),
-            settings: RouteSettings(name: settings.name));
-
-      case WalletKeysDesktopPopup.routeName:
-        if (args is List<String>) {
-          return FadePageRoute(
-            WalletKeysDesktopPopup(
-              words: args,
-            ),
-            RouteSettings(
-              name: settings.name,
-            ),
-          );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case UnlockWalletKeysDesktop.routeName:
-        if (args is String) {
-          return FadePageRoute(
-            UnlockWalletKeysDesktop(
-              walletId: args,
-            ),
-            RouteSettings(
-              name: settings.name,
-            ),
-          );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case QRCodeDesktopPopupContent.routeName:
-        if (args is String) {
-          return FadePageRoute(
-            QRCodeDesktopPopupContent(
-              value: args,
-            ),
-            RouteSettings(
-              name: settings.name,
-            ),
-          );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => QRCodeDesktopPopupContent(
-          //     value: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      // == End of desktop specific routes =====================================
 
       default:
         return _routeError("");

@@ -1,10 +1,10 @@
+import 'package:epicmobile/models/exchange/response_objects/trade.dart';
+import 'package:epicmobile/utilities/theme/light_colors.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/trade_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/trade_card.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets("Test Trade card builds", (widgetTester) async {

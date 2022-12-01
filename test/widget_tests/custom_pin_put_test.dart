@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
-import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
+import 'package:epicmobile/utilities/theme/light_colors.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put.dart';
+import 'package:epicmobile/widgets/custom_pin_put/pin_keyboard.dart';
 
 void main() {
   group("CustomPinPut tests", () {

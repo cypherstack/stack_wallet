@@ -5,7 +5,6 @@ import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_op
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_platform_layout.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:epicmobile/providers/ui/color_theme_provider.dart';
 import 'package:epicmobile/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -16,7 +15,6 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:flutter/material.dart';
@@ -201,25 +199,19 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
     return MasterScaffold(
       isDesktop: isDesktop,
-      appBar: isDesktop
-          ? const DesktopAppBar(
-              isCompactHeight: false,
-              leading: AppBarBackButton(),
-              trailing: ExitToMyStackButton(),
-            )
-          : AppBar(
-              leading: AppBarBackButton(
-                onPressed: () {
-                  if (textFieldFocusNode.hasFocus) {
-                    textFieldFocusNode.unfocus();
-                    Future<void>.delayed(const Duration(milliseconds: 100))
-                        .then((value) => Navigator.of(context).pop());
-                  } else {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-            ),
+      appBar: AppBar(
+        leading: AppBarBackButton(
+          onPressed: () {
+            if (textFieldFocusNode.hasFocus) {
+              textFieldFocusNode.unfocus();
+              Future<void>.delayed(const Duration(milliseconds: 100))
+                  .then((value) => Navigator.of(context).pop());
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+      ),
       body: RestoreOptionsPlatformLayout(
         isDesktop: isDesktop,
         child: ConstrainedBox(
@@ -287,8 +279,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   height: 8,
                 ),
               if (coin == Coin.epicCash ||
-                  ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25)
+                  ref.watch(mnemonicWordCountStateProvider.state).state == 25)
                 RoundedWhiteContainer(
                   child: Center(
                     child: Text(
@@ -306,8 +297,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   ),
                 ),
               if (coin == Coin.epicCash ||
-                  ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25)
+                  ref.watch(mnemonicWordCountStateProvider.state).state == 25)
                 SizedBox(
                   height: isDesktop ? 24 : 16,
                 ),

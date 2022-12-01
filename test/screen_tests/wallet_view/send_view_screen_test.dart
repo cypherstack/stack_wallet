@@ -7,16 +7,16 @@
 // import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
-// import 'package:stackwallet/models/lelantus_fee_data.dart';
-// import 'package:stackwallet/notifications/campfire_alert.dart';
-// import 'package:stackwallet/pages/wallet_view/send_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/notes_service.dart';
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-// import 'package:stackwallet/utilities/clipboard_interface.dart';
-// import 'package:stackwallet/widgets/amount_input_field.dart';
-// import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
-// import 'package:stackwallet/widgets/gradient_card.dart';
+// import 'package:epicmobile/models/lelantus_fee_data.dart';
+// import 'package:epicmobile/notifications/campfire_alert.dart';
+// import 'package:epicmobile/pages/wallet_view/send_view.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/services/notes_service.dart';
+import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
+// import 'package:epicmobile/utilities/clipboard_interface.dart';
+// import 'package:epicmobile/widgets/amount_input_field.dart';
+// import 'package:epicmobile/widgets/custom_buttons/gradient_button.dart';
+// import 'package:epicmobile/widgets/gradient_card.dart';
 // import 'package:provider/provider.dart';
 //
 // import 'send_view_screen_test.mocks.dart';

@@ -1,9 +1,9 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/models/paymint/fee_object_model.dart';
+import 'package:epicmobile/models/paymint/transactions_model.dart';
+import 'package:epicmobile/models/paymint/utxo_model.dart';
+import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 class FakeCoinServiceAPI extends CoinServiceAPI {
   @override

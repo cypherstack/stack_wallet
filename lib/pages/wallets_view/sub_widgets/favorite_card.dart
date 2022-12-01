@@ -1,9 +1,5 @@
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
-import 'package:epicmobile/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -13,6 +9,9 @@ import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
@@ -57,10 +56,6 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
     return GestureDetector(
       onTap: () {
         if (Util.isDesktop) {
-          Navigator.of(context).pushNamed(
-            DesktopWalletView.routeName,
-            arguments: walletId,
-          );
         } else {
           Navigator.of(context).pushNamed(
             WalletView.routeName,
