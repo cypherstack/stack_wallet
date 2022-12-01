@@ -25,13 +25,6 @@ cd stack_wallet
 export STACK_WALLET=$(pwd)
 git submodule update --init --recursive
 
-# Create template lib/external_api_keys.dart file if it doesn't already exist
-KEYS="$HOME/projects/stack_wallet/lib/external_api_keys.dart"
-if ! test -f "$KEYS"; then
-    echo 'prebuild.sh: creating template lib/external_api_keys.dart file'
-    printf 'const kChangeNowApiKey = "";\nconst kSimpleSwapApiKey = "";' > $KEYS
-fi
-
 #install stack wallet dependencies
 sudo apt-get install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm 
 
