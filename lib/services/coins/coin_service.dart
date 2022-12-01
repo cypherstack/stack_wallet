@@ -3,12 +3,7 @@ import 'package:epicmobile/electrumx_rpc/cached_electrumx.dart';
 import 'package:epicmobile/electrumx_rpc/electrumx.dart';
 import 'package:epicmobile/models/models.dart';
 import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/services/coins/bitcoin/bitcoin_wallet.dart';
-import 'package:epicmobile/services/coins/bitcoincash/bitcoincash_wallet.dart';
-import 'package:epicmobile/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:epicmobile/services/coins/litecoin/litecoin_wallet.dart';
-import 'package:epicmobile/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:epicmobile/services/transaction_notification_tracker.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/prefs.dart';
@@ -60,102 +55,12 @@ abstract class CoinServiceAPI {
     );
 
     switch (coin) {
-      case Coin.bitcoin:
-        return BitcoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
-
-      case Coin.litecoin:
-        return LitecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
-
-      case Coin.litecoinTestNet:
-        return LitecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
-
-      case Coin.bitcoinTestNet:
-        return BitcoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
-
-      case Coin.bitcoincash:
-        return BitcoinCashWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
-
-      case Coin.bitcoincashTestnet:
-        return BitcoinCashWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
-
-      case Coin.dogecoin:
-        return DogecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
-
       case Coin.epicCash:
         return EpicCashWallet(
           walletId: walletId,
           walletName: walletName,
           coin: coin,
           // tracker: tracker,
-        );
-
-      case Coin.namecoin:
-        return NamecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          tracker: tracker,
-          cachedClient: cachedClient,
-          client: client,
-        );
-
-      case Coin.dogecoinTestNet:
-        return DogecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
         );
     }
   }
