@@ -22,13 +22,8 @@ abstract class Constants {
 
   static bool enableExchange = Util.isDesktop || !Platform.isIOS;
 
-  //TODO: correct for monero?
-  static const int satsPerCoinMonero = 1000000000000;
-  static const int satsPerCoinWownero = 100000000000;
   static const int satsPerCoin = 100000000;
   static const int decimalPlaces = 8;
-  static const int decimalPlacesWownero = 11;
-  static const int decimalPlacesMonero = 12;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -43,16 +38,7 @@ abstract class Constants {
   static List<int> possibleLengthsForCoin(Coin coin) {
     final List<int> values = [];
     switch (coin) {
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoin:
-      case Coin.bitcoinTestNet:
-      case Coin.dogecoinTestNet:
       case Coin.epicCash:
-      case Coin.namecoin:
         values.addAll([24, 21, 18, 15, 12]);
         break;
     }
@@ -62,27 +48,8 @@ abstract class Constants {
   static int targetBlockTimeInSeconds(Coin coin) {
     // TODO verify values
     switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoinTestNet:
-        return 600;
-
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return 600;
-
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return 60;
-
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return 150;
-
       case Coin.epicCash:
         return 60;
-
-      case Coin.namecoin:
-        return 600;
     }
   }
 

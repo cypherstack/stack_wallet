@@ -5,6 +5,9 @@ enum Coin {
   epicCash,
 }
 
+// remove firotestnet for now
+const int kTestNetCoinCount = 0;
+
 extension CoinExt on Coin {
   String get prettyName {
     switch (this) {

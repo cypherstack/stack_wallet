@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:epicmobile/electrumx_rpc/electrumx.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicmobile/providers/providers.dart';
@@ -85,31 +84,6 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
           testPassed = false;
         }
-        break;
-
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.bitcoinTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.namecoin:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-        final client = ElectrumX(
-          host: node!.host,
-          port: node.port,
-          useSSL: node.useSSL,
-          failovers: [],
-          prefs: ref.read(prefsChangeNotifierProvider),
-        );
-
-        try {
-          testPassed = await client.ping();
-        } catch (_) {
-          testPassed = false;
-        }
-
         break;
     }
 

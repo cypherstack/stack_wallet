@@ -12,16 +12,7 @@ abstract class Format {
     late final int satsPerCoin;
 
     switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoincash:
-      case Coin.dogecoin:
       case Coin.epicCash:
-      case Coin.litecoin:
-      case Coin.namecoin:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoinTestNet:
       default:
         satsPerCoin = Constants.satsPerCoin;
     }

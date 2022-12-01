@@ -1403,22 +1403,8 @@ class StackColors extends ThemeExtension<StackColors> {
 
   Color colorForCoin(Coin coin) {
     switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoinTestNet:
-        return _coin.bitcoin;
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return _coin.litecoin;
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return _coin.bitcoincash;
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return _coin.dogecoin;
       case Coin.epicCash:
         return _coin.epicCash;
-      case Coin.namecoin:
-        return _coin.namecoin;
     }
   }
 

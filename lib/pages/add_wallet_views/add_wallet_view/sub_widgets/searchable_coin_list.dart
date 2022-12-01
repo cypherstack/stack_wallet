@@ -25,10 +25,6 @@ class SearchableCoinList extends ConsumerWidget {
           e.prettyName.toLowerCase().contains(lowercaseTerm) ||
           e.name.toLowerCase().contains(lowercaseTerm));
     }
-    if (!showTestNetCoins) {
-      _coins.removeWhere(
-          (e) => e.name.endsWith("TestNet") || e == Coin.bitcoincashTestnet);
-    }
 
     return _coins;
   }

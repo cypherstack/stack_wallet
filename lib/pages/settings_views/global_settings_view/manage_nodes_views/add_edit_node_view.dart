@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:epicmobile/electrumx_rpc/electrumx.dart';
 import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/providers/providers.dart';
@@ -91,30 +90,6 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
         }
-        break;
-      case Coin.bitcoin:
-      case Coin.bitcoincash:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.namecoin:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoinTestNet:
-        final client = ElectrumX(
-          host: formData.host!,
-          port: formData.port!,
-          useSSL: formData.useSSL!,
-          failovers: [],
-          prefs: ref.read(prefsChangeNotifierProvider),
-        );
-
-        try {
-          testPassed = await client.ping();
-        } catch (_) {
-          testPassed = false;
-        }
-
         break;
     }
 
@@ -621,17 +596,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   bool _checkShouldEnableAuthFields(Coin coin) {
     // TODO: which coin servers can have username and password?
     switch (coin) {
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.namecoin:
-      case Coin.bitcoincash:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoinTestNet:
-        return false;
-
       case Coin.epicCash:
         return true;
     }

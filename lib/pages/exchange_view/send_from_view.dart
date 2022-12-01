@@ -51,16 +51,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
 
   String formatAmount(Decimal amount, Coin coin) {
     switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoincash:
-      case Coin.litecoin:
-      case Coin.dogecoin:
       case Coin.epicCash:
-      case Coin.namecoin:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoinTestNet:
         return amount.toStringAsFixed(Constants.decimalPlaces);
     }
   }

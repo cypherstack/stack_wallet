@@ -155,15 +155,7 @@ class _SVG {
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
 
-  String get bitcoin => "assets/svg/coin_icons/Bitcoin.svg";
-  String get litecoin => "assets/svg/coin_icons/Litecoin.svg";
-  String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
-  String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
-  String get firo => "assets/svg/coin_icons/Firo.svg";
-  String get monero => "assets/svg/coin_icons/Monero.svg";
-  String get wownero => "assets/svg/coin_icons/Wownero.svg";
-  String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
 
   String get chevronRight => "assets/svg/chevron-right.svg";
   String get minimize => "assets/svg/minimize.svg";
@@ -171,33 +163,10 @@ class _SVG {
   String get exchange3 => "assets/svg/exchange-3.svg";
   String get messageQuestion => "assets/svg/message-question-1.svg";
 
-// TODO provide proper assets
-  String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
-  String get bitcoincashTestnet => "assets/svg/coin_icons/Bitcoincash.svg";
-  String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
-  String get dogecoinTestnet => "assets/svg/coin_icons/Dogecoin.svg";
-
   String iconFor({required Coin coin}) {
     switch (coin) {
-      case Coin.bitcoin:
-        return bitcoin;
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return litecoin;
-      case Coin.bitcoincash:
-        return bitcoincash;
-      case Coin.dogecoin:
-        return dogecoin;
       case Coin.epicCash:
         return epicCash;
-      case Coin.namecoin:
-        return namecoin;
-      case Coin.bitcoinTestNet:
-        return bitcoinTestnet;
-      case Coin.bitcoincashTestnet:
-        return bitcoincashTestnet;
-      case Coin.dogecoinTestNet:
-        return dogecoinTestnet;
     }
   }
 }
@@ -208,35 +177,12 @@ class _PNG {
   String get stack => "assets/images/stack.png";
   String get splash => "assets/images/splash.png";
 
-  String get monero => "assets/images/monero.png";
-  String get wownero => "assets/images/wownero.png";
-  String get firo => "assets/images/firo.png";
-  String get dogecoin => "assets/images/doge.png";
-  String get bitcoin => "assets/images/bitcoin.png";
-  String get litecoin => "assets/images/litecoin.png";
   String get epicCash => "assets/images/epic-cash.png";
-  String get bitcoincash => "assets/images/bitcoincash.png";
-  String get namecoin => "assets/images/namecoin.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoinTestNet:
-        return bitcoin;
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return litecoin;
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return bitcoincash;
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return dogecoin;
       case Coin.epicCash:
         return epicCash;
-        return wownero;
-      case Coin.namecoin:
-        return namecoin;
     }
   }
 }

@@ -4,12 +4,6 @@ import 'dart:ui' as ui;
 
 // import 'package:document_file_save_plus/document_file_save_plus.dart';
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:epicmobile/notifications/show_flush_bar.dart';
 import 'package:epicmobile/utilities/address_utils.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -30,6 +24,12 @@ import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 
 class GenerateUriQrCodeView extends StatefulWidget {
   const GenerateUriQrCodeView({
@@ -112,9 +112,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     }
 
     String receivingAddress = widget.receivingAddress;
-    if ((widget.coin == Coin.bitcoincash ||
-            widget.coin == Coin.bitcoincashTestnet) &&
-        receivingAddress.contains(":")) {
+    if (receivingAddress.contains(":")) {
       // remove cash addr prefix
       receivingAddress = receivingAddress.split(":").sublist(1).join();
     }
@@ -235,9 +233,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     isDesktop = Util.isDesktop;
 
     String receivingAddress = widget.receivingAddress;
-    if ((widget.coin == Coin.bitcoincash ||
-            widget.coin == Coin.bitcoincashTestnet) &&
-        receivingAddress.contains(":")) {
+    if (receivingAddress.contains(":")) {
       // remove cash addr prefix
       receivingAddress = receivingAddress.split(":").sublist(1).join();
     }

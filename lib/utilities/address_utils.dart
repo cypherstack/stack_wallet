@@ -2,10 +2,6 @@ import 'dart:convert';
 
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
-import 'package:epicmobile/services/coins/bitcoincash/bitcoincash_wallet.dart';
-import 'package:epicmobile/services/coins/dogecoin/dogecoin_wallet.dart';
-import 'package:epicmobile/services/coins/litecoin/litecoin_wallet.dart';
-import 'package:epicmobile/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
@@ -40,26 +36,8 @@ class AddressUtils {
 
   static bool validateAddress(String address, Coin coin) {
     switch (coin) {
-      case Coin.bitcoin:
-        return Address.validateAddress(address, bitcoin);
-      case Coin.litecoin:
-        return Address.validateAddress(address, litecoin);
-      case Coin.bitcoincash:
-        return Address.validateAddress(address, bitcoincash);
-      case Coin.dogecoin:
-        return Address.validateAddress(address, dogecoin);
       case Coin.epicCash:
         return validateSendAddress(address) == "1";
-      case Coin.namecoin:
-        return Address.validateAddress(address, namecoin, namecoin.bech32!);
-      case Coin.bitcoinTestNet:
-        return Address.validateAddress(address, testnet);
-      case Coin.litecoinTestNet:
-        return Address.validateAddress(address, litecointestnet);
-      case Coin.bitcoincashTestnet:
-        return Address.validateAddress(address, bitcoincashtestnet);
-      case Coin.dogecoinTestNet:
-        return Address.validateAddress(address, dogecointestnet);
     }
   }
 
