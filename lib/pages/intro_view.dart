@@ -1,12 +1,8 @@
-import 'package:epicmobile/pages/stack_privacy_calls.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/prefs.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class IntroView extends StatefulWidget {
@@ -32,155 +28,46 @@ class _IntroViewState extends State<IntroView> {
     debugPrint("BUILD: $runtimeType ");
     return Scaffold(
       backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      body: Center(
-        child: !isDesktop
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Spacer(
-                    flex: 2,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: 300,
-                      ),
-                      child: Image(
-                        image: AssetImage(
-                          Assets.png.stack,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Spacer(
-                    flex: 1,
-                  ),
-                  AppNameText(
-                    isDesktop: isDesktop,
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 48,
-                    ),
-                    child: IntroAboutText(
-                      isDesktop: isDesktop,
-                    ),
-                  ),
-                  const Spacer(
-                    flex: 4,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                    ),
-                    child: PrivacyAndTOSText(
-                      isDesktop: isDesktop,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GetStartedButton(
-                            isDesktop: isDesktop,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            : SizedBox(
-                width: 350,
-                height: 540,
-                child: Column(
-                  children: [
-                    const Spacer(
-                      flex: 2,
-                    ),
-                    SizedBox(
-                      width: 130,
-                      height: 130,
-                      child: SvgPicture.asset(
-                        Assets.svg.stackIcon(context),
-                      ),
-                    ),
-                    const Spacer(
-                      flex: 42,
-                    ),
-                    AppNameText(
-                      isDesktop: isDesktop,
-                    ),
-                    const Spacer(
-                      flex: 24,
-                    ),
-                    IntroAboutText(
-                      isDesktop: isDesktop,
-                    ),
-                    const Spacer(
-                      flex: 42,
-                    ),
-                    GetStartedButton(
-                      isDesktop: isDesktop,
-                    ),
-                    const Spacer(
-                      flex: 65,
-                    ),
-                    PrivacyAndTOSText(
-                      isDesktop: isDesktop,
-                    ),
-                  ],
+      body: Padding(
+        padding: const EdgeInsets.all(40.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Spacer(
+              flex: 5,
+            ),
+            AppNameText(),
+            const SizedBox(
+              height: 8,
+            ),
+            const SizedBox(
+              height: 118,
+            ),
+            Row(
+              children: const [
+                Expanded(
+                  child: GetStartedButton(),
                 ),
-              ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class AppNameText extends StatelessWidget {
-  const AppNameText({Key? key, required this.isDesktop}) : super(key: key);
-
-  final bool isDesktop;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      "Stack Wallet",
-      textAlign: TextAlign.center,
-      style: !isDesktop
-          ? STextStyles.pageTitleH1(context)
-          : STextStyles.pageTitleH1(context).copyWith(
-              fontSize: 40,
-            ),
-    );
-  }
-}
-
-class IntroAboutText extends StatelessWidget {
-  const IntroAboutText({Key? key, required this.isDesktop}) : super(key: key);
-
-  final bool isDesktop;
+  const AppNameText({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      "An open-source, multicoin wallet for everyone",
-      textAlign: TextAlign.center,
-      style: !isDesktop
-          ? STextStyles.subtitle(context)
-          : STextStyles.subtitle(context).copyWith(
-              fontSize: 24,
-            ),
+      "Everyday \nfinancial \nprivacy",
+      textAlign: TextAlign.left,
+      style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
     );
   }
 }
@@ -230,47 +117,21 @@ class PrivacyAndTOSText extends StatelessWidget {
 }
 
 class GetStartedButton extends StatelessWidget {
-  const GetStartedButton({Key? key, required this.isDesktop}) : super(key: key);
-
-  final bool isDesktop;
+  const GetStartedButton({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return !isDesktop
-        ? TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
-            onPressed: () {
-              Prefs.instance.externalCalls = true;
-              Navigator.of(context).pushNamed(
-                StackPrivacyCalls.routeName,
-                arguments: false,
-              );
-            },
-            child: Text(
-              "Get started",
-              style: STextStyles.button(context),
-            ),
-          )
-        : SizedBox(
-            width: 328,
-            height: 70,
-            child: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonColor(context),
-              onPressed: () {
-                Navigator.of(context).pushNamed(
-                  StackPrivacyCalls.routeName,
-                  arguments: false,
-                );
-              },
-              child: Text(
-                "Get started",
-                style: STextStyles.button(context).copyWith(fontSize: 20),
-              ),
-            ),
-          );
+    return TextButton(
+      style: Theme.of(context)
+          .extension<StackColors>()!
+          .getPrimaryEnabledButtonColor(context),
+      onPressed: () {},
+      child: Text(
+        "Get started",
+        style: STextStyles.button(context),
+      ),
+    );
   }
 }
