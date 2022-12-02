@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:flutter/material.dart';
 
 class StackDialogBase extends StatelessWidget {
   const StackDialogBase({
@@ -18,10 +18,10 @@ class StackDialogBase extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisAlignment:
-            !Util.isDesktop ? MainAxisAlignment.end : MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Material(
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(
               20,
             ),
