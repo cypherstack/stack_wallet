@@ -1,6 +1,5 @@
 import 'package:decimal/decimal.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
-import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -57,204 +56,193 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return Row(
-      children: [
-        Expanded(
-          child: Consumer(
-            builder: (_, ref, __) {
-              final Coin coin =
-                  ref.watch(walletProvider.select((value) => value!.coin));
+    return Consumer(
+      builder: (_, ref, __) {
+        final Coin coin =
+            ref.watch(walletProvider.select((value) => value!.coin));
 
-              Future<Decimal>? totalBalanceFuture;
-              Future<Decimal>? availableBalanceFuture;
-              totalBalanceFuture = ref
-                  .watch(walletProvider.select((value) => value!.totalBalance));
+        Future<Decimal>? totalBalanceFuture;
+        Future<Decimal>? availableBalanceFuture;
+        totalBalanceFuture =
+            ref.watch(walletProvider.select((value) => value!.totalBalance));
 
-              availableBalanceFuture = ref.watch(
-                  walletProvider.select((value) => value!.availableBalance));
+        availableBalanceFuture = ref
+            .watch(walletProvider.select((value) => value!.availableBalance));
 
-              final locale = ref.watch(localeServiceChangeNotifierProvider
-                  .select((value) => value.locale));
+        final locale = ref.watch(localeServiceChangeNotifierProvider
+            .select((value) => value.locale));
 
-              final baseCurrency = ref.watch(prefsChangeNotifierProvider
-                  .select((value) => value.currency));
+        final baseCurrency = ref.watch(
+            prefsChangeNotifierProvider.select((value) => value.currency));
 
-              final priceTuple = ref.watch(priceAnd24hChangeNotifierProvider
-                  .select((value) => value.getPrice(coin)));
+        final priceTuple = ref.watch(priceAnd24hChangeNotifierProvider
+            .select((value) => value.getPrice(coin)));
 
-              final _showAvailable =
-                  ref.watch(walletBalanceToggleStateProvider.state).state ==
-                      WalletBalanceToggleState.available;
+        final _showAvailable =
+            ref.watch(walletBalanceToggleStateProvider.state).state ==
+                WalletBalanceToggleState.available;
 
-              return FutureBuilder(
-                future: _showAvailable
-                    ? availableBalanceFuture
-                    : totalBalanceFuture,
-                builder: (fbContext, AsyncSnapshot<Decimal> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      snapshot.hasData &&
-                      snapshot.data != null) {
-                    if (_showAvailable) {
-                      _balanceCached = snapshot.data!;
-                    } else {
-                      _balanceTotalCached = snapshot.data!;
-                    }
-                  }
-                  Decimal? balanceToShow =
-                      _showAvailable ? _balanceCached : _balanceTotalCached;
+        return FutureBuilder(
+          future: _showAvailable ? availableBalanceFuture : totalBalanceFuture,
+          builder: (fbContext, AsyncSnapshot<Decimal> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done &&
+                snapshot.hasData &&
+                snapshot.data != null) {
+              if (_showAvailable) {
+                _balanceCached = snapshot.data!;
+              } else {
+                _balanceTotalCached = snapshot.data!;
+              }
+            }
+            Decimal? balanceToShow =
+                _showAvailable ? _balanceCached : _balanceTotalCached;
 
-                  if (balanceToShow != null) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        GestureDetector(
-                          onTap: showSheet,
-                          child: Row(
-                            children: [
-                              Text(
-                                "${_showAvailable ? "Available" : "Full"} Balance",
-                                style:
-                                    STextStyles.subtitle500(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFavoriteCard,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 4,
-                              ),
-                              SvgPicture.asset(
-                                Assets.svg.chevronDown,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFavoriteCard,
-                                width: 8,
-                                height: 4,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            "${Format.localizedStringAsFixed(
-                              value: balanceToShow,
-                              locale: locale,
-                              decimalPlaces: 8,
-                            )} ${coin.ticker}",
-                            style: STextStyles.pageTitleH1(context).copyWith(
-                              fontSize: 24,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFavoriteCard,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          "${Format.localizedStringAsFixed(
-                            value: priceTuple.item1 * balanceToShow,
-                            locale: locale,
-                            decimalPlaces: 2,
-                          )} $baseCurrency",
-                          style: STextStyles.subtitle500(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFavoriteCard,
-                          ),
-                        ),
-                      ],
-                    );
-                  } else {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        GestureDetector(
-                          onTap: showSheet,
-                          child: Row(
-                            children: [
-                              Text(
-                                "${_showAvailable ? "Available" : "Full"} Balance",
-                                style:
-                                    STextStyles.subtitle500(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFavoriteCard,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 4,
-                              ),
-                              SvgPicture.asset(
-                                Assets.svg.chevronDown,
-                                width: 8,
-                                height: 4,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFavoriteCard,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                        AnimatedText(
-                          stringsToLoopThrough: const [
-                            "Loading balance",
-                            "Loading balance.",
-                            "Loading balance..",
-                            "Loading balance..."
-                          ],
-                          style: STextStyles.pageTitleH1(context).copyWith(
-                            fontSize: 24,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFavoriteCard,
-                          ),
-                        ),
-                        AnimatedText(
-                          stringsToLoopThrough: const [
-                            "Loading balance",
-                            "Loading balance.",
-                            "Loading balance..",
-                            "Loading balance..."
-                          ],
-                          style: STextStyles.subtitle500(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFavoriteCard,
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                },
-              );
-            },
-          ),
-        ),
-        Column(
-          children: [
-            Consumer(
-              builder: (_, ref, __) {
-                return SvgPicture.asset(
-                  Assets.svg.iconFor(
-                    coin: ref.watch(
-                      walletProvider.select((value) => value!.coin),
+            if (balanceToShow != null) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Epic",
+                    style: STextStyles.pageTitleH1(context).copyWith(
+                      fontSize: 24,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
                     ),
                   ),
-                  width: 24,
-                  height: 24,
-                );
-              },
-            ),
-            const Spacer(),
-            WalletRefreshButton(
-              walletId: walletId,
-              initialSyncStatus: widget.initialSyncStatus,
-            ),
-          ],
-        )
-      ],
+                  const SizedBox(height: 8,),
+                  Text(
+                    "${Format.localizedStringAsFixed(
+                      value: balanceToShow,
+                      locale: locale,
+                      decimalPlaces: 8,
+                    )} ${coin.ticker}",
+                    style: STextStyles.pageTitleH1(context).copyWith(
+                      fontSize: 24,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
+                    ),
+                  ),
+                  const SizedBox(height: 14,),
+                  Text(
+                    "${Format.localizedStringAsFixed(
+                      value: priceTuple.item1 * balanceToShow,
+                      locale: locale,
+                      decimalPlaces: 2,
+                    )} $baseCurrency",
+                    style: STextStyles.subtitle500(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
+                    ),
+                  ),
+                  const SizedBox(height: 15,),
+                  GestureDetector(
+                    onTap: showSheet,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "${_showAvailable ? "Available" : "Full"} Balance",
+                          style: STextStyles.subtitle500(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFavoriteCard,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 4,
+                        ),
+                        SvgPicture.asset(
+                          Assets.svg.chevronDown,
+                          width: 8,
+                          height: 4,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFavoriteCard,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Epic",
+                    style: STextStyles.pageTitleH1(context).copyWith(
+                      fontSize: 24,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
+                    ),
+                  ),
+                  const SizedBox(height: 8,),
+                  AnimatedText(
+                    stringsToLoopThrough: const [
+                      "Loading balance",
+                      "Loading balance.",
+                      "Loading balance..",
+                      "Loading balance..."
+                    ],
+                    style: STextStyles.pageTitleH1(context).copyWith(
+                      fontSize: 24,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
+                    ),
+                  ),
+                  const SizedBox(height: 14,),
+                  AnimatedText(
+                    stringsToLoopThrough: const [
+                      "Loading balance",
+                      "Loading balance.",
+                      "Loading balance..",
+                      "Loading balance..."
+                    ],
+                    style: STextStyles.subtitle500(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
+                    ),
+                  ),
+                  const SizedBox(height: 15,),
+                  GestureDetector(
+                    onTap: showSheet,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "${_showAvailable ? "Available" : "Full"} Balance",
+                          style: STextStyles.subtitle500(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFavoriteCard,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 4,
+                        ),
+                        SvgPicture.asset(
+                          Assets.svg.chevronDown,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFavoriteCard,
+                          width: 8,
+                          height: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }
+          },
+        );
+      },
     );
   }
 }

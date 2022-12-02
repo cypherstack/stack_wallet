@@ -298,6 +298,7 @@ flutter:
     - assets/svg/arrow-down.svg
     - assets/svg/thin-x-circle.svg
     - assets/svg/check-circle.svg
+    - assets/svg/epic-bg.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Litecoin.svg

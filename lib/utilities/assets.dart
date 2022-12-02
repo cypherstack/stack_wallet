@@ -179,6 +179,8 @@ class _SVG {
   String get exchange3 => "assets/svg/exchange-3.svg";
   String get messageQuestion => "assets/svg/message-question-1.svg";
 
+  String get epicBG => "assets/svg/epic-bg.svg";
+
   String iconFor({required Coin coin}) {
     switch (coin) {
       case Coin.epicCash:

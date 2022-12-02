@@ -61,7 +61,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get textWhite => const Color(0xFF232323);
   @override
-  Color get textFavoriteCard => const Color(0xFF232323);
+  Color get textFavoriteCard => const Color(0xFFD1A55C);
   @override
   Color get textError => const Color(0xFFF37475);
 
