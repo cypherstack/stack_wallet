@@ -1,6 +1,7 @@
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
 import 'package:epicmobile/models/send_view_auto_fill_data.dart';
+import 'package:epicmobile/pages/add_wallet_views/name_your_wallet_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
@@ -49,6 +50,7 @@ import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicmobile/utilities/enums/add_wallet_type_enum.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -387,6 +389,21 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DeleteWalletWarningView(
               walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case NameYourWalletView.routeName:
+        if (args is Tuple2<AddWalletType, Coin>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => NameYourWalletView(
+              addWalletType: args.item1,
+              coin: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,
