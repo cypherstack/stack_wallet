@@ -21,7 +21,6 @@ import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/enums/fee_rate_type_enum.dart';
 import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/logger.dart';
-import 'package:epicmobile/utilities/prefs.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -735,125 +734,120 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                             ),
                           ),
-                          if (Prefs.instance.externalCalls)
-                            const SizedBox(
-                              height: 8,
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
+                            style: STextStyles.smallMed14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
                             ),
-                          if (Prefs.instance.externalCalls)
-                            TextField(
-                              autocorrect: Util.isDesktop ? false : true,
-                              enableSuggestions: Util.isDesktop ? false : true,
-                              style: STextStyles.smallMed14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
-                              key:
-                                  const Key("amountInputFieldFiatTextFieldKey"),
-                              controller: baseAmountController,
-                              focusNode: _baseFocus,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                signed: false,
-                                decimal: true,
-                              ),
-                              textAlign: TextAlign.right,
-                              inputFormatters: [
-                                // regex to validate a fiat amount with 2 decimal places
-                                TextInputFormatter.withFunction((oldValue,
-                                        newValue) =>
-                                    RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-                                            .hasMatch(newValue.text)
-                                        ? newValue
-                                        : oldValue),
-                              ],
-                              onChanged: (baseAmountString) {
-                                if (baseAmountString.isNotEmpty &&
-                                    baseAmountString != "." &&
-                                    baseAmountString != ",") {
-                                  final baseAmount =
-                                      baseAmountString.contains(",")
-                                          ? Decimal.parse(baseAmountString
-                                              .replaceFirst(",", "."))
-                                          : Decimal.parse(baseAmountString);
+                            key: const Key("amountInputFieldFiatTextFieldKey"),
+                            controller: baseAmountController,
+                            focusNode: _baseFocus,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              signed: false,
+                              decimal: true,
+                            ),
+                            textAlign: TextAlign.right,
+                            inputFormatters: [
+                              // regex to validate a fiat amount with 2 decimal places
+                              TextInputFormatter.withFunction((oldValue,
+                                      newValue) =>
+                                  RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
+                                          .hasMatch(newValue.text)
+                                      ? newValue
+                                      : oldValue),
+                            ],
+                            onChanged: (baseAmountString) {
+                              if (baseAmountString.isNotEmpty &&
+                                  baseAmountString != "." &&
+                                  baseAmountString != ",") {
+                                final baseAmount = baseAmountString
+                                        .contains(",")
+                                    ? Decimal.parse(
+                                        baseAmountString.replaceFirst(",", "."))
+                                    : Decimal.parse(baseAmountString);
 
-                                  var _price = ref
-                                      .read(priceAnd24hChangeNotifierProvider)
-                                      .getPrice(coin)
-                                      .item1;
+                                var _price = ref
+                                    .read(priceAnd24hChangeNotifierProvider)
+                                    .getPrice(coin)
+                                    .item1;
 
-                                  if (_price == Decimal.zero) {
-                                    _amountToSend = Decimal.zero;
-                                  } else {
-                                    _amountToSend = baseAmount <= Decimal.zero
-                                        ? Decimal.zero
-                                        : (baseAmount / _price).toDecimal(
-                                            scaleOnInfinitePrecision:
-                                                Constants.decimalPlaces);
-                                  }
-                                  if (_cachedAmountToSend != null &&
-                                      _cachedAmountToSend == _amountToSend) {
-                                    return;
-                                  }
-                                  _cachedAmountToSend = _amountToSend;
-                                  Logging.instance.log(
-                                      "it changed $_amountToSend $_cachedAmountToSend",
-                                      level: LogLevel.Info);
-
-                                  final amountString =
-                                      Format.localizedStringAsFixed(
-                                    value: _amountToSend!,
-                                    locale: ref
-                                        .read(
-                                            localeServiceChangeNotifierProvider)
-                                        .locale,
-                                    decimalPlaces: Constants.decimalPlaces,
-                                  );
-
-                                  _cryptoAmountChangeLock = true;
-                                  cryptoAmountController.text = amountString;
-                                  _cryptoAmountChangeLock = false;
-                                } else {
+                                if (_price == Decimal.zero) {
                                   _amountToSend = Decimal.zero;
-                                  _cryptoAmountChangeLock = true;
-                                  cryptoAmountController.text = "";
-                                  _cryptoAmountChangeLock = false;
+                                } else {
+                                  _amountToSend = baseAmount <= Decimal.zero
+                                      ? Decimal.zero
+                                      : (baseAmount / _price).toDecimal(
+                                          scaleOnInfinitePrecision:
+                                              Constants.decimalPlaces);
                                 }
-                                // setState(() {
-                                //   _calculateFeesFuture = calculateFees(
-                                //       Format.decimalAmountToSatoshis(
-                                //           _amountToSend!));
-                                // });
-                                _updatePreviewButtonState(
-                                    _address, _amountToSend);
-                              },
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.only(
-                                  top: 12,
-                                  right: 12,
-                                ),
-                                hintText: "0",
-                                hintStyle:
-                                    STextStyles.fieldLabel(context).copyWith(
-                                  fontSize: 14,
-                                ),
-                                prefixIcon: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Text(
-                                      ref.watch(prefsChangeNotifierProvider
-                                          .select((value) => value.currency)),
-                                      style: STextStyles.smallMed14(context)
-                                          .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorDark),
-                                    ),
+                                if (_cachedAmountToSend != null &&
+                                    _cachedAmountToSend == _amountToSend) {
+                                  return;
+                                }
+                                _cachedAmountToSend = _amountToSend;
+                                Logging.instance.log(
+                                    "it changed $_amountToSend $_cachedAmountToSend",
+                                    level: LogLevel.Info);
+
+                                final amountString =
+                                    Format.localizedStringAsFixed(
+                                  value: _amountToSend!,
+                                  locale: ref
+                                      .read(localeServiceChangeNotifierProvider)
+                                      .locale,
+                                  decimalPlaces: Constants.decimalPlaces,
+                                );
+
+                                _cryptoAmountChangeLock = true;
+                                cryptoAmountController.text = amountString;
+                                _cryptoAmountChangeLock = false;
+                              } else {
+                                _amountToSend = Decimal.zero;
+                                _cryptoAmountChangeLock = true;
+                                cryptoAmountController.text = "";
+                                _cryptoAmountChangeLock = false;
+                              }
+                              // setState(() {
+                              //   _calculateFeesFuture = calculateFees(
+                              //       Format.decimalAmountToSatoshis(
+                              //           _amountToSend!));
+                              // });
+                              _updatePreviewButtonState(
+                                  _address, _amountToSend);
+                            },
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.only(
+                                top: 12,
+                                right: 12,
+                              ),
+                              hintText: "0",
+                              hintStyle:
+                                  STextStyles.fieldLabel(context).copyWith(
+                                fontSize: 14,
+                              ),
+                              prefixIcon: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(
+                                    ref.watch(prefsChangeNotifierProvider
+                                        .select((value) => value.currency)),
+                                    style: STextStyles.smallMed14(context)
+                                        .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark),
                                   ),
                                 ),
                               ),
                             ),
+                          ),
                           const SizedBox(
                             height: 12,
                           ),

@@ -1,5 +1,4 @@
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/electrumx_rpc/cached_electrumx.dart';
 import 'package:epicmobile/electrumx_rpc/electrumx.dart';
 import 'package:epicmobile/models/models.dart';
 import 'package:epicmobile/models/node_model.dart';
@@ -24,32 +23,6 @@ abstract class CoinServiceAPI {
       name: node.name,
       id: node.id,
       useSSL: node.useSSL,
-    );
-    final client = ElectrumX.from(
-      node: electrumxNode,
-      failovers: failovers
-          .map((e) => ElectrumXNode(
-                address: e.host,
-                port: e.port,
-                name: e.name,
-                id: e.id,
-                useSSL: e.useSSL,
-              ))
-          .toList(),
-      prefs: prefs,
-    );
-    final cachedClient = CachedElectrumX.from(
-      node: electrumxNode,
-      failovers: failovers
-          .map((e) => ElectrumXNode(
-                address: e.host,
-                port: e.port,
-                name: e.name,
-                id: e.id,
-                useSSL: e.useSSL,
-              ))
-          .toList(),
-      prefs: prefs,
     );
 
     switch (coin) {

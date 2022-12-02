@@ -27,9 +27,6 @@ class Prefs extends ChangeNotifier {
       _lastUnlockedTimeout = await _getLastUnlockedTimeout();
       _showTestNetCoins = await _getShowTestNetCoins();
       _hideBlockExplorerWarning = await _getHideBlockExplorerWarning();
-      _gotoWalletOnStartup = await _getGotoWalletOnStartup();
-      _startupWalletId = await _getStartupWalletId();
-      _externalCalls = await _getHasExternalCalls();
 
       _initialized = true;
     }
@@ -328,88 +325,5 @@ class Prefs extends ChangeNotifier {
             boxName: DB.boxNamePrefs,
             key: "hideBlockExplorerWarning") as bool? ??
         false;
-  }
-
-  // auto backup
-
-  bool _gotoWalletOnStartup = false;
-
-  bool get gotoWalletOnStartup => _gotoWalletOnStartup;
-
-  set gotoWalletOnStartup(bool gotoWalletOnStartup) {
-    if (_gotoWalletOnStartup != gotoWalletOnStartup) {
-      DB.instance
-          .put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "gotoWalletOnStartup",
-              value: gotoWalletOnStartup)
-          .then((_) {
-        _gotoWalletOnStartup = gotoWalletOnStartup;
-        notifyListeners();
-      });
-    }
-  }
-
-  Future<bool> _getGotoWalletOnStartup() async {
-    return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "gotoWalletOnStartup") as bool? ??
-        false;
-  }
-
-  // startup wallet id
-
-  String? _startupWalletId;
-
-  String? get startupWalletId => _startupWalletId;
-
-  set startupWalletId(String? startupWalletId) {
-    if (this.startupWalletId != startupWalletId) {
-      DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "startupWalletId",
-          value: startupWalletId);
-      _startupWalletId = startupWalletId;
-      notifyListeners();
-    }
-  }
-
-  Future<String?> _getStartupWalletId() async {
-    return await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "startupWalletId") as String?;
-  }
-
-  // incognito mode off by default
-  // allow external network calls such as exchange data and price info
-  bool _externalCalls = true;
-
-  bool get externalCalls => _externalCalls;
-
-  set externalCalls(bool externalCalls) {
-    if (_externalCalls != externalCalls) {
-      DB.instance
-          .put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "externalCalls",
-              value: externalCalls)
-          .then((_) {
-        _externalCalls = externalCalls;
-        notifyListeners();
-      });
-    }
-  }
-
-  Future<bool> _getHasExternalCalls() async {
-    return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "externalCalls") as bool? ??
-        true;
-  }
-
-  Future<bool> isExternalCallsSet() async {
-    if (await DB.instance
-            .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") ==
-        null) {
-      return false;
-    }
-    return true;
   }
 }

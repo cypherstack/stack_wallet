@@ -14,14 +14,13 @@ import 'package:epicmobile/providers/global/base_currencies_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/color_theme_provider.dart';
 import 'package:epicmobile/route_generator.dart';
-import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/debug_service.dart';
 import 'package:epicmobile/services/locale_service.dart';
 import 'package:epicmobile/services/node_service.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/db_version_migration.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/prefs.dart';
 import 'package:epicmobile/utilities/theme/dark_colors.dart';
@@ -168,14 +167,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       final walletInfo =
           await ref.read(walletsServiceChangeNotifierProvider).walletNames;
 
-      NodeModel? node = _nodeService.getPrimaryNodeFor(
-        coin: Coin.epicCash,
-      );
-      if (node == null) {
-        node = _nodeService.getNodesFor(Coin.epicCash).first;
-        await _nodeService.setPrimaryNodeFor(coin: Coin.epicCash, node: node);
-      }
-
       if (walletInfo.isNotEmpty) {
         if (walletInfo.entries.length > 1) {
           Logging.instance.log(
@@ -186,13 +177,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         final info = walletInfo.values.first;
 
         ref.read(walletStateProvider.state).state = Manager(
-          CoinServiceAPI.from(
-            info.coin,
-            info.walletId,
-            info.name,
-            node,
-            _prefs,
-            _nodeService.failoverNodesFor(coin: info.coin),
+          EpicCashWallet(
+            walletId: info.walletId,
+            walletName: info.name,
+            coin: info.coin,
           ),
         );
         await ref.read(walletProvider)!.initializeExisting();

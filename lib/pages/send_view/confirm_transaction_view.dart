@@ -409,28 +409,24 @@ class _ConfirmTransactionViewState
                                     (value) => value!.coin,
                                   ),
                                 );
-                                final externalCalls = ref.watch(
-                                    prefsChangeNotifierProvider.select(
-                                        (value) => value.externalCalls));
+
                                 String fiatAmount = "N/A";
 
-                                if (externalCalls) {
-                                  final price = ref
-                                      .read(priceAnd24hChangeNotifierProvider)
-                                      .getPrice(coin)
-                                      .item1;
-                                  if (price > Decimal.zero) {
-                                    fiatAmount = Format.localizedStringAsFixed(
-                                      value: Format.satoshisToAmount(amount,
-                                              coin: coin) *
-                                          price,
-                                      locale: ref
-                                          .read(
-                                              localeServiceChangeNotifierProvider)
-                                          .locale,
-                                      decimalPlaces: 2,
-                                    );
-                                  }
+                                final price = ref
+                                    .read(priceAnd24hChangeNotifierProvider)
+                                    .getPrice(coin)
+                                    .item1;
+                                if (price > Decimal.zero) {
+                                  fiatAmount = Format.localizedStringAsFixed(
+                                    value: Format.satoshisToAmount(amount,
+                                            coin: coin) *
+                                        price,
+                                    locale: ref
+                                        .read(
+                                            localeServiceChangeNotifierProvider)
+                                        .locale,
+                                    decimalPlaces: 2,
+                                  );
                                 }
 
                                 return Row(
@@ -452,22 +448,18 @@ class _ConfirmTransactionViewState
                                             .textDark,
                                       ),
                                     ),
-                                    if (externalCalls)
-                                      Text(
-                                        " | ",
-                                        style: STextStyles
-                                            .desktopTextExtraExtraSmall(
-                                                context),
-                                      ),
-                                    if (externalCalls)
-                                      Text(
-                                        "~$fiatAmount ${ref.watch(prefsChangeNotifierProvider.select(
-                                          (value) => value.currency,
-                                        ))}",
-                                        style: STextStyles
-                                            .desktopTextExtraExtraSmall(
-                                                context),
-                                      ),
+                                    Text(
+                                      " | ",
+                                      style: STextStyles
+                                          .desktopTextExtraExtraSmall(context),
+                                    ),
+                                    Text(
+                                      "~$fiatAmount ${ref.watch(prefsChangeNotifierProvider.select(
+                                        (value) => value.currency,
+                                      ))}",
+                                      style: STextStyles
+                                          .desktopTextExtraExtraSmall(context),
+                                    ),
                                   ],
                                 );
                               },

@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
-import 'package:epicmobile/providers/global/node_service_provider.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/providers/global/wallets_service_provider.dart';
-import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/biometrics.dart';
@@ -77,25 +75,19 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
               shouldNotifyListeners: false,
             );
 
-    NodeModel? node =
-        ref.read(nodeServiceChangeNotifierProvider).getPrimaryNodeFor(
-              coin: Coin.epicCash,
-            );
-
     ref.read(walletStateProvider.state).state = Manager(
-      CoinServiceAPI.from(
-        Coin.epicCash,
-        newWalletId!,
-        "Epic Wallet",
-        node!,
-        ref.read(prefsChangeNotifierProvider),
-        ref
-            .read(nodeServiceChangeNotifierProvider)
-            .failoverNodesFor(coin: Coin.epicCash),
+      EpicCashWallet(
+        walletId: newWalletId!,
+        walletName: "Epic Wallet",
+        coin: Coin.epicCash,
       ),
     );
 
     await ref.read(walletProvider)!.initializeNew();
+
+    await ref
+        .read(walletsServiceChangeNotifierProvider)
+        .setMnemonicVerified(walletId: newWalletId);
   }
 
   @override

@@ -937,26 +937,24 @@ class _DesktopTransactionCardRowState
                   },
                 ),
               ),
-              if (ref.watch(prefsChangeNotifierProvider
-                  .select((value) => value.externalCalls)))
-                Expanded(
-                  flex: 4,
-                  child: Builder(
-                    builder: (_) {
-                      // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
-                      int value = _transaction.amount;
+              Expanded(
+                flex: 4,
+                child: Builder(
+                  builder: (_) {
+                    // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
+                    int value = _transaction.amount;
 
-                      return Text(
-                        "$prefix${Format.localizedStringAsFixed(
-                          value: Format.satoshisToAmount(value) * price,
-                          locale: locale,
-                          decimalPlaces: 2,
-                        )} $baseCurrency",
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
-                      );
-                    },
-                  ),
+                    return Text(
+                      "$prefix${Format.localizedStringAsFixed(
+                        value: Format.satoshisToAmount(value) * price,
+                        locale: locale,
+                        decimalPlaces: 2,
+                      )} $baseCurrency",
+                      style: STextStyles.desktopTextExtraExtraSmall(context),
+                    );
+                  },
                 ),
+              ),
               SvgPicture.asset(
                 Assets.svg.circleInfo,
                 width: 20,

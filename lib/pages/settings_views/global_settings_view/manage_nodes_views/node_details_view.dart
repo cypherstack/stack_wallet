@@ -86,6 +86,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
         break;
     }
 
+    print("connection test: $testPassed");
     if (testPassed) {
       // unawaited(
       //   showFloatingFlushBar(

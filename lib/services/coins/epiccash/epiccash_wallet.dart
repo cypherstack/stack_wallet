@@ -309,7 +309,7 @@ Future<int> _getChainHeightWrapper(String config) async {
   }
 }
 
-const String EPICPOST_ADDRESS = 'https://epicpost.epicmobile.com';
+const String EPICPOST_ADDRESS = 'https://epicpost.stackwallet.com';
 
 Future<bool> postSlate(String receiveAddress, String slate) async {
   Logging.instance.log("postSlate", level: LogLevel.Info);

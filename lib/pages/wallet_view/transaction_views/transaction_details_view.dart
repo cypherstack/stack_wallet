@@ -345,28 +345,24 @@ class _TransactionDetailsViewState
                                           const SizedBox(
                                             height: 2,
                                           ),
-                                          if (ref.watch(
+                                          SelectableText(
+                                            "$amountPrefix${Format.localizedStringAsFixed(value: amount * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
+                                                  localeServiceChangeNotifierProvider
+                                                      .select((value) =>
+                                                          value.locale),
+                                                ), decimalPlaces: 2)} ${ref.watch(
                                               prefsChangeNotifierProvider
-                                                  .select((value) =>
-                                                      value.externalCalls)))
-                                            SelectableText(
-                                              "$amountPrefix${Format.localizedStringAsFixed(value: amount * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
-                                                    localeServiceChangeNotifierProvider
-                                                        .select((value) =>
-                                                            value.locale),
-                                                  ), decimalPlaces: 2)} ${ref.watch(
-                                                prefsChangeNotifierProvider
-                                                    .select(
-                                                  (value) => value.currency,
-                                                ),
-                                              )}",
-                                              style: isDesktop
-                                                  ? STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                          context)
-                                                  : STextStyles.itemSubtitle(
-                                                      context),
-                                            ),
+                                                  .select(
+                                                (value) => value.currency,
+                                              ),
+                                            )}",
+                                            style: isDesktop
+                                                ? STextStyles
+                                                    .desktopTextExtraExtraSmall(
+                                                        context)
+                                                : STextStyles.itemSubtitle(
+                                                    context),
+                                          ),
                                         ],
                                       ),
                                       if (!isDesktop)
