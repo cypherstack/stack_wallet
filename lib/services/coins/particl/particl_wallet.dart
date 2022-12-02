@@ -3355,9 +3355,22 @@ class ParticlWallet extends CoinServiceAPI {
     final builtTx = txb.build();
     final vSize = builtTx.virtualSize();
 
-    print("BUILT TX IS ${builtTx.toHex()}");
+    print("BUILT TX IS ${builtTx.toHex().toString()}");
 
+    String hexBefore = builtTx.toHex();
+    if (builtTx.toHex().toString().endsWith('0000')) {
+      //   print("END WITH ZERO");
+      String stripped = hexBefore.substring(0, hexBefore.length - 4);
+      return {"hex": stripped, "vSize": vSize};
+      // } else {
+      //   print("DOES NOT END WITH ZERO");
+      //   return {"hex": builtTx.toHex(), "vSize": vSize};
+    }
     return {"hex": builtTx.toHex(), "vSize": vSize};
+
+    // print("AND NOW IT IS $stripped");
+    //
+    // return {"hex": stripped, "vSize": vSize};
   }
 
   @override
