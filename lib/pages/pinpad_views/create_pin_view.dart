@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/providers/global/wallets_service_provider.dart';
+import 'package:epicmobile/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -21,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
 
 class CreatePinView extends ConsumerStatefulWidget {
   const CreatePinView({
@@ -256,32 +259,19 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                                 title: "Enable fingerprint authentication",
                               );
 
-                        //TODO investigate why this crashes IOS, maybe ios persists securestorage even after an uninstall?
-                        // This should never fail as we are writing a new pin
-                        // assert(
-                        //     (await _secureStore.read(key: "stack_pin")) == null);
-                        // possible alternative to the above but it does not guarantee we aren't overwriting a pin
-                        // if (!Platform.isLinux)
-                        //   assert((await _secureStore.read(key: "stack_pin")) ==
-                        //       null);
-                        assert(ref.read(prefsChangeNotifierProvider).hasPin ==
-                            false);
-
-                        await _secureStore.write(key: "stack_pin", value: pin);
-
-                        ref.read(prefsChangeNotifierProvider).useBiometrics =
-                            useBiometrics;
-                        ref.read(prefsChangeNotifierProvider).hasPin = true;
-
-                        await createWallet();
-
                         await Future<void>.delayed(
                             const Duration(milliseconds: 200));
 
                         if (mounted) {
                           if (!widget.popOnSuccess) {
                             if (widget.isNewWallet == true) {
-                              unawaited(showDialog<dynamic>(
+                              assert(ref
+                                      .read(prefsChangeNotifierProvider)
+                                      .hasPin ==
+                                  false);
+
+                              unawaited(
+                                showDialog<dynamic>(
                                   context: context,
                                   builder: (context) {
                                     return Dialog(
@@ -320,32 +310,63 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                                         ),
                                       ),
                                     );
-                                  }));
+                                  },
+                                ),
+                              );
+                              await _secureStore.write(
+                                  key: "stack_pin", value: pin);
+
+                              ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .useBiometrics = useBiometrics;
+
+                              await createWallet();
+
+                              ref.read(prefsChangeNotifierProvider).hasPin =
+                                  true;
 
                               await Future<void>.delayed(
                                   const Duration(seconds: 2));
 
-                              //pop dialog
-                              Navigator.of(context).pop();
+                              if (mounted) {
+                                //pop dialog
+                                Navigator.of(context).pop();
 
-                              Navigator.of(context).pushNamedAndRemoveUntil(
-                                HomeView.routeName,
-                                (route) => false,
-                              );
+                                unawaited(Navigator.of(context)
+                                    .pushNamedAndRemoveUntil(
+                                  HomeView.routeName,
+                                  (route) => false,
+                                ));
+                              }
                             } else {
                               //!isNewWallet
-                              // ref
-                              //     .read(mnemonicWordCountStateProvider.state)
-                              //     .state = Constants.possibleLengthsForCoin(
-                              //         Coin.epicCash)
-                              //     .first;
-                              // unawaited(Navigator.of(context).pushNamed(
-                              //   RestoreOptionsView.routeName,
-                              //   arguments: Tuple2(
-                              //     name,
-                              //     coin,
-                              //   ),
-                              // ));
+                              ref
+                                  .read(mnemonicWordCountStateProvider.state)
+                                  .state = Constants.possibleLengthsForCoin(
+                                      Coin.epicCash)
+                                  .first;
+
+                              await _secureStore.write(
+                                  key: "stack_pin", value: pin);
+
+                              ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .useBiometrics = useBiometrics;
+
+                              ref.read(prefsChangeNotifierProvider).hasPin =
+                                  true;
+
+                              if (mounted) {
+                                unawaited(
+                                  Navigator.of(context).pushNamed(
+                                    RestoreOptionsView.routeName,
+                                    arguments: const Tuple2(
+                                      "Epic Wallet",
+                                      Coin.epicCash,
+                                    ),
+                                  ),
+                                );
+                              }
                             }
                           } else {
                             Navigator.of(context).pop();
@@ -353,10 +374,12 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                         }
                       } else {
                         // _onSubmitFailCount++;
-                        _pageController.animateTo(
-                          0,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.linear,
+                        unawaited(
+                          _pageController.animateTo(
+                            0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.linear,
+                          ),
                         );
 
                         unawaited(showDialog<dynamic>(
@@ -402,11 +425,12 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
 
                         await Future<void>.delayed(const Duration(seconds: 2));
 
-                        //pop dialog
-                        Navigator.of(context).pop();
-
-                        _pinPutController1.text = '';
-                        _pinPutController2.text = '';
+                        if (mounted) {
+                          //pop dialog
+                          Navigator.of(context).pop();
+                          _pinPutController1.text = '';
+                          _pinPutController2.text = '';
+                        }
                       }
                     },
                   ),

@@ -353,7 +353,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             // FlutterNativeSplash.remove();
-            if (_prefs.hasPin) {
+            if (_prefs.hasPin && ref.read(walletProvider) != null) {
               return const LockscreenView(
                 isInitialAppLogin: true,
                 routeOnSuccess: HomeView.routeName,
