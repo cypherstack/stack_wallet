@@ -196,26 +196,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ),
         );
         await ref.read(walletProvider)!.initializeExisting();
-      } else {
-        final newWalletId =
-            await ref.read(walletsServiceChangeNotifierProvider).addNewWallet(
-                  name: "Epic Wallet",
-                  coin: Coin.epicCash,
-                  shouldNotifyListeners: false,
-                );
-
-        ref.read(walletStateProvider.state).state = Manager(
-          CoinServiceAPI.from(
-            Coin.epicCash,
-            newWalletId!,
-            "Epic Wallet",
-            node,
-            _prefs,
-            _nodeService.failoverNodesFor(coin: Coin.epicCash),
-          ),
-        );
-
-        await ref.read(walletProvider)!.initializeNew();
       }
 
       loadingCompleter.complete();
@@ -386,10 +366,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           if (snapshot.connectionState == ConnectionState.done) {
             // FlutterNativeSplash.remove();
             if (_prefs.hasPin) {
-              return LockscreenView(
+              return const LockscreenView(
                 isInitialAppLogin: true,
                 routeOnSuccess: HomeView.routeName,
-                routeOnSuccessArguments: ref.read(walletProvider)?.walletId,
+                routeOnSuccessArguments: null,
                 biometricsAuthenticationTitle: "Unlock Stack",
                 biometricsLocalizedReason:
                     "Unlock your Epic wallet using biometrics",

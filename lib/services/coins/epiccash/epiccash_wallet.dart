@@ -4,14 +4,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_libepiccash/epic_cash.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive/hive.dart';
-import 'package:http/http.dart';
-import 'package:mutex/mutex.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:epicmobile/hive/db.dart';
 import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/models/paymint/fee_object_model.dart';
@@ -33,6 +25,14 @@ import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/prefs.dart';
 import 'package:epicmobile/utilities/test_epic_box_connection.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_libepiccash/epic_cash.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hive/hive.dart';
+import 'package:http/http.dart';
+import 'package:mutex/mutex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:tuple/tuple.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
@@ -301,8 +301,12 @@ Future<String> _recoverWrapper(
 }
 
 Future<int> _getChainHeightWrapper(String config) async {
-  final int chainHeight = getChainHeight(config);
-  return chainHeight;
+  try {
+    final int chainHeight = getChainHeight(config);
+    return chainHeight;
+  } catch (_) {
+    rethrow;
+  }
 }
 
 const String EPICPOST_ADDRESS = 'https://epicpost.epicmobile.com';
@@ -1467,12 +1471,16 @@ class EpicCashWallet extends CoinServiceAPI {
   Future<int> get chainHeight async {
     final config = await getRealConfig();
     int? latestHeight;
-    await m.protect(() async {
-      latestHeight = await compute(
-        _getChainHeightWrapper,
-        config,
-      );
-    });
+    try {
+      await m.protect(() async {
+        latestHeight = await compute(
+          _getChainHeightWrapper,
+          config,
+        );
+      });
+    } catch (e, s) {
+      Logging.instance.log("$e $s", level: LogLevel.Error);
+    }
     return latestHeight!;
   }
 

@@ -1,11 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
+import 'package:epicmobile/providers/global/node_service_provider.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
+import 'package:epicmobile/providers/global/wallet_provider.dart';
+import 'package:epicmobile/providers/global/wallets_service_provider.dart';
+import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/biometrics.dart';
 import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -61,6 +68,35 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
 
   late FlutterSecureStorageInterface _secureStore;
   late Biometrics biometrics;
+
+  Future<void> createWallet() async {
+    final newWalletId =
+        await ref.read(walletsServiceChangeNotifierProvider).addNewWallet(
+              name: "Epic Wallet",
+              coin: Coin.epicCash,
+              shouldNotifyListeners: false,
+            );
+
+    NodeModel? node =
+        ref.read(nodeServiceChangeNotifierProvider).getPrimaryNodeFor(
+              coin: Coin.epicCash,
+            );
+
+    ref.read(walletStateProvider.state).state = Manager(
+      CoinServiceAPI.from(
+        Coin.epicCash,
+        newWalletId!,
+        "Epic Wallet",
+        node!,
+        ref.read(prefsChangeNotifierProvider),
+        ref
+            .read(nodeServiceChangeNotifierProvider)
+            .failoverNodesFor(coin: Coin.epicCash),
+      ),
+    );
+
+    await ref.read(walletProvider)!.initializeNew();
+  }
 
   @override
   initState() {
@@ -242,6 +278,8 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                         ref.read(prefsChangeNotifierProvider).useBiometrics =
                             useBiometrics;
                         ref.read(prefsChangeNotifierProvider).hasPin = true;
+
+                        await createWallet();
 
                         await Future<void>.delayed(
                             const Duration(milliseconds: 200));
