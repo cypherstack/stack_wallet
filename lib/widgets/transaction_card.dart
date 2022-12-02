@@ -87,8 +87,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
   Widget build(BuildContext context) {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager = ref.watch(walletProvider)!;
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));

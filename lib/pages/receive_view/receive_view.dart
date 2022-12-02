@@ -65,10 +65,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       ),
     );
 
-    await ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .generateNewAddress();
+    await ref.read(walletProvider)!.generateNewAddress();
 
     shouldPop = true;
 
@@ -87,10 +84,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     clipboard = widget.clipboard;
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final address = await ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(walletId)
-          .currentReceivingAddress;
+      final address = await ref.read(walletProvider)!.currentReceivingAddress;
       setState(() {
         receivingAddress = address;
       });
@@ -103,11 +97,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    ref.listen(
-        ref
-            .read(walletsChangeNotifierProvider)
-            .getManagerProvider(walletId)
-            .select((value) => value.currentReceivingAddress),
+    ref.listen(walletProvider.select((value) => value!.currentReceivingAddress),
         (previous, next) {
       if (next is Future<String>) {
         next.then((value) => setState(() => receivingAddress = value));

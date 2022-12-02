@@ -1,14 +1,8 @@
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
 import 'package:epicmobile/models/send_view_auto_fill_data.dart';
-import 'package:epicmobile/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import 'package:epicmobile/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
-import 'package:epicmobile/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
-import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
-import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
-import 'package:epicmobile/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/add_new_contact_address_view.dart';
@@ -19,7 +13,6 @@ import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_name_e
 import 'package:epicmobile/pages/create_restore_wallet_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
-import 'package:epicmobile/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
 import 'package:epicmobile/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:epicmobile/pages/receive_view/receive_view.dart';
@@ -40,12 +33,7 @@ import 'package:epicmobile/pages/settings_views/global_settings_view/manage_node
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/startup_preferences/startup_preferences_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/startup_preferences/startup_wallet_selection_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/support_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/syncing_preferences_views/wallet_syncing_options_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
@@ -53,21 +41,17 @@ import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_sett
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
-import 'package:epicmobile/pages/stack_privacy_calls.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
-import 'package:epicmobile/pages/wallets_view/wallets_view.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:epicmobile/utilities/enums/add_wallet_type_enum.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
 class RouteGenerator {
@@ -117,31 +101,6 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const CreatePinView(),
-            settings: RouteSettings(name: settings.name));
-
-      case StackPrivacyCalls.routeName:
-        if (args is bool) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => StackPrivacyCalls(isSettings: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => StackPrivacyCalls(isSettings: false),
-            settings: RouteSettings(name: settings.name));
-
-      case WalletsView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const WalletsView(),
-            settings: RouteSettings(name: settings.name));
-
-      case AddWalletView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AddWalletView(),
             settings: RouteSettings(name: settings.name));
 
       case GlobalSettingsView.routeName:
@@ -215,40 +174,10 @@ class RouteGenerator {
             builder: (_) => const AppearanceSettingsView(),
             settings: RouteSettings(name: settings.name));
 
-      case SyncingPreferencesView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SyncingPreferencesView(),
-            settings: RouteSettings(name: settings.name));
-
-      case StartupPreferencesView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const StartupPreferencesView(),
-            settings: RouteSettings(name: settings.name));
-
-      case StartupWalletSelectionView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const StartupWalletSelectionView(),
-            settings: RouteSettings(name: settings.name));
-
       case ManageNodesView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const ManageNodesView(),
-            settings: RouteSettings(name: settings.name));
-
-      case SyncingOptionsView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SyncingOptionsView(),
-            settings: RouteSettings(name: settings.name));
-
-      case WalletSyncingOptionsView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const WalletSyncingOptionsView(),
             settings: RouteSettings(name: settings.name));
 
       case AdvancedSettingsView.routeName:
@@ -468,50 +397,6 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case CreateOrRestoreWalletView.routeName:
-        if (args is Coin) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CreateOrRestoreWalletView(
-              coin: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case NameYourWalletView.routeName:
-        if (args is Tuple2<AddWalletType, Coin>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => NameYourWalletView(
-              addWalletType: args.item1,
-              coin: args.item2,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case NewWalletRecoveryPhraseWarningView.routeName:
-        if (args is Tuple2<String, Coin>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => NewWalletRecoveryPhraseWarningView(
-              walletName: args.item1,
-              coin: args.item2,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
       case RestoreOptionsView.routeName:
         if (args is Tuple2<String, Coin>) {
           return getRoute(
@@ -544,48 +429,12 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case NewWalletRecoveryPhraseView.routeName:
-        if (args is Tuple2<Manager, List<String>>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => NewWalletRecoveryPhraseView(
-              manager: args.item1,
-              mnemonic: args.item2,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case VerifyRecoveryPhraseView.routeName:
-        if (args is Tuple2<Manager, List<String>>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => VerifyRecoveryPhraseView(
-              manager: args.item1,
-              mnemonic: args.item2,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case ManageFavoritesView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const ManageFavoritesView());
-
       case WalletView.routeName:
-        if (args is Tuple2<String, ChangeNotifierProvider<Manager>>) {
+        if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => WalletView(
-              walletId: args.item1,
-              managerProvider: args.item2,
+              walletId: args,
             ),
             settings: RouteSettings(
               name: settings.name,

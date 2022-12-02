@@ -35,19 +35,13 @@ class ContactPopUp extends ConsumerWidget {
     final contact = ref.watch(addressBookServiceProvider
         .select((value) => value.getContactById(contactId)));
 
-    final active = ref
-        .read(walletsChangeNotifierProvider)
-        .managers
-        .where((e) => e.isActiveWallet)
-        .toList(growable: false);
+    final active = ref.read(walletProvider);
 
-    assert(active.isEmpty || active.length == 1);
-
-    bool hasActiveWallet = active.length == 1;
+    bool hasActiveWallet = active != null;
 
     final addresses = contact.addresses.where((e) {
       if (hasActiveWallet) {
-        return e.coin == active[0].coin;
+        return e.coin == active.coin;
       } else {
         return true;
       }
@@ -176,7 +170,7 @@ class ContactPopUp extends ConsumerWidget {
                                   child: RoundedWhiteContainer(
                                     child: Center(
                                       child: Text(
-                                        "No ${active[0].coin.prettyName} addresses found",
+                                        "No ${active!.coin.prettyName} addresses found",
                                         style:
                                             STextStyles.itemSubtitle(context),
                                       ),
@@ -302,8 +296,8 @@ class ContactPopUp extends ConsumerWidget {
                                                       .pushNamed(
                                                     SendView.routeName,
                                                     arguments: Tuple3(
-                                                      active[0].walletId,
-                                                      active[0].coin,
+                                                      active.walletId,
+                                                      active.coin,
                                                       SendViewAutoFillData(
                                                         address: address,
                                                         contactLabel:

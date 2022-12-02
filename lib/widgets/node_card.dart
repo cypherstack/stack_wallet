@@ -45,10 +45,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
   bool _advancedIsExpanded = true;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
-    final managers = ref
-        .read(walletsChangeNotifierProvider)
-        .managers
-        .where((e) => e.coin == widget.coin);
+    final managers = [ref.read(walletProvider)!];
     final prefs = ref.read(prefsChangeNotifierProvider);
 
     switch (prefs.syncType) {

@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
-import 'package:epicmobile/pages/stack_privacy_calls.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
@@ -10,6 +7,8 @@ import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AdvancedSettingsView extends StatelessWidget {
   const AdvancedSettingsView({
@@ -120,59 +119,6 @@ class AdvancedSettingsView extends StatelessWidget {
               ),
               const SizedBox(
                 height: 8,
-              ),
-              RoundedWhiteContainer(
-                padding: const EdgeInsets.all(0),
-                child: Consumer(
-                  builder: (_, ref, __) {
-                    final externalCalls = ref.watch(
-                      prefsChangeNotifierProvider
-                          .select((value) => value.externalCalls),
-                    );
-                    return RawMaterialButton(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          StackPrivacyCalls.routeName,
-                          arguments: true,
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 20,
-                        ),
-                        child: Row(
-                          children: [
-                            RichText(
-                              textAlign: TextAlign.left,
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: "Stack Experience",
-                                    style: STextStyles.titleBold12(context),
-                                  ),
-                                  TextSpan(
-                                    text: externalCalls
-                                        ? "\nEasy crypto"
-                                        : "\nIncognito",
-                                    style: STextStyles.label(context)
-                                        .copyWith(fontSize: 15.0),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
               ),
             ],
           ),

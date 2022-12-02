@@ -69,8 +69,7 @@ class _ConfirmTransactionViewState
     ));
 
     final note = transactionInfo["note"] as String? ?? "";
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    final manager = ref.read(walletProvider)!;
 
     try {
       String txid;
@@ -147,9 +146,6 @@ class _ConfirmTransactionViewState
 
   @override
   Widget build(BuildContext context) {
-    final managerProvider = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvider(walletId)));
-
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -216,7 +212,7 @@ class _ConfirmTransactionViewState
                   ).pop(),
                 ),
                 Text(
-                  "Confirm ${ref.watch(managerProvider.select((value) => value.coin.ticker.toUpperCase()))} transaction",
+                  "Confirm ${ref.watch(walletProvider.select((value) => value!.coin.ticker.toUpperCase()))} transaction",
                   style: STextStyles.desktopH3(context),
                 ),
               ],
@@ -233,7 +229,7 @@ class _ConfirmTransactionViewState
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "Send ${ref.watch(managerProvider.select((value) => value.coin)).ticker}",
+                    "Send ${ref.watch(walletProvider.select((value) => value!.coin)).ticker}",
                     style: STextStyles.pageTitleH1(context),
                   ),
                   const SizedBox(
@@ -276,7 +272,7 @@ class _ConfirmTransactionViewState
                                   .select((value) => value.locale),
                             ),
                           )} ${ref.watch(
-                                managerProvider.select((value) => value.coin),
+                                walletProvider.select((value) => value!.coin),
                               ).ticker}",
                           style: STextStyles.itemSubtitle12(context),
                           textAlign: TextAlign.right,
@@ -303,7 +299,7 @@ class _ConfirmTransactionViewState
                                   .select((value) => value.locale),
                             ),
                           )} ${ref.watch(
-                                managerProvider.select((value) => value.coin),
+                                walletProvider.select((value) => value!.coin),
                               ).ticker}",
                           style: STextStyles.itemSubtitle12(context),
                           textAlign: TextAlign.right,
@@ -381,8 +377,8 @@ class _ConfirmTransactionViewState
                               ),
                               Text(
                                 "Send ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
+                                      walletProvider
+                                          .select((value) => value!.coin),
                                     ).ticker}",
                                 style: STextStyles.desktopTextMedium(context),
                               ),
@@ -409,8 +405,8 @@ class _ConfirmTransactionViewState
                                 final amount =
                                     transactionInfo["recipientAmt"] as int;
                                 final coin = ref.watch(
-                                  managerProvider.select(
-                                    (value) => value.coin,
+                                  walletProvider.select(
+                                    (value) => value!.coin,
                                   ),
                                 );
                                 final externalCalls = ref.watch(
@@ -634,7 +630,7 @@ class _ConfirmTransactionViewState
                               .select((value) => value.locale),
                         ),
                       )} ${ref.watch(
-                            managerProvider.select((value) => value.coin),
+                            walletProvider.select((value) => value!.coin),
                           ).ticker}",
                       style: isDesktop
                           ? STextStyles.desktopTextExtraExtraSmall(context)

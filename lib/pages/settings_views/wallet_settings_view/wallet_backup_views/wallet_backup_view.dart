@@ -1,5 +1,5 @@
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import 'package:epicmobile/providers/global/wallets_provider.dart';
+import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/utilities/address_utils.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
@@ -79,10 +79,7 @@ class WalletBackupView extends ConsumerWidget {
                 height: 4,
               ),
               Text(
-                ref
-                    .watch(walletsChangeNotifierProvider
-                        .select((value) => value.getManager(walletId)))
-                    .walletName,
+                ref.watch(walletProvider.select((value) => value!.walletName)),
                 textAlign: TextAlign.center,
                 style: STextStyles.label(context).copyWith(
                   fontSize: 12,

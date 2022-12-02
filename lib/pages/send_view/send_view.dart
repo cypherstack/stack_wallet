@@ -156,10 +156,8 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   void _updatePreviewButtonState(String? address, Decimal? amount) {
-    final isValidAddress = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .validateAddress(address ?? "");
+    final isValidAddress =
+        ref.read(walletProvider)!.validateAddress(address ?? "");
     ref.read(previewTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Decimal.zero);
   }
@@ -179,8 +177,7 @@ class _SendViewState extends ConsumerState<SendView> {
       return cachedFees[amount]!;
     }
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    final manager = ref.read(walletProvider)!;
     final feeObject = await manager.fees;
 
     late final int feeRate;
@@ -287,8 +284,6 @@ class _SendViewState extends ConsumerState<SendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final provider = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvider(walletId)));
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
@@ -355,8 +350,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      ref.watch(provider
-                                          .select((value) => value.walletName)),
+                                      ref.watch(walletProvider.select(
+                                          (value) => value!.walletName)),
                                       style: STextStyles.titleBold12(context),
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
@@ -593,9 +588,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
                                                   // now check for non standard encoded basic address
                                                 } else if (ref
-                                                    .read(
-                                                        walletsChangeNotifierProvider)
-                                                    .getManager(walletId)
+                                                    .read(walletProvider)!
                                                     .validateAddress(
                                                         qrResult.rawContent)) {
                                                   _address =
@@ -637,9 +630,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             builder: (_) {
                               final error = _updateInvalidAddressText(
                                 _address ?? "",
-                                ref
-                                    .read(walletsChangeNotifierProvider)
-                                    .getManager(walletId),
+                                ref.read(walletProvider)!,
                               );
 
                               if (error == null || error.isEmpty) {
@@ -682,7 +673,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 text: "Send all ${coin.ticker}",
                                 onTap: () async {
                                   cryptoAmountController.text = (await ref
-                                          .read(provider)
+                                          .read(walletProvider)!
                                           .availableBalance)
                                       .toStringAsFixed(Constants.decimalPlaces);
                                 },
@@ -1046,13 +1037,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                     await Future<void>.delayed(
                                       const Duration(milliseconds: 100),
                                     );
-                                    final manager = ref
-                                        .read(walletsChangeNotifierProvider)
-                                        .getManager(walletId);
 
                                     // TODO: remove the need for this!!
-                                    final bool isOwnAddress =
-                                        await manager.isOwnAddress(_address!);
+                                    final bool isOwnAddress = await ref
+                                        .read(walletProvider)!
+                                        .isOwnAddress(_address!);
                                     if (isOwnAddress) {
                                       await showDialog<dynamic>(
                                         context: context,
@@ -1093,8 +1082,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                             _amountToSend!);
                                     int availableBalance;
                                     availableBalance =
-                                        Format.decimalAmountToSatoshis(
-                                            await manager.availableBalance);
+                                        Format.decimalAmountToSatoshis(await ref
+                                            .read(walletProvider)!
+                                            .availableBalance);
 
                                     // confirm send all
                                     if (amount == availableBalance) {
@@ -1171,8 +1161,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                         },
                                       ));
 
-                                      Map<String, dynamic> txData =
-                                          await manager.prepareSend(
+                                      Map<String, dynamic> txData = await ref
+                                          .read(walletProvider)!
+                                          .prepareSend(
                                         address: _address!,
                                         satoshiAmount: amount,
                                         args: {

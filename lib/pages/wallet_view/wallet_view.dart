@@ -9,10 +9,9 @@ import 'package:epicmobile/pages/wallet_view/sub_widgets/transactions_list.dart'
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_navigation_bar.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
-import 'package:epicmobile/providers/ui/transaction_filter_provider.dart';
+import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
@@ -37,7 +36,6 @@ class WalletView extends ConsumerStatefulWidget {
   const WalletView({
     Key? key,
     required this.walletId,
-    required this.managerProvider,
     this.eventBus,
   }) : super(key: key);
 
@@ -45,7 +43,6 @@ class WalletView extends ConsumerStatefulWidget {
   static const double navBarHeight = 65.0;
 
   final String walletId;
-  final ChangeNotifierProvider<Manager> managerProvider;
   final EventBus? eventBus;
 
   @override
@@ -55,7 +52,6 @@ class WalletView extends ConsumerStatefulWidget {
 class _WalletViewState extends ConsumerState<WalletView> {
   late final EventBus eventBus;
   late final String walletId;
-  late final ChangeNotifierProvider<Manager> managerProvider;
 
   late final bool _shouldDisableAutoSyncOnLogOut;
 
@@ -68,25 +64,24 @@ class _WalletViewState extends ConsumerState<WalletView> {
   @override
   void initState() {
     walletId = widget.walletId;
-    managerProvider = widget.managerProvider;
 
-    ref.read(managerProvider).isActiveWallet = true;
-    if (!ref.read(managerProvider).shouldAutoSync) {
+    ref.read(walletProvider)!.isActiveWallet = true;
+    if (!ref.read(walletProvider)!.shouldAutoSync) {
       // enable auto sync if it wasn't enabled when loading wallet
-      ref.read(managerProvider).shouldAutoSync = true;
+      ref.read(walletProvider)!.shouldAutoSync = true;
       _shouldDisableAutoSyncOnLogOut = true;
     } else {
       _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    ref.read(managerProvider).refresh();
+    ref.read(walletProvider)!.refresh();
 
-    if (ref.read(managerProvider).isRefreshing) {
+    if (ref.read(walletProvider)!.isRefreshing) {
       _currentSyncStatus = WalletSyncStatus.syncing;
       _currentNodeStatus = NodeConnectionStatus.connected;
     } else {
       _currentSyncStatus = WalletSyncStatus.synced;
-      if (ref.read(managerProvider).isConnected) {
+      if (ref.read(walletProvider)!.isConnected) {
         _currentNodeStatus = NodeConnectionStatus.connected;
       } else {
         _currentNodeStatus = NodeConnectionStatus.disconnected;
@@ -150,7 +145,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
             Navigator.of(context).popUntil(
               ModalRoute.withName(HomeView.routeName),
             );
-            _logout();
             return false;
           },
           child: const StackDialog(title: "Tap back again to exit wallet"),
@@ -163,15 +157,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
       ));
     }
     return false;
-  }
-
-  void _logout() async {
-    if (_shouldDisableAutoSyncOnLogOut) {
-      // disable auto sync if it was enabled only when loading wallet
-      ref.read(managerProvider).shouldAutoSync = false;
-    }
-    ref.read(managerProvider.notifier).isActiveWallet = false;
-    ref.read(transactionFilterProvider.state).state = null;
   }
 
   Widget _buildNetworkIcon(WalletSyncStatus status) {
@@ -204,8 +189,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final coin = ref.watch(managerProvider.select((value) => value.coin));
-
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Background(
@@ -215,7 +198,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
-                _logout();
                 Navigator.of(context).pop();
               },
             ),
@@ -223,7 +205,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
             title: Row(
               children: [
                 SvgPicture.asset(
-                  Assets.svg.iconFor(coin: coin),
+                  Assets.svg.iconFor(coin: ref.watch(walletProvider)!.coin),
                   // color: Theme.of(context).extension<StackColors>()!.accentColorDark
                   width: 24,
                   height: 24,
@@ -234,7 +216,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 Expanded(
                   child: Text(
                     ref.watch(
-                        managerProvider.select((value) => value.walletName)),
+                        walletProvider.select((value) => value!.walletName)),
                     style: STextStyles.navBarTitle(context),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -298,7 +280,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         WalletSettingsView.routeName,
                         arguments: Tuple4(
                           walletId,
-                          ref.read(managerProvider).coin,
+                          ref.read(walletProvider)!.coin,
                           _currentSyncStatus,
                           _currentNodeStatus,
                         ),
@@ -322,9 +304,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: WalletSummary(
                         walletId: walletId,
-                        managerProvider: managerProvider,
-                        initialSyncStatus: ref.watch(managerProvider
-                                .select((value) => value.isRefreshing))
+                        initialSyncStatus: ref.watch(walletProvider
+                                .select((value) => value!.isRefreshing))
                             ? WalletSyncStatus.syncing
                             : WalletSyncStatus.synced,
                       ),
@@ -391,7 +372,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                   children: [
                                     Expanded(
                                       child: TransactionsList(
-                                        managerProvider: managerProvider,
                                         walletId: walletId,
                                       ),
                                     ),
@@ -417,16 +397,16 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                   child: SizedBox(
                                     height: WalletView.navBarHeight,
                                     child: WalletNavigationBar(
-                                      enableExchange:
-                                          Constants.enableExchange &&
-                                              ref.watch(managerProvider.select(
-                                                      (value) => value.coin)) !=
-                                                  Coin.epicCash,
+                                      enableExchange: Constants
+                                              .enableExchange &&
+                                          ref.watch(walletProvider.select(
+                                                  (value) => value!.coin)) !=
+                                              Coin.epicCash,
                                       height: WalletView.navBarHeight,
                                       onExchangePressed: () {},
                                       onReceivePressed: () async {
                                         final coin =
-                                            ref.read(managerProvider).coin;
+                                            ref.read(walletProvider)!.coin;
                                         if (mounted) {
                                           unawaited(
                                               Navigator.of(context).pushNamed(
@@ -440,9 +420,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                       },
                                       onSendPressed: () {
                                         final walletId =
-                                            ref.read(managerProvider).walletId;
+                                            ref.read(walletProvider)!.walletId;
                                         final coin =
-                                            ref.read(managerProvider).coin;
+                                            ref.read(walletProvider)!.coin;
                                         switch (ref
                                             .read(
                                                 walletBalanceToggleStateProvider

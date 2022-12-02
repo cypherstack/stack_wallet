@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
@@ -12,6 +10,8 @@ import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WalletSettingsWalletSettingsView extends ConsumerWidget {
   const WalletSettingsWalletSettingsView({
@@ -101,7 +101,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         context: context,
                         builder: (_) => StackDialog(
                           title:
-                              "Do you want to delete ${ref.read(walletsChangeNotifierProvider).getManager(walletId).walletName}?",
+                              "Do you want to delete ${ref.read(walletProvider)!.walletName}?",
                           leftButton: TextButton(
                             style: Theme.of(context)
                                 .extension<StackColors>()!

@@ -176,8 +176,6 @@ class _DeleteWalletRecoveryPhraseViewState
                             .getPrimaryEnabledButtonColor(context),
                         onPressed: () async {
                           final walletId = _manager.walletId;
-                          final walletsInstance =
-                              ref.read(walletsChangeNotifierProvider);
                           await ref
                               .read(walletsServiceChangeNotifierProvider)
                               .deleteWallet(_manager.walletName, true);
@@ -186,11 +184,11 @@ class _DeleteWalletRecoveryPhraseViewState
                             Navigator.of(context).popUntil(
                                 ModalRoute.withName(HomeView.routeName));
                           }
-
+                          await ref.read(walletProvider)!.exitCurrentWallet();
                           // wait for widget tree to dispose of any widgets watching the manager
                           await Future<void>.delayed(
                               const Duration(seconds: 1));
-                          walletsInstance.removeWallet(walletId: walletId);
+                          ref.read(walletStateProvider.state).state = null;
                         },
                         child: Text(
                           "Ok",

@@ -5,12 +5,11 @@ import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'package:epicmobile/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
-import 'package:epicmobile/providers/global/wallets_provider.dart';
+import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/providers/ui/transaction_filter_provider.dart';
 import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
@@ -209,8 +208,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                       title: "Wallet backup",
                                       onPressed: () async {
                                         final mnemonic = await ref
-                                            .read(walletsChangeNotifierProvider)
-                                            .getManager(walletId)
+                                            .read(walletProvider)!
                                             .mnemonic;
 
                                         if (mounted) {
@@ -262,17 +260,6 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                   height: 8,
                                 ),
                                 SettingsListButton(
-                                  iconAssetName: Assets.svg.arrowRotate3,
-                                  title: "Syncing preferences",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                        SyncingPreferencesView.routeName);
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
                                   iconAssetName: Assets.svg.ellipsis,
                                   title: "Debug Info",
                                   onPressed: () {
@@ -291,10 +278,8 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                             builder: (_, ref, __) {
                               return TextButton(
                                 onPressed: () {
-                                  ref
-                                      .read(walletsChangeNotifierProvider)
-                                      .getManager(walletId)
-                                      .isActiveWallet = false;
+                                  ref.read(walletProvider)!.isActiveWallet =
+                                      false;
                                   ref
                                       .read(transactionFilterProvider.state)
                                       .state = null;
@@ -350,10 +335,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
 
   @override
   void initState() {
-    wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as EpicCashWallet;
+    wallet = ref.read(walletProvider)!.wallet as EpicCashWallet;
 
     wallet.getEpicBoxConfig().then((value) {
       final config = jsonDecode(value);

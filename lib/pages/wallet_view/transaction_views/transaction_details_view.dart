@@ -1182,9 +1182,7 @@ class _TransactionDetailsViewState
                     ),
                   ),
                   onPressed: () async {
-                    final Manager manager = ref
-                        .read(walletsChangeNotifierProvider)
-                        .getManager(walletId);
+                    final Manager manager = ref.read(walletProvider)!;
 
                     if (manager.wallet is EpicCashWallet) {
                       final String? id = _transaction.slateId;

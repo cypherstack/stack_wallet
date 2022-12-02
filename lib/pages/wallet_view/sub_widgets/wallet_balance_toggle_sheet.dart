@@ -20,15 +20,14 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
 
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).coin));
-
     Future<Decimal>? totalBalanceFuture;
     Future<Decimal>? availableBalanceFuture;
-    final wallet = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
-    totalBalanceFuture = wallet.totalBalance;
-    availableBalanceFuture = wallet.availableBalance;
+    totalBalanceFuture =
+        ref.watch(walletProvider.select((value) => value!.totalBalance));
+    ;
+    availableBalanceFuture =
+        ref.watch(walletProvider.select((value) => value!.availableBalance));
+    ;
 
     return Container(
       decoration: BoxDecoration(

@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:event_bus/event_bus.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:epicmobile/providers/global/wallets_provider.dart';
+import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
+import 'package:event_bus/event_bus.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 /// [eventBus] should only be set during testing
 class WalletRefreshButton extends ConsumerStatefulWidget {
@@ -104,14 +104,11 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
             : null,
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         onPressed: () {
-          final managerProvider = ref
-              .read(walletsChangeNotifierProvider)
-              .getManagerProvider(widget.walletId);
-          final isRefreshing = ref.read(managerProvider).isRefreshing;
+          final isRefreshing = ref.read(walletProvider)!.isRefreshing;
           if (!isRefreshing) {
             _spinController?.repeat();
             ref
-                .read(managerProvider)
+                .read(walletProvider)!
                 .refresh()
                 .then((_) => _spinController?.stop());
           }

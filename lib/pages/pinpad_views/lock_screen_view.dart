@@ -4,7 +4,7 @@ import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 // import 'package:epicmobile/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
-import 'package:epicmobile/providers/global/wallets_provider.dart';
+import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/utilities/biometrics.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
@@ -85,12 +85,15 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       if (widget.routeOnSuccess == HomeView.routeName &&
           widget.routeOnSuccessArguments is String) {
         final walletId = widget.routeOnSuccessArguments as String;
-        unawaited(Navigator.of(context).pushNamed(WalletView.routeName,
+        unawaited(
+          Navigator.of(context).pushNamed(
+            WalletView.routeName,
             arguments: Tuple2(
-                walletId,
-                ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId))));
+              walletId,
+              ref.read(walletProvider)!,
+            ),
+          ),
+        );
       }
     }
   }

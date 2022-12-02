@@ -67,17 +67,16 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       List<ContactAddressEntry> addresses = [];
-      final managers = ref.read(walletsChangeNotifierProvider).managers;
-      for (final manager in managers) {
-        addresses.add(
-          ContactAddressEntry(
-            coin: manager.coin,
-            address: await manager.currentReceivingAddress,
-            label: "Current Receiving",
-            other: manager.walletName,
-          ),
-        );
-      }
+
+      addresses.add(
+        ContactAddressEntry(
+          coin: ref.read(walletProvider)!.coin,
+          address: await (ref.read(walletProvider)!).currentReceivingAddress,
+          label: "Current Receiving",
+          other: ref.read(walletProvider)!.walletName,
+        ),
+      );
+
       final self = Contact(
         name: "My Stack",
         addresses: addresses,

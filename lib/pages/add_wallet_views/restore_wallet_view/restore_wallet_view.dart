@@ -209,9 +209,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             return RestoringDialog(
               onCancel: () async {
                 isRestoring = false;
-                ref
-                    .read(walletsChangeNotifierProvider.notifier)
-                    .removeWallet(walletId: walletId!);
+                await ref.read(walletProvider)!.exitCurrentWallet();
+                ref.read(walletStateProvider.state).state = null;
 
                 await walletsService.deleteWallet(
                   widget.walletName,
@@ -269,9 +268,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   walletId: manager.walletId,
                 );
 
-            ref
-                .read(walletsChangeNotifierProvider.notifier)
-                .addWallet(walletId: manager.walletId, manager: manager);
+            ref.read(walletStateProvider.state).state = manager;
 
             if (mounted) {
               if (isDesktop) {

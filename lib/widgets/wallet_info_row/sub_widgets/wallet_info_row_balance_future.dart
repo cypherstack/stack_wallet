@@ -1,6 +1,4 @@
 import 'package:decimal/decimal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/format.dart';
@@ -8,6 +6,8 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/animated_text.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WalletInfoRowBalanceFuture extends ConsumerWidget {
   const WalletInfoRowBalanceFuture({Key? key, required this.walletId})
@@ -17,9 +17,7 @@ class WalletInfoRowBalanceFuture extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager = ref.watch(ref
-        .watch(walletsChangeNotifierProvider.notifier)
-        .getManagerProvider(walletId));
+    final manager = ref.read(walletProvider)!;
 
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select(

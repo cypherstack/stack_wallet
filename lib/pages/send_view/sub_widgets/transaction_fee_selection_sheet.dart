@@ -65,8 +65,7 @@ class _TransactionFeeSelectionSheetState
     switch (feeRateType) {
       case FeeRateType.fast:
         if (ref.read(feeSheetSessionCacheProvider).fast[amount] == null) {
-          final manager =
-              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+          final manager = ref.read(walletProvider)!;
 
           ref.read(feeSheetSessionCacheProvider).fast[amount] =
               Format.satoshisToAmount(
@@ -76,8 +75,7 @@ class _TransactionFeeSelectionSheetState
 
       case FeeRateType.average:
         if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
-          final manager =
-              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+          final manager = ref.read(walletProvider)!;
 
           ref.read(feeSheetSessionCacheProvider).average[amount] =
               Format.satoshisToAmount(
@@ -87,8 +85,7 @@ class _TransactionFeeSelectionSheetState
 
       case FeeRateType.slow:
         if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
-          final manager =
-              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+          final manager = ref.read(walletProvider)!;
 
           ref.read(feeSheetSessionCacheProvider).slow[amount] =
               Format.satoshisToAmount(
@@ -134,8 +131,7 @@ class _TransactionFeeSelectionSheetState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager = ref.read(walletProvider)!;
 
     return Container(
       decoration: BoxDecoration(

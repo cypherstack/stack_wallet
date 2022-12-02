@@ -3,7 +3,6 @@ import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_balance_toggle_s
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
@@ -20,12 +19,10 @@ class WalletSummaryInfo extends StatefulWidget {
   const WalletSummaryInfo({
     Key? key,
     required this.walletId,
-    required this.managerProvider,
     required this.initialSyncStatus,
   }) : super(key: key);
 
   final String walletId;
-  final ChangeNotifierProvider<Manager> managerProvider;
   final WalletSyncStatus initialSyncStatus;
 
   @override
@@ -34,7 +31,6 @@ class WalletSummaryInfo extends StatefulWidget {
 
 class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
   late final String walletId;
-  late final ChangeNotifierProvider<Manager> managerProvider;
 
   void showSheet() {
     showModalBottomSheet<dynamic>(
@@ -55,7 +51,6 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
   @override
   void initState() {
     walletId = widget.walletId;
-    managerProvider = widget.managerProvider;
     super.initState();
   }
 
@@ -68,17 +63,17 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
           child: Consumer(
             builder: (_, ref, __) {
               final Coin coin =
-                  ref.watch(managerProvider.select((value) => value.coin));
+                  ref.watch(walletProvider.select((value) => value!.coin));
               final externalCalls = ref.watch(prefsChangeNotifierProvider
                   .select((value) => value.externalCalls));
 
               Future<Decimal>? totalBalanceFuture;
               Future<Decimal>? availableBalanceFuture;
               totalBalanceFuture = ref
-                  .watch(managerProvider.select((value) => value.totalBalance));
+                  .watch(walletProvider.select((value) => value!.totalBalance));
 
               availableBalanceFuture = ref.watch(
-                  managerProvider.select((value) => value.availableBalance));
+                  walletProvider.select((value) => value!.availableBalance));
 
               final locale = ref.watch(localeServiceChangeNotifierProvider
                   .select((value) => value.locale));
@@ -247,7 +242,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                 return SvgPicture.asset(
                   Assets.svg.iconFor(
                     coin: ref.watch(
-                      managerProvider.select((value) => value.coin),
+                      walletProvider.select((value) => value!.coin),
                     ),
                   ),
                   width: 24,

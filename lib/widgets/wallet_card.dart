@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/wallet_info_row/wallet_info_row.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
 class WalletSheetCard extends ConsumerWidget {
@@ -36,10 +36,9 @@ class WalletSheetCard extends ConsumerWidget {
           Navigator.of(context).pushNamed(
             WalletView.routeName,
             arguments: Tuple2(
-                walletId,
-                ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId)),
+              walletId,
+              ref.read(walletProvider),
+            ),
           );
         },
         child: WalletInfoRow(

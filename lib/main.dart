@@ -10,17 +10,18 @@ import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
 import 'package:epicmobile/pages/loading_view.dart';
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
-import 'package:epicmobile/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:epicmobile/providers/global/base_currencies_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/color_theme_provider.dart';
 import 'package:epicmobile/route_generator.dart';
+import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/services/debug_service.dart';
 import 'package:epicmobile/services/locale_service.dart';
 import 'package:epicmobile/services/node_service.dart';
-import 'package:epicmobile/services/wallets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/db_version_migration.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/prefs.dart';
 import 'package:epicmobile/utilities/theme/dark_colors.dart';
@@ -140,14 +141,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   static const platform = MethodChannel("STACK_WALLET_RESTORE");
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  late final Wallets _wallets;
   late final Prefs _prefs;
   late final NodeService _nodeService;
 
   late final Completer<void> loadingCompleter;
 
   bool didLoad = false;
-  bool _desktopHasPassword = false;
 
   Future<void> load() async {
     try {
@@ -159,18 +158,66 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       await DB.instance.init();
       await _prefs.init();
 
-      if (Util.isDesktop) {
-        _desktopHasPassword =
-            await ref.read(storageCryptoHandlerProvider).hasPassword();
-      }
-
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
 
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
-      await _wallets.load(_prefs);
+
+      final walletInfo =
+          await ref.read(walletsServiceChangeNotifierProvider).walletNames;
+
+      NodeModel? node = _nodeService.getPrimaryNodeFor(
+        coin: Coin.epicCash,
+      );
+      if (node == null) {
+        node = _nodeService.getNodesFor(Coin.epicCash).first;
+        await _nodeService.setPrimaryNodeFor(coin: Coin.epicCash, node: node);
+      }
+
+      if (walletInfo.isNotEmpty) {
+        if (walletInfo.entries.length > 1) {
+          Logging.instance.log(
+            "MORE THAN ONE WALLET: $walletInfo",
+            level: LogLevel.Fatal,
+          );
+        }
+        final info = walletInfo.values.first;
+
+        ref.read(walletStateProvider.state).state = Manager(
+          CoinServiceAPI.from(
+            info.coin,
+            info.walletId,
+            info.name,
+            node,
+            _prefs,
+            _nodeService.failoverNodesFor(coin: info.coin),
+          ),
+        );
+        await ref.read(walletProvider)!.initializeExisting();
+      } else {
+        final newWalletId =
+            await ref.read(walletsServiceChangeNotifierProvider).addNewWallet(
+                  name: "Epic Wallet",
+                  coin: Coin.epicCash,
+                  shouldNotifyListeners: false,
+                );
+
+        ref.read(walletStateProvider.state).state = Manager(
+          CoinServiceAPI.from(
+            Coin.epicCash,
+            newWalletId!,
+            "Epic Wallet",
+            node,
+            _prefs,
+            _nodeService.failoverNodesFor(coin: Coin.epicCash),
+          ),
+        );
+
+        await ref.read(walletProvider)!.initializeNew();
+      }
+
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
@@ -202,7 +249,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         .loadLocale(notify: false);
 
     _prefs = ref.read(prefsChangeNotifierProvider);
-    _wallets = ref.read(walletsChangeNotifierProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(colorThemeProvider.state).state =
@@ -339,19 +385,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             // FlutterNativeSplash.remove();
-            if (!Util.isDesktop && (_wallets.hasWallets || _prefs.hasPin)) {
-              // return HomeView();
-
-              String? startupWalletId;
-              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
-                startupWalletId =
-                    ref.read(prefsChangeNotifierProvider).startupWalletId;
-              }
-
+            if (_prefs.hasPin) {
               return LockscreenView(
                 isInitialAppLogin: true,
                 routeOnSuccess: HomeView.routeName,
-                routeOnSuccessArguments: startupWalletId,
+                routeOnSuccessArguments: ref.read(walletProvider)?.walletId,
                 biometricsAuthenticationTitle: "Unlock Stack",
                 biometricsLocalizedReason:
                     "Unlock your Epic wallet using biometrics",

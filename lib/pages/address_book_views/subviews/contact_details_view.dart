@@ -454,7 +454,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                   ),
                   FutureBuilder(
                     future: _filteredTransactionsByContact(
-                        ref.watch(walletsChangeNotifierProvider).managers),
+                        [ref.read(walletProvider)!]),
                     builder: (_,
                         AsyncSnapshot<List<Tuple2<String, Transaction>>>
                             snapshot) {

@@ -95,10 +95,7 @@ class _WalletNetworkSettingsViewState
     );
 
     try {
-      await ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(widget.walletId)
-          .fullRescan(
+      await ref.read(walletProvider)!.fullRescan(
             maxUnusedAddressGap,
             maxNumberOfIndexesToCheck,
           );
@@ -208,10 +205,7 @@ class _WalletNetworkSettingsViewState
       },
     );
 
-    final coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
+    final coin = ref.read(walletProvider)!.coin;
 
     if (coin == Coin.epicCash) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
@@ -267,17 +261,11 @@ class _WalletNetworkSettingsViewState
         ? 430.0
         : screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
 
-    final coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
+    final coin = ref.read(walletProvider)!.coin;
 
     if (coin == Coin.epicCash) {
-      double highestPercent = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .wallet as EpicCashWallet)
-          .highestPercent;
+      double highestPercent =
+          (ref.read(walletProvider)!.wallet as EpicCashWallet).highestPercent;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
@@ -422,10 +410,7 @@ class _WalletNetworkSettingsViewState
               ),
               GestureDetector(
                 onTap: () {
-                  ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(widget.walletId)
-                      .refresh();
+                  ref.read(walletProvider)!.refresh();
                 },
                 child: Text(
                   "Resync",
@@ -712,7 +697,7 @@ class _WalletNetworkSettingsViewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "${ref.watch(walletsChangeNotifierProvider.select((value) => value.getManager(widget.walletId).coin)).prettyName} nodes",
+                "Epic nodes",
                 textAlign: TextAlign.left,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -725,10 +710,7 @@ class _WalletNetworkSettingsViewState
                     AddEditNodeView.routeName,
                     arguments: Tuple4(
                       AddEditNodeViewType.add,
-                      ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManager(widget.walletId)
-                          .coin,
+                      ref.read(walletProvider)!.coin,
                       null,
                       WalletNetworkSettingsView.routeName,
                     ),
@@ -741,8 +723,7 @@ class _WalletNetworkSettingsViewState
             height: isDesktop ? 12 : 8,
           ),
           NodesList(
-            coin: ref.watch(walletsChangeNotifierProvider
-                .select((value) => value.getManager(widget.walletId).coin)),
+            coin: ref.watch(walletProvider.select((value) => value!.coin)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
           if (isDesktop)

@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RestoreFailedDialog extends ConsumerStatefulWidget {
   const RestoreFailedDialog({
@@ -53,9 +53,8 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
             style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () async {
-            ref
-                .read(walletsChangeNotifierProvider.notifier)
-                .removeWallet(walletId: walletId);
+            await ref.read(walletProvider)!.exitCurrentWallet();
+            ref.read(walletStateProvider.state).state = null;
 
             await ref.read(walletsServiceChangeNotifierProvider).deleteWallet(
                   walletName,

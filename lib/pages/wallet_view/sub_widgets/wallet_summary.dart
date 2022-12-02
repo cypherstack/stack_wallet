@@ -1,5 +1,5 @@
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
-import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
@@ -12,7 +12,6 @@ class WalletSummary extends StatelessWidget {
   const WalletSummary({
     Key? key,
     required this.walletId,
-    required this.managerProvider,
     required this.initialSyncStatus,
     this.aspectRatio = 2.0,
     this.minHeight = 100.0,
@@ -22,7 +21,6 @@ class WalletSummary extends StatelessWidget {
   }) : super(key: key);
 
   final String walletId;
-  final ChangeNotifierProvider<Manager> managerProvider;
   final WalletSyncStatus initialSyncStatus;
 
   final double aspectRatio;
@@ -51,7 +49,7 @@ class WalletSummary extends StatelessWidget {
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .colorForCoin(ref.watch(
-                            managerProvider.select((value) => value.coin))),
+                            walletProvider.select((value) => value!.coin))),
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -114,7 +112,6 @@ class WalletSummary extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: WalletSummaryInfo(
                   walletId: walletId,
-                  managerProvider: managerProvider,
                   initialSyncStatus: initialSyncStatus,
                 ),
               ),

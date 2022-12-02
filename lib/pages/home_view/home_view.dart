@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:epicmobile/pages/settings_views/global_settings_view/global_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/hidden_settings.dart';
-import 'package:epicmobile/pages/wallets_view/wallets_view.dart';
+import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/providers/ui/home_view_index_provider.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
@@ -74,7 +74,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
   void initState() {
     _pageController = PageController();
     _children = [
-      const WalletsView(),
+      const WalletView(
+        walletId: '',
+      ),
 
       // const BuyView(),
     ];

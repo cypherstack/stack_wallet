@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:epicmobile/models/paymint/transactions_model.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:epicmobile/providers/global/wallets_provider.dart';
-import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -16,11 +15,9 @@ class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
     Key? key,
     required this.walletId,
-    required this.managerProvider,
   }) : super(key: key);
 
   final String walletId;
-  final ChangeNotifierProvider<Manager> managerProvider;
 
   @override
   ConsumerState<TransactionsList> createState() => _TransactionsListState();
@@ -30,8 +27,6 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
   //
   bool _hasLoaded = false;
   Map<String, Transaction> _transactions = {};
-
-  late final ChangeNotifierProvider<Manager> managerProvider;
 
   void updateTransactions(TransactionData newData) {
     _transactions = {};
@@ -82,7 +77,6 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   @override
   void initState() {
-    managerProvider = widget.managerProvider;
     super.initState();
   }
 
@@ -94,7 +88,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
     return FutureBuilder(
       future:
-          ref.watch(managerProvider.select((value) => value.transactionData)),
+          ref.watch(walletProvider.select((value) => value!.transactionData)),
       builder: (fbContext, AsyncSnapshot<TransactionData> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
@@ -125,11 +119,9 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           return RefreshIndicator(
             onRefresh: () async {
               debugPrint("pulled down to refresh on transaction list");
-              final managerProvider = ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManagerProvider(widget.walletId);
-              if (!ref.read(managerProvider).isRefreshing) {
-                unawaited(ref.read(managerProvider).refresh());
+
+              if (!ref.read(walletProvider)!.isRefreshing) {
+                unawaited(ref.read(walletProvider)!.refresh());
               }
             },
             child: Util.isDesktop

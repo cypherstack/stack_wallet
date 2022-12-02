@@ -278,10 +278,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                       onPressed: () {
                         Navigator.of(context).pushNamed(
                           TransactionSearchFilterView.routeName,
-                          arguments: ref
-                              .read(walletsChangeNotifierProvider)
-                              .getManager(walletId)
-                              .coin,
+                          arguments: ref.read(walletProvider)!.coin,
                         );
                       },
                     ),
@@ -395,10 +392,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                         height: 20,
                       ),
                       onPressed: () {
-                        final coin = ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(walletId)
-                            .coin;
+                        final coin = ref.read(walletProvider)!.coin;
                         if (isDesktop) {
                           showDialog<void>(
                             context: context,
@@ -441,18 +435,14 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  final managerProvider = ref.watch(
-                      walletsChangeNotifierProvider.select(
-                          (value) => value.getManagerProvider(walletId)));
-
                   final criteria =
                       ref.watch(transactionFilterProvider.state).state;
 
                   debugPrint("Consumer build called");
 
                   return FutureBuilder(
-                    future: ref.watch(managerProvider
-                        .select((value) => value.transactionData)),
+                    future: ref.watch(walletProvider
+                        .select((value) => value!.transactionData)),
                     builder: (_, AsyncSnapshot<TransactionData> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
@@ -825,8 +815,7 @@ class _DesktopTransactionCardRowState
   Widget build(BuildContext context) {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager = ref.watch(walletProvider)!;
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
