@@ -177,7 +177,7 @@ class DarkColors extends StackColorTheme {
   Color get bottomNavIconIcon => const Color(0xFFFFFFFF);
 
   @override
-  Color get topNavIconPrimary => const Color(0xFFFFFFFF);
+  Color get topNavIconPrimary => const Color(0xFFBABABC);
   @override
   Color get topNavIconGreen => const Color(0xFF4CC0A0);
   @override

@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class AppBarIconButton extends StatelessWidget {
   const AppBarIconButton({
@@ -62,29 +61,15 @@ class AppBarBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = Util.isDesktop;
-    return Padding(
-      padding: isDesktop
-          ? const EdgeInsets.symmetric(
-              vertical: 20,
-              horizontal: 24,
-            )
-          : const EdgeInsets.all(10),
+    return Center(
       child: AppBarIconButton(
-        size: size ??
-            (isDesktop
-                ? isCompact
-                    ? 42
-                    : 56
-                : 32),
-        color: isDesktop
-            ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
-            : Theme.of(context).extension<StackColors>()!.background,
+        size: size ?? 40,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
         shadows: const [],
         icon: SvgPicture.asset(
           Assets.svg.arrowLeft,
-          width: iconSize ?? (isCompact ? 18 : 24),
-          height: iconSize ?? (isCompact ? 18 : 24),
+          width: iconSize ?? (isCompact ? 18 : 21),
+          height: iconSize ?? (isCompact ? 18 : 21),
           color: Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
         ),
         onPressed: onPressed ?? Navigator.of(context).pop,
