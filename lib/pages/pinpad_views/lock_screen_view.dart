@@ -4,6 +4,7 @@ import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
+import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/biometrics.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
@@ -16,6 +17,7 @@ import 'package:epicmobile/widgets/shake/shake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 class LockscreenView extends ConsumerStatefulWidget {
@@ -315,12 +317,53 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                               unawaited(_onUnlock());
                             } else {
                               unawaited(_shakeController.shake());
-                              // unawaited(showFloatingFlushBar(
-                              //   type: FlushBarType.warning,
-                              //   message: "Incorrect PIN. Please try again",
-                              //   context: context,
-                              //   iconAsset: Assets.svg.alertCircle,
-                              // ));
+                              unawaited(showDialog<dynamic>(
+                                  context: context,
+                                  builder: (context) {
+                                    return Dialog(
+                                      elevation: 0,
+                                      backgroundColor: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .background,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 50, vertical: 100),
+                                        child: Container(
+                                          height: 300,
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .background,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              SvgPicture.asset(
+                                                Assets.svg.circleRedX,
+                                              ),
+                                              const SizedBox(
+                                                height: 16,
+                                              ),
+                                              Text(
+                                                "Incorrect PIN."
+                                                "\nPlease try again.",
+                                                style: STextStyles.pageTitleH1(
+                                                    context),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }));
+
+                              await Future<void>.delayed(
+                                  const Duration(seconds: 2));
+
+                              //pop dialog
+                              Navigator.of(context).pop();
 
                               await Future<void>.delayed(
                                   const Duration(milliseconds: 100));
