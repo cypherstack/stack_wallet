@@ -137,12 +137,14 @@ flutter_icons:
   ios: true
   image_path: assets/icon/icon.png
   image_path_android: assets/icon/app_icon_alpha.png
+  adaptive_icon_foreground: assets/icon/app_icon_alpha.png
   image_path_ios: assets/icon/icon.png
+  adaptive_icon_background: "#222227"
   remove_alpha_ios: true
 
 flutter_native_splash:
   image: assets/images/splash.png
-  color: "F7F7F7"
+  color: "222227"
   android_disable_fullscreen: true
 
 dependency_overrides:
