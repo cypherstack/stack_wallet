@@ -102,7 +102,7 @@ class _SVG {
   String get circleAlert => "assets/svg/alert-circle2.svg";
   String get arrowDownLeft => "assets/svg/arrow-down-left.svg";
   String get arrowUpRight => "assets/svg/arrow-up-right.svg";
-  String get bars => "assets/svg/bars.svg";
+  String get menu => "assets/svg/bars.svg";
   String get filter => "assets/svg/filter.svg";
   String get pending => "assets/svg/pending.svg";
   String get radio => "assets/svg/signal-stream.svg";

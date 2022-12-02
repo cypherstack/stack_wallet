@@ -285,7 +285,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     color:
                         Theme.of(context).extension<StackColors>()!.background,
                     icon: SvgPicture.asset(
-                      Assets.svg.bars,
+                      Assets.svg.menu,
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .accentColorDark,
