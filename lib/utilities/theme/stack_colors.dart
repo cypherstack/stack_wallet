@@ -1497,12 +1497,30 @@ class StackColors extends ThemeExtension<StackColors> {
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondary,
             ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorder,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(1000),
+              ),
+            ),
           );
 
   ButtonStyle? getSecondaryDisabledButtonColor(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondaryDisabled,
+            ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorderDisabled,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(1000),
+              ),
             ),
           );
 
