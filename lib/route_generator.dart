@@ -87,21 +87,19 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case CreatePinView.routeName:
-        if (args is bool) {
+        if (args is Tuple2<bool, bool>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CreatePinView(
-              popOnSuccess: args,
+              popOnSuccess: args.item1,
+              isNewWallet: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,
             ),
           );
         }
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreatePinView(),
-            settings: RouteSettings(name: settings.name));
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case GlobalSettingsView.routeName:
         return getRoute(

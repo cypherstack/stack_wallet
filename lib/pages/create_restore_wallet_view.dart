@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
+import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
@@ -95,9 +98,16 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                       width: 330,
                       label: "CREATE NEW WALLET",
                       onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          CreatePinView.routeName,
-                        );
+                        unawaited(Navigator.of(context).push(
+                          RouteGenerator.getRoute(
+                            shouldUseMaterialRoute:
+                                RouteGenerator.useMaterialPageRoute,
+                            builder: (_) => CreatePinView(isNewWallet: true),
+                            settings: const RouteSettings(
+                              name: CreatePinView.routeName,
+                            ),
+                          ),
+                        ));
                       },
                     ),
                   ),
@@ -113,7 +123,18 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                       height: 56,
                       width: 330,
                       label: "RESTORE WALLET",
-                      onPressed: () {},
+                      onPressed: () {
+                        unawaited(Navigator.of(context).push(
+                          RouteGenerator.getRoute(
+                            shouldUseMaterialRoute:
+                                RouteGenerator.useMaterialPageRoute,
+                            builder: (_) => CreatePinView(isNewWallet: false),
+                            settings: const RouteSettings(
+                              name: CreatePinView.routeName,
+                            ),
+                          ),
+                        ));
+                      },
                     ),
                   ),
                 ],

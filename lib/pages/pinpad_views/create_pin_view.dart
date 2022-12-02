@@ -25,6 +25,7 @@ import 'package:flutter_svg/svg.dart';
 class CreatePinView extends ConsumerStatefulWidget {
   const CreatePinView({
     Key? key,
+    required this.isNewWallet,
     this.popOnSuccess = false,
     this.secureStore = const SecureStorageWrapper(
       FlutterSecureStorage(),
@@ -37,6 +38,7 @@ class CreatePinView extends ConsumerStatefulWidget {
   final FlutterSecureStorageInterface secureStore;
   final Biometrics biometrics;
   final bool popOnSuccess;
+  final bool isNewWallet;
 
   @override
   ConsumerState<CreatePinView> createState() => _CreatePinViewState();
@@ -278,57 +280,73 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
 
                         if (mounted) {
                           if (!widget.popOnSuccess) {
-                            unawaited(showDialog<dynamic>(
-                                context: context,
-                                builder: (context) {
-                                  return Dialog(
-                                    elevation: 0,
-                                    backgroundColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .background,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 50, vertical: 100),
-                                      child: Container(
-                                        height: 300,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .background,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            SvgPicture.asset(
-                                              Assets.svg.circleCheck,
-                                            ),
-                                            const SizedBox(
-                                              height: 16,
-                                            ),
-                                            Text(
-                                              "Wallet created",
-                                              style: STextStyles.pageTitleH1(
-                                                  context),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ],
+                            if (widget.isNewWallet == true) {
+                              unawaited(showDialog<dynamic>(
+                                  context: context,
+                                  builder: (context) {
+                                    return Dialog(
+                                      elevation: 0,
+                                      backgroundColor: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .background,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 50, vertical: 100),
+                                        child: Container(
+                                          height: 300,
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .background,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              SvgPicture.asset(
+                                                Assets.svg.circleCheck,
+                                              ),
+                                              const SizedBox(
+                                                height: 16,
+                                              ),
+                                              Text(
+                                                "Wallet created",
+                                                style: STextStyles.pageTitleH1(
+                                                    context),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                }));
+                                    );
+                                  }));
 
-                            await Future<void>.delayed(
-                                const Duration(seconds: 2));
+                              await Future<void>.delayed(
+                                  const Duration(seconds: 2));
 
-                            //pop dialog
-                            Navigator.of(context).pop();
+                              //pop dialog
+                              Navigator.of(context).pop();
 
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              HomeView.routeName,
-                              (route) => false,
-                            );
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                HomeView.routeName,
+                                (route) => false,
+                              );
+                            } else {
+                              //!isNewWallet
+                              // ref
+                              //     .read(mnemonicWordCountStateProvider.state)
+                              //     .state = Constants.possibleLengthsForCoin(
+                              //         Coin.epicCash)
+                              //     .first;
+                              // unawaited(Navigator.of(context).pushNamed(
+                              //   RestoreOptionsView.routeName,
+                              //   arguments: Tuple2(
+                              //     name,
+                              //     coin,
+                              //   ),
+                              // ));
+                            }
                           } else {
                             Navigator.of(context).pop();
                           }

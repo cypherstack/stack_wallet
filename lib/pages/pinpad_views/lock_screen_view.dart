@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
-// import 'package:epicmobile/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/utilities/biometrics.dart';
