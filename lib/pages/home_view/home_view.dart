@@ -56,6 +56,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
   late StreamSubscription<dynamic> _nodeStatusSubscription;
   late StreamSubscription<dynamic> _refreshSubscription;
 
+  int currentIndex = 0;
+
+  void _onTappedBar(int value) {
+    setState(() {
+      currentIndex = value;
+    });
+    _pageController.jumpToPage(value);
+  }
+
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
     if (ref.read(homeViewPageIndexStateProvider.state).state == 1) {
@@ -96,10 +105,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
   void initState() {
     _pageController = PageController();
     _children = [
+      // ReceiveView(
+      //   walletId: ref.read(walletProvider)!.walletId,
+      // ),
       WalletView(
         walletId: ref.read(walletProvider)!.walletId,
       ),
-
+      // SendView(
+      //   walletId: ref.read(walletProvider)!.walletId,
+      // )
       // const BuyView(),
     ];
 
@@ -340,6 +354,25 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   //   ),
                   // ),
                 ],
+              ),
+              bottomNavigationBar: BottomNavigationBar(
+                items: [
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(Assets.svg.upload),
+                    label: 'SEND',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(Assets.svg.walletHome),
+                    label: 'WALLET',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(Assets.svg.download),
+                    label: 'RECEIVE',
+                  ),
+                ],
+                onTap: _onTappedBar,
+                currentIndex: currentIndex,
+                selectedItemColor: Colors.yellow,
               ),
               body: Column(
                 children: [

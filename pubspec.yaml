@@ -301,6 +301,7 @@ flutter:
     - assets/svg/epic-bg.svg
     - assets/svg/upload.svg
     - assets/svg/download.svg
+    - assets/svg/wallet.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Litecoin.svg
