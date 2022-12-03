@@ -8,17 +8,19 @@ class StackDialogBase extends StatelessWidget {
     Key? key,
     this.child,
     this.padding = const EdgeInsets.all(24),
+    this.mainAxisAlignment = MainAxisAlignment.end,
   }) : super(key: key);
 
   final EdgeInsets padding;
   final Widget? child;
+  final MainAxisAlignment mainAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: mainAxisAlignment,
         children: [
           Material(
             color: Colors.transparent,

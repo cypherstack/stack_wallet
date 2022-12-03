@@ -22,7 +22,6 @@ import 'package:epicmobile/pages/send_view/confirm_transaction_view.dart';
 import 'package:epicmobile/pages/send_view/send_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/appearance_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/currency_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/delete_account_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/global_settings_view.dart';
@@ -165,12 +164,6 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const DebugView(),
-            settings: RouteSettings(name: settings.name));
-
-      case AppearanceSettingsView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AppearanceSettingsView(),
             settings: RouteSettings(name: settings.name));
 
       case ManageNodesView.routeName:

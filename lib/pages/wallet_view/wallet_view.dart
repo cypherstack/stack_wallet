@@ -386,7 +386,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     .read(
                                         walletBalanceToggleStateProvider.state)
                                     .state) {
-                                  case WalletBalanceToggleState.full:
+                                  case WalletBalanceToggleState.locked:
                                     ref
                                         .read(publicPrivateBalanceStateProvider
                                             .state)

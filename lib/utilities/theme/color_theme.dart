@@ -34,8 +34,8 @@ abstract class StackColorTheme {
   Color get textSubtitle4;
   Color get textSubtitle5;
   Color get textSubtitle6;
-  Color get textWhite;
-  Color get textFavoriteCard;
+  Color get coal;
+  Color get textGold;
   Color get textError;
 
 // button background

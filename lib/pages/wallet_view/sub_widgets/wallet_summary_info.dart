@@ -1,5 +1,5 @@
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
+import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_balance_toggle_dialog.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -32,15 +32,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
   late final String walletId;
 
   void showSheet() {
-    showModalBottomSheet<dynamic>(
-      backgroundColor: Colors.transparent,
+    showDialog<void>(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
-      ),
-      builder: (_) => WalletBalanceToggleSheet(walletId: walletId),
+      builder: (context) => const WalletBalanceToggleDialog(),
     );
   }
 
@@ -97,149 +91,140 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
             Decimal? balanceToShow =
                 _showAvailable ? _balanceCached : _balanceTotalCached;
 
-            if (balanceToShow != null) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Epic",
-                    style: STextStyles.pageTitleH1(context).copyWith(
-                      fontSize: 24,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!_showAvailable)
+                      SvgPicture.asset(
+                        Assets.svg.lock,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textGold,
+                      ),
+                    if (!_showAvailable)
+                      const SizedBox(
+                        width: 5,
+                      ),
+                    Text(
+                      "EPIC",
+                      style: STextStyles.titleH3(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textGold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8,),
-                  Text(
-                    "${Format.localizedStringAsFixed(
-                      value: balanceToShow,
-                      locale: locale,
-                      decimalPlaces: 8,
-                    )} ${coin.ticker}",
-                    style: STextStyles.pageTitleH1(context).copyWith(
-                      fontSize: 24,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
-                    ),
-                  ),
-                  const SizedBox(height: 14,),
-                  Text(
-                    "${Format.localizedStringAsFixed(
-                      value: priceTuple.item1 * balanceToShow,
-                      locale: locale,
-                      decimalPlaces: 2,
-                    )} $baseCurrency",
-                    style: STextStyles.subtitle500(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
-                    ),
-                  ),
-                  const SizedBox(height: 15,),
-                  GestureDetector(
-                    onTap: showSheet,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "${_showAvailable ? "Available" : "Full"} Balance",
-                          style: STextStyles.subtitle500(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFavoriteCard,
+                  ],
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                balanceToShow != null
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "${Format.localizedStringAsFixed(
+                              value: balanceToShow,
+                              locale: locale,
+                              decimalPlaces: 3,
+                            )} ${coin.ticker}",
+                            style: STextStyles.titleH3(context).copyWith(
+                              fontSize: 40,
+                              height: 1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          width: 4,
-                        ),
-                        SvgPicture.asset(
-                          Assets.svg.chevronDown,
-                          width: 8,
-                          height: 4,
+                          const SizedBox(
+                            height: 14,
+                          ),
+                          Text(
+                            "${Format.localizedStringAsFixed(
+                              value: priceTuple.item1 * balanceToShow,
+                              locale: locale,
+                              decimalPlaces: 2,
+                            )} $baseCurrency",
+                            style: STextStyles.titleH3(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textMedium,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedText(
+                            stringsToLoopThrough: const [
+                              "Loading balance",
+                              "Loading balance.",
+                              "Loading balance..",
+                              "Loading balance..."
+                            ],
+                            style: STextStyles.pageTitleH1(context).copyWith(
+                              fontSize: 24,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 14,
+                          ),
+                          AnimatedText(
+                            stringsToLoopThrough: const [
+                              "Loading balance",
+                              "Loading balance.",
+                              "Loading balance..",
+                              "Loading balance..."
+                            ],
+                            style: STextStyles.subtitle500(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
+                          ),
+                        ],
+                      ),
+                const SizedBox(
+                  height: 15,
+                ),
+                GestureDetector(
+                  onTap: showSheet,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "${_showAvailable ? "AVAILABLE" : "LOCKED"} BALANCE",
+                        style: STextStyles.overLine(context).copyWith(
                           color: Theme.of(context)
                               .extension<StackColors>()!
-                              .textFavoriteCard,
+                              .textLight,
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            } else {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Epic",
-                    style: STextStyles.pageTitleH1(context).copyWith(
-                      fontSize: 24,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
-                    ),
-                  ),
-                  const SizedBox(height: 8,),
-                  AnimatedText(
-                    stringsToLoopThrough: const [
-                      "Loading balance",
-                      "Loading balance.",
-                      "Loading balance..",
-                      "Loading balance..."
+                      ),
+                      const SizedBox(
+                        width: 6,
+                      ),
+                      SvgPicture.asset(
+                        Assets.svg.chevronDown,
+                        width: 8,
+                        height: 4,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textLight,
+                      ),
                     ],
-                    style: STextStyles.pageTitleH1(context).copyWith(
-                      fontSize: 24,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
-                    ),
                   ),
-                  const SizedBox(height: 14,),
-                  AnimatedText(
-                    stringsToLoopThrough: const [
-                      "Loading balance",
-                      "Loading balance.",
-                      "Loading balance..",
-                      "Loading balance..."
-                    ],
-                    style: STextStyles.subtitle500(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
-                    ),
-                  ),
-                  const SizedBox(height: 15,),
-                  GestureDetector(
-                    onTap: showSheet,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "${_showAvailable ? "Available" : "Full"} Balance",
-                          style: STextStyles.subtitle500(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFavoriteCard,
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 4,
-                        ),
-                        SvgPicture.asset(
-                          Assets.svg.chevronDown,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFavoriteCard,
-                          width: 8,
-                          height: 4,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            }
+                ),
+              ],
+            );
           },
         );
       },

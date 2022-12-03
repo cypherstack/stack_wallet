@@ -328,7 +328,7 @@ class _AddAddressBookEntryViewState
                                                                   context)
                                                               .extension<
                                                                   StackColors>()!
-                                                              .textWhite,
+                                                              .coal,
                                                           width: 12,
                                                           height: 12,
                                                         )
@@ -338,7 +338,7 @@ class _AddAddressBookEntryViewState
                                                                   context)
                                                               .extension<
                                                                   StackColors>()!
-                                                              .textWhite,
+                                                              .coal,
                                                           width: 8,
                                                           height: 8,
                                                         ),
@@ -487,7 +487,7 @@ class _AddAddressBookEntryViewState
                                                         color: Theme.of(context)
                                                             .extension<
                                                                 StackColors>()!
-                                                            .textWhite,
+                                                            .coal,
                                                         width: 12,
                                                         height: 12,
                                                       )
@@ -496,7 +496,7 @@ class _AddAddressBookEntryViewState
                                                         color: Theme.of(context)
                                                             .extension<
                                                                 StackColors>()!
-                                                            .textWhite,
+                                                            .coal,
                                                         width: 8,
                                                         height: 8,
                                                       ),

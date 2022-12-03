@@ -83,7 +83,6 @@ class _SVG {
   String get circleArrowRotate => "assets/svg/rotate-circle.svg";
   String get circleLanguage => "assets/svg/language-circle.svg";
   String get circleDollarSign => "assets/svg/dollar-sign-circle.svg";
-  String get circleLock => "assets/svg/lock-circle.svg";
   String get enableButton => "assets/svg/enabled-button.svg";
   String get disableButton => "assets/svg/Button.svg";
   String get polygon => "assets/svg/Polygon.svg";
@@ -117,8 +116,7 @@ class _SVG {
   String get chevronUp => "assets/svg/chevron-up.svg";
   String get swap => "assets/svg/swap.svg";
   String get downloadFolder => "assets/svg/folder-down.svg";
-  String get lock => "assets/svg/lock-keyhole.svg";
-  String get lockOpen => "assets/svg/lock-open.svg";
+  String get lock => "assets/svg/lock-filled.svg";
   String get network => "assets/svg/network-wired.svg";
   String get networkWired => "assets/svg/network-wired-2.svg";
   String get addressBook => "assets/svg/address-book.svg";

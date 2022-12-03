@@ -229,7 +229,7 @@ class _EditContactNameEmojiViewState
                                     Assets.svg.plus,
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
-                                        .textWhite,
+                                        .coal,
                                     width: 12,
                                     height: 12,
                                   )
@@ -237,7 +237,7 @@ class _EditContactNameEmojiViewState
                                     Assets.svg.thickX,
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
-                                        .textWhite,
+                                        .coal,
                                     width: 8,
                                     height: 8,
                                   ),

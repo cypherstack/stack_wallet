@@ -29,8 +29,8 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textSubtitle4;
   final Color textSubtitle5;
   final Color textSubtitle6;
-  final Color textWhite;
-  final Color textFavoriteCard;
+  final Color coal;
+  final Color textGold;
   final Color textError;
 
 // button background
@@ -195,8 +195,8 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.textSubtitle4,
     required this.textSubtitle5,
     required this.textSubtitle6,
-    required this.textWhite,
-    required this.textFavoriteCard,
+    required this.coal,
+    required this.textGold,
     required this.textError,
     required this.buttonBackPrimary,
     required this.buttonBackSecondary,
@@ -331,8 +331,8 @@ class StackColors extends ThemeExtension<StackColors> {
       textSubtitle4: colorTheme.textSubtitle4,
       textSubtitle5: colorTheme.textSubtitle5,
       textSubtitle6: colorTheme.textSubtitle6,
-      textWhite: colorTheme.textWhite,
-      textFavoriteCard: colorTheme.textFavoriteCard,
+      coal: colorTheme.coal,
+      textGold: colorTheme.textGold,
       textError: colorTheme.textError,
       buttonBackPrimary: colorTheme.buttonBackPrimary,
       buttonBackSecondary: colorTheme.buttonBackSecondary,
@@ -604,8 +604,8 @@ class StackColors extends ThemeExtension<StackColors> {
       textSubtitle4: textSubtitle4 ?? this.textSubtitle4,
       textSubtitle5: textSubtitle5 ?? this.textSubtitle5,
       textSubtitle6: textSubtitle6 ?? this.textSubtitle6,
-      textWhite: textWhite ?? this.textWhite,
-      textFavoriteCard: textFavoriteCard ?? this.textFavoriteCard,
+      coal: textWhite ?? this.coal,
+      textGold: textFavoriteCard ?? this.textGold,
       textError: textError ?? this.textError,
       buttonBackPrimary: buttonBackPrimary ?? this.buttonBackPrimary,
       buttonBackSecondary: buttonBackSecondary ?? this.buttonBackSecondary,
@@ -862,14 +862,14 @@ class StackColors extends ThemeExtension<StackColors> {
         other.textSubtitle6,
         t,
       )!,
-      textWhite: Color.lerp(
-        textWhite,
-        other.textWhite,
+      coal: Color.lerp(
+        coal,
+        other.coal,
         t,
       )!,
-      textFavoriteCard: Color.lerp(
-        textFavoriteCard,
-        other.textFavoriteCard,
+      textGold: Color.lerp(
+        textGold,
+        other.textGold,
         t,
       )!,
       textError: Color.lerp(

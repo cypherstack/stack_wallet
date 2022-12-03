@@ -150,13 +150,13 @@ class _TransactionSearchViewState
       ),
       textStyleDayOnCalendarSelected:
           STextStyles.datePicker400(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textWhite,
+        color: Theme.of(context).extension<StackColors>()!.coal,
       ),
       textStyleMonthYearHeader: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
       ),
       textStyleYearButton: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textWhite,
+        color: Theme.of(context).extension<StackColors>()!.coal,
       ),
       // textStyleButtonAction: GoogleFonts.poppins(),
     );

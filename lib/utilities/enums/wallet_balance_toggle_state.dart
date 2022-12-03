@@ -1,1 +1,1 @@
-enum WalletBalanceToggleState { full, available }
+enum WalletBalanceToggleState { locked, available }

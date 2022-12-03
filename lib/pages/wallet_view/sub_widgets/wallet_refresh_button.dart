@@ -133,7 +133,7 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
                 ? Theme.of(context)
                     .extension<StackColors>()!
                     .textFieldDefaultSearchIconRight
-                : Theme.of(context).extension<StackColors>()!.textFavoriteCard,
+                : Theme.of(context).extension<StackColors>()!.textGold,
           ),
         ),
       ),

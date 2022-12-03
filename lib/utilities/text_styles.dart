@@ -41,6 +41,25 @@ class STextStyles {
     }
   }
 
+  static TextStyle titleH3(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w600,
+          fontSize: 24,
+          height: 31.2 / 24,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w600,
+          fontSize: 24,
+          height: 31.2 / 24,
+        );
+    }
+  }
+
   static TextStyle titleH4(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
@@ -247,6 +266,23 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
           height: 14 / 14,
+        );
+    }
+  }
+
+  static TextStyle overLine(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w400,
+          fontSize: 10,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w400,
+          fontSize: 10,
         );
     }
   }
