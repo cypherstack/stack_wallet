@@ -64,7 +64,7 @@ class GlobalSettingsView extends StatelessWidget {
                         children: [
                           const _Div(),
                           SettingsListButton(
-                            iconAssetName: Assets.svg.node,
+                            iconAssetName: Assets.svg.wifi,
                             iconSize: 16,
                             title: "Connections",
                             onPressed: () {
@@ -96,7 +96,7 @@ class GlobalSettingsView extends StatelessWidget {
                           Consumer(
                             builder: (_, ref, __) {
                               return SettingsListButton(
-                                iconAssetName: Assets.svg.ellipsis,
+                                iconAssetName: Assets.svg.key,
                                 iconSize: 18,
                                 title: "Backup Wallet",
                                 onPressed: () async {
@@ -131,7 +131,7 @@ class GlobalSettingsView extends StatelessWidget {
                           ),
                           const _Div(),
                           SettingsListButton(
-                            iconAssetName: Assets.svg.solidSliders,
+                            iconAssetName: Assets.svg.gear,
                             iconSize: 16,
                             title: "Wallet Settings",
                             onPressed: () {
@@ -152,7 +152,7 @@ class GlobalSettingsView extends StatelessWidget {
                           ),
                           const _Div(),
                           SettingsListButton(
-                            iconAssetName: Assets.svg.language,
+                            iconAssetName: Assets.svg.globe,
                             iconSize: 18,
                             title: "Language",
                             onPressed: () {

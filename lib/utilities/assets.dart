@@ -79,7 +79,6 @@ class _SVG {
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
   String get framedGear => "assets/svg/framed-gear.svg";
-  String get framedAddressBook => "assets/svg/framed-address-book.svg";
   String get circleNode => "assets/svg/node-circle.svg";
   String get circleSun => "assets/svg/sun-circle.svg";
   String get circleArrowRotate => "assets/svg/rotate-circle.svg";
@@ -118,13 +117,15 @@ class _SVG {
   String get chevronUp => "assets/svg/chevron-up.svg";
   String get swap => "assets/svg/swap.svg";
   String get downloadFolder => "assets/svg/folder-down.svg";
-  String get lock => "assets/svg/lock-filled.svg";
+  String get lockFilled => "assets/svg/lock-filled.svg";
+  String get lock => "assets/svg/lock.svg";
+  String get wifi => "assets/svg/wifi.svg";
   String get network => "assets/svg/network-wired.svg";
   String get networkWired => "assets/svg/network-wired-2.svg";
-  String get addressBook => "assets/svg/address-book.svg";
-  String get addressBook2 => "assets/svg/address-book2.svg";
+  String get addressBook => "assets/svg/book-open.svg";
   String get arrowRotate3 => "assets/svg/rotate-exclamation.svg";
   String get delete => "assets/svg/delete.svg";
+  String get globe => "assets/svg/globe.svg";
   String get arrowRight => "assets/svg/arrow-right.svg";
   String get dollarSign => "assets/svg/dollar-sign.svg";
   String get language => "assets/svg/language2.svg";

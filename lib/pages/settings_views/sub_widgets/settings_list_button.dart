@@ -10,7 +10,7 @@ class SettingsListButton extends StatelessWidget {
     required this.iconAssetName,
     required this.title,
     this.onPressed,
-    this.iconSize = 20.0,
+    this.iconSize = 24.0,
   }) : super(key: key);
 
   final String iconAssetName;
@@ -51,9 +51,8 @@ class SettingsListButton extends StatelessWidget {
                   child: Center(
                     child: SvgPicture.asset(
                       iconAssetName,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark,
                       width: iconSize,
                       height: iconSize,
                     ),
@@ -67,11 +66,7 @@ class SettingsListButton extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: STextStyles.smallMed14(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                ),
+                style: STextStyles.bodyBold(context),
               ),
             ),
           ],

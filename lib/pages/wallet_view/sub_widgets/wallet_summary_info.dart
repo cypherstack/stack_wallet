@@ -96,7 +96,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                   children: [
                     if (!_showAvailable)
                       SvgPicture.asset(
-                        Assets.svg.lock,
+                        Assets.svg.lockFilled,
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .textGold,

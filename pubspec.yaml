@@ -216,12 +216,14 @@ flutter:
     - assets/svg/chevron-down.svg
     - assets/svg/chevron-up.svg
     - assets/svg/lock-filled.svg
+    - assets/svg/lock.svg
+    - assets/svg/globe.svg
+    - assets/svg/wifi.svg
+    - assets/svg/book-open.svg
     - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
     - assets/svg/network-wired-2.svg
-    - assets/svg/address-book.svg
-    - assets/svg/address-book2.svg
     - assets/svg/arrow-right.svg
     - assets/svg/delete.svg
     - assets/svg/dollar-sign.svg
@@ -288,7 +290,6 @@ flutter:
     - assets/svg/node-circle.svg
     - assets/svg/dark/dark-theme.svg
     - assets/svg/light/light-mode.svg
-    - assets/svg/address-book-desktop.svg
     - assets/svg/about-desktop.svg
     - assets/svg/exchange-desktop.svg
     - assets/svg/wallet-desktop.svg
