@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:epicmobile/providers/global/base_currencies_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -10,11 +12,7 @@ import 'package:epicmobile/widgets/conditional_parent.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
-import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
-import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
-import 'package:epicmobile/widgets/stack_text_field.dart';
-import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -133,13 +131,15 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                 style: STextStyles.titleH4(context),
               ),
             ),
-            body: Padding(
-              padding: const EdgeInsets.only(
-                top: 12,
-                left: 16,
-                right: 16,
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  top: 24,
+                  left: 24,
+                  right: 24,
+                ),
+                child: child,
               ),
-              child: child,
             ),
           ),
         );
@@ -201,61 +201,62 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                 handle:
                     NestedScrollView.sliverOverlapAbsorberHandleFor(context),
                 sliver: SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                      child: TextField(
-                        autocorrect: Util.isDesktop ? false : true,
-                        enableSuggestions: Util.isDesktop ? false : true,
-                        controller: _searchController,
-                        focusNode: _searchFocusNode,
-                        onChanged: (newString) {
-                          setState(() => filter = newString);
-                        },
-                        style: STextStyles.field(context),
-                        decoration: standardInputDecoration(
-                          "Search",
-                          _searchFocusNode,
-                          context,
-                        ).copyWith(
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 16,
-                            ),
-                            child: SvgPicture.asset(
-                              Assets.svg.search,
-                              width: 16,
-                              height: 16,
-                            ),
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(() {
-                                              _searchController.text = "";
-                                              filter = "";
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ),
-                    ),
-                  ),
+                  child: Container(),
+                  // child: Padding(
+                  //   padding: const EdgeInsets.only(bottom: 16),
+                  //   child: ClipRRect(
+                  //     borderRadius: BorderRadius.circular(
+                  //       Constants.size.circularBorderRadius,
+                  //     ),
+                  //     child: TextField(
+                  //       autocorrect: Util.isDesktop ? false : true,
+                  //       enableSuggestions: Util.isDesktop ? false : true,
+                  //       controller: _searchController,
+                  //       focusNode: _searchFocusNode,
+                  //       onChanged: (newString) {
+                  //         setState(() => filter = newString);
+                  //       },
+                  //       style: STextStyles.field(context),
+                  //       decoration: standardInputDecoration(
+                  //         "Search",
+                  //         _searchFocusNode,
+                  //         context,
+                  //       ).copyWith(
+                  //         prefixIcon: Padding(
+                  //           padding: const EdgeInsets.symmetric(
+                  //             horizontal: 10,
+                  //             vertical: 16,
+                  //           ),
+                  //           child: SvgPicture.asset(
+                  //             Assets.svg.search,
+                  //             width: 16,
+                  //             height: 16,
+                  //           ),
+                  //         ),
+                  //         suffixIcon: _searchController.text.isNotEmpty
+                  //             ? Padding(
+                  //                 padding: const EdgeInsets.only(right: 0),
+                  //                 child: UnconstrainedBox(
+                  //                   child: Row(
+                  //                     children: [
+                  //                       TextFieldIconButton(
+                  //                         child: const XIcon(),
+                  //                         onTap: () async {
+                  //                           setState(() {
+                  //                             _searchController.text = "";
+                  //                             filter = "";
+                  //                           });
+                  //                         },
+                  //                       ),
+                  //                     ],
+                  //                   ),
+                  //                 ),
+                  //               )
+                  //             : null,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ),
               ),
             ];
@@ -272,107 +273,66 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .popupBG,
-                            borderRadius: _borderRadius(index),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
+                        final realIndex = index ~/ 2;
+
+                        if (index % 2 == 0) {
+                          final isCurrent =
+                              current == currenciesWithoutSelected[realIndex];
+                          return GestureDetector(
                             key: Key(
-                                "currencySelect_${currenciesWithoutSelected[index]}"),
-                            child: RoundedContainer(
-                              padding: const EdgeInsets.all(0),
-                              color: currenciesWithoutSelected[index] == current
-                                  ? Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .currencyListItemBG
-                                  : Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .popupBG,
-                              child: RawMaterialButton(
-                                onPressed: () async {
-                                  onTap(index);
-                                },
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: Radio(
-                                          activeColor: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .radioButtonIconEnabled,
-                                          materialTapTargetSize:
-                                              MaterialTapTargetSize.shrinkWrap,
-                                          value: true,
-                                          groupValue: currenciesWithoutSelected[
-                                                  index] ==
-                                              current,
-                                          onChanged: (_) {
-                                            onTap(index);
-                                          },
-                                        ),
+                                "languageSelect_${currenciesWithoutSelected[realIndex]}"),
+                            onTap: () {
+                              onTap(realIndex);
+                            },
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      currenciesWithoutSelected[realIndex],
+                                      style: isCurrent
+                                          ? STextStyles.bodyBold(context)
+                                              .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textGold,
+                                            )
+                                          : STextStyles.bodyBold(context),
+                                    ),
+                                    if (isCurrent)
+                                      SvgPicture.asset(
+                                        Assets.svg.check,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textGold,
                                       ),
-                                      const SizedBox(
-                                        width: 12,
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            currenciesWithoutSelected[index],
-                                            key: (currenciesWithoutSelected[
-                                                        index] ==
-                                                    current)
-                                                ? const Key(
-                                                    "selectedCurrencySettingsCurrencyText")
-                                                : null,
-                                            style: STextStyles.largeMedium14(
-                                                context),
-                                          ),
-                                          const SizedBox(
-                                            height: 2,
-                                          ),
-                                          Text(
-                                            ref.watch(baseCurrenciesProvider
-                                                        .select((value) =>
-                                                            value.map))[
-                                                    currenciesWithoutSelected[
-                                                        index]] ??
-                                                "",
-                                            key: (currenciesWithoutSelected[
-                                                        index] ==
-                                                    current)
-                                                ? const Key(
-                                                    "selectedCurrencySettingsCurrencyTextDescription")
-                                                : null,
-                                            style: STextStyles.itemSubtitle(
-                                                context),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ),
-                        );
+                          );
+                        } else {
+                          return Container(
+                            height: 1,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .popupBG,
+                          );
+                        }
                       },
-                      childCount: currenciesWithoutSelected.length,
+                      semanticIndexCallback: (Widget widget, int localIndex) {
+                        if (localIndex % 2 == 0) {
+                          return localIndex ~/ 2;
+                        }
+                        return null;
+                      },
+                      childCount:
+                          max(0, currenciesWithoutSelected.length * 2 - 1),
                     ),
                   ),
                 ],
