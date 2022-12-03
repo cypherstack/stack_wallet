@@ -261,7 +261,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
         brightness: Brightness.light,
-        fontFamily: GoogleFonts.inter().fontFamily,
+        fontFamily: GoogleFonts.poppins().fontFamily,
         unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
         // textTheme: GoogleFonts.interTextTheme().copyWith(
         //   button: STextStyles.button(context),

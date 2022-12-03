@@ -103,7 +103,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       textStyleYearButton: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textWhite,
       ),
-      textStyleButtonAction: GoogleFonts.inter(),
+      textStyleButtonAction: GoogleFonts.poppins(),
     );
   }
 

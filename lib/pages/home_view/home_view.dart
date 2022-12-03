@@ -159,7 +159,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       // icon
                       Text(
                         "CONNECTED lol",
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.poppins(
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .textDark,
