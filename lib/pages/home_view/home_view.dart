@@ -1,24 +1,31 @@
 import 'dart:async';
 
 import 'package:epicmobile/pages/help/help_view.dart';
+import 'package:epicmobile/pages/home_view/sub_widgets/connection_status_bar.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/global_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/hidden_settings.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/providers/ui/home_view_index_provider.dart';
+import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/global_event_bus.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class HomeView extends ConsumerStatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+  const HomeView({
+    Key? key,
+    this.eventBus,
+  }) : super(key: key);
+
+  final EventBus? eventBus;
 
   static const routeName = "/home";
 
@@ -36,6 +43,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
   DateTime? _cachedTime;
 
   bool _exitEnabled = false;
+
+  late final EventBus eventBus;
+
+  late WalletSyncStatus _currentSyncStatus;
+  late NodeConnectionStatus _currentNodeStatus;
+
+  late StreamSubscription<dynamic> _syncStatusSubscription;
+  late StreamSubscription<dynamic> _nodeStatusSubscription;
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
@@ -84,31 +99,76 @@ class _HomeViewState extends ConsumerState<HomeView> {
       // const BuyView(),
     ];
 
+    if (ref.read(walletProvider)!.isRefreshing) {
+      _currentSyncStatus = WalletSyncStatus.syncing;
+      _currentNodeStatus = NodeConnectionStatus.connected;
+    } else {
+      _currentSyncStatus = WalletSyncStatus.synced;
+      if (ref.read(walletProvider)!.isConnected) {
+        _currentNodeStatus = NodeConnectionStatus.connected;
+      } else {
+        _currentNodeStatus = NodeConnectionStatus.disconnected;
+        _currentSyncStatus = WalletSyncStatus.unableToSync;
+      }
+    }
+
+    eventBus = widget.eventBus ?? GlobalEventBus.instance;
+
+    _syncStatusSubscription =
+        eventBus.on<WalletSyncStatusChangedEvent>().listen(
+      (event) async {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
+          setState(() {
+            _currentSyncStatus = event.newStatus;
+          });
+        }
+      },
+    );
+
+    _nodeStatusSubscription =
+        eventBus.on<NodeConnectionStatusChangedEvent>().listen(
+      (event) async {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
+          // switch (event.newStatus) {
+          //   case NodeConnectionStatus.disconnected:
+          //     break;
+          //   case NodeConnectionStatus.connected:
+          //     break;
+          // }
+          setState(() {
+            _currentNodeStatus = event.newStatus;
+          });
+        }
+      },
+    );
+
     super.initState();
   }
 
   @override
   dispose() {
+    _nodeStatusSubscription.cancel();
+    _syncStatusSubscription.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
-  DateTime _hiddenTime = DateTime.now();
-  int _hiddenCount = 0;
+  // DateTime _hiddenTime = DateTime.now();
+  // int _hiddenCount = 0;
 
-  void _hiddenOptions() {
-    if (_hiddenCount == 5) {
-      Navigator.of(context).pushNamed(HiddenSettings.routeName);
-    }
-    final now = DateTime.now();
-    const timeout = Duration(seconds: 1);
-    if (now.difference(_hiddenTime) < timeout) {
-      _hiddenCount++;
-    } else {
-      _hiddenCount = 0;
-    }
-    _hiddenTime = now;
-  }
+  // void _hiddenOptions() {
+  //   if (_hiddenCount == 5) {
+  //     Navigator.of(context).pushNamed(HiddenSettings.routeName);
+  //   }
+  //   final now = DateTime.now();
+  //   const timeout = Duration(seconds: 1);
+  //   if (now.difference(_hiddenTime) < timeout) {
+  //     _hiddenCount++;
+  //   } else {
+  //     _hiddenCount = 0;
+  //   }
+  //   _hiddenTime = now;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -152,24 +212,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       Navigator.of(context).pushNamed(HelpView.routeName),
                 ),
                 centerTitle: true,
-                title: RoundedContainer(
-                  color: Theme.of(context).extension<StackColors>()!.popupBG,
-                  radiusMultiplier: 1000,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // icon
-                      Text(
-                        "CONNECTED lol",
-                        style: GoogleFonts.poppins(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textLight,
-                          fontWeight: FontWeight.w400,
-                          fontSize: 10,
-                        ),
-                      )
-                    ],
+                title: SizedBox(
+                  width: 200,
+                  height: 32,
+                  child: ConnectionStatusBar(
+                    currentSyncPercent: 0.74,
+                    color: Theme.of(context).extension<StackColors>()!.coal,
+                    background:
+                        Theme.of(context).extension<StackColors>()!.popupBG,
                   ),
                 ),
                 actions: [

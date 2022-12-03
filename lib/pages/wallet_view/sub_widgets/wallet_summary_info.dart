@@ -2,7 +2,6 @@ import 'package:decimal/decimal.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_balance_toggle_dialog.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/enums/wallet_balance_toggle_state.dart';
@@ -18,11 +17,9 @@ class WalletSummaryInfo extends StatefulWidget {
   const WalletSummaryInfo({
     Key? key,
     required this.walletId,
-    required this.initialSyncStatus,
   }) : super(key: key);
 
   final String walletId;
-  final WalletSyncStatus initialSyncStatus;
 
   @override
   State<WalletSummaryInfo> createState() => _WalletSummaryInfoState();

@@ -9,9 +9,7 @@ import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:epicmobile/services/event_bus/global_event_bus.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
@@ -44,83 +42,78 @@ class WalletView extends ConsumerStatefulWidget {
 }
 
 class _WalletViewState extends ConsumerState<WalletView> {
-  late final EventBus eventBus;
+  // late final EventBus eventBus;
   late final String walletId;
 
-  late final bool _shouldDisableAutoSyncOnLogOut;
-
-  late WalletSyncStatus _currentSyncStatus;
-  late NodeConnectionStatus _currentNodeStatus;
-
-  late StreamSubscription<dynamic> _syncStatusSubscription;
-  late StreamSubscription<dynamic> _nodeStatusSubscription;
+  // late final bool _shouldDisableAutoSyncOnLogOut;
+  //
+  // late WalletSyncStatus _currentSyncStatus;
+  // late NodeConnectionStatus _currentNodeStatus;
+  //
+  // late StreamSubscription<dynamic> _syncStatusSubscription;
+  // late StreamSubscription<dynamic> _nodeStatusSubscription;
 
   @override
   void initState() {
     walletId = widget.walletId;
 
     ref.read(walletProvider)!.isActiveWallet = true;
-    if (!ref.read(walletProvider)!.shouldAutoSync) {
-      // enable auto sync if it wasn't enabled when loading wallet
-      ref.read(walletProvider)!.shouldAutoSync = true;
-      _shouldDisableAutoSyncOnLogOut = true;
-    } else {
-      _shouldDisableAutoSyncOnLogOut = false;
+    ref.read(walletProvider)!.shouldAutoSync = true;
+
+    if (!ref.read(walletProvider)!.isRefreshing) {
+      ref.read(walletProvider)!.refresh();
     }
-
-    ref.read(walletProvider)!.refresh();
-
-    if (ref.read(walletProvider)!.isRefreshing) {
-      _currentSyncStatus = WalletSyncStatus.syncing;
-      _currentNodeStatus = NodeConnectionStatus.connected;
-    } else {
-      _currentSyncStatus = WalletSyncStatus.synced;
-      if (ref.read(walletProvider)!.isConnected) {
-        _currentNodeStatus = NodeConnectionStatus.connected;
-      } else {
-        _currentNodeStatus = NodeConnectionStatus.disconnected;
-        _currentSyncStatus = WalletSyncStatus.unableToSync;
-      }
-    }
-
-    eventBus =
-        widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
-
-    _syncStatusSubscription =
-        eventBus.on<WalletSyncStatusChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == widget.walletId) {
-          setState(() {
-            _currentSyncStatus = event.newStatus;
-          });
-        }
-      },
-    );
-
-    _nodeStatusSubscription =
-        eventBus.on<NodeConnectionStatusChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == widget.walletId) {
-          // switch (event.newStatus) {
-          //   case NodeConnectionStatus.disconnected:
-          //     break;
-          //   case NodeConnectionStatus.connected:
-          //     break;
-          // }
-          setState(() {
-            _currentNodeStatus = event.newStatus;
-          });
-        }
-      },
-    );
+    //
+    // if (ref.read(walletProvider)!.isRefreshing) {
+    //   _currentSyncStatus = WalletSyncStatus.syncing;
+    //   _currentNodeStatus = NodeConnectionStatus.connected;
+    // } else {
+    //   _currentSyncStatus = WalletSyncStatus.synced;
+    //   if (ref.read(walletProvider)!.isConnected) {
+    //     _currentNodeStatus = NodeConnectionStatus.connected;
+    //   } else {
+    //     _currentNodeStatus = NodeConnectionStatus.disconnected;
+    //     _currentSyncStatus = WalletSyncStatus.unableToSync;
+    //   }
+    // }
+    //
+    // eventBus =  widget.eventBus ?? GlobalEventBus.instance;
+    //
+    // _syncStatusSubscription =
+    //     eventBus.on<WalletSyncStatusChangedEvent>().listen(
+    //   (event) async {
+    //     if (event.walletId == widget.walletId) {
+    //       setState(() {
+    //         _currentSyncStatus = event.newStatus;
+    //       });
+    //     }
+    //   },
+    // );
+    //
+    // _nodeStatusSubscription =
+    //     eventBus.on<NodeConnectionStatusChangedEvent>().listen(
+    //   (event) async {
+    //     if (event.walletId == widget.walletId) {
+    //       // switch (event.newStatus) {
+    //       //   case NodeConnectionStatus.disconnected:
+    //       //     break;
+    //       //   case NodeConnectionStatus.connected:
+    //       //     break;
+    //       // }
+    //       setState(() {
+    //         _currentNodeStatus = event.newStatus;
+    //       });
+    //     }
+    //   },
+    // );
 
     super.initState();
   }
 
   @override
   void dispose() {
-    _nodeStatusSubscription.cancel();
-    _syncStatusSubscription.cancel();
+    // _nodeStatusSubscription.cancel();
+    // _syncStatusSubscription.cancel();
     super.dispose();
   }
 
@@ -270,10 +263,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: WalletSummaryInfo(
                 walletId: walletId,
-                initialSyncStatus: ref.watch(
-                        walletProvider.select((value) => value!.isRefreshing))
-                    ? WalletSyncStatus.syncing
-                    : WalletSyncStatus.synced,
               ),
             ),
           ),

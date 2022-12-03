@@ -27,11 +27,11 @@ class DarkColors extends StackColorTheme {
   @override
   Color get accentColorBlue => const Color(0xFFD1A55C);
   @override
-  Color get accentColorGreen => const Color(0xFF4CC0A0);
+  Color get accentColorGreen => const Color(0xFF66B196);
   @override
-  Color get accentColorYellow => const Color(0xFFF7D65D);
+  Color get accentColorYellow => const Color(0xFFD1A55C);
   @override
-  Color get accentColorRed => const Color(0xFFD34E50);
+  Color get accentColorRed => const Color(0xFFFC718A);
   @override
   Color get accentColorOrange => const Color(0xFFFEA68D);
   @override
