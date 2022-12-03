@@ -1,6 +1,7 @@
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
 import 'package:epicmobile/models/send_view_auto_fill_data.dart';
+import 'package:epicmobile/pages/add_wallet_views/create_restore_wallet_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/name_your_wallet_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
@@ -11,7 +12,6 @@ import 'package:epicmobile/pages/address_book_views/subviews/address_book_filter
 import 'package:epicmobile/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
-import 'package:epicmobile/pages/create_restore_wallet_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
 import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';

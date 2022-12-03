@@ -1,3 +1,4 @@
+import 'package:epicmobile/pages/add_wallet_views/create_restore_wallet_view.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -6,8 +7,6 @@ import 'package:epicmobile/widgets/background.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'create_restore_wallet_view.dart';
 
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
@@ -59,7 +58,7 @@ class _IntroViewState extends State<IntroView> {
               const Spacer(
                 flex: 3,
               ),
-              AppNameText(),
+              const AppNameText(),
               const SizedBox(
                 height: 32,
               ),
