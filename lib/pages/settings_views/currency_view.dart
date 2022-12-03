@@ -104,6 +104,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                   }
                 },
               ),
+              centerTitle: true,
               title: Text(
                 "Currency",
                 style: STextStyles.titleH4(context),
