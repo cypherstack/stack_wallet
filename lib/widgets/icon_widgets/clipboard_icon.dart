@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ClipboardIcon extends StatelessWidget {
   const ClipboardIcon({
@@ -21,7 +21,7 @@ class ClipboardIcon extends StatelessWidget {
       Assets.svg.clipboard,
       width: width,
       height: height,
-      color: color ?? Theme.of(context).extension<StackColors>()!.textDark3,
+      color: color ?? Theme.of(context).extension<StackColors>()!.textDark,
     );
   }
 }

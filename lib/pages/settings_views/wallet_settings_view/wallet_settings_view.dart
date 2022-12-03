@@ -142,7 +142,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
           ),
           title: Text(
             "Settings",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: LayoutBuilder(

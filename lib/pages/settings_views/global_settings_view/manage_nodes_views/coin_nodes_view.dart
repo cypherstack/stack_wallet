@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicmobile/pages/settings_views/sub_widgets/nodes_list.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -13,6 +10,9 @@ import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
 import 'package:epicmobile/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 class CoinNodesView extends ConsumerStatefulWidget {
@@ -88,7 +88,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                     "${widget.coin.prettyName} nodes",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
                       color:
-                          Theme.of(context).extension<StackColors>()!.textDark3,
+                          Theme.of(context).extension<StackColors>()!.textDark,
                     ),
                     textAlign: TextAlign.left,
                   ),
@@ -135,7 +135,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
             ),
             title: Text(
               "${widget.coin.prettyName} nodes",
-              style: STextStyles.navBarTitle(context),
+              style: STextStyles.titleH4(context),
             ),
             actions: [
               Padding(

@@ -61,7 +61,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
           ),
           title: Text(
             "Rename wallet",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(

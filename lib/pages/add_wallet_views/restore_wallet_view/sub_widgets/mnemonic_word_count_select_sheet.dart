@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class MnemonicWordCountSelectSheet extends ConsumerWidget {
   const MnemonicWordCountSelectSheet({
@@ -122,7 +122,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                 ),
                                 Text(
                                   "${lengthOptions[i]} words",
-                                  style: STextStyles.titleBold12(context),
+                                  style: STextStyles.bodyBold(context),
                                   textAlign: TextAlign.left,
                                 ),
                               ],

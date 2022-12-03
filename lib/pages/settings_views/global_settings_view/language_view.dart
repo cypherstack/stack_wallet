@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
@@ -14,6 +11,9 @@ import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class LanguageSettingsView extends ConsumerStatefulWidget {
   const LanguageSettingsView({Key? key}) : super(key: key);
@@ -117,7 +117,7 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
           ),
           title: Text(
             "Language",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(

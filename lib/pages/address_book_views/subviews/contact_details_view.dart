@@ -114,7 +114,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
           ),
           title: Text(
             "Contact details",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
           actions: [
             Padding(

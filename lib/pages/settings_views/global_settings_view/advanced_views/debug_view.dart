@@ -107,7 +107,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
           ),
           title: Text(
             "Debug",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
           actions: [
             Padding(
@@ -527,7 +527,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                             fontSize: 8,
                                             color: Theme.of(context)
                                                 .extension<StackColors>()!
-                                                .textDark3,
+                                                .textDark,
                                           ),
                                         ),
                                       ],

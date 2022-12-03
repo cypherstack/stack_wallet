@@ -266,7 +266,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   children: [
                     Text(
                       _node.name,
-                      style: STextStyles.titleBold12(context),
+                      style: STextStyles.bodyBold(context),
                     ),
                     const SizedBox(
                       height: 2,

@@ -242,7 +242,7 @@ class _TransactionFeeSelectionSheetState
                                     children: [
                                       Text(
                                         FeeRateType.fast.prettyName,
-                                        style: STextStyles.titleBold12(context),
+                                        style: STextStyles.bodyBold(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(
@@ -373,7 +373,7 @@ class _TransactionFeeSelectionSheetState
                                     children: [
                                       Text(
                                         FeeRateType.average.prettyName,
-                                        style: STextStyles.titleBold12(context),
+                                        style: STextStyles.bodyBold(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(
@@ -506,7 +506,7 @@ class _TransactionFeeSelectionSheetState
                                     children: [
                                       Text(
                                         FeeRateType.slow.prettyName,
-                                        style: STextStyles.titleBold12(context),
+                                        style: STextStyles.bodyBold(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(

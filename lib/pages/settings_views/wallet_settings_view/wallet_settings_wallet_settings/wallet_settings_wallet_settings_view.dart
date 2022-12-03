@@ -36,7 +36,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
           ),
           title: Text(
             "Wallet settings",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(
@@ -74,7 +74,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         children: [
                           Text(
                             "Rename wallet",
-                            style: STextStyles.titleBold12(context),
+                            style: STextStyles.bodyBold(context),
                           ),
                         ],
                       ),
@@ -161,7 +161,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         children: [
                           Text(
                             "Delete wallet",
-                            style: STextStyles.titleBold12(context),
+                            style: STextStyles.bodyBold(context),
                           ),
                         ],
                       ),

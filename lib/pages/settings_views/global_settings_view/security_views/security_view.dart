@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
@@ -11,6 +9,8 @@ import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SecurityView extends StatelessWidget {
   const SecurityView({
@@ -34,7 +34,7 @@ class SecurityView extends StatelessWidget {
           ),
           title: Text(
             "Security",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(
@@ -80,7 +80,7 @@ class SecurityView extends StatelessWidget {
                       children: [
                         Text(
                           "Change PIN",
-                          style: STextStyles.titleBold12(context),
+                          style: STextStyles.bodyBold(context),
                           textAlign: TextAlign.left,
                         ),
                       ],
@@ -121,7 +121,7 @@ class SecurityView extends StatelessWidget {
                           children: [
                             Text(
                               "Enable biometric authentication",
-                              style: STextStyles.titleBold12(context),
+                              style: STextStyles.bodyBold(context),
                               textAlign: TextAlign.left,
                             ),
                             SizedBox(

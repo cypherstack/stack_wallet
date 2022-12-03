@@ -44,7 +44,7 @@ class WalletInfoRow extends ConsumerWidget {
                           STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .textDark,
+                            .textLight,
                       ),
                     ),
                   ],
@@ -90,7 +90,7 @@ class WalletInfoRow extends ConsumerWidget {
               children: [
                 Text(
                   manager.walletName,
-                  style: STextStyles.titleBold12(context),
+                  style: STextStyles.bodyBold(context),
                 ),
                 const SizedBox(
                   height: 2,

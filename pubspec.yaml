@@ -313,10 +313,11 @@ flutter:
     - assets/lottie/test.json
     - assets/lottie/test2.json
     # socials
-    - assets/svg/socials/discord.svg
-    - assets/svg/socials/reddit-alien-brands.svg
-    - assets/svg/socials/twitter-brands.svg
-    - assets/svg/socials/telegram-brands.svg
+    - assets/svg/socials/compass.svg
+    - assets/svg/socials/reddit.svg
+    - assets/svg/socials/twitter.svg
+    - assets/svg/socials/telegram.svg
+
     - assets/svg/chevron-right.svg
     - assets/svg/minimize.svg
     - assets/svg/wallet-fa.svg

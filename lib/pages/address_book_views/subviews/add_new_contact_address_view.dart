@@ -82,7 +82,7 @@ class _AddNewContactAddressViewState
             ),
             title: Text(
               "Add new address",
-              style: STextStyles.navBarTitle(context),
+              style: STextStyles.titleH4(context),
             ),
           ),
           body: LayoutBuilder(

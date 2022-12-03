@@ -125,7 +125,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         children: [
                           Text(
                             "Available balance",
-                            style: STextStyles.titleBold12(context),
+                            style: STextStyles.bodyBold(context),
                           ),
                           const SizedBox(
                             height: 2,
@@ -216,7 +216,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         children: [
                           Text(
                             "Full balance",
-                            style: STextStyles.titleBold12(context),
+                            style: STextStyles.bodyBold(context),
                           ),
                           const SizedBox(
                             height: 2,

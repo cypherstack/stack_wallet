@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
@@ -13,6 +11,8 @@ import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class EditNoteView extends ConsumerStatefulWidget {
   const EditNoteView({
@@ -83,7 +83,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                 ),
                 title: Text(
                   "Edit note",
-                  style: STextStyles.navBarTitle(context),
+                  style: STextStyles.titleH4(context),
                 ),
               ),
         body: MobileEditNoteScaffold(

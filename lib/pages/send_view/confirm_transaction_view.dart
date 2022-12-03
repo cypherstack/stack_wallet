@@ -166,7 +166,7 @@ class _ConfirmTransactionViewState
             ),
             title: Text(
               "Confirm transaction",
-              style: STextStyles.navBarTitle(context),
+              style: STextStyles.titleH4(context),
             ),
           ),
           body: LayoutBuilder(
@@ -445,7 +445,7 @@ class _ConfirmTransactionViewState
                                           .copyWith(
                                         color: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .textDark,
+                                            .textLight,
                                       ),
                                     ),
                                     Text(
@@ -494,7 +494,7 @@ class _ConfirmTransactionViewState
                                   .copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .textDark,
+                                    .textLight,
                               ),
                             )
                           ],
@@ -527,7 +527,7 @@ class _ConfirmTransactionViewState
                                   .copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .textDark,
+                                    .textLight,
                               ),
                             )
                           ],
@@ -607,7 +607,7 @@ class _ConfirmTransactionViewState
                                   .extension<StackColors>()!
                                   .textConfirmTotalAmount,
                             )
-                          : STextStyles.titleBold12(context).copyWith(
+                          : STextStyles.bodyBold(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
                                   .textConfirmTotalAmount,

@@ -27,7 +27,7 @@ class AppearanceSettingsView extends ConsumerWidget {
           ),
           title: Text(
             "Appearance",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(
@@ -67,7 +67,7 @@ class AppearanceSettingsView extends ConsumerWidget {
                                     children: [
                                       Text(
                                         "Display favorite wallets",
-                                        style: STextStyles.titleBold12(context),
+                                        style: STextStyles.bodyBold(context),
                                         textAlign: TextAlign.left,
                                       ),
                                       SizedBox(

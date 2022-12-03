@@ -12,6 +12,7 @@ import 'package:epicmobile/pages/address_book_views/subviews/address_book_filter
 import 'package:epicmobile/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
+import 'package:epicmobile/pages/help/help_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
 import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
@@ -19,7 +20,6 @@ import 'package:epicmobile/pages/receive_view/generate_receiving_uri_qr_code_vie
 import 'package:epicmobile/pages/receive_view/receive_view.dart';
 import 'package:epicmobile/pages/send_view/confirm_transaction_view.dart';
 import 'package:epicmobile/pages/send_view/send_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/about_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/appearance_settings_view.dart';
@@ -34,7 +34,6 @@ import 'package:epicmobile/pages/settings_views/global_settings_view/manage_node
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/support_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
@@ -109,6 +108,12 @@ class RouteGenerator {
             builder: (_) => const GlobalSettingsView(),
             settings: RouteSettings(name: settings.name));
 
+      case HelpView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const HelpView(),
+            settings: RouteSettings(name: settings.name));
+
       case AddressBookView.routeName:
         if (args is Coin) {
           return getRoute(
@@ -156,12 +161,6 @@ class RouteGenerator {
             builder: (_) => const LanguageSettingsView(),
             settings: RouteSettings(name: settings.name));
 
-      case AboutView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AboutView(),
-            settings: RouteSettings(name: settings.name));
-
       case DebugView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -184,12 +183,6 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const AdvancedSettingsView(),
-            settings: RouteSettings(name: settings.name));
-
-      case SupportView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SupportView(),
             settings: RouteSettings(name: settings.name));
 
       case AddAddressBookEntryView.routeName:

@@ -33,7 +33,7 @@ class GlobalSettingsView extends StatelessWidget {
           centerTitle: true,
           title: Text(
             "Settings",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: LayoutBuilder(

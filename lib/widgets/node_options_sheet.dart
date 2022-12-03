@@ -194,7 +194,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                         children: [
                           Text(
                             node.name,
-                            style: STextStyles.titleBold12(context),
+                            style: STextStyles.bodyBold(context),
                           ),
                           const SizedBox(
                             height: 2,

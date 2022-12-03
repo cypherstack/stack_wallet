@@ -20,9 +20,9 @@ class StackColors extends ThemeExtension<StackColors> {
 
   final Color shadow;
 
+  final Color textLight;
+  final Color textMedium;
   final Color textDark;
-  final Color textDark2;
-  final Color textDark3;
   final Color textSubtitle1;
   final Color textSubtitle2;
   final Color textSubtitle3;
@@ -186,9 +186,9 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.accentColorOrange,
     required this.accentColorDark,
     required this.shadow,
+    required this.textLight,
+    required this.textMedium,
     required this.textDark,
-    required this.textDark2,
-    required this.textDark3,
     required this.textSubtitle1,
     required this.textSubtitle2,
     required this.textSubtitle3,
@@ -322,9 +322,9 @@ class StackColors extends ThemeExtension<StackColors> {
       accentColorOrange: colorTheme.accentColorOrange,
       accentColorDark: colorTheme.accentColorDark,
       shadow: colorTheme.shadow,
+      textLight: colorTheme.textLight,
+      textMedium: colorTheme.textMedium,
       textDark: colorTheme.textDark,
-      textDark2: colorTheme.textDark2,
-      textDark3: colorTheme.textDark3,
       textSubtitle1: colorTheme.textSubtitle1,
       textSubtitle2: colorTheme.textSubtitle2,
       textSubtitle3: colorTheme.textSubtitle3,
@@ -595,9 +595,9 @@ class StackColors extends ThemeExtension<StackColors> {
       accentColorOrange: accentColorOrange ?? this.accentColorOrange,
       accentColorDark: accentColorDark ?? this.accentColorDark,
       shadow: shadow ?? this.shadow,
-      textDark: textDark ?? this.textDark,
-      textDark2: textDark2 ?? this.textDark2,
-      textDark3: textDark3 ?? this.textDark3,
+      textLight: textDark ?? this.textLight,
+      textMedium: textDark2 ?? this.textMedium,
+      textDark: textDark3 ?? this.textDark,
       textSubtitle1: textSubtitle1 ?? this.textSubtitle1,
       textSubtitle2: textSubtitle2 ?? this.textSubtitle2,
       textSubtitle3: textSubtitle3 ?? this.textSubtitle3,
@@ -817,19 +817,19 @@ class StackColors extends ThemeExtension<StackColors> {
         other.shadow,
         t,
       )!,
+      textLight: Color.lerp(
+        textLight,
+        other.textLight,
+        t,
+      )!,
+      textMedium: Color.lerp(
+        textMedium,
+        other.textMedium,
+        t,
+      )!,
       textDark: Color.lerp(
         textDark,
         other.textDark,
-        t,
-      )!,
-      textDark2: Color.lerp(
-        textDark2,
-        other.textDark2,
-        t,
-      )!,
-      textDark3: Color.lerp(
-        textDark3,
-        other.textDark3,
         t,
       )!,
       textSubtitle1: Color.lerp(

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DesktopDialogCloseButton extends StatelessWidget {
   const DesktopDialogCloseButton({
@@ -25,7 +25,7 @@ class DesktopDialogCloseButton extends StatelessWidget {
             size: 40,
             icon: SvgPicture.asset(
               Assets.svg.x,
-              color: Theme.of(context).extension<StackColors>()!.textDark,
+              color: Theme.of(context).extension<StackColors>()!.textLight,
               width: 22,
               height: 22,
             ),

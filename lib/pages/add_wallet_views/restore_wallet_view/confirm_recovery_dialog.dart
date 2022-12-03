@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -9,6 +7,8 @@ import 'package:epicmobile/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ConfirmRecoveryDialog extends StatelessWidget {
   const ConfirmRecoveryDialog({Key? key, required this.onConfirm})
@@ -43,7 +43,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
             Text(
               "Restoring your wallet may take a while.\nPlease do not exit this screen once the process is started.",
               style: STextStyles.desktopTextMedium(context).copyWith(
-                color: Theme.of(context).extension<StackColors>()!.textDark3,
+                color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
               textAlign: TextAlign.center,
             ),

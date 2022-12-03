@@ -88,7 +88,7 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
               ),
               title: Text(
                 "Delete account",
-                style: STextStyles.navBarTitle(context),
+                style: STextStyles.titleH4(context),
               ),
             ),
       body: Padding(

@@ -252,7 +252,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       ? STextStyles.desktopTextExtraSmall(context).copyWith(
                           color: Theme.of(context)
                               .extension<StackColors>()!
-                              .textDark3,
+                              .textDark,
                         )
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
@@ -307,7 +307,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .textDark3,
+                            .textDark,
                       )
                     : STextStyles.smallMed12(context),
                 textAlign: TextAlign.left,

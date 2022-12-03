@@ -98,7 +98,7 @@ class _EditContactNameEmojiViewState
             ),
             title: Text(
               "Edit contact",
-              style: STextStyles.navBarTitle(context),
+              style: STextStyles.titleH4(context),
             ),
           ),
           body: LayoutBuilder(

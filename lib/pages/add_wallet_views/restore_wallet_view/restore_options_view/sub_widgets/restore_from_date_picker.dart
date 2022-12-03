@@ -56,7 +56,7 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
                 ),
                 SvgPicture.asset(
                   Assets.svg.calendar,
-                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                  color: Theme.of(context).extension<StackColors>()!.textDark,
                   width: 16,
                   height: 16,
                 ),

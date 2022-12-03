@@ -282,7 +282,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             ),
             title: Text(
               "Generate QR code",
-              style: STextStyles.navBarTitle(context),
+              style: STextStyles.titleH4(context),
             ),
           ),
           body: LayoutBuilder(

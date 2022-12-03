@@ -20,7 +20,7 @@ class HiddenSettings extends StatelessWidget {
           leading: Container(),
           title: Text(
             "Not so secret anymore",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(

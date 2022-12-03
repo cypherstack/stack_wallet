@@ -303,7 +303,7 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
           title: Text(
             "Send ${coin.ticker}",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: LayoutBuilder(
@@ -351,7 +351,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                     child: Text(
                                       ref.watch(walletProvider.select(
                                           (value) => value!.walletName)),
-                                      style: STextStyles.titleBold12(context),
+                                      style: STextStyles.bodyBold(context),
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
@@ -688,7 +688,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             style: STextStyles.smallMed14(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
-                                  .textDark,
+                                  .textLight,
                             ),
                             key:
                                 const Key("amountInputFieldCryptoTextFieldKey"),
@@ -743,7 +743,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             style: STextStyles.smallMed14(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
-                                  .textDark,
+                                  .textLight,
                             ),
                             key: const Key("amountInputFieldFiatTextFieldKey"),
                             controller: baseAmountController,

@@ -218,7 +218,7 @@ class _TransactionDetailsViewState
                 ),
                 title: Text(
                   "Transaction details",
-                  style: STextStyles.navBarTitle(context),
+                  style: STextStyles.titleH4(context),
                 ),
               ),
         body: Padding(
@@ -337,10 +337,9 @@ class _TransactionDetailsViewState
                                                     color: Theme.of(context)
                                                         .extension<
                                                             StackColors>()!
-                                                        .textDark,
+                                                        .textLight,
                                                   )
-                                                : STextStyles.titleBold12(
-                                                    context),
+                                                : STextStyles.bodyBold(context),
                                           ),
                                           const SizedBox(
                                             height: 2,
@@ -492,7 +491,7 @@ class _TransactionDetailsViewState
                                                                       context)
                                                                   .extension<
                                                                       StackColors>()!
-                                                                  .textDark,
+                                                                  .textLight,
                                                             )
                                                           : STextStyles
                                                               .itemSubtitle12(
@@ -511,7 +510,7 @@ class _TransactionDetailsViewState
                                                                   context)
                                                               .extension<
                                                                   StackColors>()!
-                                                              .textDark,
+                                                              .textLight,
                                                         )
                                                       : STextStyles
                                                           .itemSubtitle12(
@@ -631,7 +630,7 @@ class _TransactionDetailsViewState
                                                 .copyWith(
                                                 color: Theme.of(context)
                                                     .extension<StackColors>()!
-                                                    .textDark,
+                                                    .textLight,
                                               )
                                             : STextStyles.itemSubtitle12(
                                                 context),
@@ -683,7 +682,7 @@ class _TransactionDetailsViewState
                                                   .copyWith(
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
-                                                      .textDark,
+                                                      .textLight,
                                                 )
                                               : STextStyles.itemSubtitle12(
                                                   context),
@@ -702,7 +701,7 @@ class _TransactionDetailsViewState
                                               .copyWith(
                                               color: Theme.of(context)
                                                   .extension<StackColors>()!
-                                                  .textDark,
+                                                  .textLight,
                                             )
                                           : STextStyles.itemSubtitle12(context),
                                     ),
@@ -777,7 +776,7 @@ class _TransactionDetailsViewState
                                                     color: Theme.of(context)
                                                         .extension<
                                                             StackColors>()!
-                                                        .textDark,
+                                                        .textLight,
                                                   )
                                                 : STextStyles.itemSubtitle12(
                                                     context),
@@ -794,7 +793,7 @@ class _TransactionDetailsViewState
                                                 .copyWith(
                                                 color: Theme.of(context)
                                                     .extension<StackColors>()!
-                                                    .textDark,
+                                                    .textLight,
                                               )
                                             : STextStyles.itemSubtitle12(
                                                 context),
@@ -855,7 +854,7 @@ class _TransactionDetailsViewState
                                                     color: Theme.of(context)
                                                         .extension<
                                                             StackColors>()!
-                                                        .textDark,
+                                                        .textLight,
                                                   )
                                                 : STextStyles.itemSubtitle12(
                                                     context),
@@ -872,7 +871,7 @@ class _TransactionDetailsViewState
                                                 .copyWith(
                                                 color: Theme.of(context)
                                                     .extension<StackColors>()!
-                                                    .textDark,
+                                                    .textLight,
                                               )
                                             : STextStyles.itemSubtitle12(
                                                 context),
@@ -926,7 +925,7 @@ class _TransactionDetailsViewState
                                                   .copyWith(
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
-                                                      .textDark,
+                                                      .textLight,
                                                 )
                                               : STextStyles.itemSubtitle12(
                                                   context),
@@ -1130,7 +1129,7 @@ class _TransactionDetailsViewState
                                                   .copyWith(
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
-                                                      .textDark,
+                                                      .textLight,
                                                 )
                                               : STextStyles.itemSubtitle12(
                                                   context),
@@ -1295,7 +1294,7 @@ class IconCopyButton extends StatelessWidget {
           child: CopyIcon(
             width: 16,
             height: 16,
-            color: Theme.of(context).extension<StackColors>()!.textDark,
+            color: Theme.of(context).extension<StackColors>()!.textLight,
           ),
         ),
       ),
@@ -1330,7 +1329,7 @@ class IconPencilButton extends StatelessWidget {
           child: PencilIcon(
             width: 16,
             height: 16,
-            color: Theme.of(context).extension<StackColors>()!.textDark,
+            color: Theme.of(context).extension<StackColors>()!.textLight,
           ),
         ),
       ),

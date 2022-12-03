@@ -32,7 +32,7 @@ class AdvancedSettingsView extends StatelessWidget {
           ),
           title: Text(
             "Advanced",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(
@@ -62,7 +62,7 @@ class AdvancedSettingsView extends StatelessWidget {
                       children: [
                         Text(
                           "Debug info",
-                          style: STextStyles.titleBold12(context),
+                          style: STextStyles.bodyBold(context),
                           textAlign: TextAlign.left,
                         ),
                       ],
@@ -92,7 +92,7 @@ class AdvancedSettingsView extends StatelessWidget {
                           children: [
                             Text(
                               "Toggle testnet coins",
-                              style: STextStyles.titleBold12(context),
+                              style: STextStyles.bodyBold(context),
                               textAlign: TextAlign.left,
                             ),
                             SizedBox(

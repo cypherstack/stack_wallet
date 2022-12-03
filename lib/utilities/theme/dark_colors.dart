@@ -41,11 +41,11 @@ class DarkColors extends StackColorTheme {
   Color get shadow => const Color(0x0F2D3132);
 
   @override
-  Color get textDark => const Color(0xFFE2E2E3);
+  Color get textLight => const Color(0xFFE2E2E3);
   @override
-  Color get textDark2 => const Color(0xFFDBDBDB);
+  Color get textMedium => const Color(0xFFBABABC);
   @override
-  Color get textDark3 => const Color(0xFFEEEFF1);
+  Color get textDark => const Color(0xFF767679);
   @override
   Color get textSubtitle1 => const Color(0xFF9E9E9E);
   @override

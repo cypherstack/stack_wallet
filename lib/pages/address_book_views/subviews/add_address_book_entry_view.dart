@@ -136,7 +136,7 @@ class _AddAddressBookEntryViewState
                 ),
                 title: Text(
                   "New contact",
-                  style: STextStyles.navBarTitle(context),
+                  style: STextStyles.titleH4(context),
                 ),
                 actions: [
                   Padding(

@@ -249,7 +249,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
               ),
               title: Text(
                 "Transactions",
-                style: STextStyles.navBarTitle(context),
+                style: STextStyles.titleH4(context),
               ),
               actions: [
                 Padding(
@@ -733,7 +733,7 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: STextStyles.labelExtraExtraSmall(context).copyWith(
                       color:
-                          Theme.of(context).extension<StackColors>()!.textDark,
+                          Theme.of(context).extension<StackColors>()!.textLight,
                     ),
                   ),
                 ),
@@ -744,7 +744,7 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
               XIcon(
                 width: 16,
                 height: 16,
-                color: Theme.of(context).extension<StackColors>()!.textDark,
+                color: Theme.of(context).extension<StackColors>()!.textLight,
               ),
             ],
           ),
@@ -909,7 +909,8 @@ class _DesktopTransactionCardRowState
                       : whatIsIt(_transaction.txType, coin),
                   style:
                       STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textLight,
                   ),
                 ),
               ),
@@ -931,7 +932,7 @@ class _DesktopTransactionCardRowState
                           .copyWith(
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .textDark,
+                            .textLight,
                       ),
                     );
                   },

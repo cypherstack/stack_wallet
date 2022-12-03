@@ -355,7 +355,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             ),
             title: Text(
               viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
-              style: STextStyles.navBarTitle(context),
+              style: STextStyles.titleH4(context),
             ),
             actions: [
               if (viewType == AddEditNodeViewType.edit)

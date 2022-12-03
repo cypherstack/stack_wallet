@@ -25,9 +25,9 @@ abstract class StackColorTheme {
 
   Color get shadow;
 
+  Color get textLight;
+  Color get textMedium;
   Color get textDark;
-  Color get textDark2;
-  Color get textDark3;
   Color get textSubtitle1;
   Color get textSubtitle2;
   Color get textSubtitle3;

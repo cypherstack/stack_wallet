@@ -130,7 +130,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
               ),
               title: Text(
                 "Currency",
-                style: STextStyles.navBarTitle(context),
+                style: STextStyles.titleH4(context),
               ),
             ),
             body: Padding(

@@ -122,7 +122,7 @@ class _EditContactAddressViewState
             ),
             title: Text(
               "Edit address",
-              style: STextStyles.navBarTitle(context),
+              style: STextStyles.titleH4(context),
             ),
           ),
           body: LayoutBuilder(

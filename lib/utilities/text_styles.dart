@@ -11,13 +11,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 20,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 20,
         );
@@ -28,49 +28,53 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 18,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 18,
         );
     }
   }
 
-  static TextStyle navBarTitle(BuildContext context) {
+  static TextStyle titleH4(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
-          fontSize: 16,
+          fontSize: 18,
+          height: 23.4 / 18,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
-          fontSize: 16,
+          fontSize: 18,
+          height: 23.4 / 18,
         );
     }
   }
 
-  static TextStyle titleBold12(BuildContext context) {
+  static TextStyle bodyBold(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 16,
+          height: 22.4 / 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 16,
+          height: 22.4 / 16,
         );
     }
   }
@@ -79,13 +83,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
@@ -96,13 +100,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
@@ -113,13 +117,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
@@ -130,13 +134,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 16,
         );
@@ -164,13 +168,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
@@ -181,13 +185,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark3,
+          color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark3,
+          color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
@@ -198,13 +202,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark3,
+          color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark3,
+          color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
@@ -247,19 +251,21 @@ class STextStyles {
     }
   }
 
-  static TextStyle label700(BuildContext context) {
+  static TextStyle overLineBold(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textSubtitle1,
+          color: _theme(context).textMedium,
           fontWeight: FontWeight.w700,
-          fontSize: 12,
+          fontSize: 10,
+          height: 12.1 / 10,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textSubtitle1,
+          color: _theme(context).textMedium,
           fontWeight: FontWeight.w700,
-          fontSize: 12,
+          fontSize: 10,
+          height: 12.1 / 10,
         );
     }
   }
@@ -285,13 +291,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
@@ -302,13 +308,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
@@ -338,14 +344,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 14,
           height: 1.5,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 14,
           height: 1.5,
@@ -357,13 +363,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 14,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 14,
         );
@@ -425,13 +431,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 12,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 12,
         );
@@ -442,13 +448,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
@@ -459,13 +465,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
@@ -512,14 +518,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 40,
           height: 40 / 40,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 40,
           height: 40 / 40,
@@ -531,14 +537,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 32,
           height: 32 / 32,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 32,
           height: 32 / 32,
@@ -550,14 +556,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 24,
           height: 24 / 24,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 24,
           height: 24 / 24,
@@ -569,14 +575,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 20,
           height: 30 / 20,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 20,
           height: 30 / 20,
@@ -588,14 +594,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 20,
           height: 30 / 20,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 20,
           height: 30 / 20,
@@ -607,14 +613,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 20,
           height: 28 / 20,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 20,
           height: 28 / 20,
@@ -626,14 +632,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 24,
           height: 33 / 24,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 24,
           height: 33 / 24,
@@ -721,7 +727,7 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 18,
           height: 27 / 18,
@@ -778,14 +784,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 14,
           height: 21 / 14,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 14,
           height: 21 / 14,
@@ -835,14 +841,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark.withOpacity(0.8),
+          color: _theme(context).textLight.withOpacity(0.8),
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark.withOpacity(0.8),
+          color: _theme(context).textLight.withOpacity(0.8),
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,
@@ -854,14 +860,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,
@@ -873,14 +879,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark.withOpacity(0.5),
+          color: _theme(context).textLight.withOpacity(0.5),
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark.withOpacity(0.5),
+          color: _theme(context).textLight.withOpacity(0.5),
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,
@@ -892,14 +898,14 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,
@@ -911,13 +917,13 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.roboto(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 8,
         );
       case ThemeType.dark:
         return GoogleFonts.roboto(
-          color: _theme(context).textDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
           fontSize: 8,
         );

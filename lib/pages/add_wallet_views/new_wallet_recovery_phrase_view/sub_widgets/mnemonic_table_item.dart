@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:flutter/material.dart';
 
 class MnemonicTableItem extends StatelessWidget {
   const MnemonicTableItem({
@@ -50,7 +50,8 @@ class MnemonicTableItem extends StatelessWidget {
             word,
             style: isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textLight,
                   )
                 : STextStyles.baseXS(context),
           ),

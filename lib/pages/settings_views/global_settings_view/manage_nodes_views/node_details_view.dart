@@ -133,7 +133,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
             ),
             title: Text(
               "Node details",
-              style: STextStyles.navBarTitle(context),
+              style: STextStyles.titleH4(context),
             ),
             actions: [
               if (!nodeId.startsWith("default"))

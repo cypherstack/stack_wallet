@@ -61,18 +61,22 @@ class AppBarBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: AppBarIconButton(
-        size: size ?? 40,
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
-        shadows: const [],
-        icon: SvgPicture.asset(
-          Assets.svg.arrowLeft,
-          width: iconSize ?? (isCompact ? 18 : 21),
-          height: iconSize ?? (isCompact ? 18 : 21),
-          color: Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
+    return Padding(
+      padding: const EdgeInsets.only(left: 14),
+      child: Center(
+        child: AppBarIconButton(
+          size: size ?? 40,
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          shadows: const [],
+          icon: SvgPicture.asset(
+            Assets.svg.arrowLeft,
+            width: iconSize ?? (isCompact ? 18 : 21),
+            height: iconSize ?? (isCompact ? 18 : 21),
+            color:
+                Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
+          ),
+          onPressed: onPressed ?? Navigator.of(context).pop,
         ),
-        onPressed: onPressed ?? Navigator.of(context).pop,
       ),
     );
   }

@@ -43,7 +43,7 @@ class WalletBackupView extends ConsumerWidget {
           ),
           title: Text(
             "Wallet backup",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
           actions: [
             Padding(

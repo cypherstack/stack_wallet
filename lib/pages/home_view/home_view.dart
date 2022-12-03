@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:epicmobile/pages/help/help_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/global_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/hidden_settings.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
@@ -144,10 +145,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 leading: AppBarIconButton(
                   icon: SvgPicture.asset(
                     Assets.svg.circleQuestion,
+                    width: 22,
+                    height: 22,
                   ),
-                  onPressed: () {
-                    // todo show info
-                  },
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(HelpView.routeName),
                 ),
                 centerTitle: true,
                 title: RoundedContainer(
@@ -162,7 +164,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         style: GoogleFonts.poppins(
                           color: Theme.of(context)
                               .extension<StackColors>()!
-                              .textDark,
+                              .textLight,
                           fontWeight: FontWeight.w400,
                           fontSize: 10,
                         ),

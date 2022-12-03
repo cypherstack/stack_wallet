@@ -115,7 +115,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
           ),
           title: Text(
             "Receive ${coin.ticker}",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(

@@ -449,7 +449,7 @@ class _TransactionSearchViewState
             ),
             title: Text(
               "Transactions filter",
-              style: STextStyles.navBarTitle(context),
+              style: STextStyles.titleH4(context),
             ),
           ),
           body: Padding(
@@ -754,7 +754,7 @@ class _TransactionSearchViewState
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
                       color:
-                          Theme.of(context).extension<StackColors>()!.textDark,
+                          Theme.of(context).extension<StackColors>()!.textLight,
                       height: 1.8,
                     )
                   : STextStyles.field(context),
@@ -825,7 +825,7 @@ class _TransactionSearchViewState
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
                       color:
-                          Theme.of(context).extension<StackColors>()!.textDark,
+                          Theme.of(context).extension<StackColors>()!.textLight,
                       height: 1.8,
                     )
                   : STextStyles.field(context),

@@ -54,7 +54,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
           ),
           title: Text(
             "Filter addresses",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(

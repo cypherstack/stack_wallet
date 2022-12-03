@@ -58,7 +58,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
           ),
           title: Text(
             "Manage nodes",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
         ),
         body: Padding(
@@ -114,7 +114,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                                   children: [
                                     Text(
                                       "${coin.prettyName} nodes",
-                                      style: STextStyles.titleBold12(context),
+                                      style: STextStyles.bodyBold(context),
                                     ),
                                     Text(
                                       count > 1 ? "$count nodes" : "Default",

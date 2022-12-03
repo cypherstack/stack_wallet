@@ -286,7 +286,7 @@ class _WalletNetworkSettingsViewState
               ),
               title: Text(
                 "Network",
-                style: STextStyles.navBarTitle(context),
+                style: STextStyles.titleH4(context),
               ),
               actions: [
                 Padding(
@@ -780,7 +780,7 @@ class _WalletNetworkSettingsViewState
                               width: 24,
                               color: Theme.of(context)
                                   .extension<StackColors>()!
-                                  .textDark,
+                                  .textLight,
                             ),
                           ),
                         ),
@@ -798,7 +798,7 @@ class _WalletNetworkSettingsViewState
                                   .copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .textDark,
+                                    .textLight,
                               ),
                             ),
                             Text(

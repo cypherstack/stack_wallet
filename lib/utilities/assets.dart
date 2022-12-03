@@ -15,10 +15,10 @@ abstract class Assets {
 class _SOCIALS {
   const _SOCIALS();
 
-  String get discord => "assets/svg/socials/discord.svg";
-  String get reddit => "assets/svg/socials/reddit-alien-brands.svg";
-  String get twitter => "assets/svg/socials/twitter-brands.svg";
-  String get telegram => "assets/svg/socials/telegram-brands.svg";
+  String get compass => "assets/svg/socials/compass.svg";
+  String get reddit => "assets/svg/socials/reddit.svg";
+  String get twitter => "assets/svg/socials/twitter.svg";
+  String get telegram => "assets/svg/socials/telegram.svg";
 }
 
 class _EXCHANGE {

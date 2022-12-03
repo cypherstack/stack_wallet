@@ -112,7 +112,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
           ),
           title: Text(
             "Address book",
-            style: STextStyles.navBarTitle(context),
+            style: STextStyles.titleH4(context),
           ),
           actions: [
             Padding(

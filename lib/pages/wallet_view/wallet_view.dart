@@ -288,8 +288,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 Text(
                   "Transactions",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
+                    color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),
                 ),
                 BlueTextButton(
