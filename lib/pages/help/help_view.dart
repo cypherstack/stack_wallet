@@ -40,7 +40,7 @@ class HelpView extends StatelessWidget {
               HelpItem(
                 label: "Telegram",
                 iconAsset: Assets.socials.telegram,
-                url: "url",
+                url: "https://t.me/EpicCash",
               ),
               const SizedBox(
                 height: 32,
@@ -48,7 +48,7 @@ class HelpView extends StatelessWidget {
               HelpItem(
                 label: "Twitter",
                 iconAsset: Assets.socials.twitter,
-                url: "url",
+                url: "https://twitter.com/EpicCashTech",
               ),
               const SizedBox(
                 height: 32,
@@ -56,23 +56,23 @@ class HelpView extends StatelessWidget {
               HelpItem(
                 label: "Reddit",
                 iconAsset: Assets.socials.reddit,
-                url: "url",
+                url: "https://www.reddit.com/r/epiccash",
               ),
               const SizedBox(
                 height: 42,
               ),
-              Text(
-                "WALLET INFO",
-                style: STextStyles.overLineBold(context),
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-              HelpItem(
-                label: "Wallet guide",
-                iconAsset: Assets.socials.compass,
-                url: "url",
-              ),
+              // Text(
+              //   "WALLET INFO",
+              //   style: STextStyles.overLineBold(context),
+              // ),
+              // const SizedBox(
+              //   height: 24,
+              // ),
+              // HelpItem(
+              //   label: "Wallet guide",
+              //   iconAsset: Assets.socials.compass,
+              //   url: "url",
+              // ),
             ],
           ),
         ),
