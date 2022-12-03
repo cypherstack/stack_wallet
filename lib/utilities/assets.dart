@@ -72,6 +72,8 @@ class _SVG {
   String get themeLight => "assets/svg/light-mode.svg";
   String get themeDark => "assets/svg/dark-theme.svg";
 
+  String get download => "assets/svg/download.svg";
+  String get upload => "assets/svg/upload.svg";
   String get circleCheck => "assets/svg/check-circle.svg";
   String get circleRedX => "assets/svg/thin-x-circle.svg";
   String get circleSliders => "assets/svg/configuration.svg";
