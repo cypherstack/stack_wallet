@@ -1,6 +1,5 @@
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/languages_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -39,27 +38,6 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
     listWithoutSelected.remove(current);
     listWithoutSelected.insert(0, current);
     ref.read(prefsChangeNotifierProvider).language = current;
-  }
-
-  BorderRadius? _borderRadius(int index) {
-    if (index == 0 && listWithoutSelected.length == 1) {
-      return BorderRadius.circular(
-        Constants.size.circularBorderRadius,
-      );
-    } else if (index == 0) {
-      return BorderRadius.vertical(
-        top: Radius.circular(
-          Constants.size.circularBorderRadius,
-        ),
-      );
-    } else if (index == listWithoutSelected.length - 1) {
-      return BorderRadius.vertical(
-        bottom: Radius.circular(
-          Constants.size.circularBorderRadius,
-        ),
-      );
-    }
-    return null;
   }
 
   String filter = "";
