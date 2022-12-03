@@ -1,12 +1,12 @@
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/currency_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/language_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_backup_views/wallet_backup_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/sub_widgets/settings_list_button.dart';
+import 'package:epicmobile/pages/settings_views/currency_view.dart';
+import 'package:epicmobile/pages/settings_views/language_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/network_settings_view.dart';
+import 'package:epicmobile/pages/settings_views/security_views/security_view.dart';
+import 'package:epicmobile/pages/settings_views/settings_list_button.dart';
+import 'package:epicmobile/pages/settings_views/wallet_backup_views/wallet_backup_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings/wallet_settings_view.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -18,8 +18,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
-class GlobalSettingsView extends StatelessWidget {
-  const GlobalSettingsView({
+class SettingsView extends StatelessWidget {
+  const SettingsView({
     Key? key,
   }) : super(key: key);
 
@@ -68,8 +68,9 @@ class GlobalSettingsView extends StatelessWidget {
                             iconSize: 16,
                             title: "Connections",
                             onPressed: () {
-                              Navigator.of(context)
-                                  .pushNamed(ManageNodesView.routeName);
+                              Navigator.of(context).pushNamed(
+                                NetworkSettingsView.routeName,
+                              );
                             },
                           ),
                           const _Div(),
@@ -136,7 +137,7 @@ class GlobalSettingsView extends StatelessWidget {
                             title: "Wallet Settings",
                             onPressed: () {
                               Navigator.of(context).pushNamed(
-                                WalletSettingsWalletSettingsView.routeName,
+                                WalletSettingsView.routeName,
                               );
                             },
                           ),

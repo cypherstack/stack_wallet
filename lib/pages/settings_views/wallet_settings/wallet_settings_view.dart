@@ -1,5 +1,5 @@
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings/delete_wallet_warning_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/utilities/constants.dart';
@@ -12,8 +12,8 @@ import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class WalletSettingsWalletSettingsView extends ConsumerWidget {
-  const WalletSettingsWalletSettingsView({
+class WalletSettingsView extends ConsumerWidget {
+  const WalletSettingsView({
     Key? key,
   }) : super(key: key);
 
@@ -57,7 +57,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     padding: const EdgeInsets.all(0),
                     onPressed: () {
-                      showDialog(
+                      showDialog<void>(
                         barrierDismissible: true,
                         context: context,
                         builder: (_) => StackDialog(

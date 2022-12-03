@@ -1,4 +1,4 @@
-import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
+import 'package:epicmobile/pages/settings_views/security_views/security_view.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';

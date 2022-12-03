@@ -1,4 +1,4 @@
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';

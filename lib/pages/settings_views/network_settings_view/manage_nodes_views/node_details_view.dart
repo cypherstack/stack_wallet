@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';

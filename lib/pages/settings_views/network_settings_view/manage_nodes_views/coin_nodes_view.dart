@@ -1,5 +1,5 @@
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:epicmobile/pages/settings_views/sub_widgets/nodes_list.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/nodes_list.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:epicmobile/pages/help/help_view.dart';
 import 'package:epicmobile/pages/home_view/sub_widgets/connection_status_bar.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/global_settings_view.dart';
+import 'package:epicmobile/pages/settings_views/settings_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/providers/ui/home_view_index_provider.dart';
@@ -269,7 +269,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         onPressed: () {
                           debugPrint("main view settings tapped");
                           Navigator.of(context)
-                              .pushNamed(GlobalSettingsView.routeName);
+                              .pushNamed(SettingsView.routeName);
                         },
                       ),
                     ),

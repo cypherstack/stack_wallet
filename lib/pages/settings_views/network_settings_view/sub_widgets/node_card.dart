@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/node_details_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/node_options_sheet.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
@@ -16,7 +17,6 @@ import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/conditional_parent.dart';
 import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:epicmobile/widgets/expandable.dart';
-import 'package:epicmobile/widgets/node_options_sheet.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

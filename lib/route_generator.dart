@@ -20,33 +20,30 @@ import 'package:epicmobile/pages/receive_view/generate_receiving_uri_qr_code_vie
 import 'package:epicmobile/pages/receive_view/receive_view.dart';
 import 'package:epicmobile/pages/send_view/confirm_transaction_view.dart';
 import 'package:epicmobile/pages/send_view/send_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/currency_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/delete_account_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/global_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/hidden_settings.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/language_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_backup_views/wallet_backup_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
+import 'package:epicmobile/pages/settings_views/advanced_views/advanced_settings_view.dart';
+import 'package:epicmobile/pages/settings_views/advanced_views/debug_view.dart';
+import 'package:epicmobile/pages/settings_views/currency_view.dart';
+import 'package:epicmobile/pages/settings_views/delete_account_view.dart';
+import 'package:epicmobile/pages/settings_views/hidden_settings.dart';
+import 'package:epicmobile/pages/settings_views/language_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/coin_nodes_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/manage_nodes_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/node_details_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/network_settings_view.dart';
+import 'package:epicmobile/pages/settings_views/security_views/change_pin_view/change_pin_view.dart';
+import 'package:epicmobile/pages/settings_views/security_views/security_view.dart';
+import 'package:epicmobile/pages/settings_views/settings_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_backup_views/wallet_backup_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings/delete_wallet_recovery_phrase_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings/delete_wallet_warning_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings/wallet_settings_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/services/coins/manager.dart';
-import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/utilities/enums/add_wallet_type_enum.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:flutter/cupertino.dart';
@@ -100,10 +97,10 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case GlobalSettingsView.routeName:
+      case SettingsView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const GlobalSettingsView(),
+            builder: (_) => const SettingsView(),
             settings: RouteSettings(name: settings.name));
 
       case HelpView.routeName:
@@ -309,21 +306,14 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case WalletNetworkSettingsView.routeName:
-        if (args is Tuple3<String, WalletSyncStatus, NodeConnectionStatus>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => WalletNetworkSettingsView(
-              walletId: args.item1,
-              initialSyncStatus: args.item2,
-              initialNodeStatus: args.item3,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+      case NetworkSettingsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const NetworkSettingsView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
 
       case WalletBackupView.routeName:
         if (args is Tuple2<String, List<String>>) {
@@ -340,10 +330,10 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case WalletSettingsWalletSettingsView.routeName:
+      case WalletSettingsView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const WalletSettingsWalletSettingsView(),
+          builder: (_) => const WalletSettingsView(),
           settings: RouteSettings(
             name: settings.name,
           ),
@@ -517,24 +507,6 @@ class RouteGenerator {
             builder: (_) => ConfirmTransactionView(
               transactionInfo: args.item1,
               walletId: args.item2,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case WalletSettingsView.routeName:
-        if (args
-            is Tuple4<String, Coin, WalletSyncStatus, NodeConnectionStatus>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => WalletSettingsView(
-              walletId: args.item1,
-              coin: args.item2,
-              initialSyncStatus: args.item3,
-              initialNodeStatus: args.item4,
             ),
             settings: RouteSettings(
               name: settings.name,

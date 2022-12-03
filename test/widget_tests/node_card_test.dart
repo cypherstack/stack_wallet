@@ -1,18 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 import 'package:epicmobile/models/node_model.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/node_card.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/node_options_sheet.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/node_service.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/theme/light_colors.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
-import 'package:epicmobile/widgets/node_card.dart';
-import 'package:epicmobile/widgets/node_options_sheet.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 
 import 'node_card_test.mocks.dart';
 

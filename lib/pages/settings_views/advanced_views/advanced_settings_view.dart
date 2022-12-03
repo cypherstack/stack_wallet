@@ -1,7 +1,5 @@
-import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
+import 'package:epicmobile/pages/settings_views/advanced_views/debug_view.dart';
 import 'package:epicmobile/providers/global/prefs_provider.dart';
-import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -12,12 +10,12 @@ import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SecurityView extends StatelessWidget {
-  const SecurityView({
+class AdvancedSettingsView extends StatelessWidget {
+  const AdvancedSettingsView({
     Key? key,
   }) : super(key: key);
 
-  static const String routeName = "/security";
+  static const String routeName = "/advancedSettings";
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +31,7 @@ class SecurityView extends StatelessWidget {
             },
           ),
           title: Text(
-            "Security",
+            "Advanced",
             style: STextStyles.titleH4(context),
           ),
         ),
@@ -53,23 +51,7 @@ class SecurityView extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      RouteGenerator.getRoute(
-                        shouldUseMaterialRoute:
-                            RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => const LockscreenView(
-                          showBackButton: true,
-                          routeOnSuccess: ChangePinView.routeName,
-                          biometricsCancelButtonString: "CANCEL",
-                          biometricsLocalizedReason:
-                              "Authenticate to change PIN",
-                          biometricsAuthenticationTitle: "Change PIN",
-                        ),
-                        settings:
-                            const RouteSettings(name: "/changepinlockscreen"),
-                      ),
-                    );
+                    Navigator.of(context).pushNamed(DebugView.routeName);
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -79,7 +61,7 @@ class SecurityView extends StatelessWidget {
                     child: Row(
                       children: [
                         Text(
-                          "Change PIN",
+                          "Debug info",
                           style: STextStyles.bodyBold(context),
                           textAlign: TextAlign.left,
                         ),
@@ -103,24 +85,13 @@ class SecurityView extends StatelessWidget {
                         ),
                       ),
                       onPressed: null,
-                      //     () {
-                      //   final useBio =
-                      //       ref.read(prefsChangeNotifierProvider).useBiometrics;
-                      //
-                      //   debugPrint("useBio: $useBio");
-                      //   ref.read(prefsChangeNotifierProvider).useBiometrics =
-                      //       !useBio;
-                      //
-                      //   debugPrint(
-                      //       "useBio set to: ${ref.read(prefsChangeNotifierProvider).useBiometrics}");
-                      // },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Enable biometric authentication",
+                              "Toggle testnet coins",
                               style: STextStyles.bodyBold(context),
                               textAlign: TextAlign.left,
                             ),
@@ -129,13 +100,13 @@ class SecurityView extends StatelessWidget {
                               width: 40,
                               child: DraggableSwitchButton(
                                 isOn: ref.watch(
-                                  prefsChangeNotifierProvider
-                                      .select((value) => value.useBiometrics),
+                                  prefsChangeNotifierProvider.select(
+                                      (value) => value.showTestNetCoins),
                                 ),
                                 onValueChanged: (newValue) {
                                   ref
                                       .read(prefsChangeNotifierProvider)
-                                      .useBiometrics = newValue;
+                                      .showTestNetCoins = newValue;
                                 },
                               ),
                             ),
@@ -145,6 +116,9 @@ class SecurityView extends StatelessWidget {
                     );
                   },
                 ),
+              ),
+              const SizedBox(
+                height: 8,
               ),
             ],
           ),

@@ -1,15 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:epicmobile/pages/settings_views/sub_widgets/nodes_list.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/confirm_full_rescan.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/confirm_full_rescan.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/nodes_list.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/rescanning_dialog.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:epicmobile/services/event_bus/events/global/blocks_remaining_event.dart';
-import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
@@ -37,29 +36,23 @@ import 'package:tuple/tuple.dart';
 import 'package:wakelock/wakelock.dart';
 
 /// [eventBus] should only be set during testing
-class WalletNetworkSettingsView extends ConsumerStatefulWidget {
-  const WalletNetworkSettingsView({
+class NetworkSettingsView extends ConsumerStatefulWidget {
+  const NetworkSettingsView({
     Key? key,
-    required this.walletId,
-    required this.initialSyncStatus,
-    required this.initialNodeStatus,
     this.eventBus,
   }) : super(key: key);
 
-  final String walletId;
-  final WalletSyncStatus initialSyncStatus;
-  final NodeConnectionStatus initialNodeStatus;
   final EventBus? eventBus;
 
   static const String routeName = "/walletNetworkSettings";
 
   @override
-  ConsumerState<WalletNetworkSettingsView> createState() =>
+  ConsumerState<NetworkSettingsView> createState() =>
       _WalletNetworkSettingsViewState();
 }
 
 class _WalletNetworkSettingsViewState
-    extends ConsumerState<WalletNetworkSettingsView> {
+    extends ConsumerState<NetworkSettingsView> {
   final double _padding = 16;
   final double _boxPadding = 12;
   final double _iconSize = Util.isDesktop ? 40 : 28;
@@ -171,7 +164,18 @@ class _WalletNetworkSettingsViewState
 
   @override
   void initState() {
-    _currentSyncStatus = widget.initialSyncStatus;
+    if (ref.read(walletProvider)!.isRefreshing) {
+      _currentSyncStatus = WalletSyncStatus.syncing;
+      // _currentNodeStatus = NodeConnectionStatus.connected;
+    } else {
+      _currentSyncStatus = WalletSyncStatus.synced;
+      if (ref.read(walletProvider)!.isConnected) {
+        // _currentNodeStatus = NodeConnectionStatus.connected;
+      } else {
+        // _currentNodeStatus = NodeConnectionStatus.disconnected;
+        _currentSyncStatus = WalletSyncStatus.unableToSync;
+      }
+    }
     // _currentNodeStatus = widget.initialNodeStatus;
     if (_currentSyncStatus == WalletSyncStatus.synced) {
       _percent = 1;
@@ -187,7 +191,7 @@ class _WalletNetworkSettingsViewState
     _syncStatusSubscription =
         eventBus.on<WalletSyncStatusChangedEvent>().listen(
       (event) async {
-        if (event.walletId == widget.walletId) {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
           setState(() {
             _currentSyncStatus = event.newStatus;
           });
@@ -197,7 +201,7 @@ class _WalletNetworkSettingsViewState
 
     _refreshSubscription = eventBus.on<RefreshPercentChangedEvent>().listen(
       (event) async {
-        if (event.walletId == widget.walletId) {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
           setState(() {
             _percent = event.percent.clamp(0.0, 1.0);
           });
@@ -210,7 +214,7 @@ class _WalletNetworkSettingsViewState
     if (coin == Coin.epicCash) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
         (event) async {
-          if (event.walletId == widget.walletId) {
+          if (event.walletId == ref.read(walletProvider)!.walletId) {
             setState(() {
               _blocksRemaining = event.blocksRemaining;
             });
@@ -713,7 +717,7 @@ class _WalletNetworkSettingsViewState
                       AddEditNodeViewType.add,
                       ref.read(walletProvider)!.coin,
                       null,
-                      WalletNetworkSettingsView.routeName,
+                      NetworkSettingsView.routeName,
                     ),
                   );
                 },
@@ -725,7 +729,7 @@ class _WalletNetworkSettingsViewState
           ),
           NodesList(
             coin: ref.watch(walletProvider.select((value) => value!.coin)),
-            popBackToRoute: WalletNetworkSettingsView.routeName,
+            popBackToRoute: NetworkSettingsView.routeName,
           ),
           if (isDesktop)
             const SizedBox(
