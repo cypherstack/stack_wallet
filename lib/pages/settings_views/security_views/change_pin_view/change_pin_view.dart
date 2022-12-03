@@ -225,7 +225,7 @@ class _ChangePinViewState extends State<ChangePinView> {
                           );
                         }
                       } else {
-                        _pageController.animateTo(
+                        await _pageController.animateTo(
                           0,
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.linear,
