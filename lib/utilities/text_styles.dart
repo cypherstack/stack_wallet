@@ -41,6 +41,25 @@ class STextStyles {
     }
   }
 
+  static TextStyle titleH2(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w600,
+          fontSize: 32,
+          height: 41.6 / 32,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w600,
+          fontSize: 32,
+          height: 41.6 / 32,
+        );
+    }
+  }
+
   static TextStyle titleH3(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
@@ -463,19 +482,21 @@ class STextStyles {
     }
   }
 
-  static TextStyle w600_10(BuildContext context) {
+  static TextStyle bodySmallBold(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
           color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
-          fontSize: 12,
+          fontSize: 14,
+          height: 21 / 14,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
           color: _theme(context).textLight,
           fontWeight: FontWeight.w600,
-          fontSize: 12,
+          fontSize: 14,
+          height: 21 / 14,
         );
     }
   }

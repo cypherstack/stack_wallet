@@ -1,6 +1,5 @@
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/utilities/constants.dart';
@@ -16,12 +15,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class WalletSettingsWalletSettingsView extends ConsumerWidget {
   const WalletSettingsWalletSettingsView({
     Key? key,
-    required this.walletId,
   }) : super(key: key);
 
   static const String routeName = "/walletSettingsWalletSettings";
-
-  final String walletId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,41 +45,6 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                RoundedWhiteContainer(
-                  padding: const EdgeInsets.all(0),
-                  child: RawMaterialButton(
-                    // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        RenameWalletView.routeName,
-                        arguments: walletId,
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 20,
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Rename wallet",
-                            style: STextStyles.bodyBold(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
                 RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
                   child: RawMaterialButton(
@@ -129,7 +90,8 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                                   shouldUseMaterialRoute:
                                       RouteGenerator.useMaterialPageRoute,
                                   builder: (_) => LockscreenView(
-                                    routeOnSuccessArguments: walletId,
+                                    routeOnSuccessArguments:
+                                        ref.read(walletProvider)!.walletId,
                                     showBackButton: true,
                                     routeOnSuccess:
                                         DeleteWalletWarningView.routeName,

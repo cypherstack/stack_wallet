@@ -465,7 +465,7 @@ class _WalletNetworkSettingsViewState
                           children: [
                             Text(
                               "Synchronized",
-                              style: STextStyles.w600_10(context),
+                              style: STextStyles.bodySmallBold(context),
                             ),
                             Text(
                               "100%",
@@ -539,7 +539,7 @@ class _WalletNetworkSettingsViewState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             AnimatedText(
-                              style: STextStyles.w600_10(context),
+                              style: STextStyles.bodySmallBold(context),
                               stringsToLoopThrough: const [
                                 "Synchronizing",
                                 "Synchronizing.",
@@ -635,7 +635,8 @@ class _WalletNetworkSettingsViewState
                           children: [
                             Text(
                               "Unable to synchronize",
-                              style: STextStyles.w600_10(context).copyWith(
+                              style:
+                                  STextStyles.bodySmallBold(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorRed,

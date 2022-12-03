@@ -1,15 +1,22 @@
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
+import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/currency_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/language_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_backup_views/wallet_backup_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/sub_widgets/settings_list_button.dart';
+import 'package:epicmobile/providers/global/wallet_provider.dart';
+import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
 
 class GlobalSettingsView extends StatelessWidget {
   const GlobalSettingsView({
@@ -86,13 +93,40 @@ class GlobalSettingsView extends StatelessWidget {
                             },
                           ),
                           const _Div(),
-                          SettingsListButton(
-                            iconAssetName: Assets.svg.ellipsis,
-                            iconSize: 18,
-                            title: "Backup Wallet",
-                            onPressed: () {
-                              // Navigator.of(context)
-                              //     .pushNamed(AboutView.routeName);
+                          Consumer(
+                            builder: (_, ref, __) {
+                              return SettingsListButton(
+                                iconAssetName: Assets.svg.ellipsis,
+                                iconSize: 18,
+                                title: "Backup Wallet",
+                                onPressed: () async {
+                                  final navigator = Navigator.of(context);
+                                  final mnemonic =
+                                      await ref.read(walletProvider)!.mnemonic;
+                                  await navigator.push(
+                                    RouteGenerator.getRoute(
+                                      shouldUseMaterialRoute:
+                                          RouteGenerator.useMaterialPageRoute,
+                                      builder: (_) => LockscreenView(
+                                        routeOnSuccessArguments: Tuple2(
+                                          ref.read(walletProvider)!.walletId,
+                                          mnemonic,
+                                        ),
+                                        showBackButton: true,
+                                        routeOnSuccess:
+                                            WalletBackupView.routeName,
+                                        biometricsCancelButtonString: "CANCEL",
+                                        biometricsLocalizedReason:
+                                            "Authenticate to view recovery phrase",
+                                        biometricsAuthenticationTitle:
+                                            "View recovery phrase",
+                                      ),
+                                      settings: const RouteSettings(
+                                          name: "/viewRecoverPhraseLockscreen"),
+                                    ),
+                                  );
+                                },
+                              );
                             },
                           ),
                           const _Div(),
@@ -101,8 +135,9 @@ class GlobalSettingsView extends StatelessWidget {
                             iconSize: 16,
                             title: "Wallet Settings",
                             onPressed: () {
-                              // Navigator.of(context).pushNamed(
-                              //     AdvancedSettingsView.routeName);
+                              Navigator.of(context).pushNamed(
+                                WalletSettingsWalletSettingsView.routeName,
+                              );
                             },
                           ),
                           const _Div(),

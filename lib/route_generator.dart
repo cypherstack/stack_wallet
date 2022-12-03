@@ -33,13 +33,12 @@ import 'package:epicmobile/pages/settings_views/global_settings_view/manage_node
 import 'package:epicmobile/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/security_views/security_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_backup_views/wallet_backup_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
+import 'package:epicmobile/pages/settings_views/global_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_details_view.dart';
@@ -342,32 +341,13 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletSettingsWalletSettingsView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => WalletSettingsWalletSettingsView(
-              walletId: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case RenameWalletView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => RenameWalletView(
-              walletId: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const WalletSettingsWalletSettingsView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
 
       case DeleteWalletWarningView.routeName:
         if (args is String) {

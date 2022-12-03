@@ -1,4 +1,3 @@
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -8,6 +7,8 @@ import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
+
+import 'delete_wallet_recovery_phrase_view.dart';
 
 class DeleteWalletWarningView extends ConsumerWidget {
   const DeleteWalletWarningView({
@@ -89,9 +90,10 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     .extension<StackColors>()!
                     .getPrimaryEnabledButtonColor(context),
                 onPressed: () async {
+                  final navigator = Navigator.of(context);
                   final manager = ref.read(walletProvider)!;
                   final mnemonic = await manager.mnemonic;
-                  Navigator.of(context).pushNamed(
+                  await navigator.pushNamed(
                     DeleteWalletRecoveryPhraseView.routeName,
                     arguments: Tuple2(
                       manager,

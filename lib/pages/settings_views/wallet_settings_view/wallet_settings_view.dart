@@ -3,15 +3,11 @@ import 'dart:convert';
 
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
-import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicmobile/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:epicmobile/pages/settings_views/sub_widgets/settings_list_button.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/providers/ui/transaction_filter_provider.dart';
-import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -200,62 +196,6 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                 const SizedBox(
                                   height: 8,
                                 ),
-                                Consumer(
-                                  builder: (_, ref, __) {
-                                    return SettingsListButton(
-                                      iconAssetName: Assets.svg.lock,
-                                      iconSize: 16,
-                                      title: "Wallet backup",
-                                      onPressed: () async {
-                                        final mnemonic = await ref
-                                            .read(walletProvider)!
-                                            .mnemonic;
-
-                                        if (mounted) {
-                                          Navigator.push(
-                                            context,
-                                            RouteGenerator.getRoute(
-                                              shouldUseMaterialRoute:
-                                                  RouteGenerator
-                                                      .useMaterialPageRoute,
-                                              builder: (_) => LockscreenView(
-                                                routeOnSuccessArguments:
-                                                    Tuple2(walletId, mnemonic),
-                                                showBackButton: true,
-                                                routeOnSuccess:
-                                                    WalletBackupView.routeName,
-                                                biometricsCancelButtonString:
-                                                    "CANCEL",
-                                                biometricsLocalizedReason:
-                                                    "Authenticate to view recovery phrase",
-                                                biometricsAuthenticationTitle:
-                                                    "View recovery phrase",
-                                              ),
-                                              settings: const RouteSettings(
-                                                  name:
-                                                      "/viewRecoverPhraseLockscreen"),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    );
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.downloadFolder,
-                                  title: "Wallet settings",
-                                  iconSize: 16,
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                      WalletSettingsWalletSettingsView
-                                          .routeName,
-                                      arguments: walletId,
-                                    );
-                                  },
-                                ),
                                 const SizedBox(
                                   height: 8,
                                 ),
@@ -380,7 +320,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
           TextButton(
             onPressed: () async {
               try {
-                wallet.updateEpicboxConfig(
+                await wallet.updateEpicboxConfig(
                   hostController.text,
                   int.parse(portController.text),
                 );
@@ -389,7 +329,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
                 //   message: "Epicbox info saved!",
                 //   type: FlushBarType.success,
                 // );
-                wallet.refresh();
+                unawaited(wallet.refresh());
               } catch (e) {
                 // showFloatingFlushBar(
                 //   context: context,
