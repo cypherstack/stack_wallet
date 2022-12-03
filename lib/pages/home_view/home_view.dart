@@ -7,6 +7,7 @@ import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/providers/ui/home_view_index_provider.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
 import 'package:epicmobile/utilities/assets.dart';
@@ -44,6 +45,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   bool _exitEnabled = false;
 
+  late double _percent;
+
   late final EventBus eventBus;
 
   late WalletSyncStatus _currentSyncStatus;
@@ -51,6 +54,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
+  late StreamSubscription<dynamic> _refreshSubscription;
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
@@ -112,6 +116,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
       }
     }
 
+    if (_currentSyncStatus == WalletSyncStatus.synced) {
+      _percent = 1;
+    } else {
+      _percent = 0;
+    }
+
     eventBus = widget.eventBus ?? GlobalEventBus.instance;
 
     _syncStatusSubscription =
@@ -142,6 +152,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
       },
     );
 
+    _refreshSubscription = eventBus.on<RefreshPercentChangedEvent>().listen(
+      (event) async {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
+          setState(() {
+            _percent = event.percent.clamp(0.0, 1.0);
+          });
+        }
+      },
+    );
+
     super.initState();
   }
 
@@ -149,6 +169,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   dispose() {
     _nodeStatusSubscription.cancel();
     _syncStatusSubscription.cancel();
+    _refreshSubscription.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -213,10 +234,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 ),
                 centerTitle: true,
                 title: SizedBox(
-                  width: 200,
                   height: 32,
                   child: ConnectionStatusBar(
-                    currentSyncPercent: 0.74,
+                    currentSyncPercent: _percent,
                     color: Theme.of(context).extension<StackColors>()!.coal,
                     background:
                         Theme.of(context).extension<StackColors>()!.popupBG,

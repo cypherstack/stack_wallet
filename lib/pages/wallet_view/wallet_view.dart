@@ -9,8 +9,6 @@ import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/enums/wallet_balance_toggle_state.dart';
@@ -20,7 +18,6 @@ import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
@@ -115,34 +112,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     // _nodeStatusSubscription.cancel();
     // _syncStatusSubscription.cancel();
     super.dispose();
-  }
-
-  DateTime? _cachedTime;
-
-  Widget _buildNetworkIcon(WalletSyncStatus status) {
-    switch (status) {
-      case WalletSyncStatus.unableToSync:
-        return SvgPicture.asset(
-          Assets.svg.radioProblem,
-          color: Theme.of(context).extension<StackColors>()!.accentColorRed,
-          width: 20,
-          height: 20,
-        );
-      case WalletSyncStatus.synced:
-        return SvgPicture.asset(
-          Assets.svg.radio,
-          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
-          width: 20,
-          height: 20,
-        );
-      case WalletSyncStatus.syncing:
-        return SvgPicture.asset(
-          Assets.svg.radioSyncing,
-          color: Theme.of(context).extension<StackColors>()!.accentColorYellow,
-          width: 20,
-          height: 20,
-        );
-    }
   }
 
   @override
