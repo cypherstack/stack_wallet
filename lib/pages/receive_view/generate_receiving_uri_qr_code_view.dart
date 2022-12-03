@@ -204,7 +204,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                             Text(
                               "Share",
                               textAlign: TextAlign.center,
-                              style: STextStyles.button(context).copyWith(
+                              style: STextStyles.buttonText(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .buttonTextSecondary,

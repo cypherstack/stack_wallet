@@ -204,7 +204,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   },
                   child: Text(
                     "Cancel",
-                    style: STextStyles.button(context).copyWith(
+                    style: STextStyles.buttonText(context).copyWith(
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .accentColorDark),
@@ -219,7 +219,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                       .getPrimaryEnabledButtonColor(context),
                   child: Text(
                     "Save",
-                    style: STextStyles.button(context),
+                    style: STextStyles.buttonText(context),
                   ),
                 ),
               ),
@@ -534,7 +534,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                 onPressed: saveEnabled ? attemptSave : null,
                 child: Text(
                   "Save",
-                  style: STextStyles.button(context),
+                  style: STextStyles.buttonText(context),
                 ),
               ),
           ],

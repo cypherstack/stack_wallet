@@ -172,7 +172,7 @@ class _TransactionDetailsViewState
           },
           child: Text(
             "Cancel",
-            style: STextStyles.button(context).copyWith(
+            style: STextStyles.buttonText(context).copyWith(
                 color: Theme.of(context)
                     .extension<StackColors>()!
                     .accentColorDark),
@@ -187,7 +187,7 @@ class _TransactionDetailsViewState
           },
           child: Text(
             "Continue",
-            style: STextStyles.button(context),
+            style: STextStyles.buttonText(context),
           ),
         ),
       ),
@@ -1236,7 +1236,7 @@ class _TransactionDetailsViewState
                   },
                   child: Text(
                     "Cancel Transaction",
-                    style: STextStyles.button(context),
+                    style: STextStyles.buttonText(context),
                   ),
                 ),
               )

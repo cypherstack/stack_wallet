@@ -1,34 +1,36 @@
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/services/coins/manager.dart';
-import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
-import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/desktop/primary_button.dart';
+import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../../add_wallet_views/create_restore_wallet_view.dart';
 
 class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const DeleteWalletRecoveryPhraseView({
     Key? key,
-    required this.manager,
     required this.mnemonic,
     this.clipboardInterface = const ClipboardWrapper(),
+    this.secureStorageInterface = const SecureStorageWrapper(
+      FlutterSecureStorage(),
+    ),
   }) : super(key: key);
 
   static const routeName = "/deleteWalletRecoveryPhrase";
 
-  final Manager manager;
   final List<String> mnemonic;
 
   final ClipboardInterface clipboardInterface;
+  final FlutterSecureStorageInterface secureStorageInterface;
 
   @override
   ConsumerState<DeleteWalletRecoveryPhraseView> createState() =>
@@ -37,15 +39,15 @@ class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
 
 class _DeleteWalletRecoveryPhraseViewState
     extends ConsumerState<DeleteWalletRecoveryPhraseView> {
-  late Manager _manager;
-  late List<String> _mnemonic;
-  late ClipboardInterface _clipboardInterface;
+  late final List<String> _mnemonic;
+  late final ClipboardInterface _clipboardInterface;
+  late final FlutterSecureStorageInterface _secureStorageInterface;
 
   @override
   void initState() {
-    _manager = widget.manager;
     _mnemonic = widget.mnemonic;
     _clipboardInterface = widget.clipboardInterface;
+    _secureStorageInterface = widget.secureStorageInterface;
     super.initState();
   }
 
@@ -62,148 +64,159 @@ class _DeleteWalletRecoveryPhraseViewState
               Navigator.of(context).pop();
             },
           ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  shadows: const [],
-                  icon: SvgPicture.asset(
-                    Assets.svg.copy,
-                    width: 20,
-                    height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                  ),
-                  onPressed: () async {
-                    final words = await _manager.mnemonic;
-                    await _clipboardInterface
-                        .setData(ClipboardData(text: words.join(" ")));
-                  },
-                ),
-              ),
-            ),
-          ],
+          centerTitle: true,
+          title: Text(
+            "Delete wallet",
+            style: STextStyles.titleH4(context),
+          ),
+          // actions: [
+          //   Padding(
+          //     padding: const EdgeInsets.all(10),
+          //     child: AspectRatio(
+          //       aspectRatio: 1,
+          //       child: AppBarIconButton(
+          //         color: Theme.of(context).extension<StackColors>()!.background,
+          //         shadows: const [],
+          //         icon: SvgPicture.asset(
+          //           Assets.svg.copy,
+          //           width: 20,
+          //           height: 20,
+          //           color: Theme.of(context)
+          //               .extension<StackColors>()!
+          //               .topNavIconPrimary,
+          //         ),
+          //         onPressed: () async {
+          //           await _clipboardInterface
+          //               .setData(ClipboardData(text: _mnemonic.join(" ")));
+          //         },
+          //       ),
+          //     ),
+          //   ),
+          // ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(
-                height: 4,
-              ),
-              Text(
-                _manager.walletName,
-                textAlign: TextAlign.center,
-                style: STextStyles.label(context).copyWith(
-                  fontSize: 12,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                RoundedWhiteContainer(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Warning!",
+                        style: STextStyles.titleH3(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .snackBarTextError,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "You must write down your wallet key. Saving your wallet key is the ONLY way you can have access to your funds after deleting the wallet.",
+                        style: STextStyles.bodySmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textMedium,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "If you delete this wallet, you will lose your funds unless you save your wallet key.",
+                        style: STextStyles.bodySmallBold(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .snackBarTextError,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: 4,
-              ),
-              Text(
-                "Recovery Phrase",
-                textAlign: TextAlign.center,
-                style: STextStyles.pageTitleH1(context),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).extension<StackColors>()!.popupBG,
-                  borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius),
+                const SizedBox(
+                  height: 59,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
+                Center(
                   child: Text(
-                    "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
-                    style: STextStyles.label(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                    "My Wallet",
+                    style: STextStyles.titleH4(context),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: MnemonicTable(
-                    words: _mnemonic,
-                    isDesktop: false,
-                  ),
+                const SizedBox(
+                  height: 16,
                 ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
-                onPressed: () {
-                  showDialog<dynamic>(
-                    barrierDismissible: true,
-                    context: context,
-                    builder: (_) => StackDialog(
-                      title: "Thanks! Your wallet will be deleted.",
-                      leftButton: TextButton(
-                        style: Theme.of(context)
-                            .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          "Cancel",
-                          style: STextStyles.button(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark),
-                        ),
-                      ),
-                      rightButton: TextButton(
-                        style: Theme.of(context)
-                            .extension<StackColors>()!
-                            .getPrimaryEnabledButtonColor(context),
-                        onPressed: () async {
-                          final walletId = _manager.walletId;
-                          await ref
-                              .read(walletsServiceChangeNotifierProvider)
-                              .deleteWallet(_manager.walletName, true);
-
-                          if (mounted) {
-                            Navigator.of(context).popUntil(
-                                ModalRoute.withName(HomeView.routeName));
-                          }
-                          await ref.read(walletProvider)!.exitCurrentWallet();
-                          // wait for widget tree to dispose of any widgets watching the manager
-                          await Future<void>.delayed(
-                              const Duration(seconds: 1));
-                          ref.read(walletStateProvider.state).state = null;
-                        },
-                        child: Text(
-                          "Ok",
-                          style: STextStyles.button(context),
-                        ),
-                      ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: MnemonicTable(
+                      words: _mnemonic,
+                      isDesktop: false,
                     ),
-                  );
-                },
-                child: Text(
-                  "Continue",
-                  style: STextStyles.button(context),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(
+                  height: 16,
+                ),
+                PrimaryButton(
+                  label: "I'VE WRITTEN DOWN THE KEY",
+                  onPressed: () {
+                    showDialog<dynamic>(
+                      barrierDismissible: true,
+                      context: context,
+                      builder: (_) => StackDialog(
+                        title: "Thanks! Your wallet will be deleted.",
+                        leftButton: TextButton(
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getSecondaryEnabledButtonColor(context),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            "Cancel",
+                            style: STextStyles.buttonText(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark),
+                          ),
+                        ),
+                        rightButton: TextButton(
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getPrimaryEnabledButtonColor(context),
+                          onPressed: () async {
+                            final nav = Navigator.of(context);
+                            await ref
+                                .read(walletsServiceChangeNotifierProvider)
+                                .deleteWallet(
+                                    ref.read(walletProvider)!.walletName, true);
+                            await _secureStorageInterface.delete(
+                                key: "stack_pin");
+                            ref.read(prefsChangeNotifierProvider).hasPin =
+                                false;
+                            nav.popUntil((route) => false);
+                            await nav
+                                .pushNamed(CreateRestoreWalletView.routeName);
+
+                            await ref.read(walletProvider)!.exitCurrentWallet();
+                            // wait for widget tree to dispose of any widgets watching the manager
+                            await Future<void>.delayed(
+                                const Duration(seconds: 1));
+                            ref.read(walletStateProvider.state).state = null;
+                          },
+                          child: Text(
+                            "Ok",
+                            style: STextStyles.buttonText(context),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                )
+              ],
+            ),
           ),
         ),
       ),

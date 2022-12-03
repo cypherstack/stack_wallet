@@ -207,7 +207,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                       .getPrimaryEnabledButtonColor(context),
                   child: Text(
                     "Save",
-                    style: STextStyles.button(context),
+                    style: STextStyles.buttonText(context),
                   ),
                 )
             ],

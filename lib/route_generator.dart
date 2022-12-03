@@ -36,14 +36,12 @@ import 'package:epicmobile/pages/settings_views/security_views/security_view.dar
 import 'package:epicmobile/pages/settings_views/settings_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_backup_views/wallet_backup_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings/delete_wallet_recovery_phrase_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings/delete_wallet_warning_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings/wallet_settings_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
-import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/enums/add_wallet_type_enum.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:flutter/cupertino.dart';
@@ -339,20 +337,6 @@ class RouteGenerator {
           ),
         );
 
-      case DeleteWalletWarningView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => DeleteWalletWarningView(
-              walletId: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
       case NameYourWalletView.routeName:
         if (args is Tuple2<AddWalletType, Coin>) {
           return getRoute(
@@ -516,12 +500,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DeleteWalletRecoveryPhraseView.routeName:
-        if (args is Tuple2<Manager, List<String>>) {
+        if (args is List<String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DeleteWalletRecoveryPhraseView(
-              manager: args.item1,
-              mnemonic: args.item2,
+              mnemonic: args,
             ),
             settings: RouteSettings(
               name: settings.name,

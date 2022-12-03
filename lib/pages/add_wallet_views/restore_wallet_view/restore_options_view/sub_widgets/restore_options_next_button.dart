@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
 
 class RestoreOptionsNextButton extends StatelessWidget {
   const RestoreOptionsNextButton({
@@ -29,7 +29,7 @@ class RestoreOptionsNextButton extends StatelessWidget {
                 .getPrimaryDisabledButtonColor(context),
         child: Text(
           "Next",
-          style: STextStyles.button(context),
+          style: STextStyles.buttonText(context),
         ),
       ),
     );

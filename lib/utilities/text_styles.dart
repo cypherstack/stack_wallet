@@ -98,6 +98,25 @@ class STextStyles {
     }
   }
 
+  static TextStyle body(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w400,
+          fontSize: 16,
+          height: 22.4 / 16,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w400,
+          fontSize: 16,
+          height: 22.4 / 16,
+        );
+    }
+  }
+
   static TextStyle bodyBold(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
@@ -185,18 +204,18 @@ class STextStyles {
     }
   }
 
-  static TextStyle button(BuildContext context) {
+  static TextStyle buttonText(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.poppins(
-          color: _theme(context).buttonTextPrimary,
-          fontWeight: FontWeight.w500,
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w700,
           fontSize: 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
-          color: _theme(context).buttonTextPrimary,
-          fontWeight: FontWeight.w500,
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w700,
           fontSize: 16,
         );
     }
@@ -478,6 +497,25 @@ class STextStyles {
           color: _theme(context).accentColorBlue,
           fontWeight: FontWeight.w500,
           fontSize: 12,
+        );
+    }
+  }
+
+  static TextStyle bodySmall(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w400,
+          fontSize: 14,
+          height: 21 / 14,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w400,
+          fontSize: 14,
+          height: 21 / 14,
         );
     }
   }

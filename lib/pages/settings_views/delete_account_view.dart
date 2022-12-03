@@ -40,7 +40,7 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
           },
           child: Text(
             "Cancel",
-            style: STextStyles.button(context).copyWith(
+            style: STextStyles.buttonText(context).copyWith(
                 color: Theme.of(context)
                     .extension<StackColors>()!
                     .accentColorDark),
@@ -60,7 +60,7 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
           },
           child: Text(
             "Delete",
-            style: STextStyles.button(context),
+            style: STextStyles.buttonText(context),
           ),
         ),
       ),

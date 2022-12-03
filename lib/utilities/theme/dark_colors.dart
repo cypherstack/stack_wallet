@@ -166,7 +166,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get snackBarTextSuccess => const Color(0xFF003921);
   @override
-  Color get snackBarTextError => const Color(0xFF690001);
+  Color get snackBarTextError => const Color(0xFFFC718A);
   @override
   Color get snackBarTextInfo => const Color(0xFF00297A);
 
@@ -209,7 +209,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get textFieldDefaultSearchIconLeft => const Color(0xFFA9ACAC);
   @override
-  Color get textFieldErrorSearchIconLeft => const Color(0xFF690001);
+  Color get textFieldErrorSearchIconLeft => const Color(0xFFFC718A);
   @override
   Color get textFieldSuccessSearchIconLeft => const Color(0xFF003921);
 
@@ -225,7 +225,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get textFieldActiveLabel => const Color(0xFFA9ACAC);
   @override
-  Color get textFieldErrorLabel => const Color(0xFF690001);
+  Color get textFieldErrorLabel => const Color(0xFFFC718A);
   @override
   Color get textFieldSuccessLabel => const Color(0xFF003921);
 
@@ -234,7 +234,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get textFieldDefaultSearchIconRight => const Color(0xFF747778);
   @override
-  Color get textFieldErrorSearchIconRight => const Color(0xFF690001);
+  Color get textFieldErrorSearchIconRight => const Color(0xFFFC718A);
   @override
   Color get textFieldSuccessSearchIconRight => const Color(0xFF003921);
 

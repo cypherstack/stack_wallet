@@ -198,7 +198,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                               .getPrimaryEnabledButtonColor(context),
                           child: Text(
                             "Delete",
-                            style: STextStyles.button(context),
+                            style: STextStyles.buttonText(context),
                           ),
                           onPressed: () {
                             ref

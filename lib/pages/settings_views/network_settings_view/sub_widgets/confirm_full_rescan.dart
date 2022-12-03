@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
@@ -7,6 +6,7 @@ import 'package:epicmobile/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:flutter/material.dart';
 
 class ConfirmFullRescanDialog extends StatelessWidget {
   const ConfirmFullRescanDialog({Key? key, required this.onConfirm})
@@ -111,7 +111,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                 .getPrimaryEnabledButtonColor(context),
             child: Text(
               "Rescan",
-              style: STextStyles.button(context),
+              style: STextStyles.buttonText(context),
             ),
             onPressed: () {
               Navigator.of(context).pop();

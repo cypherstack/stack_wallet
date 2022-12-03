@@ -120,7 +120,7 @@ class _ConfirmTransactionViewState
                   .getSecondaryEnabledButtonColor(context),
               child: Text(
                 "Ok",
-                style: STextStyles.button(context).copyWith(
+                style: STextStyles.buttonText(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .accentColorDark),

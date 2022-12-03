@@ -156,7 +156,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                               .getPrimaryEnabledButtonColor(context),
                           child: Text(
                             "Delete logs",
-                            style: STextStyles.button(context),
+                            style: STextStyles.buttonText(context),
                           ),
                           onPressed: () async {
                             Navigator.of(context).pop();

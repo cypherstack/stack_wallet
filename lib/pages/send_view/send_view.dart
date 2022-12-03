@@ -1053,7 +1053,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       context),
                                               child: Text(
                                                 "Ok",
-                                                style: STextStyles.button(
+                                                style: STextStyles.buttonText(
                                                         context)
                                                     .copyWith(
                                                         color: Theme.of(context)
@@ -1099,7 +1099,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       context),
                                               child: Text(
                                                 "Cancel",
-                                                style: STextStyles.button(
+                                                style: STextStyles.buttonText(
                                                         context)
                                                     .copyWith(
                                                         color: Theme.of(context)
@@ -1119,8 +1119,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       context),
                                               child: Text(
                                                 "Yes",
-                                                style:
-                                                    STextStyles.button(context),
+                                                style: STextStyles.buttonText(
+                                                    context),
                                               ),
                                               onPressed: () {
                                                 Navigator.of(context).pop(true);
@@ -1209,7 +1209,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         context),
                                                 child: Text(
                                                   "Ok",
-                                                  style: STextStyles.button(
+                                                  style: STextStyles.buttonText(
                                                           context)
                                                       .copyWith(
                                                           color: Theme.of(
@@ -1240,7 +1240,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                     .getPrimaryDisabledButtonColor(context),
                             child: Text(
                               "Preview",
-                              style: STextStyles.button(context),
+                              style: STextStyles.buttonText(context),
                             ),
                           ),
                           const SizedBox(

@@ -241,7 +241,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                         },
                         child: Text(
                           "Details",
-                          style: STextStyles.button(context).copyWith(
+                          style: STextStyles.buttonText(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
                                   .accentColorDark),
@@ -283,7 +283,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                         child: Text(
                           // status == "Connected" ? "Disconnect" : "Connect",
                           "Connect",
-                          style: STextStyles.button(context),
+                          style: STextStyles.buttonText(context),
                         ),
                       ),
                     ),

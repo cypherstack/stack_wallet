@@ -83,7 +83,7 @@ class HiddenSettings extends StatelessWidget {
                             child: RoundedWhiteContainer(
                               child: Text(
                                 "Delete Debug Logs",
-                                style: STextStyles.button(context).copyWith(
+                                style: STextStyles.buttonText(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .accentColorDark),

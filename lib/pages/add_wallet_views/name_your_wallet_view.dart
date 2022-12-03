@@ -309,7 +309,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                     ? _nextEnabled
                         ? STextStyles.desktopButtonEnabled(context)
                         : STextStyles.desktopButtonDisabled(context)
-                    : STextStyles.button(context),
+                    : STextStyles.buttonText(context),
               ),
             ),
           ),

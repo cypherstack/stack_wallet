@@ -156,7 +156,7 @@ class GetStartedButton extends StatelessWidget {
       },
       child: Text(
         "Get started",
-        style: STextStyles.button(context),
+        style: STextStyles.buttonText(context),
       ),
     );
   }
