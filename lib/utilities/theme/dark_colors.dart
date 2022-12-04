@@ -114,15 +114,15 @@ class DarkColors extends StackColorTheme {
   @override
   Color get switchBGOn => const Color(0xFFD1A55C);
   @override
-  Color get switchBGOff => const Color(0xFFC1D9FF);
+  Color get switchBGOff => coal;
   @override
-  Color get switchBGDisabled => const Color(0xFFB5B7BA);
+  Color get switchBGDisabled => popupBG;
   @override
-  Color get switchCircleOn => const Color(0xFFC9DDFF);
+  Color get switchCircleOn => textLight;
   @override
-  Color get switchCircleOff => const Color(0xFFFFFFFF);
+  Color get switchCircleOff => textMedium;
   @override
-  Color get switchCircleDisabled => const Color(0xFFFFFFFF);
+  Color get switchCircleDisabled => textDark;
 
   // step indicator background
   @override

@@ -133,6 +133,17 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case SecurityView.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SecurityView(
+              biometrics: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const SecurityView(),

@@ -10,6 +10,7 @@ import 'package:epicmobile/pages/settings_views/wallet_settings/wallet_settings_
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/biometrics.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
@@ -88,9 +89,14 @@ class SettingsView extends StatelessWidget {
                             iconAssetName: Assets.svg.lock,
                             iconSize: 16,
                             title: "Security",
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .pushNamed(SecurityView.routeName);
+                            onPressed: () async {
+                              final nav = Navigator.of(context);
+                              final bio = await Biometrics.hasBiometrics;
+
+                              await nav.pushNamed(
+                                SecurityView.routeName,
+                                arguments: bio,
+                              );
                             },
                           ),
                           const _Div(),
