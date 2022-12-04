@@ -62,6 +62,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   bool _attemptLock = false;
   late Duration _timeout;
   static const maxAttemptsBeforeThrottling = 3;
+  Timer? _timer;
 
   Future<void> _onUnlock() async {
     final now = DateTime.now().toUtc();
@@ -273,11 +274,11 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                                   _timeout = const Duration(minutes: 60);
                               }
 
-                              unawaited(
-                                  Future<void>.delayed(_timeout).then((_) {
+                              _timer?.cancel();
+                              _timer = Timer(_timeout, () {
                                 _attemptLock = false;
                                 _attempts = 0;
-                              }));
+                              });
                             }
 
                             if (_attemptLock) {
