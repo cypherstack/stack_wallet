@@ -124,11 +124,11 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            "${Format.localizedStringAsFixed(
+                            Format.localizedStringAsFixed(
                               value: balanceToShow,
                               locale: locale,
                               decimalPlaces: 3,
-                            )} ${coin.ticker}",
+                            ),
                             style: STextStyles.titleH3(context).copyWith(
                               fontSize: 40,
                               height: 1,
