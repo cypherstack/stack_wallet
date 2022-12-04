@@ -207,7 +207,7 @@ class _ChangePinViewState extends State<ChangePinView> {
                               icon: SvgPicture.asset(
                                 Assets.svg.circleCheck,
                               ),
-                              message: "New PIN is set up",
+                              message: "New PIN has been set up",
                               duration: const Duration(milliseconds: 2000),
                             );
                           },
