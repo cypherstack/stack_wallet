@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:epicmobile/pages/settings_views/security_views/security_view.dart';
+import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
@@ -6,8 +9,10 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put.dart';
+import 'package:epicmobile/widgets/fullscreen_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ChangePinView extends StatefulWidget {
   const ChangePinView({
@@ -195,15 +200,18 @@ class _ChangePinViewState extends State<ChangePinView> {
                             null);
                         await _secureStore.write(key: "stack_pin", value: pin);
 
-                        // showFloatingFlushBar(
-                        //   type: FlushBarType.success,
-                        //   message: "New PIN is set up",
-                        //   context: context,
-                        //   iconAsset: Assets.svg.check,
-                        // );
-
-                        await Future<void>.delayed(
-                            const Duration(milliseconds: 1200));
+                        await showDialog<void>(
+                          context: context,
+                          builder: (context) {
+                            return FullScreenMessage(
+                              icon: SvgPicture.asset(
+                                Assets.svg.circleCheck,
+                              ),
+                              message: "New PIN is set up",
+                              duration: const Duration(milliseconds: 2000),
+                            );
+                          },
+                        );
 
                         if (mounted) {
                           Navigator.of(context).popUntil(
@@ -211,21 +219,32 @@ class _ChangePinViewState extends State<ChangePinView> {
                           );
                         }
                       } else {
-                        await _pageController.animateTo(
-                          0,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.linear,
+                        unawaited(
+                          Future<void>.delayed(
+                                  const Duration(milliseconds: 500))
+                              .then(
+                            (_) => _pageController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.linear,
+                            ),
+                          ),
                         );
-
-                        // showFloatingFlushBar(
-                        //   type: FlushBarType.warning,
-                        //   message: "PIN codes do not match. Try again.",
-                        //   context: context,
-                        //   iconAsset: Assets.svg.alertCircle,
-                        // );
 
                         _pinPutController1.text = '';
                         _pinPutController2.text = '';
+                        await showDialog<void>(
+                          context: context,
+                          builder: (context) {
+                            return FullScreenMessage(
+                              icon: SvgPicture.asset(
+                                Assets.svg.circleRedX,
+                              ),
+                              message: "PIN codes do not match.\nTry again.",
+                              duration: const Duration(seconds: 2),
+                            );
+                          },
+                        );
                       }
                     },
                   ),

@@ -13,6 +13,7 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put.dart';
+import 'package:epicmobile/widgets/fullscreen_message.dart';
 import 'package:epicmobile/widgets/shake/shake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -283,19 +284,20 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                               } else {
                                 prettyTime += "${_timeout.inSeconds} seconds";
                               }
-
-                              // unawaited(showFloatingFlushBar(
-                              //   type: FlushBarType.warning,
-                              //   message:
-                              //       "Incorrect PIN entered too many times. Please wait $prettyTime",
-                              //   context: context,
-                              //   iconAsset: Assets.svg.alertCircle,
-                              // ));
-
-                              await Future<void>.delayed(
-                                  const Duration(milliseconds: 100));
-
                               _pinTextController.text = '';
+                              await showDialog<void>(
+                                context: context,
+                                builder: (context) {
+                                  return FullScreenMessage(
+                                    icon: SvgPicture.asset(
+                                      Assets.svg.circleRedX,
+                                    ),
+                                    message:
+                                        "Incorrect PIN entered too many times.\nPlease wait $prettyTime",
+                                    duration: const Duration(seconds: 2),
+                                  );
+                                },
+                              );
 
                               return;
                             }
@@ -309,58 +311,22 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                               unawaited(_onUnlock());
                             } else {
                               unawaited(_shakeController.shake());
-                              unawaited(showDialog<dynamic>(
-                                  context: context,
-                                  builder: (context) {
-                                    return Dialog(
-                                      elevation: 0,
-                                      backgroundColor: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .background,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 50, vertical: 100),
-                                        child: Container(
-                                          height: 300,
-                                          width:
-                                              MediaQuery.of(context).size.width,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .background,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              SvgPicture.asset(
-                                                Assets.svg.circleRedX,
-                                              ),
-                                              const SizedBox(
-                                                height: 16,
-                                              ),
-                                              Text(
-                                                "Incorrect PIN."
-                                                "\nPlease try again.",
-                                                style: STextStyles.pageTitleH1(
-                                                    context),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }));
-
-                              await Future<void>.delayed(
-                                  const Duration(seconds: 2));
-
-                              //pop dialog
-                              Navigator.of(context).pop();
-
-                              await Future<void>.delayed(
-                                  const Duration(milliseconds: 100));
 
                               _pinTextController.text = '';
+
+                              await showDialog<void>(
+                                context: context,
+                                builder: (context) {
+                                  return FullScreenMessage(
+                                    icon: SvgPicture.asset(
+                                      Assets.svg.circleRedX,
+                                    ),
+                                    message: "Incorrect PIN."
+                                        "\nPlease try again.",
+                                    duration: const Duration(seconds: 2),
+                                  );
+                                },
+                              );
                             }
                           },
                         ),

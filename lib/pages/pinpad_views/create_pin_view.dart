@@ -19,6 +19,7 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put.dart';
+import 'package:epicmobile/widgets/fullscreen_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -254,45 +255,17 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                                       .hasPin ==
                                   false);
 
+                              final controller = FullScreenMessageController();
                               unawaited(
-                                showDialog<dynamic>(
+                                showDialog<void>(
                                   context: context,
                                   builder: (context) {
-                                    return Dialog(
-                                      elevation: 0,
-                                      backgroundColor: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .background,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 50, vertical: 100),
-                                        child: Container(
-                                          height: 300,
-                                          width:
-                                              MediaQuery.of(context).size.width,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .background,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              SvgPicture.asset(
-                                                Assets.svg.circleCheck,
-                                              ),
-                                              const SizedBox(
-                                                height: 16,
-                                              ),
-                                              Text(
-                                                "Wallet created",
-                                                style: STextStyles.pageTitleH1(
-                                                    context),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+                                    return FullScreenMessage(
+                                      icon: SvgPicture.asset(
+                                        Assets.svg.circleCheck,
                                       ),
+                                      message: "Wallet created",
+                                      controller: controller,
                                     );
                                   },
                                 ),
@@ -314,13 +287,14 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
 
                               if (mounted) {
                                 //pop dialog
-                                Navigator.of(context).pop();
+                                controller.forcePop!.call();
 
-                                unawaited(Navigator.of(context)
-                                    .pushNamedAndRemoveUntil(
-                                  HomeView.routeName,
-                                  (route) => false,
-                                ));
+                                unawaited(
+                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                    HomeView.routeName,
+                                    (route) => false,
+                                  ),
+                                );
                               }
                             } else {
                               //!isNewWallet
@@ -366,55 +340,22 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                           ),
                         );
 
-                        unawaited(showDialog<dynamic>(
-                            context: context,
-                            builder: (context) {
-                              return Dialog(
-                                elevation: 0,
-                                backgroundColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .background,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 50, vertical: 100),
-                                  child: Container(
-                                    height: 300,
-                                    width: MediaQuery.of(context).size.width,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .background,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        SvgPicture.asset(
-                                          Assets.svg.circleRedX,
-                                        ),
-                                        const SizedBox(
-                                          height: 16,
-                                        ),
-                                        Text(
-                                          "Incorrect PIN."
-                                          "\nSet up your PIN again.",
-                                          style:
-                                              STextStyles.pageTitleH1(context),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }));
+                        _pinPutController1.text = '';
+                        _pinPutController2.text = '';
 
-                        await Future<void>.delayed(const Duration(seconds: 2));
-
-                        if (mounted) {
-                          //pop dialog
-                          Navigator.of(context).pop();
-                          _pinPutController1.text = '';
-                          _pinPutController2.text = '';
-                        }
+                        await showDialog<void>(
+                          context: context,
+                          builder: (context) {
+                            return FullScreenMessage(
+                              icon: SvgPicture.asset(
+                                Assets.svg.circleRedX,
+                              ),
+                              message: "Incorrect PIN."
+                                  "\nSet up your PIN again.",
+                              duration: const Duration(seconds: 2),
+                            );
+                          },
+                        );
                       }
                     },
                   ),
