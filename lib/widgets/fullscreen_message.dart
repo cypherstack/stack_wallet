@@ -33,6 +33,7 @@ class _FullScreenMessageState extends State<FullScreenMessage> {
 
   void _pop() {
     _canPop = true;
+    controller?.forcePop = null;
     Navigator.of(context).pop();
   }
 
@@ -54,6 +55,12 @@ class _FullScreenMessageState extends State<FullScreenMessage> {
     }
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller?.forcePop = null;
+    super.dispose();
   }
 
   @override

@@ -75,9 +75,8 @@ class ConfirmWalletDeleteView extends ConsumerWidget {
     );
 
     await ref.read(walletProvider)!.exitCurrentWallet();
-    // // wait for widget tree to dispose of any widgets watching the manager
-    // await Future<void>.delayed(
-    //     const Duration(seconds: 1));
+    // wait for widget tree to dispose of any widgets watching the manager
+    await Future<void>.delayed(const Duration(seconds: 1));
     ref.read(walletStateProvider.state).state = null;
   }
 

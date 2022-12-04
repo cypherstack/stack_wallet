@@ -1,7 +1,6 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/mobile_mnemonic_length_selector.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_from_date_picker.dart';
-import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_next_button.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_platform_layout.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
@@ -16,6 +15,7 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
+import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -380,9 +380,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 const SizedBox(
                   height: 32,
                 ),
-              RestoreOptionsNextButton(
-                isDesktop: isDesktop,
-                onPressed: _nextEnabled ? nextPressed : null,
+              PrimaryButton(
+                label: "NEXT",
+                enabled: _nextEnabled,
+                onPressed: nextPressed,
               ),
 
               if (isDesktop)

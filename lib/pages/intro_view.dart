@@ -4,9 +4,8 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/background.dart';
-import 'package:flutter/gestures.dart';
+import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
@@ -66,12 +65,10 @@ class _IntroViewState extends State<IntroView> {
               const SizedBox(
                 height: 118,
               ),
-              Row(
-                children: const [
-                  Expanded(
-                    child: GetStartedButton(),
-                  ),
-                ],
+              PrimaryButton(
+                label: "GET STARTED",
+                onPressed: () => Navigator.of(context)
+                    .pushNamed(CreateRestoreWalletView.routeName),
               ),
             ],
           ),
@@ -95,69 +92,49 @@ class AppNameText extends StatelessWidget {
     );
   }
 }
-
-class PrivacyAndTOSText extends StatelessWidget {
-  const PrivacyAndTOSText({Key? key, required this.isDesktop})
-      : super(key: key);
-
-  final bool isDesktop;
-
-  @override
-  Widget build(BuildContext context) {
-    final fontSize = isDesktop ? 18.0 : 12.0;
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        style: STextStyles.label(context).copyWith(fontSize: fontSize),
-        children: [
-          const TextSpan(text: "By using Stack Wallet, you agree to the "),
-          TextSpan(
-            text: "Terms of service",
-            style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                launchUrl(
-                  Uri.parse("https://epicmobile.com/terms-of-service.html"),
-                  mode: LaunchMode.externalApplication,
-                );
-              },
-          ),
-          const TextSpan(text: " and "),
-          TextSpan(
-            text: "Privacy policy",
-            style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                launchUrl(
-                  Uri.parse("https://epicmobile.com/privacy-policy.html"),
-                  mode: LaunchMode.externalApplication,
-                );
-              },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class GetStartedButton extends StatelessWidget {
-  const GetStartedButton({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      style: Theme.of(context)
-          .extension<StackColors>()!
-          .getPrimaryEnabledButtonColor(context),
-      onPressed: () {
-        Navigator.of(context).pushNamed(CreateRestoreWalletView.routeName);
-      },
-      child: Text(
-        "Get started",
-        style: STextStyles.buttonText(context),
-      ),
-    );
-  }
-}
+//
+// class PrivacyAndTOSText extends StatelessWidget {
+//   const PrivacyAndTOSText({Key? key, required this.isDesktop})
+//       : super(key: key);
+//
+//   final bool isDesktop;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final fontSize = isDesktop ? 18.0 : 12.0;
+//     return RichText(
+//       textAlign: TextAlign.center,
+//       text: TextSpan(
+//         style: STextStyles.label(context).copyWith(fontSize: fontSize),
+//         children: [
+//           const TextSpan(text: "By using Stack Wallet, you agree to the "),
+//           TextSpan(
+//             text: "Terms of service",
+//             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
+//             recognizer: TapGestureRecognizer()
+//               ..onTap = () {
+//                 launchUrl(
+//                   Uri.parse("https://epicmobile.com/terms-of-service.html"),
+//                   mode: LaunchMode.externalApplication,
+//                 );
+//               },
+//           ),
+//           const TextSpan(text: " and "),
+//           TextSpan(
+//             text: "Privacy policy",
+//             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
+//             recognizer: TapGestureRecognizer()
+//               ..onTap = () {
+//                 launchUrl(
+//                   Uri.parse("https://epicmobile.com/privacy-policy.html"),
+//                   mode: LaunchMode.externalApplication,
+//                 );
+//               },
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+//
+//

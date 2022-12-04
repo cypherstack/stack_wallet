@@ -95,14 +95,14 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                   Expanded(
                     child: PrimaryButton(
                       height: 56,
-                      width: 330,
                       label: "CREATE NEW WALLET",
                       onPressed: () {
                         unawaited(Navigator.of(context).push(
                           RouteGenerator.getRoute(
                             shouldUseMaterialRoute:
                                 RouteGenerator.useMaterialPageRoute,
-                            builder: (_) => CreatePinView(isNewWallet: true),
+                            builder: (_) =>
+                                const CreatePinView(isNewWallet: true),
                             settings: const RouteSettings(
                               name: CreatePinView.routeName,
                             ),
@@ -121,14 +121,14 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                   Expanded(
                     child: SecondaryButton(
                       height: 56,
-                      width: 330,
                       label: "RESTORE WALLET",
                       onPressed: () {
                         unawaited(Navigator.of(context).push(
                           RouteGenerator.getRoute(
                             shouldUseMaterialRoute:
                                 RouteGenerator.useMaterialPageRoute,
-                            builder: (_) => CreatePinView(isNewWallet: false),
+                            builder: (_) =>
+                                const CreatePinView(isNewWallet: false),
                             settings: const RouteSettings(
                               name: CreatePinView.routeName,
                             ),

@@ -5,10 +5,6 @@ import 'dart:math';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
-import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/confirm_recovery_dialog.dart';
-import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_dialog.dart';
-import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
-import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/coins/coin_service.dart';
@@ -29,6 +25,7 @@ import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
+import 'package:epicmobile/widgets/fullscreen_message.dart';
 import 'package:epicmobile/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:epicmobile/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:epicmobile/widgets/table_view/table_view.dart';
@@ -159,6 +156,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   }
 
   Future<void> attemptRestore() async {
+    // wait for keyboard to disappear
+    FocusScope.of(context).unfocus();
+    await Future<void>.delayed(
+      const Duration(milliseconds: 80),
+    );
+
     if (_formKey.currentState!.validate()) {
       String mnemonic = "";
       for (var element in _controllers) {
@@ -201,25 +204,19 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         );
         bool isRestoring = true;
         // show restoring in progress
-        unawaited(showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: false,
-          builder: (context) {
-            return RestoringDialog(
-              onCancel: () async {
-                isRestoring = false;
-                await ref.read(walletProvider)!.exitCurrentWallet();
-                ref.read(walletStateProvider.state).state = null;
-
-                await walletsService.deleteWallet(
-                  widget.walletName,
-                  false,
-                );
-              },
-            );
-          },
-        ));
+        final controller = FullScreenMessageController();
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (context) => FullScreenMessage(
+              message: "Restoring wallet.\nIt may take a while.",
+              icon: SvgPicture.asset(
+                Assets.svg.loader,
+              ),
+              controller: controller,
+            ),
+          ),
+        );
 
         var node = ref
             .read(nodeServiceChangeNotifierProvider)
@@ -271,20 +268,25 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             ref.read(walletStateProvider.state).state = manager;
 
             if (mounted) {
-              if (isDesktop) {
-              } else {
-                unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
-                    HomeView.routeName, (route) => false));
-              }
+              controller.forcePop?.call();
+
+              unawaited(
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  HomeView.routeName,
+                  (route) => false,
+                ),
+              );
             }
 
-            await showDialog<dynamic>(
+            await showDialog<void>(
               context: context,
-              useSafeArea: false,
-              barrierDismissible: true,
-              builder: (context) {
-                return const RestoreSucceededDialog();
-              },
+              builder: (context) => FullScreenMessage(
+                message: "Wallet has been restored.",
+                icon: SvgPicture.asset(
+                  Assets.svg.circleCheck,
+                ),
+                duration: const Duration(seconds: 2),
+              ),
             );
             if (!Platform.isLinux && !isDesktop) {
               await Wakelock.disable();
@@ -305,20 +307,19 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // before continuing
           if (mounted && isRestoring) {
             // pop waiting dialog
-            Navigator.pop(context);
+            controller.forcePop?.call();
 
             // show restoring wallet failed dialog
-            await showDialog<dynamic>(
+            await showDialog<void>(
               context: context,
-              useSafeArea: false,
-              barrierDismissible: true,
-              builder: (context) {
-                return RestoreFailedDialog(
-                  errorMessage: e.toString(),
-                  walletId: wallet.walletId,
-                  walletName: wallet.walletName,
-                );
-              },
+              builder: (context) => FullScreenMessage(
+                message:
+                    "Unable to restore wallet.\nCheck your seed again.\n${e.toString()}",
+                icon: SvgPicture.asset(
+                  Assets.svg.circleRedX,
+                ),
+                duration: const Duration(seconds: 3),
+              ),
             );
           }
         }
@@ -490,25 +491,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       final list = content.split(" ");
       _clearAndPopulateMnemonic(list);
     }
-  }
-
-  Future<void> requestRestore() async {
-    // wait for keyboard to disappear
-    FocusScope.of(context).unfocus();
-    await Future<void>.delayed(
-      const Duration(milliseconds: 100),
-    );
-
-    await showDialog<dynamic>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: true,
-      builder: (context) {
-        return ConfirmRecoveryDialog(
-          onConfirm: attemptRestore,
-        );
-      },
-    );
   }
 
   @override
@@ -874,7 +856,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                           PrimaryButton(
                             label: "Restore wallet",
                             width: 480,
-                            onPressed: requestRestore,
+                            onPressed: attemptRestore,
                           ),
                         ],
                       );
@@ -969,8 +951,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                 top: 8.0,
                               ),
                               child: PrimaryButton(
-                                onPressed: requestRestore,
-                                label: "Restore",
+                                onPressed: attemptRestore,
+                                label: "RESTORE",
                               ),
                             ),
                           ],

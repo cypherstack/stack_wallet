@@ -8,7 +8,7 @@ class SecondaryButton extends StatelessWidget {
   const SecondaryButton({
     Key? key,
     this.width,
-    this.height,
+    this.height = 56,
     this.label,
     this.icon,
     this.onPressed,
