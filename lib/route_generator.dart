@@ -35,7 +35,9 @@ import 'package:epicmobile/pages/settings_views/security_views/change_pin_view/c
 import 'package:epicmobile/pages/settings_views/security_views/security_view.dart';
 import 'package:epicmobile/pages/settings_views/settings_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_backup_views/wallet_backup_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings/confirm_delete_wallet_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings/delete_wallet_recovery_phrase_view.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings/verify_mnemonic_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings/wallet_settings_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/edit_note_view.dart';
@@ -512,6 +514,29 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case VerifyMnemonicView.routeName:
+        if (args is List<String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => VerifyMnemonicView(
+              mnemonic: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ConfirmWalletDeleteView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ConfirmWalletDeleteView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
 
       case GenerateUriQrCodeView.routeName:
         if (args is Tuple2<Coin, String>) {

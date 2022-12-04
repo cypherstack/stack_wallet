@@ -15,7 +15,7 @@ class WalletSettingsView extends ConsumerWidget {
     Key? key,
   }) : super(key: key);
 
-  static const String routeName = "/walletSettingsWalletSettings";
+  static const String routeName = "/walletSettings";
 
   Future<void> requestDelete(BuildContext context, WidgetRef ref) async {
     await showDialog<void>(

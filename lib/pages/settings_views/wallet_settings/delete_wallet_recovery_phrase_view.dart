@@ -1,28 +1,24 @@
+import 'dart:math';
+
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/pages/settings_views/wallet_settings/verify_mnemonic_view.dart';
+import 'package:epicmobile/providers/ui/verify_recovery_phrase/correct_word_provider.dart';
+import 'package:epicmobile/providers/ui/verify_recovery_phrase/random_index_provider.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
-import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
-import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-import '../../add_wallet_views/create_restore_wallet_view.dart';
 
 class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const DeleteWalletRecoveryPhraseView({
     Key? key,
     required this.mnemonic,
     this.clipboardInterface = const ClipboardWrapper(),
-    this.secureStorageInterface = const SecureStorageWrapper(
-      FlutterSecureStorage(),
-    ),
   }) : super(key: key);
 
   static const routeName = "/deleteWalletRecoveryPhrase";
@@ -30,7 +26,6 @@ class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   final List<String> mnemonic;
 
   final ClipboardInterface clipboardInterface;
-  final FlutterSecureStorageInterface secureStorageInterface;
 
   @override
   ConsumerState<DeleteWalletRecoveryPhraseView> createState() =>
@@ -41,13 +36,11 @@ class _DeleteWalletRecoveryPhraseViewState
     extends ConsumerState<DeleteWalletRecoveryPhraseView> {
   late final List<String> _mnemonic;
   late final ClipboardInterface _clipboardInterface;
-  late final FlutterSecureStorageInterface _secureStorageInterface;
 
   @override
   void initState() {
     _mnemonic = widget.mnemonic;
     _clipboardInterface = widget.clipboardInterface;
-    _secureStorageInterface = widget.secureStorageInterface;
     super.initState();
   }
 
@@ -162,56 +155,17 @@ class _DeleteWalletRecoveryPhraseViewState
                 PrimaryButton(
                   label: "I'VE WRITTEN DOWN THE KEY",
                   onPressed: () {
-                    showDialog<dynamic>(
-                      barrierDismissible: true,
-                      context: context,
-                      builder: (_) => StackDialog(
-                        title: "Thanks! Your wallet will be deleted.",
-                        leftButton: TextButton(
-                          style: Theme.of(context)
-                              .extension<StackColors>()!
-                              .getSecondaryEnabledButtonColor(context),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            "Cancel",
-                            style: STextStyles.buttonText(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark),
-                          ),
-                        ),
-                        rightButton: TextButton(
-                          style: Theme.of(context)
-                              .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context),
-                          onPressed: () async {
-                            final nav = Navigator.of(context);
-                            await ref
-                                .read(walletsServiceChangeNotifierProvider)
-                                .deleteWallet(
-                                    ref.read(walletProvider)!.walletName, true);
-                            await _secureStorageInterface.delete(
-                                key: "stack_pin");
-                            ref.read(prefsChangeNotifierProvider).hasPin =
-                                false;
-                            nav.popUntil((route) => false);
-                            await nav
-                                .pushNamed(CreateRestoreWalletView.routeName);
+                    final int next = Random().nextInt(_mnemonic.length);
+                    ref
+                        .read(verifyMnemonicWordIndexStateProvider.state)
+                        .update((state) => next);
+                    ref
+                        .read(verifyMnemonicCorrectWordStateProvider.state)
+                        .update((state) => _mnemonic[next]);
 
-                            await ref.read(walletProvider)!.exitCurrentWallet();
-                            // wait for widget tree to dispose of any widgets watching the manager
-                            await Future<void>.delayed(
-                                const Duration(seconds: 1));
-                            ref.read(walletStateProvider.state).state = null;
-                          },
-                          child: Text(
-                            "Ok",
-                            style: STextStyles.buttonText(context),
-                          ),
-                        ),
-                      ),
+                    Navigator.of(context).pushNamed(
+                      VerifyMnemonicView.routeName,
+                      arguments: _mnemonic,
                     );
                   },
                 )

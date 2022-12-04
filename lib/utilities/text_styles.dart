@@ -41,6 +41,25 @@ class STextStyles {
     }
   }
 
+  static TextStyle titleH1(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w600,
+          fontSize: 40,
+          height: 52 / 40,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.poppins(
+          color: _theme(context).textLight,
+          fontWeight: FontWeight.w600,
+          fontSize: 40,
+          height: 52 / 40,
+        );
+    }
+  }
+
   static TextStyle titleH2(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
