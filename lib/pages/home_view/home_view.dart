@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:epicmobile/pages/help/help_view.dart';
 import 'package:epicmobile/pages/home_view/sub_widgets/connection_status_bar.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/network_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/settings_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
@@ -249,11 +250,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 centerTitle: true,
                 title: SizedBox(
                   height: 32,
-                  child: ConnectionStatusBar(
-                    currentSyncPercent: _percent,
-                    color: Theme.of(context).extension<StackColors>()!.coal,
-                    background:
-                        Theme.of(context).extension<StackColors>()!.popupBG,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        NetworkSettingsView.routeName,
+                      );
+                    },
+                    child: ConnectionStatusBar(
+                      currentSyncPercent: _percent,
+                      color: Theme.of(context).extension<StackColors>()!.coal,
+                      background:
+                          Theme.of(context).extension<StackColors>()!.popupBG,
+                    ),
                   ),
                 ),
                 actions: [
