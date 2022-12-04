@@ -92,7 +92,7 @@ class _SVG {
   String get checkCircle => "assets/svg/circle-check.svg";
   String get clipboard => "assets/svg/clipboard.svg";
   String get qrcode => "assets/svg/qrcode1.svg";
-  // String get ellipsis => "assets/svg/gear-3.svg";
+  String get ellipsis => "assets/svg/gear-3.svg";
   String get chevronDown => "assets/svg/chevron-down.svg";
   String get chevronUp => "assets/svg/chevron-up.svg";
   // String get swap => "assets/svg/swap.svg";
@@ -148,9 +148,6 @@ class _SVG {
   // String get exitDesktop => "assets/svg/exit-desktop.svg";
   // String get keys => "assets/svg/keys.svg";
   String get arrowDown => "assets/svg/arrow-down.svg";
-
-  // String get ellipse1 => "assets/svg/Ellipse-43.svg";
-  // String get ellipse2 => "assets/svg/Ellipse-42.svg";
 
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
 

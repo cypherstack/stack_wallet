@@ -110,21 +110,13 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case AddressBookView.routeName:
-        if (args is Coin) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => AddressBookView(
-              coin: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AddressBookView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AddressBookView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
 
       case AddressBookFilterView.routeName:
         return getRoute(

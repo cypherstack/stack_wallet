@@ -190,8 +190,6 @@ flutter:
     - assets/svg/filter.svg
     - assets/svg/pending.svg
     - assets/svg/signal-stream.svg
-    - assets/svg/Ellipse-43.svg
-    - assets/svg/Ellipse-42.svg
     - assets/svg/arrow-rotate.svg
     - assets/svg/arrow-rotate2.svg
     - assets/svg/qrcode1.svg
@@ -253,8 +251,6 @@ flutter:
     - assets/svg/Polygon.svg
     - assets/svg/persona-easy-1.svg
     - assets/svg/persona-incognito-1.svg
-    - assets/svg/Button.svg
-    - assets/svg/enabled-button.svg
     - assets/svg/dollar-sign-circle.svg
     - assets/svg/language-circle.svg
     - assets/svg/rotate-circle.svg
