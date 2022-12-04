@@ -174,22 +174,9 @@ flutter:
     - google_fonts/
     - assets/svg/circle-check.svg
     - assets/svg/clipboard.svg
-    - assets/images/stack.png
-    - assets/images/monero.png
-    - assets/images/wownero.png
-    - assets/images/firo.png
-    - assets/images/litecoin.png
-    - assets/images/doge.png
-    - assets/images/bitcoin.png
-    - assets/images/epic-cash.png
-    - assets/images/bitcoincash.png
-    - assets/images/namecoin.png
     - assets/svg/plus.svg
     - assets/svg/gear.svg
     - assets/svg/bell.svg
-    - assets/svg/light/bell-new.svg
-    - assets/svg/dark/bell-new.svg
-    - assets/svg/stack-icon1.svg
     - assets/svg/arrow-left-fa.svg
     - assets/svg/copy-fa.svg
     - assets/svg/star.svg
@@ -202,10 +189,7 @@ flutter:
     - assets/svg/bars.svg
     - assets/svg/filter.svg
     - assets/svg/pending.svg
-    - assets/svg/dark/exchange-2.svg
-    - assets/svg/light/exchange-2.svg
     - assets/svg/signal-stream.svg
-    - assets/svg/buy-coins-icon.svg
     - assets/svg/Ellipse-43.svg
     - assets/svg/Ellipse-42.svg
     - assets/svg/arrow-rotate.svg
@@ -249,25 +233,13 @@ flutter:
     - assets/svg/ellipsis-vertical1.svg
     - assets/svg/dice-alt.svg
     - assets/svg/circle-arrow-up-right2.svg
-    - assets/svg/dark/tx-exchange-icon.svg
-    - assets/svg/light/tx-exchange-icon.svg
-    - assets/svg/dark/tx-exchange-icon-pending.svg
-    - assets/svg/light/tx-exchange-icon-pending.svg
-    - assets/svg/dark/tx-exchange-icon-failed.svg
-    - assets/svg/light/tx-exchange-icon-failed.svg
     - assets/svg/loader.svg
     - assets/svg/dark/tx-icon-send.svg
-    - assets/svg/light/tx-icon-send.svg
     - assets/svg/dark/tx-icon-send-pending.svg
-    - assets/svg/light/tx-icon-send-pending.svg
     - assets/svg/dark/tx-icon-send-failed.svg
-    - assets/svg/light/tx-icon-send-failed.svg
     - assets/svg/dark/tx-icon-receive.svg
-    - assets/svg/light/tx-icon-receive.svg
     - assets/svg/dark/tx-icon-receive-pending.svg
-    - assets/svg/light/tx-icon-receive-pending.svg
     - assets/svg/dark/tx-icon-receive-failed.svg
-    - assets/svg/light/tx-icon-receive-failed.svg
     - assets/svg/add-backup.svg
     - assets/svg/auto-backup.svg
     - assets/svg/restore-backup.svg
@@ -288,8 +260,6 @@ flutter:
     - assets/svg/rotate-circle.svg
     - assets/svg/sun-circle.svg
     - assets/svg/node-circle.svg
-    - assets/svg/dark/dark-theme.svg
-    - assets/svg/light/light-mode.svg
     - assets/svg/about-desktop.svg
     - assets/svg/exchange-desktop.svg
     - assets/svg/wallet-desktop.svg
@@ -303,15 +273,7 @@ flutter:
     - assets/svg/download.svg
     - assets/svg/wallet.svg
     # coin icons
-    - assets/svg/coin_icons/Bitcoin.svg
-    - assets/svg/coin_icons/Litecoin.svg
-    - assets/svg/coin_icons/Bitcoincash.svg
-    - assets/svg/coin_icons/Dogecoin.svg
     - assets/svg/coin_icons/EpicCash.svg
-    - assets/svg/coin_icons/Firo.svg
-    - assets/svg/coin_icons/Monero.svg
-    - assets/svg/coin_icons/Wownero.svg
-    - assets/svg/coin_icons/Namecoin.svg
     # lottie animations
     - assets/lottie/test.json
     - assets/lottie/test2.json
@@ -330,9 +292,6 @@ flutter:
     - assets/svg/box-auto.svg
     - assets/svg/framed-address-book.svg
     - assets/svg/framed-gear.svg
-    # exchange icons
-    - assets/svg/exchange_icons/change_now_logo_1.svg
-    - assets/svg/exchange_icons/simpleswap-icon.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

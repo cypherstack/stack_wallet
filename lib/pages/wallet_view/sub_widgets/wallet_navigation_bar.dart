@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class WalletNavigationBar extends StatelessWidget {
   const WalletNavigationBar({
@@ -156,45 +156,45 @@ class WalletNavigationBar extends StatelessWidget {
                 ),
               ),
             ),
-            if (enableExchange)
-              RawMaterialButton(
-                constraints: const BoxConstraints(
-                  minWidth: 66,
-                ),
-                onPressed: onExchangePressed,
-                splashColor:
-                    Theme.of(context).extension<StackColors>()!.highlight,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    height / 2.0,
-                  ),
-                ),
-                child: Container(
-                  color: Colors.transparent,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Spacer(),
-                        SvgPicture.asset(
-                          Assets.svg.exchange(context),
-                          width: 24,
-                          height: 24,
-                        ),
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        Text(
-                          "Exchange",
-                          style: STextStyles.buttonSmall(context),
-                        ),
-                        const Spacer(),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            // if (enableExchange)
+            //   RawMaterialButton(
+            //     constraints: const BoxConstraints(
+            //       minWidth: 66,
+            //     ),
+            //     onPressed: onExchangePressed,
+            //     splashColor:
+            //         Theme.of(context).extension<StackColors>()!.highlight,
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(
+            //         height / 2.0,
+            //       ),
+            //     ),
+            //     child: Container(
+            //       color: Colors.transparent,
+            //       child: Padding(
+            //         padding: const EdgeInsets.symmetric(vertical: 2.0),
+            //         child: Column(
+            //           crossAxisAlignment: CrossAxisAlignment.center,
+            //           children: [
+            //             const Spacer(),
+            //             SvgPicture.asset(
+            //               Assets.svg.exchange(context),
+            //               width: 24,
+            //               height: 24,
+            //             ),
+            //             const SizedBox(
+            //               height: 4,
+            //             ),
+            //             Text(
+            //               "Exchange",
+            //               style: STextStyles.buttonSmall(context),
+            //             ),
+            //             const Spacer(),
+            //           ],
+            //         ),
+            //       ),
+            //     ),
+            //   ),
             const SizedBox(
               width: 12,
             ),

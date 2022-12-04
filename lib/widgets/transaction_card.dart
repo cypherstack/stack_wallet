@@ -38,24 +38,6 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       return "Restored Funds";
     }
 
-    if (_transaction.subType == "mint") {
-      // if (type == "Received") {
-      if (_transaction.confirmedStatus) {
-        return "Anonymized";
-      } else {
-        return "Anonymizing";
-      }
-      // } else if (type == "Sent") {
-      //   if (_transaction.confirmedStatus) {
-      //     return "Sent MINT";
-      //   } else {
-      //     return "Sending MINT";
-      //   }
-      // } else {
-      //   return type;
-      // }
-    }
-
     if (type == "Received") {
       // if (_transaction.isMinting) {
       //   return "Minting";
@@ -63,13 +45,13 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       if (_transaction.confirmedStatus) {
         return "Received";
       } else {
-        return "Receiving";
+        return "Receiving...";
       }
     } else if (type == "Sent") {
       if (_transaction.confirmedStatus) {
         return "Sent";
       } else {
-        return "Sending";
+        return "Sending...";
       }
     } else {
       return type;
@@ -98,15 +80,6 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
         .watch(priceAnd24hChangeNotifierProvider
             .select((value) => value.getPrice(coin)))
         .item1;
-
-    String prefix = "";
-    if (Util.isDesktop) {
-      if (_transaction.txType == "Sent") {
-        prefix = "-";
-      } else if (_transaction.txType == "Received") {
-        prefix = "+";
-      }
-    }
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -161,12 +134,15 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             }
           },
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             child: Row(
               children: [
+                const SizedBox(
+                  width: 4,
+                ),
                 TxIcon(transaction: _transaction),
                 const SizedBox(
-                  width: 14,
+                  width: 20,
                 ),
                 Expanded(
                   child: Column(
@@ -183,7 +159,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                 _transaction.isCancelled
                                     ? "Cancelled"
                                     : whatIsIt(_transaction.txType, coin),
-                                style: STextStyles.itemSubtitle12(context),
+                                style: STextStyles.bodySmallBold(context),
                               ),
                             ),
                           ),
@@ -195,11 +171,12 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Builder(
                                 builder: (_) {
-                                  final amount = _transaction.amount;
+                                  final amount = Format.satoshisToAmount(
+                                      _transaction.amount,
+                                      coin: coin);
                                   return Text(
-                                    "$prefix${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
-                                    style:
-                                        STextStyles.itemSubtitle12_600(context),
+                                    "${amount.toStringAsFixed(2)} ${coin.ticker}",
+                                    style: STextStyles.bodySmall(context),
                                   );
                                 },
                               ),
@@ -208,7 +185,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                         ],
                       ),
                       const SizedBox(
-                        height: 4,
+                        height: 8,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -218,8 +195,9 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
-                                Format.extractDateFrom(_transaction.timestamp),
-                                style: STextStyles.label(context),
+                                Format.extractDateFrom(_transaction.timestamp,
+                                    simple: true),
+                                style: STextStyles.bodySmall(context),
                               ),
                             ),
                           ),
@@ -235,13 +213,13 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                   int value = _transaction.amount;
 
                                   return Text(
-                                    "$prefix${Format.localizedStringAsFixed(
+                                    "${Format.localizedStringAsFixed(
                                       value: Format.satoshisToAmount(value) *
                                           price,
                                       locale: locale,
                                       decimalPlaces: 2,
                                     )} $baseCurrency",
-                                    style: STextStyles.label(context),
+                                    style: STextStyles.bodySmall(context),
                                   );
                                 },
                               ),
