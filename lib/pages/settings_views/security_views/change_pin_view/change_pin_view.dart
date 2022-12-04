@@ -27,12 +27,8 @@ class ChangePinView extends StatefulWidget {
 
 class _ChangePinViewState extends State<ChangePinView> {
   BoxDecoration get _pinPutDecoration {
-    return BoxDecoration(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
-      border: Border.all(
-          width: 1,
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle2),
-      borderRadius: BorderRadius.circular(6),
+    return const BoxDecoration(
+      color: Colors.transparent,
     );
   }
 
@@ -94,8 +90,12 @@ class _ChangePinViewState extends State<ChangePinView> {
                 children: [
                   Center(
                     child: Text(
-                      "Create new PIN",
-                      style: STextStyles.pageTitleH1(context),
+                      "Enter new PIN",
+                      style: STextStyles.titleH2(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textGold,
+                      ),
                     ),
                   ),
                   const SizedBox(
@@ -103,8 +103,6 @@ class _ChangePinViewState extends State<ChangePinView> {
                   ),
                   CustomPinPut(
                     fieldsCount: Constants.pinLength,
-                    eachFieldHeight: 12,
-                    eachFieldWidth: 12,
                     textStyle: STextStyles.label(context).copyWith(
                       fontSize: 1,
                     ),
@@ -112,28 +110,21 @@ class _ChangePinViewState extends State<ChangePinView> {
                     controller: _pinPutController1,
                     useNativeKeyboard: false,
                     obscureText: "",
-                    inputDecoration: InputDecoration(
+                    inputDecoration: const InputDecoration(
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      fillColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      fillColor: Colors.transparent,
                       counterText: "",
                     ),
                     submittedFieldDecoration: _pinPutDecoration.copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .infoItemIcons,
-                      border: Border.all(
-                        width: 1,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
-                      ),
+                      borderRadius: BorderRadius.circular(100),
                     ),
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
@@ -157,7 +148,11 @@ class _ChangePinViewState extends State<ChangePinView> {
                   Center(
                     child: Text(
                       "Confirm new PIN",
-                      style: STextStyles.pageTitleH1(context),
+                      style: STextStyles.titleH2(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textGold,
+                      ),
                     ),
                   ),
                   const SizedBox(
@@ -165,8 +160,6 @@ class _ChangePinViewState extends State<ChangePinView> {
                   ),
                   CustomPinPut(
                     fieldsCount: Constants.pinLength,
-                    eachFieldHeight: 12,
-                    eachFieldWidth: 12,
                     textStyle: STextStyles.infoSmall(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -177,28 +170,21 @@ class _ChangePinViewState extends State<ChangePinView> {
                     controller: _pinPutController2,
                     useNativeKeyboard: false,
                     obscureText: "",
-                    inputDecoration: InputDecoration(
+                    inputDecoration: const InputDecoration(
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      fillColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      fillColor: Colors.transparent,
                       counterText: "",
                     ),
                     submittedFieldDecoration: _pinPutDecoration.copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .infoItemIcons,
-                      border: Border.all(
-                        width: 1,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
-                      ),
+                      borderRadius: BorderRadius.circular(100),
                     ),
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,

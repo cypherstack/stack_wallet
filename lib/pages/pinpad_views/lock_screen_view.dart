@@ -151,12 +151,8 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   }
 
   BoxDecoration get _pinPutDecoration {
-    return BoxDecoration(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
-      border: Border.all(
-          width: 1,
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle2),
-      borderRadius: BorderRadius.circular(6),
+    return const BoxDecoration(
+      color: Colors.transparent,
     );
   }
 
@@ -201,7 +197,11 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                         Center(
                           child: Text(
                             "Enter PIN",
-                            style: STextStyles.pageTitleH1(context),
+                            style: STextStyles.titleH2(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
                           ),
                         ),
                         const SizedBox(
@@ -209,8 +209,6 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                         ),
                         CustomPinPut(
                           fieldsCount: Constants.pinLength,
-                          eachFieldHeight: 12,
-                          eachFieldWidth: 12,
                           textStyle: STextStyles.label(context).copyWith(
                             fontSize: 1,
                           ),
@@ -218,28 +216,21 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           controller: _pinTextController,
                           useNativeKeyboard: false,
                           obscureText: "",
-                          inputDecoration: InputDecoration(
+                          inputDecoration: const InputDecoration(
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
                             disabledBorder: InputBorder.none,
                             errorBorder: InputBorder.none,
                             focusedErrorBorder: InputBorder.none,
-                            fillColor: Theme.of(context)
-                                .extension<StackColors>()!
-                                .background,
+                            fillColor: Colors.transparent,
                             counterText: "",
                           ),
                           submittedFieldDecoration: _pinPutDecoration.copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .infoItemIcons,
-                            border: Border.all(
-                              width: 1,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .infoItemIcons,
-                            ),
+                            borderRadius: BorderRadius.circular(100),
                           ),
                           selectedFieldDecoration: _pinPutDecoration,
                           followingFieldDecoration: _pinPutDecoration,

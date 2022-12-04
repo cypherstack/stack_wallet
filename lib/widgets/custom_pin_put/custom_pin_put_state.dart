@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:epicmobile/widgets/custom_pin_put/pin_keyboard.dart';
+import 'package:flutter/material.dart';
 
 class CustomPinPutState extends State<CustomPinPut>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
@@ -56,7 +57,7 @@ class CustomPinPutState extends State<CustomPinPut>
       child: Column(
         children: [
           SizedBox(
-            width: (30 * widget.fieldsCount) - 18,
+            width: (56 * widget.fieldsCount) - 36,
             child: Stack(
               children: [
                 _hiddenTextField,
@@ -66,6 +67,9 @@ class CustomPinPutState extends State<CustomPinPut>
                 ),
               ],
             ),
+          ),
+          const SizedBox(
+            height: 32,
           ),
           Center(
             child: PinKeyboard(
@@ -143,27 +147,70 @@ class CustomPinPutState extends State<CustomPinPut>
     return fields;
   }
 
+  double _size(int index) {
+    if (!widget.enabled) return 0;
+    if (index < selectedIndex &&
+        (_focusNode.hasFocus || !widget.useNativeKeyboard)) {
+      return 0;
+    }
+    if (index == selectedIndex &&
+        (_focusNode.hasFocus || !widget.useNativeKeyboard)) {
+      return 16;
+    }
+    return 16;
+  }
+
+  Color _getColor(int index) {
+    if (!widget.enabled) {
+      return Colors.transparent;
+    }
+    if (index < selectedIndex &&
+        (_focusNode.hasFocus || !widget.useNativeKeyboard)) {
+      return Colors.transparent;
+    }
+    if (index == selectedIndex &&
+        (_focusNode.hasFocus || !widget.useNativeKeyboard)) {
+      return Theme.of(context).extension<StackColors>()!.textLight;
+    }
+    return Theme.of(context).extension<StackColors>()!.textLight;
+  }
+
   Widget _getField(int index) {
     final String pin = _controller.value.text;
-    return AnimatedContainer(
-      width: widget.eachFieldWidth,
-      height: widget.eachFieldHeight,
-      alignment: widget.eachFieldAlignment,
-      duration: widget.animationDuration,
-      curve: widget.animationCurve,
-      padding: widget.eachFieldPadding,
-      margin: widget.eachFieldMargin,
-      constraints: widget.eachFieldConstraints,
-      decoration: _fieldDecoration(index),
-      child: AnimatedSwitcher(
-        switchInCurve: widget.animationCurve,
-        switchOutCurve: widget.animationCurve,
-        duration: widget.animationDuration,
-        transitionBuilder: (child, animation) {
-          return _getTransition(child, animation);
-        },
-        child: _buildFieldContent(index, pin),
-      ),
+    return Column(
+      children: [
+        AnimatedContainer(
+          width: 16,
+          height: 16,
+          alignment: widget.eachFieldAlignment,
+          duration: widget.animationDuration,
+          curve: widget.animationCurve,
+          padding: widget.eachFieldPadding,
+          margin: widget.eachFieldMargin,
+          constraints: widget.eachFieldConstraints,
+          decoration: _fieldDecoration(index),
+          child: AnimatedSwitcher(
+            switchInCurve: widget.animationCurve,
+            switchOutCurve: widget.animationCurve,
+            duration: widget.animationDuration,
+            transitionBuilder: (child, animation) {
+              return _getTransition(child, animation);
+            },
+            child: _buildFieldContent(index, pin),
+          ),
+        ),
+        const SizedBox(
+          height: 15,
+        ),
+        AnimatedContainer(
+          width: _size(index),
+          color: _getColor(index),
+          height: 1,
+          alignment: widget.eachFieldAlignment,
+          duration: widget.animationDuration,
+          curve: widget.animationCurve,
+        ),
+      ],
     );
   }
 

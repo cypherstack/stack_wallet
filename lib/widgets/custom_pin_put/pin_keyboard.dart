@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class NumberKey extends StatefulWidget {
   const NumberKey({
@@ -34,40 +34,37 @@ class _NumberKeyState extends State<NumberKey> {
 
   @override
   Widget build(BuildContext context) {
-    _color ??= Theme.of(context).extension<StackColors>()!.numberBackDefault;
+    _color ??= Colors.transparent;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
+    return SizedBox(
+      // AnimatedContainer(
+      // duration: const Duration(milliseconds: 200),
+      // curve: Curves.easeInOut,
       height: 72,
       width: 72,
-      decoration: ShapeDecoration(
-        shape: const StadiumBorder(),
-        color: _color,
-        shadows: const [],
-      ),
+      // decoration: ShapeDecoration(
+      //   shape: const StadiumBorder(),
+      //   color: _color,
+      //   shadows: const [],
+      // ),
       child: MaterialButton(
         // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () async {
           onPressed.call(number);
-          setState(() {
-            _color = Theme.of(context)
-                .extension<StackColors>()!
-                .numberBackDefault
-                .withOpacity(0.8);
-          });
-
-          Future<void>.delayed(const Duration(milliseconds: 200), () {
-            if (mounted) {
-              setState(() {
-                _color = Theme.of(context)
-                    .extension<StackColors>()!
-                    .numberBackDefault;
-              });
-            }
-          });
+          // setState(() {
+          //   _color =
+          //       Theme.of(context).extension<StackColors>()!.numberBackDefault;
+          // });
+          //
+          // Future<void>.delayed(const Duration(milliseconds: 200), () {
+          //   if (mounted) {
+          //     setState(() {
+          //       _color = Colors.transparent;
+          //     });
+          //   }
+          // });
         },
         child: Center(
           child: Text(
@@ -105,92 +102,87 @@ class _BackspaceKeyState extends State<BackspaceKey> {
 
   @override
   Widget build(BuildContext context) {
-    _color ??= Theme.of(context).extension<StackColors>()!.numpadBackDefault;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
+    _color ??= Colors.transparent;
+    return SizedBox(
+      // duration: const Duration(milliseconds: 200),
+      // curve: Curves.easeInOut,
       height: 72,
       width: 72,
-      decoration: ShapeDecoration(
-        shape: const StadiumBorder(),
-        color: _color,
-        shadows: const [],
-      ),
+      // decoration: ShapeDecoration(
+      //   shape: const StadiumBorder(),
+      //   color: _color,
+      //   shadows: const [],
+      // ),
       child: MaterialButton(
         // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
         onPressed: () {
           onPressed.call();
-          setState(() {
-            _color = Theme.of(context)
-                .extension<StackColors>()!
-                .numpadBackDefault
-                .withOpacity(0.8);
-          });
-
-          Future<void>.delayed(const Duration(milliseconds: 200), () {
-            if (mounted) {
-              setState(() {
-                _color = Theme.of(context)
-                    .extension<StackColors>()!
-                    .numpadBackDefault;
-              });
-            }
-          });
+          // setState(() {
+          //   _color =
+          //       Theme.of(context).extension<StackColors>()!.numpadBackDefault;
+          // });
+          //
+          // Future<void>.delayed(const Duration(milliseconds: 200), () {
+          //   if (mounted) {
+          //     setState(() {
+          //       _color = Colors.transparent;
+          //     });
+          //   }
+          // });
         },
         child: Center(
           child: SvgPicture.asset(
             Assets.svg.delete,
-            width: 20,
-            height: 20,
-            color:
-                Theme.of(context).extension<StackColors>()!.numpadTextDefault,
+            width: 32,
+            height: 32,
+            color: Theme.of(context).extension<StackColors>()!.textLight,
           ),
         ),
       ),
     );
   }
 }
-
-class SubmitKey extends StatelessWidget {
-  const SubmitKey({
-    Key? key,
-    required this.onPressed,
-  }) : super(key: key);
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 72,
-      width: 72,
-      decoration: ShapeDecoration(
-        shape: const StadiumBorder(),
-        color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
-        shadows: const [],
-      ),
-      child: MaterialButton(
-        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: const StadiumBorder(),
-        onPressed: () {
-          onPressed.call();
-        },
-        child: Center(
-          child: SvgPicture.asset(
-            Assets.svg.arrowRight,
-            width: 20,
-            height: 20,
-            color:
-                Theme.of(context).extension<StackColors>()!.numpadTextDefault,
-          ),
-        ),
-      ),
-    );
-  }
-}
+//
+// class SubmitKey extends StatelessWidget {
+//   const SubmitKey({
+//     Key? key,
+//     required this.onPressed,
+//   }) : super(key: key);
+//
+//   final VoidCallback onPressed;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       height: 72,
+//       width: 72,
+//       decoration: ShapeDecoration(
+//         shape: const StadiumBorder(),
+//         color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
+//         shadows: const [],
+//       ),
+//       child: MaterialButton(
+//         // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+//         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+//         shape: const StadiumBorder(),
+//         onPressed: () {
+//           onPressed.call();
+//         },
+//         child: Center(
+//           child: SvgPicture.asset(
+//             Assets.svg.arrowRight,
+//             width: 20,
+//             height: 20,
+//             color:
+//                 Theme.of(context).extension<StackColors>()!.numpadTextDefault,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 class PinKeyboard extends StatelessWidget {
   const PinKeyboard({

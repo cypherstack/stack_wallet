@@ -1029,15 +1029,17 @@ class STextStyles {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.roboto(
-          color: _theme(context).numberTextDefault,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
-          fontSize: 26,
+          fontSize: 32,
+          height: 34 / 32,
         );
       case ThemeType.dark:
         return GoogleFonts.roboto(
-          color: _theme(context).numberTextDefault,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
-          fontSize: 26,
+          fontSize: 32,
+          height: 34 / 32,
         );
     }
   }

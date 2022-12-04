@@ -80,9 +80,9 @@ class DarkColors extends StackColorTheme {
   Color get buttonBackBorderDisabled => const Color(0xFF314265);
 
   @override
-  Color get numberBackDefault => const Color(0xFF484B51);
+  Color get numberBackDefault => const Color(0xFF222227);
   @override
-  Color get numpadBackDefault => const Color(0xFFD1A55C);
+  Color get numpadBackDefault => const Color(0xFF222227);
   @override
   Color get bottomNavBack => const Color(0xFF3E4148);
 
