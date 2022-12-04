@@ -9,15 +9,16 @@ import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
+import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
@@ -244,25 +245,32 @@ class _WalletViewState extends ConsumerState<WalletView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Transactions",
-                  style: STextStyles.itemSubtitle(context).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
+                  "TRANSACTIONS",
+                  style: STextStyles.overLineBold(context),
                 ),
-                BlueTextButton(
-                  text: "See all",
+                GestureDetector(
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       AllTransactionsView.routeName,
                       arguments: walletId,
                     );
                   },
+                  child: Container(
+                    color: Colors.transparent,
+                    width: 36,
+                    height: 36,
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.filter,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(
-            height: 12,
+            height: 8,
           ),
           Expanded(
             child: Stack(
