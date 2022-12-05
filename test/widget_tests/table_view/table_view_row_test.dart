@@ -62,10 +62,14 @@ void main() {
             ],
           ),
           home: Material(
-            child: TableViewRow(cells: [
-              for (int j = 1; j <= 5; j++)
-                TableViewCell(flex: 16, child: Text("Some Text ${j}"))
-            ], expandingChild: CoinWalletsTable(walletIds: walletIds)),
+            child: TableViewRow(
+                cells: [
+                  for (int j = 1; j <= 5; j++)
+                    TableViewCell(flex: 16, child: Text("Some Text ${j}"))
+                ],
+                expandingChild: const CoinWalletsTable(
+                  coin: Coin.bitcoin,
+                )),
           ),
         ),
       ),
