@@ -60,7 +60,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   late StreamSubscription<dynamic> _nodeStatusSubscription;
   late StreamSubscription<dynamic> _refreshSubscription;
 
-  int currentIndex = 0;
+  int currentIndex = 1;
 
   void _onTappedBar(int value) {
     setState(() {
@@ -107,7 +107,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   void initState() {
-    _pageController = PageController();
+    _pageController = PageController(initialPage: 1);
     _children = [
       SendView(
         walletId: ref.read(walletProvider)!.walletId,
