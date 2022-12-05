@@ -458,12 +458,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
                           }
                         });
                         return PageView(
+                          physics: NeverScrollableScrollPhysics(),
                           controller: _pageController,
                           children: _children,
                           onPageChanged: (pageIndex) {
-                            ref
-                                .read(homeViewPageIndexStateProvider.state)
-                                .state = pageIndex;
+                            currentIndex = pageIndex;
                           },
                         );
                       },

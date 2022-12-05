@@ -26,7 +26,6 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/animated_text.dart';
 import 'package:epicmobile/widgets/background.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:epicmobile/widgets/icon_widgets/clipboard_icon.dart';
@@ -290,17 +289,6 @@ class _SendViewState extends ConsumerState<SendView> {
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 50));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
           title: Text(
             "Send ${coin.ticker}",
             style: STextStyles.titleH4(context),

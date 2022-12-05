@@ -9,7 +9,6 @@ import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
 import 'package:epicmobile/widgets/custom_loading_overlay.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
@@ -108,11 +107,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
           title: Text(
             "Receive ${coin.ticker}",
             style: STextStyles.titleH4(context),

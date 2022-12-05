@@ -58,7 +58,7 @@ class _IntroViewState extends State<IntroView> {
                   AppNameTextRight(),
                 ],
                 controller: _pageController,
-                onPageChanged: (int page) {
+                onPageChanged: (page) {
                   setState(() {
                     currentIndex = page as double;
                   });
