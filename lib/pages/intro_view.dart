@@ -67,7 +67,6 @@ class _IntroViewState extends State<IntroView> {
             ),
             Container(
               alignment: Alignment.bottomCenter,
-              // width: 311,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -85,8 +84,8 @@ class _IntroViewState extends State<IntroView> {
                             );
                           },
                           child: Container(
-                            height: 10,
-                            width: 10,
+                            height: 7.5,
+                            width: 7.5,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: currentIndex == 0
@@ -112,8 +111,8 @@ class _IntroViewState extends State<IntroView> {
                             );
                           },
                           child: Container(
-                            height: 10,
-                            width: 10,
+                            height: 7.5,
+                            width: 7.5,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: currentIndex == 1
@@ -129,13 +128,16 @@ class _IntroViewState extends State<IntroView> {
                       ],
                     ),
                   ),
+                  const SizedBox(
+                    height: 20,
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(40.0),
+                        padding: const EdgeInsets.symmetric(vertical: 40.0),
                         child: PrimaryButton(
-                          width: 311,
+                          width: 330,
                           label: "GET STARTED",
                           onPressed: () => Navigator.of(context)
                               .pushNamed(CreateRestoreWalletView.routeName),
@@ -188,11 +190,11 @@ class AppNameTextLeft extends StatelessWidget {
             "Fast and reliable"
             "\ntransactions",
             textAlign: TextAlign.left,
-            style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
+            style: STextStyles.pageTitleH1(context).copyWith(fontSize: 35),
           ),
         ),
         const SizedBox(
-          height: 150,
+          height: 200,
         ),
       ],
     );
@@ -232,7 +234,7 @@ class AppNameTextRight extends StatelessWidget {
           child: Text(
             "Everyday \nfinancial \nprivacy",
             textAlign: TextAlign.left,
-            style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
+            style: STextStyles.pageTitleH1(context).copyWith(fontSize: 35),
           ),
         ),
         const SizedBox(
