@@ -101,7 +101,9 @@ class _ForgotPasswordDesktopViewState
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         TextSpan(
-                          text: "create a new Stack",
+                          text: widget.shouldCreateNew
+                              ? "create a new Stack"
+                              : "restore from backup",
                           style: STextStyles.desktopTextSmallBold(context),
                         ),
                         TextSpan(
