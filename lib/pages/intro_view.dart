@@ -18,10 +18,19 @@ class IntroView extends StatefulWidget {
 
 class _IntroViewState extends State<IntroView> {
   late final bool isDesktop;
+  final PageController _pageController = PageController();
+  double currentIndex = 0;
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
+
+    _pageController.addListener(() {
+      setState(() {
+        currentIndex = _pageController.page!;
+      });
+    });
+
     super.initState();
   }
 
@@ -44,25 +53,95 @@ class _IntroViewState extends State<IntroView> {
                   print('dragged from right');
               },
               child: PageView(
-                children: [
+                children: const [
                   AppNameTextLeft(),
                   AppNameTextRight(),
                 ],
+                controller: _pageController,
+                onPageChanged: (int page) {
+                  setState(() {
+                    currentIndex = page as double;
+                  });
+                },
               ),
             ),
             Container(
               alignment: Alignment.bottomCenter,
               // width: 311,
-              child: Row(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(40.0),
-                    child: PrimaryButton(
-                      width: 311,
-                      label: "GET STARTED",
-                      onPressed: () => Navigator.of(context)
-                          .pushNamed(CreateRestoreWalletView.routeName),
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Row(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            _pageController.nextPage(
+                              duration: const Duration(
+                                milliseconds: 100,
+                              ),
+                              curve: Curves.linear,
+                            );
+                          },
+                          child: Container(
+                            height: 10,
+                            width: 10,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: currentIndex == 0
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonBackPrimary
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 12,
+                        ),
+                        InkWell(
+                          onTap: () {
+                            _pageController.nextPage(
+                              duration: Duration(
+                                milliseconds: 100,
+                              ),
+                              curve: Curves.linear,
+                            );
+                          },
+                          child: Container(
+                            height: 10,
+                            width: 10,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: currentIndex == 1
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonBackPrimary
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(40.0),
+                        child: PrimaryButton(
+                          width: 311,
+                          label: "GET STARTED",
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed(CreateRestoreWalletView.routeName),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
