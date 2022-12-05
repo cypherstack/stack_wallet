@@ -59,7 +59,6 @@ class DesktopWalletView extends ConsumerStatefulWidget {
 
 class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   late final TextEditingController controller;
-  late final String walletId;
   late final EventBus eventBus;
 
   late final bool _shouldDisableAutoSyncOnLogOut;
@@ -74,8 +73,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   }
 
   Future<void> _logout() async {
-    final managerProvider =
-        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+    final managerProvider = ref
+        .read(walletsChangeNotifierProvider)
+        .getManagerProvider(widget.walletId);
     if (_shouldDisableAutoSyncOnLogOut) {
       // disable auto sync if it was enabled only when loading wallet
       ref.read(managerProvider).shouldAutoSync = false;
@@ -95,7 +95,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       _cnLoadingService.loadAll(ref,
           coin: ref
               .read(walletsChangeNotifierProvider)
-              .getManager(walletId)
+              .getManager(widget.walletId)
               .coin);
     } else {
       Logging.instance.log("User does not want to use external calls",
@@ -104,8 +104,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
-    final managerProvider =
-        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+    final managerProvider = ref
+        .read(walletsChangeNotifierProvider)
+        .getManagerProvider(widget.walletId);
     unawaited(_cnLoadingService.loadAll(ref));
 
     final coin = ref.read(managerProvider).coin;
@@ -127,7 +128,6 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     } else {
       ref.read(currentExchangeNameStateProvider.state).state =
           ChangeNowExchange.exchangeName;
-      final walletId = ref.read(managerProvider).walletId;
       ref.read(prefsChangeNotifierProvider).exchangeRateType =
           ExchangeRateType.estimated;
 
@@ -160,7 +160,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
           Navigator.of(context).pushNamed(
             WalletInitiatedExchangeView.routeName,
             arguments: Tuple3(
-              walletId,
+              widget.walletId,
               coin,
               _loadCNData,
             ),
@@ -171,8 +171,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   }
 
   Future<void> attemptAnonymize() async {
-    final managerProvider =
-        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+    final managerProvider = ref
+        .read(walletsChangeNotifierProvider)
+        .getManagerProvider(widget.walletId);
 
     bool shouldPop = false;
     unawaited(
@@ -283,9 +284,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   @override
   void initState() {
     controller = TextEditingController();
-    walletId = widget.walletId;
-    final managerProvider =
-        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+    final managerProvider = ref
+        .read(walletsChangeNotifierProvider)
+        .getManagerProvider(widget.walletId);
 
     controller.text = ref.read(managerProvider).walletName;
 
@@ -307,12 +308,18 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   }
 
   @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+        .select((value) => value.getManager(widget.walletId)));
     final coin = manager.coin;
     final managerProvider = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvider(walletId)));
+        .select((value) => value.getManagerProvider(widget.walletId)));
 
     return DesktopScaffold(
       appBar: DesktopAppBar(
@@ -355,47 +362,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   minWidth: 48,
                 ),
                 child: IntrinsicWidth(
-                  child: HoverTextField(
-                    controller: controller,
-                    style: STextStyles.desktopH3(context),
-                    readOnly: true,
-                    onDone: () async {
-                      final currentWalletName =
-                          ref.read(managerProvider).walletName;
-                      final newName = controller.text;
-                      if (newName != currentWalletName) {
-                        final success = await ref
-                            .read(walletsServiceChangeNotifierProvider)
-                            .renameWallet(
-                              from: currentWalletName,
-                              to: newName,
-                              shouldNotifyListeners: true,
-                            );
-                        if (success) {
-                          ref
-                              .read(walletsChangeNotifierProvider)
-                              .getManager(walletId)
-                              .walletName = newName;
-                          unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.success,
-                              message: "Wallet renamed",
-                              context: context,
-                            ),
-                          );
-                        } else {
-                          unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message:
-                                  "Wallet named \"$newName\" already exists",
-                              context: context,
-                            ),
-                          );
-                          controller.text = currentWalletName;
-                        }
-                      }
-                    },
+                  child: DesktopWalletNameField(
+                    walletId: widget.walletId,
                   ),
                 ),
               ),
@@ -403,20 +371,20 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
               Row(
                 children: [
                   NetworkInfoButton(
-                    walletId: walletId,
+                    walletId: widget.walletId,
                     eventBus: eventBus,
                   ),
                   const SizedBox(
                     width: 2,
                   ),
                   WalletKeysButton(
-                    walletId: walletId,
+                    walletId: widget.walletId,
                   ),
                   const SizedBox(
                     width: 2,
                   ),
                   DeleteWalletButton(
-                    walletId: walletId,
+                    walletId: widget.walletId,
                   ),
                   const SizedBox(
                     width: 12,
@@ -446,7 +414,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     width: 10,
                   ),
                   DesktopWalletSummary(
-                    walletId: walletId,
+                    walletId: widget.walletId,
                     managerProvider: managerProvider,
                     initialSyncStatus: ref.watch(managerProvider
                             .select((value) => value.isRefreshing))
@@ -556,7 +524,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   SizedBox(
                     width: 450,
                     child: MyWallet(
-                      walletId: walletId,
+                      walletId: widget.walletId,
                     ),
                   ),
                   const SizedBox(
@@ -564,7 +532,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   ),
                   Expanded(
                     child: RecentDesktopTransactions(
-                      walletId: walletId,
+                      walletId: widget.walletId,
                     ),
                   ),
                 ],
