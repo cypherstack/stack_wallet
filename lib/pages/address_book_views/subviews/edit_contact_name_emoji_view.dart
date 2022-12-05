@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:emojis/emoji.dart';
 import 'package:epicmobile/providers/global/address_book_service_provider.dart';
-import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -10,16 +8,13 @@ import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/conditional_parent.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
-import 'package:epicmobile/widgets/emoji_select_sheet.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 class EditContactNameEmojiView extends ConsumerStatefulWidget {
   const EditContactNameEmojiView({
@@ -43,8 +38,6 @@ class _EditContactNameEmojiViewState
 
   late final String contactId;
 
-  Emoji? _selectedEmoji;
-
   @override
   void initState() {
     contactId = widget.contactId;
@@ -56,9 +49,6 @@ class _EditContactNameEmojiViewState
           ref.read(addressBookServiceProvider).getContactById(contactId);
 
       nameController.text = contact.name;
-      setState(() {
-        _selectedEmoji = Emoji.byChar(contact.emojiChar ?? "");
-      });
     });
     super.initState();
   }
@@ -132,122 +122,117 @@ class _EditContactNameEmojiViewState
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              GestureDetector(
-                onTap: () {
-                  if (_selectedEmoji != null) {
-                    setState(() {
-                      _selectedEmoji = null;
-                    });
-                    return;
-                  }
-                  if (isDesktop) {
-                    showDialog<dynamic>(
-                        barrierColor: Colors.transparent,
-                        context: context,
-                        builder: (context) {
-                          return const DesktopDialog(
-                            maxHeight: 700,
-                            maxWidth: 600,
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                left: 32,
-                                right: 20,
-                                top: 32,
-                                bottom: 32,
-                              ),
-                              child: EmojiSelectSheet(),
-                            ),
-                          );
-                        }).then((value) {
-                      if (value is Emoji) {
-                        setState(() {
-                          _selectedEmoji = value;
-                        });
-                      }
-                    });
-                  } else {
-                    showModalBottomSheet<dynamic>(
-                      backgroundColor: Colors.transparent,
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                      ),
-                      builder: (_) => const EmojiSelectSheet(),
-                    ).then((value) {
-                      if (value is Emoji) {
-                        setState(() {
-                          _selectedEmoji = value;
-                        });
-                      }
-                    });
-                  }
-                },
-                child: SizedBox(
-                  height: emojiSize,
-                  width: emojiSize,
-                  child: Stack(
-                    children: [
-                      Container(
-                        height: emojiSize,
-                        width: emojiSize,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(emojiSize / 2),
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveBG,
-                        ),
-                        child: Center(
-                          child: _selectedEmoji == null
-                              ? SvgPicture.asset(
-                                  Assets.svg.user,
-                                  height: emojiSize / 2,
-                                  width: emojiSize / 2,
-                                )
-                              : Text(
-                                  _selectedEmoji!.char,
-                                  style: isDesktop
-                                      ? STextStyles.desktopH3(context)
-                                      : STextStyles.pageTitleH1(context),
-                                ),
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: Container(
-                          height: 14,
-                          width: 14,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark),
-                          child: Center(
-                            child: _selectedEmoji == null
-                                ? SvgPicture.asset(
-                                    Assets.svg.plus,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .coal,
-                                    width: 12,
-                                    height: 12,
-                                  )
-                                : SvgPicture.asset(
-                                    Assets.svg.thickX,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .coal,
-                                    width: 8,
-                                    height: 8,
-                                  ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
+              // GestureDetector(
+              //   onTap: () {
+              //
+              //     if (isDesktop) {
+              //       showDialog<dynamic>(
+              //           barrierColor: Colors.transparent,
+              //           context: context,
+              //           builder: (context) {
+              //             return const DesktopDialog(
+              //               maxHeight: 700,
+              //               maxWidth: 600,
+              //               child: Padding(
+              //                 padding: EdgeInsets.only(
+              //                   left: 32,
+              //                   right: 20,
+              //                   top: 32,
+              //                   bottom: 32,
+              //                 ),
+              //                 child: EmojiSelectSheet(),
+              //               ),
+              //             );
+              //           }).then((value) {
+              //         if (value is Emoji) {
+              //           setState(() {
+              //             _selectedEmoji = value;
+              //           });
+              //         }
+              //       });
+              //     } else {
+              //       showModalBottomSheet<dynamic>(
+              //         backgroundColor: Colors.transparent,
+              //         context: context,
+              //         shape: const RoundedRectangleBorder(
+              //           borderRadius: BorderRadius.vertical(
+              //             top: Radius.circular(20),
+              //           ),
+              //         ),
+              //         builder: (_) => const EmojiSelectSheet(),
+              //       ).then((value) {
+              //         if (value is Emoji) {
+              //           setState(() {
+              //             _selectedEmoji = value;
+              //           });
+              //         }
+              //       });
+              //     }
+              //   },
+              //   child: SizedBox(
+              //     height: emojiSize,
+              //     width: emojiSize,
+              //     child: Stack(
+              //       children: [
+              //         Container(
+              //           height: emojiSize,
+              //           width: emojiSize,
+              //           decoration: BoxDecoration(
+              //             borderRadius: BorderRadius.circular(emojiSize / 2),
+              //             color: Theme.of(context)
+              //                 .extension<StackColors>()!
+              //                 .textFieldActiveBG,
+              //           ),
+              //           child: Center(
+              //             child: _selectedEmoji == null
+              //                 ? SvgPicture.asset(
+              //                     Assets.svg.user,
+              //                     height: emojiSize / 2,
+              //                     width: emojiSize / 2,
+              //                   )
+              //                 : Text(
+              //                     _selectedEmoji!.char,
+              //                     style: isDesktop
+              //                         ? STextStyles.desktopH3(context)
+              //                         : STextStyles.pageTitleH1(context),
+              //                   ),
+              //           ),
+              //         ),
+              //         Align(
+              //           alignment: Alignment.bottomRight,
+              //           child: Container(
+              //             height: 14,
+              //             width: 14,
+              //             decoration: BoxDecoration(
+              //                 borderRadius: BorderRadius.circular(14),
+              //                 color: Theme.of(context)
+              //                     .extension<StackColors>()!
+              //                     .accentColorDark),
+              //             child: Center(
+              //               child: _selectedEmoji == null
+              //                   ? SvgPicture.asset(
+              //                       Assets.svg.plus,
+              //                       color: Theme.of(context)
+              //                           .extension<StackColors>()!
+              //                           .coal,
+              //                       width: 12,
+              //                       height: 12,
+              //                     )
+              //                   : SvgPicture.asset(
+              //                       Assets.svg.thickX,
+              //                       color: Theme.of(context)
+              //                           .extension<StackColors>()!
+              //                           .coal,
+              //                       width: 8,
+              //                       height: 8,
+              //                     ),
+              //             ),
+              //           ),
+              //         )
+              //       ],
+              //     ),
+              //   ),
+              // ),
               if (isDesktop)
                 const SizedBox(
                   width: 8,
@@ -376,8 +361,6 @@ class _EditContactNameEmojiViewState
                     final editedContact = contact.copyWith(
                       shouldCopyEmojiWithNull: true,
                       name: nameController.text,
-                      emojiChar:
-                          _selectedEmoji == null ? null : _selectedEmoji!.char,
                     );
                     unawaited(
                       ref.read(addressBookServiceProvider).editContact(

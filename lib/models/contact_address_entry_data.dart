@@ -1,12 +1,14 @@
-import 'package:flutter/cupertino.dart';
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/utilities/address_utils.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:flutter/cupertino.dart';
 
 class AddressEntryData extends ChangeNotifier {
   late int id;
 
-  AddressEntryData(this.id);
+  AddressEntryData(this.id)
+      : _coin = Coin.epicCash,
+        _addressLabel = "";
 
   String? _addressLabel;
   String? _address;
@@ -37,7 +39,7 @@ class AddressEntryData extends ChangeNotifier {
     if (_address == null || coin == null || _addressLabel == null) {
       return false;
     }
-    if (_address!.isEmpty || _addressLabel!.isEmpty) {
+    if (_address!.isEmpty) {
       return false;
     }
     return isValidAddress;
