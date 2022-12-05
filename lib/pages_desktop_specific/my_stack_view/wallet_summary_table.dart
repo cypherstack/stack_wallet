@@ -23,6 +23,7 @@ class WalletSummaryTable extends ConsumerStatefulWidget {
 class _WalletTableState extends ConsumerState<WalletSummaryTable> {
   @override
   Widget build(BuildContext context) {
+    debugPrint("BUILD: $runtimeType");
     final providersByCoin = ref
         .watch(
           walletsChangeNotifierProvider.select(
@@ -35,72 +36,75 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
     return TableView(
       rows: [
         for (int i = 0; i < providersByCoin.length; i++)
-          TableViewRow(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 16,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).extension<StackColors>()!.popupBG,
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-            cells: [
-              TableViewCell(
-                flex: 4,
-                child: Row(
-                  children: [
-                    SvgPicture.asset(
-                      Assets.svg.iconFor(coin: providersByCoin[i].key),
-                      width: 28,
-                      height: 28,
+          Builder(
+            builder: (context) {
+              final providers = ref.watch(walletsChangeNotifierProvider.select(
+                  (value) => value
+                      .getManagerProvidersForCoin(providersByCoin[i].key)));
+
+              return TableViewRow(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).extension<StackColors>()!.popupBG,
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                ),
+                cells: [
+                  TableViewCell(
+                    flex: 4,
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          Assets.svg.iconFor(coin: providersByCoin[i].key),
+                          width: 28,
+                          height: 28,
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Text(
+                          providersByCoin[i].key.prettyName,
+                          style: STextStyles.desktopTextExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
+                        )
+                      ],
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Text(
-                      providersByCoin[i].key.prettyName,
+                  ),
+                  TableViewCell(
+                    flex: 4,
+                    child: Text(
+                      providers.length == 1
+                          ? "${providers.length} wallet"
+                          : "${providers.length} wallets",
                       style:
                           STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .textDark,
+                            .textSubtitle1,
                       ),
-                    )
-                  ],
-                ),
-              ),
-              TableViewCell(
-                flex: 4,
-                child: Text(
-                  providersByCoin[i].value.length == 1
-                      ? "${providersByCoin[i].value.length} wallet"
-                      : "${providersByCoin[i].value.length} wallets",
-                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
+                    ),
                   ),
-                ),
-              ),
-              TableViewCell(
-                flex: 6,
-                child: TablePriceInfo(
+                  TableViewCell(
+                    flex: 6,
+                    child: TablePriceInfo(
+                      coin: providersByCoin[i].key,
+                    ),
+                  ),
+                ],
+                expandingChild: CoinWalletsTable(
                   coin: providersByCoin[i].key,
                 ),
-              ),
-            ],
-            expandingChild: CoinWalletsTable(
-              walletIds: ref.watch(
-                walletsChangeNotifierProvider.select(
-                  (value) => value.getWalletIdsFor(
-                    coin: providersByCoin[i].key,
-                  ),
-                ),
-              ),
-            ),
-          )
+              );
+            },
+          ),
       ],
     );
   }

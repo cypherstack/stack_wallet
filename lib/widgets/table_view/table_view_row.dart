@@ -28,40 +28,21 @@ class TableViewRow extends StatefulWidget {
 }
 
 class _TableViewRowState extends State<TableViewRow> {
-  late final List<TableViewCell> cells;
-  late final Widget? expandingChild;
-  late final BoxDecoration? decoration;
-  late final void Function(ExpandableState)? onExpandChanged;
-  late final EdgeInsetsGeometry padding;
-  late final double spacing;
-  late final CrossAxisAlignment crossAxisAlignment;
-
   bool _hovering = false;
 
   @override
-  void initState() {
-    cells = widget.cells;
-    expandingChild = widget.expandingChild;
-    decoration = widget.decoration;
-    onExpandChanged = widget.onExpandChanged;
-    padding = widget.padding;
-    spacing = widget.spacing;
-    crossAxisAlignment = widget.crossAxisAlignment;
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    debugPrint("BUILD: $runtimeType");
     return Container(
       decoration: !_hovering
-          ? decoration
-          : decoration?.copyWith(
+          ? widget.decoration
+          : widget.decoration?.copyWith(
               boxShadow: [
                 Theme.of(context).extension<StackColors>()!.standardBoxShadow,
                 Theme.of(context).extension<StackColors>()!.standardBoxShadow,
               ],
             ),
-      child: expandingChild == null
+      child: widget.expandingChild == null
           ? MouseRegion(
               onEnter: (_) {
                 setState(() {
@@ -74,18 +55,18 @@ class _TableViewRowState extends State<TableViewRow> {
                 });
               },
               child: Padding(
-                padding: padding,
+                padding: widget.padding,
                 child: Row(
-                  crossAxisAlignment: crossAxisAlignment,
+                  crossAxisAlignment: widget.crossAxisAlignment,
                   children: [
-                    for (int i = 0; i < cells.length; i++) ...[
-                      if (i != 0 && i != cells.length)
+                    for (int i = 0; i < widget.cells.length; i++) ...[
+                      if (i != 0 && i != widget.cells.length)
                         SizedBox(
-                          width: spacing,
+                          width: widget.spacing,
                         ),
                       Expanded(
-                        flex: cells[i].flex,
-                        child: cells[i],
+                        flex: widget.cells[i].flex,
+                        child: widget.cells[i],
                       ),
                     ],
                   ],
@@ -93,7 +74,7 @@ class _TableViewRowState extends State<TableViewRow> {
               ),
             )
           : Expandable(
-              onExpandChanged: onExpandChanged,
+              onExpandChanged: widget.onExpandChanged,
               header: MouseRegion(
                 onEnter: (_) {
                   setState(() {
@@ -106,17 +87,17 @@ class _TableViewRowState extends State<TableViewRow> {
                   });
                 },
                 child: Padding(
-                  padding: padding,
+                  padding: widget.padding,
                   child: Row(
                     children: [
-                      for (int i = 0; i < cells.length; i++) ...[
-                        if (i != 0 && i != cells.length)
+                      for (int i = 0; i < widget.cells.length; i++) ...[
+                        if (i != 0 && i != widget.cells.length)
                           SizedBox(
-                            width: spacing,
+                            width: widget.spacing,
                           ),
                         Expanded(
-                          flex: cells[i].flex,
-                          child: cells[i],
+                          flex: widget.cells[i].flex,
+                          child: widget.cells[i],
                         ),
                       ],
                     ],
@@ -132,7 +113,7 @@ class _TableViewRowState extends State<TableViewRow> {
                     width: double.infinity,
                     height: 1,
                   ),
-                  expandingChild!,
+                  widget.expandingChild!,
                 ],
               ),
             ),
