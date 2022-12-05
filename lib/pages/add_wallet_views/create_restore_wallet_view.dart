@@ -37,8 +37,7 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
               ),
               Text(
                 "Welcome"
-                "\nto Epic Cash"
-                "\nWallet",
+                "\nto Epic Cash",
                 textAlign: TextAlign.left,
                 style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
               ),
