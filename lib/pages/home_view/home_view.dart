@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:epicmobile/pages/help/help_view.dart';
 import 'package:epicmobile/pages/home_view/sub_widgets/connection_status_bar.dart';
+import 'package:epicmobile/pages/receive_view/receive_view.dart';
+import 'package:epicmobile/pages/send_view/send_view.dart';
 import 'package:epicmobile/pages/settings_views/network_settings_view/network_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/settings_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
@@ -107,16 +109,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
   void initState() {
     _pageController = PageController();
     _children = [
-      // ReceiveView(
-      //   walletId: ref.read(walletProvider)!.walletId,
-      // ),
+      SendView(
+        walletId: ref.read(walletProvider)!.walletId,
+        coin: ref.read(walletProvider)!.coin,
+      ),
       WalletView(
         walletId: ref.read(walletProvider)!.walletId,
       ),
-      // SendView(
-      //   walletId: ref.read(walletProvider)!.walletId,
-      // )
-      // const BuyView(),
+      ReceiveView(
+        walletId: ref.read(walletProvider)!.walletId,
+        coin: ref.read(walletProvider)!.coin,
+      ),
     ];
 
     if (ref.read(walletProvider)!.isRefreshing) {
