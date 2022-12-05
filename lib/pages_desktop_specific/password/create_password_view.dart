@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -23,9 +24,11 @@ import 'package:zxcvbn/zxcvbn.dart';
 class CreatePasswordView extends ConsumerStatefulWidget {
   const CreatePasswordView({
     Key? key,
+    this.restoreFromSWB = false,
   }) : super(key: key);
 
   static const String routeName = "/createPasswordDesktop";
+  final bool restoreFromSWB;
 
   @override
   ConsumerState<CreatePasswordView> createState() => _CreatePasswordViewState();
@@ -84,7 +87,9 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
 
       // load default nodes now as node service requires storage handler to exist
 
-      await ref.read(nodeServiceChangeNotifierProvider).updateDefaults();
+      if (!widget.restoreFromSWB) {
+        await ref.read(nodeServiceChangeNotifierProvider).updateDefaults();
+      }
     } catch (e) {
       unawaited(showFloatingFlushBar(
         type: FlushBarType.warning,
@@ -95,15 +100,28 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
     }
 
     if (mounted) {
-      unawaited(Navigator.of(context)
-          .pushReplacementNamed(DesktopHomeView.routeName));
+      if (widget.restoreFromSWB) {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            ForgottenPassphraseRestoreFromSWB.routeName,
+          ),
+        );
+      } else {
+        unawaited(
+          Navigator.of(context).pushReplacementNamed(
+            DesktopHomeView.routeName,
+          ),
+        );
+      }
     }
 
-    unawaited(showFloatingFlushBar(
-      type: FlushBarType.success,
-      message: "Your password is set up",
-      context: context,
-    ));
+    if (!widget.restoreFromSWB) {
+      unawaited(showFloatingFlushBar(
+        type: FlushBarType.success,
+        message: "Your password is set up",
+        context: context,
+      ));
+    }
   }
 
   @override

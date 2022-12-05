@@ -98,7 +98,9 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
 import 'package:stackwallet/pages_desktop_specific/notifications/desktop_notifications_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/delete_password_warning_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/forgot_password_desktop_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings.dart';
@@ -999,6 +1001,17 @@ class RouteGenerator {
 
       // == Desktop specific routes ============================================
       case CreatePasswordView.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CreatePasswordView(
+              restoreFromSWB: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const CreatePasswordView(),
@@ -1009,6 +1022,26 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const ForgotPasswordDesktopView(),
             settings: RouteSettings(name: settings.name));
+
+      case ForgottenPassphraseRestoreFromSWB.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const ForgottenPassphraseRestoreFromSWB(),
+            settings: RouteSettings(name: settings.name));
+
+      case DeletePasswordWarningView.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DeletePasswordWarningView(
+              shouldCreateNew: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DesktopHomeView.routeName:
         return getRoute(

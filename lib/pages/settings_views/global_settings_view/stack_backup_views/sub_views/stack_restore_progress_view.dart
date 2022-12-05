@@ -9,6 +9,9 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/stack_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_wallet_card.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
+import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
@@ -20,25 +23,23 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
-
-import '../../../../../pages_desktop_specific/desktop_home_view.dart';
-import '../../../../../pages_desktop_specific/desktop_menu.dart';
-import '../../../../../providers/desktop/current_desktop_menu_item.dart';
-import '../../../../../widgets/desktop/primary_button.dart';
 
 class StackRestoreProgressView extends ConsumerStatefulWidget {
   const StackRestoreProgressView({
     Key? key,
     required this.jsonString,
     this.fromFile = false,
+    this.shouldPushToHome = false,
   }) : super(key: key);
 
   final String jsonString;
   final bool fromFile;
+  final bool shouldPushToHome;
 
   @override
   ConsumerState<StackRestoreProgressView> createState() =>
@@ -696,11 +697,21 @@ class _StackRestoreProgressViewState
                                             .state)
                                         .state = keyID;
 
-                                    Navigator.of(context, rootNavigator: true)
-                                        .popUntil(
-                                      ModalRoute.withName(
-                                          DesktopHomeView.routeName),
-                                    );
+                                    if (widget.shouldPushToHome) {
+                                      unawaited(
+                                        Navigator.of(context)
+                                            .pushNamedAndRemoveUntil(
+                                          DesktopHomeView.routeName,
+                                          (route) => false,
+                                        ),
+                                      );
+                                    } else {
+                                      Navigator.of(context, rootNavigator: true)
+                                          .popUntil(
+                                        ModalRoute.withName(
+                                            DesktopHomeView.routeName),
+                                      );
+                                    }
                                   },
                                 )
                               : SecondaryButton(

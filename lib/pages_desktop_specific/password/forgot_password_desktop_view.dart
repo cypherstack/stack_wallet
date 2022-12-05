@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/password/delete_password_warning_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -74,18 +75,26 @@ class _ForgotPasswordDesktopViewState extends State<ForgotPasswordDesktopView> {
                   height: 48,
                 ),
                 PrimaryButton(
-                  label: "Create new wallet",
+                  label: "Create new Stack",
                   onPressed: () {
-                    // // todo delete everything and start fresh?
+                    const shouldCreateNew = true;
+                    Navigator.of(context).pushNamed(
+                      DeletePasswordWarningView.routeName,
+                      arguments: shouldCreateNew,
+                    );
                   },
                 ),
                 const SizedBox(
                   height: 24,
                 ),
                 SecondaryButton(
-                  label: "Restore from backup",
+                  label: "Restore from Stack backup",
                   onPressed: () {
-                    // todo SWB restore
+                    const shouldCreateNew = false;
+                    Navigator.of(context).pushNamed(
+                      DeletePasswordWarningView.routeName,
+                      arguments: shouldCreateNew,
+                    );
                   },
                 ),
                 const SizedBox(
