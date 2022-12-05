@@ -31,22 +31,43 @@ class _IntroViewState extends State<IntroView> {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        body: GestureDetector(
-          onHorizontalDragEnd: (DragEndDetails details) {
-            //user didn't drag screen
-            if (details.primaryVelocity == 0) return;
+        body: Stack(
+          children: [
+            GestureDetector(
+              onHorizontalDragEnd: (DragEndDetails details) {
+                //user didn't drag screen
+                if (details.primaryVelocity == 0) return;
 
-            if (details.primaryVelocity?.compareTo(0) == -1)
-              print('dragged from left');
-            else
-              print('dragged from right');
-          },
-          child: PageView(
-            children: [
-              AppNameTextLeft(),
-              AppNameTextRight(),
-            ],
-          ),
+                if (details.primaryVelocity?.compareTo(0) == -1)
+                  print('dragged from left');
+                else
+                  print('dragged from right');
+              },
+              child: PageView(
+                children: [
+                  AppNameTextLeft(),
+                  AppNameTextRight(),
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.bottomCenter,
+              // width: 311,
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(40.0),
+                    child: PrimaryButton(
+                      width: 311,
+                      label: "GET STARTED",
+                      onPressed: () => Navigator.of(context)
+                          .pushNamed(CreateRestoreWalletView.routeName),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
         ),
       ),
     );
@@ -92,19 +113,7 @@ class AppNameTextLeft extends StatelessWidget {
           ),
         ),
         const SizedBox(
-          height: 32,
-        ),
-        // todo add screen swipe text
-        const SizedBox(
-          height: 118,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(40.0),
-          child: PrimaryButton(
-            label: "GET STARTED",
-            onPressed: () => Navigator.of(context)
-                .pushNamed(CreateRestoreWalletView.routeName),
-          ),
+          height: 150,
         ),
       ],
     );
@@ -147,17 +156,8 @@ class AppNameTextRight extends StatelessWidget {
             style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
           ),
         ),
-        // todo add screen swipe text
         const SizedBox(
-          height: 112,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(40.0),
-          child: PrimaryButton(
-            label: "GET STARTED",
-            onPressed: () => Navigator.of(context)
-                .pushNamed(CreateRestoreWalletView.routeName),
-          ),
+          height: 150,
         ),
       ],
     );

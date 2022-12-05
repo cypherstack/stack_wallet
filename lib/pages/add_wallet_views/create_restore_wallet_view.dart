@@ -27,24 +27,27 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        body: Padding(
-          padding: const EdgeInsets.all(40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Spacer(
-                flex: 5,
-              ),
-              Text(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Spacer(
+              flex: 5,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: Text(
                 "Welcome"
                 "\nto Epic Cash",
                 textAlign: TextAlign.left,
                 style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
               ),
-              const SizedBox(
-                height: 32,
-              ),
-              RichText(
+            ),
+            const SizedBox(
+              height: 32,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: RichText(
                 textAlign: TextAlign.left,
                 text: TextSpan(
                   style: STextStyles.label(context).copyWith(fontSize: 14),
@@ -86,10 +89,13 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                   ],
                 ),
               ),
-              const SizedBox(
-                height: 64,
-              ),
-              Row(
+            ),
+            const SizedBox(
+              height: 64,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: Row(
                 children: [
                   Expanded(
                     child: PrimaryButton(
@@ -112,10 +118,13 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 16,
-              ),
-              Row(
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: Row(
                 children: [
                   Expanded(
                     child: SecondaryButton(
@@ -138,8 +147,8 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
