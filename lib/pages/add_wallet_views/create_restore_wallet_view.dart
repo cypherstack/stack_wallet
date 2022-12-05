@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
 import 'package:epicmobile/route_generator.dart';
+import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
@@ -32,6 +33,22 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
           children: [
             const Spacer(
               flex: 5,
+            ),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width,
+              ),
+              child: Image(
+                image: AssetImage(
+                  Assets.png.epicWelcome,
+                ),
+                width: MediaQuery.of(context).size.width,
+                height: 315,
+                alignment: Alignment.centerRight,
+              ),
+            ),
+            const Spacer(
+              flex: 3,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
