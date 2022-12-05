@@ -314,43 +314,43 @@ class _SendViewState extends ConsumerState<SendView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .popupBG,
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(
-                                    Assets.svg.iconFor(coin: coin),
-                                    width: 22,
-                                    height: 22,
-                                  ),
-                                  const SizedBox(
-                                    width: 6,
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      ref.watch(walletProvider.select(
-                                          (value) => value!.walletName)),
-                                      style: STextStyles.bodyBold(context),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                          // Container(
+                          //   decoration: BoxDecoration(
+                          //     color: Theme.of(context)
+                          //         .extension<StackColors>()!
+                          //         .popupBG,
+                          //     borderRadius: BorderRadius.circular(
+                          //       Constants.size.circularBorderRadius,
+                          //     ),
+                          //   ),
+                          //   child: Padding(
+                          //     padding: const EdgeInsets.all(12.0),
+                          //     child: Row(
+                          //       children: [
+                          //         SvgPicture.asset(
+                          //           Assets.svg.iconFor(coin: coin),
+                          //           width: 22,
+                          //           height: 22,
+                          //         ),
+                          //         const SizedBox(
+                          //           width: 6,
+                          //         ),
+                          //         Expanded(
+                          //           child: Text(
+                          //             ref.watch(walletProvider.select(
+                          //                 (value) => value!.walletName)),
+                          //             style: STextStyles.bodyBold(context),
+                          //             overflow: TextOverflow.ellipsis,
+                          //             maxLines: 1,
+                          //           ),
+                          //         ),
+                          //         const SizedBox(
+                          //           width: 10,
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
                           const SizedBox(
                             height: 16,
                           ),
