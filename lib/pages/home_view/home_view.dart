@@ -364,53 +364,78 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   // ),
                 ],
               ),
-              bottomNavigationBar: BottomNavigationBar(
-                unselectedFontSize: 14.0,
-                unselectedLabelStyle: STextStyles.smallMed12(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .bottomNavText),
-                backgroundColor:
+              bottomNavigationBar: Container(
+                color:
                     Theme.of(context).extension<StackColors>()!.bottomNavShadow,
-                items: [
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(
-                      Assets.svg.upload,
+                height: 75,
+                child: BottomNavigationBar(
+                  unselectedFontSize: 14.0,
+                  unselectedLabelStyle: STextStyles.smallMed12(context)
+                      .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavText),
+                  backgroundColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .bottomNavShadow,
+                  items: [
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.upload,
+                        ),
+                      ),
+                      activeIcon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.upload,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackPrimary,
+                        ),
+                      ),
+                      label: 'SEND',
                     ),
-                    activeIcon: SvgPicture.asset(
-                      Assets.svg.upload,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonBackPrimary,
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(Assets.svg.walletHome),
+                      ),
+                      activeIcon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.walletHome,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackPrimary,
+                        ),
+                      ),
+                      label: 'WALLET',
                     ),
-                    label: 'SEND',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(Assets.svg.walletHome),
-                    activeIcon: SvgPicture.asset(
-                      Assets.svg.walletHome,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonBackPrimary,
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(Assets.svg.download),
+                      ),
+                      activeIcon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.download,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackPrimary,
+                        ),
+                      ),
+                      label: 'RECEIVE',
                     ),
-                    label: 'WALLET',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(Assets.svg.download),
-                    activeIcon: SvgPicture.asset(
-                      Assets.svg.download,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonBackPrimary,
-                    ),
-                    label: 'RECEIVE',
-                  ),
-                ],
-                onTap: _onTappedBar,
-                currentIndex: currentIndex,
-                selectedItemColor: Theme.of(context)
-                    .extension<StackColors>()!
-                    .buttonBackPrimary,
+                  ],
+                  onTap: _onTappedBar,
+                  currentIndex: currentIndex,
+                  selectedItemColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonBackPrimary,
+                ),
               ),
               body: Column(
                 children: [
