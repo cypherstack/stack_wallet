@@ -177,8 +177,10 @@ class _PNG {
   const _PNG();
 
   String get splash => "assets/images/splash.png";
-
   String get epicCash => "assets/images/epic-cash.png";
+  String get epicFast => "assets/images/epic-fast.png";
+  String get epicClouds => "assets/images/epic-clouds.png";
+  String get epicWelcome => "assets/images/epic-welcome.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {

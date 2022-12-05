@@ -31,45 +31,20 @@ class _IntroViewState extends State<IntroView> {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        body: Padding(
-          padding: const EdgeInsets.all(40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        body: GestureDetector(
+          onHorizontalDragEnd: (DragEndDetails details) {
+            //user didn't drag screen
+            if (details.primaryVelocity == 0) return;
+
+            if (details.primaryVelocity?.compareTo(0) == -1)
+              print('dragged from left');
+            else
+              print('dragged from right');
+          },
+          child: PageView(
             children: [
-              const Spacer(
-                flex: 5,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 300,
-                  ),
-                  child: Image(
-                    image: AssetImage(
-                      Assets.gif.epicPlain,
-                    ),
-                  ),
-                ),
-              ),
-              const Spacer(
-                flex: 3,
-              ),
-              const AppNameText(),
-              const SizedBox(
-                height: 32,
-              ),
-              // todo add screen swipe text
-              const SizedBox(
-                height: 118,
-              ),
-              PrimaryButton(
-                label: "GET STARTED",
-                onPressed: () => Navigator.of(context)
-                    .pushNamed(CreateRestoreWalletView.routeName),
-              ),
+              AppNameTextLeft(),
+              AppNameTextRight(),
             ],
           ),
         ),
@@ -78,63 +53,113 @@ class _IntroViewState extends State<IntroView> {
   }
 }
 
-class AppNameText extends StatelessWidget {
-  const AppNameText({
+class AppNameTextLeft extends StatelessWidget {
+  const AppNameTextLeft({
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      "Everyday \nfinancial \nprivacy",
-      textAlign: TextAlign.left,
-      style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Spacer(
+          flex: 5,
+        ),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width,
+          ),
+          child: Image(
+            image: AssetImage(
+              Assets.png.epicFast,
+            ),
+            width: MediaQuery.of(context).size.width,
+            height: 145,
+            alignment: Alignment.centerLeft,
+          ),
+        ),
+        const Spacer(
+          flex: 3,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(40.0),
+          child: Text(
+            "Fast and reliable"
+            "\ntransactions",
+            textAlign: TextAlign.left,
+            style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
+          ),
+        ),
+        const SizedBox(
+          height: 32,
+        ),
+        // todo add screen swipe text
+        const SizedBox(
+          height: 118,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(40.0),
+          child: PrimaryButton(
+            label: "GET STARTED",
+            onPressed: () => Navigator.of(context)
+                .pushNamed(CreateRestoreWalletView.routeName),
+          ),
+        ),
+      ],
     );
   }
 }
-//
-// class PrivacyAndTOSText extends StatelessWidget {
-//   const PrivacyAndTOSText({Key? key, required this.isDesktop})
-//       : super(key: key);
-//
-//   final bool isDesktop;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final fontSize = isDesktop ? 18.0 : 12.0;
-//     return RichText(
-//       textAlign: TextAlign.center,
-//       text: TextSpan(
-//         style: STextStyles.label(context).copyWith(fontSize: fontSize),
-//         children: [
-//           const TextSpan(text: "By using Stack Wallet, you agree to the "),
-//           TextSpan(
-//             text: "Terms of service",
-//             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
-//             recognizer: TapGestureRecognizer()
-//               ..onTap = () {
-//                 launchUrl(
-//                   Uri.parse("https://epicmobile.com/terms-of-service.html"),
-//                   mode: LaunchMode.externalApplication,
-//                 );
-//               },
-//           ),
-//           const TextSpan(text: " and "),
-//           TextSpan(
-//             text: "Privacy policy",
-//             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
-//             recognizer: TapGestureRecognizer()
-//               ..onTap = () {
-//                 launchUrl(
-//                   Uri.parse("https://epicmobile.com/privacy-policy.html"),
-//                   mode: LaunchMode.externalApplication,
-//                 );
-//               },
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-//
-//
+
+class AppNameTextRight extends StatelessWidget {
+  const AppNameTextRight({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Spacer(
+          flex: 10,
+        ),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width,
+          ),
+          child: Image(
+            image: AssetImage(
+              Assets.png.epicClouds,
+            ),
+            width: MediaQuery.of(context).size.width,
+            height: 333,
+          ),
+        ),
+        const Spacer(
+          flex: 2,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(40.0),
+          child: Text(
+            "Everyday \nfinancial \nprivacy",
+            textAlign: TextAlign.left,
+            style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
+          ),
+        ),
+        // todo add screen swipe text
+        const SizedBox(
+          height: 112,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(40.0),
+          child: PrimaryButton(
+            label: "GET STARTED",
+            onPressed: () => Navigator.of(context)
+                .pushNamed(CreateRestoreWalletView.routeName),
+          ),
+        ),
+      ],
+    );
+  }
+}

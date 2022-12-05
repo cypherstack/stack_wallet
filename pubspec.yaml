@@ -167,9 +167,13 @@ flutter:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
   assets:
+    - assets/images/epic-fast.png
+    - assets/images/epic-clouds.png
+    - assets/images/epic-welcome.png
     - assets/images/epic-plain.gif
     - assets/images/splash.png
     - assets/icon/icon.png
+
     - google_fonts/
     - assets/svg/circle-check.svg
     - assets/svg/clipboard.svg
