@@ -12,6 +12,7 @@ import 'package:epicmobile/services/event_bus/events/global/refresh_percent_chan
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
 import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -364,23 +365,52 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 ],
               ),
               bottomNavigationBar: BottomNavigationBar(
+                unselectedFontSize: 14.0,
+                unselectedLabelStyle: STextStyles.smallMed12(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .bottomNavText),
+                backgroundColor:
+                    Theme.of(context).extension<StackColors>()!.bottomNavShadow,
                 items: [
                   BottomNavigationBarItem(
-                    icon: SvgPicture.asset(Assets.svg.upload),
+                    icon: SvgPicture.asset(
+                      Assets.svg.upload,
+                    ),
+                    activeIcon: SvgPicture.asset(
+                      Assets.svg.upload,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonBackPrimary,
+                    ),
                     label: 'SEND',
                   ),
                   BottomNavigationBarItem(
                     icon: SvgPicture.asset(Assets.svg.walletHome),
+                    activeIcon: SvgPicture.asset(
+                      Assets.svg.walletHome,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonBackPrimary,
+                    ),
                     label: 'WALLET',
                   ),
                   BottomNavigationBarItem(
                     icon: SvgPicture.asset(Assets.svg.download),
+                    activeIcon: SvgPicture.asset(
+                      Assets.svg.download,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonBackPrimary,
+                    ),
                     label: 'RECEIVE',
                   ),
                 ],
                 onTap: _onTappedBar,
                 currentIndex: currentIndex,
-                selectedItemColor: Colors.yellow,
+                selectedItemColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonBackPrimary,
               ),
               body: Column(
                 children: [

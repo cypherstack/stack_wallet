@@ -1,25 +1,15 @@
-import 'dart:async';
-
-import 'package:epicmobile/pages/receive_view/receive_view.dart';
-import 'package:epicmobile/pages/send_view/send_view.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/transactions_list.dart';
-import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_navigation_bar.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:epicmobile/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
@@ -314,71 +304,71 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 14,
-                            left: 16,
-                            right: 16,
-                          ),
-                          child: SizedBox(
-                            height: WalletView.navBarHeight,
-                            child: WalletNavigationBar(
-                              enableExchange: Constants.enableExchange &&
-                                  ref.watch(walletProvider
-                                          .select((value) => value!.coin)) !=
-                                      Coin.epicCash,
-                              height: WalletView.navBarHeight,
-                              onExchangePressed: () {},
-                              onReceivePressed: () async {
-                                final coin = ref.read(walletProvider)!.coin;
-                                if (mounted) {
-                                  unawaited(Navigator.of(context).pushNamed(
-                                    ReceiveView.routeName,
-                                    arguments: Tuple2(
-                                      walletId,
-                                      coin,
-                                    ),
-                                  ));
-                                }
-                              },
-                              onSendPressed: () {
-                                final walletId =
-                                    ref.read(walletProvider)!.walletId;
-                                final coin = ref.read(walletProvider)!.coin;
-                                switch (ref
-                                    .read(
-                                        walletBalanceToggleStateProvider.state)
-                                    .state) {
-                                  case WalletBalanceToggleState.locked:
-                                    ref
-                                        .read(publicPrivateBalanceStateProvider
-                                            .state)
-                                        .state = "Public";
-                                    break;
-                                  case WalletBalanceToggleState.available:
-                                    ref
-                                        .read(publicPrivateBalanceStateProvider
-                                            .state)
-                                        .state = "Private";
-                                    break;
-                                }
-                                Navigator.of(context).pushNamed(
-                                  SendView.routeName,
-                                  arguments: Tuple2(
-                                    walletId,
-                                    coin,
-                                  ),
-                                );
-                              },
-                              onBuyPressed: () {},
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   children: [
+                    //     Padding(
+                    //       padding: const EdgeInsets.only(
+                    //         bottom: 14,
+                    //         left: 16,
+                    //         right: 16,
+                    //       ),
+                    //       child: SizedBox(
+                    //         height: WalletView.navBarHeight,
+                    //         child: WalletNavigationBar(
+                    //           enableExchange: Constants.enableExchange &&
+                    //               ref.watch(walletProvider
+                    //                       .select((value) => value!.coin)) !=
+                    //                   Coin.epicCash,
+                    //           height: WalletView.navBarHeight,
+                    //           onExchangePressed: () {},
+                    //           onReceivePressed: () async {
+                    //             final coin = ref.read(walletProvider)!.coin;
+                    //             if (mounted) {
+                    //               unawaited(Navigator.of(context).pushNamed(
+                    //                 ReceiveView.routeName,
+                    //                 arguments: Tuple2(
+                    //                   walletId,
+                    //                   coin,
+                    //                 ),
+                    //               ));
+                    //             }
+                    //           },
+                    //           onSendPressed: () {
+                    //             final walletId =
+                    //                 ref.read(walletProvider)!.walletId;
+                    //             final coin = ref.read(walletProvider)!.coin;
+                    //             switch (ref
+                    //                 .read(
+                    //                     walletBalanceToggleStateProvider.state)
+                    //                 .state) {
+                    //               case WalletBalanceToggleState.locked:
+                    //                 ref
+                    //                     .read(publicPrivateBalanceStateProvider
+                    //                         .state)
+                    //                     .state = "Public";
+                    //                 break;
+                    //               case WalletBalanceToggleState.available:
+                    //                 ref
+                    //                     .read(publicPrivateBalanceStateProvider
+                    //                         .state)
+                    //                     .state = "Private";
+                    //                 break;
+                    //             }
+                    //             Navigator.of(context).pushNamed(
+                    //               SendView.routeName,
+                    //               arguments: Tuple2(
+                    //                 walletId,
+                    //                 coin,
+                    //               ),
+                    //             );
+                    //           },
+                    //           onBuyPressed: () {},
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                   ],
                 )
               ],
