@@ -45,9 +45,19 @@ class _ForgotPasswordDesktopViewState
       if (Platform.isWindows || Platform.isLinux) {
         await appRoot.delete(recursive: true);
       } else {
-        appRoot
-            .listSync()
-            .forEach((element) => element.deleteSync(recursive: true));
+        // macos in ipad mode
+        final xmrDir = Directory("${appRoot.path}/wallets");
+        if (xmrDir.existsSync()) {
+          await xmrDir.delete(recursive: true);
+        }
+        final epicDir = Directory("${appRoot.path}/epiccash");
+        if (epicDir.existsSync()) {
+          await epicDir.delete(recursive: true);
+        }
+        await (await StackFileSystem.applicationHiveDirectory())
+            .delete(recursive: true);
+        await (await StackFileSystem.applicationIsarDirectory())
+            .delete(recursive: true);
       }
 
       await DB.instance.init();
