@@ -53,16 +53,16 @@ class _IntroViewState extends State<IntroView> {
                   print('dragged from right');
               },
               child: PageView(
-                children: const [
-                  AppNameTextLeft(),
-                  AppNameTextRight(),
-                ],
                 controller: _pageController,
                 onPageChanged: (page) {
                   setState(() {
                     currentIndex = page as double;
                   });
                 },
+                children: const [
+                  AppNameTextLeft(),
+                  AppNameTextRight(),
+                ],
               ),
             ),
             Container(
