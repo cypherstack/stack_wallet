@@ -258,6 +258,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       title: 'Epic Mobile',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
+        accentColor: colorScheme.textGold,
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
         brightness: Brightness.dark,
