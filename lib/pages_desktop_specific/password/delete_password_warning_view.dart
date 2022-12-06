@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +42,24 @@ class _ForgotPasswordDesktopViewState
 
     try {
       await Hive.close();
-      await appRoot.delete(recursive: true);
+      if (Platform.isWindows || Platform.isLinux) {
+        await appRoot.delete(recursive: true);
+      } else {
+        // macos in ipad mode
+        final xmrDir = Directory("${appRoot.path}/wallets");
+        if (xmrDir.existsSync()) {
+          await xmrDir.delete(recursive: true);
+        }
+        final epicDir = Directory("${appRoot.path}/epiccash");
+        if (epicDir.existsSync()) {
+          await epicDir.delete(recursive: true);
+        }
+        await (await StackFileSystem.applicationHiveDirectory())
+            .delete(recursive: true);
+        await (await StackFileSystem.applicationIsarDirectory())
+            .delete(recursive: true);
+      }
+
       await DB.instance.init();
     } catch (e, s) {
       Logging.instance.log(

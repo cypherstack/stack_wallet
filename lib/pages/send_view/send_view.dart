@@ -307,36 +307,37 @@ class _SendViewState extends ConsumerState<SendView> {
       _addressToggleFlag = true;
     }
 
-    _cryptoFocus.addListener(() {
-      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(0);
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture = calculateFees(
-                Format.decimalAmountToSatoshis(_amountToSend!, coin));
-          });
+    if (coin != Coin.epicCash) {
+      _cryptoFocus.addListener(() {
+        if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+          if (_amountToSend == null) {
+            setState(() {
+              _calculateFeesFuture = calculateFees(0);
+            });
+          } else {
+            setState(() {
+              _calculateFeesFuture = calculateFees(
+                  Format.decimalAmountToSatoshis(_amountToSend!, coin));
+            });
+          }
         }
-      }
-    });
+      });
 
-    _baseFocus.addListener(() {
-      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(0);
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture = calculateFees(
-                Format.decimalAmountToSatoshis(_amountToSend!, coin));
-          });
+      _baseFocus.addListener(() {
+        if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+          if (_amountToSend == null) {
+            setState(() {
+              _calculateFeesFuture = calculateFees(0);
+            });
+          } else {
+            setState(() {
+              _calculateFeesFuture = calculateFees(
+                  Format.decimalAmountToSatoshis(_amountToSend!, coin));
+            });
+          }
         }
-      }
-    });
-
+      });
+    }
     super.initState();
   }
 
@@ -1324,172 +1325,183 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          Text(
-                            "Transaction fee (estimated)",
-                            style: STextStyles.smallMed12(context),
-                            textAlign: TextAlign.left,
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Stack(
-                            children: [
-                              TextField(
-                                autocorrect: Util.isDesktop ? false : true,
-                                enableSuggestions:
-                                    Util.isDesktop ? false : true,
-                                controller: feeController,
-                                readOnly: true,
-                                textInputAction: TextInputAction.none,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
+                          if (coin != Coin.epicCash)
+                            Text(
+                              "Transaction fee (estimated)",
+                              style: STextStyles.smallMed12(context),
+                              textAlign: TextAlign.left,
+                            ),
+                          if (coin != Coin.epicCash)
+                            const SizedBox(
+                              height: 8,
+                            ),
+                          if (coin != Coin.epicCash)
+                            Stack(
+                              children: [
+                                TextField(
+                                  autocorrect: Util.isDesktop ? false : true,
+                                  enableSuggestions:
+                                      Util.isDesktop ? false : true,
+                                  controller: feeController,
+                                  readOnly: true,
+                                  textInputAction: TextInputAction.none,
                                 ),
-                                child: RawMaterialButton(
-                                  splashColor: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .highlight,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      Constants.size.circularBorderRadius,
-                                    ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
                                   ),
-                                  onPressed: (coin == Coin.firo ||
-                                              coin == Coin.firoTestNet) &&
-                                          ref
-                                                  .watch(
-                                                      publicPrivateBalanceStateProvider
-                                                          .state)
-                                                  .state ==
-                                              "Private"
-                                      ? null
-                                      : () {
-                                          showModalBottomSheet<dynamic>(
-                                            backgroundColor: Colors.transparent,
-                                            context: context,
-                                            shape: const RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.vertical(
-                                                top: Radius.circular(20),
+                                  child: RawMaterialButton(
+                                    splashColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .highlight,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                    ),
+                                    onPressed: (coin == Coin.firo ||
+                                                coin == Coin.firoTestNet) &&
+                                            ref
+                                                    .watch(
+                                                        publicPrivateBalanceStateProvider
+                                                            .state)
+                                                    .state ==
+                                                "Private"
+                                        ? null
+                                        : () {
+                                            showModalBottomSheet<dynamic>(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              context: context,
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                  top: Radius.circular(20),
+                                                ),
                                               ),
-                                            ),
-                                            builder: (_) =>
-                                                TransactionFeeSelectionSheet(
-                                              walletId: walletId,
-                                              amount: Decimal.tryParse(
-                                                      cryptoAmountController
-                                                          .text) ??
-                                                  Decimal.zero,
-                                              updateChosen: (String fee) {
-                                                setState(() {
-                                                  _calculateFeesFuture =
-                                                      Future(() => fee);
-                                                });
-                                              },
-                                            ),
-                                          );
-                                        },
-                                  child: ((coin == Coin.firo ||
-                                              coin == Coin.firoTestNet) &&
-                                          ref
-                                                  .watch(
-                                                      publicPrivateBalanceStateProvider
-                                                          .state)
-                                                  .state ==
-                                              "Private")
-                                      ? Row(
-                                          children: [
-                                            FutureBuilder(
-                                              future: _calculateFeesFuture,
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState ==
-                                                        ConnectionState.done &&
-                                                    snapshot.hasData) {
-                                                  return Text(
-                                                    "~${snapshot.data! as String} ${coin.ticker}",
+                                              builder: (_) =>
+                                                  TransactionFeeSelectionSheet(
+                                                walletId: walletId,
+                                                amount: Decimal.tryParse(
+                                                        cryptoAmountController
+                                                            .text) ??
+                                                    Decimal.zero,
+                                                updateChosen: (String fee) {
+                                                  setState(() {
+                                                    _calculateFeesFuture =
+                                                        Future(() => fee);
+                                                  });
+                                                },
+                                              ),
+                                            );
+                                          },
+                                    child: ((coin == Coin.firo ||
+                                                coin == Coin.firoTestNet) &&
+                                            ref
+                                                    .watch(
+                                                        publicPrivateBalanceStateProvider
+                                                            .state)
+                                                    .state ==
+                                                "Private")
+                                        ? Row(
+                                            children: [
+                                              FutureBuilder(
+                                                future: _calculateFeesFuture,
+                                                builder: (context, snapshot) {
+                                                  if (snapshot.connectionState ==
+                                                          ConnectionState
+                                                              .done &&
+                                                      snapshot.hasData) {
+                                                    return Text(
+                                                      "~${snapshot.data! as String} ${coin.ticker}",
+                                                      style: STextStyles
+                                                          .itemSubtitle(
+                                                              context),
+                                                    );
+                                                  } else {
+                                                    return AnimatedText(
+                                                      stringsToLoopThrough: const [
+                                                        "Calculating",
+                                                        "Calculating.",
+                                                        "Calculating..",
+                                                        "Calculating...",
+                                                      ],
+                                                      style: STextStyles
+                                                          .itemSubtitle(
+                                                              context),
+                                                    );
+                                                  }
+                                                },
+                                              ),
+                                            ],
+                                          )
+                                        : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    ref
+                                                        .watch(
+                                                            feeRateTypeStateProvider
+                                                                .state)
+                                                        .state
+                                                        .prettyName,
                                                     style: STextStyles
-                                                        .itemSubtitle(context),
-                                                  );
-                                                } else {
-                                                  return AnimatedText(
-                                                    stringsToLoopThrough: const [
-                                                      "Calculating",
-                                                      "Calculating.",
-                                                      "Calculating..",
-                                                      "Calculating...",
-                                                    ],
-                                                    style: STextStyles
-                                                        .itemSubtitle(context),
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        )
-                                      : Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  ref
-                                                      .watch(
-                                                          feeRateTypeStateProvider
-                                                              .state)
-                                                      .state
-                                                      .prettyName,
-                                                  style: STextStyles
-                                                      .itemSubtitle12(context),
-                                                ),
-                                                const SizedBox(
-                                                  width: 10,
-                                                ),
-                                                FutureBuilder(
-                                                  future: _calculateFeesFuture,
-                                                  builder: (context, snapshot) {
-                                                    if (snapshot.connectionState ==
-                                                            ConnectionState
-                                                                .done &&
-                                                        snapshot.hasData) {
-                                                      return Text(
-                                                        "~${snapshot.data! as String} ${coin.ticker}",
-                                                        style: STextStyles
-                                                            .itemSubtitle(
-                                                                context),
-                                                      );
-                                                    } else {
-                                                      return AnimatedText(
-                                                        stringsToLoopThrough: const [
-                                                          "Calculating",
-                                                          "Calculating.",
-                                                          "Calculating..",
-                                                          "Calculating...",
-                                                        ],
-                                                        style: STextStyles
-                                                            .itemSubtitle(
-                                                                context),
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                            SvgPicture.asset(
-                                              Assets.svg.chevronDown,
-                                              width: 8,
-                                              height: 4,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textSubtitle2,
-                                            ),
-                                          ],
-                                        ),
-                                ),
-                              )
-                            ],
-                          ),
+                                                        .itemSubtitle12(
+                                                            context),
+                                                  ),
+                                                  const SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  FutureBuilder(
+                                                    future:
+                                                        _calculateFeesFuture,
+                                                    builder:
+                                                        (context, snapshot) {
+                                                      if (snapshot.connectionState ==
+                                                              ConnectionState
+                                                                  .done &&
+                                                          snapshot.hasData) {
+                                                        return Text(
+                                                          "~${snapshot.data! as String} ${coin.ticker}",
+                                                          style: STextStyles
+                                                              .itemSubtitle(
+                                                                  context),
+                                                        );
+                                                      } else {
+                                                        return AnimatedText(
+                                                          stringsToLoopThrough: const [
+                                                            "Calculating",
+                                                            "Calculating.",
+                                                            "Calculating..",
+                                                            "Calculating...",
+                                                          ],
+                                                          style: STextStyles
+                                                              .itemSubtitle(
+                                                                  context),
+                                                        );
+                                                      }
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                              SvgPicture.asset(
+                                                Assets.svg.chevronDown,
+                                                width: 8,
+                                                height: 4,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textSubtitle2,
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                )
+                              ],
+                            ),
                           const Spacer(),
                           const SizedBox(
                             height: 12,
