@@ -2902,6 +2902,8 @@ class ParticlWallet extends CoinServiceAPI {
     Map<String, dynamic> results = {};
     Map<String, List<String>> addressTxid = {};
 
+    print("CALLING FETCH BUILD TX DATA");
+
     // addresses to check
     List<String> addressesP2PKH = [];
     List<String> addressesP2WPKH = [];
@@ -3119,7 +3121,7 @@ class ParticlWallet extends CoinServiceAPI {
       rethrow;
     }
 
-    final builtTx = txb.build();
+    final builtTx = txb.buildIncomplete();
     final vSize = builtTx.virtualSize();
 
     print("BUILT TX IS ${builtTx.toHex().toString()}");
