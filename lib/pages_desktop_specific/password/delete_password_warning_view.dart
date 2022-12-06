@@ -45,7 +45,9 @@ class _ForgotPasswordDesktopViewState
       if (Platform.isWindows || Platform.isLinux) {
         await appRoot.delete(recursive: true);
       } else {
-        appRoot.listSync().forEach((element) => element.deleteSync());
+        appRoot
+            .listSync()
+            .forEach((element) => element.deleteSync(recursive: true));
       }
 
       await DB.instance.init();
