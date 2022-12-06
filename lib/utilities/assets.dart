@@ -56,6 +56,8 @@ class _SVG {
   // String get themeLight => "assets/svg/light-mode.svg";
   // String get themeDark => "assets/svg/dark-theme.svg";
 
+  String get eyeOff => "assets/svg/eye-off.svg";
+  String get edit => "assets/svg/edit.svg";
   String get walletHome => "assets/svg/wallet.svg";
   String get download => "assets/svg/download.svg";
   String get upload => "assets/svg/upload.svg";
@@ -116,7 +118,7 @@ class _SVG {
   String get user => "assets/svg/user.svg";
   String get trash => "assets/svg/trash.svg";
   // String get eye => "assets/svg/eye.svg";
-  // String get eyeSlash => "assets/svg/eye-slash.svg";
+  String get eyeSlash => "assets/svg/eye-slash.svg";
   String get folder => "assets/svg/folder.svg";
   String get calendar => "assets/svg/calendar-days.svg";
   String get circleQuestion => "assets/svg/circle-question.svg";

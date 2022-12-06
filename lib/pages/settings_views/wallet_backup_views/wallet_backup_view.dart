@@ -1,4 +1,5 @@
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -6,6 +7,7 @@ import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class WalletBackupView extends ConsumerWidget {
   const WalletBackupView({
@@ -91,32 +93,84 @@ class WalletBackupView extends ConsumerWidget {
                 const SizedBox(
                   height: 12,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Write down your wallet key.",
-                      style: STextStyles.smallMed14(context),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 40.0, vertical: 10.0),
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        Assets.svg.edit,
+                        width: 22,
+                        height: 22,
+                      ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Text(
+                        "Write down your wallet key.",
+                        style: STextStyles.smallMed14(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textMedium,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Keep your wallet key safe.",
-                      style: STextStyles.smallMed14(context),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 40.0, vertical: 10.0),
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        Assets.svg.lockFilled,
+                        width: 22,
+                        height: 22,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textMedium,
+                      ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Text(
+                        "Keep your wallet key safe.",
+                        style: STextStyles.smallMed14(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textMedium,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Do not show your wallet key to anyone.",
-                      style: STextStyles.smallMed14(context),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 40.0, vertical: 10.0),
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        Assets.svg.eyeSlash,
+                        width: 22,
+                        height: 22,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textMedium,
+                      ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Text(
+                        "Do not show your wallet key to"
+                        "\nanyone.",
+                        style: STextStyles.smallMed14(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textMedium,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 // const SizedBox(
                 //   height: 12,
