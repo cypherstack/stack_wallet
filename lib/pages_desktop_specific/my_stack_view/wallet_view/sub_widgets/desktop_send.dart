@@ -1364,21 +1364,24 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         const SizedBox(
           height: 20,
         ),
-        Text(
-          "Transaction fee (estimated)",
-          style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconRight,
+        if (coin != Coin.epicCash)
+          Text(
+            "Transaction fee (estimated)",
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
+            ),
+            textAlign: TextAlign.left,
           ),
-          textAlign: TextAlign.left,
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        DesktopFeeDropDown(
-          walletId: walletId,
-        ),
+        if (coin != Coin.epicCash)
+          const SizedBox(
+            height: 10,
+          ),
+        if (coin != Coin.epicCash)
+          DesktopFeeDropDown(
+            walletId: walletId,
+          ),
         const SizedBox(
           height: 36,
         ),
