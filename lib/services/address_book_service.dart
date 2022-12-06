@@ -1,6 +1,5 @@
 import 'package:epicmobile/hive/db.dart';
 import 'package:epicmobile/models/contact.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -44,10 +43,11 @@ class AddressBookService extends ChangeNotifier {
       return true;
     }
     for (int i = 0; i < contact.addresses.length; i++) {
-      if (contact.addresses[i].label.toLowerCase().contains(text) ||
-          contact.addresses[i].coin.name.toLowerCase().contains(text) ||
-          contact.addresses[i].coin.prettyName.toLowerCase().contains(text) ||
-          contact.addresses[i].coin.ticker.toLowerCase().contains(text) ||
+      if (
+          // contact.addresses[i].label.toLowerCase().contains(text) ||
+          //     contact.addresses[i].coin.name.toLowerCase().contains(text) ||
+          //     contact.addresses[i].coin.prettyName.toLowerCase().contains(text) ||
+          //     contact.addresses[i].coin.ticker.toLowerCase().contains(text) ||
           contact.addresses[i].address.toLowerCase().contains(text)) {
         return true;
       }

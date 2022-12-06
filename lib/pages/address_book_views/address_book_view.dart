@@ -1,7 +1,6 @@
 import 'package:epicmobile/models/contact.dart';
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/add_address_book_entry_view.dart';
-import 'package:epicmobile/pages/address_book_views/subviews/address_book_search_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:epicmobile/providers/global/address_book_service_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
@@ -10,8 +9,10 @@ import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -26,6 +27,12 @@ class AddressBookView extends ConsumerStatefulWidget {
 }
 
 class _AddressBookViewState extends ConsumerState<AddressBookView> {
+  late final TextEditingController _searchController;
+  late final FocusNode _searchFocusNode;
+
+  String _searchTerm = "";
+  bool _enableSearch = false;
+
   void showContextMenu() {
     showDialog<void>(
       context: context,
@@ -103,31 +110,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     );
   }
 
-  @override
-  void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      List<ContactAddressEntry> addresses = [];
-
-      addresses.add(
-        ContactAddressEntry(
-          coin: ref.read(walletProvider)!.coin,
-          address: await (ref.read(walletProvider)!).currentReceivingAddress,
-          label: "Current Receiving",
-          other: ref.read(walletProvider)!.walletName,
-        ),
-      );
-
-      final self = Contact(
-        name: "My Wallet",
-        addresses: addresses,
-        isFavorite: true,
-        id: "default",
-      );
-      await ref.read(addressBookServiceProvider).editContact(self);
-    });
-    super.initState();
-  }
-
   void sort(List<Contact> contacts, Map<int, String> charMap) {
     contacts
         .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
@@ -165,10 +147,45 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
   }
 
   @override
+  void initState() {
+    _searchController = TextEditingController();
+    _searchFocusNode = FocusNode();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      List<ContactAddressEntry> addresses = [];
+
+      addresses.add(
+        ContactAddressEntry(
+          coin: ref.read(walletProvider)!.coin,
+          address: await (ref.read(walletProvider)!).currentReceivingAddress,
+          label: "Current Receiving",
+          other: ref.read(walletProvider)!.walletName,
+        ),
+      );
+
+      final self = Contact(
+        name: "My Wallet",
+        addresses: addresses,
+        isFavorite: true,
+        id: "default",
+      );
+      await ref.read(addressBookServiceProvider).editContact(self);
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final contacts =
-        ref.watch(addressBookServiceProvider.select((value) => value.contacts));
+    final contacts = ref.watch(addressBookServiceProvider
+        .select((value) => value.search(_searchTerm)));
 
     final Map<int, String> charMap = {};
 
@@ -184,57 +201,183 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
             },
           ),
           centerTitle: true,
-          title: Text(
-            "Address book",
-            style: STextStyles.titleH4(context),
-          ),
+          title: !_enableSearch
+              ? Text(
+                  "Address book",
+                  style: STextStyles.titleH4(context),
+                )
+              : Row(
+                  children: [
+                    const SizedBox(
+                      width: 2,
+                    ),
+                    Expanded(
+                      child: TextField(
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        autofocus: true,
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        onChanged: (value) {
+                          setState(() {
+                            _searchTerm = value;
+                          });
+                        },
+                        style: STextStyles.body(context),
+                        textAlignVertical: TextAlignVertical.center,
+                        decoration: InputDecoration(
+                          focusColor: Colors.transparent,
+                          fillColor: Colors.transparent,
+                          filled: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 0,
+                            horizontal: 0,
+                          ),
+                          // labelStyle: STextStyles.fieldLabel(context),
+                          // hintStyle: STextStyles.fieldLabel(context),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              width: 1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
+                          ),
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              width: 1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
+                          ),
+                          errorBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              width: 1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
+                          ),
+                          disabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              width: 1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
+                          ),
+                          focusedErrorBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              width: 1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
+                          ),
+                          // border: InputBorder.none,
+                          isCollapsed: true,
+                          hintText: "Search...",
+                          hintStyle: STextStyles.body(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
+                          prefixIconConstraints: const BoxConstraints(
+                            minWidth: 0,
+                            minHeight: 0,
+                          ),
+                          prefixIcon: SizedBox(
+                            width: 32,
+                            height: 39,
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: SvgPicture.asset(
+                                  Assets.svg.search,
+                                  width: 24,
+                                  height: 24,
+                                ),
+                              ),
+                            ),
+                          ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.only(right: 0),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(() {
+                                              _searchController.text = "";
+                                              _searchTerm = "";
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 40,
+                    ),
+                  ],
+                ),
           actions: [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("addressBookSearchViewButton"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    Assets.svg.search,
+            if (!_enableSearch)
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("addressBookSearchViewButton"),
+                    size: 36,
+                    shadows: const [],
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.search,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _enableSearch = true;
+                      });
+                    },
                   ),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(
-                      AddressBookSearchView.routeName,
-                    );
-                  },
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 16,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("addressBookAddNewContactViewButton"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    Assets.svg.ellipsis,
-                  ),
-                  onPressed: () {
-                    showContextMenu();
-                  },
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.only(
+            //     top: 10,
+            //     bottom: 10,
+            //     right: 16,
+            //   ),
+            //   child: AspectRatio(
+            //     aspectRatio: 1,
+            //     child: AppBarIconButton(
+            //       key: const Key("addressBookAddNewContactViewButton"),
+            //       size: 36,
+            //       shadows: const [],
+            //       color: Theme.of(context).extension<StackColors>()!.background,
+            //       icon: SvgPicture.asset(
+            //         Assets.svg.ellipsis,
+            //       ),
+            //       onPressed: () {
+            //         showContextMenu();
+            //       },
+            //     ),
+            //   ),
+            // ),
           ],
         ),
         body: SafeArea(
