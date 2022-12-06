@@ -7,7 +7,7 @@ import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_op
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/add_address_book_entry_view.dart';
-import 'package:epicmobile/pages/address_book_views/subviews/address_book_filter_view.dart';
+import 'package:epicmobile/pages/address_book_views/subviews/address_book_search_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:epicmobile/pages/help/help_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
@@ -115,11 +115,14 @@ class RouteGenerator {
           ),
         );
 
-      case AddressBookFilterView.routeName:
+      case AddressBookSearchView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AddressBookFilterView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AddressBookSearchView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
 
       case SecurityView.routeName:
         if (args is bool) {

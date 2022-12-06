@@ -1,10 +1,10 @@
 import 'package:epicmobile/models/contact.dart';
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/add_address_book_entry_view.dart';
+import 'package:epicmobile/pages/address_book_views/subviews/address_book_search_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:epicmobile/providers/global/address_book_service_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/providers/ui/address_book_providers/address_book_filter_provider.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -26,12 +26,6 @@ class AddressBookView extends ConsumerStatefulWidget {
 }
 
 class _AddressBookViewState extends ConsumerState<AddressBookView> {
-  late final TextEditingController _searchController;
-
-  late final FocusNode _searchFocusNode;
-
-  String _searchTerm = "";
-
   void showContextMenu() {
     showDialog<void>(
       context: context,
@@ -111,10 +105,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
 
   @override
   void initState() {
-    _searchController = TextEditingController();
-    _searchFocusNode = FocusNode();
-    ref.refresh(addressBookFilterProvider);
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       List<ContactAddressEntry> addresses = [];
 
@@ -136,13 +126,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       await ref.read(addressBookServiceProvider).editContact(self);
     });
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
   }
 
   void sort(List<Contact> contacts, Map<int, String> charMap) {
@@ -223,9 +206,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                     Assets.svg.search,
                   ),
                   onPressed: () {
-                    // Navigator.of(context).pushNamed(
-                    //   AddressBookFilterView.routeName,
-                    // );
+                    Navigator.of(context).pushNamed(
+                      AddressBookSearchView.routeName,
+                    );
                   },
                 ),
               ),
@@ -339,183 +322,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
             ),
           ),
         ),
-        // body: SafeArea(
-        //   child: Padding(
-        //     padding: const EdgeInsets.only(
-        //       left: 12,
-        //       top: 12,
-        //       right: 12,
-        //     ),
-        //     child: LayoutBuilder(
-        //       builder: (builderContext, constraints) {
-        //         return SingleChildScrollView(
-        //           child: ConstrainedBox(
-        //             constraints: BoxConstraints(
-        //               minHeight: constraints.maxHeight,
-        //             ),
-        //             child: IntrinsicHeight(
-        //               child: Padding(
-        //                 padding: const EdgeInsets.all(4),
-        //                 child: Column(
-        //                   crossAxisAlignment: CrossAxisAlignment.stretch,
-        //                   children: [
-        //                     ClipRRect(
-        //                       borderRadius: BorderRadius.circular(
-        //                         Constants.size.circularBorderRadius,
-        //                       ),
-        //                       child: TextField(
-        //                         autocorrect: Util.isDesktop ? false : true,
-        //                         enableSuggestions:
-        //                             Util.isDesktop ? false : true,
-        //                         controller: _searchController,
-        //                         focusNode: _searchFocusNode,
-        //                         onChanged: (value) {
-        //                           setState(() {
-        //                             _searchTerm = value;
-        //                           });
-        //                         },
-        //                         style: STextStyles.field(context),
-        //                         decoration: standardInputDecoration(
-        //                           "Search",
-        //                           _searchFocusNode,
-        //                           context,
-        //                         ).copyWith(
-        //                           prefixIcon: Padding(
-        //                             padding: const EdgeInsets.symmetric(
-        //                               horizontal: 10,
-        //                               vertical: 16,
-        //                             ),
-        //                             child: SvgPicture.asset(
-        //                               Assets.svg.search,
-        //                               width: 16,
-        //                               height: 16,
-        //                             ),
-        //                           ),
-        //                           suffixIcon: _searchController.text.isNotEmpty
-        //                               ? Padding(
-        //                                   padding:
-        //                                       const EdgeInsets.only(right: 0),
-        //                                   child: UnconstrainedBox(
-        //                                     child: Row(
-        //                                       children: [
-        //                                         TextFieldIconButton(
-        //                                           child: const XIcon(),
-        //                                           onTap: () async {
-        //                                             setState(() {
-        //                                               _searchController.text =
-        //                                                   "";
-        //                                             });
-        //                                           },
-        //                                         ),
-        //                                       ],
-        //                                     ),
-        //                                   ),
-        //                                 )
-        //                               : null,
-        //                         ),
-        //                       ),
-        //                     ),
-        //                     const SizedBox(
-        //                       height: 16,
-        //                     ),
-        //                     Text(
-        //                       "Favorites",
-        //                       style: STextStyles.smallMed12(context),
-        //                     ),
-        //                     const SizedBox(
-        //                       height: 12,
-        //                     ),
-        //                     Builder(
-        //                       builder: (context) {
-        //                         final filteredFavorites = contacts.where((e) =>
-        //                             e.isFavorite &&
-        //                             ref
-        //                                 .read(addressBookServiceProvider)
-        //                                 .matches(_searchTerm, e));
-        //
-        //                         if (filteredFavorites.isNotEmpty) {
-        //                           return RoundedWhiteContainer(
-        //                             padding: const EdgeInsets.all(0),
-        //                             child: Column(
-        //                               children: [
-        //                                 ...filteredFavorites.map(
-        //                                   (e) => AddressBookCard(
-        //                                     key: Key(
-        //                                         "favContactCard_${e.id}_key"),
-        //                                     contactId: e.id,
-        //                                   ),
-        //                                 ),
-        //                               ],
-        //                             ),
-        //                           );
-        //                         } else {
-        //                           return RoundedWhiteContainer(
-        //                             child: Center(
-        //                               child: Text(
-        //                                 "Your favorite contacts will appear here",
-        //                                 style:
-        //                                     STextStyles.itemSubtitle(context),
-        //                               ),
-        //                             ),
-        //                           );
-        //                         }
-        //                       },
-        //                     ),
-        //                     const SizedBox(
-        //                       height: 16,
-        //                     ),
-        //                     Text(
-        //                       "All contacts",
-        //                       style: STextStyles.smallMed12(context),
-        //                     ),
-        //                     const SizedBox(
-        //                       height: 12,
-        //                     ),
-        //                     Builder(
-        //                       builder: (context) {
-        //                         final filtered = contacts.where((e) =>
-        //                             !e.isFavorite &&
-        //                             ref
-        //                                 .read(addressBookServiceProvider)
-        //                                 .matches(_searchTerm, e));
-        //
-        //                         if (filtered.isNotEmpty) {
-        //                           return RoundedWhiteContainer(
-        //                             padding: const EdgeInsets.all(0),
-        //                             child: Column(
-        //                               children: [
-        //                                 ...filtered.map(
-        //                                   (e) => AddressBookCard(
-        //                                     key: Key("contactCard_${e.id}_key"),
-        //                                     contactId: e.id,
-        //                                   ),
-        //                                 ),
-        //                               ],
-        //                             ),
-        //                           );
-        //                         } else {
-        //                           return RoundedWhiteContainer(
-        //                             child: Center(
-        //                               child: Text(
-        //                                 "Your contacts will appear here",
-        //                                 style:
-        //                                     STextStyles.itemSubtitle(context),
-        //                               ),
-        //                             ),
-        //                           );
-        //                         }
-        //                       },
-        //                     ),
-        //                   ],
-        //                 ),
-        //               ),
-        //             ),
-        //           ),
-        //         );
-        //       },
-        //     ),
-        //   ),
-        // ),
       ),
     );
   }
