@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/rounded_container.dart';
+import 'package:flutter/material.dart';
 
 class RoundedWhiteContainer extends StatelessWidget {
   const RoundedWhiteContainer({
     Key? key,
     this.child,
-    this.padding = const EdgeInsets.all(12),
+    this.padding = const EdgeInsets.all(16),
     this.radiusMultiplier = 1.0,
     this.width,
     this.height,
