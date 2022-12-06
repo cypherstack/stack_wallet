@@ -82,13 +82,41 @@ class WalletBackupView extends ConsumerWidget {
                 const SizedBox(
                   height: 32,
                 ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: MnemonicTable(
-                      words: mnemonic,
-                      isDesktop: false,
-                    ),
+                SingleChildScrollView(
+                  child: MnemonicTable(
+                    words: mnemonic,
+                    isDesktop: false,
                   ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Write down your wallet key.",
+                      style: STextStyles.smallMed14(context),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Keep your wallet key safe.",
+                      style: STextStyles.smallMed14(context),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Do not show your wallet key to anyone.",
+                      style: STextStyles.smallMed14(context),
+                    ),
+                  ],
                 ),
                 // const SizedBox(
                 //   height: 12,
