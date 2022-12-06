@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +42,12 @@ class _ForgotPasswordDesktopViewState
 
     try {
       await Hive.close();
-      await appRoot.delete(recursive: true);
+      if (Platform.isWindows || Platform.isLinux) {
+        await appRoot.delete(recursive: true);
+      } else {
+        appRoot.listSync().forEach((element) => element.deleteSync());
+      }
+
       await DB.instance.init();
     } catch (e, s) {
       Logging.instance.log(
