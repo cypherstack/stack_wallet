@@ -1,4 +1,5 @@
 import 'package:epicmobile/pages/add_wallet_views/create_restore_wallet_view.dart';
+import 'package:epicmobile/providers/ui/intro_view_index_provider.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -6,17 +7,18 @@ import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class IntroView extends StatefulWidget {
+class IntroView extends ConsumerStatefulWidget {
   const IntroView({Key? key}) : super(key: key);
 
   static const String routeName = "/introView";
 
   @override
-  State<IntroView> createState() => _IntroViewState();
+  ConsumerState<IntroView> createState() => _IntroViewState();
 }
 
-class _IntroViewState extends State<IntroView> {
+class _IntroViewState extends ConsumerState<IntroView> {
   late final bool isDesktop;
   final PageController _pageController = PageController();
   double currentIndex = 0;
@@ -35,6 +37,12 @@ class _IntroViewState extends State<IntroView> {
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
     return Background(
@@ -47,17 +55,15 @@ class _IntroViewState extends State<IntroView> {
                 //user didn't drag screen
                 if (details.primaryVelocity == 0) return;
 
-                if (details.primaryVelocity?.compareTo(0) == -1)
-                  print('dragged from left');
-                else
-                  print('dragged from right');
+                if (details.primaryVelocity?.compareTo(0) == -1) {
+                } else {}
               },
               child: PageView(
                 controller: _pageController,
                 onPageChanged: (page) {
-                  setState(() {
-                    currentIndex = page as double;
-                  });
+                  // setState(() {
+                  ref.read(introViewIndexProvider.state).state = page;
+                  // });
                 },
                 children: const [
                   AppNameTextLeft(),
@@ -104,7 +110,7 @@ class _IntroViewState extends State<IntroView> {
                         InkWell(
                           onTap: () {
                             _pageController.nextPage(
-                              duration: Duration(
+                              duration: const Duration(
                                 milliseconds: 100,
                               ),
                               curve: Curves.linear,
