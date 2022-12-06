@@ -7,16 +7,13 @@ import 'package:epicmobile/providers/ui/address_book_providers/contact_name_is_n
 import 'package:epicmobile/providers/ui/address_book_providers/valid_contact_state_provider.dart';
 import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
-import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
-import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,28 +84,22 @@ class _AddAddressBookEntryViewState
               }
             },
           ),
+          centerTitle: true,
           title: Text(
-            "New contact",
+            "New Address",
             style: STextStyles.titleH4(context),
           ),
         ),
         body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraint) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: LayoutBuilder(
+              builder: (context, constraint) {
+                return SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.only(
-                    // top: 8,
-                    left: 4,
-                    right: 4,
-                    bottom: 8,
-                  ),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      // subtract top and bottom padding set in parent
-                      minHeight: constraint.maxHeight - 8,
+                      minHeight: constraint.maxHeight,
                     ),
                     child: IntrinsicHeight(
                       child: Column(
@@ -122,51 +113,61 @@ class _AddAddressBookEntryViewState
                           const SizedBox(
                             height: 16,
                           ),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                            child: TextField(
-                              autocorrect: Util.isDesktop ? false : true,
-                              enableSuggestions: Util.isDesktop ? false : true,
-                              controller: nameController,
-                              focusNode: nameFocusNode,
-                              style: STextStyles.field(context),
-                              decoration: standardInputDecoration(
-                                "Enter contact name",
-                                nameFocusNode,
-                                context,
-                              ).copyWith(
-                                suffixIcon: ref
-                                        .read(contactNameIsNotEmptyStateProvider
-                                            .state)
-                                        .state
-                                    ? Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 0),
-                                        child: UnconstrainedBox(
-                                          child: Row(
-                                            children: [
-                                              TextFieldIconButton(
-                                                child: const XIcon(),
-                                                onTap: () async {
-                                                  setState(() {
-                                                    nameController.text = "";
-                                                  });
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    : null,
+                          TextField(
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            controller: nameController,
+                            focusNode: nameFocusNode,
+                            textAlignVertical: TextAlignVertical.center,
+                            style: STextStyles.body(context),
+                            onChanged: (newValue) {
+                              ref
+                                  .read(
+                                      contactNameIsNotEmptyStateProvider.state)
+                                  .state = newValue.isNotEmpty;
+                            },
+                            decoration: InputDecoration(
+                              fillColor: nameFocusNode.hasFocus
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveBG
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
+                              isCollapsed: true,
+                              hintText: "Name",
+                              hintStyle: STextStyles.body(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textMedium,
                               ),
-                              onChanged: (newValue) {
-                                ref
-                                    .read(contactNameIsNotEmptyStateProvider
-                                        .state)
-                                    .state = newValue.isNotEmpty;
-                              },
+                              suffixIcon: Padding(
+                                padding: const EdgeInsets.only(right: 0),
+                                child: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      if (ref
+                                          .watch(
+                                              contactNameIsNotEmptyStateProvider
+                                                  .state)
+                                          .state)
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            ref
+                                                .read(
+                                                    contactNameIsNotEmptyStateProvider
+                                                        .state)
+                                                .state = false;
+                                            setState(() {
+                                              nameController.text = "";
+                                            });
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(
@@ -261,9 +262,9 @@ class _AddAddressBookEntryViewState
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

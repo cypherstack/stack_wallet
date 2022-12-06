@@ -230,7 +230,7 @@ class DarkColors extends StackColorTheme {
   Color get textFieldSuccessLabel => const Color(0xFF003921);
 
   @override
-  Color get textFieldActiveSearchIconRight => const Color(0xFFC4C7C7);
+  Color get textFieldActiveSearchIconRight => textMedium;
   @override
   Color get textFieldDefaultSearchIconRight => const Color(0xFF747778);
   @override

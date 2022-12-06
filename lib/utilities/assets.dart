@@ -76,7 +76,7 @@ class _SVG {
   // String get bell => "assets/svg/bell.svg";
   String get arrowLeft => "assets/svg/arrow-left-fa.svg";
   String get star => "assets/svg/star.svg";
-  String get copy => "assets/svg/copy-fa.svg";
+  String get copy => "assets/svg/copy.svg";
   // String get circleX => "assets/svg/x-circle.svg";
   String get check => "assets/svg/check.svg";
   // String get circleAlert => "assets/svg/alert-circle2.svg";
@@ -90,7 +90,6 @@ class _SVG {
   // String get arrowRotate2 => "assets/svg/arrow-rotate2.svg";
   String get alertCircle => "assets/svg/alert-circle.svg";
   String get checkCircle => "assets/svg/circle-check.svg";
-  String get clipboard => "assets/svg/clipboard.svg";
   String get qrcode => "assets/svg/qrcode1.svg";
   String get ellipsis => "assets/svg/gear-3.svg";
   String get chevronDown => "assets/svg/chevron-down.svg";

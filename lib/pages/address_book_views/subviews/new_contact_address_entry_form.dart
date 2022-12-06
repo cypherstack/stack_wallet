@@ -7,6 +7,13 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../utilities/address_utils.dart';
+import '../../../utilities/logger.dart';
+import '../../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/textfield_icon_button.dart';
 // import 'package:epicmobile/widgets/textfield_icon_button';
 
 class NewContactAddressEntryForm extends ConsumerStatefulWidget {
@@ -56,112 +63,8 @@ class _NewContactAddressEntryFormState
           enableSuggestions: false,
           focusNode: addressFocusNode,
           controller: addressController,
-          style: STextStyles.field(context),
-          decoration: InputDecoration(
-            hintText: "Address",
-          ),
-          // decoration: InputDecoration(
-          //   fillColor: addressFocusNode.hasFocus
-          //       ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
-          //       : Theme.of(context)
-          //           .extension<StackColors>()!
-          //           .textFieldDefaultBG,
-          //   labelStyle: STextStyles.fieldLabel(context),
-          //   hintStyle: STextStyles.fieldLabel(context),
-          //   suffixIcon: UnconstrainedBox(
-          //     child: Row(
-          //       children: [
-          //         if (ref.watch(addressEntryDataProvider(widget.id)
-          //                 .select((value) => value.address)) !=
-          //             null)
-          //           TextFieldIconButton(
-          //             key: const Key("addAddressBookClearAddressButtonKey"),
-          //             onTap: () async {
-          //               addressController.text = "";
-          //               ref.read(addressEntryDataProvider(widget.id)).address =
-          //                   null;
-          //             },
-          //             child: const XIcon(),
-          //           ),
-          //         if (ref.watch(addressEntryDataProvider(widget.id)
-          //                 .select((value) => value.address)) ==
-          //             null)
-          //           TextFieldIconButton(
-          //             key: const Key("addAddressPasteAddressButtonKey"),
-          //             onTap: () async {
-          //               final ClipboardData? data = await widget.clipboard
-          //                   .getData(Clipboard.kTextPlain);
-          //
-          //               if (data?.text != null && data!.text!.isNotEmpty) {
-          //                 String content = data.text!.trim();
-          //                 if (content.contains("\n")) {
-          //                   content =
-          //                       content.substring(0, content.indexOf("\n"));
-          //                 }
-          //                 addressController.text = content;
-          //                 ref
-          //                     .read(addressEntryDataProvider(widget.id))
-          //                     .address = content.isEmpty ? null : content;
-          //               }
-          //             },
-          //             child: const ClipboardIcon(),
-          //           ),
-          //         if (ref.watch(addressEntryDataProvider(widget.id)
-          //                 .select((value) => value.address)) ==
-          //             null)
-          //           TextFieldIconButton(
-          //             key: const Key("addAddressBookEntryScanQrButtonKey"),
-          //             onTap: () async {
-          //               try {
-          //                 final qrResult = await widget.barcodeScanner.scan();
-          //
-          //                 final results =
-          //                     AddressUtils.parseUri(qrResult.rawContent);
-          //                 if (results.isNotEmpty) {
-          //                   addressController.text = results["address"] ?? "";
-          //                   ref
-          //                           .read(addressEntryDataProvider(widget.id))
-          //                           .address =
-          //                       addressController.text.isEmpty
-          //                           ? null
-          //                           : addressController.text;
-          //
-          //                   // now check for non standard encoded basic address
-          //                 } else if (ref
-          //                         .read(addressEntryDataProvider(widget.id))
-          //                         .coin !=
-          //                     null) {
-          //                   if (AddressUtils.validateAddress(
-          //                       qrResult.rawContent,
-          //                       ref
-          //                           .read(addressEntryDataProvider(widget.id))
-          //                           .coin!)) {
-          //                     addressController.text = qrResult.rawContent;
-          //                     ref
-          //                         .read(addressEntryDataProvider(widget.id))
-          //                         .address = qrResult.rawContent;
-          //                   }
-          //                 }
-          //               } on PlatformException catch (e, s) {
-          //                 Logging.instance.log(
-          //                     "Failed to get camera permissions to scan address qr code: $e\n$s",
-          //                     level: LogLevel.Warning);
-          //               }
-          //             },
-          //             child: const QrCodeIcon(),
-          //           ),
-          //         const SizedBox(
-          //           width: 8,
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          //   enabledBorder: InputBorder.none,
-          //   focusedBorder: InputBorder.none,
-          //   errorBorder: InputBorder.none,
-          //   disabledBorder: InputBorder.none,
-          //   focusedErrorBorder: InputBorder.none,
-          // ),
+          style: STextStyles.body(context),
+          textAlignVertical: TextAlignVertical.center,
           key: const Key("addAddressBookEntryViewAddressField"),
           readOnly: false,
           autocorrect: false,
@@ -174,6 +77,106 @@ class _NewContactAddressEntryFormState
           onChanged: (newValue) {
             ref.read(addressEntryDataProvider(widget.id)).address = newValue;
           },
+          decoration: InputDecoration(
+            fillColor: addressFocusNode.hasFocus
+                ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
+                : Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+            isCollapsed: true,
+            hintText: "Address",
+            hintStyle: STextStyles.body(context).copyWith(
+              color: Theme.of(context).extension<StackColors>()!.textMedium,
+            ),
+            suffixIcon: UnconstrainedBox(
+              child: Row(
+                children: [
+                  if (ref.watch(addressEntryDataProvider(widget.id)
+                          .select((value) => value.address)) !=
+                      null)
+                    TextFieldIconButton(
+                      key: const Key("addAddressBookClearAddressButtonKey"),
+                      onTap: () async {
+                        addressController.text = "";
+                        ref.read(addressEntryDataProvider(widget.id)).address =
+                            null;
+                      },
+                      child: const XIcon(),
+                    ),
+                  if (ref.watch(addressEntryDataProvider(widget.id)
+                          .select((value) => value.address)) ==
+                      null)
+                    TextFieldIconButton(
+                      key: const Key("addAddressPasteAddressButtonKey"),
+                      onTap: () async {
+                        final ClipboardData? data = await widget.clipboard
+                            .getData(Clipboard.kTextPlain);
+
+                        if (data?.text != null && data!.text!.isNotEmpty) {
+                          String content = data.text!.trim();
+                          if (content.contains("\n")) {
+                            content =
+                                content.substring(0, content.indexOf("\n"));
+                          }
+                          addressController.text = content;
+                          ref
+                              .read(addressEntryDataProvider(widget.id))
+                              .address = content.isEmpty ? null : content;
+                        }
+                      },
+                      child: const ClipboardIcon(),
+                    ),
+                  if (ref.watch(addressEntryDataProvider(widget.id)
+                          .select((value) => value.address)) ==
+                      null)
+                    TextFieldIconButton(
+                      key: const Key("addAddressBookEntryScanQrButtonKey"),
+                      onTap: () async {
+                        try {
+                          final qrResult = await widget.barcodeScanner.scan();
+
+                          final results =
+                              AddressUtils.parseUri(qrResult.rawContent);
+                          if (results.isNotEmpty) {
+                            addressController.text = results["address"] ?? "";
+                            ref
+                                    .read(addressEntryDataProvider(widget.id))
+                                    .address =
+                                addressController.text.isEmpty
+                                    ? null
+                                    : addressController.text;
+
+                            // now check for non standard encoded basic address
+                          } else if (ref
+                                  .read(addressEntryDataProvider(widget.id))
+                                  .coin !=
+                              null) {
+                            if (AddressUtils.validateAddress(
+                                qrResult.rawContent,
+                                ref
+                                    .read(addressEntryDataProvider(widget.id))
+                                    .coin!)) {
+                              addressController.text = qrResult.rawContent;
+                              ref
+                                  .read(addressEntryDataProvider(widget.id))
+                                  .address = qrResult.rawContent;
+                            }
+                          }
+                        } on PlatformException catch (e, s) {
+                          Logging.instance.log(
+                              "Failed to get camera permissions to scan address qr code: $e\n$s",
+                              level: LogLevel.Warning);
+                        }
+                      },
+                      child: const QrCodeIcon(),
+                    ),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
         if (!ref.watch(addressEntryDataProvider(widget.id)
                 .select((value) => value.isValidAddress)) &&

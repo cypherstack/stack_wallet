@@ -1,13 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class XIcon extends StatelessWidget {
   const XIcon({
     Key? key,
-    this.width = 18,
-    this.height = 18,
+    this.width = 24,
+    this.height = 24,
     this.color,
   }) : super(key: key);
 

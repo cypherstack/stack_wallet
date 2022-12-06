@@ -611,7 +611,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                         child: Row(
                           children: [
                             SvgPicture.asset(
-                              Assets.svg.clipboard,
+                              Assets.svg.copy,
                               width: 22,
                               height: 22,
                               color: Theme.of(context)

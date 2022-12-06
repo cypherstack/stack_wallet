@@ -176,12 +176,11 @@ flutter:
 
     - google_fonts/
     - assets/svg/circle-check.svg
-    - assets/svg/clipboard.svg
     - assets/svg/plus.svg
     - assets/svg/gear.svg
     - assets/svg/bell.svg
     - assets/svg/arrow-left-fa.svg
-    - assets/svg/copy-fa.svg
+    - assets/svg/copy.svg
     - assets/svg/star.svg
     - assets/svg/x-circle.svg
     - assets/svg/check.svg
