@@ -98,7 +98,7 @@ class _EditContactAddressViewState
   @override
   Widget build(BuildContext context) {
     final contact = ref.watch(addressBookServiceProvider
-        .select((value) => value.getContactById(contactId)));
+        .select((value) => value.getContactById(contactId)))!;
 
     final bool isDesktop = Util.isDesktop;
 

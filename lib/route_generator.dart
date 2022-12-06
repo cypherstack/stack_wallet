@@ -7,11 +7,8 @@ import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_op
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/add_address_book_entry_view.dart';
-import 'package:epicmobile/pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/address_book_filter_view.dart';
-import 'package:epicmobile/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_address_view.dart';
-import 'package:epicmobile/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import 'package:epicmobile/pages/help/help_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/intro_view.dart';
@@ -244,48 +241,6 @@ class RouteGenerator {
               coin: args.item2,
               nodeId: args.item3,
               routeOnSuccessOrDelete: args.item4,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case ContactDetailsView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ContactDetailsView(
-              contactId: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case AddNewContactAddressView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => AddNewContactAddressView(
-              contactId: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case EditContactNameEmojiView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => EditContactNameEmojiView(
-              contactId: args,
             ),
             settings: RouteSettings(
               name: settings.name,

@@ -52,17 +52,19 @@ class AppBarBackButton extends StatelessWidget {
     this.isCompact = false,
     this.size,
     this.iconSize,
+    this.padding = const EdgeInsets.only(left: 14),
   }) : super(key: key);
 
   final VoidCallback? onPressed;
   final bool isCompact;
   final double? size;
   final double? iconSize;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 14),
+      padding: padding,
       child: Center(
         child: AppBarIconButton(
           size: size ?? 40,

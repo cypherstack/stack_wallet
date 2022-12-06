@@ -1,6 +1,7 @@
 import 'package:epicmobile/models/contact.dart';
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/pages/address_book_views/subviews/add_address_book_entry_view.dart';
+import 'package:epicmobile/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:epicmobile/providers/global/address_book_service_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/address_book_providers/address_book_filter_provider.dart';
@@ -10,6 +11,7 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/rounded_container.dart';
+import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -144,7 +146,8 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
   }
 
   void sort(List<Contact> contacts, Map<int, String> charMap) {
-    contacts.sort((a, b) => a.name.compareTo(b.name));
+    contacts
+        .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     String c = "";
     String p = "";
@@ -157,6 +160,24 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
           charMap[i] = c;
         }
       }
+    }
+  }
+
+  Future<void> showContactPopup(String contactId) async {
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (context) {
+        return StackDialogBase(
+          mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.all(0),
+          child: ContactPopUp(contactId: contactId),
+        );
+      },
+    );
+
+    if (result == "delete_contact") {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await ref.read(addressBookServiceProvider).removeContact(contactId);
     }
   }
 
@@ -248,32 +269,42 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                     itemBuilder: (context, index) {
                       final contact = contacts[index];
 
-                      return Row(
-                        children: [
-                          SizedBox(
-                            width: 60,
-                            child: Center(
-                              child: Text(
-                                charMap[index] ?? "",
-                                style: STextStyles.bodyBold(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textMedium,
+                      return GestureDetector(
+                        onTap: () => showContactPopup(contact.id),
+                        child: Container(
+                          color: Colors.transparent,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 60,
+                                  child: Center(
+                                    child: Text(
+                                      charMap[index] ?? "",
+                                      style: STextStyles.bodyBold(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textMedium,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                SvgPicture.asset(
+                                  Assets.svg.user,
+                                ),
+                                const SizedBox(
+                                  width: 16,
+                                ),
+                                Text(
+                                  contact.name,
+                                  style: STextStyles.body(context),
+                                ),
+                              ],
                             ),
                           ),
-                          SvgPicture.asset(
-                            Assets.svg.user,
-                          ),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          Text(
-                            contact.name,
-                            style: STextStyles.body(context),
-                          ),
-                        ],
+                        ),
                       );
                     },
                   ),

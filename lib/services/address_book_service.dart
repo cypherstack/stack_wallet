@@ -1,18 +1,16 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:epicmobile/hive/db.dart';
 import 'package:epicmobile/models/contact.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 class AddressBookService extends ChangeNotifier {
-  Contact getContactById(String id) {
+  Contact? getContactById(String id) {
     final json = DB.instance
         .get<dynamic>(boxName: DB.boxNameAddressBook, key: id) as Map?;
     if (json == null) {
-      Logging.instance
-          .log("Attempted to get non existing contact", level: LogLevel.Fatal);
-      throw Exception('Contact ID "$id" not found!');
+      return null;
     }
     return Contact.fromJson(Map<String, dynamic>.from(json));
   }
@@ -29,20 +27,11 @@ class AddressBookService extends ChangeNotifier {
     return _contacts;
   }
 
-  Future<List<Contact>>? _addressBookEntries;
-  Future<List<Contact>> get addressBookEntries =>
-      _addressBookEntries ??= _fetchAddressBookEntries();
-
-  // Load address book contact entries
-  Future<List<Contact>> _fetchAddressBookEntries() async {
-    return contacts;
-  }
-
   /// search address book entries
   //TODO optimize address book search?
-  Future<List<Contact>> search(String text) async {
-    if (text.isEmpty) return addressBookEntries;
-    var results = (await addressBookEntries).toList();
+  List<Contact> search(String text) {
+    if (text.isEmpty) return contacts;
+    var results = contacts.toList();
 
     results.retainWhere((contact) => matches(text, contact));
 
@@ -82,7 +71,7 @@ class AddressBookService extends ChangeNotifier {
         value: contact.toMap());
 
     Logging.instance.log("add address book entry saved", level: LogLevel.Info);
-    await _refreshAddressBookEntries();
+    notifyListeners();
     return true;
   }
 
@@ -95,19 +84,13 @@ class AddressBookService extends ChangeNotifier {
         value: editedContact.toMap());
 
     Logging.instance.log("edit address book entry saved", level: LogLevel.Info);
-    await _refreshAddressBookEntries();
+    notifyListeners();
     return true;
   }
 
   /// Remove address book contact entry from db if it exists
   Future<void> removeContact(String id) async {
     await DB.instance.delete<dynamic>(key: id, boxName: DB.boxNameAddressBook);
-    await _refreshAddressBookEntries();
-  }
-
-  Future<void> _refreshAddressBookEntries() async {
-    final newAddressBookEntries = await _fetchAddressBookEntries();
-    _addressBookEntries = Future(() => newAddressBookEntries);
     notifyListeners();
   }
 }
