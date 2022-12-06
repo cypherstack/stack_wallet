@@ -120,9 +120,9 @@ class DarkColors extends StackColorTheme {
   @override
   Color get switchCircleOn => textLight;
   @override
-  Color get switchCircleOff => textMedium;
+  Color get switchCircleOff => textDark;
   @override
-  Color get switchCircleDisabled => textDark;
+  Color get switchCircleDisabled => coal;
 
   // step indicator background
   @override
