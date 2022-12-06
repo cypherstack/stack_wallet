@@ -1884,6 +1884,7 @@ class EpicCashWallet extends CoinServiceAPI {
     }
 
     try {
+      _isConnected = true;
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.syncing,
@@ -1903,6 +1904,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
       if (!await startScans()) {
         refreshMutex = false;
+        _isConnected = false;
         GlobalEventBus.instance.fire(
           NodeConnectionStatusChangedEvent(
             NodeConnectionStatus.disconnected,
@@ -1983,6 +1985,7 @@ class EpicCashWallet extends CoinServiceAPI {
       }
     } catch (error, strace) {
       refreshMutex = false;
+      _isConnected = false;
       GlobalEventBus.instance.fire(
         NodeConnectionStatusChangedEvent(
           NodeConnectionStatus.disconnected,
@@ -2067,7 +2070,7 @@ class EpicCashWallet extends CoinServiceAPI {
     _networkAliveTimer = null;
   }
 
-  bool _isConnected = false;
+  bool _isConnected = true;
 
   @override
   bool get isConnected => _isConnected;

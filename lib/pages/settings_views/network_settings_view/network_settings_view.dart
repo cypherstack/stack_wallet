@@ -6,11 +6,9 @@ import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widget
 import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/rescanning_dialog.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:epicmobile/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
@@ -42,23 +40,14 @@ class NetworkSettingsView extends ConsumerStatefulWidget {
 
 class _WalletNetworkSettingsViewState
     extends ConsumerState<NetworkSettingsView> {
-  final double _padding = 16;
-  final double _boxPadding = 12;
-  final double _iconSize = 28;
-
   late final EventBus eventBus;
 
   late WalletSyncStatus _currentSyncStatus;
-  // late NodeConnectionStatus _currentNodeStatus;
 
   late StreamSubscription<dynamic> _refreshSubscription;
   late StreamSubscription<dynamic> _syncStatusSubscription;
-  StreamSubscription<dynamic>? _blocksRemainingSubscription;
-  // late StreamSubscription _nodeStatusSubscription;
 
   late double _percent;
-  late int _blocksRemaining;
-  bool _advancedIsExpanded = true;
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -155,23 +144,17 @@ class _WalletNetworkSettingsViewState
   void initState() {
     if (ref.read(walletProvider)!.isRefreshing) {
       _currentSyncStatus = WalletSyncStatus.syncing;
-      // _currentNodeStatus = NodeConnectionStatus.connected;
     } else {
-      _currentSyncStatus = WalletSyncStatus.synced;
       if (ref.read(walletProvider)!.isConnected) {
-        // _currentNodeStatus = NodeConnectionStatus.connected;
+        _currentSyncStatus = WalletSyncStatus.synced;
       } else {
-        // _currentNodeStatus = NodeConnectionStatus.disconnected;
         _currentSyncStatus = WalletSyncStatus.unableToSync;
       }
     }
-    // _currentNodeStatus = widget.initialNodeStatus;
     if (_currentSyncStatus == WalletSyncStatus.synced) {
       _percent = 1;
-      _blocksRemaining = 0;
     } else {
       _percent = 0;
-      _blocksRemaining = -1;
     }
 
     eventBus =
@@ -198,57 +181,18 @@ class _WalletNetworkSettingsViewState
       },
     );
 
-    final coin = ref.read(walletProvider)!.coin;
-
-    if (coin == Coin.epicCash) {
-      _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
-        (event) async {
-          if (event.walletId == ref.read(walletProvider)!.walletId) {
-            setState(() {
-              _blocksRemaining = event.blocksRemaining;
-            });
-          }
-        },
-      );
-    }
-
-    // _nodeStatusSubscription =
-    //     eventBus.on<NodeConnectionStatusChangedEvent>().listen(
-    //   (event) async {
-    //     if (event.walletId == widget.walletId) {
-    //       switch (event.newStatus) {
-    //         case NodeConnectionStatus.disconnected:
-    //           // TODO: Handle this case.
-    //           break;
-    //         case NodeConnectionStatus.connected:
-    //           // TODO: Handle this case.
-    //           break;
-    //         case NodeConnectionStatus.connecting:
-    //           // TODO: Handle this case.
-    //           break;
-    //       }
-    //       setState(() {
-    //         _currentNodeStatus = event.newStatus;
-    //       });
-    //     }
-    //   },
-    // );
     super.initState();
   }
 
   @override
   void dispose() {
-    // _nodeStatusSubscription.cancel();
     _syncStatusSubscription.cancel();
     _refreshSubscription.cancel();
-    _blocksRemainingSubscription?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // final coin = ref.read(walletProvider)!.coin;
-
     double highestPercent =
         (ref.read(walletProvider)!.wallet as EpicCashWallet).highestPercent;
     if (_percent < highestPercent) {
