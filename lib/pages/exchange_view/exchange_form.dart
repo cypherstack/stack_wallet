@@ -18,8 +18,6 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_op
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_1.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_2.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
@@ -1022,19 +1020,16 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ref.read(exchangeSendFromWalletIdStateProvider.state).state =
             Tuple2(walletId!, coin!);
         if (isDesktop) {
+          ref.read(ssss.state).state = model;
           await showDialog<void>(
             context: context,
             barrierDismissible: false,
             builder: (context) {
-              return DesktopDialog(
+              return const DesktopDialog(
                 maxWidth: 720,
                 maxHeight: double.infinity,
                 child: StepScaffold(
-                  step: 2,
-                  model: model,
-                  body: DesktopStep2(
-                    model: model,
-                  ),
+                  initialStep: 2,
                 ),
               );
             },
@@ -1051,19 +1046,16 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ref.read(exchangeSendFromWalletIdStateProvider.state).state = null;
 
         if (isDesktop) {
+          ref.read(ssss.state).state = model;
           await showDialog<void>(
             context: context,
             barrierDismissible: false,
             builder: (context) {
-              return DesktopDialog(
+              return const DesktopDialog(
                 maxWidth: 720,
                 maxHeight: double.infinity,
                 child: StepScaffold(
-                  step: 1,
-                  model: model,
-                  body: DesktopStep1(
-                    model: model,
-                  ),
+                  initialStep: 1,
                 ),
               );
             },

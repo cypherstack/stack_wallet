@@ -37,6 +37,15 @@ abstract class SecureStorageInterface {
     MacOsOptions? mOptions,
     WindowsOptions? wOptions,
   });
+
+  Future<void> deleteAll({
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  });
 }
 
 class DesktopSecureStore {
@@ -52,6 +61,10 @@ class DesktopSecureStore {
       inspector: false,
       name: "desktopStore",
     );
+  }
+
+  Future<void> close() async {
+    await isar.close();
   }
 
   Future<String?> read({
@@ -192,6 +205,30 @@ class SecureStorageWrapper implements SecureStorageInterface {
       );
     }
   }
+
+  @override
+  Future<void> deleteAll({
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    if (_isDesktop) {
+      // return (_store as DesktopSecureStore).deleteAll();
+      throw UnimplementedError();
+    } else {
+      return await (_store as FlutterSecureStorage).deleteAll(
+        iOptions: iOptions,
+        aOptions: aOptions,
+        lOptions: lOptions,
+        webOptions: webOptions,
+        mOptions: mOptions,
+        wOptions: wOptions,
+      );
+    }
+  }
 }
 
 // Mock class for testing purposes
@@ -250,6 +287,20 @@ class FakeSecureStorage implements SecureStorageInterface {
     _interactions++;
     _deletes++;
     _store.remove(key);
+  }
+
+  @override
+  Future<void> deleteAll({
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    _interactions++;
+    _deletes++;
+    _store.clear();
   }
 
   @override

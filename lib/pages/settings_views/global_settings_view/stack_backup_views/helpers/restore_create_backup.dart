@@ -34,6 +34,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wakelock/wakelock.dart';
@@ -764,6 +765,10 @@ abstract class SWB {
     }
 
     Logging.instance.log("done with SWB restore", level: LogLevel.Warning);
+    if (Util.isDesktop) {
+      await Wallets.sharedInstance
+          .loadAfterStackRestore(_prefs, managers.map((e) => e.item2).toList());
+    }
     return true;
   }
 

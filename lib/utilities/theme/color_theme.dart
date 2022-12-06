@@ -1,10 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 
 enum ThemeType {
   light,
   dark,
   oceanBreeze,
+}
+
+extension ThemeTypeExt on ThemeType {
+  StackColorTheme get colorTheme {
+    switch (this) {
+      case ThemeType.light:
+        return LightColors();
+      case ThemeType.dark:
+        return DarkColors();
+      case ThemeType.oceanBreeze:
+        return OceanBreezeColors();
+    }
+  }
+
+  String get prettyName {
+    switch (this) {
+      case ThemeType.light:
+        return "Light";
+      case ThemeType.dark:
+        return "Dark";
+      case ThemeType.oceanBreeze:
+        return "Ocean Breeze";
+    }
+  }
 }
 
 abstract class StackColorTheme {

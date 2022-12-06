@@ -8,7 +8,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
@@ -17,7 +17,6 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -28,9 +27,12 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/stack_text_field.dart';
+import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
   const ConfirmTransactionView({
@@ -60,6 +62,9 @@ class _ConfirmTransactionViewState
   late final String routeOnSuccessName;
   late final bool isDesktop;
 
+  late final FocusNode _noteFocusNode;
+  late final TextEditingController noteController;
+
   Future<void> _attemptSend(BuildContext context) async {
     unawaited(
       showDialog<dynamic>(
@@ -72,7 +77,7 @@ class _ConfirmTransactionViewState
       ),
     );
 
-    final note = transactionInfo["note"] as String? ?? "";
+    final note = noteController.text;
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
@@ -194,7 +199,18 @@ class _ConfirmTransactionViewState
     transactionInfo = widget.transactionInfo;
     walletId = widget.walletId;
     routeOnSuccessName = widget.routeOnSuccessName;
+    _noteFocusNode = FocusNode();
+    noteController = TextEditingController();
+    noteController.text = transactionInfo["note"] as String? ?? "";
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    noteController.dispose();
+
+    _noteFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -563,39 +579,39 @@ class _ConfirmTransactionViewState
                           ],
                         ),
                       ),
-                      Container(
-                        height: 1,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Note",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                  context),
-                            ),
-                            const SizedBox(
-                              height: 2,
-                            ),
-                            Text(
-                              transactionInfo["note"] as String,
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
+                      // Container(
+                      //   height: 1,
+                      //   color: Theme.of(context)
+                      //       .extension<StackColors>()!
+                      //       .background,
+                      // ),
+                      // Padding(
+                      //   padding: const EdgeInsets.all(12),
+                      //   child: Column(
+                      //     mainAxisSize: MainAxisSize.min,
+                      //     crossAxisAlignment: CrossAxisAlignment.start,
+                      //     children: [
+                      //       Text(
+                      //         "Note",
+                      //         style: STextStyles.desktopTextExtraExtraSmall(
+                      //             context),
+                      //       ),
+                      //       const SizedBox(
+                      //         height: 2,
+                      //       ),
+                      //       Text(
+                      //         transactionInfo["note"] as String,
+                      //         style: STextStyles.desktopTextExtraExtraSmall(
+                      //                 context)
+                      //             .copyWith(
+                      //           color: Theme.of(context)
+                      //               .extension<StackColors>()!
+                      //               .textDark,
+                      //         ),
+                      //       )
+                      //     ],
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -604,9 +620,91 @@ class _ConfirmTransactionViewState
               Padding(
                 padding: const EdgeInsets.only(
                   left: 32,
+                  right: 32,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Note (optional)",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldActiveSearchIconRight,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                      child: TextField(
+                        minLines: 1,
+                        maxLines: 5,
+                        autocorrect: isDesktop ? false : true,
+                        enableSuggestions: isDesktop ? false : true,
+                        controller: noteController,
+                        focusNode: _noteFocusNode,
+                        style:
+                            STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldActiveText,
+                          height: 1.8,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                        decoration: standardInputDecoration(
+                          "Type something...",
+                          _noteFocusNode,
+                          context,
+                          desktopMed: true,
+                        ).copyWith(
+                          contentPadding: const EdgeInsets.only(
+                            left: 16,
+                            top: 11,
+                            bottom: 12,
+                            right: 5,
+                          ),
+                          suffixIcon: noteController.text.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.only(right: 0),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(
+                                              () => noteController.text = "",
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    )
+                  ],
+                ),
+              ),
+            if (isDesktop)
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
                 ),
                 child: Text(
-                  "Transaction fee (estimated)",
+                  "Transaction fee",
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
               ),

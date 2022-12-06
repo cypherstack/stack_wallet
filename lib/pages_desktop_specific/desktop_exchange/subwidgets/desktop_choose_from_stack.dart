@@ -17,6 +17,7 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
+import 'package:tuple/tuple.dart';
 
 class DesktopChooseFromStack extends ConsumerStatefulWidget {
   const DesktopChooseFromStack({
@@ -222,8 +223,18 @@ class _DesktopChooseFromStackState
                         ),
                         BlueTextButton(
                           text: "Select wallet",
-                          onTap: () {
-                            Navigator.of(context).pop(manager.walletId);
+                          onTap: () async {
+                            final address =
+                                await manager.currentReceivingAddress;
+
+                            if (mounted) {
+                              Navigator.of(context).pop(
+                                Tuple2(
+                                  manager.walletName,
+                                  address,
+                                ),
+                              );
+                            }
                           },
                         ),
                       ],

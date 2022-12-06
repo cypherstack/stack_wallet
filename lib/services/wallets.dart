@@ -73,6 +73,17 @@ class Wallets extends ChangeNotifier {
     return result;
   }
 
+  List<ChangeNotifierProvider<Manager>> getManagerProvidersForCoin(Coin coin) {
+    List<ChangeNotifierProvider<Manager>> result = [];
+    for (final manager in _managerMap.values) {
+      if (manager.coin == coin) {
+        result.add(_managerProviderMap[manager.walletId]
+            as ChangeNotifierProvider<Manager>);
+      }
+    }
+    return result;
+  }
+
   ChangeNotifierProvider<Manager> getManagerProvider(String walletId) {
     return _managerProviderMap[walletId] as ChangeNotifierProvider<Manager>;
   }

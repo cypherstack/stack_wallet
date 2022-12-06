@@ -10,34 +10,58 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
   final int currentStep;
 
   Color getColor(BuildContext context, int step) {
-    if (currentStep > step) {
+    if (currentStep >= step) {
       return Theme.of(context)
           .extension<StackColors>()!
           .accentColorBlue
           .withOpacity(0.5);
-    } else if (currentStep < step) {
-      return Theme.of(context).extension<StackColors>()!.textSubtitle3;
     } else {
-      return Theme.of(context).extension<StackColors>()!.accentColorBlue;
+      return Theme.of(context).extension<StackColors>()!.textSubtitle3;
     }
   }
 
   static const double verticalSpacing = 6;
   static const double horizontalSpacing = 16;
   static const double barHeight = 4;
+  static const double width = 152;
+  static const double barWidth = 146;
+
+  static const Duration duration = Duration(milliseconds: 250);
 
   @override
   Widget build(BuildContext context) {
+    final double step = double.parse(currentStep.toString());
+    final double dy = (step - 4) - (-(step - 4) * (horizontalSpacing / width));
     return Row(
       children: [
-        Expanded(
+        SizedBox(
+          width: width,
           child: Column(
             children: [
-              Text(
-                "Confirm amount",
-                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: getColor(context, 1),
+              AnimatedCrossFade(
+                firstChild: Text(
+                  "Confirm amount",
+                  style:
+                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorBlue,
+                  ),
                 ),
+                secondChild: Text(
+                  "Confirm amount",
+                  style:
+                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorBlue
+                        .withOpacity(0.5),
+                  ),
+                ),
+                crossFadeState: currentStep == 1
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                duration: duration,
               ),
               const SizedBox(
                 height: verticalSpacing,
@@ -53,14 +77,49 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
         const SizedBox(
           width: horizontalSpacing,
         ),
-        Expanded(
+        SizedBox(
+          width: width,
           child: Column(
             children: [
-              Text(
-                "Enter details",
-                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: getColor(context, 2),
+              AnimatedCrossFade(
+                firstChild: Text(
+                  "Enter details",
+                  style:
+                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle3,
+                  ),
                 ),
+                secondChild: AnimatedCrossFade(
+                  firstChild: Text(
+                    "Enter details",
+                    style: STextStyles.desktopTextExtraExtraSmall(context)
+                        .copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorBlue,
+                    ),
+                  ),
+                  secondChild: Text(
+                    "Enter details",
+                    style: STextStyles.desktopTextExtraExtraSmall(context)
+                        .copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorBlue
+                          .withOpacity(0.5),
+                    ),
+                  ),
+                  crossFadeState: currentStep == 2 && currentStep > 1
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  duration: duration,
+                ),
+                crossFadeState: currentStep < 2
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                duration: duration,
               ),
               const SizedBox(
                 height: verticalSpacing,
@@ -76,14 +135,49 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
         const SizedBox(
           width: horizontalSpacing,
         ),
-        Expanded(
+        SizedBox(
+          width: width,
           child: Column(
             children: [
-              Text(
-                "Confirm details",
-                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: getColor(context, 3),
+              AnimatedCrossFade(
+                firstChild: Text(
+                  "Confirm details",
+                  style:
+                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle3,
+                  ),
                 ),
+                secondChild: AnimatedCrossFade(
+                  firstChild: Text(
+                    "Confirm details",
+                    style: STextStyles.desktopTextExtraExtraSmall(context)
+                        .copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorBlue,
+                    ),
+                  ),
+                  secondChild: Text(
+                    "Confirm details",
+                    style: STextStyles.desktopTextExtraExtraSmall(context)
+                        .copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorBlue
+                          .withOpacity(0.5),
+                    ),
+                  ),
+                  crossFadeState: currentStep == 3 && currentStep > 2
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  duration: duration,
+                ),
+                crossFadeState: currentStep < 3
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                duration: duration,
               ),
               const SizedBox(
                 height: verticalSpacing,
@@ -99,22 +193,56 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
         const SizedBox(
           width: horizontalSpacing,
         ),
-        Expanded(
+        SizedBox(
+          width: width,
           child: Column(
             children: [
-              Text(
-                "Complete exchange",
-                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: getColor(context, 4),
+              AnimatedCrossFade(
+                firstChild: Text(
+                  "Complete exchange",
+                  style:
+                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle3,
+                  ),
                 ),
+                secondChild: Text(
+                  "Complete exchange",
+                  style:
+                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorBlue,
+                  ),
+                ),
+                crossFadeState: currentStep < 4
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                duration: duration,
               ),
               const SizedBox(
                 height: verticalSpacing,
               ),
-              RoundedContainer(
-                color: getColor(context, 4),
-                height: barHeight,
-                width: double.infinity,
+              Stack(
+                children: [
+                  RoundedContainer(
+                    color: getColor(context, 4),
+                    height: barHeight,
+                    width: double.infinity,
+                  ),
+                  AnimatedSlide(
+                    offset: Offset(dy, 0),
+                    duration: duration,
+                    child: RoundedContainer(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorBlue,
+                      height: barHeight,
+                      width: double.infinity,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

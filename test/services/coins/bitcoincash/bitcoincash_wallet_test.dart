@@ -673,31 +673,31 @@ void main() {
     //   verifyNoMoreInteractions(priceAPI);
     // });
 
-    test("initializeNew mainnet throws bad network", () async {
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_TESTNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-
-      await Hive.openBox<dynamic>(testWalletId);
-      await Hive.openBox<dynamic>(DB.boxNamePrefs);
-
-      expectLater(() => bch?.initializeNew(), throwsA(isA<Exception>()))
-          .then((_) {
-        expect(secureStore?.interactions, 0);
-        verifyNever(client?.ping()).called(0);
-        verify(client?.getServerFeatures()).called(1);
-        verifyNoMoreInteractions(client);
-        verifyNoMoreInteractions(cachedClient);
-        verifyNoMoreInteractions(priceAPI);
-      });
-    });
+    // test("initializeNew mainnet throws bad network", () async {
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": {},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_TESTNET,
+    //         "hash_function": "sha256",
+    //         "services": []
+    //       });
+    //
+    //   await Hive.openBox<dynamic>(testWalletId);
+    //   await Hive.openBox<dynamic>(DB.boxNamePrefs);
+    //
+    //   expectLater(() => bch?.initializeNew(), throwsA(isA<Exception>()))
+    //       .then((_) {
+    //     expect(secureStore?.interactions, 0);
+    //     verifyNever(client?.ping()).called(0);
+    //     verify(client?.getServerFeatures()).called(1);
+    //     verifyNoMoreInteractions(client);
+    //     verifyNoMoreInteractions(cachedClient);
+    //     verifyNoMoreInteractions(priceAPI);
+    //   });
+    // });
 
     test("initializeNew throws mnemonic overwrite exception", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
@@ -727,43 +727,43 @@ void main() {
       });
     });
 
-    test("initializeExisting testnet throws bad network", () async {
-      when(client?.ping()).thenAnswer((_) async => true);
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_TESTNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-
-      bch = BitcoinCashWallet(
-        walletId: testWalletId,
-        walletName: testWalletName,
-        coin: bchcoin,
-        client: client!,
-        cachedClient: cachedClient!,
-        tracker: tracker!,
-        priceAPI: priceAPI,
-        secureStore: secureStore,
-      );
-
-      await Hive.openBox<dynamic>(testWalletId);
-      await Hive.openBox<dynamic>(DB.boxNamePrefs);
-
-      expectLater(() => bch?.initializeNew(), throwsA(isA<Exception>()))
-          .then((_) {
-        expect(secureStore?.interactions, 0);
-        verifyNever(client?.ping()).called(0);
-        verify(client?.getServerFeatures()).called(1);
-        verifyNoMoreInteractions(client);
-        verifyNoMoreInteractions(cachedClient);
-        verifyNoMoreInteractions(priceAPI);
-      });
-    });
+    // test("initializeExisting testnet throws bad network", () async {
+    //   when(client?.ping()).thenAnswer((_) async => true);
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": {},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_TESTNET,
+    //         "hash_function": "sha256",
+    //         "services": []
+    //       });
+    //
+    //   bch = BitcoinCashWallet(
+    //     walletId: testWalletId,
+    //     walletName: testWalletName,
+    //     coin: bchcoin,
+    //     client: client!,
+    //     cachedClient: cachedClient!,
+    //     tracker: tracker!,
+    //     priceAPI: priceAPI,
+    //     secureStore: secureStore,
+    //   );
+    //
+    //   await Hive.openBox<dynamic>(testWalletId);
+    //   await Hive.openBox<dynamic>(DB.boxNamePrefs);
+    //
+    //   expectLater(() => bch?.initializeNew(), throwsA(isA<Exception>()))
+    //       .then((_) {
+    //     expect(secureStore?.interactions, 0);
+    //     verifyNever(client?.ping()).called(0);
+    //     verify(client?.getServerFeatures()).called(1);
+    //     verifyNoMoreInteractions(client);
+    //     verifyNoMoreInteractions(cachedClient);
+    //     verifyNoMoreInteractions(priceAPI);
+    //   });
+    // });
 
     // test("getCurrentNode", () async {
     //   // when(priceAPI?.getbitcoincashPrice(baseCurrency: "USD"))

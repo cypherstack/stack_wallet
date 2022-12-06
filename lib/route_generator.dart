@@ -84,33 +84,34 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_deta
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
-import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/address_book_view/desktop_address_book.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
-import 'package:stackwallet/pages_desktop_specific/forgot_password_desktop_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
-import 'package:stackwallet/pages_desktop_specific/home/notifications/desktop_notifications_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings/advanced_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings/currency_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_about_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_support_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_stack_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
+import 'package:stackwallet/pages_desktop_specific/notifications/desktop_notifications_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/delete_password_warning_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/forgot_password_desktop_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/desktop_settings_view.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/currency_settings/currency_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_about_view.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_support_view.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -1000,6 +1001,17 @@ class RouteGenerator {
 
       // == Desktop specific routes ============================================
       case CreatePasswordView.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CreatePasswordView(
+              restoreFromSWB: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const CreatePasswordView(),
@@ -1010,6 +1022,26 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const ForgotPasswordDesktopView(),
             settings: RouteSettings(name: settings.name));
+
+      case ForgottenPassphraseRestoreFromSWB.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const ForgottenPassphraseRestoreFromSWB(),
+            settings: RouteSettings(name: settings.name));
+
+      case DeletePasswordWarningView.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DeletePasswordWarningView(
+              shouldCreateNew: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DesktopHomeView.routeName:
         return getRoute(
@@ -1060,14 +1092,6 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case SettingsMenu.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => SettingsMenu(
-                  onSelectionChanged: (int) {},
-                ),
-            settings: RouteSettings(name: settings.name));
 
       case BackupRestoreSettings.routeName:
         return getRoute(

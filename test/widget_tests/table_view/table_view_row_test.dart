@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/coin_wallets_table.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/coin_wallets_table.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -62,10 +62,14 @@ void main() {
             ],
           ),
           home: Material(
-            child: TableViewRow(cells: [
-              for (int j = 1; j <= 5; j++)
-                TableViewCell(flex: 16, child: Text("Some Text ${j}"))
-            ], expandingChild: CoinWalletsTable(walletIds: walletIds)),
+            child: TableViewRow(
+                cells: [
+                  for (int j = 1; j <= 5; j++)
+                    TableViewCell(flex: 16, child: Text("Some Text ${j}"))
+                ],
+                expandingChild: const CoinWalletsTable(
+                  coin: Coin.bitcoin,
+                )),
           ),
         ),
       ),
