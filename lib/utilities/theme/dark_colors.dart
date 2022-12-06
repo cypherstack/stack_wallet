@@ -71,13 +71,13 @@ class DarkColors extends StackColorTheme {
   @override
   Color get buttonBackSecondary => const Color(0xFF121215);
   @override
-  Color get buttonBackPrimaryDisabled => const Color(0xFF38517C);
+  Color get buttonBackPrimaryDisabled => const Color(0xFF222227);
   @override
-  Color get buttonBackSecondaryDisabled => const Color(0xFF3B3F46);
+  Color get buttonBackSecondaryDisabled => const Color(0xFF121215);
   @override
   Color get buttonBackBorder => const Color(0xFFD1A55C);
   @override
-  Color get buttonBackBorderDisabled => const Color(0xFF314265);
+  Color get buttonBackBorderDisabled => const Color(0xFF222227);
 
   @override
   Color get numberBackDefault => const Color(0xFF222227);
@@ -98,7 +98,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get buttonTextBorder => const Color(0xFFD1A55C);
   @override
-  Color get buttonTextDisabled => const Color(0xFF314265);
+  Color get buttonTextDisabled => const Color(0xFF222227);
   @override
   Color get buttonTextBorderless => const Color(0xFFD1A55C);
   @override
@@ -196,9 +196,9 @@ class DarkColors extends StackColorTheme {
 
   // text field
   @override
-  Color get textFieldActiveBG => const Color(0xFF4C5360);
+  Color get textFieldActiveBG => coal;
   @override
-  Color get textFieldDefaultBG => const Color(0xFF444953);
+  Color get textFieldDefaultBG => coal;
   @override
   Color get textFieldErrorBG => const Color(0xFFFFB4A9);
   @override
