@@ -461,7 +461,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
                           controller: _pageController,
                           children: _children,
                           onPageChanged: (pageIndex) {
-                            currentIndex = pageIndex;
+                            ref
+                                .read(homeViewPageIndexStateProvider.state)
+                                .state = pageIndex;
+                            setState(() {
+                              currentIndex = pageIndex;
+                            });
                           },
                         );
                       },
