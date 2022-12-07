@@ -25,13 +25,14 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:epicmobile/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../widgets/icon_widgets/x_icon.dart';
 
 class SendView extends ConsumerStatefulWidget {
   const SendView({
@@ -398,199 +399,160 @@ class _SendViewState extends ConsumerState<SendView> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceAround,
                                       children: [
-                                        _addressToggleFlag
-                                            ? TextFieldIconButton(
-                                                key: const Key(
-                                                    "sendViewClearAddressFieldButtonKey"),
-                                                onTap: () {
-                                                  sendToController.text = "";
-                                                  _address = "";
-                                                  _updatePreviewButtonState(
-                                                      _address, _amountToSend);
-                                                  setState(() {
-                                                    _addressToggleFlag = false;
-                                                  });
-                                                },
-                                                child: const XIcon(),
-                                              )
-                                            : TextFieldIconButton(
-                                                key: const Key(
-                                                    "sendViewPasteAddressFieldButtonKey"),
-                                                onTap: () async {
-                                                  final ClipboardData? data =
-                                                      await clipboard.getData(
-                                                          Clipboard.kTextPlain);
-                                                  if (data?.text != null &&
-                                                      data!.text!.isNotEmpty) {
-                                                    String content =
-                                                        data.text!.trim();
-                                                    if (content
-                                                        .contains("\n")) {
-                                                      content =
-                                                          content.substring(
-                                                              0,
-                                                              content.indexOf(
-                                                                  "\n"));
-                                                    }
-
-                                                    sendToController.text =
-                                                        content;
-                                                    _address = content;
-
-                                                    _updatePreviewButtonState(
-                                                        _address,
-                                                        _amountToSend);
-                                                    setState(() {
-                                                      _addressToggleFlag =
-                                                          sendToController
-                                                              .text.isNotEmpty;
-                                                    });
-                                                  }
-                                                },
-                                                child: sendToController
-                                                        .text.isEmpty
-                                                    ? const XIcon()
-                                                    : const XIcon(),
-                                              ),
-                                        if (sendToController.text.isEmpty)
+                                        if (_addressToggleFlag == true)
                                           TextFieldIconButton(
                                             key: const Key(
-                                                "sendViewAddressBookButtonKey"),
+                                                "sendViewClearAddressFieldButtonKey"),
                                             onTap: () {
-                                              Navigator.of(context).pushNamed(
-                                                AddressBookView.routeName,
-                                                arguments: widget.coin,
-                                              );
+                                              sendToController.text = "";
+                                              _address = "";
+                                              _updatePreviewButtonState(
+                                                  _address, _amountToSend);
+                                              setState(() {
+                                                _addressToggleFlag = false;
+                                              });
                                             },
-                                            child: const AddressBookIcon(),
+                                            child: const XIcon(),
                                           ),
-                                        if (sendToController.text.isEmpty)
-                                          TextFieldIconButton(
-                                            key: const Key(
-                                                "sendViewScanQrButtonKey"),
-                                            onTap: () async {
-                                              try {
-                                                // ref
-                                                //     .read(
-                                                //         shouldShowLockscreenOnResumeStateProvider
-                                                //             .state)
-                                                //     .state = false;
-                                                if (FocusScope.of(context)
-                                                    .hasFocus) {
-                                                  FocusScope.of(context)
-                                                      .unfocus();
-                                                  await Future<void>.delayed(
-                                                      const Duration(
-                                                          milliseconds: 75));
-                                                }
-
-                                                final qrResult =
-                                                    await scanner.scan();
-
-                                                // Future<void>.delayed(
-                                                //   const Duration(seconds: 2),
-                                                //   () => ref
-                                                //       .read(
-                                                //           shouldShowLockscreenOnResumeStateProvider
-                                                //               .state)
-                                                //       .state = true,
-                                                // );
-
-                                                Logging.instance.log(
-                                                    "qrResult content: ${qrResult.rawContent}",
-                                                    level: LogLevel.Info);
-
-                                                final results =
-                                                    AddressUtils.parseUri(
-                                                        qrResult.rawContent);
-
-                                                Logging.instance.log(
-                                                    "qrResult parsed: $results",
-                                                    level: LogLevel.Info);
-
-                                                if (results.isNotEmpty &&
-                                                    results["scheme"] ==
-                                                        coin.uriScheme) {
-                                                  // auto fill address
-                                                  _address =
-                                                      results["address"] ?? "";
-                                                  sendToController.text =
-                                                      _address!;
-
-                                                  // autofill notes field
-                                                  if (results["message"] !=
-                                                      null) {
-                                                    noteController.text =
-                                                        results["message"]!;
-                                                  } else if (results["label"] !=
-                                                      null) {
-                                                    noteController.text =
-                                                        results["label"]!;
-                                                  }
-
-                                                  // autofill amount field
-                                                  if (results["amount"] !=
-                                                      null) {
-                                                    final amount =
-                                                        Decimal.parse(
-                                                            results["amount"]!);
-                                                    cryptoAmountController
-                                                            .text =
-                                                        Format
-                                                            .localizedStringAsFixed(
-                                                      value: amount,
-                                                      locale: ref
-                                                          .read(
-                                                              localeServiceChangeNotifierProvider)
-                                                          .locale,
-                                                      decimalPlaces: Constants
-                                                          .decimalPlaces,
-                                                    );
-                                                    amount.toString();
-                                                    _amountToSend = amount;
-                                                  }
-
-                                                  _updatePreviewButtonState(
-                                                      _address, _amountToSend);
-                                                  setState(() {
-                                                    _addressToggleFlag =
-                                                        sendToController
-                                                            .text.isNotEmpty;
-                                                  });
-
-                                                  // now check for non standard encoded basic address
-                                                } else if (ref
-                                                    .read(walletProvider)!
-                                                    .validateAddress(
-                                                        qrResult.rawContent)) {
-                                                  _address =
-                                                      qrResult.rawContent;
-                                                  sendToController.text =
-                                                      _address ?? "";
-
-                                                  _updatePreviewButtonState(
-                                                      _address, _amountToSend);
-                                                  setState(() {
-                                                    _addressToggleFlag =
-                                                        sendToController
-                                                            .text.isNotEmpty;
-                                                  });
-                                                }
-                                              } on PlatformException catch (e, s) {
-                                                // ref
-                                                //     .read(
-                                                //         shouldShowLockscreenOnResumeStateProvider
-                                                //             .state)
-                                                //     .state = true;
-                                                // here we ignore the exception caused by not giving permission
-                                                // to use the camera to scan a qr code
-                                                Logging.instance.log(
-                                                    "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                                    level: LogLevel.Warning);
+                                        TextFieldIconButton(
+                                          key: const Key(
+                                              "sendViewScanQrButtonKey"),
+                                          onTap: () async {
+                                            try {
+                                              // ref
+                                              //     .read(
+                                              //         shouldShowLockscreenOnResumeStateProvider
+                                              //             .state)
+                                              //     .state = false;
+                                              if (FocusScope.of(context)
+                                                  .hasFocus) {
+                                                FocusScope.of(context)
+                                                    .unfocus();
+                                                await Future<void>.delayed(
+                                                    const Duration(
+                                                        milliseconds: 75));
                                               }
-                                            },
-                                            child: const QrCodeIcon(),
-                                          )
+
+                                              final qrResult =
+                                                  await scanner.scan();
+
+                                              // Future<void>.delayed(
+                                              //   const Duration(seconds: 2),
+                                              //   () => ref
+                                              //       .read(
+                                              //           shouldShowLockscreenOnResumeStateProvider
+                                              //               .state)
+                                              //       .state = true,
+                                              // );
+
+                                              Logging.instance.log(
+                                                  "qrResult content: ${qrResult.rawContent}",
+                                                  level: LogLevel.Info);
+
+                                              final results =
+                                                  AddressUtils.parseUri(
+                                                      qrResult.rawContent);
+
+                                              Logging.instance.log(
+                                                  "qrResult parsed: $results",
+                                                  level: LogLevel.Info);
+
+                                              if (results.isNotEmpty &&
+                                                  results["scheme"] ==
+                                                      coin.uriScheme) {
+                                                // auto fill address
+                                                _address =
+                                                    results["address"] ?? "";
+                                                sendToController.text =
+                                                    _address!;
+
+                                                // autofill notes field
+                                                if (results["message"] !=
+                                                    null) {
+                                                  noteController.text =
+                                                      results["message"]!;
+                                                } else if (results["label"] !=
+                                                    null) {
+                                                  noteController.text =
+                                                      results["label"]!;
+                                                }
+
+                                                // autofill amount field
+                                                if (results["amount"] != null) {
+                                                  final amount = Decimal.parse(
+                                                      results["amount"]!);
+                                                  cryptoAmountController.text =
+                                                      Format
+                                                          .localizedStringAsFixed(
+                                                    value: amount,
+                                                    locale: ref
+                                                        .read(
+                                                            localeServiceChangeNotifierProvider)
+                                                        .locale,
+                                                    decimalPlaces:
+                                                        Constants.decimalPlaces,
+                                                  );
+                                                  amount.toString();
+                                                  _amountToSend = amount;
+                                                }
+
+                                                _updatePreviewButtonState(
+                                                    _address, _amountToSend);
+                                                setState(() {
+                                                  _addressToggleFlag =
+                                                      sendToController
+                                                          .text.isNotEmpty;
+                                                });
+
+                                                // now check for non standard encoded basic address
+                                              } else if (ref
+                                                  .read(walletProvider)!
+                                                  .validateAddress(
+                                                      qrResult.rawContent)) {
+                                                _address = qrResult.rawContent;
+                                                sendToController.text =
+                                                    _address ?? "";
+
+                                                _updatePreviewButtonState(
+                                                    _address, _amountToSend);
+                                                setState(() {
+                                                  _addressToggleFlag =
+                                                      sendToController
+                                                          .text.isNotEmpty;
+                                                });
+                                              }
+                                            } on PlatformException catch (e, s) {
+                                              // ref
+                                              //     .read(
+                                              //         shouldShowLockscreenOnResumeStateProvider
+                                              //             .state)
+                                              //     .state = true;
+                                              // here we ignore the exception caused by not giving permission
+                                              // to use the camera to scan a qr code
+                                              Logging.instance.log(
+                                                  "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+                                                  level: LogLevel.Warning);
+                                            }
+                                          },
+                                          child: const QrCodeIcon(),
+                                        ),
+                                        TextFieldIconButton(
+                                          key: const Key(
+                                              "sendViewAddressBookButtonKey"),
+                                          onTap: () {
+                                            Navigator.of(context).pushNamed(
+                                              AddressBookView.routeName,
+                                              arguments: widget.coin,
+                                            );
+                                          },
+                                          child: AddressBookIcon(
+                                            width: 24,
+                                            height: 24,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textFieldActiveSearchIconRight,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
