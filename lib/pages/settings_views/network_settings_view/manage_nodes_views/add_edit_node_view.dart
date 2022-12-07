@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicmobile/utilities/test_epic_box_connection.dart';
@@ -13,6 +14,7 @@ import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
+import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +23,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:uuid/uuid.dart';
-
-import '../../../../widgets/rounded_container.dart';
 
 enum AddEditNodeViewType { add, edit }
 
@@ -50,36 +50,111 @@ class AddEditNodeView extends ConsumerStatefulWidget {
   ConsumerState<AddEditNodeView> createState() => _AddEditNodeViewState();
 }
 
-class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
+class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
+    with SingleTickerProviderStateMixin {
   late final AddEditNodeViewType viewType;
   late final Coin coin;
   late final String? nodeId;
 
+  late final AnimationController animationController;
+  late final Animation<double> animation;
+
   late bool saveEnabled;
   late bool testConnectionEnabled;
+
+  Future<void> showTestResult(
+    BuildContext context,
+    bool testPassed,
+  ) async {
+    OverlayState? overlayState = Overlay.of(context);
+
+    OverlayEntry entry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          left: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 100,
+          child: ClipRRect(
+            borderRadius:
+                BorderRadius.circular(Constants.size.circularBorderRadius),
+            child: Material(
+              color: Colors.transparent,
+              child: FadeTransition(
+                opacity: animation,
+                child: RoundedContainer(
+                  width: MediaQuery.of(context).size.width - 48,
+                  color: Theme.of(context).extension<StackColors>()!.popupBG,
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        testPassed
+                            ? Assets.svg.circleCheck
+                            : Assets.svg.circleRedX,
+                        color: testPassed
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorGreen
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorRed,
+                        width: 24,
+                        height: 24,
+                      ),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              testPassed
+                                  ? "Connection successful"
+                                  : "Could not connect. Please try again or use a different node.",
+                              style: STextStyles.bodySmall(context).copyWith(
+                                color: testPassed
+                                    ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorGreen
+                                    : Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorRed,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    animationController.addListener(() {
+      overlayState?.setState(() {});
+    });
+    overlayState?.insert(entry);
+    await animationController
+        .forward()
+        .whenComplete(() => Future<void>.delayed(
+              const Duration(seconds: 2),
+            ))
+        .whenComplete(() => animationController.reverse())
+        .whenComplete(() => entry.remove());
+  }
 
   Future<bool> _testConnection({bool showFlushBar = true}) async {
     final formData = ref.read(nodeFormDataProvider);
 
     bool testPassed = await testEpicNodeConnection(formData);
 
-    if (showFlushBar) {
-      if (testPassed) {
-        // unawaited(showFloatingFlushBar(
-        //   type: FlushBarType.success,
-        //   message: "Server ping success",
-        //   context: context,
-        // ));
-      } else {
-        // unawaited(showFloatingFlushBar(
-        //   type: FlushBarType.warning,
-        //   message: "Server unreachable",
-        //   context: context,
-        // ));
-      }
+    if (showFlushBar && mounted) {
+      unawaited(
+        showTestResult(context, testPassed),
+      );
     }
-
-    print("conenction test passed: $testPassed");
 
     return testPassed;
   }
@@ -267,7 +342,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   @override
   void initState() {
     ref.refresh(nodeFormDataProvider);
-
+    animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    animation = CurveTween(
+      curve: Curves.bounceInOut,
+    ).animate(animationController);
     viewType = widget.viewType;
     coin = widget.coin;
     nodeId = widget.nodeId;
