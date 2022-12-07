@@ -418,7 +418,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         unawaited(
                                           showDialog(
                                             context: context,
-                                            builder: (context) => StackOkDialog(
+                                            builder: (context) => OkDialog(
                                               title: logssaved
                                                   ? "Logs saved to"
                                                   : "Error Saving Logs",
