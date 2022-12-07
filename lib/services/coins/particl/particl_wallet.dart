@@ -1363,16 +1363,16 @@ class ParticlWallet extends CoinServiceAPI {
         allAddresses.add(changeAddresses[i] as String);
       }
     }
-    // for (var i = 0; i < receivingAddressesP2PKH.length; i++) {
-    //   if (!allAddresses.contains(receivingAddressesP2PKH[i])) {
-    //     allAddresses.add(receivingAddressesP2PKH[i] as String);
-    //   }
-    // }
-    // for (var i = 0; i < changeAddressesP2PKH.length; i++) {
-    //   if (!allAddresses.contains(changeAddressesP2PKH[i])) {
-    //     allAddresses.add(changeAddressesP2PKH[i] as String);
-    //   }
-    // }
+    for (var i = 0; i < receivingAddressesP2PKH.length; i++) {
+      if (!allAddresses.contains(receivingAddressesP2PKH[i])) {
+        allAddresses.add(receivingAddressesP2PKH[i] as String);
+      }
+    }
+    for (var i = 0; i < changeAddressesP2PKH.length; i++) {
+      if (!allAddresses.contains(changeAddressesP2PKH[i])) {
+        allAddresses.add(changeAddressesP2PKH[i] as String);
+      }
+    }
 
     return allAddresses;
   }
@@ -1471,39 +1471,22 @@ class ParticlWallet extends CoinServiceAPI {
       ),
 
       // P2PKH
-      // _generateAddressForChain(0, 0, DerivePathType.bip44).then(
-      //   (initialReceivingAddressP2PKH) {
-      //     _addToAddressesArrayForChain(
-      //         initialReceivingAddressP2PKH, 0, DerivePathType.bip44);
-      //     _currentReceivingAddressP2PKH =
-      //         Future(() => initialReceivingAddressP2PKH);
-      //   },
-      // ),
-      // _generateAddressForChain(1, 0, DerivePathType.bip44).then(
-      //   (initialChangeAddressP2PKH) => _addToAddressesArrayForChain(
-      //     initialChangeAddressP2PKH,
-      //     1,
-      //     DerivePathType.bip44,
-      //   ),
-      // ),
+      _generateAddressForChain(0, 0, DerivePathType.bip44).then(
+        (initialReceivingAddressP2PKH) {
+          _addToAddressesArrayForChain(
+              initialReceivingAddressP2PKH, 0, DerivePathType.bip44);
+          _currentReceivingAddressP2PKH =
+              Future(() => initialReceivingAddressP2PKH);
+        },
+      ),
+      _generateAddressForChain(1, 0, DerivePathType.bip44).then(
+        (initialChangeAddressP2PKH) => _addToAddressesArrayForChain(
+          initialChangeAddressP2PKH,
+          1,
+          DerivePathType.bip44,
+        ),
+      ),
     ]);
-
-    // // P2PKH
-    // _generateAddressForChain(0, 0, DerivePathType.bip44).then(
-    //   (initialReceivingAddressP2PKH) {
-    //     _addToAddressesArrayForChain(
-    //         initialReceivingAddressP2PKH, 0, DerivePathType.bip44);
-    //     this._currentReceivingAddressP2PKH =
-    //         Future(() => initialReceivingAddressP2PKH);
-    //   },
-    // );
-    // _generateAddressForChain(1, 0, DerivePathType.bip44)
-    //     .then((initialChangeAddressP2PKH) => _addToAddressesArrayForChain(
-    //           initialChangeAddressP2PKH,
-    //           1,
-    //           DerivePathType.bip44,
-    //         ));
-    //
 
     Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
   }
@@ -1538,7 +1521,6 @@ class ParticlWallet extends CoinServiceAPI {
         address = P2WPKH(network: _network, data: data).data.address!;
         break;
     }
-    // String address = P2WPKH(network: _network, data: data).data.address!;
 
     // add generated address & info to derivations
     await addDerivation(
