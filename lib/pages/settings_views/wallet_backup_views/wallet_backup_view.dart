@@ -9,6 +9,7 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -28,6 +29,8 @@ class WalletBackupView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    late bool copied = false;
+
     debugPrint("BUILD: $runtimeType");
     return Background(
       child: Scaffold(
@@ -36,6 +39,7 @@ class WalletBackupView extends ConsumerWidget {
           leading: AppBarBackButton(
             onPressed: () {
               Navigator.of(context).pop();
+              copied = false;
             },
           ),
           centerTitle: true,
@@ -70,13 +74,10 @@ class WalletBackupView extends ConsumerWidget {
         ),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(
-                  height: 4,
-                ),
                 Text(
                   "Wallet Key",
                   textAlign: TextAlign.center,
@@ -94,7 +95,53 @@ class WalletBackupView extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(
-                  height: 12,
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    await clipboardInterface
+                        .setData(ClipboardData(text: mnemonic.join(" ")));
+                    // copied = true;
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // copied == false
+                      Row(
+                        children: [
+                          Text(
+                            "Copy",
+                            style: STextStyles.smallMed14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonBackPrimary,
+                            ),
+                            textAlign: TextAlign.end,
+                          ),
+                          const SizedBox(
+                            width: 6,
+                          ),
+                          SvgPicture.asset(
+                            Assets.svg.copy,
+                            width: 20,
+                            height: 20,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonBackPrimary,
+                          ),
+                        ],
+                      ),
+                      // : Text(
+                      //     "Copied!",
+                      //     style: STextStyles.smallMed14(context).copyWith(
+                      //       color: Theme.of(context)
+                      //           .extension<StackColors>()!
+                      //           .buttonBackPrimary,
+                      //     ),
+                      //     textAlign: TextAlign.end,
+                      //   ),
+                    ],
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(
