@@ -263,8 +263,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
             height: 8,
           ),
           Expanded(
-            child: TransactionsList(
-              walletId: walletId,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: TransactionsList(
+                walletId: walletId,
+              ),
             ),
           ),
           // Expanded(

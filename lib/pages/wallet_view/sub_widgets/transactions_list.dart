@@ -168,12 +168,12 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
               }
             },
             child: ListView.separated(
-              itemCount: list.length * 10,
+              itemCount: list.length,
               separatorBuilder: (_, __) => const SizedBox(
                 height: 16,
               ),
               itemBuilder: (context, index) {
-                final tx = list[0];
+                final tx = list[index];
                 return TransactionCard(
                   // this may mess with combined firo transactions
                   key: Key(tx.toString()), //
