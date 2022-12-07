@@ -1,27 +1,24 @@
 import 'dart:async';
 
 import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/node_details_view.dart';
-import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/node_options_sheet.dart';
+import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/default_nodes.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/enums/sync_type_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/test_epic_box_connection.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/conditional_parent.dart';
-import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
-import 'package:epicmobile/widgets/expandable.dart';
-import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../../services/event_bus/global_event_bus.dart';
 
 class NodeCard extends ConsumerStatefulWidget {
   const NodeCard({
@@ -29,20 +26,26 @@ class NodeCard extends ConsumerStatefulWidget {
     required this.nodeId,
     required this.coin,
     required this.popBackToRoute,
+    this.eventBus,
   }) : super(key: key);
 
   final Coin coin;
   final String nodeId;
   final String popBackToRoute;
+  final EventBus? eventBus;
 
   @override
   ConsumerState<NodeCard> createState() => _NodeCardState();
 }
 
 class _NodeCardState extends ConsumerState<NodeCard> {
-  String _status = "Disconnected";
-  late final String nodeId;
-  bool _advancedIsExpanded = true;
+  late final EventBus eventBus;
+
+  late WalletSyncStatus? _currentSyncStatus;
+
+  late StreamSubscription<dynamic>? _syncStatusSubscription;
+
+  bool _isCurrentNode = false;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
     final managers = [ref.read(walletProvider)!];
@@ -117,8 +120,37 @@ class _NodeCardState extends ConsumerState<NodeCard> {
 
   @override
   void initState() {
-    nodeId = widget.nodeId;
+    if (ref.read(walletProvider)!.isRefreshing) {
+      _currentSyncStatus = WalletSyncStatus.syncing;
+    } else {
+      if (ref.read(walletProvider)!.isConnected) {
+        _currentSyncStatus = WalletSyncStatus.synced;
+      } else {
+        _currentSyncStatus = WalletSyncStatus.unableToSync;
+      }
+    }
+
+    eventBus =
+        widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
+
+    _syncStatusSubscription =
+        eventBus.on<WalletSyncStatusChangedEvent>().listen(
+      (event) async {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
+          setState(() {
+            _currentSyncStatus = event.newStatus;
+          });
+        }
+      },
+    );
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _syncStatusSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -126,186 +158,126 @@ class _NodeCardState extends ConsumerState<NodeCard> {
     final node = ref.watch(nodeServiceChangeNotifierProvider
         .select((value) => value.getPrimaryNodeFor(coin: widget.coin)));
     final _node = ref.watch(nodeServiceChangeNotifierProvider
-        .select((value) => value.getNodeById(id: nodeId)))!;
+        .select((value) => value.getNodeById(id: widget.nodeId)))!;
 
-    if (node?.name == _node.name) {
-      _status = "Connected";
-    } else {
-      _status = "Disconnected";
-    }
+    _isCurrentNode = node?.name == _node.name;
 
-    final isDesktop = Util.isDesktop;
-
-    return RoundedWhiteContainer(
-      padding: const EdgeInsets.all(0),
-      borderColor: isDesktop
-          ? Theme.of(context).extension<StackColors>()!.background
-          : null,
-      child: ConditionalParent(
-        condition: !isDesktop,
-        builder: (child) {
-          return RawMaterialButton(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-            onPressed: () {
-              showModalBottomSheet<void>(
-                backgroundColor: Colors.transparent,
-                context: context,
-                builder: (_) => NodeOptionsSheet(
-                  nodeId: nodeId,
-                  coin: widget.coin,
-                  popBackToRoute: widget.popBackToRoute,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                AddEditNodeView.routeName,
+                arguments: Tuple4(
+                  AddEditNodeViewType.edit,
+                  Coin.epicCash,
+                  widget.nodeId,
+                  widget.popBackToRoute,
                 ),
               );
             },
-            child: child,
-          );
-        },
-        child: ConditionalParent(
-          condition: isDesktop,
-          builder: (child) {
-            return Expandable(
-              onExpandChanged: (state) {
-                setState(() {
-                  _advancedIsExpanded = state == ExpandableState.expanded;
-                });
-              },
-              header: child,
-              body: Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 24,
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 66,
-                    ),
-                    BlueTextButton(
-                      text: "Connect",
-                      enabled: _status == "Disconnected",
-                      onTap: () async {
-                        final canConnect =
-                            await _testConnection(_node, context, ref);
-                        if (!canConnect) {
-                          return;
-                        }
-
-                        await ref
-                            .read(nodeServiceChangeNotifierProvider)
-                            .setPrimaryNodeFor(
-                              coin: widget.coin,
-                              node: _node,
-                              shouldNotifyListeners: true,
-                            );
-
-                        await _notifyWalletsOfUpdatedNode(ref);
-                      },
-                    ),
-                    const SizedBox(
-                      width: 48,
-                    ),
-                    BlueTextButton(
-                      text: "Details",
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          NodeDetailsView.routeName,
-                          arguments: Tuple3(
-                            widget.coin,
-                            widget.nodeId,
-                            widget.popBackToRoute,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-          child: Padding(
-            padding: EdgeInsets.all(isDesktop ? 16 : 12),
-            child: Row(
-              children: [
-                Container(
-                  width: isDesktop ? 40 : 24,
-                  height: isDesktop ? 40 : 24,
-                  decoration: BoxDecoration(
-                    color: _node.name == DefaultNodes.defaultName
-                        ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackSecondary
-                        : Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons
-                            .withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(100),
+            child: Container(
+              height: 48,
+              color: Colors.transparent,
+              child: Row(
+                children: [
+                  SvgPicture.asset(
+                    Assets.svg.networkWired,
+                    color: _isCurrentNode
+                        ? _currentSyncStatus == WalletSyncStatus.unableToSync
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorRed
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorGreen
+                        : Theme.of(context).extension<StackColors>()!.textDark,
                   ),
-                  child: Center(
-                    child: SvgPicture.asset(
-                      Assets.svg.node,
-                      height: isDesktop ? 18 : 11,
-                      width: isDesktop ? 20 : 14,
-                      color: _node.name == DefaultNodes.defaultName
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorDark
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  Text(
+                    _node.name,
+                    style: STextStyles.bodyBold(context).copyWith(
+                      color: _isCurrentNode
+                          ? _currentSyncStatus == WalletSyncStatus.unableToSync
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorGreen
                           : Theme.of(context)
                               .extension<StackColors>()!
-                              .infoItemIcons,
+                              .textDark,
                     ),
                   ),
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _node.name,
-                      style: STextStyles.bodyBold(context),
-                    ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    Text(
-                      _status,
-                      style: STextStyles.label(context),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                if (!isDesktop)
-                  SvgPicture.asset(
-                    Assets.svg.network,
-                    color: _status == "Connected"
-                        ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorGreen
-                        : Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackSecondary,
-                    width: 20,
-                    height: 20,
-                  ),
-                if (isDesktop)
-                  SvgPicture.asset(
-                    _advancedIsExpanded
-                        ? Assets.svg.chevronDown
-                        : Assets.svg.chevronUp,
-                    width: 12,
-                    height: 6,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
+        if (_isCurrentNode && _currentSyncStatus != null)
+          CurrentNodeStatusIcon(
+            status: _currentSyncStatus!,
+          ),
+      ],
+    );
+  }
+}
+
+class CurrentNodeStatusIcon extends ConsumerWidget {
+  const CurrentNodeStatusIcon({
+    Key? key,
+    required this.status,
+  }) : super(key: key);
+
+  final WalletSyncStatus status;
+
+  Widget _getAsset(BuildContext context) {
+    switch (status) {
+      case WalletSyncStatus.unableToSync:
+        return SvgPicture.asset(
+          Assets.svg.refresh,
+          color: Theme.of(context).extension<StackColors>()!.accentColorRed,
+        );
+      case WalletSyncStatus.synced:
+      case WalletSyncStatus.syncing:
+        return SvgPicture.asset(
+          Assets.svg.check,
+          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
+        );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ConditionalParent(
+      condition: status == WalletSyncStatus.unableToSync,
+      builder: (child) {
+        return Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: SizedBox(
+            height: 48,
+            child: IconButton(
+              splashRadius: 24,
+              icon: child,
+              onPressed: ref.read(walletProvider)!.refresh,
+            ),
+          ),
+        );
+      },
+      child: ConditionalParent(
+        condition: status != WalletSyncStatus.unableToSync,
+        builder: (child) => Padding(
+          padding: const EdgeInsets.only(
+            right: 24,
+          ),
+          child: child,
+        ),
+        child: _getAsset(context),
       ),
     );
   }

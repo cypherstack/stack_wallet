@@ -103,6 +103,7 @@ class _SVG {
   String get wifi => "assets/svg/wifi.svg";
   String get network => "assets/svg/network-wired.svg";
   String get networkWired => "assets/svg/network-wired-2.svg";
+  String get refresh => "assets/svg/refresh.svg";
   String get addressBook => "assets/svg/book-open.svg";
   String get arrowRotate3 => "assets/svg/rotate-exclamation.svg";
   String get delete => "assets/svg/delete.svg";

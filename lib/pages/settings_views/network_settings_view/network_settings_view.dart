@@ -213,6 +213,29 @@ class _WalletNetworkSettingsViewState
             "Connections",
             style: STextStyles.titleH4(context),
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: IconButton(
+                splashRadius: 20,
+                onPressed: () {
+                  Navigator.of(context).pushNamed(
+                    AddEditNodeView.routeName,
+                    arguments: Tuple4(
+                      AddEditNodeViewType.add,
+                      ref.read(walletProvider)!.coin,
+                      null,
+                      NetworkSettingsView.routeName,
+                    ),
+                  );
+                },
+                icon: const PlusIcon(
+                  width: 20,
+                  height: 20,
+                ),
+              ),
+            ),
+          ],
         ),
         body: SafeArea(
           child: Padding(
@@ -300,46 +323,7 @@ class _WalletNetworkSettingsViewState
                     style: STextStyles.overLineBold(context),
                   ),
                   const SizedBox(
-                    height: 24,
-                  ),
-                  NodesList(
-                    coin: ref
-                        .watch(walletProvider.select((value) => value!.coin)),
-                    popBackToRoute: NetworkSettingsView.routeName,
-                  ),
-                  const SizedBox(
-                    height: 32,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "CUSTOM NODES SETUP",
-                        textAlign: TextAlign.left,
-                        style: STextStyles.overLineBold(context),
-                      ),
-                      IconButton(
-                        splashRadius: 28,
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(
-                            AddEditNodeView.routeName,
-                            arguments: Tuple4(
-                              AddEditNodeViewType.add,
-                              ref.read(walletProvider)!.coin,
-                              null,
-                              NetworkSettingsView.routeName,
-                            ),
-                          );
-                        },
-                        icon: const PlusIcon(
-                          width: 18,
-                          height: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 2,
+                    height: 14,
                   ),
                   NodesList(
                     coin: ref
