@@ -9,8 +9,6 @@ import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
-import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
@@ -107,31 +105,17 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
               // ));
               return;
             }
-            if (Util.isDesktop) {
-              await showDialog<void>(
-                context: context,
-                builder: (context) => DesktopDialog(
-                  maxHeight: MediaQuery.of(context).size.height - 64,
-                  maxWidth: 580,
-                  child: TransactionDetailsView(
-                    transaction: _transaction,
-                    coin: coin,
-                    walletId: walletId,
-                  ),
+
+            unawaited(
+              Navigator.of(context).pushNamed(
+                TransactionDetailsView.routeName,
+                arguments: Tuple3(
+                  _transaction,
+                  coin,
+                  walletId,
                 ),
-              );
-            } else {
-              unawaited(
-                Navigator.of(context).pushNamed(
-                  TransactionDetailsView.routeName,
-                  arguments: Tuple3(
-                    _transaction,
-                    coin,
-                    walletId,
-                  ),
-                ),
-              );
-            }
+              ),
+            );
           },
           child: Padding(
             padding: const EdgeInsets.all(10),
