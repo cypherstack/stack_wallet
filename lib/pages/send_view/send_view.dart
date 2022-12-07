@@ -295,6 +295,9 @@ class _SendViewState extends ConsumerState<SendView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          const Spacer(
+                            flex: 2,
+                          ),
                           Text(
                             "Send EPIC",
                             style: STextStyles.titleH3(context).copyWith(
@@ -1178,8 +1181,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                       .coal),
                             ),
                           ),
-                          const SizedBox(
-                            height: 4,
+                          const Spacer(
+                            flex: 2,
                           ),
                         ],
                       ),
