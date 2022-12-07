@@ -18,6 +18,7 @@ abstract class DefaultNodes {
         bitcoincash,
         namecoin,
         wownero,
+        particl,
         bitcoinTestnet,
         litecoinTestNet,
         bitcoincashTestnet,
