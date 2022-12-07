@@ -15,6 +15,7 @@ import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
 import 'package:epicmobile/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:epicmobile/pages/receive_view/receive_view.dart';
 import 'package:epicmobile/pages/send_view/confirm_transaction_view.dart';
+import 'package:epicmobile/pages/send_view/send_amount_view.dart';
 import 'package:epicmobile/pages/send_view/send_view.dart';
 import 'package:epicmobile/pages/settings_views/advanced_views/advanced_settings_view.dart';
 import 'package:epicmobile/pages/settings_views/advanced_views/debug_view.dart';
@@ -411,6 +412,33 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SendView.routeName:
+        if (args is Tuple2<String, Coin>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SendView(
+              walletId: args.item1,
+              coin: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is Tuple3<String, Coin, SendViewAutoFillData>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SendView(
+              walletId: args.item1,
+              coin: args.item2,
+              autoFillData: args.item3,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SendAmountView.routeName:
         if (args is Tuple2<String, Coin>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,

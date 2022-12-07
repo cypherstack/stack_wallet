@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:epicmobile/models/send_view_auto_fill_data.dart';
 import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
-import 'package:epicmobile/pages/send_view/send_amount_view.dart';
 // import 'package:epicmobile/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
 import 'package:epicmobile/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:epicmobile/providers/providers.dart';
@@ -27,12 +26,11 @@ import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../widgets/icon_widgets/x_icon.dart';
 
-class SendView extends ConsumerStatefulWidget {
-  const SendView({
+class SendAmountView extends ConsumerStatefulWidget {
+  const SendAmountView({
     Key? key,
     required this.walletId,
     required this.coin,
@@ -40,7 +38,7 @@ class SendView extends ConsumerStatefulWidget {
     this.barcodeScanner = const BarcodeScannerWrapper(),
   }) : super(key: key);
 
-  static const String routeName = "/sendView";
+  static const String routeName = "/sendAmountView";
 
   final String walletId;
   final Coin coin;
@@ -48,10 +46,10 @@ class SendView extends ConsumerStatefulWidget {
   final BarcodeScannerInterface barcodeScanner;
 
   @override
-  ConsumerState<SendView> createState() => _SendViewState();
+  ConsumerState<SendAmountView> createState() => _SendAmountViewState();
 }
 
-class _SendViewState extends ConsumerState<SendView> {
+class _SendAmountViewState extends ConsumerState<SendAmountView> {
   late final String walletId;
   late final Coin coin;
   late final BarcodeScannerInterface scanner;
@@ -145,7 +143,8 @@ class _SendViewState extends ConsumerState<SendView> {
   void _updatePreviewButtonState(String? address, Decimal? amount) {
     final isValidAddress =
         ref.read(walletProvider)!.validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state = isValidAddress;
+    ref.read(previewTxButtonStateProvider.state).state =
+        (isValidAddress && amount != null && amount > Decimal.zero);
   }
 
   late Future<String> _calculateFeesFuture;
@@ -952,14 +951,7 @@ class _SendViewState extends ConsumerState<SendView> {
                           ),
                           TextButton(
                             onPressed: _addressToggleFlag
-                                ? () {
-                                    Navigator.of(context).pushNamed(
-                                      SendAmountView.routeName,
-                                      arguments: Tuple2(
-                                        "$ref.read(walletProvider)!.walletId",
-                                        Coin.epicCash,
-                                      ),
-                                    );
+                                ? () async {
                                     //     // wait for keyboard to disappear
                                     //     FocusScope.of(context).unfocus();
                                     //     await Future<void>.delayed(
