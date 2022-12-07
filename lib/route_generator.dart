@@ -410,7 +410,7 @@ class RouteGenerator {
         if (args is Tuple2<String, Coin>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => SendView(
+            builder: (_) => SendAmountView(
               walletId: args.item1,
               coin: args.item2,
             ),
@@ -421,7 +421,7 @@ class RouteGenerator {
         } else if (args is Tuple3<String, Coin, SendViewAutoFillData>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => SendView(
+            builder: (_) => SendAmountView(
               walletId: args.item1,
               coin: args.item2,
               autoFillData: args.item3,
