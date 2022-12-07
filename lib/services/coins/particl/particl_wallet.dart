@@ -3048,9 +3048,6 @@ class ParticlWallet extends CoinServiceAPI {
 
     // Add transaction inputs
     for (var i = 0; i < utxosToUse.length; i++) {
-      Logging.instance.log("UTXOs TO USE IS -----${utxosToUse[i].vout}",
-          level: LogLevel.Info, printFullLength: true);
-
       final txid = utxosToUse[i].txid;
       txb.addInput(txid, utxosToUse[i].vout, null,
           utxoSigningData[txid]["output"] as Uint8List, '');
@@ -3065,16 +3062,6 @@ class ParticlWallet extends CoinServiceAPI {
       // Sign the transaction accordingly
       for (var i = 0; i < utxosToUse.length; i++) {
         final txid = utxosToUse[i].txid;
-        Logging.instance.log("WITNESS VALUE IS -----${utxosToUse[i].value}",
-            level: LogLevel.Info, printFullLength: true);
-
-        Logging.instance.log(
-            "REDEEM SCRIPT IS -----${utxoSigningData[txid]["redeemScript"]}",
-            level: LogLevel.Info,
-            printFullLength: true);
-
-        Logging.instance.log("AND THIS DATA IS -----${utxoSigningData[txid]}",
-            level: LogLevel.Info, printFullLength: true);
         txb.sign(
             vin: i,
             keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
@@ -3090,14 +3077,7 @@ class ParticlWallet extends CoinServiceAPI {
     final builtTx = txb.build();
     final vSize = builtTx.virtualSize();
 
-    print("BUILT TX IS ${builtTx.toHex().toString()}");
-
-    String hexBefore = builtTx.toHex().toString();
-
-    // String strippedTrailingBytes =
-    //     hexBefore.replaceAll(RegExp(r"([.]*0+)(?!.*\d)"), "");
-    // return {"hex": strippedTrailingBytes, "vSize": vSize};
-
+    String hexBefore = builtTx.toHex(isParticl: true).toString();
     if (hexBefore.endsWith('000000')) {
       String stripped = hexBefore.substring(0, hexBefore.length - 6);
       return {"hex": stripped, "vSize": vSize};
