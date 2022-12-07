@@ -310,6 +310,7 @@ flutter:
     - assets/svg/coin_icons/Monero.svg
     - assets/svg/coin_icons/Wownero.svg
     - assets/svg/coin_icons/Namecoin.svg
+    - assets/svg/coin_icons/Particl.svg
     # lottie animations
     - assets/lottie/test.json
     - assets/lottie/test2.json

@@ -180,8 +180,7 @@ class _SVG {
   String get monero => "assets/svg/coin_icons/Monero.svg";
   String get wownero => "assets/svg/coin_icons/Wownero.svg";
   String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
-  String get particl =>
-      "assets/svg/coin_icons/Namecoin.svg"; //TODO - Update icon to particl
+  String get particl => "assets/svg/coin_icons/Particl.svg";
 
   String get chevronRight => "assets/svg/chevron-right.svg";
   String get minimize => "assets/svg/minimize.svg";
