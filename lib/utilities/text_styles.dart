@@ -1068,14 +1068,14 @@ class STextStyles {
       case ThemeType.light:
         return GoogleFonts.poppins(
           letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 12,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
           letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
+          color: _theme(context).textLight,
           fontWeight: FontWeight.w400,
           fontSize: 12,
         );
@@ -1087,14 +1087,14 @@ class STextStyles {
       case ThemeType.light:
         return GoogleFonts.poppins(
           letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
+          color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
           fontSize: 16,
         );
       case ThemeType.dark:
         return GoogleFonts.poppins(
           letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
+          color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
           fontSize: 16,
         );

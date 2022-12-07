@@ -89,46 +89,21 @@ class _TransactionSearchViewState
     Navigator.of(context).pop();
   }
 
-  // The following two getters are not required if the
-  // date fields are to remain unclearable.
-  Widget get _dateFromText {
-    final isDateSelected = _fromDateString.isEmpty;
-    return Text(
-      isDateSelected ? "From..." : _fromDateString,
-      style: STextStyles.fieldLabel(context).copyWith(
-          color: isDateSelected
-              ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-              : Theme.of(context).extension<StackColors>()!.accentColorDark),
-    );
-  }
-
-  Widget get _dateToText {
-    final isDateSelected = _toDateString.isEmpty;
-    return Text(
-      isDateSelected ? "To..." : _toDateString,
-      style: STextStyles.fieldLabel(context).copyWith(
-          color: isDateSelected
-              ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-              : Theme.of(context).extension<StackColors>()!.accentColorDark),
-    );
-  }
-
   DateTime? _selectedFromDate = DateTime(2007);
   DateTime? _selectedToDate = DateTime.now();
 
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
-      backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
+      backgroundPicker: Theme.of(context).extension<StackColors>()!.coal,
       // backgroundHeader: Theme.of(context).extension<StackColors>()!.textSubtitle2,
       paddingMonthHeader: const EdgeInsets.only(top: 11),
-      colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      colorArrowPrevious:
-          Theme.of(context).extension<StackColors>()!.textSubtitle1,
+      colorArrowNext: Theme.of(context).extension<StackColors>()!.textGold,
+      colorArrowPrevious: Theme.of(context).extension<StackColors>()!.textGold,
       textStyleButtonNegative: STextStyles.datePicker600(context).copyWith(
-        color: baseColor,
+        color: Theme.of(context).extension<StackColors>()!.textMedium,
       ),
       textStyleButtonPositive: STextStyles.datePicker600(context).copyWith(
-        color: baseColor,
+        color: Theme.of(context).extension<StackColors>()!.textGold,
       ),
       textStyleCurrentDayOnCalendar: STextStyles.datePicker400(context),
       textStyleDayHeader: STextStyles.datePicker600(context),
@@ -137,27 +112,31 @@ class _TransactionSearchViewState
       ),
       textStyleDayOnCalendarDisabled:
           STextStyles.datePicker400(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+        color: Theme.of(context).extension<StackColors>()!.textDark,
       ),
       textStyleDayOnCalendarSelected:
           STextStyles.datePicker400(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.coal,
       ),
       textStyleMonthYearHeader: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+        color: Theme.of(context).extension<StackColors>()!.textGold,
       ),
       textStyleYearButton: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.coal,
       ),
-      // textStyleButtonAction: GoogleFonts.poppins(),
+      backgroundHeader: Theme.of(context).extension<StackColors>()!.textGold,
+      decorationDateSelected: BoxDecoration(
+        color: Theme.of(context).extension<StackColors>()!.textGold,
+        shape: BoxShape.circle,
+      ),
     );
   }
 
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
-      backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
+      backgroundPicker: Theme.of(context).extension<StackColors>()!.coal,
       textStyleYear: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
+        color: Theme.of(context).extension<StackColors>()!.textMedium,
         fontSize: 16,
       ),
       textStyleYearSelected: STextStyles.datePicker600(context).copyWith(
@@ -167,240 +146,209 @@ class _TransactionSearchViewState
   }
 
   Widget _buildDateRangePicker() {
-    const middleSeparatorPadding = 2.0;
-    const middleSeparatorWidth = 12.0;
-    final isDesktop = Util.isDesktop;
-
-    final width = isDesktop
-        ? null
-        : (MediaQuery.of(context).size.width -
-                (middleSeparatorWidth +
-                    (2 * middleSeparatorPadding) +
-                    (2 * Constants.size.standardPadding))) /
-            2;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: GestureDetector(
-            key: const Key("transactionSearchViewFromDatePickerKey"),
-            onTap: () async {
-              final color =
-                  Theme.of(context).extension<StackColors>()!.accentColorDark;
-              final height = MediaQuery.of(context).size.height;
-              // check and hide keyboard
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 125));
-              }
-
-              final date = await showRoundedDatePicker(
-                // This doesn't change statusbar color...
-                // background: CFColors.starryNight.withOpacity(0.8),
-                context: context,
-                initialDate: DateTime.now(),
-                height: height * 0.5,
-                theme: ThemeData(
-                  primarySwatch: Util.createMaterialColor(
-                    color,
-                  ),
+          child: Row(
+            children: [
+              AppBarIconButton(
+                color: Theme.of(context).extension<StackColors>()!.coal,
+                size: 48,
+                icon: SvgPicture.asset(
+                  Assets.svg.calendar,
+                  width: 24,
+                  height: 24,
+                  color: Theme.of(context).extension<StackColors>()!.textMedium,
                 ),
-                //TODO pick a better initial date
-                // 2007 chosen as that is just before bitcoin launched
-                firstDate: DateTime(2007),
-                lastDate: DateTime.now(),
-                borderRadius: Constants.size.circularBorderRadius * 2,
-
-                textPositiveButton: "SELECT",
-
-                styleDatePicker: _buildDatePickerStyle(),
-                styleYearPicker: _buildYearPickerStyle(),
-              );
-              if (date != null) {
-                _selectedFromDate = date;
-
-                // flag to adjust date so from date is always before to date
-                final flag = _selectedToDate != null &&
-                    !_selectedFromDate!.isBefore(_selectedToDate!);
-                if (flag) {
-                  _selectedToDate = DateTime.fromMillisecondsSinceEpoch(
-                      _selectedFromDate!.millisecondsSinceEpoch);
-                }
-
-                setState(() {
-                  if (flag) {
-                    _toDateString = _selectedToDate == null
-                        ? ""
-                        : Format.formatDate(_selectedToDate!);
-                  }
-                  _fromDateString = _selectedFromDate == null
-                      ? ""
-                      : Format.formatDate(_selectedFromDate!);
-                });
-              }
-            },
-            child: Container(
-              width: width,
-              decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                borderRadius:
-                    BorderRadius.circular(Constants.size.circularBorderRadius),
-                border: Border.all(
-                  color: Theme.of(context)
+                onPressed: () async {
+                  final color = Theme.of(context)
                       .extension<StackColors>()!
-                      .textFieldDefaultBG,
-                  width: 1,
-                ),
+                      .accentColorDark;
+                  final height = MediaQuery.of(context).size.height;
+                  // check and hide keyboard
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 125));
+                  }
+
+                  final date = await showRoundedDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    height: height * 0.5,
+                    theme: ThemeData(
+                      primarySwatch: Util.createMaterialColor(
+                        color,
+                      ),
+                    ),
+                    //TODO pick a better initial date
+                    // 2007 chosen as that is just before bitcoin launched
+                    firstDate: DateTime(2007),
+                    lastDate: DateTime.now(),
+                    borderRadius: Constants.size.circularBorderRadius * 2,
+
+                    textPositiveButton: "SELECT",
+
+                    styleDatePicker: _buildDatePickerStyle(),
+                    styleYearPicker: _buildYearPickerStyle(),
+                  );
+                  if (date != null) {
+                    _selectedFromDate = date;
+
+                    // flag to adjust date so from date is always before to date
+                    final flag = _selectedToDate != null &&
+                        !_selectedFromDate!.isBefore(_selectedToDate!);
+                    if (flag) {
+                      _selectedToDate = DateTime.fromMillisecondsSinceEpoch(
+                          _selectedFromDate!.millisecondsSinceEpoch);
+                    }
+
+                    setState(() {
+                      if (flag) {
+                        _toDateString = _selectedToDate == null
+                            ? ""
+                            : Format.formatDate(_selectedToDate!);
+                      }
+                      _fromDateString = _selectedFromDate == null
+                          ? ""
+                          : Format.formatDate(_selectedFromDate!);
+                    });
+                  }
+                },
               ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: isDesktop ? 17 : 12,
-                ),
-                child: Row(
-                  children: [
-                    SvgPicture.asset(
-                      Assets.svg.calendar,
-                      height: 20,
-                      width: 20,
+              const SizedBox(
+                width: 12,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "FROM",
+                    style: STextStyles.overLineBold(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .textSubtitle2,
+                          .textMedium,
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FittedBox(
-                        child: _dateFromText,
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: middleSeparatorPadding),
-          child: Container(
-            width: middleSeparatorWidth,
-            // height: 1,
-            // color: CFColors.smoke,
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  Text(
+                    _selectedFromDate == null
+                        ? "n/a"
+                        : Format.extractDateFrom(
+                            _selectedFromDate!.millisecondsSinceEpoch ~/ 1000,
+                            simple: true),
+                    style: STextStyles.bodySmall(context),
+                  ),
+                ],
+              )
+            ],
           ),
         ),
         Expanded(
-          child: GestureDetector(
-            key: const Key("transactionSearchViewToDatePickerKey"),
-            onTap: () async {
-              final color =
-                  Theme.of(context).extension<StackColors>()!.accentColorDark;
-              final height = MediaQuery.of(context).size.height;
-              // check and hide keyboard
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 125));
-              }
-
-              final date = await showRoundedDatePicker(
-                // This doesn't change statusbar color...
-                // background: CFColors.starryNight.withOpacity(0.8),
-                context: context,
-                height: height * 0.5,
-                theme: ThemeData(
-                  primarySwatch: Util.createMaterialColor(
-                    color,
-                  ),
+          child: Row(
+            children: [
+              AppBarIconButton(
+                color: Theme.of(context).extension<StackColors>()!.coal,
+                size: 48,
+                icon: SvgPicture.asset(
+                  Assets.svg.calendar,
+                  width: 24,
+                  height: 24,
+                  color: Theme.of(context).extension<StackColors>()!.textMedium,
                 ),
-                //TODO pick a better initial date
-                // 2007 chosen as that is just before bitcoin launched
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2007),
-                lastDate: DateTime.now(),
-                borderRadius: Constants.size.circularBorderRadius * 2,
-
-                textPositiveButton: "SELECT",
-
-                styleDatePicker: _buildDatePickerStyle(),
-                styleYearPicker: _buildYearPickerStyle(),
-              );
-              if (date != null) {
-                _selectedToDate = date;
-
-                // flag to adjust date so from date is always before to date
-                final flag = _selectedFromDate != null &&
-                    !_selectedToDate!.isAfter(_selectedFromDate!);
-                if (flag) {
-                  _selectedFromDate = DateTime.fromMillisecondsSinceEpoch(
-                      _selectedToDate!.millisecondsSinceEpoch);
-                }
-
-                setState(() {
-                  if (flag) {
-                    _fromDateString = _selectedFromDate == null
-                        ? ""
-                        : Format.formatDate(_selectedFromDate!);
-                  }
-                  _toDateString = _selectedToDate == null
-                      ? ""
-                      : Format.formatDate(_selectedToDate!);
-                });
-              }
-            },
-            child: Container(
-              width: width,
-              decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                borderRadius:
-                    BorderRadius.circular(Constants.size.circularBorderRadius),
-                border: Border.all(
-                  color: Theme.of(context)
+                onPressed: () async {
+                  final color = Theme.of(context)
                       .extension<StackColors>()!
-                      .textFieldDefaultBG,
-                  width: 1,
-                ),
+                      .accentColorDark;
+                  final height = MediaQuery.of(context).size.height;
+                  // check and hide keyboard
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 125));
+                  }
+
+                  final date = await showRoundedDatePicker(
+                    // This doesn't change statusbar color...
+                    // background: CFColors.starryNight.withOpacity(0.8),
+                    context: context,
+                    height: height * 0.5,
+                    theme: ThemeData(
+                      primarySwatch: Util.createMaterialColor(
+                        color,
+                      ),
+                    ),
+                    //TODO pick a better initial date
+                    // 2007 chosen as that is just before bitcoin launched
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2007),
+                    lastDate: DateTime.now(),
+                    borderRadius: Constants.size.circularBorderRadius * 2,
+
+                    textPositiveButton: "SELECT",
+
+                    styleDatePicker: _buildDatePickerStyle(),
+                    styleYearPicker: _buildYearPickerStyle(),
+                  );
+                  if (date != null) {
+                    _selectedToDate = date;
+
+                    // flag to adjust date so from date is always before to date
+                    final flag = _selectedFromDate != null &&
+                        !_selectedToDate!.isAfter(_selectedFromDate!);
+                    if (flag) {
+                      _selectedFromDate = DateTime.fromMillisecondsSinceEpoch(
+                          _selectedToDate!.millisecondsSinceEpoch);
+                    }
+
+                    setState(() {
+                      if (flag) {
+                        _fromDateString = _selectedFromDate == null
+                            ? ""
+                            : Format.formatDate(_selectedFromDate!);
+                      }
+                      _toDateString = _selectedToDate == null
+                          ? ""
+                          : Format.formatDate(_selectedToDate!);
+                    });
+                  }
+                },
               ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: isDesktop ? 17 : 12,
-                ),
-                child: Row(
-                  children: [
-                    SvgPicture.asset(
-                      Assets.svg.calendar,
-                      height: 20,
-                      width: 20,
+              const SizedBox(
+                width: 12,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "TO",
+                    style: STextStyles.overLineBold(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .textSubtitle2,
+                          .textMedium,
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FittedBox(
-                        child: _dateToText,
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  Text(
+                    _selectedToDate == null
+                        ? "n/a"
+                        : Format.extractDateFrom(
+                            _selectedToDate!.millisecondsSinceEpoch ~/ 1000,
+                            simple: true),
+                    style: STextStyles.bodySmall(context),
+                  ),
+                ],
+              )
+            ],
           ),
         ),
-        if (isDesktop)
-          const SizedBox(
-            width: 24,
-          ),
       ],
     );
   }
@@ -408,7 +356,7 @@ class _TransactionSearchViewState
   @override
   initState() {
     _expandableController = ExpandableController();
-    baseColor = ref.read(colorThemeProvider.state).state.textSubtitle2;
+    baseColor = ref.read(colorThemeProvider.state).state.textLight;
     final filterState = ref.read(transactionFilterProvider.state).state;
 
     header = options[0];
