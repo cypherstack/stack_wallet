@@ -94,7 +94,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get buttonTextPrimaryDisabled => const Color(0xFF121215);
   @override
-  Color get buttonTextSecondaryDisabled => const Color(0xFFD1A55C);
+  Color get buttonTextSecondaryDisabled => const Color(0xFF222227);
   @override
   Color get buttonTextBorder => const Color(0xFFD1A55C);
   @override

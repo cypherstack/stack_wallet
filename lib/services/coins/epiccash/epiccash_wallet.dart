@@ -1259,9 +1259,18 @@ class EpicCashWallet extends CoinServiceAPI {
       await updateNode(false);
     }
     final NodeModel node = _epicNode!;
+
     final String nodeAddress = node.host;
     int port = node.port;
-    final String nodeApiAddress = "$nodeAddress:$port";
+
+    String scheme;
+    if (node.useSSL) {
+      scheme = "https://";
+    } else {
+      scheme = "http://";
+    }
+
+    final String nodeApiAddress = "$scheme$nodeAddress:$port";
     final walletDir = await currentWalletDirPath();
 
     final Map<String, dynamic> config = {};
@@ -2027,8 +2036,15 @@ class EpicCashWallet extends CoinServiceAPI {
     try {
       // force unwrap optional as we want connection test to fail if wallet
       // wasn't initialized or epicbox node was set to null
+      String scheme;
+      if (_epicNode!.useSSL) {
+        scheme = "https://";
+      } else {
+        scheme = "http://";
+      }
+
       final String uriString =
-          "${_epicNode!.host}:${_epicNode!.port}/v1/version";
+          "$scheme${_epicNode!.host}:${_epicNode!.port}/v1/version";
 
       final Uri uri = Uri.parse(uriString);
       return await testEpicBoxNodeConnection(uri);

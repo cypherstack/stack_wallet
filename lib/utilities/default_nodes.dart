@@ -12,7 +12,7 @@ abstract class DefaultNodes {
       ];
 
   static NodeModel get epicCash => NodeModel(
-        host: "http://epiccash.stackwallet.com",
+        host: "epiccash.stackwallet.com",
         port: 3413,
         name: defaultName,
         id: _nodeId(Coin.epicCash),
