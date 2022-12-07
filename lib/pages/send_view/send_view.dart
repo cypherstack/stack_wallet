@@ -305,7 +305,10 @@ class _SendViewState extends ConsumerState<SendView> {
                         children: [
                           Text(
                             "Send EPIC",
-                            style: STextStyles.titleH3(context),
+                            style: STextStyles.titleH3(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonBackPrimary),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(
@@ -956,9 +959,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             height: 24,
                           ),
                           TextButton(
-                            onPressed: ref
-                                    .watch(previewTxButtonStateProvider.state)
-                                    .state
+                            onPressed: _addressToggleFlag
                                 ? () async {
                                     // wait for keyboard to disappear
                                     FocusScope.of(context).unfocus();
@@ -1163,9 +1164,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                     }
                                   }
                                 : null,
-                            style: ref
-                                    .watch(previewTxButtonStateProvider.state)
-                                    .state
+                            style: _addressToggleFlag
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
                                     .getPrimaryEnabledButtonColor(context)
@@ -1174,7 +1173,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                     .getPrimaryDisabledButtonColor(context),
                             child: Text(
                               "Next",
-                              style: STextStyles.buttonText(context),
+                              style: STextStyles.buttonText(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .coal),
                             ),
                           ),
                           const SizedBox(
