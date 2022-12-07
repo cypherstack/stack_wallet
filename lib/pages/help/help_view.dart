@@ -40,7 +40,7 @@ class HelpView extends StatelessWidget {
               HelpItem(
                 label: "Telegram",
                 iconAsset: Assets.socials.telegram,
-                url: "https://t.me/EpicCash",
+                url: "http://t.me/epiccashhelpdesk",
               ),
               const SizedBox(
                 height: 32,
