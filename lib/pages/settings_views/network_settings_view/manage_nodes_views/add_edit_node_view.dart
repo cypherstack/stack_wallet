@@ -22,6 +22,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../widgets/rounded_container.dart';
+
 enum AddEditNodeViewType { add, edit }
 
 class AddEditNodeView extends ConsumerStatefulWidget {
@@ -191,6 +193,77 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     }
   }
 
+  void showContextMenu() {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (context) {
+        return Column(
+          children: [
+            const SizedBox(
+              height: 10,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 160,
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return RoundedContainer(
+                          padding: const EdgeInsets.all(8),
+                          color:
+                              Theme.of(context).extension<StackColors>()!.coal,
+                          child: Column(
+                            children: [
+                              GestureDetector(
+                                onTap: () async {
+                                  Navigator.popUntil(
+                                      context,
+                                      ModalRoute.withName(
+                                          widget.routeOnSuccessOrDelete));
+
+                                  await ref
+                                      .read(nodeServiceChangeNotifierProvider)
+                                      .delete(
+                                        nodeId!,
+                                        true,
+                                      );
+                                },
+                                child: Container(
+                                  color: Colors.transparent,
+                                  width: constraints.minWidth,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      "Delete node",
+                                      style: STextStyles.body(context),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 20,
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     ref.refresh(nodeFormDataProvider);
@@ -253,32 +326,21 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                 padding: const EdgeInsets.only(
                   top: 10,
                   bottom: 10,
-                  right: 10,
+                  right: 16,
                 ),
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
-                    key: const Key("deleteNodeAppBarButtonKey"),
+                    key: const Key("addressBookAddNewContactViewButton"),
                     size: 36,
                     shadows: const [],
                     color:
                         Theme.of(context).extension<StackColors>()!.background,
                     icon: SvgPicture.asset(
-                      Assets.svg.trash,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
+                      Assets.svg.ellipsis,
                     ),
-                    onPressed: () async {
-                      Navigator.popUntil(context,
-                          ModalRoute.withName(widget.routeOnSuccessOrDelete));
-
-                      await ref.read(nodeServiceChangeNotifierProvider).delete(
-                            nodeId!,
-                            true,
-                          );
+                    onPressed: () {
+                      showContextMenu();
                     },
                   ),
                 ),
