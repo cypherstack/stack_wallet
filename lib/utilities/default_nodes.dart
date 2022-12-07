@@ -146,7 +146,7 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get particl => NodeModel(
-      host: "164.92.93.20",
+      host: "particl.stackwallet.com",
       port: 50002,
       name: defaultName,
       id: _nodeId(Coin.particl),
