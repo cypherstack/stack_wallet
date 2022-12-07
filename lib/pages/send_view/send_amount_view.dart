@@ -2,14 +2,12 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:epicmobile/models/send_view_auto_fill_data.dart';
-import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 // import 'package:epicmobile/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
 import 'package:epicmobile/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:epicmobile/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:epicmobile/services/coins/manager.dart';
-import 'package:epicmobile/utilities/address_utils.dart';
 import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
@@ -19,15 +17,13 @@ import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
-import 'package:epicmobile/widgets/icon_widgets/addressbook_icon.dart';
-import 'package:epicmobile/widgets/icon_widgets/qrcode_icon.dart';
+import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
 import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../widgets/icon_widgets/x_icon.dart';
 
 class SendAmountView extends ConsumerStatefulWidget {
   const SendAmountView({
@@ -273,6 +269,19 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
 
     return Background(
       child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          leading: AppBarBackButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+            },
+          ),
+          title: Text(
+            "Send",
+            style: STextStyles.titleH3(context).copyWith(fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+        ),
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         body: LayoutBuilder(
           builder: (builderContext, constraints) {
@@ -295,488 +304,273 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            "Send EPIC",
-                            style: STextStyles.titleH3(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonBackPrimary),
-                            textAlign: TextAlign.center,
+                            "SEND TO",
+                            style: STextStyles.overLineBold(context).copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                            textAlign: TextAlign.start,
                           ),
                           const SizedBox(
-                            height: 8,
+                            height: 12,
+                          ),
+                          // todo print address here
+
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          const _Divider(),
+                          Text(
+                            "NOTE (OPTIONAL)",
+                            style: STextStyles.overLineBold(context).copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                            textAlign: TextAlign.start,
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          TextField(
+                            autocorrect: true,
+                            enableSuggestions: true,
+                            controller: noteController,
+                            focusNode: _noteFocusNode,
+                            // style: STextStyles.field(context),
+                            onChanged: (_) => setState(() {}),
+                            decoration: standardInputDecoration(
+                              "Type something...",
+                              _noteFocusNode,
+                              context,
+                            ).copyWith(
+                              suffixIcon: noteController.text.isNotEmpty
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          children: [
+                                            TextFieldIconButton(
+                                              child: const XIcon(),
+                                              onTap: () async {
+                                                setState(() {
+                                                  noteController.text = "";
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          const _Divider(),
+                          const SizedBox(
+                            height: 12,
                           ),
                           Text(
-                            "Enter your recipient's address:",
-                            style: STextStyles.smallMed14(context),
-                            textAlign: TextAlign.center,
-                          ),
-                          // Container(
-                          //   decoration: BoxDecoration(
-                          //     color: Theme.of(context)
-                          //         .extension<StackColors>()!
-                          //         .popupBG,
-                          //     borderRadius: BorderRadius.circular(
-                          //       Constants.size.circularBorderRadius,
-                          //     ),
-                          //   ),
-                          //   child: Padding(
-                          //     padding: const EdgeInsets.all(12.0),
-                          //     child: Row(
-                          //       children: [
-                          //         SvgPicture.asset(
-                          //           Assets.svg.iconFor(coin: coin),
-                          //           width: 22,
-                          //           height: 22,
-                          //         ),
-                          //         const SizedBox(
-                          //           width: 6,
-                          //         ),
-                          //         Expanded(
-                          //           child: Text(
-                          //             ref.watch(walletProvider.select(
-                          //                 (value) => value!.walletName)),
-                          //             style: STextStyles.bodyBold(context),
-                          //             overflow: TextOverflow.ellipsis,
-                          //             maxLines: 1,
-                          //           ),
-                          //         ),
-                          //         const SizedBox(
-                          //           width: 10,
-                          //         ),
-                          //       ],
-                          //     ),
-                          //   ),
-                          // ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
+                            "ENTER AMOUNT TO SEND",
+                            style: STextStyles.overLineBold(context).copyWith(
+                              fontWeight: FontWeight.w700,
                             ),
-                            child: TextField(
-                              key: const Key("sendViewAddressFieldKey"),
-                              controller: sendToController,
-                              readOnly: false,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              toolbarOptions: const ToolbarOptions(
-                                copy: false,
-                                cut: false,
-                                paste: true,
-                                selectAll: false,
+                            textAlign: TextAlign.start,
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          TextField(
+                            autocorrect: true,
+                            enableSuggestions: true,
+                            style: STextStyles.smallMed14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textLight,
+                            ),
+                            key:
+                                const Key("amountInputFieldCryptoTextFieldKey"),
+                            controller: cryptoAmountController,
+                            focusNode: _cryptoFocus,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              signed: false,
+                              decimal: true,
+                            ),
+                            textAlign: TextAlign.left,
+                            inputFormatters: [
+                              // regex to validate a crypto amount with 8 decimal places
+                              TextInputFormatter.withFunction((oldValue,
+                                      newValue) =>
+                                  RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                                          .hasMatch(newValue.text)
+                                      ? newValue
+                                      : oldValue),
+                            ],
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.only(
+                                top: 12,
+                                left: 12,
                               ),
-                              onChanged: (newValue) {
-                                _address = newValue;
-                                _updatePreviewButtonState(
-                                    _address, _amountToSend);
-
-                                setState(() {
-                                  _addressToggleFlag = newValue.isNotEmpty;
-                                });
-                              },
-                              focusNode: _addressFocusNode,
-                              style: STextStyles.field(context),
-                              decoration: standardInputDecoration(
-                                "Paste address...",
-                                _addressFocusNode,
-                                context,
-                              ).copyWith(
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 20),
-                                suffixIcon: Padding(
-                                  padding: sendToController.text.isEmpty
-                                      ? const EdgeInsets.only(right: 8)
-                                      : const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        if (_addressToggleFlag == true)
-                                          TextFieldIconButton(
-                                            key: const Key(
-                                                "sendViewClearAddressFieldButtonKey"),
-                                            onTap: () {
-                                              sendToController.text = "";
-                                              _address = "";
-                                              _updatePreviewButtonState(
-                                                  _address, _amountToSend);
-                                              setState(() {
-                                                _addressToggleFlag = false;
-                                              });
-                                            },
-                                            child: const XIcon(),
-                                          ),
-                                        TextFieldIconButton(
-                                          key: const Key(
-                                              "sendViewScanQrButtonKey"),
-                                          onTap: () async {
-                                            try {
-                                              // ref
-                                              //     .read(
-                                              //         shouldShowLockscreenOnResumeStateProvider
-                                              //             .state)
-                                              //     .state = false;
-                                              if (FocusScope.of(context)
-                                                  .hasFocus) {
-                                                FocusScope.of(context)
-                                                    .unfocus();
-                                                await Future<void>.delayed(
-                                                    const Duration(
-                                                        milliseconds: 75));
-                                              }
-
-                                              final qrResult =
-                                                  await scanner.scan();
-
-                                              // Future<void>.delayed(
-                                              //   const Duration(seconds: 2),
-                                              //   () => ref
-                                              //       .read(
-                                              //           shouldShowLockscreenOnResumeStateProvider
-                                              //               .state)
-                                              //       .state = true,
-                                              // );
-
-                                              Logging.instance.log(
-                                                  "qrResult content: ${qrResult.rawContent}",
-                                                  level: LogLevel.Info);
-
-                                              final results =
-                                                  AddressUtils.parseUri(
-                                                      qrResult.rawContent);
-
-                                              Logging.instance.log(
-                                                  "qrResult parsed: $results",
-                                                  level: LogLevel.Info);
-
-                                              if (results.isNotEmpty &&
-                                                  results["scheme"] ==
-                                                      coin.uriScheme) {
-                                                // auto fill address
-                                                _address =
-                                                    results["address"] ?? "";
-                                                sendToController.text =
-                                                    _address!;
-
-                                                // autofill notes field
-                                                if (results["message"] !=
-                                                    null) {
-                                                  noteController.text =
-                                                      results["message"]!;
-                                                } else if (results["label"] !=
-                                                    null) {
-                                                  noteController.text =
-                                                      results["label"]!;
-                                                }
-
-                                                // autofill amount field
-                                                if (results["amount"] != null) {
-                                                  final amount = Decimal.parse(
-                                                      results["amount"]!);
-                                                  cryptoAmountController.text =
-                                                      Format
-                                                          .localizedStringAsFixed(
-                                                    value: amount,
-                                                    locale: ref
-                                                        .read(
-                                                            localeServiceChangeNotifierProvider)
-                                                        .locale,
-                                                    decimalPlaces:
-                                                        Constants.decimalPlaces,
-                                                  );
-                                                  amount.toString();
-                                                  _amountToSend = amount;
-                                                }
-
-                                                _updatePreviewButtonState(
-                                                    _address, _amountToSend);
-                                                setState(() {
-                                                  _addressToggleFlag =
-                                                      sendToController
-                                                          .text.isNotEmpty;
-                                                });
-
-                                                // now check for non standard encoded basic address
-                                              } else if (ref
-                                                  .read(walletProvider)!
-                                                  .validateAddress(
-                                                      qrResult.rawContent)) {
-                                                _address = qrResult.rawContent;
-                                                sendToController.text =
-                                                    _address ?? "";
-
-                                                _updatePreviewButtonState(
-                                                    _address, _amountToSend);
-                                                setState(() {
-                                                  _addressToggleFlag =
-                                                      sendToController
-                                                          .text.isNotEmpty;
-                                                });
-                                              }
-                                            } on PlatformException catch (e, s) {
-                                              // ref
-                                              //     .read(
-                                              //         shouldShowLockscreenOnResumeStateProvider
-                                              //             .state)
-                                              //     .state = true;
-                                              // here we ignore the exception caused by not giving permission
-                                              // to use the camera to scan a qr code
-                                              Logging.instance.log(
-                                                  "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                                  level: LogLevel.Warning);
-                                            }
-                                          },
-                                          child: const QrCodeIcon(),
-                                        ),
-                                        TextFieldIconButton(
-                                          key: const Key(
-                                              "sendViewAddressBookButtonKey"),
-                                          onTap: () {
-                                            Navigator.of(context).pushNamed(
-                                              AddressBookView.routeName,
-                                              arguments: widget.coin,
-                                            );
-                                          },
-                                          child: AddressBookIcon(
-                                            width: 24,
-                                            height: 24,
+                              hintText: "0.00",
+                              hintStyle:
+                                  STextStyles.fieldLabel(context).copyWith(
+                                fontSize: 14,
+                              ),
+                              suffixIcon: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(
+                                    coin.ticker,
+                                    style: STextStyles.smallMed14(context)
+                                        .copyWith(
                                             color: Theme.of(context)
                                                 .extension<StackColors>()!
-                                                .textFieldActiveSearchIconRight,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                                .accentColorDark),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                          Builder(
-                            builder: (_) {
-                              final error = _updateInvalidAddressText(
-                                _address ?? "",
-                                ref.read(walletProvider)!,
-                              );
-
-                              if (error == null || error.isEmpty) {
-                                return Container();
-                              } else {
-                                return Align(
-                                  alignment: Alignment.topLeft,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 12.0,
-                                      top: 4.0,
-                                    ),
-                                    child: Text(
-                                      error,
-                                      textAlign: TextAlign.left,
-                                      style:
-                                          STextStyles.label(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textError,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
+                          const SizedBox(
+                            height: 8,
                           ),
-                          // const SizedBox(
-                          //   height: 12,
-                          // ),
-                          // Row(
-                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          //   children: [
-                          //     Text(
-                          //       "Amount",
-                          //       style: STextStyles.smallMed12(context),
-                          //       textAlign: TextAlign.left,
-                          //     ),
-                          //     BlueTextButton(
-                          //       text: "Send all ${coin.ticker}",
-                          //       onTap: () async {
-                          //         cryptoAmountController.text = (await ref
-                          //                 .read(walletProvider)!
-                          //                 .availableBalance)
-                          //             .toStringAsFixed(Constants.decimalPlaces);
-                          //       },
-                          //     ),
-                          //   ],
-                          // ),
-                          // const SizedBox(
-                          //   height: 8,
-                          // ),
-                          // TextField(
-                          //   autocorrect: Util.isDesktop ? false : true,
-                          //   enableSuggestions: Util.isDesktop ? false : true,
-                          //   style: STextStyles.smallMed14(context).copyWith(
-                          //     color: Theme.of(context)
-                          //         .extension<StackColors>()!
-                          //         .textLight,
-                          //   ),
-                          //   key:
-                          //       const Key("amountInputFieldCryptoTextFieldKey"),
-                          //   controller: cryptoAmountController,
-                          //   focusNode: _cryptoFocus,
-                          //   keyboardType: const TextInputType.numberWithOptions(
-                          //     signed: false,
-                          //     decimal: true,
-                          //   ),
-                          //   textAlign: TextAlign.right,
-                          //   inputFormatters: [
-                          //     // regex to validate a crypto amount with 8 decimal places
-                          //     TextInputFormatter.withFunction((oldValue,
-                          //             newValue) =>
-                          //         RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                          //                 .hasMatch(newValue.text)
-                          //             ? newValue
-                          //             : oldValue),
-                          //   ],
-                          //   decoration: InputDecoration(
-                          //     contentPadding: const EdgeInsets.only(
-                          //       top: 12,
-                          //       right: 12,
-                          //     ),
-                          //     hintText: "0",
-                          //     hintStyle:
-                          //         STextStyles.fieldLabel(context).copyWith(
-                          //       fontSize: 14,
-                          //     ),
-                          //     prefixIcon: FittedBox(
-                          //       fit: BoxFit.scaleDown,
-                          //       child: Padding(
-                          //         padding: const EdgeInsets.all(12),
-                          //         child: Text(
-                          //           coin.ticker,
-                          //           style: STextStyles.smallMed14(context)
-                          //               .copyWith(
-                          //                   color: Theme.of(context)
-                          //                       .extension<StackColors>()!
-                          //                       .accentColorDark),
-                          //         ),
-                          //       ),
-                          //     ),
-                          //   ),
-                          // ),
-                          // const SizedBox(
-                          //   height: 8,
-                          // ),
-                          // TextField(
-                          //   autocorrect: Util.isDesktop ? false : true,
-                          //   enableSuggestions: Util.isDesktop ? false : true,
-                          //   style: STextStyles.smallMed14(context).copyWith(
-                          //     color: Theme.of(context)
-                          //         .extension<StackColors>()!
-                          //         .textLight,
-                          //   ),
-                          //   key: const Key("amountInputFieldFiatTextFieldKey"),
-                          //   controller: baseAmountController,
-                          //   focusNode: _baseFocus,
-                          //   keyboardType: const TextInputType.numberWithOptions(
-                          //     signed: false,
-                          //     decimal: true,
-                          //   ),
-                          //   textAlign: TextAlign.right,
-                          //   inputFormatters: [
-                          //     // regex to validate a fiat amount with 2 decimal places
-                          //     TextInputFormatter.withFunction((oldValue,
-                          //             newValue) =>
-                          //         RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-                          //                 .hasMatch(newValue.text)
-                          //             ? newValue
-                          //             : oldValue),
-                          //   ],
-                          //   onChanged: (baseAmountString) {
-                          //     if (baseAmountString.isNotEmpty &&
-                          //         baseAmountString != "." &&
-                          //         baseAmountString != ",") {
-                          //       final baseAmount = baseAmountString
-                          //               .contains(",")
-                          //           ? Decimal.parse(
-                          //               baseAmountString.replaceFirst(",", "."))
-                          //           : Decimal.parse(baseAmountString);
-                          //
-                          //       var _price = ref
-                          //           .read(priceAnd24hChangeNotifierProvider)
-                          //           .getPrice(coin)
-                          //           .item1;
-                          //
-                          //       if (_price == Decimal.zero) {
-                          //         _amountToSend = Decimal.zero;
-                          //       } else {
-                          //         _amountToSend = baseAmount <= Decimal.zero
-                          //             ? Decimal.zero
-                          //             : (baseAmount / _price).toDecimal(
-                          //                 scaleOnInfinitePrecision:
-                          //                     Constants.decimalPlaces);
-                          //       }
-                          //       if (_cachedAmountToSend != null &&
-                          //           _cachedAmountToSend == _amountToSend) {
-                          //         return;
-                          //       }
-                          //       _cachedAmountToSend = _amountToSend;
-                          //       Logging.instance.log(
-                          //           "it changed $_amountToSend $_cachedAmountToSend",
-                          //           level: LogLevel.Info);
-                          //
-                          //       final amountString =
-                          //           Format.localizedStringAsFixed(
-                          //         value: _amountToSend!,
-                          //         locale: ref
-                          //             .read(localeServiceChangeNotifierProvider)
-                          //             .locale,
-                          //         decimalPlaces: Constants.decimalPlaces,
-                          //       );
-                          //
-                          //       _cryptoAmountChangeLock = true;
-                          //       cryptoAmountController.text = amountString;
-                          //       _cryptoAmountChangeLock = false;
-                          //     } else {
-                          //       _amountToSend = Decimal.zero;
-                          //       _cryptoAmountChangeLock = true;
-                          //       cryptoAmountController.text = "";
-                          //       _cryptoAmountChangeLock = false;
-                          //     }
-                          //     // setState(() {
-                          //     //   _calculateFeesFuture = calculateFees(
-                          //     //       Format.decimalAmountToSatoshis(
-                          //     //           _amountToSend!));
-                          //     // });
-                          //     _updatePreviewButtonState(
-                          //         _address, _amountToSend);
-                          //   },
-                          //   decoration: InputDecoration(
-                          //     contentPadding: const EdgeInsets.only(
-                          //       top: 12,
-                          //       right: 12,
-                          //     ),
-                          //     hintText: "0",
-                          //     hintStyle:
-                          //         STextStyles.fieldLabel(context).copyWith(
-                          //       fontSize: 14,
-                          //     ),
-                          //     prefixIcon: FittedBox(
-                          //       fit: BoxFit.scaleDown,
-                          //       child: Padding(
-                          //         padding: const EdgeInsets.all(12),
-                          //         child: Text(
-                          //           ref.watch(prefsChangeNotifierProvider
-                          //               .select((value) => value.currency)),
-                          //           style: STextStyles.smallMed14(context)
-                          //               .copyWith(
-                          //                   color: Theme.of(context)
-                          //                       .extension<StackColors>()!
-                          //                       .accentColorDark),
-                          //         ),
-                          //       ),
-                          //     ),
-                          //   ),
-                          // ),
+                          TextField(
+                            autocorrect: true,
+                            enableSuggestions: true,
+                            style: STextStyles.smallMed14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textLight,
+                            ),
+                            key: const Key("amountInputFieldFiatTextFieldKey"),
+                            controller: baseAmountController,
+                            focusNode: _baseFocus,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              signed: false,
+                              decimal: true,
+                            ),
+                            textAlign: TextAlign.left,
+                            inputFormatters: [
+                              // regex to validate a fiat amount with 2 decimal places
+                              TextInputFormatter.withFunction((oldValue,
+                                      newValue) =>
+                                  RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
+                                          .hasMatch(newValue.text)
+                                      ? newValue
+                                      : oldValue),
+                            ],
+                            onChanged: (baseAmountString) {
+                              if (baseAmountString.isNotEmpty &&
+                                  baseAmountString != "." &&
+                                  baseAmountString != ",") {
+                                final baseAmount = baseAmountString
+                                        .contains(",")
+                                    ? Decimal.parse(
+                                        baseAmountString.replaceFirst(",", "."))
+                                    : Decimal.parse(baseAmountString);
+
+                                var _price = ref
+                                    .read(priceAnd24hChangeNotifierProvider)
+                                    .getPrice(coin)
+                                    .item1;
+
+                                if (_price == Decimal.zero) {
+                                  _amountToSend = Decimal.zero;
+                                } else {
+                                  _amountToSend = baseAmount <= Decimal.zero
+                                      ? Decimal.zero
+                                      : (baseAmount / _price).toDecimal(
+                                          scaleOnInfinitePrecision:
+                                              Constants.decimalPlaces);
+                                }
+                                if (_cachedAmountToSend != null &&
+                                    _cachedAmountToSend == _amountToSend) {
+                                  return;
+                                }
+                                _cachedAmountToSend = _amountToSend;
+                                Logging.instance.log(
+                                    "it changed $_amountToSend $_cachedAmountToSend",
+                                    level: LogLevel.Info);
+
+                                final amountString =
+                                    Format.localizedStringAsFixed(
+                                  value: _amountToSend!,
+                                  locale: ref
+                                      .read(localeServiceChangeNotifierProvider)
+                                      .locale,
+                                  decimalPlaces: Constants.decimalPlaces,
+                                );
+
+                                _cryptoAmountChangeLock = true;
+                                cryptoAmountController.text = amountString;
+                                _cryptoAmountChangeLock = false;
+                              } else {
+                                _amountToSend = Decimal.zero;
+                                _cryptoAmountChangeLock = true;
+                                cryptoAmountController.text = "";
+                                _cryptoAmountChangeLock = false;
+                              }
+                              // setState(() {
+                              //   _calculateFeesFuture = calculateFees(
+                              //       Format.decimalAmountToSatoshis(
+                              //           _amountToSend!));
+                              // });
+                              _updatePreviewButtonState(
+                                  _address, _amountToSend);
+                            },
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.only(
+                                top: 12,
+                                left: 12,
+                              ),
+                              hintText: "0.00",
+                              hintStyle:
+                                  STextStyles.fieldLabel(context).copyWith(
+                                fontSize: 14,
+                              ),
+                              suffixIcon: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(
+                                    ref.watch(prefsChangeNotifierProvider
+                                        .select((value) => value.currency)),
+                                    style: STextStyles.smallMed14(context)
+                                        .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          Container(
+                            height: 36,
+                            width: 175,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonBackPrimaryDisabled,
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius * 3,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "VIEW AVAILABLE BALANCE",
+                                style:
+                                    STextStyles.overLineBold(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonBackPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
                           // const SizedBox(
                           //   height: 12,
                           // ),
@@ -1182,6 +976,23 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  const _Divider({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Container(
+        height: 2,
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .buttonBackPrimaryDisabled,
       ),
     );
   }

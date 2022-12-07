@@ -57,18 +57,10 @@ class _SendViewState extends ConsumerState<SendView> {
   late final BarcodeScannerInterface scanner;
 
   late TextEditingController sendToController;
-  late TextEditingController cryptoAmountController;
-  late TextEditingController baseAmountController;
-  late TextEditingController noteController;
-  late TextEditingController feeController;
 
   late final SendViewAutoFillData? _data;
 
   final _addressFocusNode = FocusNode();
-  final _noteFocusNode = FocusNode();
-  final _cryptoFocus = FocusNode();
-  final _baseFocus = FocusNode();
-
   Decimal? _amountToSend;
   Decimal? _cachedAmountToSend;
   String? _address;
@@ -83,54 +75,54 @@ class _SendViewState extends ConsumerState<SendView> {
 
   Decimal? _cachedBalance;
 
-  void _cryptoAmountChanged() async {
-    if (!_cryptoAmountChangeLock) {
-      final String cryptoAmount = cryptoAmountController.text;
-      if (cryptoAmount.isNotEmpty &&
-          cryptoAmount != "." &&
-          cryptoAmount != ",") {
-        _amountToSend = cryptoAmount.contains(",")
-            ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-            : Decimal.parse(cryptoAmount);
-        if (_cachedAmountToSend != null &&
-            _cachedAmountToSend == _amountToSend) {
-          return;
-        }
-        _cachedAmountToSend = _amountToSend;
-        Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
-            level: LogLevel.Info);
+  // void _cryptoAmountChanged() async {
+  //   if (!_cryptoAmountChangeLock) {
+  //     final String cryptoAmount = cryptoAmountController.text;
+  //     if (cryptoAmount.isNotEmpty &&
+  //         cryptoAmount != "." &&
+  //         cryptoAmount != ",") {
+  //       _amountToSend = cryptoAmount.contains(",")
+  //           ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
+  //           : Decimal.parse(cryptoAmount);
+  //       if (_cachedAmountToSend != null &&
+  //           _cachedAmountToSend == _amountToSend) {
+  //         return;
+  //       }
+  //       _cachedAmountToSend = _amountToSend;
+  //       Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
+  //           level: LogLevel.Info);
+  //
+  //       final price =
+  //           ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+  //
+  //       if (price > Decimal.zero) {
+  //         final String fiatAmountString = Format.localizedStringAsFixed(
+  //           value: _amountToSend! * price,
+  //           locale: ref.read(localeServiceChangeNotifierProvider).locale,
+  //           decimalPlaces: 2,
+  //         );
+  //
+  //         baseAmountController.text = fiatAmountString;
+  //       }
+  //     } else {
+  //       _amountToSend = null;
+  //       baseAmountController.text = "";
+  //     }
 
-        final price =
-            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+  // _updatePreviewButtonState(_address, _amountToSend);
 
-        if (price > Decimal.zero) {
-          final String fiatAmountString = Format.localizedStringAsFixed(
-            value: _amountToSend! * price,
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: 2,
-          );
-
-          baseAmountController.text = fiatAmountString;
-        }
-      } else {
-        _amountToSend = null;
-        baseAmountController.text = "";
-      }
-
-      _updatePreviewButtonState(_address, _amountToSend);
-
-      // if (_amountToSend == null) {
-      //   setState(() {
-      //     _calculateFeesFuture = calculateFees(0);
-      //   });
-      // } else {
-      //   setState(() {
-      //     _calculateFeesFuture =
-      //         calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-      //   });
-      // }
-    }
-  }
+  // if (_amountToSend == null) {
+  //   setState(() {
+  //     _calculateFeesFuture = calculateFees(0);
+  //   });
+  // } else {
+  //   setState(() {
+  //     _calculateFeesFuture =
+  //         calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
+  //   });
+  // }
+  //   }
+  // }
 
   String? _updateInvalidAddressText(String address, Manager manager) {
     if (_data != null && _data!.contactLabel == address) {
@@ -199,70 +191,21 @@ class _SendViewState extends ConsumerState<SendView> {
     scanner = widget.barcodeScanner;
 
     sendToController = TextEditingController();
-    cryptoAmountController = TextEditingController();
-    baseAmountController = TextEditingController();
-    noteController = TextEditingController();
-    feeController = TextEditingController();
-
-    onCryptoAmountChanged = _cryptoAmountChanged;
-    cryptoAmountController.addListener(onCryptoAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
-      }
       sendToController.text = _data!.contactLabel;
       _address = _data!.address;
       _addressToggleFlag = true;
     }
-
-    _cryptoFocus.addListener(() {
-      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(0);
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture =
-                calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-          });
-        }
-      }
-    });
-
-    _baseFocus.addListener(() {
-      if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(0);
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture =
-                calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-          });
-        }
-      }
-    });
 
     super.initState();
   }
 
   @override
   void dispose() {
-    cryptoAmountController.removeListener(onCryptoAmountChanged);
-
     sendToController.dispose();
-    cryptoAmountController.dispose();
-    baseAmountController.dispose();
-    noteController.dispose();
-    feeController.dispose();
-
-    _noteFocusNode.dispose();
     _addressFocusNode.dispose();
-    _cryptoFocus.dispose();
-    _baseFocus.dispose();
+
     super.dispose();
   }
 
@@ -463,36 +406,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     results["address"] ?? "";
                                                 sendToController.text =
                                                     _address!;
-
-                                                // autofill notes field
-                                                if (results["message"] !=
-                                                    null) {
-                                                  noteController.text =
-                                                      results["message"]!;
-                                                } else if (results["label"] !=
-                                                    null) {
-                                                  noteController.text =
-                                                      results["label"]!;
-                                                }
-
-                                                // autofill amount field
-                                                if (results["amount"] != null) {
-                                                  final amount = Decimal.parse(
-                                                      results["amount"]!);
-                                                  cryptoAmountController.text =
-                                                      Format
-                                                          .localizedStringAsFixed(
-                                                    value: amount,
-                                                    locale: ref
-                                                        .read(
-                                                            localeServiceChangeNotifierProvider)
-                                                        .locale,
-                                                    decimalPlaces:
-                                                        Constants.decimalPlaces,
-                                                  );
-                                                  amount.toString();
-                                                  _amountToSend = amount;
-                                                }
 
                                                 _updatePreviewButtonState(
                                                     _address, _amountToSend);
@@ -963,6 +876,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                         Coin.epicCash,
                                       ),
                                     );
+                                    debugPrint("$_address");
                                     //     // wait for keyboard to disappear
                                     //     FocusScope.of(context).unfocus();
                                     //     await Future<void>.delayed(
