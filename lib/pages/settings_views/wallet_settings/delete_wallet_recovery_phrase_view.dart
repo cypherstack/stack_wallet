@@ -4,6 +4,7 @@ import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_vie
 import 'package:epicmobile/pages/settings_views/wallet_settings/verify_mnemonic_view.dart';
 import 'package:epicmobile/providers/ui/verify_recovery_phrase/correct_word_provider.dart';
 import 'package:epicmobile/providers/ui/verify_recovery_phrase/random_index_provider.dart';
+import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -12,7 +13,9 @@ import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const DeleteWalletRecoveryPhraseView({
@@ -133,9 +136,64 @@ class _DeleteWalletRecoveryPhraseViewState
                   height: 59,
                 ),
                 Center(
-                  child: Text(
-                    "My Wallet",
-                    style: STextStyles.titleH4(context),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 135),
+                        child: Text(
+                          "My Wallet",
+                          style: STextStyles.titleH4(context),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          await _clipboardInterface.setData(
+                              ClipboardData(text: _mnemonic.join(" ")));
+                          // copied = true;
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            // copied == false
+                            Row(
+                              children: [
+                                Text(
+                                  "Copy",
+                                  style:
+                                      STextStyles.smallMed14(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonBackPrimary,
+                                  ),
+                                  textAlign: TextAlign.end,
+                                ),
+                                const SizedBox(
+                                  width: 6,
+                                ),
+                                SvgPicture.asset(
+                                  Assets.svg.copy,
+                                  width: 20,
+                                  height: 20,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonBackPrimary,
+                                ),
+                              ],
+                            ),
+                            // : Text(
+                            //     "Copied!",
+                            //     style: STextStyles.smallMed14(context).copyWith(
+                            //       color: Theme.of(context)
+                            //           .extension<StackColors>()!
+                            //           .buttonBackPrimary,
+                            //     ),
+                            //     textAlign: TextAlign.end,
+                            //   ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(
