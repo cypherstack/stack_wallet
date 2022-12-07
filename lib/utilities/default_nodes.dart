@@ -5,7 +5,7 @@ import 'package:epicmobile/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
   static String _nodeId(Coin coin) => "default_${coin.name}";
-  static const String defaultName = "Stack Default";
+  static const String defaultName = "Default";
 
   static List<NodeModel> get all => [
         epicCash,

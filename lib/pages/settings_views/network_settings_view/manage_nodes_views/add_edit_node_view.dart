@@ -485,11 +485,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   void Function(bool canSave, bool canTestConnection)? onChanged;
 
   bool _checkShouldEnableAuthFields(Coin coin) {
-    // TODO: which coin servers can have username and password?
-    switch (coin) {
-      case Coin.epicCash:
-        return true;
-    }
+    // switch (coin) {
+    //   case Coin.epicCash:
+    //     return true;
+    // }
+    return false;
   }
 
   bool get canSave {
