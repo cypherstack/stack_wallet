@@ -1,8 +1,14 @@
 import 'dart:async';
 
+import 'package:epicmobile/models/contact.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
+import 'package:epicmobile/models/transaction_filter.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:epicmobile/providers/global/address_book_service_provider.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
+import 'package:epicmobile/providers/ui/transaction_filter_provider.dart';
+import 'package:epicmobile/providers/wallet/notes_service_provider.dart';
+import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/widgets/loading_indicator.dart';
 import 'package:epicmobile/widgets/transaction_card.dart';
 import 'package:flutter/material.dart';
@@ -21,16 +27,97 @@ class TransactionsList extends ConsumerStatefulWidget {
 }
 
 class _TransactionsListState extends ConsumerState<TransactionsList> {
-  //
   bool _hasLoaded = false;
   Map<String, Transaction> _transactions = {};
 
-  void updateTransactions(TransactionData newData) {
+  bool _matchesFilter(Transaction tx, List<Contact> contacts,
+      Map<String, String> notes, TransactionFilter? filter) {
+    if (filter == null) {
+      return true;
+    }
+
+    if (!filter.sent && !filter.received) {
+      return false;
+    }
+
+    if (filter.received && !filter.sent && tx.txType == "Sent") {
+      return false;
+    }
+
+    if (filter.sent && !filter.received && tx.txType == "Received") {
+      return false;
+    }
+
+    final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
+    if ((filter.to != null &&
+            date.millisecondsSinceEpoch > filter.to!.millisecondsSinceEpoch) ||
+        (filter.from != null &&
+            date.millisecondsSinceEpoch <
+                filter.from!.millisecondsSinceEpoch)) {
+      return false;
+    }
+
+    if (filter.amount != null && filter.amount != tx.amount) {
+      return false;
+    }
+
+    return _isKeywordMatch(tx, filter.keyword.toLowerCase(), contacts, notes);
+  }
+
+  bool _isKeywordMatch(Transaction tx, String keyword, List<Contact> contacts,
+      Map<String, String> notes) {
+    if (keyword.isEmpty) {
+      return true;
+    }
+
+    bool contains = false;
+
+    // check if address book name contains
+    contains |= contacts
+        .where((e) =>
+            e.addresses.where((a) => a.address == tx.address).isNotEmpty &&
+            e.name.toLowerCase().contains(keyword))
+        .isNotEmpty;
+
+    // check if address contains
+    contains |= tx.address.toLowerCase().contains(keyword);
+
+    // check if note contains
+    contains |= notes[tx.txid] != null &&
+        notes[tx.txid]!.toLowerCase().contains(keyword);
+
+    // check if txid contains
+    contains |= tx.txid.toLowerCase().contains(keyword);
+
+    // check if subType contains
+    contains |=
+        tx.subType.isNotEmpty && tx.subType.toLowerCase().contains(keyword);
+
+    // check if txType contains
+    contains |= tx.txType.toLowerCase().contains(keyword);
+
+    // check if date contains
+    contains |=
+        Format.extractDateFrom(tx.timestamp).toLowerCase().contains(keyword);
+
+    return contains;
+  }
+
+  void updateTransactions(TransactionData newData, TransactionFilter? filter) {
+    debugPrint("FILTER: $filter");
+
     _transactions = {};
     final newTransactions =
         newData.txChunks.expand((element) => element.transactions);
+
+    final contacts = ref.read(addressBookServiceProvider).contacts;
+    final notes =
+        ref.read(notesServiceChangeNotifierProvider(widget.walletId)).notesSync;
+
     for (final tx in newTransactions) {
-      _transactions[tx.txid] = tx;
+      if (_matchesFilter(tx, contacts, notes, filter)) {
+        _transactions[tx.txid] = tx;
+      }
     }
   }
 
@@ -41,13 +128,14 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   @override
   Widget build(BuildContext context) {
+    final filter = ref.watch(transactionFilterProvider.state).state;
     return FutureBuilder(
       future:
           ref.watch(walletProvider.select((value) => value!.transactionData)),
       builder: (fbContext, AsyncSnapshot<TransactionData> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
-          updateTransactions(snapshot.data!);
+          updateTransactions(snapshot.data!, filter);
           _hasLoaded = true;
         }
         if (!_hasLoaded) {

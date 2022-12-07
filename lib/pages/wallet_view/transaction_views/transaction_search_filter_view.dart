@@ -14,9 +14,10 @@ import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
+import 'package:epicmobile/widgets/expandable.dart';
+import 'package:epicmobile/widgets/icon_widgets/search_icon.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
-import 'package:epicmobile/widgets/rounded_white_container.dart';
-import 'package:epicmobile/widgets/stack_text_field.dart';
+import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,11 +42,17 @@ class TransactionSearchFilterView extends ConsumerStatefulWidget {
 
 class _TransactionSearchViewState
     extends ConsumerState<TransactionSearchFilterView> {
+  String header = "";
+  final List<String> options = [
+    "All transactions",
+    "Incoming",
+    "Outgoing",
+  ];
+  ExpandableState _expandableState = ExpandableState.collapsed;
+  late final ExpandableController _expandableController;
+
   final _amountTextEditingController = TextEditingController();
   final _keywordTextEditingController = TextEditingController();
-
-  bool _isActiveReceivedCheckbox = false;
-  bool _isActiveSentCheckbox = false;
 
   String _fromDateString = "";
   String _toDateString = "";
@@ -69,8 +76,8 @@ class _TransactionSearchViewState
     }
 
     final TransactionFilter filter = TransactionFilter(
-      sent: _isActiveSentCheckbox,
-      received: _isActiveReceivedCheckbox,
+      sent: header == options[0] || header == options[2],
+      received: header == options[0] || header == options[1],
       from: _selectedFromDate,
       to: _selectedToDate,
       amount: amount,
@@ -400,11 +407,21 @@ class _TransactionSearchViewState
 
   @override
   initState() {
+    _expandableController = ExpandableController();
     baseColor = ref.read(colorThemeProvider.state).state.textSubtitle2;
     final filterState = ref.read(transactionFilterProvider.state).state;
+
+    header = options[0];
+
     if (filterState != null) {
-      _isActiveReceivedCheckbox = filterState.received;
-      _isActiveSentCheckbox = filterState.sent;
+      if (filterState.received && !filterState.sent) {
+        header = options[1];
+      } else if (!filterState.received && filterState.sent) {
+        header = options[2];
+      } else {
+        header = options[0];
+      }
+
       _selectedToDate = filterState.to;
       _selectedFromDate = filterState.from;
       _keywordTextEditingController.text = filterState.keyword;
@@ -444,21 +461,26 @@ class _TransactionSearchViewState
         appBar: AppBar(
           backgroundColor:
               Theme.of(context).extension<StackColors>()!.background,
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          title: Text(
-            "Transactions filter",
-            style: STextStyles.titleH4(context),
-          ),
+          automaticallyImplyLeading: false,
+          centerTitle: true,
+          actions: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: AppBarIconButton(
+                icon: const XIcon(),
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 75));
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+            ),
+          ],
         ),
         body: Padding(
           padding: EdgeInsets.symmetric(
@@ -472,156 +494,140 @@ class _TransactionSearchViewState
                   child: IntrinsicHeight(
                     child: Column(
                       children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: FittedBox(
-                            child: Text(
-                              "Transactions",
-                              style: STextStyles.smallMed12(context),
-                            ),
-                          ),
+                        Text(
+                          "Filter transactions",
+                          style: STextStyles.titleH4(context),
                         ),
-                        RoundedWhiteContainer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _isActiveSentCheckbox =
-                                            !_isActiveSentCheckbox;
-                                      });
-                                    },
-                                    child: Container(
-                                      color: Colors.transparent,
-                                      child: Row(
-                                        children: [
-                                          SizedBox(
-                                            height: 20,
-                                            width: 20,
-                                            child: Checkbox(
-                                              key: const Key(
-                                                  "transactionSearchViewSentCheckboxKey"),
-                                              materialTapTargetSize:
-                                                  MaterialTapTargetSize
-                                                      .shrinkWrap,
-                                              value: _isActiveSentCheckbox,
-                                              onChanged: (newValue) {
-                                                setState(() {
-                                                  _isActiveSentCheckbox =
-                                                      newValue!;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 14,
-                                          ),
-                                          Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: FittedBox(
-                                              child: Column(
-                                                children: [
-                                                  Text(
-                                                    "Sent",
-                                                    style: STextStyles
-                                                        .itemSubtitle12(
-                                                            context),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 4,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _isActiveReceivedCheckbox =
-                                            !_isActiveReceivedCheckbox;
-                                      });
-                                    },
-                                    child: Container(
-                                      color: Colors.transparent,
-                                      child: Row(
-                                        children: [
-                                          SizedBox(
-                                            height: 20,
-                                            width: 20,
-                                            child: Checkbox(
-                                              key: const Key(
-                                                  "transactionSearchViewReceivedCheckboxKey"),
-                                              materialTapTargetSize:
-                                                  MaterialTapTargetSize
-                                                      .shrinkWrap,
-                                              value: _isActiveReceivedCheckbox,
-                                              onChanged: (newValue) {
-                                                setState(() {
-                                                  _isActiveReceivedCheckbox =
-                                                      newValue!;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 14,
-                                          ),
-                                          Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: FittedBox(
-                                              child: Column(
-                                                children: [
-                                                  Text(
-                                                    "Received",
-                                                    style: STextStyles
-                                                        .itemSubtitle12(
-                                                            context),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 4,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                        const SizedBox(
+                          height: 36,
                         ),
                         Align(
                           alignment: Alignment.centerLeft,
                           child: FittedBox(
                             child: Text(
-                              "Date",
-                              style: STextStyles.smallMed12(context),
+                              "TRANSACTION TYPE",
+                              style: STextStyles.overLineBold(context),
                             ),
                           ),
+                        ),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        RoundedContainer(
+                          padding: const EdgeInsets.all(0),
+                          color:
+                              Theme.of(context).extension<StackColors>()!.coal,
+                          child: Expandable(
+                            controller: _expandableController,
+                            onExpandChanged: (expanded) {
+                              setState(() {
+                                _expandableState = expanded;
+                              });
+                            },
+                            header: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    header,
+                                    style: STextStyles.body(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textMedium,
+                                    ),
+                                  ),
+                                  SvgPicture.asset(
+                                    Assets.svg.chevronDown,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textMedium,
+                                    width: 14,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            body: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ...options.where((e) => e != header).map(
+                                      (e) => Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            height: 1,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark
+                                                .withOpacity(0.1),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                header = e;
+                                              });
+                                              _expandableController.toggle
+                                                  ?.call();
+                                            },
+                                            child: Container(
+                                              color: Colors.transparent,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(16),
+                                                child: Text(
+                                                  e,
+                                                  style:
+                                                      STextStyles.body(context)
+                                                          .copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .textMedium,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 32,
+                        ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: FittedBox(
+                            child: Text(
+                              "DATE",
+                              style: STextStyles.overLineBold(context),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 16,
                         ),
                         _buildDateRangePicker(),
+                        const SizedBox(
+                          height: 32,
+                        ),
                         Align(
                           alignment: Alignment.centerLeft,
                           child: FittedBox(
                             child: Text(
-                              "Amount",
-                              style: STextStyles.smallMed12(context),
+                              "AMOUNT",
+                              style: STextStyles.overLineBold(context),
                             ),
                           ),
+                        ),
+                        const SizedBox(
+                          height: 16,
                         ),
                         TextField(
                           autocorrect: false,
@@ -630,6 +636,8 @@ class _TransactionSearchViewState
                           controller: _amountTextEditingController,
                           focusNode: amountTextFieldFocusNode,
                           onChanged: (_) => setState(() {}),
+                          textAlignVertical: TextAlignVertical.center,
+                          style: STextStyles.body(context),
                           keyboardType: const TextInputType.numberWithOptions(
                             signed: false,
                             decimal: true,
@@ -643,44 +651,48 @@ class _TransactionSearchViewState
                                     ? newValue
                                     : oldValue),
                           ],
-                          style: STextStyles.field(context),
-                          decoration: standardInputDecoration(
-                            "Enter ${widget.coin.ticker} amount...",
-                            keywordTextFieldFocusNode,
-                            context,
-                          ).copyWith(
-                            contentPadding: null,
-                            suffixIcon: _amountTextEditingController
-                                    .text.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                _amountTextEditingController
-                                                    .text = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
+                          decoration: InputDecoration(
+                            hintText: "Enter amount...",
+                            hintStyle: STextStyles.fieldLabel(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldDefaultSearchIconLeft,
+                            ),
+                            suffixIcon: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  if (_amountTextEditingController
+                                      .text.isNotEmpty)
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          _amountTextEditingController.text =
+                                              "";
+                                        });
+                                      },
                                     ),
-                                  )
-                                : null,
+                                  if (_amountTextEditingController.text.isEmpty)
+                                    const SearchIcon(),
+                                ],
+                              ),
+                            ),
                           ),
+                        ),
+                        const SizedBox(
+                          height: 32,
                         ),
                         Align(
                           alignment: Alignment.centerLeft,
                           child: FittedBox(
                             child: Text(
-                              "Keyword",
-                              style: STextStyles.smallMed12(context),
+                              "KEYWORD",
+                              style: STextStyles.overLineBold(context),
                             ),
                           ),
+                        ),
+                        const SizedBox(
+                          height: 16,
                         ),
                         TextField(
                           autocorrect: false,
@@ -689,39 +701,41 @@ class _TransactionSearchViewState
                               const Key("transactionSearchViewKeywordFieldKey"),
                           controller: _keywordTextEditingController,
                           focusNode: keywordTextFieldFocusNode,
-                          style: STextStyles.field(context),
+                          textAlignVertical: TextAlignVertical.center,
+                          style: STextStyles.body(context),
                           onChanged: (_) => setState(() {}),
-                          decoration: standardInputDecoration(
-                            "Type keyword...",
-                            keywordTextFieldFocusNode,
-                            context,
-                          ).copyWith(
-                            suffixIcon: _keywordTextEditingController
-                                    .text.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                _keywordTextEditingController
-                                                    .text = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
+                          decoration: InputDecoration(
+                            hintText: "Type keyword...",
+                            hintStyle: STextStyles.fieldLabel(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldDefaultSearchIconLeft,
+                            ),
+                            suffixIcon: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  if (_keywordTextEditingController
+                                      .text.isNotEmpty)
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          _keywordTextEditingController.text =
+                                              "";
+                                        });
+                                      },
                                     ),
-                                  )
-                                : null,
+                                  if (_keywordTextEditingController
+                                      .text.isEmpty)
+                                    const SearchIcon(),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                         const Spacer(),
                         const SizedBox(
-                          height: 20,
+                          height: 16,
                         ),
                         Row(
                           children: [
