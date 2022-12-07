@@ -2,7 +2,6 @@ import 'dart:isolate';
 
 import 'package:epicmobile/models/node_model.dart';
 import 'package:epicmobile/services/wallets_service.dart';
-import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:hive/hive.dart';
@@ -117,17 +116,6 @@ class DB {
         _loadSharedCoinCacheBoxes(),
       ]);
       _initialized = true;
-
-      try {
-        if (_boxPrefs.get("familiarity") == null) {
-          await _boxPrefs.put("familiarity", 0);
-        }
-        int count = _boxPrefs.get("familiarity") as int;
-        await _boxPrefs.put("familiarity", count + 1);
-        Constants.exchangeForExperiencedUsers(count + 1);
-      } catch (e, s) {
-        print("$e $s");
-      }
     }
   }
 

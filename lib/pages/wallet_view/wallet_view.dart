@@ -1,9 +1,9 @@
 import 'package:epicmobile/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
-import 'package:epicmobile/pages/wallet_view/transaction_views/all_transactions_view.dart';
+import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:event_bus/event_bus.dart';
@@ -241,8 +241,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).pushNamed(
-                      AllTransactionsView.routeName,
-                      arguments: walletId,
+                      TransactionSearchFilterView.routeName,
+                      arguments: Coin.epicCash,
                     );
                   },
                   child: Container(
@@ -263,117 +263,122 @@ class _WalletViewState extends ConsumerState<WalletView> {
             height: 8,
           ),
           Expanded(
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        bottom: Radius.circular(
-                          // WalletView.navBarHeight / 2.0,
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: TransactionsList(
-                                walletId: walletId,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const Spacer(),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   children: [
-                    //     Padding(
-                    //       padding: const EdgeInsets.only(
-                    //         bottom: 14,
-                    //         left: 16,
-                    //         right: 16,
-                    //       ),
-                    //       child: SizedBox(
-                    //         height: WalletView.navBarHeight,
-                    //         child: WalletNavigationBar(
-                    //           enableExchange: Constants.enableExchange &&
-                    //               ref.watch(walletProvider
-                    //                       .select((value) => value!.coin)) !=
-                    //                   Coin.epicCash,
-                    //           height: WalletView.navBarHeight,
-                    //           onExchangePressed: () {},
-                    //           onReceivePressed: () async {
-                    //             final coin = ref.read(walletProvider)!.coin;
-                    //             if (mounted) {
-                    //               unawaited(Navigator.of(context).pushNamed(
-                    //                 ReceiveView.routeName,
-                    //                 arguments: Tuple2(
-                    //                   walletId,
-                    //                   coin,
-                    //                 ),
-                    //               ));
-                    //             }
-                    //           },
-                    //           onSendPressed: () {
-                    //             final walletId =
-                    //                 ref.read(walletProvider)!.walletId;
-                    //             final coin = ref.read(walletProvider)!.coin;
-                    //             switch (ref
-                    //                 .read(
-                    //                     walletBalanceToggleStateProvider.state)
-                    //                 .state) {
-                    //               case WalletBalanceToggleState.locked:
-                    //                 ref
-                    //                     .read(publicPrivateBalanceStateProvider
-                    //                         .state)
-                    //                     .state = "Public";
-                    //                 break;
-                    //               case WalletBalanceToggleState.available:
-                    //                 ref
-                    //                     .read(publicPrivateBalanceStateProvider
-                    //                         .state)
-                    //                     .state = "Private";
-                    //                 break;
-                    //             }
-                    //             Navigator.of(context).pushNamed(
-                    //               SendView.routeName,
-                    //               arguments: Tuple2(
-                    //                 walletId,
-                    //                 coin,
-                    //               ),
-                    //             );
-                    //           },
-                    //           onBuyPressed: () {},
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
-                  ],
-                )
-              ],
+            child: TransactionsList(
+              walletId: walletId,
             ),
           ),
+          // Expanded(
+          //   child: Stack(
+          //     children: [
+          //       Padding(
+          //         padding: const EdgeInsets.symmetric(horizontal: 16),
+          //         child: Padding(
+          //           padding: const EdgeInsets.only(bottom: 14),
+          //           child: ClipRRect(
+          //             borderRadius: BorderRadius.vertical(
+          //               top: Radius.circular(
+          //                 Constants.size.circularBorderRadius,
+          //               ),
+          //               bottom: Radius.circular(
+          //                 // WalletView.navBarHeight / 2.0,
+          //                 Constants.size.circularBorderRadius,
+          //               ),
+          //             ),
+          //             child: Container(
+          //               decoration: BoxDecoration(
+          //                 color: Colors.transparent,
+          //                 borderRadius: BorderRadius.circular(
+          //                   Constants.size.circularBorderRadius,
+          //                 ),
+          //               ),
+          //               child: Column(
+          //                 crossAxisAlignment: CrossAxisAlignment.stretch,
+          //                 children: [
+          //                   Expanded(
+          //                     child: TransactionsList(
+          //                       walletId: walletId,
+          //                     ),
+          //                   ),
+          //                 ],
+          //               ),
+          //             ),
+          //           ),
+          //         ),
+          //       ),
+          //       Column(
+          //         mainAxisAlignment: MainAxisAlignment.end,
+          //         children: [
+          //           const Spacer(),
+          //           // Row(
+          //           //   mainAxisAlignment: MainAxisAlignment.center,
+          //           //   children: [
+          //           //     Padding(
+          //           //       padding: const EdgeInsets.only(
+          //           //         bottom: 14,
+          //           //         left: 16,
+          //           //         right: 16,
+          //           //       ),
+          //           //       child: SizedBox(
+          //           //         height: WalletView.navBarHeight,
+          //           //         child: WalletNavigationBar(
+          //           //           enableExchange: Constants.enableExchange &&
+          //           //               ref.watch(walletProvider
+          //           //                       .select((value) => value!.coin)) !=
+          //           //                   Coin.epicCash,
+          //           //           height: WalletView.navBarHeight,
+          //           //           onExchangePressed: () {},
+          //           //           onReceivePressed: () async {
+          //           //             final coin = ref.read(walletProvider)!.coin;
+          //           //             if (mounted) {
+          //           //               unawaited(Navigator.of(context).pushNamed(
+          //           //                 ReceiveView.routeName,
+          //           //                 arguments: Tuple2(
+          //           //                   walletId,
+          //           //                   coin,
+          //           //                 ),
+          //           //               ));
+          //           //             }
+          //           //           },
+          //           //           onSendPressed: () {
+          //           //             final walletId =
+          //           //                 ref.read(walletProvider)!.walletId;
+          //           //             final coin = ref.read(walletProvider)!.coin;
+          //           //             switch (ref
+          //           //                 .read(
+          //           //                     walletBalanceToggleStateProvider.state)
+          //           //                 .state) {
+          //           //               case WalletBalanceToggleState.locked:
+          //           //                 ref
+          //           //                     .read(publicPrivateBalanceStateProvider
+          //           //                         .state)
+          //           //                     .state = "Public";
+          //           //                 break;
+          //           //               case WalletBalanceToggleState.available:
+          //           //                 ref
+          //           //                     .read(publicPrivateBalanceStateProvider
+          //           //                         .state)
+          //           //                     .state = "Private";
+          //           //                 break;
+          //           //             }
+          //           //             Navigator.of(context).pushNamed(
+          //           //               SendView.routeName,
+          //           //               arguments: Tuple2(
+          //           //                 walletId,
+          //           //                 coin,
+          //           //               ),
+          //           //             );
+          //           //           },
+          //           //           onBuyPressed: () {},
+          //           //         ),
+          //           //       ),
+          //           //     ),
+          //           //   ],
+          //           // ),
+          //         ],
+          //       )
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );

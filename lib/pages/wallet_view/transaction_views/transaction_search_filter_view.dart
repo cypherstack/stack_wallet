@@ -12,8 +12,6 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
-import 'package:epicmobile/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:epicmobile/widgets/desktop/primary_button.dart';
 import 'package:epicmobile/widgets/desktop/secondary_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
@@ -48,7 +46,6 @@ class _TransactionSearchViewState
 
   bool _isActiveReceivedCheckbox = false;
   bool _isActiveSentCheckbox = false;
-  bool _isActiveTradeCheckbox = false;
 
   String _fromDateString = "";
   String _toDateString = "";
@@ -58,44 +55,31 @@ class _TransactionSearchViewState
 
   late Color baseColor;
 
-  @override
-  initState() {
-    baseColor = ref.read(colorThemeProvider.state).state.textSubtitle2;
-    final filterState = ref.read(transactionFilterProvider.state).state;
-    if (filterState != null) {
-      _isActiveReceivedCheckbox = filterState.received;
-      _isActiveSentCheckbox = filterState.sent;
-      _selectedToDate = filterState.to;
-      _selectedFromDate = filterState.from;
-      _keywordTextEditingController.text = filterState.keyword;
-
-      _fromDateString = _selectedFromDate == null
-          ? ""
-          : Format.formatDate(_selectedFromDate!);
-      _toDateString =
-          _selectedToDate == null ? "" : Format.formatDate(_selectedToDate!);
-
-      // TODO: Fix XMR (modify Format.funcs to take optional Coin parameter)
-      // final amt = Format.satoshisToAmount(widget.coin == Coin.monero ? )
-      String amount = "";
-      if (filterState.amount != null) {
-        amount = Format.satoshiAmountToPrettyString(filterState.amount!,
-            ref.read(localeServiceChangeNotifierProvider).locale);
-      }
-      _amountTextEditingController.text = amount;
+  Future<void> _onApplyPressed() async {
+    final amountText = _amountTextEditingController.text;
+    Decimal? amountDecimal;
+    if (amountText.isNotEmpty && !(amountText == "," || amountText == ".")) {
+      amountDecimal = amountText.contains(",")
+          ? Decimal.parse(amountText.replaceFirst(",", "."))
+          : Decimal.parse(amountText);
+    }
+    int? amount;
+    if (amountDecimal != null) {
+      amount = Format.decimalAmountToSatoshis(amountDecimal);
     }
 
-    super.initState();
-  }
+    final TransactionFilter filter = TransactionFilter(
+      sent: _isActiveSentCheckbox,
+      received: _isActiveReceivedCheckbox,
+      from: _selectedFromDate,
+      to: _selectedToDate,
+      amount: amount,
+      keyword: _keywordTextEditingController.text,
+    );
 
-  @override
-  dispose() {
-    _amountTextEditingController.dispose();
-    _keywordTextEditingController.dispose();
-    keywordTextFieldFocusNode.dispose();
-    amountTextFieldFocusNode.dispose();
+    ref.read(transactionFilterProvider.state).state = filter;
 
-    super.dispose();
+    Navigator.of(context).pop();
   }
 
   // The following two getters are not required if the
@@ -415,576 +399,376 @@ class _TransactionSearchViewState
   }
 
   @override
+  initState() {
+    baseColor = ref.read(colorThemeProvider.state).state.textSubtitle2;
+    final filterState = ref.read(transactionFilterProvider.state).state;
+    if (filterState != null) {
+      _isActiveReceivedCheckbox = filterState.received;
+      _isActiveSentCheckbox = filterState.sent;
+      _selectedToDate = filterState.to;
+      _selectedFromDate = filterState.from;
+      _keywordTextEditingController.text = filterState.keyword;
+
+      _fromDateString = _selectedFromDate == null
+          ? ""
+          : Format.formatDate(_selectedFromDate!);
+      _toDateString =
+          _selectedToDate == null ? "" : Format.formatDate(_selectedToDate!);
+
+      String amount = "";
+      if (filterState.amount != null) {
+        amount = Format.satoshiAmountToPrettyString(filterState.amount!,
+            ref.read(localeServiceChangeNotifierProvider).locale);
+      }
+      _amountTextEditingController.text = amount;
+    }
+
+    super.initState();
+  }
+
+  @override
+  dispose() {
+    _amountTextEditingController.dispose();
+    _keywordTextEditingController.dispose();
+    keywordTextFieldFocusNode.dispose();
+    amountTextFieldFocusNode.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (Util.isDesktop) {
-      return DesktopDialog(
-        maxWidth: 576,
-        maxHeight: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: 32,
-            bottom: 32,
-          ),
-          child: _buildContent(context),
-        ),
-      );
-    } else {
-      return Background(
-        child: Scaffold(
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
           backgroundColor:
               Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            title: Text(
-              "Transactions filter",
-              style: STextStyles.titleH4(context),
-            ),
+          leading: AppBarBackButton(
+            onPressed: () async {
+              if (FocusScope.of(context).hasFocus) {
+                FocusScope.of(context).unfocus();
+                await Future<void>.delayed(const Duration(milliseconds: 75));
+              }
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            },
           ),
-          body: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: Constants.size.standardPadding,
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints:
-                        BoxConstraints(minHeight: constraints.maxHeight),
-                    child: IntrinsicHeight(
-                      child: _buildContent(context),
-                    ),
-                  ),
-                );
-              },
-            ),
+          title: Text(
+            "Transactions filter",
+            style: STextStyles.titleH4(context),
           ),
         ),
-      );
-    }
-  }
-
-  Widget _buildContent(BuildContext context) {
-    final isDesktop = Util.isDesktop;
-
-    return Column(
-      children: [
-        if (isDesktop)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Transaction filter",
-                style: STextStyles.desktopH3(context),
-                textAlign: TextAlign.center,
-              ),
-              const DesktopDialogCloseButton(),
-            ],
+        body: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Constants.size.standardPadding,
           ),
-        SizedBox(
-          height: isDesktop ? 14 : 10,
-        ),
-        if (!isDesktop)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FittedBox(
-              child: Text(
-                "Transactions",
-                style: STextStyles.smallMed12(context),
-              ),
-            ),
-          ),
-        if (!isDesktop)
-          const SizedBox(
-            height: 12,
-          ),
-        RoundedWhiteContainer(
-          padding: EdgeInsets.all(isDesktop ? 0 : 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isActiveSentCheckbox = !_isActiveSentCheckbox;
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              key: const Key(
-                                  "transactionSearchViewSentCheckboxKey"),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              value: _isActiveSentCheckbox,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _isActiveSentCheckbox = newValue!;
-                                });
-                              },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: FittedBox(
+                            child: Text(
+                              "Transactions",
+                              style: STextStyles.smallMed12(context),
                             ),
                           ),
-                          const SizedBox(
-                            width: 14,
-                          ),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Sent",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
-                                  ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: isDesktop ? 4 : 10,
-              ),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isActiveReceivedCheckbox = !_isActiveReceivedCheckbox;
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              key: const Key(
-                                  "transactionSearchViewReceivedCheckboxKey"),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              value: _isActiveReceivedCheckbox,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _isActiveReceivedCheckbox = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 14,
-                          ),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Received",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
-                                  ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: isDesktop ? 4 : 10,
-              ),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isActiveTradeCheckbox = !_isActiveTradeCheckbox;
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              key: const Key(
-                                  "transactionSearchViewSentCheckboxKey"),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              value: _isActiveTradeCheckbox,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _isActiveTradeCheckbox = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 14,
-                          ),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Trades",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
-                                  ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: isDesktop ? 32 : 24,
-        ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: FittedBox(
-            child: Text(
-              "Date",
-              style: isDesktop
-                  ? STextStyles.labelExtraExtraSmall(context)
-                  : STextStyles.smallMed12(context),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: isDesktop ? 10 : 8,
-        ),
-        _buildDateRangePicker(),
-        SizedBox(
-          height: isDesktop ? 32 : 24,
-        ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: FittedBox(
-            child: Text(
-              "Amount",
-              style: isDesktop
-                  ? STextStyles.labelExtraExtraSmall(context)
-                  : STextStyles.smallMed12(context),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: isDesktop ? 10 : 8,
-        ),
-        Padding(
-          padding: EdgeInsets.only(right: isDesktop ? 32 : 0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              autocorrect: Util.isDesktop ? false : true,
-              enableSuggestions: Util.isDesktop ? false : true,
-              key: const Key("transactionSearchViewAmountFieldKey"),
-              controller: _amountTextEditingController,
-              focusNode: amountTextFieldFocusNode,
-              onChanged: (_) => setState(() {}),
-              keyboardType: const TextInputType.numberWithOptions(
-                signed: false,
-                decimal: true,
-              ),
-              inputFormatters: [
-                // regex to validate a crypto amount with 8 decimal places
-                TextInputFormatter.withFunction((oldValue, newValue) =>
-                    RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                            .hasMatch(newValue.text)
-                        ? newValue
-                        : oldValue),
-              ],
-              style: isDesktop
-                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textLight,
-                      height: 1.8,
-                    )
-                  : STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Enter ${widget.coin.ticker} amount...",
-                keywordTextFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                contentPadding: isDesktop
-                    ? const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 16,
-                      )
-                    : null,
-                suffixIcon: _amountTextEditingController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
+                        ),
+                        RoundedWhiteContainer(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _amountTextEditingController.text = "";
-                                  });
-                                },
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _isActiveSentCheckbox =
+                                            !_isActiveSentCheckbox;
+                                      });
+                                    },
+                                    child: Container(
+                                      color: Colors.transparent,
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: Checkbox(
+                                              key: const Key(
+                                                  "transactionSearchViewSentCheckboxKey"),
+                                              materialTapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
+                                              value: _isActiveSentCheckbox,
+                                              onChanged: (newValue) {
+                                                setState(() {
+                                                  _isActiveSentCheckbox =
+                                                      newValue!;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: 14,
+                                          ),
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: FittedBox(
+                                              child: Column(
+                                                children: [
+                                                  Text(
+                                                    "Sent",
+                                                    style: STextStyles
+                                                        .itemSubtitle12(
+                                                            context),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 4,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _isActiveReceivedCheckbox =
+                                            !_isActiveReceivedCheckbox;
+                                      });
+                                    },
+                                    child: Container(
+                                      color: Colors.transparent,
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: Checkbox(
+                                              key: const Key(
+                                                  "transactionSearchViewReceivedCheckboxKey"),
+                                              materialTapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
+                                              value: _isActiveReceivedCheckbox,
+                                              onChanged: (newValue) {
+                                                setState(() {
+                                                  _isActiveReceivedCheckbox =
+                                                      newValue!;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: 14,
+                                          ),
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: FittedBox(
+                                              child: Column(
+                                                children: [
+                                                  Text(
+                                                    "Received",
+                                                    style: STextStyles
+                                                        .itemSubtitle12(
+                                                            context),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 4,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
-                      )
-                    : null,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: isDesktop ? 32 : 24,
-        ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: FittedBox(
-            child: Text(
-              "Keyword",
-              style: isDesktop
-                  ? STextStyles.labelExtraExtraSmall(context)
-                  : STextStyles.smallMed12(context),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: isDesktop ? 10 : 8,
-        ),
-        Padding(
-          padding: EdgeInsets.only(right: isDesktop ? 32 : 0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              autocorrect: Util.isDesktop ? false : true,
-              enableSuggestions: Util.isDesktop ? false : true,
-              key: const Key("transactionSearchViewKeywordFieldKey"),
-              controller: _keywordTextEditingController,
-              focusNode: keywordTextFieldFocusNode,
-              style: isDesktop
-                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textLight,
-                      height: 1.8,
-                    )
-                  : STextStyles.field(context),
-              onChanged: (_) => setState(() {}),
-              decoration: standardInputDecoration(
-                "Type keyword...",
-                keywordTextFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                contentPadding: isDesktop
-                    ? const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 16,
-                      )
-                    : null,
-                suffixIcon: _keywordTextEditingController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _keywordTextEditingController.text = "";
-                                  });
-                                },
-                              ),
-                            ],
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: FittedBox(
+                            child: Text(
+                              "Date",
+                              style: STextStyles.smallMed12(context),
+                            ),
                           ),
                         ),
-                      )
-                    : null,
-              ),
-            ),
-          ),
-        ),
-        if (!isDesktop) const Spacer(),
-        SizedBox(
-          height: isDesktop ? 32 : 20,
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: SecondaryButton(
-                label: "Cancel",
-                onPressed: () async {
-                  if (!isDesktop) {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(
-                          milliseconds: 75,
+                        _buildDateRangePicker(),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: FittedBox(
+                            child: Text(
+                              "Amount",
+                              style: STextStyles.smallMed12(context),
+                            ),
+                          ),
                         ),
-                      );
-                    }
-                  }
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-            ),
-            // Expanded(
-            //   child: SizedBox(
-            //     height: 48,
-            //     child: TextButton(
-            //       onPressed: () async {
-            //         if (FocusScope.of(context).hasFocus) {
-            //           FocusScope.of(context).unfocus();
-            //           await Future<void>.delayed(
-            //               const Duration(milliseconds: 75));
-            //         }
-            //         if (mounted) {
-            //           Navigator.of(context).pop();
-            //         }
-            //       },
-            //       style: Theme.of(context)
-            //           .extension<StackColors>()!
-            //           .getSecondaryEnabledButtonColor(context),
-            //       child: Text(
-            //         "Cancel",
-            //         style: STextStyles.button(context).copyWith(
-            //             color: Theme.of(context)
-            //                 .extension<StackColors>()!
-            //                 .accentColorDark),
-            //       ),
-            //     ),
-            //   ),
-            // ),
-            const SizedBox(
-              width: 16,
-            ),
-            Expanded(
-              child: PrimaryButton(
-                onPressed: () async {
-                  await _onApplyPressed();
-                },
-                label: "Save",
-              ),
-            ),
-            // Expanded(
-            //   child: SizedBox(
-            //     height: 48,
-            //     child: TextButton(
-            //       style: Theme.of(context)
-            //           .extension<StackColors>()!
-            //           .getPrimaryEnabledButtonColor(context),
-            //       onPressed: () async {
-            //         await _onApplyPressed();
-            //       },
-            //       child: Text(
-            //         "Save",
-            //         style: STextStyles.button(context),
-            //       ),
-            //     ),
-            //   ),
-            // ),
-            if (isDesktop)
-              const SizedBox(
-                width: 32,
-              ),
-          ],
-        ),
-        if (!isDesktop)
-          const SizedBox(
-            height: 20,
+                        TextField(
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          key: const Key("transactionSearchViewAmountFieldKey"),
+                          controller: _amountTextEditingController,
+                          focusNode: amountTextFieldFocusNode,
+                          onChanged: (_) => setState(() {}),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            signed: false,
+                            decimal: true,
+                          ),
+                          inputFormatters: [
+                            // regex to validate a crypto amount with 8 decimal places
+                            TextInputFormatter.withFunction((oldValue,
+                                    newValue) =>
+                                RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                                        .hasMatch(newValue.text)
+                                    ? newValue
+                                    : oldValue),
+                          ],
+                          style: STextStyles.field(context),
+                          decoration: standardInputDecoration(
+                            "Enter ${widget.coin.ticker} amount...",
+                            keywordTextFieldFocusNode,
+                            context,
+                          ).copyWith(
+                            contentPadding: null,
+                            suffixIcon: _amountTextEditingController
+                                    .text.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _amountTextEditingController
+                                                    .text = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : null,
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: FittedBox(
+                            child: Text(
+                              "Keyword",
+                              style: STextStyles.smallMed12(context),
+                            ),
+                          ),
+                        ),
+                        TextField(
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          key:
+                              const Key("transactionSearchViewKeywordFieldKey"),
+                          controller: _keywordTextEditingController,
+                          focusNode: keywordTextFieldFocusNode,
+                          style: STextStyles.field(context),
+                          onChanged: (_) => setState(() {}),
+                          decoration: standardInputDecoration(
+                            "Type keyword...",
+                            keywordTextFieldFocusNode,
+                            context,
+                          ).copyWith(
+                            suffixIcon: _keywordTextEditingController
+                                    .text.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _keywordTextEditingController
+                                                    .text = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : null,
+                          ),
+                        ),
+                        const Spacer(),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SecondaryButton(
+                                label: "Cancel",
+                                onPressed: () async {
+                                  if (FocusScope.of(context).hasFocus) {
+                                    FocusScope.of(context).unfocus();
+                                    await Future<void>.delayed(
+                                      const Duration(
+                                        milliseconds: 75,
+                                      ),
+                                    );
+                                  }
+
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 16,
+                            ),
+                            Expanded(
+                              child: PrimaryButton(
+                                onPressed: () async {
+                                  await _onApplyPressed();
+                                },
+                                label: "APPLY",
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 24,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
-      ],
+        ),
+      ),
     );
-  }
-
-  Future<void> _onApplyPressed() async {
-    final amountText = _amountTextEditingController.text;
-    Decimal? amountDecimal;
-    if (amountText.isNotEmpty && !(amountText == "," || amountText == ".")) {
-      amountDecimal = amountText.contains(",")
-          ? Decimal.parse(amountText.replaceFirst(",", "."))
-          : Decimal.parse(amountText);
-    }
-    int? amount;
-    if (amountDecimal != null) {
-      amount = Format.decimalAmountToSatoshis(amountDecimal);
-    }
-
-    final TransactionFilter filter = TransactionFilter(
-      sent: _isActiveSentCheckbox,
-      received: _isActiveReceivedCheckbox,
-      trade: _isActiveTradeCheckbox,
-      from: _selectedFromDate,
-      to: _selectedToDate,
-      amount: amount,
-      keyword: _keywordTextEditingController.text,
-    );
-
-    ref.read(transactionFilterProvider.state).state = filter;
-
-    Navigator.of(context).pop();
   }
 }

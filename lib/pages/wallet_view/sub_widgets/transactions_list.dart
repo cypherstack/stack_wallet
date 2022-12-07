@@ -3,9 +3,6 @@ import 'dart:async';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
 import 'package:epicmobile/pages/wallet_view/sub_widgets/no_transactions_found.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
 import 'package:epicmobile/widgets/loading_indicator.dart';
 import 'package:epicmobile/widgets/transaction_card.dart';
 import 'package:flutter/material.dart';
@@ -37,44 +34,6 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
     }
   }
 
-  BorderRadius get _borderRadiusFirst {
-    return BorderRadius.only(
-      topLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      topRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-    );
-  }
-
-  BorderRadius get _borderRadiusLast {
-    return BorderRadius.only(
-      bottomLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      bottomRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-    );
-  }
-
-  Widget itemBuilder(
-      BuildContext context, Transaction tx, BorderRadius? radius) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: radius,
-      ),
-      child: TransactionCard(
-        // this may mess with combined firo transactions
-        key: Key(tx.toString()), //
-        transaction: tx,
-        walletId: widget.walletId,
-      ),
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -82,10 +41,6 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   @override
   Widget build(BuildContext context) {
-    // final managerProvider = ref
-    //     .watch(walletsChangeNotifierProvider)
-    //     .getManagerProvider(widget.walletId);
-
     return FutureBuilder(
       future:
           ref.watch(walletProvider.select((value) => value!.transactionData)),
@@ -124,42 +79,21 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                 unawaited(ref.read(walletProvider)!.refresh());
               }
             },
-            child: Util.isDesktop
-                ? ListView.separated(
-                    itemBuilder: (context, index) {
-                      BorderRadius? radius;
-                      if (index == list.length - 1) {
-                        radius = _borderRadiusLast;
-                      } else if (index == 0) {
-                        radius = _borderRadiusFirst;
-                      }
-                      final tx = list[index];
-                      return itemBuilder(context, tx, radius);
-                    },
-                    separatorBuilder: (context, index) {
-                      return Container(
-                        width: double.infinity,
-                        height: 2,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                      );
-                    },
-                    itemCount: list.length,
-                  )
-                : ListView.builder(
-                    itemCount: list.length,
-                    itemBuilder: (context, index) {
-                      BorderRadius? radius;
-                      if (index == list.length - 1) {
-                        radius = _borderRadiusLast;
-                      } else if (index == 0) {
-                        radius = _borderRadiusFirst;
-                      }
-                      final tx = list[index];
-                      return itemBuilder(context, tx, radius);
-                    },
-                  ),
+            child: ListView.separated(
+              itemCount: list.length * 10,
+              separatorBuilder: (_, __) => const SizedBox(
+                height: 16,
+              ),
+              itemBuilder: (context, index) {
+                final tx = list[0];
+                return TransactionCard(
+                  // this may mess with combined firo transactions
+                  key: Key(tx.toString()), //
+                  transaction: tx,
+                  walletId: widget.walletId,
+                );
+              },
+            ),
           );
         }
       },
