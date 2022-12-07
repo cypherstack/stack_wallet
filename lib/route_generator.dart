@@ -36,7 +36,6 @@ import 'package:epicmobile/pages/settings_views/wallet_settings/confirm_delete_w
 import 'package:epicmobile/pages/settings_views/wallet_settings/delete_wallet_recovery_phrase_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings/verify_mnemonic_view.dart';
 import 'package:epicmobile/pages/settings_views/wallet_settings/wallet_settings_view.dart';
-import 'package:epicmobile/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
@@ -201,22 +200,6 @@ class RouteGenerator {
               coin: args.item1,
               nodeId: args.item2,
               popRouteName: args.item3,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case EditNoteView.routeName:
-        if (args is Tuple3<String, String, String>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => EditNoteView(
-              txid: args.item1,
-              walletId: args.item2,
-              note: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,
