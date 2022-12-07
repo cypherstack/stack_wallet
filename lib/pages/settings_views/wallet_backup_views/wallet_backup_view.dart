@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
+import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
@@ -172,6 +175,22 @@ class WalletBackupView extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const SizedBox(
+                  height: 16,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    backupKeyRulesDialog(context);
+                  },
+                  child: Text(
+                    "WHY THESE RULES?",
+                    style: STextStyles.smallMed14(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackPrimary),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
                 // const SizedBox(
                 //   height: 12,
                 // ),
@@ -259,6 +278,96 @@ class WalletBackupView extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  ///todo: put in a separate file
+  Future<void> backupKeyRulesDialog(BuildContext context) async {
+    unawaited(
+      showDialog<dynamic>(
+          barrierDismissible: false,
+          context: context,
+          builder: (context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius * 2,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Wallet Key explained",
+                      style: STextStyles.titleH3(context),
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    Text(
+                      "Why is wallet key important?",
+                      style: STextStyles.smallMed14(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackPrimary,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    const Text(
+                      "Cryptocurrency does not work like regular finance. In the banking system, "
+                      "banks are responsible for keeping your money safe."
+                      "\n\nIn cryptocurrency, you are your own bank. Imagine keeping cash at home. If that cash "
+                      "burns down or gets stolen, you lose it and nobody will help you get your money back."
+                      "\n\nSince cryptocurrency is digital money, your wallet key is like that “cash” you keep at home. "
+                      "If you lose your phone or if you forget your wallet PIN, but you have your wallet key, your crypto "
+                      "money will be safe. That is why you should keep your wallet key safe.",
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    Text(
+                      "Why write the wallet key down?",
+                      style: STextStyles.smallMed14(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackPrimary,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    const Text(
+                      "You do not put your cash on display, do you? Keeping your wallet "
+                      "key on a digital device is like having it on display for thieves - malicious "
+                      "software and hackers. Write your wallet key down on paper in multiple copies and "
+                      "keep them in a real, physical safe.",
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            "CLOSE",
+                            style: STextStyles.buttonText(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
     );
   }
 }
