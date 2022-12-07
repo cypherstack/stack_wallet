@@ -246,7 +246,7 @@ class _PNG {
   String get epicCash => "assets/images/epic-cash.png";
   String get bitcoincash => "assets/images/bitcoincash.png";
   String get namecoin => "assets/images/namecoin.png";
-  String get particl => "assets/images/namecoin.png"; //TODO - use particl png
+  String get particl => "assets/images/particl.png";
 
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
