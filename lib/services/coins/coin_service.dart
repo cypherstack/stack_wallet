@@ -42,6 +42,7 @@ abstract class CoinServiceAPI {
   set shouldAutoSync(bool shouldAutoSync);
   bool get isFavorite;
   set isFavorite(bool markFavorite);
+  int get txCount;
 
   Future<Map<String, dynamic>> prepareSend({
     required String address,

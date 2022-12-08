@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:event_bus/event_bus.dart';
-import 'package:flutter/material.dart';
 import 'package:epicmobile/models/models.dart';
 import 'package:epicmobile/services/coins/coin_service.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -10,6 +8,8 @@ import 'package:epicmobile/services/event_bus/events/global/updated_in_backgroun
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/logger.dart';
+import 'package:event_bus/event_bus.dart';
+import 'package:flutter/material.dart';
 
 class Manager with ChangeNotifier {
   final CoinServiceAPI _currentWallet;
@@ -231,6 +231,8 @@ class Manager with ChangeNotifier {
       rethrow;
     }
   }
+
+  int get txCount => _currentWallet.txCount;
 
   // Future<bool> initializeWallet() async {
   //   final success = await _currentWallet.initializeWallet();

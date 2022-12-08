@@ -991,9 +991,28 @@ class EpicCashWallet extends CoinServiceAPI {
             as TransactionData?;
     if (data != null) {
       _transactionData = Future(() => data);
+      txCount = data.getAllTransactions().length;
     }
     // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
   }
+
+  Timer? t;
+  int _txCount = 0;
+
+  set txCount(int value) {
+    if (_txCount != value) {
+      _txCount = value;
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "tx count changed",
+          walletId,
+        ),
+      );
+    }
+  }
+
+  @override
+  int get txCount => _txCount;
 
   Future<void> storeEpicboxInfo() async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
@@ -1956,11 +1975,12 @@ class EpicCashWallet extends CoinServiceAPI {
           unawaited(updateStoredChainHeight(newHeight: currentHeight));
         }
 
-        final newTxData = _fetchTransactionData();
+        final newTxData = await _fetchTransactionData();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
 
         _transactionData = Future(() => newTxData);
+        txCount = newTxData.getAllTransactions().length;
 
         GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
             "New data found in $walletName in background!", walletId));
