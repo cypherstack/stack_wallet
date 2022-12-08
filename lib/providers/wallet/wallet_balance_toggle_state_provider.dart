@@ -3,4 +3,4 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final walletBalanceToggleStateProvider =
     StateProvider<WalletBalanceToggleState>(
-        (ref) => WalletBalanceToggleState.locked);
+        (ref) => WalletBalanceToggleState.full);

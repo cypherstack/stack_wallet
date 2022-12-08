@@ -9,6 +9,7 @@ import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/animated_text.dart';
+import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -193,32 +194,46 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                 const SizedBox(
                   height: 15,
                 ),
-                GestureDetector(
-                  onTap: showSheet,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "${_showAvailable ? "AVAILABLE" : "LOCKED"} BALANCE",
-                        style: STextStyles.overLine(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textLight,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: showSheet,
+                      child: RoundedContainer(
+                        color:
+                            Theme.of(context).extension<StackColors>()!.popupBG,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                        radiusMultiplier: 10,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "${_showAvailable ? "AVAILABLE" : "FULL"} BALANCE",
+                              style: STextStyles.overLine(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textLight,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 6,
+                            ),
+                            SvgPicture.asset(
+                              Assets.svg.chevronDown,
+                              width: 8,
+                              height: 4,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textLight,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(
-                        width: 6,
-                      ),
-                      SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        width: 8,
-                        height: 4,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textLight,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             );

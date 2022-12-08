@@ -103,9 +103,9 @@ class WalletBalanceToggleDialog extends ConsumerWidget {
               onPressed: () {
                 final state =
                     ref.read(walletBalanceToggleStateProvider.state).state;
-                if (state != WalletBalanceToggleState.locked) {
+                if (state != WalletBalanceToggleState.full) {
                   ref.read(walletBalanceToggleStateProvider.state).state =
-                      WalletBalanceToggleState.locked;
+                      WalletBalanceToggleState.full;
                 }
                 Navigator.of(context).pop();
               },
@@ -117,7 +117,7 @@ class WalletBalanceToggleDialog extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Locked balance",
+                      "Full balance",
                       style: STextStyles.bodyBold(context),
                     ),
                     Stack(
@@ -132,7 +132,7 @@ class WalletBalanceToggleDialog extends ConsumerWidget {
                         if (ref
                                 .watch(walletBalanceToggleStateProvider.state)
                                 .state ==
-                            WalletBalanceToggleState.locked)
+                            WalletBalanceToggleState.full)
                           Padding(
                             padding: const EdgeInsets.all(4),
                             child: RoundedContainer(
