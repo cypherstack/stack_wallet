@@ -2189,13 +2189,6 @@ class ParticlWallet extends CoinServiceAPI {
 
     final changeAddresses = DB.instance.get<dynamic>(
         boxName: walletId, key: 'changeAddressesP2WPKH') as List<dynamic>;
-    // final changeAddressesP2PKH =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddressesP2PKH')
-    //         as List<dynamic>;
-    //
-    // for (var i = 0; i < changeAddressesP2PKH.length; i++) {
-    //   changeAddresses.add(changeAddressesP2PKH[i] as String);
-    // }
 
     final List<Map<String, dynamic>> allTxHashes =
         await _fetchHistory(allAddresses);
