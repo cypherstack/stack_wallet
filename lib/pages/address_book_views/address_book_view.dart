@@ -114,15 +114,15 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     contacts
         .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
-    String c = "";
-    String p = "";
+    String current = "";
+    String previous = "";
     for (int i = 0; i < contacts.length; i++) {
       if (contacts[i].name.isNotEmpty) {
-        c = contacts[i].name.characters.first.toUpperCase();
+        current = contacts[i].name.characters.first.toUpperCase();
 
-        if (c != p) {
-          p = c;
-          charMap[i] = c;
+        if (current != previous) {
+          previous = current;
+          charMap[i] = current;
         }
       }
     }
