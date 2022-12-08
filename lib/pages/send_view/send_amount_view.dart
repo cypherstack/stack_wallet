@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:epicmobile/models/send_view_auto_fill_data.dart';
 // import 'package:epicmobile/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
 import 'package:epicmobile/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:epicmobile/providers/ui/preview_tx_button_state_provider.dart';
@@ -188,40 +189,57 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
           context: context,
           builder: (context) {
             return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius * 2),
+              ),
               backgroundColor:
                   Theme.of(context).extension<StackColors>()!.popupBG,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: const [
-                        AppBarBackButton(),
-                      ],
-                    ),
-                    Text(
-                      "Available Balance",
-                      style: STextStyles.titleH3(context).copyWith(
-                        fontSize: 18,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textMedium,
+              child: Container(
+                height: 240,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius * 2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: const [
+                          AppBarBackButton(),
+                        ],
                       ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Text(
-                      "YOU CAN SPEND",
-                      style: STextStyles.overLineBold(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
+                      Text(
+                        "Available Balance",
+                        style: STextStyles.titleH3(context).copyWith(
+                          fontSize: 18,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textMedium,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "YOU CAN SPEND",
+                        style: STextStyles.overLineBold(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 6,
+                      ),
+                      WalletSummaryInfo(
+                        walletId: walletId,
+                        isSendView: true,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );

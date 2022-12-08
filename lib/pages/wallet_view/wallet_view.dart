@@ -58,6 +58,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: WalletSummaryInfo(
                 walletId: widget.walletId,
+                isSendView: false,
               ),
             ),
           ),

@@ -15,12 +15,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class WalletSummaryInfo extends StatefulWidget {
-  const WalletSummaryInfo({
-    Key? key,
-    required this.walletId,
-  }) : super(key: key);
+  const WalletSummaryInfo(
+      {Key? key, required this.walletId, required this.isSendView})
+      : super(key: key);
 
   final String walletId;
+  final bool isSendView;
 
   @override
   State<WalletSummaryInfo> createState() => _WalletSummaryInfoState();
@@ -28,6 +28,7 @@ class WalletSummaryInfo extends StatefulWidget {
 
 class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
   late final String walletId;
+  late final bool isSendView;
 
   void showSheet() {
     showDialog<void>(
@@ -42,6 +43,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
   @override
   void initState() {
     walletId = widget.walletId;
+    isSendView = widget.isSendView;
     super.initState();
   }
 
@@ -92,30 +94,31 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!_showAvailable)
-                      SvgPicture.asset(
-                        Assets.svg.lockFilled,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textGold,
+                if (isSendView == false)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!_showAvailable)
+                        SvgPicture.asset(
+                          Assets.svg.lockFilled,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textGold,
+                        ),
+                      if (!_showAvailable)
+                        const SizedBox(
+                          width: 5,
+                        ),
+                      Text(
+                        "EPIC",
+                        style: STextStyles.titleH3(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textGold,
+                        ),
                       ),
-                    if (!_showAvailable)
-                      const SizedBox(
-                        width: 5,
-                      ),
-                    Text(
-                      "EPIC",
-                      style: STextStyles.titleH3(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textGold,
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 const SizedBox(
                   height: 8,
                 ),
@@ -124,20 +127,35 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            Format.localizedStringAsFixed(
-                              value: balanceToShow,
-                              locale: locale,
-                              decimalPlaces: 3,
-                            ),
-                            style: STextStyles.titleH3(context).copyWith(
-                              fontSize: 40,
-                              height: 1,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textGold,
-                            ),
-                          ),
+                          isSendView == true
+                              ? Text(
+                                  "${Format.localizedStringAsFixed(
+                                    value: balanceToShow,
+                                    locale: locale,
+                                    decimalPlaces: 3,
+                                  )} EPIC",
+                                  style: STextStyles.titleH3(context).copyWith(
+                                    fontSize: 30,
+                                    height: 1,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textGold,
+                                  ),
+                                )
+                              : Text(
+                                  Format.localizedStringAsFixed(
+                                    value: balanceToShow,
+                                    locale: locale,
+                                    decimalPlaces: 3,
+                                  ),
+                                  style: STextStyles.titleH3(context).copyWith(
+                                    fontSize: 30,
+                                    height: 1,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textGold,
+                                  ),
+                                ),
                           const SizedBox(
                             height: 14,
                           ),
