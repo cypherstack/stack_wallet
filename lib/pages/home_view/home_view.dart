@@ -8,16 +8,20 @@ import 'package:epicmobile/pages/settings_views/network_settings_view/network_se
 import 'package:epicmobile/pages/settings_views/settings_view.dart';
 import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
+import 'package:epicmobile/providers/tx_count_on_startup_state_provider.dart';
 import 'package:epicmobile/providers/ui/home_view_index_provider.dart';
 import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:epicmobile/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/global_event_bus.dart';
 import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicmobile/utilities/messages.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/stack_dialog.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -142,6 +146,27 @@ class _HomeViewState extends ConsumerState<HomeView> {
     }
 
     eventBus = widget.eventBus ?? GlobalEventBus.instance;
+    eventBus.on<UpdatedInBackgroundEvent>().listen((event) async {
+      final count = ref.read(txCountOnStartUpProvider.state).state ?? 0;
+      final newCount = ref.read(walletProvider)!.txCount;
+      if (count < newCount) {
+        ref.read(txCountOnStartUpProvider.state).state = newCount;
+        await Messages.of(context).show(
+          context: context,
+          widget: RoundedContainer(
+            color: Theme.of(context).extension<StackColors>()!.coal,
+            child: Center(
+              child: Text(
+                "New transaction",
+                style: STextStyles.bodySmallBold(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textMedium,
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    });
 
     _syncStatusSubscription =
         eventBus.on<WalletSyncStatusChangedEvent>().listen(
@@ -193,26 +218,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
     super.dispose();
   }
 
-  // DateTime _hiddenTime = DateTime.now();
-  // int _hiddenCount = 0;
-
-  // void _hiddenOptions() {
-  //   if (_hiddenCount == 5) {
-  //     Navigator.of(context).pushNamed(HiddenSettings.routeName);
-  //   }
-  //   final now = DateTime.now();
-  //   const timeout = Duration(seconds: 1);
-  //   if (now.difference(_hiddenTime) < timeout) {
-  //     _hiddenCount++;
-  //   } else {
-  //     _hiddenCount = 0;
-  //   }
-  //   _hiddenTime = now;
-  // }
-
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Background(

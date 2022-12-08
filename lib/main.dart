@@ -12,6 +12,7 @@ import 'package:epicmobile/pages/loading_view.dart';
 import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicmobile/providers/global/base_currencies_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/providers/tx_count_on_startup_state_provider.dart';
 import 'package:epicmobile/providers/ui/color_theme_provider.dart';
 import 'package:epicmobile/route_generator.dart';
 import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
@@ -22,6 +23,7 @@ import 'package:epicmobile/services/node_service.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/db_version_migration.dart';
 import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicmobile/utilities/messages.dart';
 import 'package:epicmobile/utilities/prefs.dart';
 import 'package:epicmobile/utilities/theme/dark_colors.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
@@ -184,6 +186,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ),
         );
         await ref.read(walletProvider)!.initializeExisting();
+        ref.read(txCountOnStartUpProvider.state).state =
+            ref.read(walletProvider)!.txCount;
       }
 
       loadingCompleter.complete();
@@ -252,129 +256,132 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     final colorScheme = ref.watch(colorThemeProvider.state).state;
 
-    return MaterialApp(
-      key: GlobalKey(),
-      navigatorKey: navigatorKey,
-      title: 'Epic Mobile',
-      onGenerateRoute: RouteGenerator.generateRoute,
-      theme: ThemeData(
-        accentColor: colorScheme.textGold,
-        extensions: [colorScheme],
-        highlightColor: colorScheme.highlight,
-        brightness: Brightness.dark,
-        fontFamily: GoogleFonts.poppins().fontFamily,
-        unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
-        // textTheme: GoogleFonts.interTextTheme().copyWith(
-        //   button: STextStyles.button(context),
-        //   subtitle1: STextStyles.field(context).copyWith(
-        //     color: colorScheme.textDark,
-        //   ),
-        // ),
-        radioTheme: const RadioThemeData(
-          splashRadius: 0,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        // splashFactory: NoSplash.splashFactory,
-        splashColor: Colors.transparent,
-        buttonTheme: ButtonThemeData(
-          splashColor: colorScheme.splash,
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: ButtonStyle(
-            // splashFactory: NoSplash.splashFactory,
-            overlayColor: MaterialStateProperty.all(colorScheme.splash),
-            minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
-            // textStyle: MaterialStateProperty.all<TextStyle>(
-            //     STextStyles.button(context)),
-            foregroundColor:
-                MaterialStateProperty.all(colorScheme.buttonTextSecondary),
-            backgroundColor: MaterialStateProperty.all<Color>(
-                colorScheme.buttonBackSecondary),
-            shape: MaterialStateProperty.all<OutlinedBorder>(
-              RoundedRectangleBorder(
-                // 1000 to be relatively sure it keeps its pill shape
-                borderRadius: BorderRadius.circular(1000),
+    return Messages(
+      child: MaterialApp(
+        key: GlobalKey(),
+        navigatorKey: navigatorKey,
+        title: 'Epic Mobile',
+        onGenerateRoute: RouteGenerator.generateRoute,
+        theme: ThemeData(
+          accentColor: colorScheme.textGold,
+          extensions: [colorScheme],
+          highlightColor: colorScheme.highlight,
+          brightness: Brightness.dark,
+          fontFamily: GoogleFonts.poppins().fontFamily,
+          unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
+          // textTheme: GoogleFonts.interTextTheme().copyWith(
+          //   button: STextStyles.button(context),
+          //   subtitle1: STextStyles.field(context).copyWith(
+          //     color: colorScheme.textDark,
+          //   ),
+          // ),
+          radioTheme: const RadioThemeData(
+            splashRadius: 0,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          // splashFactory: NoSplash.splashFactory,
+          splashColor: Colors.transparent,
+          buttonTheme: ButtonThemeData(
+            splashColor: colorScheme.splash,
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: ButtonStyle(
+              // splashFactory: NoSplash.splashFactory,
+              overlayColor: MaterialStateProperty.all(colorScheme.splash),
+              minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
+              // textStyle: MaterialStateProperty.all<TextStyle>(
+              //     STextStyles.button(context)),
+              foregroundColor:
+                  MaterialStateProperty.all(colorScheme.buttonTextSecondary),
+              backgroundColor: MaterialStateProperty.all<Color>(
+                  colorScheme.buttonBackSecondary),
+              shape: MaterialStateProperty.all<OutlinedBorder>(
+                RoundedRectangleBorder(
+                  // 1000 to be relatively sure it keeps its pill shape
+                  borderRadius: BorderRadius.circular(1000),
+                ),
               ),
             ),
           ),
-        ),
-        primaryColor: colorScheme.accentColorDark,
-        primarySwatch: Util.createMaterialColor(colorScheme.accentColorDark),
-        checkboxTheme: CheckboxThemeData(
-          splashRadius: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(Constants.size.checkboxBorderRadius),
-          ),
-          checkColor: MaterialStateColor.resolveWith(
-            (state) {
-              if (state.contains(MaterialState.selected)) {
-                return colorScheme.checkboxIconChecked;
-              }
-              return colorScheme.checkboxBGChecked;
-            },
-          ),
-          fillColor: MaterialStateColor.resolveWith(
-            (states) {
-              if (states.contains(MaterialState.selected)) {
+          primaryColor: colorScheme.accentColorDark,
+          primarySwatch: Util.createMaterialColor(colorScheme.accentColorDark),
+          checkboxTheme: CheckboxThemeData(
+            splashRadius: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(Constants.size.checkboxBorderRadius),
+            ),
+            checkColor: MaterialStateColor.resolveWith(
+              (state) {
+                if (state.contains(MaterialState.selected)) {
+                  return colorScheme.checkboxIconChecked;
+                }
                 return colorScheme.checkboxBGChecked;
+              },
+            ),
+            fillColor: MaterialStateColor.resolveWith(
+              (states) {
+                if (states.contains(MaterialState.selected)) {
+                  return colorScheme.checkboxBGChecked;
+                }
+                return colorScheme.checkboxBorderEmpty;
+              },
+            ),
+          ),
+          appBarTheme: AppBarTheme(
+            centerTitle: false,
+            color: colorScheme.background,
+            elevation: 0,
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            focusColor: colorScheme.textFieldDefaultBG,
+            fillColor: colorScheme.textFieldDefaultBG,
+            filled: true,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 6,
+              horizontal: 12,
+            ),
+            // labelStyle: STextStyles.fieldLabel(context),
+            // hintStyle: STextStyles.fieldLabel(context),
+            enabledBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+            focusedBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+            errorBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+            disabledBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+            focusedErrorBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+          ),
+        ),
+        home: FutureBuilder(
+          future: load(),
+          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              // FlutterNativeSplash.remove();
+              if (_prefs.hasPin && ref.read(walletProvider) != null) {
+                return const LockscreenView(
+                  isInitialAppLogin: true,
+                  routeOnSuccess: HomeView.routeName,
+                  routeOnSuccessArguments: null,
+                  biometricsAuthenticationTitle: "Unlock Stack",
+                  biometricsLocalizedReason:
+                      "Unlock your Epic wallet using biometrics",
+                  biometricsCancelButtonString: "Cancel",
+                );
+              } else {
+                return const IntroView();
               }
-              return colorScheme.checkboxBorderEmpty;
-            },
-          ),
-        ),
-        appBarTheme: AppBarTheme(
-          centerTitle: false,
-          color: colorScheme.background,
-          elevation: 0,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          focusColor: colorScheme.textFieldDefaultBG,
-          fillColor: colorScheme.textFieldDefaultBG,
-          filled: true,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 6,
-            horizontal: 12,
-          ),
-          // labelStyle: STextStyles.fieldLabel(context),
-          // hintStyle: STextStyles.fieldLabel(context),
-          enabledBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          focusedBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          errorBorder: _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          disabledBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          focusedErrorBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-        ),
-      ),
-      home: FutureBuilder(
-        future: load(),
-        builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // FlutterNativeSplash.remove();
-            if (_prefs.hasPin && ref.read(walletProvider) != null) {
-              return const LockscreenView(
-                isInitialAppLogin: true,
-                routeOnSuccess: HomeView.routeName,
-                routeOnSuccessArguments: null,
-                biometricsAuthenticationTitle: "Unlock Stack",
-                biometricsLocalizedReason:
-                    "Unlock your Epic wallet using biometrics",
-                biometricsCancelButtonString: "Cancel",
-              );
             } else {
-              return const IntroView();
+              // CURRENTLY DISABLED as cannot be animated
+              // technically not needed as FlutterNativeSplash will overlay
+              // anything returned here until the future completes but
+              // FutureBuilder requires you to return something
+              return const LoadingView();
             }
-          } else {
-            // CURRENTLY DISABLED as cannot be animated
-            // technically not needed as FlutterNativeSplash will overlay
-            // anything returned here until the future completes but
-            // FutureBuilder requires you to return something
-            return const LoadingView();
-          }
-        },
+          },
+        ),
       ),
     );
   }
