@@ -183,13 +183,6 @@ class _PNG {
   String get epicFast => "assets/images/epic-fast.png";
   String get epicClouds => "assets/images/epic-clouds.png";
   String get epicWelcome => "assets/images/epic-welcome.png";
-
-  String imageFor({required Coin coin}) {
-    switch (coin) {
-      case Coin.epicCash:
-        return epicCash;
-    }
-  }
 }
 
 class _ANIMATIONS {

@@ -138,11 +138,11 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           ),
           Image(
             image: AssetImage(
-              Assets.png.imageFor(coin: coin),
+              Assets.gif.epicPlain,
             ),
             height: 100,
           ),
-          SizedBox(
+          const SizedBox(
             height: 16,
           ),
           Text(

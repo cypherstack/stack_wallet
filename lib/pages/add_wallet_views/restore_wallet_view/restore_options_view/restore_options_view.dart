@@ -21,7 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:tuple/tuple.dart';
 
 class RestoreOptionsView extends ConsumerStatefulWidget {
@@ -74,15 +73,16 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
     return MaterialRoundedDatePickerStyle(
+      backgroundPicker: Theme.of(context).extension<StackColors>()!.coal,
+      // backgroundHeader: Theme.of(context).extension<StackColors>()!.textSubtitle2,
       paddingMonthHeader: const EdgeInsets.only(top: 11),
-      colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      colorArrowPrevious:
-          Theme.of(context).extension<StackColors>()!.textSubtitle1,
+      colorArrowNext: Theme.of(context).extension<StackColors>()!.textGold,
+      colorArrowPrevious: Theme.of(context).extension<StackColors>()!.textGold,
       textStyleButtonNegative: STextStyles.datePicker600(context).copyWith(
-        color: baseColor,
+        color: Theme.of(context).extension<StackColors>()!.textMedium,
       ),
       textStyleButtonPositive: STextStyles.datePicker600(context).copyWith(
-        color: baseColor,
+        color: Theme.of(context).extension<StackColors>()!.textGold,
       ),
       textStyleCurrentDayOnCalendar: STextStyles.datePicker400(context),
       textStyleDayHeader: STextStyles.datePicker600(context),
@@ -91,26 +91,32 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       ),
       textStyleDayOnCalendarDisabled:
           STextStyles.datePicker400(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+        color: Theme.of(context).extension<StackColors>()!.textDark,
       ),
       textStyleDayOnCalendarSelected:
           STextStyles.datePicker400(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        color: Theme.of(context).extension<StackColors>()!.coal,
       ),
       textStyleMonthYearHeader: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+        color: Theme.of(context).extension<StackColors>()!.textGold,
       ),
       textStyleYearButton: STextStyles.datePicker600(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.coal,
       ),
-      textStyleButtonAction: GoogleFonts.poppins(),
+      backgroundHeader: Theme.of(context).extension<StackColors>()!.textGold,
+      decorationDateSelected: BoxDecoration(
+        color: Theme.of(context).extension<StackColors>()!.textGold,
+        shape: BoxShape.circle,
+      ),
     );
   }
 
   MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
     return MaterialRoundedYearPickerStyle(
+      backgroundPicker: Theme.of(context).extension<StackColors>()!.coal,
       textStyleYear: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
+        color: Theme.of(context).extension<StackColors>()!.textMedium,
+        fontSize: 16,
       ),
       textStyleYearSelected: STextStyles.datePicker600(context).copyWith(
         fontSize: 18,
@@ -227,7 +233,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               if (!isDesktop)
                 Image(
                   image: AssetImage(
-                    Assets.png.imageFor(coin: coin),
+                    Assets.gif.epicPlain,
                   ),
                   height: 100,
                 ),

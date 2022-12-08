@@ -165,6 +165,9 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                 ],
               ),
             ),
+            const SizedBox(
+              height: 24,
+            ),
           ],
         ),
       ),
