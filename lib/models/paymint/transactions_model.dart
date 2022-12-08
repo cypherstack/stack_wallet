@@ -410,9 +410,9 @@ class Output {
       // print("transaction not supported: ${json}");
       return Output(
           // Return output object with null values; allows wallet history to be built
-          scriptpubkey: null,
-          scriptpubkeyAsm: null,
-          scriptpubkeyType: null,
+          scriptpubkey: "",
+          scriptpubkeyAsm: "",
+          scriptpubkeyType: "",
           scriptpubkeyAddress: "",
           value: (Decimal.parse(0.toString()) *
                   Decimal.fromInt(Constants.satsPerCoin(Coin
