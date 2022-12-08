@@ -2297,9 +2297,24 @@ class ParticlWallet extends CoinServiceAPI {
       Logging.instance.log("sendersArray: $sendersArray", level: LogLevel.Info);
 
       for (final output in txObject["vout"] as List) {
-        final address = output["scriptPubKey"]["address"] as String?;
-        if (address != null) {
-          recipientsArray.add(address);
+        // Particl has different tx types that need to be detected and handled here
+        if (output.containsKey('scriptPubKey') as bool) {
+          // Logging.instance.log("output is transparent", level: LogLevel.Info);
+          final address = output["scriptPubKey"]["address"] as String?;
+          if (address != null) {
+            recipientsArray.add(address);
+          }
+        } else if (output.containsKey('ct_fee') as bool) {
+          // or type: data
+          Logging.instance.log("output is blinded (CT)", level: LogLevel.Info);
+        } else if (output.containsKey('rangeproof') as bool) {
+          // or valueCommitment or type: anon
+          Logging.instance
+              .log("output is private (RingCT)", level: LogLevel.Info);
+        } else {
+          // TODO detect staking
+          Logging.instance.log("output type not detected; output: ${output}",
+              level: LogLevel.Info);
         }
       }
 
@@ -2336,19 +2351,41 @@ class ParticlWallet extends CoinServiceAPI {
         totalInput = inputAmtSentFromWallet;
         int totalOutput = 0;
 
+        Logging.instance.log("txObject: ${txObject}", level: LogLevel.Info);
+
         for (final output in txObject["vout"] as List) {
-          final String address = output["scriptPubKey"]!["address"] as String;
-          final value = output["value"]!;
-          final _value = (Decimal.parse(value.toString()) *
-                  Decimal.fromInt(Constants.satsPerCoin(coin)))
-              .toBigInt()
-              .toInt();
-          totalOutput += _value;
-          if (changeAddresses.contains(address)) {
-            inputAmtSentFromWallet -= _value;
+          // Particl has different tx types that need to be detected and handled here
+          if (output.containsKey('scriptPubKey') as bool) {
+            // Logging.instance.log("output is transparent", level: LogLevel.Info);
+            final String address = output["scriptPubKey"]!["address"] as String;
+            final value = output["value"]!;
+            final _value = (Decimal.parse(value.toString()) *
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                .toBigInt()
+                .toInt();
+            totalOutput += _value;
+            if (changeAddresses.contains(address)) {
+              inputAmtSentFromWallet -= _value;
+            } else {
+              // change address from 'sent from' to the 'sent to' address
+              txObject["address"] = address;
+            }
+          } else if (output.containsKey('ct_fee') as bool) {
+            // or type: data
+            // TODO handle CT tx
+            Logging.instance.log(
+                "output is blinded (CT); cannot parse output values",
+                level: LogLevel.Info);
+          } else if (output.containsKey('rangeproof') as bool) {
+            // or valueCommitment or type: anon
+            // TODO handle RingCT tx
+            Logging.instance.log(
+                "output is private (RingCT); cannot parse output values",
+                level: LogLevel.Info);
           } else {
-            // change address from 'sent from' to the 'sent to' address
-            txObject["address"] = address;
+            // TODO detect staking
+            Logging.instance.log("output type not detected; output: ${output}",
+                level: LogLevel.Info);
           }
         }
         // calculate transaction fee
