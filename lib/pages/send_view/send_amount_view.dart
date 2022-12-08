@@ -145,6 +145,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
   }
 
   late Future<String> _calculateFeesFuture;
+  late Future<String> _displayFees;
   Map<int, String> cachedFees = {};
 
   Future<String> calculateFees(int amount) async {
@@ -177,6 +178,42 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
     fee = await manager.estimateFeeFor(amount, feeRate);
     cachedFees[amount] =
         Format.satoshisToAmount(fee).toStringAsFixed(Constants.decimalPlaces);
+
+    return cachedFees[amount]!;
+  }
+
+  Future<String> calculateNetworkFees(int amount) async {
+    if (amount <= 0) {
+      return "0";
+    }
+
+    if (cachedFees[amount] != null) {
+      return cachedFees[amount]!;
+    }
+
+    final manager = ref.read(walletProvider)!;
+    final feeObject = await manager.fees;
+
+    late final int feeRate;
+
+    switch (ref.read(feeRateTypeStateProvider.state).state) {
+      case FeeRateType.fast:
+        feeRate = feeObject.fast;
+        break;
+      case FeeRateType.average:
+        feeRate = feeObject.medium;
+        break;
+      case FeeRateType.slow:
+        feeRate = feeObject.slow;
+        break;
+    }
+
+    int fee;
+    fee = await manager.estimateFeeFor(amount, feeRate);
+    int networkFee = fee - amount;
+
+    cachedFees[amount] = Format.satoshisToAmount(networkFee)
+        .toStringAsFixed(Constants.decimalPlaces);
 
     return cachedFees[amount]!;
   }
@@ -250,6 +287,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
     ref.refresh(feeSheetSessionCacheProvider);
 
     _calculateFeesFuture = calculateFees(0);
+    _displayFees = calculateFees(0);
     _data = widget.autoFillData;
     walletId = widget.walletId;
     address = widget.address;
@@ -279,11 +317,14 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         if (_amountToSend == null) {
           setState(() {
             _calculateFeesFuture = calculateFees(0);
+            _displayFees = calculateFees(0);
           });
         } else {
           setState(() {
             _calculateFeesFuture =
                 calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
+            _displayFees = calculateNetworkFees(
+                Format.decimalAmountToSatoshis(_amountToSend!));
           });
         }
       }
@@ -697,7 +738,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                             height: 10,
                           ),
                           FutureBuilder(
-                            future: _calculateFeesFuture,
+                            future: _displayFees,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                       ConnectionState.done &&
@@ -708,14 +749,16 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                                   style: STextStyles.itemSubtitle(context),
                                 );
                               } else {
-                                return AnimatedText(
-                                  stringsToLoopThrough: const [
-                                    "Calculating",
-                                    "Calculating.",
-                                    "Calculating..",
-                                    "Calculating...",
-                                  ],
-                                  style: STextStyles.itemSubtitle(context),
+                                return Center(
+                                  child: AnimatedText(
+                                    stringsToLoopThrough: const [
+                                      "Calculating",
+                                      "Calculating.",
+                                      "Calculating..",
+                                      "Calculating...",
+                                    ],
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
                                 );
                               }
                             },
@@ -754,14 +797,16 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                                   ),
                                 );
                               } else {
-                                return AnimatedText(
-                                  stringsToLoopThrough: const [
-                                    "Calculating",
-                                    "Calculating.",
-                                    "Calculating..",
-                                    "Calculating...",
-                                  ],
-                                  style: STextStyles.itemSubtitle(context),
+                                return Center(
+                                  child: AnimatedText(
+                                    stringsToLoopThrough: const [
+                                      "Calculating",
+                                      "Calculating.",
+                                      "Calculating..",
+                                      "Calculating...",
+                                    ],
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
                                 );
                               }
                             },
