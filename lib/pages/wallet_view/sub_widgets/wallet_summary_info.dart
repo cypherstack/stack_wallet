@@ -209,50 +209,53 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                           ),
                         ],
                       ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: showSheet,
-                      child: RoundedContainer(
-                        color:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 16,
-                        ),
-                        radiusMultiplier: 10,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "${_showAvailable ? "AVAILABLE" : "FULL"} BALANCE",
-                              style: STextStyles.overLine(context).copyWith(
+                if (isSendView == false)
+                  const SizedBox(
+                    height: 15,
+                  ),
+                if (isSendView == false)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: showSheet,
+                        child: RoundedContainer(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                          radiusMultiplier: 10,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "${_showAvailable ? "AVAILABLE" : "FULL"} BALANCE",
+                                style: STextStyles.overLine(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textLight,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 6,
+                              ),
+                              SvgPicture.asset(
+                                Assets.svg.chevronDown,
+                                width: 8,
+                                height: 4,
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textLight,
                               ),
-                            ),
-                            const SizedBox(
-                              width: 6,
-                            ),
-                            SvgPicture.asset(
-                              Assets.svg.chevronDown,
-                              width: 8,
-                              height: 4,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textLight,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
               ],
             );
           },
