@@ -18,11 +18,13 @@ class ContactPopUp extends ConsumerWidget {
   const ContactPopUp({
     Key? key,
     required this.contactId,
+    this.onSendPressed,
     this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
   final String contactId;
   final ClipboardInterface clipboard;
+  final void Function(String, String)? onSendPressed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -145,21 +147,7 @@ class ContactPopUp extends ConsumerWidget {
                   final String address = contact.addresses.first.address;
 
                   if (hasActiveWallet) {
-                    //todo: open send view
-                    // Navigator.of(context).p
-                    // Navigator.of(context)
-                    //     .pushNamed(
-                    //   SendView.routeName,
-                    //   arguments: Tuple3(
-                    //     active.walletId,
-                    //     active.coin,
-                    //     SendViewAutoFillData(
-                    //       address: address,
-                    //       contactLabel:
-                    //       contactLabel,
-                    //     ),
-                    //   ),
-                    // );
+                    onSendPressed?.call(contactLabel, address);
                   }
                 },
                 child: Container(

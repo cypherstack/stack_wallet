@@ -105,6 +105,17 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case AddressBookView.routeName:
+        if (args is void Function(String, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => AddressBookView(
+              onSendPressed: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const AddressBookView(),
@@ -386,18 +397,6 @@ class RouteGenerator {
             builder: (_) => SendView(
               walletId: args.item1,
               coin: args.item2,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        } else if (args is Tuple3<String, Coin, SendViewAutoFillData>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => SendView(
-              walletId: args.item1,
-              coin: args.item2,
-              autoFillData: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,

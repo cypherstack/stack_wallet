@@ -18,9 +18,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AddressBookView extends ConsumerStatefulWidget {
-  const AddressBookView({Key? key}) : super(key: key);
+  const AddressBookView({
+    Key? key,
+    this.onSendPressed,
+  }) : super(key: key);
 
   static const String routeName = "/addressBook";
+
+  final void Function(String, String)? onSendPressed;
 
   @override
   ConsumerState<AddressBookView> createState() => _AddressBookViewState();
@@ -135,7 +140,10 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
         return StackDialogBase(
           mainAxisAlignment: MainAxisAlignment.center,
           padding: const EdgeInsets.all(0),
-          child: ContactPopUp(contactId: contactId),
+          child: ContactPopUp(
+            contactId: contactId,
+            onSendPressed: widget.onSendPressed,
+          ),
         );
       },
     );
