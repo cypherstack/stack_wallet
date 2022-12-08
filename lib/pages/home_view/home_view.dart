@@ -297,19 +297,25 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 ],
               ),
               bottomNavigationBar: Container(
-                color:
-                    Theme.of(context).extension<StackColors>()!.bottomNavShadow,
+                decoration: const BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black,
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
                 height: 75,
                 child: BottomNavigationBar(
+                  elevation: 0,
                   unselectedFontSize: 14.0,
                   unselectedLabelStyle: STextStyles.smallMed12(context)
                       .copyWith(
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .bottomNavText),
-                  backgroundColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .bottomNavShadow,
+                  backgroundColor:
+                      Theme.of(context).extension<StackColors>()!.popupBG,
                   items: [
                     BottomNavigationBarItem(
                       icon: Padding(
