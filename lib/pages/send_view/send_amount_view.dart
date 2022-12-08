@@ -19,7 +19,6 @@ import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
-import 'package:epicmobile/widgets/stack_text_field.dart';
 import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -336,10 +335,22 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                             focusNode: _noteFocusNode,
                             // style: STextStyles.field(context),
                             onChanged: (_) => setState(() {}),
-                            decoration: standardInputDecoration(
-                              "Type something...",
-                              _noteFocusNode,
-                              context,
+                            decoration: InputDecoration(
+                              labelText: "Type something...",
+                              labelStyle:
+                                  STextStyles.fieldLabel(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                                fontSize: 16,
+                              ),
+                              fillColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .background,
+                              enabledBorder: InputBorder.none,
+                              // focusedBorder: InputBorder.none,
+                              // _noteFocusNode,
+                              // context,
                             ).copyWith(
                               suffixIcon: noteController.text.isNotEmpty
                                   ? Padding(
@@ -362,9 +373,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                                   : null,
                             ),
                           ),
-                          const SizedBox(
-                            height: 12,
-                          ),
                           const _Divider(),
                           const SizedBox(
                             height: 12,
@@ -383,10 +391,9 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                             autocorrect: true,
                             enableSuggestions: true,
                             style: STextStyles.smallMed14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textLight,
-                            ),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textMedium),
                             key:
                                 const Key("amountInputFieldCryptoTextFieldKey"),
                             controller: cryptoAmountController,
@@ -406,26 +413,45 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                                       : oldValue),
                             ],
                             decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.only(
-                                top: 12,
-                                left: 12,
-                              ),
+                              filled: true,
+                              fillColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .coal,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 12),
                               hintText: "0.00",
-                              hintStyle:
-                                  STextStyles.fieldLabel(context).copyWith(
-                                fontSize: 14,
-                              ),
-                              suffixIcon: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Text(
-                                    coin.ticker,
-                                    style: STextStyles.smallMed14(context)
-                                        .copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark),
+                              // hintStyle:
+                              //     STextStyles.fieldLabel(context).copyWith(
+                              //   fontSize: 14,
+                              // ),
+                              suffixIcon: SizedBox(
+                                width: 79,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                      bottomRight: Radius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                    ),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonBackPrimaryDisabled,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 12),
+                                    child: Text(
+                                      coin.ticker,
+                                      textAlign: TextAlign.center,
+                                      style: STextStyles.smallMed14(context)
+                                          .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textMedium),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -438,10 +464,9 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                             autocorrect: true,
                             enableSuggestions: true,
                             style: STextStyles.smallMed14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textLight,
-                            ),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textMedium),
                             key: const Key("amountInputFieldFiatTextFieldKey"),
                             controller: baseAmountController,
                             focusNode: _baseFocus,
@@ -519,27 +544,46 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                                   _address, _amountToSend);
                             },
                             decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.only(
-                                top: 12,
-                                left: 12,
-                              ),
+                              filled: true,
+                              fillColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .coal,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 12),
                               hintText: "0.00",
-                              hintStyle:
-                                  STextStyles.fieldLabel(context).copyWith(
-                                fontSize: 14,
-                              ),
-                              suffixIcon: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Text(
-                                    ref.watch(prefsChangeNotifierProvider
-                                        .select((value) => value.currency)),
-                                    style: STextStyles.smallMed14(context)
-                                        .copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark),
+                              // hintStyle:
+                              //     STextStyles.fieldLabel(context).copyWith(
+                              //   fontSize: 14,
+                              // ),
+                              suffixIcon: SizedBox(
+                                width: 79,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                      bottomRight: Radius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                    ),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonBackPrimaryDisabled,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 12),
+                                    child: Text(
+                                      ref.watch(prefsChangeNotifierProvider
+                                          .select((value) => value.currency)),
+                                      textAlign: TextAlign.center,
+                                      style: STextStyles.smallMed14(context)
+                                          .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textMedium),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -548,82 +592,89 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                           const SizedBox(
                             height: 16,
                           ),
-                          Container(
-                            height: 36,
-                            width: 175,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .buttonBackPrimaryDisabled,
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius * 3,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                "VIEW AVAILABLE BALANCE",
-                                style:
-                                    STextStyles.overLineBold(context).copyWith(
+                          Center(
+                            child: SizedBox(
+                              height: 36,
+                              width: 174,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                    Constants.size.circularBorderRadius * 2,
+                                  ),
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .buttonBackPrimary,
+                                      .buttonBackPrimaryDisabled,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "VIEW AVAILABLE BALANCE",
+                                    style: STextStyles.overLineBold(context)
+                                        .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .buttonBackPrimary,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                          // const SizedBox(
-                          //   height: 12,
-                          // ),
-                          // Text(
-                          //   "Note (optional)",
-                          //   style: STextStyles.smallMed12(context),
-                          //   textAlign: TextAlign.left,
-                          // ),
-                          // const SizedBox(
-                          //   height: 8,
-                          // ),
-                          // ClipRRect(
-                          //   borderRadius: BorderRadius.circular(
-                          //     Constants.size.circularBorderRadius,
-                          //   ),
-                          //   child: TextField(
-                          //     autocorrect: Util.isDesktop ? false : true,
-                          //     enableSuggestions: Util.isDesktop ? false : true,
-                          //     controller: noteController,
-                          //     focusNode: _noteFocusNode,
-                          //     style: STextStyles.field(context),
-                          //     onChanged: (_) => setState(() {}),
-                          //     decoration: standardInputDecoration(
-                          //       "Type something...",
-                          //       _noteFocusNode,
-                          //       context,
-                          //     ).copyWith(
-                          //       suffixIcon: noteController.text.isNotEmpty
-                          //           ? Padding(
-                          //               padding:
-                          //                   const EdgeInsets.only(right: 0),
-                          //               child: UnconstrainedBox(
-                          //                 child: Row(
-                          //                   children: [
-                          //                     TextFieldIconButton(
-                          //                       child: const XIcon(),
-                          //                       onTap: () async {
-                          //                         setState(() {
-                          //                           noteController.text = "";
-                          //                         });
-                          //                       },
-                          //                     ),
-                          //                   ],
-                          //                 ),
-                          //               ),
-                          //             )
-                          //           : null,
-                          //     ),
-                          //   ),
-                          // ),
-                          // const SizedBox(
-                          //   height: 12,
-                          // ),
+                          const SizedBox(
+                            height: 32,
+                          ),
+                          Center(
+                            child: Text(
+                              "NETWORK FEE",
+                              style: STextStyles.overLineBold(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textMedium,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Center(
+                            child: Text(
+                              "[INSET FEE HERE]",
+                              style: STextStyles.overLineBold(context).copyWith(
+                                fontSize: 16,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textMedium,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 36,
+                          ),
+                          Center(
+                            child: Text(
+                              "TOTAL AMOUNT TO SEND (INCLUDING FEE)",
+                              style: STextStyles.overLineBold(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textMedium,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 6,
+                          ),
+                          Center(
+                            child: Text(
+                              "[INSERT TOTAL AMOUNT]",
+                              textAlign: TextAlign.center,
+                              style: STextStyles.overLineBold(context).copyWith(
+                                fontSize: 32,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonBackPrimary,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
                           // Text(
                           //   "Transaction fee (estimated)",
                           //   style: STextStyles.smallMed12(context),
@@ -957,7 +1008,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                                     .extension<StackColors>()!
                                     .getPrimaryDisabledButtonColor(context),
                             child: Text(
-                              "Next",
+                              "SEND",
                               style: STextStyles.buttonText(context).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
@@ -965,7 +1016,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                             ),
                           ),
                           const SizedBox(
-                            height: 4,
+                            height: 24,
                           ),
                         ],
                       ),
