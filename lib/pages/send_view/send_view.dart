@@ -374,8 +374,9 @@ class _SendViewState extends ConsumerState<SendView> {
                             onPressed: () {
                               Navigator.of(context).pushNamed(
                                 SendAmountView.routeName,
-                                arguments: Tuple2(
+                                arguments: Tuple3(
                                   "$ref.read(walletProvider)!.walletId",
+                                  "$_address",
                                   Coin.epicCash,
                                 ),
                               );

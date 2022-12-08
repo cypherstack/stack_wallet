@@ -29,6 +29,7 @@ class SendAmountView extends ConsumerStatefulWidget {
   const SendAmountView({
     Key? key,
     required this.walletId,
+    required this.address,
     required this.coin,
     this.autoFillData,
     this.barcodeScanner = const BarcodeScannerWrapper(),
@@ -37,6 +38,7 @@ class SendAmountView extends ConsumerStatefulWidget {
   static const String routeName = "/sendAmountView";
 
   final String walletId;
+  final String address;
   final Coin coin;
   final SendViewAutoFillData? autoFillData;
   final BarcodeScannerInterface barcodeScanner;
@@ -47,6 +49,7 @@ class SendAmountView extends ConsumerStatefulWidget {
 
 class _SendAmountViewState extends ConsumerState<SendAmountView> {
   late final String walletId;
+  late final String address;
   late final Coin coin;
   late final BarcodeScannerInterface scanner;
 
@@ -254,6 +257,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
     _calculateFeesFuture = calculateFees(0);
     _data = widget.autoFillData;
     walletId = widget.walletId;
+    address = widget.address;
     coin = widget.coin;
     scanner = widget.barcodeScanner;
 
@@ -378,9 +382,13 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                             height: 12,
                           ),
                           // todo print address here
-
-                          const SizedBox(
-                            height: 12,
+                          Text(
+                            "$address",
+                            style: STextStyles.body(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textLight,
+                            ),
                           ),
                           const _Divider(),
                           Text(
@@ -439,9 +447,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                             ),
                           ),
                           const _Divider(),
-                          const SizedBox(
-                            height: 12,
-                          ),
                           Text(
                             "ENTER AMOUNT TO SEND",
                             style: STextStyles.overLineBold(context).copyWith(

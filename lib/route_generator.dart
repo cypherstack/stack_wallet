@@ -406,24 +406,26 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SendAmountView.routeName:
-        if (args is Tuple2<String, Coin>) {
+        if (args is Tuple3<String, String, Coin>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendAmountView(
               walletId: args.item1,
-              coin: args.item2,
+              address: args.item2,
+              coin: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,
             ),
           );
-        } else if (args is Tuple3<String, Coin, SendViewAutoFillData>) {
+        } else if (args is Tuple4<String, String, Coin, SendViewAutoFillData>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendAmountView(
               walletId: args.item1,
-              coin: args.item2,
-              autoFillData: args.item3,
+              address: args.item2,
+              coin: args.item3,
+              autoFillData: args.item4,
             ),
             settings: RouteSettings(
               name: settings.name,
