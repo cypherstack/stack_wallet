@@ -10,7 +10,6 @@ import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
 import 'package:epicmobile/providers/global/wallet_provider.dart';
 import 'package:epicmobile/providers/tx_count_on_startup_state_provider.dart';
 import 'package:epicmobile/providers/ui/home_view_index_provider.dart';
-import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -58,7 +57,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
   late final EventBus eventBus;
 
   late WalletSyncStatus _currentSyncStatus;
-  late NodeConnectionStatus _currentNodeStatus;
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
@@ -128,13 +126,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     if (ref.read(walletProvider)!.isRefreshing) {
       _currentSyncStatus = WalletSyncStatus.syncing;
-      _currentNodeStatus = NodeConnectionStatus.connected;
     } else {
       _currentSyncStatus = WalletSyncStatus.synced;
       if (ref.read(walletProvider)!.isConnected) {
-        _currentNodeStatus = NodeConnectionStatus.connected;
       } else {
-        _currentNodeStatus = NodeConnectionStatus.disconnected;
         _currentSyncStatus = WalletSyncStatus.unableToSync;
       }
     }
@@ -174,23 +169,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
         if (event.walletId == ref.read(walletProvider)!.walletId) {
           setState(() {
             _currentSyncStatus = event.newStatus;
-          });
-        }
-      },
-    );
-
-    _nodeStatusSubscription =
-        eventBus.on<NodeConnectionStatusChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == ref.read(walletProvider)!.walletId) {
-          // switch (event.newStatus) {
-          //   case NodeConnectionStatus.disconnected:
-          //     break;
-          //   case NodeConnectionStatus.connected:
-          //     break;
-          // }
-          setState(() {
-            _currentNodeStatus = event.newStatus;
           });
         }
       },
@@ -320,71 +298,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       ),
                     ),
                   ),
-                  // Padding(
-                  //   padding: const EdgeInsets.only(
-                  //     top: 10,
-                  //     bottom: 10,
-                  //     right: 10,
-                  //   ),
-                  //   child: AspectRatio(
-                  //     aspectRatio: 1,
-                  //     child: AppBarIconButton(
-                  //       key: const Key("walletViewRadioButton"),
-                  //       size: 36,
-                  //       shadows: const [],
-                  //       color:
-                  //           Theme.of(context).extension<StackColors>()!.background,
-                  //       icon: _buildNetworkIcon(_currentSyncStatus),
-                  //       onPressed: () {
-                  //         Navigator.of(context).pushNamed(
-                  //           WalletNetworkSettingsView.routeName,
-                  //           arguments: Tuple3(
-                  //             walletId,
-                  //             _currentSyncStatus,
-                  //             _currentNodeStatus,
-                  //           ),
-                  //         );
-                  //       },
-                  //     ),
-                  //   ),
-                  // ),
-                  // Padding(
-                  //   padding: const EdgeInsets.only(
-                  //     top: 10,
-                  //     bottom: 10,
-                  //     right: 10,
-                  //   ),
-                  //   child: AspectRatio(
-                  //     aspectRatio: 1,
-                  //     child: AppBarIconButton(
-                  //       key: const Key("walletViewSettingsButton"),
-                  //       size: 36,
-                  //       shadows: const [],
-                  //       color:
-                  //           Theme.of(context).extension<StackColors>()!.background,
-                  //       icon: SvgPicture.asset(
-                  //         Assets.svg.menu,
-                  //         color: Theme.of(context)
-                  //             .extension<StackColors>()!
-                  //             .accentColorDark,
-                  //         width: 20,
-                  //         height: 20,
-                  //       ),
-                  //       onPressed: () {
-                  //         debugPrint("wallet view settings tapped");
-                  //         Navigator.of(context).pushNamed(
-                  //           WalletSettingsView.routeName,
-                  //           arguments: Tuple4(
-                  //             walletId,
-                  //             ref.read(walletProvider)!.coin,
-                  //             _currentSyncStatus,
-                  //             _currentNodeStatus,
-                  //           ),
-                  //         );
-                  //       },
-                  //     ),
-                  //   ),
-                  // ),
                 ],
               ),
               bottomNavigationBar: Container(
