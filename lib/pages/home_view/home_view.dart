@@ -221,6 +221,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    ref.listen(homeViewPageIndexStateProvider, (previous, next) {
+      if (next is int) {
+        if (next >= 0 && next <= 1) {
+          _pageController.animateToPage(
+            next,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.decelerate,
+          );
+        }
+      }
+    });
 
     return WillPopScope(
       onWillPop: _onWillPop,
@@ -452,40 +463,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
               body: Column(
                 children: [
                   Expanded(
-                    child: Consumer(
-                      builder: (_, _ref, __) {
-                        _ref.listen(homeViewPageIndexStateProvider,
-                            (previous, next) {
-                          if (next is int) {
-                            if (next >= 0 && next <= 1) {
-                              _pageController.animateToPage(
-                                next,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.decelerate,
-                              );
-                            }
-                          }
+                    child: PageView(
+                      controller: _pageController,
+                      children: _children,
+                      onPageChanged: (pageIndex) {
+                        ref.read(homeViewPageIndexStateProvider.state).state =
+                            pageIndex;
+                        setState(() {
+                          currentIndex = pageIndex;
                         });
-                        return PageView(
-                          controller: _pageController,
-                          children: _children,
-                          onPageChanged: (pageIndex) {
-                            ref
-                                .read(homeViewPageIndexStateProvider.state)
-                                .state = pageIndex;
-                            setState(() {
-                              currentIndex = pageIndex;
-                            });
-                          },
-                        );
                       },
                     ),
                   ),
-                  // Expanded(
-                  //   child: HomeStack(
-                  //     children: _children,
-                  //   ),
-                  // ),
                 ],
               ),
             ),
