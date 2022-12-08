@@ -2376,6 +2376,15 @@ class ParticlWallet extends CoinServiceAPI {
             Logging.instance.log(
                 "output is blinded (CT); cannot parse output values",
                 level: LogLevel.Info);
+            final ct_fee = output["ct_fee"]!;
+            final fee_value = (Decimal.parse(ct_fee.toString()) *
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                .toBigInt()
+                .toInt();
+            Logging.instance.log(
+                "ct_fee ${ct_fee} subtracted from inputAmtSentFromWallet ${inputAmtSentFromWallet}",
+                level: LogLevel.Info);
+            inputAmtSentFromWallet += fee_value;
           } else if (output.containsKey('rangeproof') as bool) {
             // or valueCommitment or type: anon
             // TODO handle RingCT tx
