@@ -182,6 +182,53 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
     return cachedFees[amount]!;
   }
 
+  Future<void> availableBalance() async {
+    unawaited(
+      showDialog(
+          context: context,
+          builder: (context) {
+            return Dialog(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.popupBG,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: const [
+                        AppBarBackButton(),
+                      ],
+                    ),
+                    Text(
+                      "Available Balance",
+                      style: STextStyles.titleH3(context).copyWith(
+                        fontSize: 18,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textMedium,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      "YOU CAN SPEND",
+                      style: STextStyles.overLineBold(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+    );
+  }
+
   @override
   void initState() {
     ref.refresh(feeSheetSessionCacheProvider);
@@ -592,33 +639,50 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                           const SizedBox(
                             height: 16,
                           ),
-                          Center(
-                            child: SizedBox(
-                              height: 36,
-                              width: 174,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius * 2,
-                                  ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 100),
+                            child: TextButton(
+                              onPressed: () {
+                                availableBalance();
+                              },
+                              style: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .getPrimaryDisabledButtonColor(context),
+                              child: Text(
+                                "VIEW AVAILABLE BALANCE",
+                                textAlign: TextAlign.center,
+                                style:
+                                    STextStyles.overLineBold(context).copyWith(
+                                  fontWeight: FontWeight.w700,
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .buttonBackPrimaryDisabled,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "VIEW AVAILABLE BALANCE",
-                                    style: STextStyles.overLineBold(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonBackPrimary,
-                                    ),
-                                  ),
+                                      .buttonBackPrimary,
                                 ),
                               ),
                             ),
                           ),
+                          // Center(
+                          //   child: SizedBox(
+                          //     height: 36,
+                          //     width: 174,
+                          //     child: DecoratedBox(
+                          //       decoration: BoxDecoration(
+                          //         borderRadius: BorderRadius.circular(
+                          //           Constants.size.circularBorderRadius * 2,
+                          //         ),
+                          //         color: Theme.of(context)
+                          //             .extension<StackColors>()!
+                          //             .buttonBackPrimaryDisabled,
+                          //       ),
+                          //       child: Center(
+                          //         child: PrimaryButton(
+                          //
+                          //         )
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                           const SizedBox(
                             height: 32,
                           ),
