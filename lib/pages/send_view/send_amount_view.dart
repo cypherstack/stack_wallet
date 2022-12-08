@@ -335,11 +335,14 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         if (_amountToSend == null) {
           setState(() {
             _calculateFeesFuture = calculateFees(0);
+            _displayFees = calculateFees(0);
           });
         } else {
           setState(() {
             _calculateFeesFuture =
                 calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
+            _displayFees = calculateNetworkFees(
+                Format.decimalAmountToSatoshis(_amountToSend!));
           });
         }
       }
