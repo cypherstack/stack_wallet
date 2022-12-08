@@ -6,7 +6,6 @@ import 'package:epicmobile/utilities/clipboard_interface.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_loading_overlay.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
 import 'package:flutter/material.dart';
@@ -73,6 +72,20 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
   String receivingAddress = "";
 
+  String assetName = Assets.svg.copy;
+  void onCopy() {
+    setState(() {
+      assetName = Assets.svg.check;
+    });
+    Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          assetName = Assets.svg.copy;
+        });
+      }
+    });
+  }
+
   @override
   void initState() {
     walletId = widget.walletId;
@@ -100,143 +113,93 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       }
     });
 
-    return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        body: Padding(
-          padding: const EdgeInsets.all(12),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(
-                    height: 90,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Spacer(),
+        Text(
+          "My Wallet",
+          style: STextStyles.titleH3(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonBackPrimary),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        Text(
+          "Receive Epic to this address:",
+          style: STextStyles.smallMed14(context),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(
+          height: 30,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(0),
+          child: Center(
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white, width: 2),
                   ),
-                  Text(
-                    "My Wallet",
-                    style: STextStyles.titleH3(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackPrimary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Text(
-                    "Receive Epic to this address:",
-                    style: STextStyles.smallMed14(context),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(0),
-                    child: Center(
-                      child: Column(
+                  child: QrImage(
+                      data: "${coin.uriScheme}:$receivingAddress",
+                      size: MediaQuery.of(context).size.width / 2,
+                      foregroundColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
+                ),
+                const SizedBox(
+                  height: 50,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    clipboard.setData(
+                      ClipboardData(text: receivingAddress),
+                    );
+                    onCopy();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: RoundedWhiteContainer(
+                      child: Row(
+                        // crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.white, width: 2),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Text(
+                                  receivingAddress,
+                                  style: STextStyles.itemSubtitle12(context),
+                                ),
+                              ],
                             ),
-                            child: QrImage(
-                                data: "${coin.uriScheme}:$receivingAddress",
-                                size: MediaQuery.of(context).size.width / 2,
-                                foregroundColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark),
                           ),
                           const SizedBox(
-                            height: 50,
+                            width: 16,
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              clipboard.setData(
-                                ClipboardData(text: receivingAddress),
-                              );
-                              // showFloatingFlushBar(
-                              //   type: FlushBarType.info,
-                              //   message: "Copied to clipboard",
-                              //   iconAsset: Assets.svg.copy,
-                              //   context: context,
-                              // );
-                            },
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 24),
-                              child: RoundedWhiteContainer(
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(20.0),
-                                            child: Column(
-                                              children: [
-                                                Text(
-                                                  receivingAddress,
-                                                  style: STextStyles
-                                                      .itemSubtitle12(context),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          SvgPicture.asset(
-                                            Assets.svg.copy,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                          SvgPicture.asset(
+                            assetName,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textMedium,
                           ),
-                          // const SizedBox(
-                          //   height: 20,
-                          // ),
-                          // BlueTextButton(
-                          //   text: "Create new QR code",
-                          //   onTap: () async {
-                          //     unawaited(Navigator.of(context).push(
-                          //       RouteGenerator.getRoute(
-                          //         shouldUseMaterialRoute:
-                          //             RouteGenerator.useMaterialPageRoute,
-                          //         builder: (_) => GenerateUriQrCodeView(
-                          //           coin: coin,
-                          //           receivingAddress: receivingAddress,
-                          //         ),
-                          //         settings: const RouteSettings(
-                          //           name: GenerateUriQrCodeView.routeName,
-                          //         ),
-                          //       ),
-                          //     ));
-                          //   },
-                          // ),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
-      ),
+        const Spacer(
+          flex: 2,
+        ),
+      ],
     );
   }
 }
