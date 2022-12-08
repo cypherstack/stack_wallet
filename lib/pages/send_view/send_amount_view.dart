@@ -17,6 +17,7 @@ import 'package:epicmobile/utilities/format.dart';
 import 'package:epicmobile/utilities/logger.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicmobile/widgets/animated_text.dart';
 import 'package:epicmobile/widgets/background.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicmobile/widgets/icon_widgets/x_icon.dart';
@@ -69,9 +70,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
   Decimal? _amountToSend;
   Decimal? _cachedAmountToSend;
   String? _address;
-
-  String? _privateBalanceString;
-  String? _publicBalanceString;
 
   bool _addressToggleFlag = false;
 
@@ -147,10 +145,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
   }
 
   late Future<String> _calculateFeesFuture;
-
   Map<int, String> cachedFees = {};
-  Map<int, String> cachedFiroPrivateFees = {};
-  Map<int, String> cachedFiroPublicFees = {};
 
   Future<String> calculateFees(int amount) async {
     if (amount <= 0) {
@@ -685,27 +680,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                               ),
                             ),
                           ),
-                          // Center(
-                          //   child: SizedBox(
-                          //     height: 36,
-                          //     width: 174,
-                          //     child: DecoratedBox(
-                          //       decoration: BoxDecoration(
-                          //         borderRadius: BorderRadius.circular(
-                          //           Constants.size.circularBorderRadius * 2,
-                          //         ),
-                          //         color: Theme.of(context)
-                          //             .extension<StackColors>()!
-                          //             .buttonBackPrimaryDisabled,
-                          //       ),
-                          //       child: Center(
-                          //         child: PrimaryButton(
-                          //
-                          //         )
-                          //       ),
-                          //     ),
-                          //   ),
-                          // ),
                           const SizedBox(
                             height: 32,
                           ),
@@ -722,16 +696,29 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                           const SizedBox(
                             height: 10,
                           ),
-                          Center(
-                            child: Text(
-                              "[INSET FEE HERE]",
-                              style: STextStyles.overLineBold(context).copyWith(
-                                fontSize: 16,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textMedium,
-                              ),
-                            ),
+                          FutureBuilder(
+                            future: _calculateFeesFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                      ConnectionState.done &&
+                                  snapshot.hasData) {
+                                return Text(
+                                  "~${snapshot.data! as String} ${coin.ticker}",
+                                  textAlign: TextAlign.center,
+                                  style: STextStyles.itemSubtitle(context),
+                                );
+                              } else {
+                                return AnimatedText(
+                                  stringsToLoopThrough: const [
+                                    "Calculating",
+                                    "Calculating.",
+                                    "Calculating..",
+                                    "Calculating...",
+                                  ],
+                                  style: STextStyles.itemSubtitle(context),
+                                );
+                              }
+                            },
                           ),
                           const SizedBox(
                             height: 36,
@@ -749,135 +736,37 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                           const SizedBox(
                             height: 6,
                           ),
-                          Center(
-                            child: Text(
-                              "[INSERT TOTAL AMOUNT]",
-                              textAlign: TextAlign.center,
-                              style: STextStyles.overLineBold(context).copyWith(
-                                fontSize: 32,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonBackPrimary,
-                              ),
-                            ),
+                          FutureBuilder(
+                            future: _calculateFeesFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                      ConnectionState.done &&
+                                  snapshot.hasData) {
+                                return Text(
+                                  "~${snapshot.data! as String} ${coin.ticker}",
+                                  textAlign: TextAlign.center,
+                                  style: STextStyles.overLineBold(context)
+                                      .copyWith(
+                                    fontSize: 32,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonBackPrimary,
+                                  ),
+                                );
+                              } else {
+                                return AnimatedText(
+                                  stringsToLoopThrough: const [
+                                    "Calculating",
+                                    "Calculating.",
+                                    "Calculating..",
+                                    "Calculating...",
+                                  ],
+                                  style: STextStyles.itemSubtitle(context),
+                                );
+                              }
+                            },
                           ),
                           const Spacer(),
-                          // Text(
-                          //   "Transaction fee (estimated)",
-                          //   style: STextStyles.smallMed12(context),
-                          //   textAlign: TextAlign.left,
-                          // ),
-                          // const SizedBox(
-                          //   height: 8,
-                          // ),
-                          // Stack(
-                          //   children: [
-                          //     TextField(
-                          //       autocorrect: Util.isDesktop ? false : true,
-                          //       enableSuggestions:
-                          //           Util.isDesktop ? false : true,
-                          //       controller: feeController,
-                          //       readOnly: true,
-                          //       textInputAction: TextInputAction.none,
-                          //     ),
-                          //     Padding(
-                          //       padding: const EdgeInsets.symmetric(
-                          //         horizontal: 12,
-                          //       ),
-                          //       child: RawMaterialButton(
-                          //         splashColor: Theme.of(context)
-                          //             .extension<StackColors>()!
-                          //             .highlight,
-                          //         shape: RoundedRectangleBorder(
-                          //           borderRadius: BorderRadius.circular(
-                          //             Constants.size.circularBorderRadius,
-                          //           ),
-                          //         ),
-                          //         onPressed: () {
-                          //           showModalBottomSheet<dynamic>(
-                          //             backgroundColor: Colors.transparent,
-                          //             context: context,
-                          //             shape: const RoundedRectangleBorder(
-                          //               borderRadius: BorderRadius.vertical(
-                          //                 top: Radius.circular(20),
-                          //               ),
-                          //             ),
-                          //             builder: (_) =>
-                          //                 TransactionFeeSelectionSheet(
-                          //               walletId: walletId,
-                          //               amount: Decimal.tryParse(
-                          //                       cryptoAmountController.text) ??
-                          //                   Decimal.zero,
-                          //               updateChosen: (String fee) {
-                          //                 setState(() {
-                          //                   _calculateFeesFuture =
-                          //                       Future(() => fee);
-                          //                 });
-                          //               },
-                          //             ),
-                          //           );
-                          //         },
-                          //         child: Row(
-                          //           mainAxisAlignment:
-                          //               MainAxisAlignment.spaceBetween,
-                          //           children: [
-                          //             Row(
-                          //               children: [
-                          //                 Text(
-                          //                   ref
-                          //                       .watch(feeRateTypeStateProvider
-                          //                           .state)
-                          //                       .state
-                          //                       .prettyName,
-                          //                   style: STextStyles.itemSubtitle12(
-                          //                       context),
-                          //                 ),
-                          //                 const SizedBox(
-                          //                   width: 10,
-                          //                 ),
-                          //                 FutureBuilder(
-                          //                   future: _calculateFeesFuture,
-                          //                   builder: (context, snapshot) {
-                          //                     if (snapshot.connectionState ==
-                          //                             ConnectionState.done &&
-                          //                         snapshot.hasData) {
-                          //                       return Text(
-                          //                         "~${snapshot.data! as String} ${coin.ticker}",
-                          //                         style:
-                          //                             STextStyles.itemSubtitle(
-                          //                                 context),
-                          //                       );
-                          //                     } else {
-                          //                       return AnimatedText(
-                          //                         stringsToLoopThrough: const [
-                          //                           "Calculating",
-                          //                           "Calculating.",
-                          //                           "Calculating..",
-                          //                           "Calculating...",
-                          //                         ],
-                          //                         style:
-                          //                             STextStyles.itemSubtitle(
-                          //                                 context),
-                          //                       );
-                          //                     }
-                          //                   },
-                          //                 ),
-                          //               ],
-                          //             ),
-                          //             SvgPicture.asset(
-                          //               Assets.svg.chevronDown,
-                          //               width: 8,
-                          //               height: 4,
-                          //               color: Theme.of(context)
-                          //                   .extension<StackColors>()!
-                          //                   .textSubtitle2,
-                          //             ),
-                          //           ],
-                          //         ),
-                          //       ),
-                          //     )
-                          //   ],
-                          // ),
                           const SizedBox(
                             height: 24,
                           ),
