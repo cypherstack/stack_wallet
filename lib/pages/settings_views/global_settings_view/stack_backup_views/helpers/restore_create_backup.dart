@@ -1095,8 +1095,9 @@ abstract class SWB {
       ExchangeTransaction? exTx;
       try {
         exTx = ExchangeTransaction.fromJson(trades[i] as Map<String, dynamic>);
-      } catch (e, s) {
-        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      } catch (e) {
+        // unneeded log
+        // Logging.instance.log("$e\n$s", level: LogLevel.Warning);
       }
 
       Trade trade;
@@ -1117,8 +1118,9 @@ abstract class SWB {
       try {
         exTx =
             ExchangeTransaction.fromJson(trades.last as Map<String, dynamic>);
-      } catch (e, s) {
-        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      } catch (e) {
+        // unneeded log
+        // Logging.instance.log("$e\n$s", level: LogLevel.Warning);
       }
 
       Trade trade;
