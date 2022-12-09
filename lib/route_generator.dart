@@ -1,7 +1,6 @@
 import 'package:epicpay/models/contact_address_entry.dart';
 import 'package:epicpay/models/paymint/transactions_model.dart';
 import 'package:epicpay/pages/add_wallet_views/create_restore_wallet_view.dart';
-import 'package:epicpay/pages/add_wallet_views/name_your_wallet_view.dart';
 import 'package:epicpay/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:epicpay/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:epicpay/pages/address_book_views/address_book_view.dart';
@@ -13,10 +12,8 @@ import 'package:epicpay/pages/intro_view.dart';
 import 'package:epicpay/pages/pinpad_views/create_pin_view.dart';
 import 'package:epicpay/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:epicpay/pages/receive_view/receive_view.dart';
-import 'package:epicpay/pages/send_view/confirm_transaction_view.dart';
 import 'package:epicpay/pages/send_view/send_amount_view.dart';
 import 'package:epicpay/pages/send_view/send_view.dart';
-import 'package:epicpay/pages/settings_views/advanced_views/advanced_settings_view.dart';
 import 'package:epicpay/pages/settings_views/advanced_views/debug_view.dart';
 import 'package:epicpay/pages/settings_views/currency_view.dart';
 import 'package:epicpay/pages/settings_views/delete_account_view.dart';
@@ -38,7 +35,6 @@ import 'package:epicpay/pages/settings_views/wallet_settings/wallet_settings_vie
 import 'package:epicpay/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:epicpay/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:epicpay/pages/wallet_view/wallet_view.dart';
-import 'package:epicpay/utilities/enums/add_wallet_type_enum.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -170,12 +166,6 @@ class RouteGenerator {
             builder: (_) => const ManageNodesView(),
             settings: RouteSettings(name: settings.name));
 
-      case AdvancedSettingsView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AdvancedSettingsView(),
-            settings: RouteSettings(name: settings.name));
-
       case AddAddressBookEntryView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -282,21 +272,6 @@ class RouteGenerator {
             name: settings.name,
           ),
         );
-
-      case NameYourWalletView.routeName:
-        if (args is Tuple2<AddWalletType, Coin>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => NameYourWalletView(
-              addWalletType: args.item1,
-              coin: args.item2,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreOptionsView.routeName:
         if (args is Tuple2<String, Coin>) {
@@ -424,21 +399,6 @@ class RouteGenerator {
               walletId: args.item1,
               address: args.item2,
               coin: args.item3,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case ConfirmTransactionView.routeName:
-        if (args is Tuple2<Map<String, dynamic>, String>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ConfirmTransactionView(
-              transactionInfo: args.item1,
-              walletId: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,

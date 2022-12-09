@@ -1,10 +1,9 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'package:epicpay/utilities/assets.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/loading_indicator.dart';
+import 'package:flutter/material.dart';
 
 class LoadingView extends StatelessWidget {
   const LoadingView({Key? key}) : super(key: key);
@@ -20,11 +19,7 @@ class LoadingView extends StatelessWidget {
           child: Center(
             child: SizedBox(
               width: min(size.width, size.height) * 0.5,
-              child: Lottie.asset(
-                Assets.lottie.test2,
-                animate: true,
-                repeat: true,
-              ),
+              child: const LoadingIndicator(),
             ),
             // child: Image(
             //   image: AssetImage(

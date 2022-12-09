@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/sub_widgets/nodes_list.dart';
-import 'package:epicpay/pages/settings_views/network_settings_view/sub_widgets/rescanning_dialog.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:epicpay/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -15,12 +13,10 @@ import 'package:epicpay/widgets/background.dart';
 import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicpay/widgets/icon_widgets/plus_icon.dart';
 import 'package:epicpay/widgets/rounded_white_container.dart';
-import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
-import 'package:wakelock/wakelock.dart';
 
 /// [eventBus] should only be set during testing
 class NetworkSettingsView extends ConsumerStatefulWidget {
@@ -48,89 +44,6 @@ class _WalletNetworkSettingsViewState
   late StreamSubscription<dynamic> _syncStatusSubscription;
 
   late double _percent;
-
-  Future<void> _attemptRescan() async {
-    if (!Platform.isLinux) await Wakelock.enable();
-
-    int maxUnusedAddressGap = 20;
-
-    const int maxNumberOfIndexesToCheck = 1000;
-
-    unawaited(
-      showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) => const RescanningDialog(),
-      ),
-    );
-
-    try {
-      await ref.read(walletProvider)!.fullRescan(
-            maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
-          );
-
-      if (mounted) {
-        // pop rescanning dialog
-        Navigator.pop(context);
-
-        // show success
-        await showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) => StackDialog(
-            title: "Rescan completed",
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.itemSubtitle12(context),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!Platform.isLinux) await Wakelock.disable();
-
-      if (mounted) {
-        // pop rescanning dialog
-        Navigator.pop(context);
-
-        // show error
-        await showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) => StackDialog(
-            title: "Rescan failed",
-            message: e.toString(),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.itemSubtitle12(context),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ),
-        );
-      }
-    }
-
-    if (!Platform.isLinux) await Wakelock.disable();
-  }
 
   String _percentString(double value) {
     double realPercent = (value * 10000).ceil().clamp(0, 10000) / 100.0;

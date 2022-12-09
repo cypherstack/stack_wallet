@@ -181,17 +181,12 @@ flutter:
     - assets/svg/bell.svg
     - assets/svg/arrow-left-fa.svg
     - assets/svg/copy.svg
-    - assets/svg/star.svg
-    - assets/svg/x-circle.svg
     - assets/svg/check.svg
     - assets/svg/alert-circle.svg
-    - assets/svg/alert-circle2.svg
     - assets/svg/arrow-down-left.svg
     - assets/svg/arrow-up-right.svg
     - assets/svg/bars.svg
     - assets/svg/filter.svg
-    - assets/svg/pending.svg
-    - assets/svg/signal-stream.svg
     - assets/svg/arrow-rotate.svg
     - assets/svg/arrow-rotate2.svg
     - assets/svg/qrcode1.svg
@@ -204,19 +199,15 @@ flutter:
     - assets/svg/globe.svg
     - assets/svg/wifi.svg
     - assets/svg/book-open.svg
-    - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
-    - assets/svg/network-wired.svg
     - assets/svg/network-wired-2.svg
     - assets/svg/arrow-right.svg
     - assets/svg/delete.svg
     - assets/svg/dollar-sign.svg
     - assets/svg/sun-bright2.svg
     - assets/svg/language2.svg
-    - assets/svg/pen-solid-fa.svg
     - assets/svg/magnifying-glass.svg
     - assets/svg/x.svg
-    - assets/svg/x-fat.svg
     - assets/svg/user.svg
     - assets/svg/trash.svg
     - assets/svg/eye.svg
@@ -227,9 +218,6 @@ flutter:
     - assets/svg/info-circle.svg
     - assets/svg/key.svg
     - assets/svg/node-alt.svg
-    - assets/svg/signal-problem-alt.svg
-    - assets/svg/signal-sync-alt.svg
-    - assets/svg/wallet-settings.svg
     - assets/svg/ellipsis-vertical1.svg
     - assets/svg/dice-alt.svg
     - assets/svg/circle-arrow-up-right2.svg
@@ -242,25 +230,17 @@ flutter:
     - assets/svg/dark/tx-icon-receive-failed.svg
     - assets/svg/add-backup.svg
     - assets/svg/auto-backup.svg
-    - assets/svg/restore-backup.svg
-    - assets/svg/sliders-solid.svg
     - assets/svg/message-question.svg
     - assets/svg/envelope.svg
-    - assets/svg/share-2.svg
     - assets/svg/tx-icon-anonymize.svg
     - assets/svg/tx-icon-anonymize-pending.svg
     - assets/svg/tx-icon-anonymize-failed.svg
-    - assets/svg/Polygon.svg
-    - assets/svg/persona-easy-1.svg
-    - assets/svg/persona-incognito-1.svg
     - assets/svg/dollar-sign-circle.svg
     - assets/svg/language-circle.svg
-    - assets/svg/rotate-circle.svg
     - assets/svg/sun-circle.svg
     - assets/svg/node-circle.svg
     - assets/svg/about-desktop.svg
     - assets/svg/exchange-desktop.svg
-    - assets/svg/wallet-desktop.svg
     - assets/svg/exit-desktop.svg
     - assets/svg/keys.svg
     - assets/svg/arrow-down.svg
@@ -269,16 +249,12 @@ flutter:
     - assets/svg/epic-bg.svg
     - assets/svg/upload.svg
     - assets/svg/download.svg
-    - assets/svg/wallet.svg
     - assets/svg/eye-off.svg
     - assets/svg/edit.svg
     - assets/svg/refresh.svg
     - assets/svg/clipboard.svg
     # coin icons
     - assets/svg/coin_icons/EpicCash.svg
-    # lottie animations
-    - assets/lottie/test.json
-    - assets/lottie/test2.json
     # socials
     - assets/svg/socials/compass.svg
     - assets/svg/socials/reddit.svg
@@ -286,14 +262,10 @@ flutter:
     - assets/svg/socials/telegram.svg
 
     - assets/svg/chevron-right.svg
-    - assets/svg/minimize.svg
-    - assets/svg/wallet-fa.svg
     - assets/svg/exchange-3.svg
     - assets/svg/message-question-1.svg
     - assets/svg/drd-icon.svg
     - assets/svg/box-auto.svg
-    - assets/svg/framed-address-book.svg
-    - assets/svg/framed-gear.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

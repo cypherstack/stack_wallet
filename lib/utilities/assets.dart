@@ -189,6 +189,5 @@ class _PNG {
 class _ANIMATIONS {
   const _ANIMATIONS();
 
-  String get test => "assets/lottie/test.json";
   String get test2 => "assets/lottie/test2.json";
 }
