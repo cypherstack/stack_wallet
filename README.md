@@ -1,6 +1,6 @@
-# Epic Mobile Wallet
+# Epic Pay
 
-Epic Mobile Wallet is an Epic Cash wallet for Android and iOS devices.
+Epic Pay is an Epic Cash wallet for Android and iOS devices.
 
 ## Feature List
 

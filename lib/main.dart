@@ -260,7 +260,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       child: MaterialApp(
         key: GlobalKey(),
         navigatorKey: navigatorKey,
-        title: 'Epic Mobile',
+        title: 'Epic Pay',
         onGenerateRoute: RouteGenerator.generateRoute,
         theme: ThemeData(
           accentColor: colorScheme.textGold,
