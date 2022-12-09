@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:epicpay/pages/send_view/confirm_transaction_view.dart';
-import 'package:epicpay/pages/send_view/sub_widgets/building_transaction_dialog.dart';
+import 'package:epicpay/pages/home_view/home_view.dart';
 import 'package:epicpay/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/providers/ui/preview_tx_button_state_provider.dart';
@@ -17,13 +16,15 @@ import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/animated_text.dart';
 import 'package:epicpay/widgets/background.dart';
 import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicpay/widgets/desktop/primary_button.dart';
+import 'package:epicpay/widgets/desktop/custom_text_button.dart';
 import 'package:epicpay/widgets/icon_widgets/x_icon.dart';
 import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:epicpay/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../pinpad_views/lock_screen_view.dart';
 
 class SendAmountView extends ConsumerStatefulWidget {
   const SendAmountView({
@@ -44,6 +45,8 @@ class SendAmountView extends ConsumerStatefulWidget {
   @override
   ConsumerState<SendAmountView> createState() => _SendAmountViewState();
 }
+
+enum SendingState { waiting, generating, sending, sent }
 
 class _SendAmountViewState extends ConsumerState<SendAmountView> {
   late final String walletId;
@@ -67,6 +70,55 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
+
+  SendingState sendingState = SendingState.waiting;
+
+  Widget getButtonChild(
+    BuildContext context,
+    bool enabled,
+    SendingState state,
+  ) {
+    final style = STextStyles.buttonText(context).copyWith(
+      color: enabled
+          ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
+          : Theme.of(context)
+              .extension<StackColors>()!
+              .buttonTextPrimaryDisabled,
+    );
+
+    switch (state) {
+      case SendingState.waiting:
+        return Text(
+          "SEND",
+          style: style,
+        );
+      case SendingState.generating:
+        return AnimatedText(
+          stringsToLoopThrough: const [
+            "GENERATING",
+            "GENERATING.",
+            "GENERATING..",
+            "GENERATING...",
+          ],
+          style: style,
+        );
+      case SendingState.sending:
+        return AnimatedText(
+          stringsToLoopThrough: const [
+            "SENDING",
+            "SENDING.",
+            "SENDING..",
+            "SENDING...",
+          ],
+          style: style,
+        );
+      case SendingState.sent:
+        return Text(
+          "SENT",
+          style: style,
+        );
+    }
+  }
 
   Decimal? _cachedBalance;
 
@@ -122,8 +174,10 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
   void _updatePreviewButtonState(String? address, Decimal? amount) {
     final isValidAddress =
         ref.read(walletProvider)!.validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state =
-        (isValidAddress && amount != null && amount > Decimal.zero);
+    ref.read(previewTxButtonStateProvider.state).state = (isValidAddress &&
+        amount != null &&
+        amount > Decimal.zero &&
+        amount <= ref.read(walletProvider)!.cachedAvailableBalance);
   }
 
   late Future<Decimal> _calculateFeesFuture;
@@ -212,117 +266,94 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
   }
 
   void send() async {
-    // wait for keyboard to disappear
-    FocusScope.of(context).unfocus();
-    await Future<void>.delayed(
-      const Duration(milliseconds: 75),
-    );
-
-    final amount = Format.decimalAmountToSatoshis(_amountToSend!);
-    int availableBalance;
-    availableBalance = Format.decimalAmountToSatoshis(
-        await ref.read(walletProvider)!.availableBalance);
-
-    // confirm send all
-    if (amount == availableBalance) {
-      final bool? shouldSendAll = await showDialog<bool>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return StackDialog(
-            title: "Confirm send all",
-            message:
-                "You are about to send your entire balance. Would you like to continue?",
-            leftButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
-              child: Text(
-                "Cancel",
-                style: STextStyles.buttonText(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonColor(context),
-              child: Text(
-                "Yes",
-                style: STextStyles.buttonText(context),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          );
-        },
-      );
-
-      if (shouldSendAll == null || shouldSendAll == false) {
-        // cancel preview
-        return;
-      }
+    // ignore if currently sending
+    if (sendingState != SendingState.waiting) {
+      return;
     }
 
-    try {
-      bool wasCancelled = false;
+    // // wait for keyboard to disappear
+    // FocusScope.of(context).unfocus();
+    // await Future<void>.delayed(
+    //   const Duration(milliseconds: 75),
+    // );
+    //
 
-      unawaited(
-        showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: false,
-          builder: (context) {
-            return BuildingTransactionDialog(
-              onCancel: () {
-                wasCancelled = true;
-
-                Navigator.of(context).pop();
-              },
-            );
-          },
+    // unlock
+    final unlocked = await Navigator.push(
+      context,
+      RouteGenerator.getRoute(
+        shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+        builder: (_) => const LockscreenView(
+          showBackButton: true,
+          popOnSuccess: true,
+          routeOnSuccessArguments: true,
+          routeOnSuccess: "",
+          biometricsCancelButtonString: "CANCEL",
+          biometricsLocalizedReason: "Authenticate to send transaction",
+          biometricsAuthenticationTitle: "Confirm Transaction",
         ),
-      );
+        settings: const RouteSettings(name: "/confirmsendlockscreen"),
+      ),
+    );
 
+    // failed to authenticate
+    if (!(unlocked is bool && unlocked && mounted)) {
+      return;
+    }
+
+    setState(() {
+      sendingState = SendingState.generating;
+    });
+
+    final amount = Format.decimalAmountToSatoshis(_amountToSend!);
+
+    try {
       Map<String, dynamic> txData = await ref.read(walletProvider)!.prepareSend(
         address: address,
         satoshiAmount: amount,
         args: {"feeRate": 1},
       );
 
-      if (!wasCancelled && mounted) {
-        // pop building dialog
-        Navigator.of(context).pop();
-        txData["note"] = noteController.text;
-        txData["address"] = address;
+      setState(() {
+        sendingState = SendingState.sending;
+      });
 
-        unawaited(
-          Navigator.of(context).push(
-            RouteGenerator.getRoute(
-              shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-              builder: (_) => ConfirmTransactionView(
-                transactionInfo: txData,
-                walletId: walletId,
-              ),
-              settings: const RouteSettings(
-                name: ConfirmTransactionView.routeName,
-              ),
-            ),
+      txData["note"] = noteController.text;
+      txData["address"] = address;
+
+      final txid = await ref.read(walletProvider)!.confirmSend(txData: txData);
+
+      unawaited(
+        ref.read(walletProvider)!.refresh(),
+      );
+
+      // save note
+      await ref
+          .read(notesServiceChangeNotifierProvider(walletId))
+          .editOrAddNote(txid: txid, note: noteController.text);
+
+      setState(() {
+        sendingState = SendingState.sent;
+      });
+
+      await Future<void>.delayed(const Duration(seconds: 2));
+
+      sendingState = SendingState.waiting;
+
+      if (mounted) {
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(
+            HomeView.routeName,
           ),
         );
+        // ensure return to wallet view
+        ref.read(homeViewPageIndexStateProvider.state).state = 1;
       }
     } catch (e) {
       if (mounted) {
-        // pop building dialog
-        Navigator.of(context).pop();
-
+        setState(() {
+          sendingState = SendingState.waiting;
+        });
         unawaited(
           showDialog<dynamic>(
             context: context,
@@ -893,13 +924,37 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                         const SizedBox(
                           height: 24,
                         ),
-                        PrimaryButton(
-                          label: "SEND",
-                          onPressed: send,
-                          enabled: ref
-                              .watch(previewTxButtonStateProvider.state)
-                              .state,
-                        ),
+                        CustomTextButtonBase(
+                          height: 56,
+                          textButton: TextButton(
+                            onPressed: ref
+                                    .watch(previewTxButtonStateProvider.state)
+                                    .state
+                                ? send
+                                : null,
+                            style: ref
+                                    .watch(previewTxButtonStateProvider.state)
+                                    .state
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryEnabledButtonColor(context)
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryDisabledButtonColor(context),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                getButtonChild(
+                                  context,
+                                  ref
+                                      .watch(previewTxButtonStateProvider.state)
+                                      .state,
+                                  sendingState,
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
                       ],
                     ),
                   ),
