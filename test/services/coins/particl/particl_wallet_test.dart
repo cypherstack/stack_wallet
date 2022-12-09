@@ -1672,8 +1672,8 @@ void main() {
       await part?.refresh();
 
       verify(client?.getServerFeatures()).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+      // verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
+      // verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
       verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
@@ -1687,9 +1687,9 @@ void main() {
             true);
       }
 
-      expect(secureStore.interactions, 14);
-      expect(secureStore.writes, 7);
-      expect(secureStore.reads, 7);
+      expect(secureStore.interactions, 10);
+      expect(secureStore.writes, 5);
+      expect(secureStore.reads, 5);
       expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(client);
