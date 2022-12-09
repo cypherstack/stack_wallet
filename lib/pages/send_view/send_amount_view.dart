@@ -8,7 +8,6 @@ import 'package:epicmobile/pages/wallet_view/sub_widgets/wallet_summary_info.dar
 import 'package:epicmobile/providers/providers.dart';
 import 'package:epicmobile/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:epicmobile/providers/ui/preview_tx_button_state_provider.dart';
-import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
 import 'package:epicmobile/utilities/constants.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
@@ -125,16 +124,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
       //   });
       // }
     }
-  }
-
-  String? _updateInvalidAddressText(String address, Manager manager) {
-    if (_data != null && _data!.contactLabel == address) {
-      return null;
-    }
-    if (address.isNotEmpty && !manager.validateAddress(address)) {
-      return "Invalid address";
-    }
-    return null;
   }
 
   void _updatePreviewButtonState(String? address, Decimal? amount) {
@@ -412,17 +401,14 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                         children: [
                           Text(
                             "SEND TO",
-                            style: STextStyles.overLineBold(context).copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: STextStyles.overLineBold(context),
                             textAlign: TextAlign.start,
                           ),
                           const SizedBox(
                             height: 12,
                           ),
-                          // todo print address here
                           Text(
-                            "$address",
+                            address,
                             style: STextStyles.body(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
@@ -432,58 +418,55 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                           const _Divider(),
                           Text(
                             "NOTE (OPTIONAL)",
-                            style: STextStyles.overLineBold(context).copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: STextStyles.overLineBold(context),
                             textAlign: TextAlign.start,
                           ),
                           const SizedBox(
                             height: 12,
                           ),
-                          TextField(
-                            autocorrect: true,
-                            enableSuggestions: true,
-                            controller: noteController,
-                            focusNode: _noteFocusNode,
-                            // style: STextStyles.field(context),
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(
-                              labelText: "Type something...",
-                              labelStyle:
-                                  STextStyles.fieldLabel(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                                fontSize: 16,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  autocorrect: true,
+                                  enableSuggestions: true,
+                                  controller: noteController,
+                                  focusNode: _noteFocusNode,
+                                  style: STextStyles.body(context),
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.all(0),
+                                    hintText: "Type something...",
+                                    hintStyle:
+                                        STextStyles.body(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                                    fillColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .background,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    isCollapsed: true,
+                                  ),
+                                ),
                               ),
-                              fillColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .background,
-                              enabledBorder: InputBorder.none,
-                              // focusedBorder: InputBorder.none,
-                              // _noteFocusNode,
-                              // context,
-                            ).copyWith(
-                              suffixIcon: noteController.text.isNotEmpty
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(right: 0),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            TextFieldIconButton(
-                                              child: const XIcon(),
-                                              onTap: () async {
-                                                setState(() {
-                                                  noteController.text = "";
-                                                });
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  : null,
-                            ),
+                              if (noteController.text.isNotEmpty)
+                                TextFieldIconButton(
+                                  height: 20,
+                                  width: 20,
+                                  child: const XIcon(
+                                    width: 16,
+                                    height: 16,
+                                  ),
+                                  onTap: () async {
+                                    setState(() {
+                                      noteController.text = "";
+                                    });
+                                  },
+                                ),
+                            ],
                           ),
                           const _Divider(),
                           Text(
