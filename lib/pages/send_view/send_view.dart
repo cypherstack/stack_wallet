@@ -344,6 +344,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             if (error == null || error.isEmpty) {
                               return Container();
                             } else {
+                              _addressToggleFlag = false;
                               return Align(
                                 alignment: Alignment.topLeft,
                                 child: Padding(
