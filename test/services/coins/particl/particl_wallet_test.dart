@@ -858,9 +858,9 @@ void main() {
             true);
       }
 
-      expect(secureStore.interactions, 14);
-      expect(secureStore.writes, 7);
-      expect(secureStore.reads, 7);
+      expect(secureStore.interactions, 10); // 14
+      expect(secureStore.writes, 5); // 7
+      expect(secureStore.reads, 5); // 7
       expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(client);
