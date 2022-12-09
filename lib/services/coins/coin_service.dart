@@ -1,12 +1,10 @@
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/electrumx_rpc/cached_electrumx.dart';
-import 'package:epicmobile/electrumx_rpc/electrumx.dart';
-import 'package:epicmobile/models/models.dart';
-import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:epicmobile/services/transaction_notification_tracker.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/prefs.dart';
+import 'package:epicpay/electrumx_rpc/electrumx.dart';
+import 'package:epicpay/models/models.dart';
+import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/prefs.dart';
 
 abstract class CoinServiceAPI {
   CoinServiceAPI();
@@ -16,7 +14,6 @@ abstract class CoinServiceAPI {
     String walletId,
     String walletName,
     NodeModel node,
-    TransactionNotificationTracker tracker,
     Prefs prefs,
     List<NodeModel> failovers,
   ) {
@@ -26,32 +23,6 @@ abstract class CoinServiceAPI {
       name: node.name,
       id: node.id,
       useSSL: node.useSSL,
-    );
-    final client = ElectrumX.from(
-      node: electrumxNode,
-      failovers: failovers
-          .map((e) => ElectrumXNode(
-                address: e.host,
-                port: e.port,
-                name: e.name,
-                id: e.id,
-                useSSL: e.useSSL,
-              ))
-          .toList(),
-      prefs: prefs,
-    );
-    final cachedClient = CachedElectrumX.from(
-      node: electrumxNode,
-      failovers: failovers
-          .map((e) => ElectrumXNode(
-                address: e.host,
-                port: e.port,
-                name: e.name,
-                id: e.id,
-                useSSL: e.useSSL,
-              ))
-          .toList(),
-      prefs: prefs,
     );
 
     switch (coin) {
@@ -71,6 +42,7 @@ abstract class CoinServiceAPI {
   set shouldAutoSync(bool shouldAutoSync);
   bool get isFavorite;
   set isFavorite(bool markFavorite);
+  int get txCount;
 
   Future<Map<String, dynamic>> prepareSend({
     required String address,

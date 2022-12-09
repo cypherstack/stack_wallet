@@ -1,5 +1,5 @@
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/logger.dart';
 
 enum WalletSyncStatus { unableToSync, synced, syncing }
 

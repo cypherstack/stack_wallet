@@ -1,8 +1,7 @@
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
 
 class AppBarIconButton extends StatelessWidget {
   const AppBarIconButton({
@@ -53,41 +52,33 @@ class AppBarBackButton extends StatelessWidget {
     this.isCompact = false,
     this.size,
     this.iconSize,
+    this.padding = const EdgeInsets.only(left: 14),
   }) : super(key: key);
 
   final VoidCallback? onPressed;
   final bool isCompact;
   final double? size;
   final double? iconSize;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = Util.isDesktop;
     return Padding(
-      padding: isDesktop
-          ? const EdgeInsets.symmetric(
-              vertical: 20,
-              horizontal: 24,
-            )
-          : const EdgeInsets.all(10),
-      child: AppBarIconButton(
-        size: size ??
-            (isDesktop
-                ? isCompact
-                    ? 42
-                    : 56
-                : 32),
-        color: isDesktop
-            ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
-            : Theme.of(context).extension<StackColors>()!.background,
-        shadows: const [],
-        icon: SvgPicture.asset(
-          Assets.svg.arrowLeft,
-          width: iconSize ?? (isCompact ? 18 : 24),
-          height: iconSize ?? (isCompact ? 18 : 24),
-          color: Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
+      padding: padding,
+      child: Center(
+        child: AppBarIconButton(
+          size: size ?? 40,
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          shadows: const [],
+          icon: SvgPicture.asset(
+            Assets.svg.arrowLeft,
+            width: iconSize ?? (isCompact ? 18 : 21),
+            height: iconSize ?? (isCompact ? 18 : 21),
+            color:
+                Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
+          ),
+          onPressed: onPressed ?? Navigator.of(context).pop,
         ),
-        onPressed: onPressed ?? Navigator.of(context).pop,
       ),
     );
   }

@@ -1,18 +1,18 @@
 import 'dart:convert';
 
-import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
   static String _nodeId(Coin coin) => "default_${coin.name}";
-  static const String defaultName = "Stack Default";
+  static const String defaultName = "Default";
 
   static List<NodeModel> get all => [
         epicCash,
       ];
 
   static NodeModel get epicCash => NodeModel(
-        host: "http://epiccash.epicmobile.com",
+        host: "epiccash.stackwallet.com",
         port: 3413,
         name: defaultName,
         id: _nodeId(Coin.epicCash),

@@ -1,40 +1,24 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/models/models.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
-import 'package:epicmobile/pages/wallet_view/sub_widgets/tx_icon.dart';
-import 'package:epicmobile/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
-import 'package:epicmobile/pages/wallet_view/transaction_views/edit_note_view.dart';
-import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
-import 'package:epicmobile/providers/global/address_book_service_provider.dart';
-import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:epicmobile/services/coins/manager.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/block_explorers.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
-import 'package:epicmobile/utilities/format.dart';
-import 'package:epicmobile/utilities/logger.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
-import 'package:epicmobile/widgets/conditional_parent.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/custom_buttons/blue_text_button.dart';
-import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
-import 'package:epicmobile/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:epicmobile/widgets/icon_widgets/copy_icon.dart';
-import 'package:epicmobile/widgets/icon_widgets/pencil_icon.dart';
-import 'package:epicmobile/widgets/rounded_white_container.dart';
-import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:epicpay/models/models.dart';
+import 'package:epicpay/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
+import 'package:epicpay/pages/wallet_view/wallet_view.dart';
+import 'package:epicpay/providers/global/address_book_service_provider.dart';
+import 'package:epicpay/providers/providers.dart';
+import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:epicpay/services/coins/manager.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/format.dart';
+import 'package:epicpay/utilities/logger.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TransactionDetailsView extends ConsumerStatefulWidget {
@@ -58,61 +42,50 @@ class TransactionDetailsView extends ConsumerStatefulWidget {
 
 class _TransactionDetailsViewState
     extends ConsumerState<TransactionDetailsView> {
-  late final bool isDesktop;
+  late final TextEditingController noteController;
   late Transaction _transaction;
   late final String walletId;
 
   late final Coin coin;
   late final Decimal amount;
   late final Decimal fee;
-  late final String amountPrefix;
 
   bool showFeePending = false;
 
-  @override
-  void initState() {
-    isDesktop = Util.isDesktop;
-    _transaction = widget.transaction;
-    walletId = widget.walletId;
+  Widget whatIsIt(String type) {
+    Color color;
+    String label;
 
-    coin = widget.coin;
-    amount = Format.satoshisToAmount(_transaction.amount);
-    fee = Format.satoshisToAmount(_transaction.fees);
-
-    amountPrefix = _transaction.txType.toLowerCase() == "sent" ? "-" : "+";
-
-    // if (coin == Coin.firo || coin == Coin.firoTestNet) {
-    //   showFeePending = true;
-    // } else {
-    //   showFeePending = false;
-    // }
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  String whatIsIt(String type) {
-    if (type == "Received") {
-      // if (_transaction.isMinting) {
-      //   return "Minting";
-      // } else
+    if (_transaction.isCancelled) {
+      color = Theme.of(context).extension<StackColors>()!.accentColorRed;
+      label = "Cancelled";
+    } else if (type == "Received") {
       if (_transaction.confirmedStatus) {
-        return "Received";
+        color = Theme.of(context).extension<StackColors>()!.accentColorGreen;
+        label = "Received";
       } else {
-        return "Receiving";
+        color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+        label = "Receiving (~10 min for 10 confirmations)";
       }
     } else if (type == "Sent") {
       if (_transaction.confirmedStatus) {
-        return "Sent";
+        color = Theme.of(context).extension<StackColors>()!.accentColorRed;
+        label = "Sent";
       } else {
-        return "Sending";
+        color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+        label = "Sending (~10 min for 10 confirmations)";
       }
     } else {
-      return type;
+      color = Theme.of(context).extension<StackColors>()!.textLight;
+      label = type;
     }
+
+    return Text(
+      label,
+      style: STextStyles.body(context).copyWith(
+        color: color,
+      ),
+    );
   }
 
   Future<String> fetchContactNameFor(String address) async {
@@ -134,8 +107,6 @@ class _TransactionDetailsViewState
       return address;
     }
   }
-
-  String _note = "";
 
   Future<bool> showExplorerWarning(String explorer) async {
     final bool? shouldContinue = await showDialog<bool>(
@@ -173,7 +144,7 @@ class _TransactionDetailsViewState
           },
           child: Text(
             "Cancel",
-            style: STextStyles.button(context).copyWith(
+            style: STextStyles.buttonText(context).copyWith(
                 color: Theme.of(context)
                     .extension<StackColors>()!
                     .accentColorDark),
@@ -188,7 +159,7 @@ class _TransactionDetailsViewState
           },
           child: Text(
             "Continue",
-            style: STextStyles.button(context),
+            style: STextStyles.buttonText(context),
           ),
         ),
       ),
@@ -197,1031 +168,284 @@ class _TransactionDetailsViewState
   }
 
   @override
+  void initState() {
+    noteController = TextEditingController();
+    _transaction = widget.transaction;
+    walletId = widget.walletId;
+
+    coin = widget.coin;
+    amount = Format.satoshisToAmount(_transaction.amount, coin: coin);
+    fee = Format.satoshisToAmount(_transaction.fees, coin: coin);
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      noteController.text = await ref
+          .read(notesServiceChangeNotifierProvider(walletId))
+          .getNoteFor(txid: _transaction.txid);
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    noteController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: isDesktop
-          ? Colors.transparent
-          : Theme.of(context).extension<StackColors>()!.background,
-      appBar: isDesktop
-          ? null
-          : AppBar(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              leading: AppBarBackButton(
-                onPressed: () async {
-                  // if (FocusScope.of(context).hasFocus) {
-                  //   FocusScope.of(context).unfocus();
-                  //   await Future<void>.delayed(Duration(milliseconds: 50));
-                  // }
-                  Navigator.of(context).pop();
-                },
-              ),
-              title: Text(
-                "Transaction details",
-                style: STextStyles.navBarTitle(context),
-              ),
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          leading: AppBarBackButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+            },
+          ),
+          centerTitle: true,
+          title: Text(
+            "Transaction details",
+            style: STextStyles.titleH4(context),
+          ),
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 24,
             ),
-      body: Padding(
-        padding: isDesktop
-            ? const EdgeInsets.only(left: 32)
-            : const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            if (isDesktop)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Transaction details",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                  const DesktopDialogCloseButton(),
-                ],
-              ),
-            Expanded(
-              child: Padding(
-                padding: isDesktop
-                    ? const EdgeInsets.only(
-                        right: 32,
-                        bottom: 32,
-                      )
-                    : const EdgeInsets.all(0),
-                child: ConditionalParent(
-                  condition: isDesktop,
-                  builder: (child) {
-                    return RoundedWhiteContainer(
-                      borderColor: isDesktop
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .background
-                          : null,
-                      padding: const EdgeInsets.all(0),
-                      child: child,
-                    );
-                  },
+            child: Column(
+              children: [
+                Expanded(
                   child: SingleChildScrollView(
-                    primary: isDesktop ? false : null,
-                    child: Padding(
-                      padding: isDesktop
-                          ? const EdgeInsets.all(0)
-                          : const EdgeInsets.all(4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          RoundedWhiteContainer(
-                            padding: isDesktop
-                                ? const EdgeInsets.all(0)
-                                : const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TXDetailsItemBase(
+                          title: Text(
+                            "STATUS",
+                            style: STextStyles.overLineBold(context),
+                          ),
+                          body: whatIsIt(_transaction.txType),
+                        ),
+                        const _Divider(),
+                        TXDetailsItemBase(
+                          title: Text(
+                            "NOTE",
+                            style: STextStyles.overLineBold(context),
+                          ),
+                          body: TextField(
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            controller: noteController,
+                            onChanged: (value) {
+                              ref
+                                  .read(notesServiceChangeNotifierProvider(
+                                      walletId))
+                                  .editOrAddNote(
+                                    txid: _transaction.txid,
+                                    note: value,
+                                  );
+                            },
+                            style: STextStyles.body(context),
+                            textAlignVertical: TextAlignVertical.center,
+                            decoration: InputDecoration(
+                              focusColor: Colors.transparent,
+                              fillColor: Colors.transparent,
+                              filled: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 0,
+                                horizontal: 0,
+                              ),
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              // border: InputBorder.none,
+                              isCollapsed: true,
+                              hintText: "Type something...",
+                              hintStyle: STextStyles.body(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (_transaction.txType.toLowerCase() == "sent")
+                          const _Divider(),
+                        if (_transaction.txType.toLowerCase() == "sent")
+                          TXDetailsItem(
+                            title: "RECIPIENT",
+                            info: _transaction.address,
+                          ),
+                        const _Divider(),
+                        TXDetailsItem(
+                          title: "AMOUNT",
+                          info: amount.toStringAsPrecision(1),
+                        ),
+                        if (_transaction.txType.toLowerCase() == "sent")
+                          const _Divider(),
+                        if (_transaction.txType.toLowerCase() == "sent")
+                          TXDetailsItem(
+                            title: "FEE",
+                            info: showFeePending
+                                ? _transaction.confirmedStatus
+                                    ? fee.toStringAsPrecision(1)
+                                    : "Pending"
+                                : fee.toStringAsPrecision(1),
+                          ),
+                        const _Divider(),
+                        TXDetailsItem(
+                          title: "DATE",
+                          info: Format.extractDateFrom(
+                            _transaction.timestamp,
+                          ),
+                        ),
+                        const _Divider(),
+                        TXDetailsItemBase(
+                          title: Text(
+                            "TRANSACTION ID",
+                            style: STextStyles.overLineBold(context),
+                          ),
+                          body: GestureDetector(
+                            onTap: () async {
+                              final uri = Uri.parse(
+                                  "https://explorer3.epic.tech/blockdetail/${_transaction.txid}");
+                              try {
+                                await launchUrl(
+                                  uri,
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              } catch (_) {
+                                unawaited(
+                                  showDialog<void>(
+                                    context: context,
+                                    builder: (_) => OkDialog(
+                                      title: "Could not open in block explorer",
+                                      message:
+                                          "Failed to open \"${uri.toString()}\"",
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                             child: Container(
-                              decoration: isDesktop
-                                  ? BoxDecoration(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .background,
-                                      borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(
-                                          Constants.size.circularBorderRadius,
-                                        ),
-                                      ),
-                                    )
-                                  : null,
-                              child: Padding(
-                                padding: isDesktop
-                                    ? const EdgeInsets.all(12)
-                                    : const EdgeInsets.all(0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    if (isDesktop)
-                                      Row(
-                                        children: [
-                                          TxIcon(
-                                            transaction: _transaction,
-                                          ),
-                                          const SizedBox(
-                                            width: 16,
-                                          ),
-                                          SelectableText(
-                                            _transaction.isCancelled
-                                                ? "Cancelled"
-                                                : whatIsIt(_transaction.txType),
-                                            style:
-                                                STextStyles.desktopTextMedium(
-                                                    context),
-                                          ),
-                                        ],
-                                      ),
-                                    Column(
-                                      crossAxisAlignment: isDesktop
-                                          ? CrossAxisAlignment.end
-                                          : CrossAxisAlignment.start,
-                                      children: [
-                                        SelectableText(
-                                          "$amountPrefix${Format.localizedStringAsFixed(
-                                            value: amount,
-                                            locale: ref.watch(
-                                              localeServiceChangeNotifierProvider
-                                                  .select(
-                                                      (value) => value.locale),
-                                            ),
-                                            decimalPlaces:
-                                                Constants.decimalPlaces,
-                                          )} ${coin.ticker}",
-                                          style: isDesktop
-                                              ? STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                          context)
-                                                  .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark,
-                                                )
-                                              : STextStyles.titleBold12(
-                                                  context),
-                                        ),
-                                        const SizedBox(
-                                          height: 2,
-                                        ),
-                                        if (ref.watch(
-                                            prefsChangeNotifierProvider.select(
-                                                (value) =>
-                                                    value.externalCalls)))
-                                          SelectableText(
-                                            "$amountPrefix${Format.localizedStringAsFixed(value: amount * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1)), locale: ref.watch(
-                                                  localeServiceChangeNotifierProvider
-                                                      .select((value) =>
-                                                          value.locale),
-                                                ), decimalPlaces: 2)} ${ref.watch(
-                                              prefsChangeNotifierProvider
-                                                  .select(
-                                                (value) => value.currency,
-                                              ),
-                                            )}",
-                                            style: isDesktop
-                                                ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                        context)
-                                                : STextStyles.itemSubtitle(
-                                                    context),
-                                          ),
-                                      ],
-                                    ),
-                                    if (!isDesktop)
-                                      TxIcon(
-                                        transaction: _transaction,
-                                      ),
-                                  ],
-                                ),
+                              color: Colors.transparent,
+                              child: Text(
+                                _transaction.txid,
+                                style: STextStyles.body(context),
                               ),
                             ),
                           ),
-
-                          isDesktop
-                              ? const _Divider()
-                              : const SizedBox(
-                                  height: 12,
-                                ),
-                          RoundedWhiteContainer(
-                            padding: isDesktop
-                                ? const EdgeInsets.all(16)
-                                : const EdgeInsets.all(12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Status",
-                                  style: isDesktop
-                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                          context)
-                                      : STextStyles.itemSubtitle(context),
-                                ),
-                                // Flexible(
-                                //   child: FittedBox(
-                                //     fit: BoxFit.scaleDown,
-                                //     child:
-                                SelectableText(
-                                  _transaction.isCancelled
-                                      ? "Cancelled"
-                                      : whatIsIt(_transaction.txType),
-                                  style: isDesktop
-                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                              context)
-                                          .copyWith(
-                                          color: _transaction.txType == "Sent"
-                                              ? Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorOrange
-                                              : Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorGreen,
-                                        )
-                                      : STextStyles.itemSubtitle12(context),
-                                ),
-                                //   ),
-                                // ),
-                              ],
-                            ),
-                          ),
-                          if (!(_transaction.txType.toLowerCase() == "sent") &&
-                              !(_transaction.subType == "mint"))
-                            isDesktop
-                                ? const _Divider()
-                                : const SizedBox(
-                                    height: 12,
-                                  ),
-                          if (!(_transaction.txType.toLowerCase() == "sent") &&
-                              !(_transaction.subType == "mint"))
-                            RoundedWhiteContainer(
-                              padding: isDesktop
-                                  ? const EdgeInsets.all(16)
-                                  : const EdgeInsets.all(12),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _transaction.txType.toLowerCase() ==
-                                                  "sent"
-                                              ? "Sent to"
-                                              : "Receiving address",
-                                          style: isDesktop
-                                              ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                      context)
-                                              : STextStyles.itemSubtitle(
-                                                  context),
-                                        ),
-                                        const SizedBox(
-                                          height: 8,
-                                        ),
-                                        _transaction.txType.toLowerCase() ==
-                                                "received"
-                                            ? FutureBuilder(
-                                                future: fetchContactNameFor(
-                                                    _transaction.address),
-                                                builder: (builderContext,
-                                                    AsyncSnapshot<String>
-                                                        snapshot) {
-                                                  String addressOrContactName =
-                                                      _transaction.address;
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    addressOrContactName =
-                                                        snapshot.data!;
-                                                  }
-                                                  return SelectableText(
-                                                    addressOrContactName,
-                                                    style: isDesktop
-                                                        ? STextStyles
-                                                                .desktopTextExtraExtraSmall(
-                                                                    context)
-                                                            .copyWith(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .extension<
-                                                                    StackColors>()!
-                                                                .textDark,
-                                                          )
-                                                        : STextStyles
-                                                            .itemSubtitle12(
-                                                                context),
-                                                  );
-                                                },
-                                              )
-                                            : SelectableText(
-                                                _transaction.address,
-                                                style: isDesktop
-                                                    ? STextStyles
-                                                            .desktopTextExtraExtraSmall(
-                                                                context)
-                                                        .copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                                StackColors>()!
-                                                            .textDark,
-                                                      )
-                                                    : STextStyles
-                                                        .itemSubtitle12(
-                                                            context),
-                                              ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (isDesktop)
-                                    IconCopyButton(
-                                      data: _transaction.address,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          isDesktop
-                              ? const _Divider()
-                              : const SizedBox(
-                                  height: 12,
-                                ),
-
-                          RoundedWhiteContainer(
-                            padding: isDesktop
-                                ? const EdgeInsets.all(16)
-                                : const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Note",
-                                      style: isDesktop
-                                          ? STextStyles
-                                              .desktopTextExtraExtraSmall(
-                                                  context)
-                                          : STextStyles.itemSubtitle(context),
-                                    ),
-                                    isDesktop
-                                        ? IconPencilButton(
-                                            onPressed: () {
-                                              showDialog<void>(
-                                                context: context,
-                                                builder: (context) {
-                                                  return DesktopDialog(
-                                                    maxWidth: 580,
-                                                    maxHeight: 360,
-                                                    child: EditNoteView(
-                                                      txid: _transaction.txid,
-                                                      walletId: walletId,
-                                                      note: _note,
-                                                    ),
-                                                  );
-                                                },
-                                              );
-                                            },
-                                          )
-                                        : GestureDetector(
-                                            onTap: () {
-                                              Navigator.of(context).pushNamed(
-                                                EditNoteView.routeName,
-                                                arguments: Tuple3(
-                                                  _transaction.txid,
-                                                  walletId,
-                                                  _note,
-                                                ),
-                                              );
-                                            },
-                                            child: Row(
-                                              children: [
-                                                SvgPicture.asset(
-                                                  Assets.svg.pencil,
-                                                  width: 10,
-                                                  height: 10,
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .infoItemIcons,
-                                                ),
-                                                const SizedBox(
-                                                  width: 4,
-                                                ),
-                                                Text(
-                                                  "Edit",
-                                                  style: STextStyles.link2(
-                                                      context),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                FutureBuilder(
-                                  future: ref.watch(
-                                      notesServiceChangeNotifierProvider(
-                                              walletId)
-                                          .select((value) => value.getNoteFor(
-                                              txid: _transaction.txid))),
-                                  builder: (builderContext,
-                                      AsyncSnapshot<String> snapshot) {
-                                    if (snapshot.connectionState ==
-                                            ConnectionState.done &&
-                                        snapshot.hasData) {
-                                      _note = snapshot.data ?? "";
-                                    }
-                                    return SelectableText(
-                                      _note,
-                                      style: isDesktop
-                                          ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                      context)
-                                              .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textDark,
-                                            )
-                                          : STextStyles.itemSubtitle12(context),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          isDesktop
-                              ? const _Divider()
-                              : const SizedBox(
-                                  height: 12,
-                                ),
-                          RoundedWhiteContainer(
-                            padding: isDesktop
-                                ? const EdgeInsets.all(16)
-                                : const EdgeInsets.all(12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Date",
-                                      style: isDesktop
-                                          ? STextStyles
-                                              .desktopTextExtraExtraSmall(
-                                                  context)
-                                          : STextStyles.itemSubtitle(context),
-                                    ),
-                                    if (isDesktop)
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
-                                    if (isDesktop)
-                                      SelectableText(
-                                        Format.extractDateFrom(
-                                          _transaction.timestamp,
-                                        ),
-                                        style: isDesktop
-                                            ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                        context)
-                                                .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                              )
-                                            : STextStyles.itemSubtitle12(
-                                                context),
-                                      ),
-                                  ],
-                                ),
-                                if (!isDesktop)
-                                  SelectableText(
-                                    Format.extractDateFrom(
-                                      _transaction.timestamp,
-                                    ),
-                                    style: isDesktop
-                                        ? STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                                    context)
-                                            .copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark,
-                                          )
-                                        : STextStyles.itemSubtitle12(context),
-                                  ),
-                                if (isDesktop)
-                                  IconCopyButton(
-                                    data: Format.extractDateFrom(
-                                      _transaction.timestamp,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          isDesktop
-                              ? const _Divider()
-                              : const SizedBox(
-                                  height: 12,
-                                ),
-                          RoundedWhiteContainer(
-                            padding: isDesktop
-                                ? const EdgeInsets.all(16)
-                                : const EdgeInsets.all(12),
-                            child: Builder(builder: (context) {
-                              final feeString = showFeePending
-                                  ? _transaction.confirmedStatus
-                                      ? Format.localizedStringAsFixed(
-                                          value: fee,
-                                          locale: ref.watch(
-                                              localeServiceChangeNotifierProvider
-                                                  .select(
-                                                      (value) => value.locale)),
-                                          decimalPlaces:
-                                              Constants.decimalPlaces)
-                                      : "Pending"
-                                  : Format.localizedStringAsFixed(
-                                      value: fee,
-                                      locale: ref.watch(
-                                          localeServiceChangeNotifierProvider
-                                              .select((value) => value.locale)),
-                                      decimalPlaces: Constants.decimalPlaces);
-
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Transaction fee",
-                                        style: isDesktop
-                                            ? STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                                    context)
-                                            : STextStyles.itemSubtitle(context),
-                                      ),
-                                      if (isDesktop)
-                                        const SizedBox(
-                                          height: 2,
-                                        ),
-                                      if (isDesktop)
-                                        SelectableText(
-                                          feeString,
-                                          style: isDesktop
-                                              ? STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                          context)
-                                                  .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark,
-                                                )
-                                              : STextStyles.itemSubtitle12(
-                                                  context),
-                                        ),
-                                    ],
-                                  ),
-                                  if (!isDesktop)
-                                    SelectableText(
-                                      feeString,
-                                      style: isDesktop
-                                          ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                      context)
-                                              .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textDark,
-                                            )
-                                          : STextStyles.itemSubtitle12(context),
-                                    ),
-                                  if (isDesktop) IconCopyButton(data: feeString)
-                                ],
-                              );
-                            }),
-                          ),
-                          isDesktop
-                              ? const _Divider()
-                              : const SizedBox(
-                                  height: 12,
-                                ),
-                          RoundedWhiteContainer(
-                            padding: isDesktop
-                                ? const EdgeInsets.all(16)
-                                : const EdgeInsets.all(12),
-                            child: Builder(builder: (context) {
-                              final height = widget.coin != Coin.epicCash &&
-                                      _transaction.confirmedStatus
-                                  ? "${_transaction.height == 0 ? "Unknown" : _transaction.height}"
-                                  : _transaction.confirmations > 0
-                                      ? "${_transaction.height}"
-                                      : "Pending";
-
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Block height",
-                                        style: isDesktop
-                                            ? STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                                    context)
-                                            : STextStyles.itemSubtitle(context),
-                                      ),
-                                      if (isDesktop)
-                                        const SizedBox(
-                                          height: 2,
-                                        ),
-                                      if (isDesktop)
-                                        SelectableText(
-                                          height,
-                                          style: isDesktop
-                                              ? STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                          context)
-                                                  .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark,
-                                                )
-                                              : STextStyles.itemSubtitle12(
-                                                  context),
-                                        ),
-                                    ],
-                                  ),
-                                  if (!isDesktop)
-                                    SelectableText(
-                                      height,
-                                      style: isDesktop
-                                          ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                      context)
-                                              .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textDark,
-                                            )
-                                          : STextStyles.itemSubtitle12(context),
-                                    ),
-                                  if (isDesktop) IconCopyButton(data: height),
-                                ],
-                              );
-                            }),
-                          ),
-                          isDesktop
-                              ? const _Divider()
-                              : const SizedBox(
-                                  height: 12,
-                                ),
-                          RoundedWhiteContainer(
-                            padding: isDesktop
-                                ? const EdgeInsets.all(16)
-                                : const EdgeInsets.all(12),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Transaction ID",
-                                        style: isDesktop
-                                            ? STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                                    context)
-                                            : STextStyles.itemSubtitle(context),
-                                      ),
-                                      const SizedBox(
-                                        height: 8,
-                                      ),
-                                      // Flexible(
-                                      //   child: FittedBox(
-                                      //     fit: BoxFit.scaleDown,
-                                      //     child:
-                                      SelectableText(
-                                        _transaction.txid,
-                                        style: isDesktop
-                                            ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                        context)
-                                                .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                              )
-                                            : STextStyles.itemSubtitle12(
-                                                context),
-                                      ),
-                                      if (coin != Coin.epicCash)
-                                        const SizedBox(
-                                          height: 8,
-                                        ),
-                                      if (coin != Coin.epicCash)
-                                        BlueTextButton(
-                                          text: "Open in block explorer",
-                                          onTap: () async {
-                                            final uri =
-                                                getBlockExplorerTransactionUrlFor(
-                                              coin: coin,
-                                              txid: _transaction.txid,
-                                            );
-
-                                            if (ref
-                                                    .read(
-                                                        prefsChangeNotifierProvider)
-                                                    .hideBlockExplorerWarning ==
-                                                false) {
-                                              final shouldContinue =
-                                                  await showExplorerWarning(
-                                                      "${uri.scheme}://${uri.host}");
-
-                                              if (!shouldContinue) {
-                                                return;
-                                              }
-                                            }
-
-                                            // ref
-                                            //     .read(
-                                            //         shouldShowLockscreenOnResumeStateProvider
-                                            //             .state)
-                                            //     .state = false;
-                                            try {
-                                              await launchUrl(
-                                                uri,
-                                                mode: LaunchMode
-                                                    .externalApplication,
-                                              );
-                                            } catch (_) {
-                                              unawaited(showDialog<void>(
-                                                context: context,
-                                                builder: (_) => StackOkDialog(
-                                                  title:
-                                                      "Could not open in block explorer",
-                                                  message:
-                                                      "Failed to open \"${uri.toString()}\"",
-                                                ),
-                                              ));
-                                            } finally {
-                                              // Future<void>.delayed(
-                                              //   const Duration(seconds: 1),
-                                              //   () => ref
-                                              //       .read(
-                                              //           shouldShowLockscreenOnResumeStateProvider
-                                              //               .state)
-                                              //       .state = true,
-                                              // );
-                                            }
-                                          },
-                                        ),
-                                      //   ),
-                                      // ),
-                                    ],
-                                  ),
-                                ),
-                                if (isDesktop)
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
-                                if (isDesktop)
-                                  IconCopyButton(
-                                    data: _transaction.txid,
-                                  ),
-                              ],
-                            ),
-                          ),
-                          // if ((coin == Coin.firoTestNet || coin == Coin.firo) &&
-                          //     _transaction.subType == "mint")
-                          //   const SizedBox(
-                          //     height: 12,
-                          //   ),
-                          // if ((coin == Coin.firoTestNet || coin == Coin.firo) &&
-                          //     _transaction.subType == "mint")
-                          //   RoundedWhiteContainer(
-                          //     child: Column(
-                          //       crossAxisAlignment: CrossAxisAlignment.start,
-                          //       children: [
-                          //         Row(
-                          //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          //           children: [
-                          //             Text(
-                          //               "Mint Transaction ID",
-                          //               style: STextStyles.itemSubtitle(context),
-                          //             ),
-                          //           ],
-                          //         ),
-                          //         const SizedBox(
-                          //           height: 8,
-                          //         ),
-                          //         // Flexible(
-                          //         //   child: FittedBox(
-                          //         //     fit: BoxFit.scaleDown,
-                          //         //     child:
-                          //         SelectableText(
-                          //           _transaction.otherData ?? "Unknown",
-                          //           style: STextStyles.itemSubtitle12(context),
-                          //         ),
-                          //         //   ),
-                          //         // ),
-                          //         const SizedBox(
-                          //           height: 8,
-                          //         ),
-                          //         BlueTextButton(
-                          //           text: "Open in block explorer",
-                          //           onTap: () async {
-                          //             final uri = getBlockExplorerTransactionUrlFor(
-                          //               coin: coin,
-                          //               txid: _transaction.otherData ?? "Unknown",
-                          //             );
-                          //             // ref
-                          //             //     .read(
-                          //             //         shouldShowLockscreenOnResumeStateProvider
-                          //             //             .state)
-                          //             //     .state = false;
-                          //             try {
-                          //               await launchUrl(
-                          //                 uri,
-                          //                 mode: LaunchMode.externalApplication,
-                          //               );
-                          //             } catch (_) {
-                          //               unawaited(showDialog<void>(
-                          //                 context: context,
-                          //                 builder: (_) => StackOkDialog(
-                          //                   title: "Could not open in block explorer",
-                          //                   message:
-                          //                       "Failed to open \"${uri.toString()}\"",
-                          //                 ),
-                          //               ));
-                          //             } finally {
-                          //               // Future<void>.delayed(
-                          //               //   const Duration(seconds: 1),
-                          //               //   () => ref
-                          //               //       .read(
-                          //               //           shouldShowLockscreenOnResumeStateProvider
-                          //               //               .state)
-                          //               //       .state = true,
-                          //               // );
-                          //             }
-                          //           },
-                          //         ),
-                          //       ],
-                          //     ),
-                          //   ),
-                          if (coin == Coin.epicCash)
-                            isDesktop
-                                ? const _Divider()
-                                : const SizedBox(
-                                    height: 12,
-                                  ),
-                          if (coin == Coin.epicCash)
-                            RoundedWhiteContainer(
-                              padding: isDesktop
-                                  ? const EdgeInsets.all(16)
-                                  : const EdgeInsets.all(12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Slate ID",
-                                        style: isDesktop
-                                            ? STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                                    context)
-                                            : STextStyles.itemSubtitle(context),
-                                      ),
-                                      // Flexible(
-                                      //   child: FittedBox(
-                                      //     fit: BoxFit.scaleDown,
-                                      //     child:
-                                      SelectableText(
-                                        _transaction.slateId ?? "Unknown",
-                                        style: isDesktop
-                                            ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                        context)
-                                                .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                              )
-                                            : STextStyles.itemSubtitle12(
-                                                context),
-                                      ),
-                                      //   ),
-                                      // ),
-                                    ],
-                                  ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      width: 12,
-                                    ),
-                                  if (isDesktop)
-                                    IconCopyButton(
-                                      data: _transaction.slateId ?? "Unknown",
-                                    ),
-                                ],
-                              ),
-                            ),
-                          if (!isDesktop)
-                            const SizedBox(
-                              height: 12,
-                            ),
-                        ],
-                      ),
+                        ),
+                        const _Divider(),
+                        TXDetailsItem(
+                          title: "SLATE ID",
+                          info: _transaction.slateId ?? "Unknown",
+                        ),
+                        const _Divider(),
+                        TXDetailsItem(
+                          title: "BLOCK HEIGHT",
+                          info: _transaction.confirmations > 0
+                              ? "${_transaction.height}"
+                              : "Pending",
+                        ),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: (coin == Coin.epicCash &&
-              _transaction.confirmedStatus == false &&
-              _transaction.isCancelled == false &&
-              _transaction.txType == "Sent")
-          ? SizedBox(
-              width: MediaQuery.of(context).size.width - 32,
-              child: TextButton(
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    Theme.of(context).extension<StackColors>()!.textError,
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: (coin == Coin.epicCash &&
+                _transaction.confirmedStatus == false &&
+                _transaction.isCancelled == false &&
+                _transaction.txType == "Sent")
+            ? SizedBox(
+                width: MediaQuery.of(context).size.width - 32,
+                child: TextButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      Theme.of(context).extension<StackColors>()!.textError,
+                    ),
                   ),
-                ),
-                onPressed: () async {
-                  final Manager manager = ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(walletId);
+                  onPressed: () async {
+                    final Manager manager = ref.read(walletProvider)!;
 
-                  if (manager.wallet is EpicCashWallet) {
-                    final String? id = _transaction.slateId;
-                    if (id == null) {
-                      unawaited(showFloatingFlushBar(
-                        type: FlushBarType.warning,
-                        message: "Could not find Epic transaction ID",
+                    if (manager.wallet is EpicCashWallet) {
+                      final String? id = _transaction.slateId;
+                      if (id == null) {
+                        // unawaited(showFloatingFlushBar(
+                        //   type: FlushBarType.warning,
+                        //   message: "Could not find Epic transaction ID",
+                        //   context: context,
+                        // ));
+                        return;
+                      }
+
+                      unawaited(showDialog<dynamic>(
+                        barrierDismissible: false,
                         context: context,
+                        builder: (_) =>
+                            const CancellingTransactionProgressDialog(),
                       ));
+
+                      final result = await (manager.wallet as EpicCashWallet)
+                          .cancelPendingTransactionAndPost(id);
+                      if (mounted) {
+                        // pop progress dialog
+                        Navigator.of(context).pop();
+
+                        if (result.isEmpty) {
+                          await showDialog<dynamic>(
+                            context: context,
+                            builder: (_) => OkDialog(
+                              title: "Transaction cancelled",
+                              onOkPressed: (_) {
+                                manager.refresh();
+                                Navigator.of(context).popUntil(
+                                    ModalRoute.withName(WalletView.routeName));
+                              },
+                            ),
+                          );
+                        } else {
+                          await showDialog<dynamic>(
+                            context: context,
+                            builder: (_) => OkDialog(
+                              title: "Failed to cancel transaction",
+                              message: result,
+                            ),
+                          );
+                        }
+                      }
+                    } else {
+                      // unawaited(showFloatingFlushBar(
+                      //   type: FlushBarType.warning,
+                      //   message: "ERROR: Wallet type is not Epic Cash",
+                      //   context: context,
+                      // ));
                       return;
                     }
-
-                    unawaited(showDialog<dynamic>(
-                      barrierDismissible: false,
-                      context: context,
-                      builder: (_) =>
-                          const CancellingTransactionProgressDialog(),
-                    ));
-
-                    final result = await (manager.wallet as EpicCashWallet)
-                        .cancelPendingTransactionAndPost(id);
-                    if (mounted) {
-                      // pop progress dialog
-                      Navigator.of(context).pop();
-
-                      if (result.isEmpty) {
-                        await showDialog<dynamic>(
-                          context: context,
-                          builder: (_) => StackOkDialog(
-                            title: "Transaction cancelled",
-                            onOkPressed: (_) {
-                              manager.refresh();
-                              Navigator.of(context).popUntil(
-                                  ModalRoute.withName(WalletView.routeName));
-                            },
-                          ),
-                        );
-                      } else {
-                        await showDialog<dynamic>(
-                          context: context,
-                          builder: (_) => StackOkDialog(
-                            title: "Failed to cancel transaction",
-                            message: result,
-                          ),
-                        );
-                      }
-                    }
-                  } else {
-                    unawaited(showFloatingFlushBar(
-                      type: FlushBarType.warning,
-                      message: "ERROR: Wallet type is not Epic Cash",
-                      context: context,
-                    ));
-                    return;
-                  }
-                },
-                child: Text(
-                  "Cancel Transaction",
-                  style: STextStyles.button(context),
+                  },
+                  child: Text(
+                    "Cancel Transaction",
+                    style: STextStyles.buttonText(context),
+                  ),
                 ),
-              ),
-            )
-          : null,
+              )
+            : null,
+      ),
     );
   }
 }
@@ -1231,88 +455,63 @@ class _Divider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 1,
-      color: Theme.of(context).extension<StackColors>()!.background,
-    );
-  }
-}
-
-class IconCopyButton extends StatelessWidget {
-  const IconCopyButton({
-    Key? key,
-    required this.data,
-  }) : super(key: key);
-
-  final String data;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 26,
-      width: 26,
-      child: RawMaterialButton(
-        fillColor:
-            Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
-        elevation: 0,
-        hoverElevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
-        onPressed: () async {
-          await Clipboard.setData(ClipboardData(text: data));
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.info,
-              message: "Copied to clipboard",
-              context: context,
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(5),
-          child: CopyIcon(
-            width: 16,
-            height: 16,
-            color: Theme.of(context).extension<StackColors>()!.textDark,
-          ),
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Container(
+        height: 1,
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .buttonBackPrimaryDisabled,
       ),
     );
   }
 }
 
-class IconPencilButton extends StatelessWidget {
-  const IconPencilButton({
-    Key? key,
-    this.onPressed,
-  }) : super(key: key);
-
-  final VoidCallback? onPressed;
+class TXDetailsItem extends StatelessWidget {
+  const TXDetailsItem({Key? key, required this.title, required this.info})
+      : super(key: key);
+  final String title;
+  final String info;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 26,
-      width: 26,
-      child: RawMaterialButton(
-        fillColor:
-            Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
-        elevation: 0,
-        hoverElevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
-        onPressed: () => onPressed?.call(),
-        child: Padding(
-          padding: const EdgeInsets.all(5),
-          child: PencilIcon(
-            width: 16,
-            height: 16,
-            color: Theme.of(context).extension<StackColors>()!.textDark,
-          ),
-        ),
+    return TXDetailsItemBase(
+      title: Text(
+        title,
+        style: STextStyles.overLineBold(context),
       ),
+      body: SelectableText(
+        info,
+        style: STextStyles.body(context),
+      ),
+    );
+  }
+}
+
+class TXDetailsItemBase extends StatelessWidget {
+  const TXDetailsItemBase({
+    Key? key,
+    required this.title,
+    required this.body,
+    this.spacing = 8.0,
+  }) : super(key: key);
+
+  final Widget title;
+  final Widget body;
+  final double spacing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        title,
+        SizedBox(
+          height: spacing,
+        ),
+        body,
+      ],
     );
   }
 }

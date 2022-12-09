@@ -1,8 +1,8 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
-import 'package:stackwallet/services/trade_notes_service.dart';
-import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:epicmobile/services/exchange/change_now/change_now_api.dart';
+import 'package:epicmobile/services/trade_notes_service.dart';
+import 'package:epicmobile/services/trade_service.dart';
+import 'package:epicmobile/utilities/prefs.dart';
 
 @GenerateMocks([Prefs, TradesService, TradeNotesService, ChangeNowAPI])
 void main() {

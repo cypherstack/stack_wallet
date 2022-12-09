@@ -1,3 +1,4 @@
+import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 
 class TextFieldIconButton extends StatefulWidget {
@@ -35,8 +36,10 @@ class _TextFieldIconButtonState extends State<TextFieldIconButton> {
       height: widget.height,
       width: widget.width,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(8),
         child: RawMaterialButton(
+          highlightColor:
+              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
           constraints: BoxConstraints(
             minWidth: widget.width,
             minHeight: widget.height,

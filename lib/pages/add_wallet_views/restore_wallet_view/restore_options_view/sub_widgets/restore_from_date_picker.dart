@@ -1,7 +1,7 @@
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/utilities/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -43,10 +43,8 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
         style: STextStyles.field(context),
         decoration: InputDecoration(
           hintText: "Restore from...",
-          hintStyle: STextStyles.fieldLabel(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldDefaultSearchIconLeft,
+          hintStyle: STextStyles.body(context).copyWith(
+            color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
           suffixIcon: UnconstrainedBox(
             child: Row(
@@ -56,7 +54,7 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
                 ),
                 SvgPicture.asset(
                   Assets.svg.calendar,
-                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                  color: Theme.of(context).extension<StackColors>()!.textDark,
                   width: 16,
                   height: 16,
                 ),

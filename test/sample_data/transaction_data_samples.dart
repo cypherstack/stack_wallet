@@ -1,4 +1,4 @@
-import 'package:stackwallet/models/models.dart';
+import 'package:epicmobile/models/models.dart';
 
 abstract class SampleGetTransactionData {
   static const txHash0 =

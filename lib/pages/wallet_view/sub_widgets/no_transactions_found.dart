@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/widgets/rounded_white_container.dart';
 
 class NoTransActionsFound extends StatelessWidget {
   const NoTransActionsFound({Key? key}) : super(key: key);

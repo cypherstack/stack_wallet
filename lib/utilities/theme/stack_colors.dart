@@ -1,11 +1,14 @@
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/theme/color_theme.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/theme/color_theme.dart';
 import 'package:flutter/material.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
   final ThemeType themeType;
 
   final Color background;
+  final Color backgroundAppBar;
+  final Gradient? gradientBackground;
+
   final Color overlay;
 
   final Color accentColorBlue;
@@ -17,17 +20,17 @@ class StackColors extends ThemeExtension<StackColors> {
 
   final Color shadow;
 
+  final Color textLight;
+  final Color textMedium;
   final Color textDark;
-  final Color textDark2;
-  final Color textDark3;
   final Color textSubtitle1;
   final Color textSubtitle2;
   final Color textSubtitle3;
   final Color textSubtitle4;
   final Color textSubtitle5;
   final Color textSubtitle6;
-  final Color textWhite;
-  final Color textFavoriteCard;
+  final Color coal;
+  final Color textGold;
   final Color textError;
 
 // button background
@@ -173,6 +176,8 @@ class StackColors extends ThemeExtension<StackColors> {
   StackColors({
     required this.themeType,
     required this.background,
+    required this.backgroundAppBar,
+    required this.gradientBackground,
     required this.overlay,
     required this.accentColorBlue,
     required this.accentColorGreen,
@@ -181,17 +186,17 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.accentColorOrange,
     required this.accentColorDark,
     required this.shadow,
+    required this.textLight,
+    required this.textMedium,
     required this.textDark,
-    required this.textDark2,
-    required this.textDark3,
     required this.textSubtitle1,
     required this.textSubtitle2,
     required this.textSubtitle3,
     required this.textSubtitle4,
     required this.textSubtitle5,
     required this.textSubtitle6,
-    required this.textWhite,
-    required this.textFavoriteCard,
+    required this.coal,
+    required this.textGold,
     required this.textError,
     required this.buttonBackPrimary,
     required this.buttonBackSecondary,
@@ -307,6 +312,8 @@ class StackColors extends ThemeExtension<StackColors> {
     return StackColors(
       themeType: colorTheme.themeType,
       background: colorTheme.background,
+      backgroundAppBar: colorTheme.backgroundAppBar,
+      gradientBackground: colorTheme.gradientBackground,
       overlay: colorTheme.overlay,
       accentColorBlue: colorTheme.accentColorBlue,
       accentColorGreen: colorTheme.accentColorGreen,
@@ -315,17 +322,17 @@ class StackColors extends ThemeExtension<StackColors> {
       accentColorOrange: colorTheme.accentColorOrange,
       accentColorDark: colorTheme.accentColorDark,
       shadow: colorTheme.shadow,
+      textLight: colorTheme.textLight,
+      textMedium: colorTheme.textMedium,
       textDark: colorTheme.textDark,
-      textDark2: colorTheme.textDark2,
-      textDark3: colorTheme.textDark3,
       textSubtitle1: colorTheme.textSubtitle1,
       textSubtitle2: colorTheme.textSubtitle2,
       textSubtitle3: colorTheme.textSubtitle3,
       textSubtitle4: colorTheme.textSubtitle4,
       textSubtitle5: colorTheme.textSubtitle5,
       textSubtitle6: colorTheme.textSubtitle6,
-      textWhite: colorTheme.textWhite,
-      textFavoriteCard: colorTheme.textFavoriteCard,
+      coal: colorTheme.coal,
+      textGold: colorTheme.textGold,
       textError: colorTheme.textError,
       buttonBackPrimary: colorTheme.buttonBackPrimary,
       buttonBackSecondary: colorTheme.buttonBackSecondary,
@@ -444,6 +451,8 @@ class StackColors extends ThemeExtension<StackColors> {
   ThemeExtension<StackColors> copyWith({
     ThemeType? themeType,
     Color? background,
+    Color? backgroundAppBar,
+    Gradient? gradientBackground,
     Color? overlay,
     Color? accentColorBlue,
     Color? accentColorGreen,
@@ -576,6 +585,8 @@ class StackColors extends ThemeExtension<StackColors> {
     return StackColors(
       themeType: themeType ?? this.themeType,
       background: background ?? this.background,
+      backgroundAppBar: backgroundAppBar ?? this.backgroundAppBar,
+      gradientBackground: gradientBackground ?? this.gradientBackground,
       overlay: overlay ?? this.overlay,
       accentColorBlue: accentColorBlue ?? this.accentColorBlue,
       accentColorGreen: accentColorGreen ?? this.accentColorGreen,
@@ -584,17 +595,17 @@ class StackColors extends ThemeExtension<StackColors> {
       accentColorOrange: accentColorOrange ?? this.accentColorOrange,
       accentColorDark: accentColorDark ?? this.accentColorDark,
       shadow: shadow ?? this.shadow,
-      textDark: textDark ?? this.textDark,
-      textDark2: textDark2 ?? this.textDark2,
-      textDark3: textDark3 ?? this.textDark3,
+      textLight: textDark ?? this.textLight,
+      textMedium: textDark2 ?? this.textMedium,
+      textDark: textDark3 ?? this.textDark,
       textSubtitle1: textSubtitle1 ?? this.textSubtitle1,
       textSubtitle2: textSubtitle2 ?? this.textSubtitle2,
       textSubtitle3: textSubtitle3 ?? this.textSubtitle3,
       textSubtitle4: textSubtitle4 ?? this.textSubtitle4,
       textSubtitle5: textSubtitle5 ?? this.textSubtitle5,
       textSubtitle6: textSubtitle6 ?? this.textSubtitle6,
-      textWhite: textWhite ?? this.textWhite,
-      textFavoriteCard: textFavoriteCard ?? this.textFavoriteCard,
+      coal: textWhite ?? this.coal,
+      textGold: textFavoriteCard ?? this.textGold,
       textError: textError ?? this.textError,
       buttonBackPrimary: buttonBackPrimary ?? this.buttonBackPrimary,
       buttonBackSecondary: buttonBackSecondary ?? this.buttonBackSecondary,
@@ -755,9 +766,15 @@ class StackColors extends ThemeExtension<StackColors> {
 
     return StackColors(
       themeType: other.themeType,
+      gradientBackground: other.gradientBackground,
       background: Color.lerp(
         background,
         other.background,
+        t,
+      )!,
+      backgroundAppBar: Color.lerp(
+        backgroundAppBar,
+        other.backgroundAppBar,
         t,
       )!,
       overlay: Color.lerp(
@@ -800,19 +817,19 @@ class StackColors extends ThemeExtension<StackColors> {
         other.shadow,
         t,
       )!,
+      textLight: Color.lerp(
+        textLight,
+        other.textLight,
+        t,
+      )!,
+      textMedium: Color.lerp(
+        textMedium,
+        other.textMedium,
+        t,
+      )!,
       textDark: Color.lerp(
         textDark,
         other.textDark,
-        t,
-      )!,
-      textDark2: Color.lerp(
-        textDark2,
-        other.textDark2,
-        t,
-      )!,
-      textDark3: Color.lerp(
-        textDark3,
-        other.textDark3,
         t,
       )!,
       textSubtitle1: Color.lerp(
@@ -845,14 +862,14 @@ class StackColors extends ThemeExtension<StackColors> {
         other.textSubtitle6,
         t,
       )!,
-      textWhite: Color.lerp(
-        textWhite,
-        other.textWhite,
+      coal: Color.lerp(
+        coal,
+        other.coal,
         t,
       )!,
-      textFavoriteCard: Color.lerp(
-        textFavoriteCard,
-        other.textFavoriteCard,
+      textGold: Color.lerp(
+        textGold,
+        other.textGold,
         t,
       )!,
       textError: Color.lerp(
@@ -1480,12 +1497,30 @@ class StackColors extends ThemeExtension<StackColors> {
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondary,
             ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorder,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(1000),
+              ),
+            ),
           );
 
   ButtonStyle? getSecondaryDisabledButtonColor(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondaryDisabled,
+            ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorderDisabled,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(1000),
+              ),
             ),
           );
 

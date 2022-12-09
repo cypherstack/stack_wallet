@@ -7,37 +7,35 @@ import 'dart:async' as _i7;
 import 'dart:ui' as _i8;
 
 import 'package:decimal/decimal.dart' as _i15;
-import 'package:http/http.dart' as _i13;
-import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart'
+import 'package:epicmobile/models/exchange/change_now/cn_exchange_estimate.dart'
     as _i18;
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart'
+import 'package:epicmobile/models/exchange/change_now/exchange_transaction.dart'
     as _i20;
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart'
+import 'package:epicmobile/models/exchange/change_now/exchange_transaction_status.dart'
     as _i21;
-import 'package:stackwallet/models/exchange/response_objects/currency.dart'
+import 'package:epicmobile/models/exchange/response_objects/currency.dart'
     as _i14;
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart'
+import 'package:epicmobile/models/exchange/response_objects/estimate.dart'
     as _i17;
-import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart'
+import 'package:epicmobile/models/exchange/response_objects/fixed_rate_market.dart'
     as _i19;
-import 'package:stackwallet/models/exchange/response_objects/pair.dart' as _i22;
-import 'package:stackwallet/models/exchange/response_objects/range.dart'
+import 'package:epicmobile/models/exchange/response_objects/pair.dart' as _i22;
+import 'package:epicmobile/models/exchange/response_objects/range.dart'
     as _i16;
-import 'package:stackwallet/models/exchange/response_objects/trade.dart'
+import 'package:epicmobile/models/exchange/response_objects/trade.dart'
     as _i10;
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
+import 'package:epicmobile/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
     as _i5;
-import 'package:stackwallet/services/exchange/change_now/change_now_api.dart'
+import 'package:epicmobile/services/exchange/change_now/change_now_api.dart'
     as _i12;
-import 'package:stackwallet/services/exchange/exchange_response.dart' as _i2;
-import 'package:stackwallet/services/trade_notes_service.dart' as _i11;
-import 'package:stackwallet/services/trade_service.dart' as _i9;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i6;
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i4;
-import 'package:stackwallet/utilities/prefs.dart' as _i3;
-
-// ignore_for_file: type=lint
+import 'package:epicmobile/services/exchange/exchange_response.dart' as _i2;
+import 'package:epicmobile/services/trade_notes_service.dart' as _i11;
+import 'package:epicmobile/services/trade_service.dart' as _i9;
+import 'package:epicmobile/utilities/enums/backup_frequency_type.dart' as _i6;
+import 'package:epicmobile/utilities/enums/sync_type_enum.dart' as _i4;
+import 'package:epicmobile/utilities/prefs.dart' as _i3;
+import 'package:http/http.dart' as _i13;
+import 'package:mockito/mockito.dart' as _i1nore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
 // ignore_for_file: avoid_setters_without_getters
 // ignore_for_file: comment_references

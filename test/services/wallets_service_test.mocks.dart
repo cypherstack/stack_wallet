@@ -7,7 +7,7 @@ import 'dart:async' as _i4;
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart'
     as _i3;
 
 // ignore_for_file: type=lint

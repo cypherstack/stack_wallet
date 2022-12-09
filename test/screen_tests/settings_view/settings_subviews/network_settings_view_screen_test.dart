@@ -4,10 +4,10 @@
 // import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
-// import 'package:stackwallet/pages/settings_view/settings_subviews/network_settings_view.dart';
-import 'package:stackwallet/services/node_service.dart';
-// import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-// import 'package:stackwallet/widgets/node_card.dart';
+// import 'package:epicmobile/pages/settings_view/settings_subviews/network_settings_view.dart';
+import 'package:epicmobile/services/node_service.dart';
+// import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+// import 'package:epicmobile/widgets/node_card.dart';
 // import 'package:provider/provider.dart';
 //
 // import 'network_settings_view_screen_test.mocks.dart';

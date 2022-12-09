@@ -10,15 +10,15 @@ import 'package:decimal/decimal.dart' as _i5;
 import 'package:local_auth/auth_strings.dart' as _i11;
 import 'package:local_auth/local_auth.dart' as _i10;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i6;
-import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i7;
-import 'package:stackwallet/models/models.dart' as _i4;
-import 'package:stackwallet/services/coins/coin_service.dart' as _i3;
-import 'package:stackwallet/services/coins/manager.dart' as _i15;
-import 'package:stackwallet/services/wallets_service.dart' as _i13;
-import 'package:stackwallet/utilities/biometrics.dart' as _i12;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i9;
-import 'package:stackwallet/utilities/prefs.dart' as _i2;
+import 'package:epicmobile/electrumx_rpc/cached_electrumx.dart' as _i6;
+import 'package:epicmobile/electrumx_rpc/electrumx.dart' as _i7;
+import 'package:epicmobile/models/models.dart' as _i4;
+import 'package:epicmobile/services/coins/coin_service.dart' as _i3;
+import 'package:epicmobile/services/coins/manager.dart' as _i15;
+import 'package:epicmobile/services/wallets_service.dart' as _i13;
+import 'package:epicmobile/utilities/biometrics.dart' as _i12;
+import 'package:epicmobile/utilities/enums/coin_enum.dart' as _i9;
+import 'package:epicmobile/utilities/prefs.dart' as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values

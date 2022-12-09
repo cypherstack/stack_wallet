@@ -1,6 +1,5 @@
-import 'dart:ui';
-
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:flutter/material.dart';
 
 enum ThemeType {
   light,
@@ -11,6 +10,10 @@ abstract class StackColorTheme {
   ThemeType get themeType;
 
   Color get background;
+  Color get backgroundAppBar;
+
+  Gradient? get gradientBackground;
+
   Color get overlay;
 
   Color get accentColorBlue;
@@ -22,17 +25,17 @@ abstract class StackColorTheme {
 
   Color get shadow;
 
+  Color get textLight;
+  Color get textMedium;
   Color get textDark;
-  Color get textDark2;
-  Color get textDark3;
   Color get textSubtitle1;
   Color get textSubtitle2;
   Color get textSubtitle3;
   Color get textSubtitle4;
   Color get textSubtitle5;
   Color get textSubtitle6;
-  Color get textWhite;
-  Color get textFavoriteCard;
+  Color get coal;
+  Color get textGold;
   Color get textError;
 
 // button background

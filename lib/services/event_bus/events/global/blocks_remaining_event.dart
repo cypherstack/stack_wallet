@@ -1,4 +1,4 @@
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/utilities/logger.dart';
 
 class BlocksRemainingEvent {
   int blocksRemaining;

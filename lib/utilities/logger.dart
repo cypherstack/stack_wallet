@@ -5,9 +5,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-import 'package:epicmobile/models/isar/models/log.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/log_level_enum.dart';
+import 'package:epicpay/models/isar/models/log.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/enums/log_level_enum.dart';
 
 export 'enums/log_level_enum.dart';
 

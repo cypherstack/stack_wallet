@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/models/lelantus_coin.dart';
+import 'package:epicmobile/models/lelantus_coin.dart';
 
 void main() {
   test("LelantusFeeData constructor", () {

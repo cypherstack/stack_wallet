@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
-import 'package:stackwallet/services/notes_service.dart';
+import 'package:epicmobile/services/notes_service.dart';
 
 void main() {
   setUp(() async {

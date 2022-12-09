@@ -10,22 +10,22 @@ import 'package:decimal/decimal.dart' as _i9;
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i11;
-import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i10;
-import 'package:stackwallet/models/models.dart' as _i8;
-import 'package:stackwallet/models/node_model.dart' as _i20;
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i19;
-import 'package:stackwallet/services/coins/coin_service.dart' as _i13;
-import 'package:stackwallet/services/coins/manager.dart' as _i6;
-import 'package:stackwallet/services/node_service.dart' as _i3;
-import 'package:stackwallet/services/transaction_notification_tracker.dart'
+import 'package:epicmobile/electrumx_rpc/cached_electrumx.dart' as _i11;
+import 'package:epicmobile/electrumx_rpc/electrumx.dart' as _i10;
+import 'package:epicmobile/models/models.dart' as _i8;
+import 'package:epicmobile/models/node_model.dart' as _i20;
+import 'package:epicmobile/services/coins/bitcoin/bitcoin_wallet.dart' as _i19;
+import 'package:epicmobile/services/coins/coin_service.dart' as _i13;
+import 'package:epicmobile/services/coins/manager.dart' as _i6;
+import 'package:epicmobile/services/node_service.dart' as _i3;
+import 'package:epicmobile/services/transaction_notification_tracker.dart'
     as _i7;
-import 'package:stackwallet/services/wallets.dart' as _i14;
-import 'package:stackwallet/services/wallets_service.dart' as _i2;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i15;
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
+import 'package:epicmobile/services/wallets.dart' as _i14;
+import 'package:epicmobile/services/wallets_service.dart' as _i2;
+import 'package:epicmobile/utilities/enums/coin_enum.dart' as _i15;
+import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart'
     as _i12;
-import 'package:stackwallet/utilities/prefs.dart' as _i17;
+import 'package:epicmobile/utilities/prefs.dart' as _i17;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values

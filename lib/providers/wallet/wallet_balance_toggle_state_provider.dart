@@ -1,6 +1,6 @@
+import 'package:epicpay/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:epicmobile/utilities/enums/wallet_balance_toggle_state.dart';
 
 final walletBalanceToggleStateProvider =
-    StateProvider.autoDispose<WalletBalanceToggleState>(
+    StateProvider<WalletBalanceToggleState>(
         (ref) => WalletBalanceToggleState.full);

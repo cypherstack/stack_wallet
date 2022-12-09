@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/lelantus_coin.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:epicmobile/models/lelantus_coin.dart';
+import 'package:epicmobile/models/paymint/transactions_model.dart';
 
 import 'transactions_model_adapter_test.mocks.dart';
 

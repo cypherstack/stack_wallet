@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
 
 class AddressUtils {

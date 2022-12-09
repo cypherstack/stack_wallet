@@ -1,29 +1,30 @@
+import 'package:epicmobile/models/send_view_auto_fill_data.dart';
+import 'package:epicmobile/pages/send_view/send_view.dart';
+import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/services/coins/coin_service.dart';
+import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicmobile/services/locale_service.dart';
+import 'package:epicmobile/services/node_service.dart';
+import 'package:epicmobile/services/wallets.dart';
+import 'package:epicmobile/services/wallets_service.dart';
+import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicmobile/utilities/prefs.dart';
+import 'package:epicmobile/utilities/theme/light_colors.dart';
+import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/send_view_auto_fill_data.dart';
-import 'package:stackwallet/pages/send_view/send_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+
 import 'send_view_test.mocks.dart';
 
 @GenerateMocks([
   Wallets,
   WalletsService,
   NodeService,
-  BitcoinWallet,
+  EpicCashWallet,
   LocaleService,
   Prefs,
 ], customMocks: [
@@ -35,11 +36,11 @@ void main() {
     final mockWallets = MockWallets();
     final mockWalletsService = MockWalletsService();
     final mockNodeService = MockNodeService();
-    final CoinServiceAPI wallet = MockBitcoinWallet();
+    final CoinServiceAPI wallet = MockEpiccashWallet();
     final mockLocaleService = MockLocaleService();
     final mockPrefs = MockPrefs();
 
-    when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
+    when(wallet.coin).thenAnswer((_) => Coin.epicCash);
     when(wallet.walletName).thenAnswer((_) => "some wallet");
     when(wallet.walletId).thenAnswer((_) => "wallet id");
 

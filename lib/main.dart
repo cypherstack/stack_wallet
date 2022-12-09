@@ -1,48 +1,33 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/models/exchange/change_now/exchange_transaction.dart';
-import 'package:epicmobile/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:epicmobile/models/exchange/response_objects/trade.dart';
-import 'package:epicmobile/models/isar/models/log.dart';
-import 'package:epicmobile/models/models.dart';
-import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/models/notification_model.dart';
-import 'package:epicmobile/models/trade_wallet_lookup.dart';
-import 'package:epicmobile/pages/home_view/home_view.dart';
-import 'package:epicmobile/pages/intro_view.dart';
-import 'package:epicmobile/pages/loading_view.dart';
-import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
-import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:epicmobile/pages_desktop_specific/desktop_login_view.dart';
-import 'package:epicmobile/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:epicmobile/providers/global/auto_swb_service_provider.dart';
-import 'package:epicmobile/providers/global/base_currencies_provider.dart';
-import 'package:epicmobile/providers/global/trades_service_provider.dart';
-import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/providers/ui/color_theme_provider.dart';
-import 'package:epicmobile/route_generator.dart';
-import 'package:epicmobile/services/debug_service.dart';
-import 'package:epicmobile/services/exchange/change_now/change_now_exchange.dart';
-import 'package:epicmobile/services/exchange/exchange_data_loading_service.dart';
-import 'package:epicmobile/services/locale_service.dart';
-import 'package:epicmobile/services/node_service.dart';
-import 'package:epicmobile/services/notifications_api.dart';
-import 'package:epicmobile/services/notifications_service.dart';
-import 'package:epicmobile/services/trade_service.dart';
-import 'package:epicmobile/services/wallets.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/db_version_migration.dart';
-import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
-import 'package:epicmobile/utilities/logger.dart';
-import 'package:epicmobile/utilities/prefs.dart';
-import 'package:epicmobile/utilities/theme/color_theme.dart';
-import 'package:epicmobile/utilities/theme/dark_colors.dart';
-import 'package:epicmobile/utilities/theme/light_colors.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/models/isar/models/log.dart';
+import 'package:epicpay/models/models.dart';
+import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/models/trade_wallet_lookup.dart';
+import 'package:epicpay/pages/home_view/home_view.dart';
+import 'package:epicpay/pages/intro_view.dart';
+import 'package:epicpay/pages/loading_view.dart';
+import 'package:epicpay/pages/pinpad_views/lock_screen_view.dart';
+import 'package:epicpay/providers/global/base_currencies_provider.dart';
+import 'package:epicpay/providers/providers.dart';
+import 'package:epicpay/providers/tx_count_on_startup_state_provider.dart';
+import 'package:epicpay/providers/ui/color_theme_provider.dart';
+import 'package:epicpay/route_generator.dart';
+import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:epicpay/services/coins/manager.dart';
+import 'package:epicpay/services/debug_service.dart';
+import 'package:epicpay/services/locale_service.dart';
+import 'package:epicpay/services/node_service.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/db_version_migration.dart';
+import 'package:epicpay/utilities/logger.dart';
+import 'package:epicpay/utilities/messages.dart';
+import 'package:epicpay/utilities/prefs.dart';
+import 'package:epicpay/utilities/theme/dark_colors.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/utilities/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,10 +36,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:window_size/window_size.dart';
-
-final openedFromSWBFileStringStateProvider =
-    StateProvider<String?>((ref) => null);
 
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
@@ -64,12 +45,6 @@ void main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
-  }
-
-  if (Util.isDesktop) {
-    setWindowTitle('Stack Wallet');
-    setWindowMinSize(const Size(1200, 900));
-    setWindowMaxSize(Size.infinite);
   }
 
   Directory appDirectory = (await getApplicationDocumentsDirectory());
@@ -106,18 +81,6 @@ void main() async {
   Hive.registerAdapter(UtxoObjectAdapter());
   Hive.registerAdapter(StatusAdapter());
 
-  // Registering Lelantus Model Adapters
-  Hive.registerAdapter(LelantusCoinAdapter());
-
-  // notification model adapter
-  Hive.registerAdapter(NotificationModelAdapter());
-
-  // change now trade adapters
-  Hive.registerAdapter(ExchangeTransactionAdapter());
-  Hive.registerAdapter(ExchangeTransactionStatusAdapter());
-
-  Hive.registerAdapter(TradeAdapter());
-
   // reference lookup data adapter
   Hive.registerAdapter(TradeWalletLookupAdapter());
 
@@ -143,7 +106,6 @@ void main() async {
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
-  await NotificationApi.init();
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -180,16 +142,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   static const platform = MethodChannel("STACK_WALLET_RESTORE");
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  late final Wallets _wallets;
   late final Prefs _prefs;
-  late final NotificationsService _notificationsService;
   late final NodeService _nodeService;
-  late final TradesService _tradesService;
 
   late final Completer<void> loadingCompleter;
 
   bool didLoad = false;
-  bool _desktopHasPassword = false;
 
   Future<void> load() async {
     try {
@@ -201,53 +159,41 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       await DB.instance.init();
       await _prefs.init();
 
-      if (Util.isDesktop) {
-        _desktopHasPassword =
-            await ref.read(storageCryptoHandlerProvider).hasPassword();
-      }
-
-      _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
-      _tradesService = ref.read(tradesServiceProvider);
-
-      NotificationApi.prefs = _prefs;
-      NotificationApi.notificationsService = _notificationsService;
 
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
-      await _notificationsService.init(
-        nodeService: _nodeService,
-        tradesService: _tradesService,
-        prefs: _prefs,
-      );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
-      await _wallets.load(_prefs);
+
+      final walletInfo =
+          await ref.read(walletsServiceChangeNotifierProvider).walletNames;
+
+      if (walletInfo.isNotEmpty) {
+        if (walletInfo.entries.length > 1) {
+          Logging.instance.log(
+            "MORE THAN ONE WALLET: $walletInfo",
+            level: LogLevel.Fatal,
+          );
+        }
+        final info = walletInfo.values.first;
+
+        ref.read(walletStateProvider.state).state = Manager(
+          EpicCashWallet(
+            walletId: info.walletId,
+            walletName: info.name,
+            coin: info.coin,
+          ),
+        );
+        await ref.read(walletProvider)!.initializeExisting();
+        ref.read(txCountOnStartUpProvider.state).state =
+            ref.read(walletProvider)!.txCount;
+      }
+
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
-      // run without awaiting
-      if (Constants.enableExchange &&
-          _prefs.externalCalls &&
-          await _prefs.isExternalCallsSet()) {
-        unawaited(ExchangeDataLoadingService().loadAll(ref));
-      }
-
-      if (_prefs.isAutoBackupEnabled) {
-        switch (_prefs.backupFrequencyType) {
-          case BackupFrequencyType.everyTenMinutes:
-            ref.read(autoSWBServiceProvider).startPeriodicBackupTimer(
-                duration: const Duration(minutes: 10));
-            break;
-          case BackupFrequencyType.everyAppStart:
-            unawaited(ref.read(autoSWBServiceProvider).doBackup());
-            break;
-          case BackupFrequencyType.afterClosingAWallet:
-            // ignore this case here
-            break;
-        }
-      }
     } catch (e, s) {
       Logger.print("$e $s", normalLength: false);
     }
@@ -255,19 +201,18 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    ref.read(exchangeFormStateProvider).exchange = ChangeNowExchange();
-    final colorScheme = DB.instance
-        .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
-
-    ThemeType themeType;
-    switch (colorScheme) {
-      case "dark":
-        themeType = ThemeType.dark;
-        break;
-      case "light":
-      default:
-        themeType = ThemeType.light;
-    }
+    // final colorScheme = DB.instance
+    //     .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
+    //
+    // ThemeType themeType;
+    // switch (colorScheme) {
+    //   case "dark":
+    //     themeType = ThemeType.dark;
+    //     break;
+    //   case "light":
+    //   default:
+    //     themeType = ThemeType.light;
+    // }
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
     // load locale and prefs
@@ -276,28 +221,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         .loadLocale(notify: false);
 
     _prefs = ref.read(prefsChangeNotifierProvider);
-    _wallets = ref.read(walletsChangeNotifierProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(colorThemeProvider.state).state =
-          StackColors.fromStackColorTheme(
-              themeType == ThemeType.dark ? DarkColors() : LightColors());
-
-      if (Platform.isAndroid) {
-        // fetch open file if it exists
-        await getOpenFile();
-
-        if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
-            null) {
-          // waiting for loading to complete before going straight to restore if the app was opened via file
-          await loadingCompleter.future;
-
-          await goToRestoreSWB(
-              ref.read(openedFromSWBFileStringStateProvider.state).state!);
-          ref.read(openedFromSWBFileStringStateProvider.state).state = null;
-        }
-        // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
-      }
+          StackColors.fromStackColorTheme(DarkColors());
     });
 
     super.initState();
@@ -307,109 +234,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    debugPrint("didChangeAppLifecycleState: ${state.name}");
-    if (state == AppLifecycleState.resumed) {}
-    switch (state) {
-      case AppLifecycleState.inactive:
-        break;
-      case AppLifecycleState.paused:
-        break;
-      case AppLifecycleState.resumed:
-        if (Platform.isAndroid) {
-          // fetch open file if it exists
-          await getOpenFile();
-          // go straight to restore if the app was resumed via file
-          if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
-              null) {
-            await goToRestoreSWB(
-                ref.read(openedFromSWBFileStringStateProvider.state).state!);
-            ref.read(openedFromSWBFileStringStateProvider.state).state = null;
-          }
-        }
-        // if (ref.read(hasAuthenticatedOnStartStateProvider.state).state &&
-        //     ref.read(shouldShowLockscreenOnResumeStateProvider.state).state) {
-        //   final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
-        //
-        //   if (now - _prefs.lastUnlocked > _prefs.lastUnlockedTimeout) {
-        //     ref.read(shouldShowLockscreenOnResumeStateProvider.state).state =
-        //         false;
-        //     Navigator.of(navigatorKey.currentContext!).push(
-        //       MaterialPageRoute<dynamic>(
-        //         builder: (_) => LockscreenView(
-        //           routeOnSuccess: "",
-        //           popOnSuccess: true,
-        //           biometricsAuthenticationTitle: "Unlock Stack",
-        //           biometricsLocalizedReason:
-        //               "Unlock your stack wallet using biometrics",
-        //           biometricsCancelButtonString: "Cancel",
-        //           onSuccess: () {
-        //             ref
-        //                 .read(shouldShowLockscreenOnResumeStateProvider.state)
-        //                 .state = true;
-        //           },
-        //         ),
-        //       ),
-        //     );
-        //   }
-        // }
-        break;
-      case AppLifecycleState.detached:
-        break;
-    }
-  }
-
-  /// should only be called on android currently
-  Future<void> getOpenFile() async {
-    // update provider with new file content state
-    ref.read(openedFromSWBFileStringStateProvider.state).state =
-        await platform.invokeMethod("getOpenFile");
-
-    // call reset to clear cached value
-    await resetOpenPath();
-
-    Logging.instance.log(
-        "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider.state).state}",
-        level: LogLevel.Info);
-  }
-
-  /// should only be called on android currently
-  Future<void> resetOpenPath() async {
-    await platform.invokeMethod("resetOpenPath");
-  }
-
-  Future<void> goToRestoreSWB(String encrypted) async {
-    if (!_prefs.hasPin) {
-      await Navigator.of(navigatorKey.currentContext!)
-          .pushNamed(CreatePinView.routeName, arguments: true)
-          .then((value) {
-        if (value is! bool || value == false) {
-          Navigator.of(navigatorKey.currentContext!).pushNamed(
-              RestoreFromEncryptedStringView.routeName,
-              arguments: encrypted);
-        }
-      });
-    } else {
-      unawaited(Navigator.push(
-        navigatorKey.currentContext!,
-        RouteGenerator.getRoute(
-          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => LockscreenView(
-            showBackButton: true,
-            routeOnSuccess: RestoreFromEncryptedStringView.routeName,
-            routeOnSuccessArguments: encrypted,
-            biometricsCancelButtonString: "CANCEL",
-            biometricsLocalizedReason:
-                "Authenticate to restore Stack Wallet backup",
-            biometricsAuthenticationTitle: "Restore Stack backup",
-          ),
-          settings: const RouteSettings(name: "/swbrestorelockscreen"),
-        ),
-      ));
-    }
   }
 
   InputBorder _buildOutlineInputBorder(Color color) {
@@ -432,146 +256,132 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     final colorScheme = ref.watch(colorThemeProvider.state).state;
 
-    return MaterialApp(
-      key: GlobalKey(),
-      navigatorKey: navigatorKey,
-      title: 'Stack Wallet',
-      onGenerateRoute: RouteGenerator.generateRoute,
-      theme: ThemeData(
-        extensions: [colorScheme],
-        highlightColor: colorScheme.highlight,
-        brightness: Brightness.light,
-        fontFamily: GoogleFonts.inter().fontFamily,
-        unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
-        // textTheme: GoogleFonts.interTextTheme().copyWith(
-        //   button: STextStyles.button(context),
-        //   subtitle1: STextStyles.field(context).copyWith(
-        //     color: colorScheme.textDark,
-        //   ),
-        // ),
-        radioTheme: const RadioThemeData(
-          splashRadius: 0,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        // splashFactory: NoSplash.splashFactory,
-        splashColor: Colors.transparent,
-        buttonTheme: ButtonThemeData(
-          splashColor: colorScheme.splash,
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: ButtonStyle(
-            // splashFactory: NoSplash.splashFactory,
-            overlayColor: MaterialStateProperty.all(colorScheme.splash),
-            minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
-            // textStyle: MaterialStateProperty.all<TextStyle>(
-            //     STextStyles.button(context)),
-            foregroundColor:
-                MaterialStateProperty.all(colorScheme.buttonTextSecondary),
-            backgroundColor: MaterialStateProperty.all<Color>(
-                colorScheme.buttonBackSecondary),
-            shape: MaterialStateProperty.all<OutlinedBorder>(
-              RoundedRectangleBorder(
-                // 1000 to be relatively sure it keeps its pill shape
-                borderRadius: BorderRadius.circular(1000),
+    return Messages(
+      child: MaterialApp(
+        key: GlobalKey(),
+        navigatorKey: navigatorKey,
+        title: 'Epic Pay',
+        onGenerateRoute: RouteGenerator.generateRoute,
+        theme: ThemeData(
+          accentColor: colorScheme.textGold,
+          extensions: [colorScheme],
+          highlightColor: colorScheme.highlight,
+          brightness: Brightness.dark,
+          fontFamily: GoogleFonts.poppins().fontFamily,
+          unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
+          // textTheme: GoogleFonts.interTextTheme().copyWith(
+          //   button: STextStyles.button(context),
+          //   subtitle1: STextStyles.field(context).copyWith(
+          //     color: colorScheme.textDark,
+          //   ),
+          // ),
+          radioTheme: const RadioThemeData(
+            splashRadius: 0,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          // splashFactory: NoSplash.splashFactory,
+          splashColor: Colors.transparent,
+          buttonTheme: ButtonThemeData(
+            splashColor: colorScheme.splash,
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: ButtonStyle(
+              // splashFactory: NoSplash.splashFactory,
+              overlayColor: MaterialStateProperty.all(colorScheme.splash),
+              minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
+              // textStyle: MaterialStateProperty.all<TextStyle>(
+              //     STextStyles.button(context)),
+              foregroundColor:
+                  MaterialStateProperty.all(colorScheme.buttonTextSecondary),
+              backgroundColor: MaterialStateProperty.all<Color>(
+                  colorScheme.buttonBackSecondary),
+              shape: MaterialStateProperty.all<OutlinedBorder>(
+                RoundedRectangleBorder(
+                  // 1000 to be relatively sure it keeps its pill shape
+                  borderRadius: BorderRadius.circular(1000),
+                ),
               ),
             ),
           ),
-        ),
-        primaryColor: colorScheme.accentColorDark,
-        primarySwatch: Util.createMaterialColor(colorScheme.accentColorDark),
-        checkboxTheme: CheckboxThemeData(
-          splashRadius: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(Constants.size.checkboxBorderRadius),
-          ),
-          checkColor: MaterialStateColor.resolveWith(
-            (state) {
-              if (state.contains(MaterialState.selected)) {
-                return colorScheme.checkboxIconChecked;
-              }
-              return colorScheme.checkboxBGChecked;
-            },
-          ),
-          fillColor: MaterialStateColor.resolveWith(
-            (states) {
-              if (states.contains(MaterialState.selected)) {
+          primaryColor: colorScheme.accentColorDark,
+          primarySwatch: Util.createMaterialColor(colorScheme.accentColorDark),
+          checkboxTheme: CheckboxThemeData(
+            splashRadius: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(Constants.size.checkboxBorderRadius),
+            ),
+            checkColor: MaterialStateColor.resolveWith(
+              (state) {
+                if (state.contains(MaterialState.selected)) {
+                  return colorScheme.checkboxIconChecked;
+                }
                 return colorScheme.checkboxBGChecked;
-              }
-              return colorScheme.checkboxBorderEmpty;
-            },
+              },
+            ),
+            fillColor: MaterialStateColor.resolveWith(
+              (states) {
+                if (states.contains(MaterialState.selected)) {
+                  return colorScheme.checkboxBGChecked;
+                }
+                return colorScheme.checkboxBorderEmpty;
+              },
+            ),
+          ),
+          appBarTheme: AppBarTheme(
+            centerTitle: false,
+            color: colorScheme.background,
+            elevation: 0,
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            focusColor: colorScheme.textFieldDefaultBG,
+            fillColor: colorScheme.textFieldDefaultBG,
+            filled: true,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 6,
+              horizontal: 12,
+            ),
+            // labelStyle: STextStyles.fieldLabel(context),
+            // hintStyle: STextStyles.fieldLabel(context),
+            enabledBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+            focusedBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+            errorBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+            disabledBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
+            focusedErrorBorder:
+                _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
           ),
         ),
-        appBarTheme: AppBarTheme(
-          centerTitle: false,
-          color: colorScheme.background,
-          elevation: 0,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          focusColor: colorScheme.textFieldDefaultBG,
-          fillColor: colorScheme.textFieldDefaultBG,
-          filled: true,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 6,
-            horizontal: 12,
-          ),
-          // labelStyle: STextStyles.fieldLabel(context),
-          // hintStyle: STextStyles.fieldLabel(context),
-          enabledBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          focusedBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          errorBorder: _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          disabledBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          focusedErrorBorder:
-              _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-        ),
-      ),
-      home: FutureBuilder(
-        future: load(),
-        builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // FlutterNativeSplash.remove();
-            if (Util.isDesktop &&
-                (_wallets.hasWallets || _desktopHasPassword)) {
-              String? startupWalletId;
-              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
-                startupWalletId =
-                    ref.read(prefsChangeNotifierProvider).startupWalletId;
+        home: FutureBuilder(
+          future: load(),
+          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              // FlutterNativeSplash.remove();
+              if (_prefs.hasPin && ref.read(walletProvider) != null) {
+                return const LockscreenView(
+                  isInitialAppLogin: true,
+                  routeOnSuccess: HomeView.routeName,
+                  routeOnSuccessArguments: null,
+                  biometricsAuthenticationTitle: "Unlock Stack",
+                  biometricsLocalizedReason:
+                      "Unlock your Epic wallet using biometrics",
+                  biometricsCancelButtonString: "Cancel",
+                );
+              } else {
+                return const IntroView();
               }
-
-              return DesktopLoginView(startupWalletId: startupWalletId);
-            } else if (!Util.isDesktop &&
-                (_wallets.hasWallets || _prefs.hasPin)) {
-              // return HomeView();
-
-              String? startupWalletId;
-              if (ref.read(prefsChangeNotifierProvider).gotoWalletOnStartup) {
-                startupWalletId =
-                    ref.read(prefsChangeNotifierProvider).startupWalletId;
-              }
-
-              return LockscreenView(
-                isInitialAppLogin: true,
-                routeOnSuccess: HomeView.routeName,
-                routeOnSuccessArguments: startupWalletId,
-                biometricsAuthenticationTitle: "Unlock Stack",
-                biometricsLocalizedReason:
-                    "Unlock your stack wallet using biometrics",
-                biometricsCancelButtonString: "Cancel",
-              );
             } else {
-              return const IntroView();
+              // CURRENTLY DISABLED as cannot be animated
+              // technically not needed as FlutterNativeSplash will overlay
+              // anything returned here until the future completes but
+              // FutureBuilder requires you to return something
+              return const LoadingView();
             }
-          } else {
-            // CURRENTLY DISABLED as cannot be animated
-            // technically not needed as FlutterNativeSplash will overlay
-            // anything returned here until the future completes but
-            // FutureBuilder requires you to return something
-            return const LoadingView();
-          }
-        },
+          },
+        ),
       ),
     );
   }

@@ -1,14 +1,9 @@
 import 'dart:isolate';
 
-import 'package:epicmobile/models/exchange/change_now/exchange_transaction.dart';
-import 'package:epicmobile/models/exchange/response_objects/trade.dart';
-import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/models/notification_model.dart';
-import 'package:epicmobile/models/trade_wallet_lookup.dart';
-import 'package:epicmobile/services/wallets_service.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/services/wallets_service.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
 
@@ -21,11 +16,7 @@ class DB {
   static const String boxNameNotifications = "notificationModels";
   static const String boxNameWatchedTransactions =
       "watchedTxNotificationModels";
-  static const String boxNameWatchedTrades = "watchedTradesNotificationModels";
-  static const String boxNameTrades = "exchangeTransactionsBox";
-  static const String boxNameTradesV2 = "exchangeTradesBox";
-  static const String boxNameTradeNotes = "tradeNotesBox";
-  static const String boxNameTradeLookup = "tradeToTxidLookUpBox";
+
   static const String boxNameFavoriteWallets = "favoriteWallets";
   static const String boxNamePrefs = "prefs";
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
@@ -46,16 +37,10 @@ class DB {
   late final Box<NodeModel> _boxNodeModels;
   late final Box<NodeModel> _boxPrimaryNodes;
   late final Box<dynamic> _boxAllWalletsData;
-  late final Box<NotificationModel> _boxNotifications;
-  late final Box<NotificationModel> _boxWatchedTransactions;
-  late final Box<NotificationModel> _boxWatchedTrades;
-  late final Box<ExchangeTransaction> _boxTrades;
-  late final Box<Trade> _boxTradesV2;
-  late final Box<String> _boxTradeNotes;
+
   late final Box<String> _boxFavoriteWallets;
   // late final Box<xmr.WalletInfo> _walletInfoSource;
   late final Box<dynamic> _boxPrefs;
-  late final Box<TradeWalletLookup> _boxTradeLookup;
   late final Box<dynamic> _boxDBInfo;
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
@@ -121,17 +106,6 @@ class DB {
         _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
       }
 
-      _boxNotifications =
-          await Hive.openBox<NotificationModel>(boxNameNotifications);
-      _boxWatchedTransactions =
-          await Hive.openBox<NotificationModel>(boxNameWatchedTransactions);
-      _boxWatchedTrades =
-          await Hive.openBox<NotificationModel>(boxNameWatchedTrades);
-      _boxTrades = await Hive.openBox<ExchangeTransaction>(boxNameTrades);
-      _boxTradesV2 = await Hive.openBox<Trade>(boxNameTradesV2);
-      _boxTradeNotes = await Hive.openBox<String>(boxNameTradeNotes);
-      _boxTradeLookup =
-          await Hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
       // _walletInfoSource =
       //     await Hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
       _boxFavoriteWallets = await Hive.openBox<String>(boxNameFavoriteWallets);
@@ -142,17 +116,6 @@ class DB {
         _loadSharedCoinCacheBoxes(),
       ]);
       _initialized = true;
-
-      try {
-        if (_boxPrefs.get("familiarity") == null) {
-          await _boxPrefs.put("familiarity", 0);
-        }
-        int count = _boxPrefs.get("familiarity") as int;
-        await _boxPrefs.put("familiarity", count + 1);
-        Constants.exchangeForExperiencedUsers(count + 1);
-      } catch (e, s) {
-        print("$e $s");
-      }
     }
   }
 

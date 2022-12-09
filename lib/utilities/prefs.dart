@@ -1,10 +1,8 @@
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/enums/languages_enum.dart';
+import 'package:epicpay/utilities/enums/sync_type_enum.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
-import 'package:epicmobile/utilities/enums/languages_enum.dart';
-import 'package:epicmobile/utilities/enums/sync_type_enum.dart';
 
 class Prefs extends ChangeNotifier {
   Prefs._();
@@ -17,7 +15,6 @@ class Prefs extends ChangeNotifier {
   Future<void> init() async {
     if (!_initialized) {
       _currency = await _getPreferredCurrency();
-      _exchangeRateType = await _getExchangeRateType();
       _useBiometrics = await _getUseBiometrics();
       _hasPin = await _getHasPin();
       _language = await _getPreferredLanguage();
@@ -29,14 +26,7 @@ class Prefs extends ChangeNotifier {
       _lastUnlocked = await _getLastUnlocked();
       _lastUnlockedTimeout = await _getLastUnlockedTimeout();
       _showTestNetCoins = await _getShowTestNetCoins();
-      _isAutoBackupEnabled = await _getIsAutoBackupEnabled();
-      _autoBackupLocation = await _getAutoBackupLocation();
-      _backupFrequencyType = await _getBackupFrequencyType();
-      _lastAutoBackup = await _getLastAutoBackup();
       _hideBlockExplorerWarning = await _getHideBlockExplorerWarning();
-      _gotoWalletOnStartup = await _getGotoWalletOnStartup();
-      _startupWalletId = await _getStartupWalletId();
-      _externalCalls = await _getHasExternalCalls();
 
       _initialized = true;
     }
@@ -245,47 +235,6 @@ class Prefs extends ChangeNotifier {
         "USD";
   }
 
-  // exchange rate type
-
-  ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
-
-  ExchangeRateType get exchangeRateType => _exchangeRateType;
-
-  set exchangeRateType(ExchangeRateType exchangeRateType) {
-    if (_exchangeRateType != exchangeRateType) {
-      switch (exchangeRateType) {
-        case ExchangeRateType.estimated:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "exchangeRateType",
-              value: "estimated");
-          break;
-        case ExchangeRateType.fixed:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "exchangeRateType",
-              value: "fixed");
-          break;
-      }
-      _exchangeRateType = exchangeRateType;
-      notifyListeners();
-    }
-  }
-
-  Future<ExchangeRateType> _getExchangeRateType() async {
-    String? rate = await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "exchangeRateType") as String?;
-    rate ??= "estimated";
-    switch (rate) {
-      case "estimated":
-        return ExchangeRateType.estimated;
-      case "fixed":
-        return ExchangeRateType.fixed;
-      default:
-        throw Exception("Invalid exchange rate type found in prefs!");
-    }
-  }
-
   // use biometrics
 
   bool _useBiometrics = false;
@@ -353,126 +302,6 @@ class Prefs extends ChangeNotifier {
 
   // auto backup
 
-  bool _isAutoBackupEnabled = false;
-
-  bool get isAutoBackupEnabled => _isAutoBackupEnabled;
-
-  set isAutoBackupEnabled(bool isAutoBackupEnabled) {
-    if (_isAutoBackupEnabled != isAutoBackupEnabled) {
-      DB.instance
-          .put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "isAutoBackupEnabled",
-              value: isAutoBackupEnabled)
-          .then((_) {
-        _isAutoBackupEnabled = isAutoBackupEnabled;
-        notifyListeners();
-      });
-    }
-  }
-
-  Future<bool> _getIsAutoBackupEnabled() async {
-    return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "isAutoBackupEnabled") as bool? ??
-        false;
-  }
-
-  // auto backup file location uri
-
-  String? _autoBackupLocation;
-
-  String? get autoBackupLocation => _autoBackupLocation;
-
-  set autoBackupLocation(String? autoBackupLocation) {
-    if (this.autoBackupLocation != autoBackupLocation) {
-      DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "autoBackupLocation",
-          value: autoBackupLocation);
-      _autoBackupLocation = autoBackupLocation;
-      notifyListeners();
-    }
-  }
-
-  Future<String?> _getAutoBackupLocation() async {
-    return await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "autoBackupLocation") as String?;
-  }
-
-  // auto backup frequency type
-
-  BackupFrequencyType _backupFrequencyType =
-      BackupFrequencyType.everyTenMinutes;
-
-  BackupFrequencyType get backupFrequencyType => _backupFrequencyType;
-
-  set backupFrequencyType(BackupFrequencyType backupFrequencyType) {
-    if (_backupFrequencyType != backupFrequencyType) {
-      switch (backupFrequencyType) {
-        case BackupFrequencyType.everyTenMinutes:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "backupFrequencyType",
-              value: "10Min");
-          break;
-        case BackupFrequencyType.everyAppStart:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "backupFrequencyType",
-              value: "onStart");
-          break;
-        case BackupFrequencyType.afterClosingAWallet:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "backupFrequencyType",
-              value: "onWalletClose");
-          break;
-      }
-      _backupFrequencyType = backupFrequencyType;
-      notifyListeners();
-    }
-  }
-
-  Future<BackupFrequencyType> _getBackupFrequencyType() async {
-    String? rate = await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "backupFrequencyType") as String?;
-    rate ??= "10Min";
-    switch (rate) {
-      case "10Min":
-        return BackupFrequencyType.everyTenMinutes;
-      case "onStart":
-        return BackupFrequencyType.everyAppStart;
-      case "onWalletClose":
-        return BackupFrequencyType.afterClosingAWallet;
-      default:
-        throw Exception("Invalid Backup Frequency type found in prefs!");
-    }
-  }
-
-  // auto backup last time stamp
-
-  DateTime? _lastAutoBackup;
-
-  DateTime? get lastAutoBackup => _lastAutoBackup;
-
-  set lastAutoBackup(DateTime? lastAutoBackup) {
-    if (this.lastAutoBackup != lastAutoBackup) {
-      DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "lastAutoBackup",
-          value: lastAutoBackup);
-      _lastAutoBackup = lastAutoBackup;
-      notifyListeners();
-    }
-  }
-
-  Future<DateTime?> _getLastAutoBackup() async {
-    return await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "autoBackupFileUri") as DateTime?;
-  }
-
-  // auto backup
-
   bool _hideBlockExplorerWarning = false;
 
   bool get hideBlockExplorerWarning => _hideBlockExplorerWarning;
@@ -496,88 +325,5 @@ class Prefs extends ChangeNotifier {
             boxName: DB.boxNamePrefs,
             key: "hideBlockExplorerWarning") as bool? ??
         false;
-  }
-
-  // auto backup
-
-  bool _gotoWalletOnStartup = false;
-
-  bool get gotoWalletOnStartup => _gotoWalletOnStartup;
-
-  set gotoWalletOnStartup(bool gotoWalletOnStartup) {
-    if (_gotoWalletOnStartup != gotoWalletOnStartup) {
-      DB.instance
-          .put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "gotoWalletOnStartup",
-              value: gotoWalletOnStartup)
-          .then((_) {
-        _gotoWalletOnStartup = gotoWalletOnStartup;
-        notifyListeners();
-      });
-    }
-  }
-
-  Future<bool> _getGotoWalletOnStartup() async {
-    return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "gotoWalletOnStartup") as bool? ??
-        false;
-  }
-
-  // startup wallet id
-
-  String? _startupWalletId;
-
-  String? get startupWalletId => _startupWalletId;
-
-  set startupWalletId(String? startupWalletId) {
-    if (this.startupWalletId != startupWalletId) {
-      DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "startupWalletId",
-          value: startupWalletId);
-      _startupWalletId = startupWalletId;
-      notifyListeners();
-    }
-  }
-
-  Future<String?> _getStartupWalletId() async {
-    return await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "startupWalletId") as String?;
-  }
-
-  // incognito mode off by default
-  // allow external network calls such as exchange data and price info
-  bool _externalCalls = true;
-
-  bool get externalCalls => _externalCalls;
-
-  set externalCalls(bool externalCalls) {
-    if (_externalCalls != externalCalls) {
-      DB.instance
-          .put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "externalCalls",
-              value: externalCalls)
-          .then((_) {
-        _externalCalls = externalCalls;
-        notifyListeners();
-      });
-    }
-  }
-
-  Future<bool> _getHasExternalCalls() async {
-    return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "externalCalls") as bool? ??
-        true;
-  }
-
-  Future<bool> isExternalCallsSet() async {
-    if (await DB.instance
-            .get<dynamic>(boxName: DB.boxNamePrefs, key: "externalCalls") ==
-        null) {
-      return false;
-    }
-    return true;
   }
 }

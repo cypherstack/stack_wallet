@@ -1,6 +1,5 @@
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:lottie/lottie.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:flutter/material.dart';
 
 class LoadingIndicator extends StatelessWidget {
   const LoadingIndicator({
@@ -17,10 +16,12 @@ class LoadingIndicator extends StatelessWidget {
     return SizedBox(
       width: width,
       height: height,
-      child: Lottie.asset(
-        Assets.lottie.test2,
-        animate: true,
-        repeat: true,
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: CircularProgressIndicator(
+          backgroundColor: Colors.transparent,
+          color: Theme.of(context).extension<StackColors>()!.textGold,
+        ),
       ),
     );
   }

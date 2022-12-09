@@ -1,7 +1,7 @@
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
 
 class DiceIcon extends StatelessWidget {
   const DiceIcon({
@@ -21,7 +21,7 @@ class DiceIcon extends StatelessWidget {
       Assets.svg.dice,
       width: width,
       height: height,
-      color: color ?? Theme.of(context).extension<StackColors>()!.textDark3,
+      color: color ?? Theme.of(context).extension<StackColors>()!.textDark,
     );
   }
 }

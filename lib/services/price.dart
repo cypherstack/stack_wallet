@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/logger.dart';
-import 'package:epicmobile/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
 class PriceAPI {
@@ -77,17 +76,10 @@ class PriceAPI {
       return _cachedPrices;
     }
 
-    final externalCalls = Prefs.instance.externalCalls;
-    if ((!Logger.isTestEnv && !externalCalls) ||
-        !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
-      return _cachedPrices;
-    }
     Map<Coin, Tuple2<Decimal, double>> result = {};
     try {
       final uri = Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=${baseCurrency.toLowerCase()}&ids=monero,bitcoin,litecoin,epic-cash,zcoin,dogecoin,bitcoin-cash,namecoin,wownero&order=market_cap_desc&per_page=10&page=1&sparkline=false");
+          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=${baseCurrency.toLowerCase()}&ids=epic-cash&order=market_cap_desc&per_page=10&page=1&sparkline=false");
       // final uri = Uri.parse(
       //     "https://api.coingecko.com/api/v3/coins/markets?vs_currency=${baseCurrency.toLowerCase()}&ids=monero%2Cbitcoin%2Cepic-cash%2Czcoin%2Cdogecoin&order=market_cap_desc&per_page=10&page=1&sparkline=false");
 
@@ -122,13 +114,6 @@ class PriceAPI {
   }
 
   static Future<List<String>?> availableBaseCurrencies() async {
-    final externalCalls = Prefs.instance.externalCalls;
-    if ((!Logger.isTestEnv && !externalCalls) ||
-        !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
-      return null;
-    }
     const uriString =
         "https://api.coingecko.com/api/v3/simple/supported_vs_currencies";
     try {

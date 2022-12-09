@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:epicmobile/providers/ui/address_book_providers/address_entry_data_provider.dart';
+import 'package:epicpay/providers/ui/address_book_providers/address_entry_data_provider.dart';
 
 final validContactStateProvider =
     StateProvider.autoDispose.family<bool, List<int>>((ref, ids) {

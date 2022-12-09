@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/enums/backup_frequency_type.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 
@@ -35,7 +35,8 @@ abstract class Format {
   }
 
   // format date string from unix timestamp
-  static String extractDateFrom(int timestamp, {bool localized = true}) {
+  static String extractDateFrom(int timestamp,
+      {bool localized = true, bool simple = false}) {
     var date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
 
     if (!localized) {
@@ -44,6 +45,11 @@ abstract class Format {
 
     final minutes =
         date.minute < 10 ? "0${date.minute}" : date.minute.toString();
+
+    if (simple) {
+      return "${date.day} ${Constants.monthMapShort[date.month]} ${date.year}";
+    }
+
     return "${date.day} ${Constants.monthMapShort[date.month]} ${date.year}, ${date.hour}:$minutes";
   }
 

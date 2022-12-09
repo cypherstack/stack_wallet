@@ -1,6 +1,6 @@
+import 'package:epicpay/widgets/custom_pin_put/custom_pin_put_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put_state.dart';
 
 class CustomPinPut extends StatefulWidget {
   const CustomPinPut(
@@ -19,8 +19,8 @@ class CustomPinPut extends StatefulWidget {
       this.selectedFieldDecoration,
       this.followingFieldDecoration,
       this.disabledDecoration,
-      this.eachFieldWidth,
-      this.eachFieldHeight,
+      // this.eachFieldWidth = 12,
+      // this.eachFieldHeight = 12,
       this.fieldsAlignment = MainAxisAlignment.spaceBetween,
       this.eachFieldAlignment = Alignment.center,
       this.eachFieldMargin,
@@ -110,11 +110,11 @@ class CustomPinPut extends StatefulWidget {
   /// The decoration of each [CustomPinPut] field when [CustomPinPut] ise disabled
   final BoxDecoration? disabledDecoration;
 
-  /// width of each [CustomPinPut] field
-  final double? eachFieldWidth;
-
-  /// height of each [CustomPinPut] field
-  final double? eachFieldHeight;
+  // /// width of each [CustomPinPut] field
+  // final double? eachFieldWidth;
+  //
+  // /// height of each [CustomPinPut] field
+  // final double? eachFieldHeight;
 
   /// Defines how [CustomPinPut] fields are being placed inside [Row]
   final MainAxisAlignment fieldsAlignment;

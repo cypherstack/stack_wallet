@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/utilities/logger.dart';
 
 // hacky fix to receive large jsonrpc responses
 class JsonRPC {

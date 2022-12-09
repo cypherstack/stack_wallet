@@ -3,12 +3,12 @@
 // import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
-// import 'package:stackwallet/notifications/modal_popup_dialog.dart';
-// import 'package:stackwallet/pages/wallet_view/receive_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-// import 'package:stackwallet/utilities/clipboard_interface.dart';
-// import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
-// import 'package:stackwallet/widgets/custom_buttons/simple_button.dart';
+// import 'package:epicmobile/notifications/modal_popup_dialog.dart';
+// import 'package:epicmobile/pages/wallet_view/receive_view.dart';
+import 'package:epicmobile/services/coins/manager.dart';
+// import 'package:epicmobile/utilities/clipboard_interface.dart';
+// import 'package:epicmobile/widgets/custom_buttons/gradient_button.dart';
+// import 'package:epicmobile/widgets/custom_buttons/simple_button.dart';
 // import 'package:pretty_qr_code/pretty_qr_code.dart';
 // import 'package:provider/provider.dart';
 //

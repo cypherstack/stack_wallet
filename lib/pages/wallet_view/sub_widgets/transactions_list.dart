@@ -1,151 +1,141 @@
 import 'dart:async';
 
+import 'package:epicpay/models/contact.dart';
+import 'package:epicpay/models/paymint/transactions_model.dart';
+import 'package:epicpay/models/transaction_filter.dart';
+import 'package:epicpay/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:epicpay/providers/global/address_book_service_provider.dart';
+import 'package:epicpay/providers/global/wallet_provider.dart';
+import 'package:epicpay/providers/ui/transaction_filter_provider.dart';
+import 'package:epicpay/providers/wallet/notes_service_provider.dart';
+import 'package:epicpay/utilities/format.dart';
+import 'package:epicpay/widgets/loading_indicator.dart';
+import 'package:epicpay/widgets/transaction_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/pages/exchange_view/trade_details_view.dart';
-import 'package:epicmobile/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:epicmobile/providers/global/trades_service_provider.dart';
-import 'package:epicmobile/providers/global/wallets_provider.dart';
-import 'package:epicmobile/services/coins/manager.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
-import 'package:epicmobile/widgets/loading_indicator.dart';
-import 'package:epicmobile/widgets/trade_card.dart';
-import 'package:epicmobile/widgets/transaction_card.dart';
-import 'package:tuple/tuple.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
     Key? key,
     required this.walletId,
-    required this.managerProvider,
   }) : super(key: key);
 
   final String walletId;
-  final ChangeNotifierProvider<Manager> managerProvider;
 
   @override
   ConsumerState<TransactionsList> createState() => _TransactionsListState();
 }
 
 class _TransactionsListState extends ConsumerState<TransactionsList> {
-  //
   bool _hasLoaded = false;
   Map<String, Transaction> _transactions = {};
 
-  late final ChangeNotifierProvider<Manager> managerProvider;
+  bool _matchesFilter(Transaction tx, List<Contact> contacts,
+      Map<String, String> notes, TransactionFilter? filter) {
+    if (filter == null) {
+      return true;
+    }
 
-  void updateTransactions(TransactionData newData) {
+    if (!filter.sent && !filter.received) {
+      return false;
+    }
+
+    if (filter.received && !filter.sent && tx.txType == "Sent") {
+      return false;
+    }
+
+    if (filter.sent && !filter.received && tx.txType == "Received") {
+      return false;
+    }
+
+    final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
+    if ((filter.to != null &&
+            date.millisecondsSinceEpoch > filter.to!.millisecondsSinceEpoch) ||
+        (filter.from != null &&
+            date.millisecondsSinceEpoch <
+                filter.from!.millisecondsSinceEpoch)) {
+      return false;
+    }
+
+    if (filter.amount != null && filter.amount != tx.amount) {
+      return false;
+    }
+
+    return _isKeywordMatch(tx, filter.keyword.toLowerCase(), contacts, notes);
+  }
+
+  bool _isKeywordMatch(Transaction tx, String keyword, List<Contact> contacts,
+      Map<String, String> notes) {
+    if (keyword.isEmpty) {
+      return true;
+    }
+
+    bool contains = false;
+
+    // check if address book name contains
+    contains |= contacts
+        .where((e) =>
+            e.addresses.where((a) => a.address == tx.address).isNotEmpty &&
+            e.name.toLowerCase().contains(keyword))
+        .isNotEmpty;
+
+    // check if address contains
+    contains |= tx.address.toLowerCase().contains(keyword);
+
+    // check if note contains
+    contains |= notes[tx.txid] != null &&
+        notes[tx.txid]!.toLowerCase().contains(keyword);
+
+    // check if txid contains
+    contains |= tx.txid.toLowerCase().contains(keyword);
+
+    // check if subType contains
+    contains |=
+        tx.subType.isNotEmpty && tx.subType.toLowerCase().contains(keyword);
+
+    // check if txType contains
+    contains |= tx.txType.toLowerCase().contains(keyword);
+
+    // check if date contains
+    contains |=
+        Format.extractDateFrom(tx.timestamp).toLowerCase().contains(keyword);
+
+    return contains;
+  }
+
+  void updateTransactions(TransactionData newData, TransactionFilter? filter) {
+    debugPrint("FILTER: $filter");
+
     _transactions = {};
     final newTransactions =
         newData.txChunks.expand((element) => element.transactions);
+
+    final contacts = ref.read(addressBookServiceProvider).contacts;
+    final notes =
+        ref.read(notesServiceChangeNotifierProvider(widget.walletId)).notesSync;
+
     for (final tx in newTransactions) {
-      _transactions[tx.txid] = tx;
-    }
-  }
-
-  BorderRadius get _borderRadiusFirst {
-    return BorderRadius.only(
-      topLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      topRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-    );
-  }
-
-  BorderRadius get _borderRadiusLast {
-    return BorderRadius.only(
-      bottomLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      bottomRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-    );
-  }
-
-  Widget itemBuilder(
-      BuildContext context, Transaction tx, BorderRadius? radius) {
-    final matchingTrades = ref
-        .read(tradesServiceProvider)
-        .trades
-        .where((e) => e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
-    if (tx.txType == "Sent" && matchingTrades.isNotEmpty) {
-      final trade = matchingTrades.first;
-      return Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: radius,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TransactionCard(
-              // this may mess with combined firo transactions
-              key: Key(tx.toString()), //
-              transaction: tx,
-              walletId: widget.walletId,
-            ),
-            TradeCard(
-              // this may mess with combined firo transactions
-              key: Key(tx.toString() + trade.uuid), //
-              trade: trade,
-              onTap: () {
-                unawaited(
-                  Navigator.of(context).pushNamed(
-                    TradeDetailsView.routeName,
-                    arguments: Tuple4(
-                      trade.tradeId,
-                      tx,
-                      widget.walletId,
-                      ref.read(managerProvider).walletName,
-                    ),
-                  ),
-                );
-              },
-            )
-          ],
-        ),
-      );
-    } else {
-      return Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: radius,
-        ),
-        child: TransactionCard(
-          // this may mess with combined firo transactions
-          key: Key(tx.toString()), //
-          transaction: tx,
-          walletId: widget.walletId,
-        ),
-      );
+      if (_matchesFilter(tx, contacts, notes, filter)) {
+        _transactions[tx.txid] = tx;
+      }
     }
   }
 
   @override
   void initState() {
-    managerProvider = widget.managerProvider;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    // final managerProvider = ref
-    //     .watch(walletsChangeNotifierProvider)
-    //     .getManagerProvider(widget.walletId);
-
+    final filter = ref.watch(transactionFilterProvider.state).state;
     return FutureBuilder(
       future:
-          ref.watch(managerProvider.select((value) => value.transactionData)),
+          ref.watch(walletProvider.select((value) => value!.transactionData)),
       builder: (fbContext, AsyncSnapshot<TransactionData> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
-          updateTransactions(snapshot.data!);
+          updateTransactions(snapshot.data!, filter);
           _hasLoaded = true;
         }
         if (!_hasLoaded) {
@@ -172,49 +162,26 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           return RefreshIndicator(
             onRefresh: () async {
               debugPrint("pulled down to refresh on transaction list");
-              final managerProvider = ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManagerProvider(widget.walletId);
-              if (!ref.read(managerProvider).isRefreshing) {
-                unawaited(ref.read(managerProvider).refresh());
+
+              if (!ref.read(walletProvider)!.isRefreshing) {
+                unawaited(ref.read(walletProvider)!.refresh());
               }
             },
-            child: Util.isDesktop
-                ? ListView.separated(
-                    itemBuilder: (context, index) {
-                      BorderRadius? radius;
-                      if (index == list.length - 1) {
-                        radius = _borderRadiusLast;
-                      } else if (index == 0) {
-                        radius = _borderRadiusFirst;
-                      }
-                      final tx = list[index];
-                      return itemBuilder(context, tx, radius);
-                    },
-                    separatorBuilder: (context, index) {
-                      return Container(
-                        width: double.infinity,
-                        height: 2,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                      );
-                    },
-                    itemCount: list.length,
-                  )
-                : ListView.builder(
-                    itemCount: list.length,
-                    itemBuilder: (context, index) {
-                      BorderRadius? radius;
-                      if (index == list.length - 1) {
-                        radius = _borderRadiusLast;
-                      } else if (index == 0) {
-                        radius = _borderRadiusFirst;
-                      }
-                      final tx = list[index];
-                      return itemBuilder(context, tx, radius);
-                    },
-                  ),
+            child: ListView.separated(
+              itemCount: list.length,
+              separatorBuilder: (_, __) => const SizedBox(
+                height: 16,
+              ),
+              itemBuilder: (context, index) {
+                final tx = list[index];
+                return TransactionCard(
+                  // this may mess with combined firo transactions
+                  key: Key(tx.toString()), //
+                  transaction: tx,
+                  walletId: widget.walletId,
+                );
+              },
+            ),
           );
         }
       },

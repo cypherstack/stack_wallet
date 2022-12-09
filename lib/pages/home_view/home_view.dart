@@ -1,30 +1,35 @@
 import 'dart:async';
 
+import 'package:epicpay/pages/help/help_view.dart';
+import 'package:epicpay/pages/home_view/sub_widgets/connection_status_bar.dart';
+import 'package:epicpay/pages/receive_view/receive_view.dart';
+import 'package:epicpay/pages/send_view/send_view.dart';
+import 'package:epicpay/pages/settings_views/network_settings_view/network_settings_view.dart';
+import 'package:epicpay/pages/settings_views/settings_view.dart';
+import 'package:epicpay/pages/wallet_view/wallet_view.dart';
+import 'package:epicpay/providers/global/wallet_provider.dart';
+import 'package:epicpay/providers/ui/home_view_index_provider.dart';
+import 'package:epicpay/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicpay/services/event_bus/global_event_bus.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicpay/widgets/stack_dialog.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:epicmobile/pages/exchange_view/exchange_loading_overlay.dart';
-import 'package:epicmobile/pages/exchange_view/exchange_view.dart';
-import 'package:epicmobile/pages/home_view/sub_widgets/home_view_button_bar.dart';
-import 'package:epicmobile/pages/notification_views/notifications_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/global_settings_view.dart';
-import 'package:epicmobile/pages/settings_views/global_settings_view/hidden_settings.dart';
-import 'package:epicmobile/pages/wallets_view/wallets_view.dart';
-import 'package:epicmobile/providers/global/notifications_provider.dart';
-import 'package:epicmobile/providers/global/prefs_provider.dart';
-import 'package:epicmobile/providers/ui/home_view_index_provider.dart';
-import 'package:epicmobile/providers/ui/unread_notifications_provider.dart';
-import 'package:epicmobile/services/exchange/exchange_data_loading_service.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/logger.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/stack_dialog.dart';
 
 class HomeView extends ConsumerStatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+  const HomeView({
+    Key? key,
+    this.eventBus,
+  }) : super(key: key);
+
+  final EventBus? eventBus;
 
   static const routeName = "/home";
 
@@ -43,12 +48,29 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   bool _exitEnabled = false;
 
-  final _exchangeDataLoadingService = ExchangeDataLoadingService();
+  late double _percent;
+
+  late final EventBus eventBus;
+
+  late WalletSyncStatus _currentSyncStatus;
+
+  late StreamSubscription<dynamic> _syncStatusSubscription;
+  late StreamSubscription<dynamic> _nodeStatusSubscription;
+  late StreamSubscription<dynamic> _refreshSubscription;
+
+  int currentIndex = 1;
+
+  void _onTappedBar(int value) {
+    setState(() {
+      currentIndex = value;
+    });
+    _pageController.jumpToPage(value);
+  }
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
-    if (ref.read(homeViewPageIndexStateProvider.state).state == 1) {
-      ref.read(homeViewPageIndexStateProvider.state).state = 0;
+    if (ref.read(homeViewPageIndexStateProvider.state).state != 1) {
+      ref.read(homeViewPageIndexStateProvider.state).state = 1;
       return false;
     }
 
@@ -81,241 +103,297 @@ class _HomeViewState extends ConsumerState<HomeView> {
     return _exitEnabled;
   }
 
-  void _loadCNData() {
-    // unawaited future
-    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      _exchangeDataLoadingService.loadAll(ref);
-    } else {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
-    }
-  }
-
   @override
   void initState() {
-    _pageController = PageController();
+    _pageController = PageController(initialPage: 1);
     _children = [
-      const WalletsView(),
-      if (Constants.enableExchange)
-        Stack(
-          children: [
-            const ExchangeView(),
-            ExchangeLoadingOverlayView(
-              unawaitedLoad: _loadCNData,
-            ),
-          ],
-        ),
-      // const BuyView(),
+      SendView(
+        walletId: ref.read(walletProvider)!.walletId,
+        coin: ref.read(walletProvider)!.coin,
+      ),
+      WalletView(
+        walletId: ref.read(walletProvider)!.walletId,
+      ),
+      ReceiveView(
+        walletId: ref.read(walletProvider)!.walletId,
+        coin: ref.read(walletProvider)!.coin,
+      ),
     ];
 
-    ref.read(notificationsProvider).startCheckingWatchedNotifications();
+    if (ref.read(walletProvider)!.isRefreshing) {
+      _currentSyncStatus = WalletSyncStatus.syncing;
+    } else {
+      _currentSyncStatus = WalletSyncStatus.synced;
+      if (ref.read(walletProvider)!.isConnected) {
+      } else {
+        _currentSyncStatus = WalletSyncStatus.unableToSync;
+      }
+    }
+
+    if (_currentSyncStatus == WalletSyncStatus.synced) {
+      _percent = 1;
+    } else {
+      _percent = 0;
+    }
+
+    eventBus = widget.eventBus ?? GlobalEventBus.instance;
+    // eventBus.on<UpdatedInBackgroundEvent>().listen((event) async {
+    //   final count = ref.read(txCountOnStartUpProvider.state).state ?? 0;
+    //   final newCount = ref.read(walletProvider)!.txCount;
+    //   if (count < newCount) {
+    //     ref.read(txCountOnStartUpProvider.state).state = newCount;
+    //     await Messages.of(context).show(
+    //       context: context,
+    //       widget: RoundedContainer(
+    //         color: Theme.of(context).extension<StackColors>()!.coal,
+    //         child: Center(
+    //           child: Text(
+    //             "New transaction",
+    //             style: STextStyles.bodySmallBold(context).copyWith(
+    //               color: Theme.of(context).extension<StackColors>()!.textMedium,
+    //             ),
+    //           ),
+    //         ),
+    //       ),
+    //     );
+    //   }
+    // });
+
+    _syncStatusSubscription =
+        eventBus.on<WalletSyncStatusChangedEvent>().listen(
+      (event) async {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
+          setState(() {
+            _currentSyncStatus = event.newStatus;
+          });
+        }
+      },
+    );
+
+    _refreshSubscription = eventBus.on<RefreshPercentChangedEvent>().listen(
+      (event) async {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
+          setState(() {
+            _percent = event.percent.clamp(0.0, 1.0);
+          });
+        }
+      },
+    );
 
     super.initState();
   }
 
   @override
   dispose() {
+    _nodeStatusSubscription.cancel();
+    _syncStatusSubscription.cancel();
+    _refreshSubscription.cancel();
     _pageController.dispose();
     super.dispose();
-  }
-
-  DateTime _hiddenTime = DateTime.now();
-  int _hiddenCount = 0;
-
-  void _hiddenOptions() {
-    if (_hiddenCount == 5) {
-      Navigator.of(context).pushNamed(HiddenSettings.routeName);
-    }
-    final now = DateTime.now();
-    const timeout = Duration(seconds: 1);
-    if (now.difference(_hiddenTime) < timeout) {
-      _hiddenCount++;
-    } else {
-      _hiddenCount = 0;
-    }
-    _hiddenTime = now;
   }
 
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    ref.listen(homeViewPageIndexStateProvider, (previous, next) {
+      if (next is int) {
+        if (next >= 0 && next <= 1) {
+          _pageController.animateToPage(
+            next,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.decelerate,
+          );
+        }
+      }
+    });
+
     return WillPopScope(
       onWillPop: _onWillPop,
-      child: Scaffold(
-        key: _key,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Row(
-            children: [
-              GestureDetector(
-                onTap: _hiddenOptions,
-                child: SvgPicture.asset(
-                  Assets.svg.stackIcon(context),
-                  width: 24,
-                  height: 24,
-                ),
-              ),
-              const SizedBox(
-                width: 16,
-              ),
-              Text(
-                "My Stack",
-                style: STextStyles.navBarTitle(context),
-              )
-            ],
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("walletsViewAlertsButton"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    ref.watch(notificationsProvider
-                            .select((value) => value.hasUnreadNotifications))
-                        ? Assets.svg.bellNew(context)
-                        : Assets.svg.bell,
-                    width: 20,
-                    height: 20,
-                    color: ref.watch(notificationsProvider
-                            .select((value) => value.hasUnreadNotifications))
-                        ? null
-                        : Theme.of(context)
-                            .extension<StackColors>()!
-                            .topNavIconPrimary,
-                  ),
-                  onPressed: () {
-                    // reset unread state
-                    ref.refresh(unreadNotificationsStateProvider);
-
-                    Navigator.of(context)
-                        .pushNamed(NotificationsView.routeName)
-                        .then((_) {
-                      final Set<int> unreadNotificationIds = ref
-                          .read(unreadNotificationsStateProvider.state)
-                          .state;
-                      if (unreadNotificationIds.isEmpty) return;
-
-                      List<Future<void>> futures = [];
-                      for (int i = 0;
-                          i < unreadNotificationIds.length - 1;
-                          i++) {
-                        futures.add(ref.read(notificationsProvider).markAsRead(
-                            unreadNotificationIds.elementAt(i), false));
-                      }
-
-                      // wait for multiple to update if any
-                      Future.wait(futures).then((_) {
-                        // only notify listeners once
-                        ref
-                            .read(notificationsProvider)
-                            .markAsRead(unreadNotificationIds.last, true);
-                      });
-                    });
-                  },
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  key: const Key("walletsViewSettingsButton"),
-                  size: 36,
-                  shadows: const [],
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  icon: SvgPicture.asset(
-                    Assets.svg.gear,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                    width: 20,
-                    height: 20,
-                  ),
-                  onPressed: () {
-                    debugPrint("main view settings tapped");
-                    Navigator.of(context)
-                        .pushNamed(GlobalSettingsView.routeName);
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Column(
-            children: [
-              if (Constants.enableExchange)
-                Container(
-                  decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    boxShadow: [
-                      Theme.of(context)
-                          .extension<StackColors>()!
-                          .standardBoxShadow,
+      child: Background(
+        child: Stack(
+          children: [
+            Positioned(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        height: 50,
+                      ),
+                      SvgPicture.asset(
+                        Assets.svg.epicBG,
+                        width: MediaQuery.of(context).size.width * 0.7,
+                      ),
                     ],
                   ),
-                  child: const Padding(
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      bottom: 12,
-                      right: 16,
-                      top: 0,
+                ],
+              ),
+            ),
+            Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              key: _key,
+              appBar: AppBar(
+                leading: AppBarIconButton(
+                  icon: SvgPicture.asset(
+                    Assets.svg.circleQuestion,
+                    width: 22,
+                    height: 22,
+                  ),
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(HelpView.routeName),
+                ),
+                centerTitle: true,
+                title: SizedBox(
+                  height: 32,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        NetworkSettingsView.routeName,
+                      );
+                    },
+                    child: ConnectionStatusBar(
+                      currentSyncPercent: _percent,
+                      color: Theme.of(context).extension<StackColors>()!.coal,
+                      background:
+                          Theme.of(context).extension<StackColors>()!.popupBG,
                     ),
-                    child: HomeViewButtonBar(),
                   ),
                 ),
-              Expanded(
-                child: Consumer(
-                  builder: (_, _ref, __) {
-                    _ref.listen(homeViewPageIndexStateProvider,
-                        (previous, next) {
-                      if (next is int) {
-                        if (next == 1) {
-                          _exchangeDataLoadingService.loadAll(ref);
-                        }
-                        if (next >= 0 && next <= 1) {
-                          _pageController.animateToPage(
-                            next,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.decelerate,
-                          );
-                        }
-                      }
-                    });
-                    return PageView(
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 10,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        key: const Key("walletsViewSettingsButton"),
+                        size: 36,
+                        shadows: const [],
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                        icon: SvgPicture.asset(
+                          Assets.svg.menu,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .topNavIconPrimary,
+                          width: 20,
+                          height: 20,
+                        ),
+                        onPressed: () {
+                          debugPrint("main view settings tapped");
+                          Navigator.of(context)
+                              .pushNamed(SettingsView.routeName);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              bottomNavigationBar: Container(
+                decoration: const BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black,
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                height: 75,
+                child: BottomNavigationBar(
+                  elevation: 0,
+                  unselectedFontSize: 14.0,
+                  unselectedLabelStyle: STextStyles.smallMed12(context)
+                      .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavText),
+                  backgroundColor:
+                      Theme.of(context).extension<StackColors>()!.popupBG,
+                  items: [
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.upload,
+                        ),
+                      ),
+                      activeIcon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.upload,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackPrimary,
+                        ),
+                      ),
+                      label: 'SEND',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(Assets.svg.walletHome),
+                      ),
+                      activeIcon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.walletHome,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackPrimary,
+                        ),
+                      ),
+                      label: 'WALLET',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(Assets.svg.download),
+                      ),
+                      activeIcon: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.download,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackPrimary,
+                        ),
+                      ),
+                      label: 'RECEIVE',
+                    ),
+                  ],
+                  onTap: _onTappedBar,
+                  currentIndex: currentIndex,
+                  selectedItemColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonBackPrimary,
+                ),
+              ),
+              body: Column(
+                children: [
+                  Expanded(
+                    child: PageView(
                       controller: _pageController,
                       children: _children,
                       onPageChanged: (pageIndex) {
                         ref.read(homeViewPageIndexStateProvider.state).state =
                             pageIndex;
+                        setState(() {
+                          currentIndex = pageIndex;
+                        });
                       },
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                ],
               ),
-              // Expanded(
-              //   child: HomeStack(
-              //     children: _children,
-              //   ),
-              // ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

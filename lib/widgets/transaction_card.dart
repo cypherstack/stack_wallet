@@ -1,18 +1,14 @@
 import 'dart:async';
 
-import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
-import 'package:epicmobile/pages/wallet_view/sub_widgets/tx_icon.dart';
-import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
-import 'package:epicmobile/utilities/format.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
-import 'package:epicmobile/widgets/desktop/desktop_dialog.dart';
+import 'package:epicpay/models/paymint/transactions_model.dart';
+import 'package:epicpay/pages/wallet_view/sub_widgets/tx_icon.dart';
+import 'package:epicpay/pages/wallet_view/transaction_views/transaction_details_view.dart';
+import 'package:epicpay/providers/providers.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/format.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
@@ -40,24 +36,6 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       return "Restored Funds";
     }
 
-    if (_transaction.subType == "mint") {
-      // if (type == "Received") {
-      if (_transaction.confirmedStatus) {
-        return "Anonymized";
-      } else {
-        return "Anonymizing";
-      }
-      // } else if (type == "Sent") {
-      //   if (_transaction.confirmedStatus) {
-      //     return "Sent MINT";
-      //   } else {
-      //     return "Sending MINT";
-      //   }
-      // } else {
-      //   return type;
-      // }
-    }
-
     if (type == "Received") {
       // if (_transaction.isMinting) {
       //   return "Minting";
@@ -65,13 +43,13 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       if (_transaction.confirmedStatus) {
         return "Received";
       } else {
-        return "Receiving";
+        return "Receiving...";
       }
     } else if (type == "Sent") {
       if (_transaction.confirmedStatus) {
         return "Sent";
       } else {
-        return "Sending";
+        return "Sending...";
       }
     } else {
       return type;
@@ -89,8 +67,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
   Widget build(BuildContext context) {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager = ref.watch(walletProvider)!;
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
@@ -101,15 +78,6 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
         .watch(priceAnd24hChangeNotifierProvider
             .select((value) => value.getPrice(coin)))
         .item1;
-
-    String prefix = "";
-    if (Util.isDesktop) {
-      if (_transaction.txType == "Sent") {
-        prefix = "-";
-      } else if (_transaction.txType == "Received") {
-        prefix = "+";
-      }
-    }
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -128,48 +96,37 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
           ),
           onPressed: () async {
             if (coin == Coin.epicCash && _transaction.slateId == null) {
-              unawaited(showFloatingFlushBar(
-                context: context,
-                message:
-                    "Restored Epic funds from your Seed have no Data.\nUse Stack Backup to keep your transaction history.",
-                type: FlushBarType.warning,
-                duration: const Duration(seconds: 5),
-              ));
+              // unawaited(showFloatingFlushBar(
+              //   context: context,
+              //   message:
+              //       "Restored Epic funds from your Seed have no Data.\nUse Stack Backup to keep your transaction history.",
+              //   type: FlushBarType.warning,
+              //   duration: const Duration(seconds: 5),
+              // ));
               return;
             }
-            if (Util.isDesktop) {
-              await showDialog<void>(
-                context: context,
-                builder: (context) => DesktopDialog(
-                  maxHeight: MediaQuery.of(context).size.height - 64,
-                  maxWidth: 580,
-                  child: TransactionDetailsView(
-                    transaction: _transaction,
-                    coin: coin,
-                    walletId: walletId,
-                  ),
+
+            unawaited(
+              Navigator.of(context).pushNamed(
+                TransactionDetailsView.routeName,
+                arguments: Tuple3(
+                  _transaction,
+                  coin,
+                  walletId,
                 ),
-              );
-            } else {
-              unawaited(
-                Navigator.of(context).pushNamed(
-                  TransactionDetailsView.routeName,
-                  arguments: Tuple3(
-                    _transaction,
-                    coin,
-                    walletId,
-                  ),
-                ),
-              );
-            }
+              ),
+            );
           },
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             child: Row(
               children: [
+                const SizedBox(
+                  width: 4,
+                ),
                 TxIcon(transaction: _transaction),
                 const SizedBox(
-                  width: 14,
+                  width: 20,
                 ),
                 Expanded(
                   child: Column(
@@ -186,7 +143,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                 _transaction.isCancelled
                                     ? "Cancelled"
                                     : whatIsIt(_transaction.txType, coin),
-                                style: STextStyles.itemSubtitle12(context),
+                                style: STextStyles.bodySmallBold(context),
                               ),
                             ),
                           ),
@@ -198,11 +155,12 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Builder(
                                 builder: (_) {
-                                  final amount = _transaction.amount;
+                                  final amount = Format.satoshisToAmount(
+                                      _transaction.amount,
+                                      coin: coin);
                                   return Text(
-                                    "$prefix${Format.satoshiAmountToPrettyString(amount, locale)} ${coin.ticker}",
-                                    style:
-                                        STextStyles.itemSubtitle12_600(context),
+                                    "${amount.toStringAsFixed(2)} ${coin.ticker}",
+                                    style: STextStyles.bodySmall(context),
                                   );
                                 },
                               ),
@@ -211,7 +169,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                         ],
                       ),
                       const SizedBox(
-                        height: 4,
+                        height: 8,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -221,39 +179,36 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
-                                Format.extractDateFrom(_transaction.timestamp),
-                                style: STextStyles.label(context),
+                                Format.extractDateFrom(_transaction.timestamp,
+                                    simple: true),
+                                style: STextStyles.bodySmall(context),
                               ),
                             ),
                           ),
-                          if (ref.watch(prefsChangeNotifierProvider
-                              .select((value) => value.externalCalls)))
-                            const SizedBox(
-                              width: 10,
-                            ),
-                          if (ref.watch(prefsChangeNotifierProvider
-                              .select((value) => value.externalCalls)))
-                            Flexible(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Builder(
-                                  builder: (_) {
-                                    // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
-                                    int value = _transaction.amount;
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Builder(
+                                builder: (_) {
+                                  // TODO: modify Format.<functions> to take optional Coin parameter so this type oif check isn't done in ui
+                                  int value = _transaction.amount;
 
-                                    return Text(
-                                      "$prefix${Format.localizedStringAsFixed(
-                                        value: Format.satoshisToAmount(value) *
-                                            price,
-                                        locale: locale,
-                                        decimalPlaces: 2,
-                                      )} $baseCurrency",
-                                      style: STextStyles.label(context),
-                                    );
-                                  },
-                                ),
+                                  return Text(
+                                    "${Format.localizedStringAsFixed(
+                                      value: Format.satoshisToAmount(value) *
+                                          price,
+                                      locale: locale,
+                                      decimalPlaces: 2,
+                                    )} $baseCurrency",
+                                    style: STextStyles.bodySmall(context),
+                                  );
+                                },
                               ),
                             ),
+                          ),
                         ],
                       ),
                     ],

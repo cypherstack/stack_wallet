@@ -1,9 +1,9 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:mockingjay/mockingjay.dart' as mockingjay;
-// import 'package:stackwallet/pages/onboarding_view/helpers/create_wallet_type.dart';
-// import 'package:stackwallet/pages/onboarding_view/terms_and_conditions_view.dart';
-// import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
+// import 'package:epicmobile/pages/onboarding_view/helpers/create_wallet_type.dart';
+// import 'package:epicmobile/pages/onboarding_view/terms_and_conditions_view.dart';
+// import 'package:epicmobile/widgets/custom_buttons/gradient_button.dart';
 //
 void main() {
 //   testWidgets("terms and conditions screen builds correctly", (tester) async {

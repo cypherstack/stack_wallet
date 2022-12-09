@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/electrumx_rpc/rpc.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
+import 'package:epicmobile/electrumx_rpc/rpc.dart';
+import 'package:epicmobile/utilities/default_nodes.dart';
 
 void main() {
   test("REQUIRES INTERNET - JsonRPC.request success", () async {

@@ -9,12 +9,12 @@ import 'dart:ui' as _i10;
 import 'package:barcode_scan2/barcode_scan2.dart' as _i2;
 import 'package:decimal/decimal.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/models/models.dart' as _i4;
-import 'package:stackwallet/services/coins/coin_service.dart' as _i3;
-import 'package:stackwallet/services/coins/manager.dart' as _i8;
-import 'package:stackwallet/services/notes_service.dart' as _i11;
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i6;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i9;
+import 'package:epicmobile/models/models.dart' as _i4;
+import 'package:epicmobile/services/coins/coin_service.dart' as _i3;
+import 'package:epicmobile/services/coins/manager.dart' as _i8;
+import 'package:epicmobile/services/notes_service.dart' as _i11;
+import 'package:epicmobile/utilities/barcode_scanner_interface.dart' as _i6;
+import 'package:epicmobile/utilities/enums/coin_enum.dart' as _i9;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values

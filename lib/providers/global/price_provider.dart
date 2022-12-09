@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:epicmobile/providers/global/prefs_provider.dart';
-import 'package:epicmobile/services/price_service.dart';
+import 'package:epicpay/providers/global/prefs_provider.dart';
+import 'package:epicpay/services/price_service.dart';
 
 int _count = 0;
 

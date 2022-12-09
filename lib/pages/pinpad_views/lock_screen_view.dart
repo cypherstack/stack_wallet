@@ -1,25 +1,24 @@
 import 'dart:async';
 
+import 'package:epicpay/pages/home_view/home_view.dart';
+import 'package:epicpay/pages/wallet_view/wallet_view.dart';
+import 'package:epicpay/providers/global/prefs_provider.dart';
+import 'package:epicpay/providers/global/wallet_provider.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/biometrics.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicpay/widgets/custom_pin_put/custom_pin_put.dart';
+import 'package:epicpay/widgets/fullscreen_message.dart';
+import 'package:epicpay/widgets/shake/shake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:epicmobile/notifications/show_flush_bar.dart';
-import 'package:epicmobile/pages/home_view/home_view.dart';
-import 'package:epicmobile/pages/wallet_view/wallet_view.dart';
-// import 'package:epicmobile/providers/global/has_authenticated_start_state_provider.dart';
-import 'package:epicmobile/providers/global/prefs_provider.dart';
-import 'package:epicmobile/providers/global/wallets_provider.dart';
-// import 'package:epicmobile/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/biometrics.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/flush_bar_type.dart';
-import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put.dart';
-import 'package:epicmobile/widgets/shake/shake.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 class LockscreenView extends ConsumerStatefulWidget {
@@ -65,6 +64,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   bool _attemptLock = false;
   late Duration _timeout;
   static const maxAttemptsBeforeThrottling = 3;
+  Timer? _timer;
 
   Future<void> _onUnlock() async {
     final now = DateTime.now().toUtc();
@@ -88,12 +88,15 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       if (widget.routeOnSuccess == HomeView.routeName &&
           widget.routeOnSuccessArguments is String) {
         final walletId = widget.routeOnSuccessArguments as String;
-        unawaited(Navigator.of(context).pushNamed(WalletView.routeName,
+        unawaited(
+          Navigator.of(context).pushNamed(
+            WalletView.routeName,
             arguments: Tuple2(
-                walletId,
-                ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId))));
+              walletId,
+              ref.read(walletProvider)!,
+            ),
+          ),
+        );
       }
     }
   }
@@ -150,12 +153,8 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   }
 
   BoxDecoration get _pinPutDecoration {
-    return BoxDecoration(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
-      border: Border.all(
-          width: 1,
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle2),
-      borderRadius: BorderRadius.circular(6),
+    return const BoxDecoration(
+      color: Colors.transparent,
     );
   }
 
@@ -165,176 +164,182 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   late FlutterSecureStorageInterface _secureStore;
   late Biometrics biometrics;
 
-  Scaffold get _body => Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: widget.showBackButton
-              ? AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                          const Duration(milliseconds: 70));
-                    }
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                )
-              : Container(),
-        ),
-        body: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Shake(
-                animationDuration: const Duration(milliseconds: 700),
-                animationRange: 12,
-                controller: _shakeController,
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: Text(
-                          "Enter PIN",
-                          style: STextStyles.pageTitleH1(context),
+  Widget get _body => Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: widget.showBackButton
+                ? AppBarBackButton(
+                    onPressed: () async {
+                      if (FocusScope.of(context).hasFocus) {
+                        FocusScope.of(context).unfocus();
+                        await Future<void>.delayed(
+                            const Duration(milliseconds: 70));
+                      }
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  )
+                : Container(),
+          ),
+          body: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Shake(
+                  animationDuration: const Duration(milliseconds: 700),
+                  animationRange: 12,
+                  controller: _shakeController,
+                  child: Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: Text(
+                            "Enter PIN",
+                            style: STextStyles.titleH2(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textGold,
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 52,
-                      ),
-                      CustomPinPut(
-                        fieldsCount: Constants.pinLength,
-                        eachFieldHeight: 12,
-                        eachFieldWidth: 12,
-                        textStyle: STextStyles.label(context).copyWith(
-                          fontSize: 1,
+                        const SizedBox(
+                          height: 52,
                         ),
-                        focusNode: _pinFocusNode,
-                        controller: _pinTextController,
-                        useNativeKeyboard: false,
-                        obscureText: "",
-                        inputDecoration: InputDecoration(
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          disabledBorder: InputBorder.none,
-                          errorBorder: InputBorder.none,
-                          focusedErrorBorder: InputBorder.none,
-                          fillColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
-                          counterText: "",
-                        ),
-                        submittedFieldDecoration: _pinPutDecoration.copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemIcons,
-                          border: Border.all(
-                            width: 1,
+                        CustomPinPut(
+                          fieldsCount: Constants.pinLength,
+                          textStyle: STextStyles.label(context).copyWith(
+                            fontSize: 1,
+                          ),
+                          focusNode: _pinFocusNode,
+                          controller: _pinTextController,
+                          useNativeKeyboard: false,
+                          obscureText: "",
+                          inputDecoration: const InputDecoration(
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            focusedErrorBorder: InputBorder.none,
+                            fillColor: Colors.transparent,
+                            counterText: "",
+                          ),
+                          submittedFieldDecoration: _pinPutDecoration.copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .infoItemIcons,
+                            borderRadius: BorderRadius.circular(100),
                           ),
-                        ),
-                        selectedFieldDecoration: _pinPutDecoration,
-                        followingFieldDecoration: _pinPutDecoration,
-                        onSubmit: (String pin) async {
-                          _attempts++;
+                          selectedFieldDecoration: _pinPutDecoration,
+                          followingFieldDecoration: _pinPutDecoration,
+                          onSubmit: (String pin) async {
+                            _attempts++;
 
-                          if (_attempts > maxAttemptsBeforeThrottling) {
-                            _attemptLock = true;
-                            switch (_attempts) {
-                              case 4:
-                                _timeout = const Duration(seconds: 30);
-                                break;
+                            if (_attempts > maxAttemptsBeforeThrottling) {
+                              _attemptLock = true;
+                              switch (_attempts) {
+                                case 4:
+                                  _timeout = const Duration(seconds: 30);
+                                  break;
 
-                              case 5:
-                                _timeout = const Duration(seconds: 60);
-                                break;
+                                case 5:
+                                  _timeout = const Duration(seconds: 60);
+                                  break;
 
-                              case 6:
-                                _timeout = const Duration(minutes: 5);
-                                break;
+                                case 6:
+                                  _timeout = const Duration(minutes: 5);
+                                  break;
 
-                              case 7:
-                                _timeout = const Duration(minutes: 10);
-                                break;
+                                case 7:
+                                  _timeout = const Duration(minutes: 10);
+                                  break;
 
-                              case 8:
-                                _timeout = const Duration(minutes: 20);
-                                break;
+                                case 8:
+                                  _timeout = const Duration(minutes: 20);
+                                  break;
 
-                              case 9:
-                                _timeout = const Duration(minutes: 30);
-                                break;
+                                case 9:
+                                  _timeout = const Duration(minutes: 30);
+                                  break;
 
-                              default:
-                                _timeout = const Duration(minutes: 60);
+                                default:
+                                  _timeout = const Duration(minutes: 60);
+                              }
+
+                              _timer?.cancel();
+                              _timer = Timer(_timeout, () {
+                                _attemptLock = false;
+                                _attempts = 0;
+                              });
                             }
 
-                            unawaited(Future<void>.delayed(_timeout).then((_) {
-                              _attemptLock = false;
-                              _attempts = 0;
-                            }));
-                          }
+                            if (_attemptLock) {
+                              String prettyTime = "";
+                              if (_timeout.inSeconds >= 60) {
+                                prettyTime += "${_timeout.inMinutes} minutes";
+                              } else {
+                                prettyTime += "${_timeout.inSeconds} seconds";
+                              }
+                              _pinTextController.text = '';
+                              await showDialog<void>(
+                                context: context,
+                                builder: (context) {
+                                  return FullScreenMessage(
+                                    icon: SvgPicture.asset(
+                                      Assets.svg.circleRedX,
+                                    ),
+                                    message:
+                                        "Incorrect PIN entered too many times.\nPlease wait $prettyTime",
+                                    duration: const Duration(seconds: 2),
+                                  );
+                                },
+                              );
 
-                          if (_attemptLock) {
-                            String prettyTime = "";
-                            if (_timeout.inSeconds >= 60) {
-                              prettyTime += "${_timeout.inMinutes} minutes";
+                              return;
+                            }
+
+                            final storedPin =
+                                await _secureStore.read(key: 'stack_pin');
+
+                            if (storedPin == pin) {
+                              await Future<void>.delayed(
+                                  const Duration(milliseconds: 200));
+                              unawaited(_onUnlock());
                             } else {
-                              prettyTime += "${_timeout.inSeconds} seconds";
+                              unawaited(_shakeController.shake());
+
+                              _pinTextController.text = '';
+
+                              await showDialog<void>(
+                                context: context,
+                                builder: (context) {
+                                  return FullScreenMessage(
+                                    icon: SvgPicture.asset(
+                                      Assets.svg.circleRedX,
+                                    ),
+                                    message: "Incorrect PIN."
+                                        "\nPlease try again.",
+                                    duration: const Duration(seconds: 2),
+                                  );
+                                },
+                              );
                             }
-
-                            unawaited(showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message:
-                                  "Incorrect PIN entered too many times. Please wait $prettyTime",
-                              context: context,
-                              iconAsset: Assets.svg.alertCircle,
-                            ));
-
-                            await Future<void>.delayed(
-                                const Duration(milliseconds: 100));
-
-                            _pinTextController.text = '';
-
-                            return;
-                          }
-
-                          final storedPin =
-                              await _secureStore.read(key: 'stack_pin');
-
-                          if (storedPin == pin) {
-                            await Future<void>.delayed(
-                                const Duration(milliseconds: 200));
-                            unawaited(_onUnlock());
-                          } else {
-                            unawaited(_shakeController.shake());
-                            unawaited(showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message: "Incorrect PIN. Please try again",
-                              context: context,
-                              iconAsset: Assets.svg.alertCircle,
-                            ));
-
-                            await Future<void>.delayed(
-                                const Duration(milliseconds: 100));
-
-                            _pinTextController.text = '';
-                          }
-                        },
-                      ),
-                    ],
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );
+
   @override
   Widget build(BuildContext context) {
     return widget.showBackButton

@@ -1,13 +1,13 @@
+import 'package:epicpay/models/paymint/transactions_model.dart';
+import 'package:epicpay/utilities/assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/utilities/assets.dart';
 
 class TxIcon extends StatelessWidget {
   const TxIcon({Key? key, required this.transaction}) : super(key: key);
   final Transaction transaction;
 
-  static const Size size = Size(32, 32);
+  static const Size size = Size(48, 48);
 
   String _getAssetName(
       bool isCancelled, bool isReceived, bool isPending, BuildContext context) {

@@ -1,13 +1,12 @@
+import 'package:epicpay/utilities/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
 
 class ClipboardIcon extends StatelessWidget {
   const ClipboardIcon({
     Key? key,
-    this.width = 18,
-    this.height = 18,
+    this.width = 24,
+    this.height = 24,
     this.color,
   }) : super(key: key);
 
@@ -21,7 +20,7 @@ class ClipboardIcon extends StatelessWidget {
       Assets.svg.clipboard,
       width: width,
       height: height,
-      color: color ?? Theme.of(context).extension<StackColors>()!.textDark3,
+      color: color, //?? Theme.of(context).extension<StackColors>()!.textDark,
     );
   }
 }

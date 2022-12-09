@@ -4,6 +4,27 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:decimal/decimal.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/models/paymint/fee_object_model.dart';
+import 'package:epicpay/models/paymint/transactions_model.dart';
+import 'package:epicpay/models/paymint/utxo_model.dart';
+import 'package:epicpay/services/coins/coin_service.dart';
+import 'package:epicpay/services/event_bus/events/global/blocks_remaining_event.dart';
+import 'package:epicpay/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:epicpay/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:epicpay/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicpay/services/event_bus/global_event_bus.dart';
+import 'package:epicpay/services/node_service.dart';
+import 'package:epicpay/services/price.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/default_nodes.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicpay/utilities/logger.dart';
+import 'package:epicpay/utilities/prefs.dart';
+import 'package:epicpay/utilities/test_epic_box_connection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -12,27 +33,6 @@ import 'package:http/http.dart';
 import 'package:mutex/mutex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/models/paymint/fee_object_model.dart';
-import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/models/paymint/utxo_model.dart';
-import 'package:epicmobile/services/coins/coin_service.dart';
-import 'package:epicmobile/services/event_bus/events/global/blocks_remaining_event.dart';
-import 'package:epicmobile/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:epicmobile/services/event_bus/events/global/refresh_percent_changed_event.dart';
-import 'package:epicmobile/services/event_bus/events/global/updated_in_background_event.dart';
-import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:epicmobile/services/event_bus/global_event_bus.dart';
-import 'package:epicmobile/services/node_service.dart';
-import 'package:epicmobile/services/price.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/default_nodes.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
-import 'package:epicmobile/utilities/logger.dart';
-import 'package:epicmobile/utilities/prefs.dart';
-import 'package:epicmobile/utilities/test_epic_box_connection.dart';
 import 'package:tuple/tuple.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
@@ -301,11 +301,15 @@ Future<String> _recoverWrapper(
 }
 
 Future<int> _getChainHeightWrapper(String config) async {
-  final int chainHeight = getChainHeight(config);
-  return chainHeight;
+  try {
+    final int chainHeight = getChainHeight(config);
+    return chainHeight;
+  } catch (_) {
+    rethrow;
+  }
 }
 
-const String EPICPOST_ADDRESS = 'https://epicpost.epicmobile.com';
+const String EPICPOST_ADDRESS = 'https://epicpost.stackwallet.com';
 
 Future<bool> postSlate(String receiveAddress, String slate) async {
   Logging.instance.log("postSlate", level: LogLevel.Info);
@@ -987,9 +991,28 @@ class EpicCashWallet extends CoinServiceAPI {
             as TransactionData?;
     if (data != null) {
       _transactionData = Future(() => data);
+      txCount = data.getAllTransactions().length;
     }
     // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
   }
+
+  Timer? t;
+  int _txCount = 0;
+
+  set txCount(int value) {
+    if (_txCount != value) {
+      _txCount = value;
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "tx count changed",
+          walletId,
+        ),
+      );
+    }
+  }
+
+  @override
+  int get txCount => _txCount;
 
   Future<void> storeEpicboxInfo() async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
@@ -1255,9 +1278,18 @@ class EpicCashWallet extends CoinServiceAPI {
       await updateNode(false);
     }
     final NodeModel node = _epicNode!;
+
     final String nodeAddress = node.host;
     int port = node.port;
-    final String nodeApiAddress = "$nodeAddress:$port";
+
+    String scheme;
+    if (node.useSSL) {
+      scheme = "https://";
+    } else {
+      scheme = "http://";
+    }
+
+    final String nodeApiAddress = "$scheme$nodeAddress:$port";
     final walletDir = await currentWalletDirPath();
 
     final Map<String, dynamic> config = {};
@@ -1467,12 +1499,16 @@ class EpicCashWallet extends CoinServiceAPI {
   Future<int> get chainHeight async {
     final config = await getRealConfig();
     int? latestHeight;
-    await m.protect(() async {
-      latestHeight = await compute(
-        _getChainHeightWrapper,
-        config,
-      );
-    });
+    try {
+      await m.protect(() async {
+        latestHeight = await compute(
+          _getChainHeightWrapper,
+          config,
+        );
+      });
+    } catch (e, s) {
+      Logging.instance.log("$e $s", level: LogLevel.Error);
+    }
     return latestHeight!;
   }
 
@@ -1876,6 +1912,7 @@ class EpicCashWallet extends CoinServiceAPI {
     }
 
     try {
+      _isConnected = true;
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.syncing,
@@ -1895,6 +1932,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
       if (!await startScans()) {
         refreshMutex = false;
+        _isConnected = false;
         GlobalEventBus.instance.fire(
           NodeConnectionStatusChangedEvent(
             NodeConnectionStatus.disconnected,
@@ -1937,11 +1975,12 @@ class EpicCashWallet extends CoinServiceAPI {
           unawaited(updateStoredChainHeight(newHeight: currentHeight));
         }
 
-        final newTxData = _fetchTransactionData();
+        final newTxData = await _fetchTransactionData();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
 
         _transactionData = Future(() => newTxData);
+        txCount = newTxData.getAllTransactions().length;
 
         GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
             "New data found in $walletName in background!", walletId));
@@ -1975,6 +2014,7 @@ class EpicCashWallet extends CoinServiceAPI {
       }
     } catch (error, strace) {
       refreshMutex = false;
+      _isConnected = false;
       GlobalEventBus.instance.fire(
         NodeConnectionStatusChangedEvent(
           NodeConnectionStatus.disconnected,
@@ -2016,8 +2056,15 @@ class EpicCashWallet extends CoinServiceAPI {
     try {
       // force unwrap optional as we want connection test to fail if wallet
       // wasn't initialized or epicbox node was set to null
+      String scheme;
+      if (_epicNode!.useSSL) {
+        scheme = "https://";
+      } else {
+        scheme = "http://";
+      }
+
       final String uriString =
-          "${_epicNode!.host}:${_epicNode!.port}/v1/version";
+          "$scheme${_epicNode!.host}:${_epicNode!.port}/v1/version";
 
       final Uri uri = Uri.parse(uriString);
       return await testEpicBoxNodeConnection(uri);
@@ -2059,7 +2106,7 @@ class EpicCashWallet extends CoinServiceAPI {
     _networkAliveTimer = null;
   }
 
-  bool _isConnected = false;
+  bool _isConnected = true;
 
   @override
   bool get isConnected => _isConnected;

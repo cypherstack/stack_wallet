@@ -1,12 +1,12 @@
+import 'package:epicpay/utilities/constants.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:epicmobile/utilities/constants.dart';
 
 class RoundedContainer extends StatelessWidget {
   const RoundedContainer({
     Key? key,
     this.child,
     required this.color,
-    this.padding = const EdgeInsets.all(12),
+    this.padding = const EdgeInsets.all(16),
     this.radiusMultiplier = 1.0,
     this.width,
     this.height,

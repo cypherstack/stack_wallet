@@ -1,20 +1,15 @@
-[![codecov](https://codecov.io/gh/cypherstack/stack_wallet/branch/main/graph/badge.svg?token=PM1N56UTEW)](https://codecov.io/gh/cypherstack/stack_wallet)
+# Epic Pay
 
-# Stack Wallet
-Stack Wallet is a fully open source cryptocurrency wallet. With an easy to use user interface and quick and speedy transactions, this wallet is ideal for anyone no matter how much they know about the cryptocurrency space. The app is actively maintained to provide new user friendly features.
-
-[![Playstore](https://bluewallet.io/img/play-store-badge.svg)](https://play.google.com/store/apps/details?id=com.cypherstack.stackwallet)
+Epic Pay is an Epic Cash wallet for Android and iOS devices.
 
 ## Feature List
 
 Highlights include:
-- 5 Different cryptocurrencies
-- All private keys and seeds stay on device and are never shared.
-- Easy backup and restore feature to save all the information that's important to you.
-- Trading cryptocurrencies through our partners.
-- Custom address book
-- Favorite wallets with fast syncing
-- Custom Nodes.
+- Simple, beautiful design
+- Sending, receiving, and storing Epic Cash
+- Address book
+- Wallet backup through recovery phrase
+- Custom nodes
 - Open source software.
 
 ## Building
@@ -39,7 +34,7 @@ cd stack_wallet
 git submodule update --init --recursive
 ```
 
-Install all dependencies listed in each of the plugins in the crypto_plugins folder (eg. [flutter_libmonero](https://github.com/cypherstack/flutter_libmonero/blob/main/howto-build-android.md), [flutter_libepiccash](https://github.com/cypherstack/flutter_libepiccash) ) as of Oct 3rd 2022 that is:
+Install all dependencies listed in the plugins in the [flutter_libepiccash](https://github.com/cypherstack/flutter_libepiccash) folder as of Oct 3rd 2022 that is:
 ```
 sudo apt-get install unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm sudo apt-get install debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
 ```
@@ -81,16 +76,6 @@ cd scripts/android/
 // when finished go back to the root directory
 cd ../..
 ```
-
-Building plugins for Linux
-
-```
-cd scripts/linux/
-./build_all.sh
-// when finished go back to the root directory
-cd ../..
-```
-
 ## Running
 ### Android
 Plug in your android device or use the emulator available via Android Studio and then run the following commands:
@@ -101,15 +86,8 @@ flutter run android
 
 Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not work
 
-### Linux
-Plug in your android device or use the emulator available via Android Studio and then run the following commands:
-```
-flutter pub get Linux
-flutter run linux
-```
-
 ## Android Studio
-Android Studio is the recommended IDE for development, not just for launching on Android devices and emulators but also for Linux desktop development.  Install it and configure it as follows:
+Android Studio is the recommended IDE for development.  Install it and configure it as follows:
 ```
 # setup android studio
 sudo apt install -y openjdk-11-jdk

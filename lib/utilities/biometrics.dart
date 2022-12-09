@@ -1,15 +1,26 @@
 import 'dart:io';
 
+import 'package:epicpay/utilities/logger.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:local_auth/auth_strings.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:epicmobile/utilities/logger.dart';
 
 class Biometrics {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
   const Biometrics();
+
+  static Future<bool> get hasBiometrics async {
+    final LocalAuthentication localAuth = LocalAuthentication();
+
+    final results = await Future.wait<bool>([
+      localAuth.canCheckBiometrics,
+      localAuth.isDeviceSupported(),
+    ]);
+
+    return results.first && results.last;
+  }
 
   Future<bool> authenticate({
     required String cancelButtonText,

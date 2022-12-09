@@ -1,27 +1,29 @@
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/desktop/primary_button.dart';
 import 'package:flutter/material.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
 
 class StackDialogBase extends StatelessWidget {
   const StackDialogBase({
     Key? key,
     this.child,
     this.padding = const EdgeInsets.all(24),
+    this.mainAxisAlignment = MainAxisAlignment.end,
   }) : super(key: key);
 
   final EdgeInsets padding;
   final Widget? child;
+  final MainAxisAlignment mainAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisAlignment:
-            !Util.isDesktop ? MainAxisAlignment.end : MainAxisAlignment.center,
+        mainAxisAlignment: mainAxisAlignment,
         children: [
           Material(
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(
               20,
             ),
@@ -118,8 +120,8 @@ class StackDialog extends StatelessWidget {
   }
 }
 
-class StackOkDialog extends StatelessWidget {
-  const StackOkDialog({
+class OkDialog extends StatelessWidget {
+  const OkDialog({
     Key? key,
     this.leftButton,
     this.onOkPressed,
@@ -139,6 +141,7 @@ class StackOkDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StackDialogBase(
+      mainAxisAlignment: MainAxisAlignment.center,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -180,24 +183,12 @@ class StackOkDialog extends StatelessWidget {
                 width: 8,
               ),
               Expanded(
-                child: TextButton(
-                  onPressed: !Util.isDesktop
-                      ? () {
-                          Navigator.of(context).pop();
-                          onOkPressed?.call("OK");
-                        }
-                      : () {
-                          int count = 0;
-                          Navigator.of(context).popUntil((_) => count++ >= 2);
-                          // onOkPressed?.call("OK");
-                        },
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context),
-                  child: Text(
-                    "Ok",
-                    style: STextStyles.button(context),
-                  ),
+                child: PrimaryButton(
+                  label: "OK",
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onOkPressed?.call("OK");
+                  },
                 ),
               ),
             ],
