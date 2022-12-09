@@ -17,7 +17,7 @@ class ClipboardIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SvgPicture.asset(
-      Assets.svg.copy,
+      Assets.svg.clipboard,
       width: width,
       height: height,
       color: color, //?? Theme.of(context).extension<StackColors>()!.textDark,

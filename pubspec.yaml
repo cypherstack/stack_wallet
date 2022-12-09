@@ -273,6 +273,7 @@ flutter:
     - assets/svg/eye-off.svg
     - assets/svg/edit.svg
     - assets/svg/refresh.svg
+    - assets/svg/clipboard.svg
     # coin icons
     - assets/svg/coin_icons/EpicCash.svg
     # lottie animations
