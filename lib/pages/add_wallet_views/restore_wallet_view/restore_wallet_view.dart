@@ -548,171 +548,181 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           ),
         ],
       ),
-      body: Container(
-        color: Theme.of(context).extension<StackColors>()!.background,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            children: [
-              if (isDesktop)
-                const Spacer(
-                  flex: 10,
+      body: SafeArea(
+        child: Container(
+          color: Theme.of(context).extension<StackColors>()!.background,
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              children: [
+                if (isDesktop)
+                  const Spacer(
+                    flex: 10,
+                  ),
+                if (!isDesktop)
+                  Text(
+                    widget.walletName,
+                    style: STextStyles.itemSubtitle(context),
+                  ),
+                SizedBox(
+                  height: isDesktop ? 0 : 4,
                 ),
-              if (!isDesktop)
                 Text(
-                  widget.walletName,
-                  style: STextStyles.itemSubtitle(context),
+                  "Recovery phrase",
+                  style: isDesktop
+                      ? STextStyles.desktopH2(context)
+                      : STextStyles.pageTitleH1(context),
                 ),
-              SizedBox(
-                height: isDesktop ? 0 : 4,
-              ),
-              Text(
-                "Recovery phrase",
-                style: isDesktop
-                    ? STextStyles.desktopH2(context)
-                    : STextStyles.pageTitleH1(context),
-              ),
-              SizedBox(
-                height: isDesktop ? 16 : 8,
-              ),
-              Text(
-                "Enter your $_seedWordCount-word recovery phrase.",
-                style: isDesktop
-                    ? STextStyles.desktopSubtitleH2(context)
-                    : STextStyles.subtitle(context),
-              ),
-              SizedBox(
-                height: isDesktop ? 16 : 10,
-              ),
-              if (!isDesktop)
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: controller,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 4,
-                        left: 4,
-                        right: 16,
-                        bottom: 4,
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            for (int i = 1; i <= _seedWordCount; i++)
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 20.0),
-                                    child: SizedBox(
-                                      width: 24,
-                                      child: Text(
-                                        "$i",
-                                        style: STextStyles.bodySmall(context)
-                                            .copyWith(
-                                          color: _getColor(
-                                              _inputStatuses[i - 1],
-                                              _focusNodes[i - 1].hasFocus),
-                                        ),
-                                        textAlign: TextAlign.right,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 4,
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 8,
-                                          ),
-                                          child: TextFormField(
-                                            textCapitalization:
-                                                TextCapitalization.none,
-                                            key: Key(
-                                                "restoreMnemonicFormField_$i"),
-                                            decoration: _getInputDecorationFor(
+                SizedBox(
+                  height: isDesktop ? 16 : 8,
+                ),
+                Text(
+                  "Enter your $_seedWordCount-word recovery phrase.",
+                  style: isDesktop
+                      ? STextStyles.desktopSubtitleH2(context)
+                      : STextStyles.subtitle(context),
+                ),
+                SizedBox(
+                  height: isDesktop ? 16 : 10,
+                ),
+                if (!isDesktop)
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: controller,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 4,
+                          left: 4,
+                          right: 16,
+                          bottom: 4,
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (int i = 1; i <= _seedWordCount; i++)
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 22.0),
+                                      child: SizedBox(
+                                        width: 24,
+                                        child: Text(
+                                          "$i",
+                                          style: STextStyles.bodySmall(context)
+                                              .copyWith(
+                                            color: _getColor(
                                                 _inputStatuses[i - 1],
                                                 _focusNodes[i - 1].hasFocus),
-                                            autovalidateMode: AutovalidateMode
-                                                .onUserInteraction,
-                                            selectionControls: i == 1
-                                                ? textSelectionControls
-                                                : null,
-                                            focusNode: _focusNodes[i - 1],
-                                            onChanged: (value) {
-                                              if (value.isEmpty) {
-                                                setState(() {
-                                                  _inputStatuses[i - 1] =
-                                                      FormInputStatus.empty;
-                                                });
-                                              } else if (_isValidMnemonicWord(
-                                                  value.trim().toLowerCase())) {
-                                                setState(() {
-                                                  _inputStatuses[i - 1] =
-                                                      FormInputStatus.valid;
-                                                });
-                                              } else {
-                                                setState(() {
-                                                  _inputStatuses[i - 1] =
-                                                      FormInputStatus.invalid;
-                                                });
-                                              }
-                                            },
-                                            controller: _controllers[i - 1],
-                                            style: STextStyles.body(context),
                                           ),
+                                          textAlign: TextAlign.right,
                                         ),
-                                        if (_inputStatuses[i - 1] ==
-                                            FormInputStatus.invalid)
-                                          Align(
-                                            alignment: Alignment.topLeft,
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 12.0,
-                                                bottom: 4.0,
-                                              ),
-                                              child: Text(
-                                                "Please check spelling",
-                                                textAlign: TextAlign.left,
-                                                style:
-                                                    STextStyles.label(context)
-                                                        .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorRed,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 4,
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 8,
+                                            ),
+                                            child: TextFormField(
+                                              textCapitalization:
+                                                  TextCapitalization.none,
+                                              key: Key(
+                                                  "restoreMnemonicFormField_$i"),
+                                              decoration:
+                                                  _getInputDecorationFor(
+                                                      _inputStatuses[i - 1],
+                                                      _focusNodes[i - 1]
+                                                          .hasFocus),
+                                              autovalidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              selectionControls: i == 1
+                                                  ? textSelectionControls
+                                                  : null,
+                                              focusNode: _focusNodes[i - 1],
+                                              onChanged: (value) {
+                                                if (value.isEmpty) {
+                                                  setState(() {
+                                                    _inputStatuses[i - 1] =
+                                                        FormInputStatus.empty;
+                                                  });
+                                                } else if (_isValidMnemonicWord(
+                                                    value
+                                                        .trim()
+                                                        .toLowerCase())) {
+                                                  setState(() {
+                                                    _inputStatuses[i - 1] =
+                                                        FormInputStatus.valid;
+                                                  });
+                                                } else {
+                                                  setState(() {
+                                                    _inputStatuses[i - 1] =
+                                                        FormInputStatus.invalid;
+                                                  });
+                                                }
+                                              },
+                                              controller: _controllers[i - 1],
+                                              style: STextStyles.body(context),
+                                            ),
+                                          ),
+                                          if (_inputStatuses[i - 1] ==
+                                              FormInputStatus.invalid)
+                                            Align(
+                                              alignment: Alignment.topLeft,
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 12.0,
+                                                  bottom: 4.0,
+                                                ),
+                                                child: Text(
+                                                  "Please check spelling",
+                                                  textAlign: TextAlign.left,
+                                                  style:
+                                                      STextStyles.label(context)
+                                                          .copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .accentColorRed,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          )
-                                      ],
+                                            )
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(
+                                      width: 24,
+                                    ),
+                                  ],
+                                ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 8.0,
+                                  left: 24,
+                                  right: 24,
+                                  bottom: 16,
+                                ),
+                                child: PrimaryButton(
+                                  onPressed: attemptRestore,
+                                  label: "RESTORE",
+                                ),
                               ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 8.0,
-                                left: 16,
-                                right: 0,
-                                bottom: 16,
-                              ),
-                              child: PrimaryButton(
-                                onPressed: attemptRestore,
-                                label: "RESTORE",
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
