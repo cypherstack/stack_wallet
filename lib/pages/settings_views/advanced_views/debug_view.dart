@@ -105,6 +105,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
               Navigator.of(context).pop();
             },
           ),
+          centerTitle: true,
           title: Text(
             "Debug",
             style: STextStyles.titleH4(context),

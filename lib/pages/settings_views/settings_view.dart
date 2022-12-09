@@ -2,6 +2,7 @@ import 'package:epicpay/models/send_view_auto_fill_data.dart';
 import 'package:epicpay/pages/address_book_views/address_book_view.dart';
 import 'package:epicpay/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicpay/pages/send_view/send_view.dart';
+import 'package:epicpay/pages/settings_views/advanced_views/debug_view.dart';
 import 'package:epicpay/pages/settings_views/currency_view.dart';
 import 'package:epicpay/pages/settings_views/language_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/network_settings_view.dart';
@@ -187,6 +188,16 @@ class SettingsView extends StatelessWidget {
                             onPressed: () {
                               Navigator.of(context)
                                   .pushNamed(LanguageSettingsView.routeName);
+                            },
+                          ),
+                          const _Div(),
+                          SettingsListButton(
+                            iconAssetName: Assets.svg.alertCircle,
+                            iconSize: 18,
+                            title: "Debug",
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushNamed(DebugView.routeName);
                             },
                           ),
                           const _Div(),
