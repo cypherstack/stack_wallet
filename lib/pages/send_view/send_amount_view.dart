@@ -1,17 +1,15 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
+import 'package:epicpay/pages/send_view/confirm_transaction_view.dart';
 import 'package:epicpay/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-// import 'package:epicpay/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
-import 'package:epicpay/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:epicpay/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
 import 'package:epicpay/providers/providers.dart';
-import 'package:epicpay/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:epicpay/providers/ui/preview_tx_button_state_provider.dart';
+import 'package:epicpay/route_generator.dart';
 import 'package:epicpay/utilities/barcode_scanner_interface.dart';
 import 'package:epicpay/utilities/constants.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
-import 'package:epicpay/utilities/enums/fee_rate_type_enum.dart';
 import 'package:epicpay/utilities/format.dart';
 import 'package:epicpay/utilities/logger.dart';
 import 'package:epicpay/utilities/text_styles.dart';
@@ -21,14 +19,11 @@ import 'package:epicpay/widgets/background.dart';
 import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicpay/widgets/desktop/primary_button.dart';
 import 'package:epicpay/widgets/icon_widgets/x_icon.dart';
+import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:epicpay/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../route_generator.dart';
-import '../../widgets/stack_dialog.dart';
-import 'confirm_transaction_view.dart';
 
 class SendAmountView extends ConsumerStatefulWidget {
   const SendAmountView({
@@ -69,7 +64,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
 
   Decimal? _amountToSend;
   Decimal? _cachedAmountToSend;
-  // String? _address;
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
@@ -130,20 +124,15 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         ref.read(walletProvider)!.validateAddress(address ?? "");
     ref.read(previewTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Decimal.zero);
-
-    debugPrint("=====================================================");
-    debugPrint("address: $address");
-    debugPrint("amount: $amount");
-    debugPrint("=====================================================");
   }
 
-  late Future<String> _calculateFeesFuture;
-  late Future<String> _displayFees;
-  Map<int, String> cachedFees = {};
+  late Future<Decimal> _calculateFeesFuture;
+  // late Future<Decimal> _displayFees;
+  Map<int, Decimal> cachedFees = {};
 
-  Future<String> calculateFees(int amount) async {
+  Future<Decimal> calculateFees(int amount) async {
     if (amount <= 0) {
-      return "0";
+      return Decimal.zero;
     }
 
     if (cachedFees[amount] != null) {
@@ -151,62 +140,9 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
     }
 
     final manager = ref.read(walletProvider)!;
-    final feeObject = await manager.fees;
 
-    late final int feeRate;
-
-    switch (ref.read(feeRateTypeStateProvider.state).state) {
-      case FeeRateType.fast:
-        feeRate = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        feeRate = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        feeRate = feeObject.slow;
-        break;
-    }
-
-    int fee;
-    fee = await manager.estimateFeeFor(amount, feeRate);
-    cachedFees[amount] =
-        Format.satoshisToAmount(fee).toStringAsFixed(Constants.decimalPlaces);
-
-    return cachedFees[amount]!;
-  }
-
-  Future<String> calculateNetworkFees(int amount) async {
-    if (amount <= 0) {
-      return "0";
-    }
-
-    if (cachedFees[amount] != null) {
-      return cachedFees[amount]!;
-    }
-
-    final manager = ref.read(walletProvider)!;
-    final feeObject = await manager.fees;
-
-    late final int feeRate;
-
-    switch (ref.read(feeRateTypeStateProvider.state).state) {
-      case FeeRateType.fast:
-        feeRate = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        feeRate = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        feeRate = feeObject.slow;
-        break;
-    }
-
-    int fee;
-    fee = await manager.estimateFeeFor(amount, feeRate);
-    int networkFee = fee - amount;
-
-    cachedFees[amount] = Format.satoshisToAmount(networkFee)
-        .toStringAsFixed(Constants.decimalPlaces);
+    final fee = await manager.estimateFeeFor(amount, 1);
+    cachedFees[amount] = Format.satoshisToAmount(fee);
 
     return cachedFees[amount]!;
   }
@@ -358,7 +294,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
       Map<String, dynamic> txData = await ref.read(walletProvider)!.prepareSend(
         address: address,
         satoshiAmount: amount,
-        args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+        args: {"feeRate": 1},
       );
 
       if (!wasCancelled && mounted) {
@@ -421,10 +357,8 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
 
   @override
   void initState() {
-    ref.refresh(feeSheetSessionCacheProvider);
-
     _calculateFeesFuture = calculateFees(0);
-    _displayFees = calculateFees(0);
+    // _displayFees = calculateFees(0);
     walletId = widget.walletId;
     address = widget.address;
     coin = widget.coin;
@@ -444,14 +378,14 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         if (_amountToSend == null) {
           setState(() {
             _calculateFeesFuture = calculateFees(0);
-            _displayFees = calculateFees(0);
+            // _displayFees = calculateFees(0);
           });
         } else {
           setState(() {
             _calculateFeesFuture =
                 calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-            _displayFees = calculateNetworkFees(
-                Format.decimalAmountToSatoshis(_amountToSend!));
+            // _displayFees = calculateNetworkFees(
+            //     Format.decimalAmountToSatoshis(_amountToSend!));
           });
         }
       }
@@ -462,14 +396,14 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         if (_amountToSend == null) {
           setState(() {
             _calculateFeesFuture = calculateFees(0);
-            _displayFees = calculateFees(0);
+            // _displayFees = calculateFees(0);
           });
         } else {
           setState(() {
             _calculateFeesFuture =
                 calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-            _displayFees = calculateNetworkFees(
-                Format.decimalAmountToSatoshis(_amountToSend!));
+            // _displayFees = calculateNetworkFees(
+            //     Format.decimalAmountToSatoshis(_amountToSend!));
           });
         }
       }
@@ -857,77 +791,100 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                           height: 10,
                         ),
                         FutureBuilder(
-                          future: _displayFees,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                    ConnectionState.done &&
-                                snapshot.hasData) {
-                              return Text(
-                                "~${snapshot.data! as String} ${coin.ticker}",
-                                textAlign: TextAlign.center,
-                                style: STextStyles.body(context),
-                              );
-                            } else {
-                              return Center(
-                                child: AnimatedText(
-                                  stringsToLoopThrough: const [
-                                    "Calculating",
-                                    "Calculating.",
-                                    "Calculating..",
-                                    "Calculating...",
-                                  ],
-                                  style: STextStyles.body(context),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        const SizedBox(
-                          height: 36,
-                        ),
-                        Center(
-                          child: Text(
-                            "TOTAL AMOUNT TO SEND (INCLUDING FEE)",
-                            style: STextStyles.overLineBold(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textMedium,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 6,
-                        ),
-                        FutureBuilder(
                           future: _calculateFeesFuture,
-                          builder: (context, snapshot) {
+                          builder: (context, AsyncSnapshot<Decimal> snapshot) {
                             if (snapshot.connectionState ==
                                     ConnectionState.done &&
                                 snapshot.hasData) {
-                              return Text(
-                                "~${snapshot.data! as String} ${coin.ticker}",
-                                textAlign: TextAlign.center,
-                                style: STextStyles.titleH2(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .buttonBackPrimary,
-                                ),
+                              final feeAmount = snapshot.data!;
+
+                              final total =
+                                  feeAmount + (_amountToSend ?? Decimal.zero);
+
+                              return Column(
+                                children: [
+                                  Text(
+                                    "~$feeAmount ${coin.ticker}",
+                                    textAlign: TextAlign.center,
+                                    style: STextStyles.body(context),
+                                  ),
+                                  const SizedBox(
+                                    height: 36,
+                                  ),
+                                  Center(
+                                    child: Text(
+                                      "TOTAL AMOUNT TO SEND (INCLUDING FEE)",
+                                      style: STextStyles.overLineBold(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textMedium,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 6,
+                                  ),
+                                  Text(
+                                    "~$total ${coin.ticker}",
+                                    textAlign: TextAlign.center,
+                                    style:
+                                        STextStyles.titleH2(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .buttonBackPrimary,
+                                    ),
+                                  )
+                                ],
                               );
                             } else {
-                              return Center(
-                                child: AnimatedText(
-                                  stringsToLoopThrough: const [
-                                    "Calculating",
-                                    "Calculating.",
-                                    "Calculating..",
-                                    "Calculating...",
-                                  ],
-                                  style: STextStyles.titleH2(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .buttonBackPrimary,
+                              return Column(
+                                children: [
+                                  Center(
+                                    child: AnimatedText(
+                                      stringsToLoopThrough: const [
+                                        "Calculating",
+                                        "Calculating.",
+                                        "Calculating..",
+                                        "Calculating...",
+                                      ],
+                                      style: STextStyles.body(context),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(
+                                    height: 36,
+                                  ),
+                                  Center(
+                                    child: Text(
+                                      "TOTAL AMOUNT TO SEND (INCLUDING FEE)",
+                                      style: STextStyles.overLineBold(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textMedium,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 6,
+                                  ),
+                                  Center(
+                                    child: AnimatedText(
+                                      stringsToLoopThrough: const [
+                                        "Calculating",
+                                        "Calculating.",
+                                        "Calculating..",
+                                        "Calculating...",
+                                      ],
+                                      style:
+                                          STextStyles.titleH2(context).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .buttonBackPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               );
                             }
                           },
