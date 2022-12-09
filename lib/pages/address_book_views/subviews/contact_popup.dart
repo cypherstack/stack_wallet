@@ -1,18 +1,20 @@
+import 'dart:async';
+
 import 'package:epicmobile/providers/global/address_book_service_provider.dart';
 import 'package:epicmobile/providers/providers.dart';
+import 'package:epicmobile/utilities/assets.dart';
 import 'package:epicmobile/utilities/clipboard_interface.dart';
 import 'package:epicmobile/utilities/enums/coin_enum.dart';
 import 'package:epicmobile/utilities/text_styles.dart';
 import 'package:epicmobile/utilities/theme/stack_colors.dart';
 import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/icon_widgets/copy_icon.dart';
 import 'package:epicmobile/widgets/rounded_container.dart';
 import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:epicmobile/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../widgets/textfield_icon_button.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ContactPopUp extends ConsumerWidget {
   const ContactPopUp({
@@ -103,8 +105,7 @@ class ContactPopUp extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextFieldIconButton(
-                      key: const Key("contactPopupCopyButtonKey"),
+                    CopyButton(
                       onTap: () async {
                         await clipboard.setData(
                           ClipboardData(
@@ -112,7 +113,6 @@ class ContactPopUp extends ConsumerWidget {
                           ),
                         );
                       },
-                      child: const CopyIcon(),
                     ),
                   ],
                 ),
@@ -169,6 +169,49 @@ class ContactPopUp extends ConsumerWidget {
           ),
         )
       ],
+    );
+  }
+}
+
+class CopyButton extends StatefulWidget {
+  const CopyButton({Key? key, this.onTap}) : super(key: key);
+
+  final VoidCallback? onTap;
+
+  @override
+  State<CopyButton> createState() => _CopyButtonState();
+}
+
+class _CopyButtonState extends State<CopyButton> {
+  String assetName = Assets.svg.copy;
+
+  void onCopy() {
+    setState(() {
+      assetName = Assets.svg.check;
+    });
+    Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          assetName = Assets.svg.copy;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFieldIconButton(
+      key: const Key("contactPopupCopyButtonKey"),
+      onTap: () async {
+        widget.onTap?.call();
+        onCopy();
+      },
+      child: SvgPicture.asset(
+        assetName,
+        width: 24,
+        height: 24,
+        color: Theme.of(context).extension<StackColors>()!.textDark,
+      ),
     );
   }
 }
