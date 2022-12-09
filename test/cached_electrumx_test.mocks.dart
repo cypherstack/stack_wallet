@@ -551,6 +551,19 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  int get familiarity => (super.noSuchMethod(
+        Invocation.getter(#familiarity),
+        returnValue: 0,
+      ) as int);
+  @override
+  set familiarity(int? familiarity) => super.noSuchMethod(
+        Invocation.setter(
+          #familiarity,
+          familiarity,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get showTestNetCoins => (super.noSuchMethod(
         Invocation.getter(#showTestNetCoins),
         returnValue: false,
@@ -677,6 +690,14 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+  @override
+  _i4.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
+        Invocation.method(
+          #isExternalCallsSet,
+          [],
+        ),
+        returnValue: _i4.Future<bool>.value(false),
+      ) as _i4.Future<bool>);
   @override
   void addListener(_i9.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(

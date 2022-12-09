@@ -37,6 +37,7 @@ class Prefs extends ChangeNotifier {
       _gotoWalletOnStartup = await _getGotoWalletOnStartup();
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
+      _familiarity = await _getHasFamiliarity();
 
       _initialized = true;
     }
@@ -326,6 +327,27 @@ class Prefs extends ChangeNotifier {
     return await DB.instance
             .get<dynamic>(boxName: DB.boxNamePrefs, key: "hasPin") as bool? ??
         false;
+  }
+
+  // familiarity
+
+  int _familiarity = 0;
+
+  int get familiarity => _familiarity;
+
+  set familiarity(int familiarity) {
+    if (_familiarity != familiarity) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs, key: "familiarity", value: familiarity);
+      _familiarity = familiarity;
+      notifyListeners();
+    }
+  }
+
+  Future<int> _getHasFamiliarity() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "familiarity") as int? ??
+        0;
   }
 
   // show testnet coins

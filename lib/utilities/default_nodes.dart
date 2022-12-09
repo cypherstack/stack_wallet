@@ -4,11 +4,13 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
-  static String _nodeId(Coin coin) => "default_${coin.name}";
+  static const String defaultNodeIdPrefix = "default_";
+  static String _nodeId(Coin coin) => "$defaultNodeIdPrefix${coin.name}";
   static const String defaultName = "Stack Default";
 
   static List<NodeModel> get all => [
         bitcoin,
+        litecoin,
         dogecoin,
         firo,
         monero,
@@ -16,7 +18,9 @@ abstract class DefaultNodes {
         bitcoincash,
         namecoin,
         wownero,
+        particl,
         bitcoinTestnet,
+        litecoinTestNet,
         bitcoincashTestnet,
         dogecoinTestnet,
         firoTestnet,
@@ -30,6 +34,30 @@ abstract class DefaultNodes {
         useSSL: true,
         enabled: true,
         coinName: Coin.bitcoin.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get litecoin => NodeModel(
+        host: "litecoin.stackwallet.com",
+        port: 20063,
+        name: defaultName,
+        id: _nodeId(Coin.litecoin),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.litecoin.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get litecoinTestNet => NodeModel(
+        host: "litecoin.stackwallet.com",
+        port: 51002,
+        name: defaultName,
+        id: _nodeId(Coin.litecoinTestNet),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.litecoinTestNet.name,
         isFailover: true,
         isDown: false,
       );
@@ -119,15 +147,15 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get particl => NodeModel(
-      host: "particl.stackwallet.com",
-      port: 58002,
+      host: "164.92.93.20",
+      port: 50002,
       name: defaultName,
       id: _nodeId(Coin.particl),
       useSSL: true,
       enabled: true,
       coinName: Coin.particl.name,
       isFailover: true,
-      isDown: false);
+      isDown: false); //TODO - UPDATE WITH CORRECT DETAILS
 
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "electrumx-testnet.cypherstack.com",
@@ -182,6 +210,9 @@ abstract class DefaultNodes {
       case Coin.bitcoin:
         return bitcoin;
 
+      case Coin.litecoin:
+        return litecoin;
+
       case Coin.bitcoincash:
         return bitcoincash;
 
@@ -208,6 +239,9 @@ abstract class DefaultNodes {
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
+
+      case Coin.litecoinTestNet:
+        return litecoinTestNet;
 
       case Coin.bitcoincashTestnet:
         return bitcoincashTestnet;

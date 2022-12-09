@@ -11,6 +11,7 @@ class DesktopAppBar extends StatefulWidget {
     this.trailing,
     this.background = Colors.transparent,
     required this.isCompactHeight,
+    this.useSpacers = true,
   }) : super(key: key);
 
   final Widget? leading;
@@ -18,6 +19,7 @@ class DesktopAppBar extends StatefulWidget {
   final Widget? trailing;
   final Color background;
   final bool isCompactHeight;
+  final bool useSpacers;
 
   @override
   State<DesktopAppBar> createState() => _DesktopAppBarState();
@@ -33,11 +35,15 @@ class _DesktopAppBarState extends State<DesktopAppBar> {
       items.add(widget.leading!);
     }
 
-    items.add(const Spacer());
+    if (widget.useSpacers) {
+      items.add(const Spacer());
+    }
 
     if (widget.center != null) {
       items.add(widget.center!);
-      items.add(const Spacer());
+      if (widget.useSpacers) {
+        items.add(const Spacer());
+      }
     }
 
     if (widget.trailing != null) {

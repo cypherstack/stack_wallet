@@ -1,16 +1,20 @@
-import 'dart:ui';
-
+import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 enum ThemeType {
   light,
   dark,
+  oceanBreeze,
 }
 
 abstract class StackColorTheme {
   ThemeType get themeType;
 
   Color get background;
+  Color get backgroundAppBar;
+
+  Gradient? get gradientBackground;
+
   Color get overlay;
 
   Color get accentColorBlue;
@@ -181,6 +185,7 @@ class CoinThemeColor {
   const CoinThemeColor();
 
   Color get bitcoin => const Color(0xFFFCC17B);
+  Color get litecoin => const Color(0xFF7FA6E1);
   Color get bitcoincash => const Color(0xFF7BCFB8);
   Color get firo => const Color(0xFFFF897A);
   Color get dogecoin => const Color(0xFFFFE079);
@@ -188,13 +193,16 @@ class CoinThemeColor {
   Color get monero => const Color(0xFFFF9E6B);
   Color get namecoin => const Color(0xFF91B1E1);
   Color get wownero => const Color(0xFFED80C1);
-  Color get particl => const Color(0xFFED80C1); //TODO - Use part colors
+  Color get particl => const Color(0xFF8175BD);
 
   Color forCoin(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return litecoin;
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
         return bitcoincash;

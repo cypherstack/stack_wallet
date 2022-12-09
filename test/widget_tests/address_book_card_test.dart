@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,6 +13,7 @@ import 'package:stackwallet/services/address_book_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
 
 import 'address_book_card_test.mocks.dart';
@@ -24,16 +27,18 @@ void main() {
   testWidgets('test returns Contact Address Entry', (widgetTester) async {
     final service = MockAddressBookService();
 
-    when(service.getContactById("default"))
-        .thenAnswer((realInvocation) => Contact(
-            name: "John Doe",
-            addresses: [
-              const ContactAddressEntry(
-                  coin: Coin.bitcoincash,
-                  address: "some bch address",
-                  label: "Bills")
-            ],
-            isFavorite: true));
+    when(service.getContactById("default")).thenAnswer(
+      (realInvocation) => Contact(
+        name: "John Doe",
+        addresses: [
+          const ContactAddressEntry(
+              coin: Coin.bitcoincash,
+              address: "some bch address",
+              label: "Bills")
+        ],
+        isFavorite: true,
+      ),
+    );
 
     await widgetTester.pumpWidget(
       ProviderScope(
@@ -61,6 +66,11 @@ void main() {
     expect(find.text("BCH"), findsOneWidget);
     expect(find.text(Coin.bitcoincash.ticker), findsOneWidget);
 
-    await widgetTester.tap(find.byType(RawMaterialButton));
+    if (Platform.isIOS || Platform.isAndroid) {
+      await widgetTester.tap(find.byType(RawMaterialButton));
+      expect(find.byType(ContactPopUp), findsOneWidget);
+    } else if (Util.isDesktop) {
+      expect(find.byType(RawMaterialButton), findsNothing);
+    }
   });
 }

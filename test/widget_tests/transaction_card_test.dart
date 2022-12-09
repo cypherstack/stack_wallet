@@ -1,12 +1,13 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:mockito/annotations.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/models.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
@@ -15,13 +16,12 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/listenable_map.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
 
 import 'transaction_card_test.mocks.dart';
@@ -104,7 +104,9 @@ void main() {
     //
     final title = find.text("Sent");
     // final price1 = find.text("0.00 USD");
-    final amount = find.text("1.00000000 FIRO");
+    final amount = Util.isDesktop
+        ? find.text("-1.00000000 FIRO")
+        : find.text("1.00000000 FIRO");
 
     final icon = find.byIcon(FeatherIcons.arrowUp);
 
@@ -113,7 +115,7 @@ void main() {
     expect(amount, findsOneWidget);
     // expect(icon, findsOneWidget);
     //
-    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.pumpAndSettle(const Duration(seconds: 2));
     //
     // final price2 = find.text("\$10.00");
     // expect(price2, findsOneWidget);
@@ -206,7 +208,7 @@ void main() {
     expect(amount, findsOneWidget);
     // expect(icon, findsOneWidget);
     //
-    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.pumpAndSettle(const Duration(seconds: 2));
     //
     // final price2 = find.text("\$10.00");
     // expect(price2, findsOneWidget);
@@ -288,12 +290,14 @@ void main() {
     );
 
     final title = find.text("Receiving");
-    final amount = find.text("1.00000000 FIRO");
+    final amount = Util.isDesktop
+        ? find.text("+1.00000000 FIRO")
+        : find.text("1.00000000 FIRO");
 
     expect(title, findsOneWidget);
     expect(amount, findsOneWidget);
 
-    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.pumpAndSettle(const Duration(seconds: 2));
 
     verify(mockLocaleService.addListener(any)).called(1);
 
@@ -383,16 +387,20 @@ void main() {
 
     verify(mockLocaleService.addListener(any)).called(1);
 
-    verify(mockPrefs.currency).called(1);
-    verify(mockLocaleService.locale).called(1);
+    verify(mockPrefs.currency).called(2);
+    verify(mockLocaleService.locale).called(4);
     verify(wallet.coin.ticker).called(1);
 
     verifyNoMoreInteractions(wallet);
     verifyNoMoreInteractions(mockLocaleService);
 
-    mockingjay
-        .verify(() => navigator.pushNamed("/transactionDetails",
-            arguments: Tuple3(tx, Coin.firo, "wallet id")))
-        .called(1);
+    if (Util.isDesktop) {
+      expect(find.byType(TransactionDetailsView), findsOneWidget);
+    } else {
+      mockingjay
+          .verify(() => navigator.pushNamed("/transactionDetails",
+              arguments: Tuple3(tx, Coin.firo, "wallet id")))
+          .called(1);
+    }
   });
 }

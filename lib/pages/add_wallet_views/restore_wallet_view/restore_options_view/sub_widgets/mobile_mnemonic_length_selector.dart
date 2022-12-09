@@ -7,6 +7,8 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
+import 'package:stackwallet/utilities/util.dart';
+
 class MobileMnemonicLengthSelector extends ConsumerWidget {
   const MobileMnemonicLengthSelector({
     Key? key,
@@ -19,7 +21,9 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Stack(
       children: [
-        const TextField(
+        TextField(
+          autocorrect: Util.isDesktop ? false : true,
+          enableSuggestions: Util.isDesktop ? false : true,
           // controller: _lengthController,
           readOnly: true,
           textInputAction: TextInputAction.none,

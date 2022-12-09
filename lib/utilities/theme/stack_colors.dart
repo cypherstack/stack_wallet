@@ -6,6 +6,9 @@ class StackColors extends ThemeExtension<StackColors> {
   final ThemeType themeType;
 
   final Color background;
+  final Color backgroundAppBar;
+  final Gradient? gradientBackground;
+
   final Color overlay;
 
   final Color accentColorBlue;
@@ -173,6 +176,8 @@ class StackColors extends ThemeExtension<StackColors> {
   StackColors({
     required this.themeType,
     required this.background,
+    required this.backgroundAppBar,
+    required this.gradientBackground,
     required this.overlay,
     required this.accentColorBlue,
     required this.accentColorGreen,
@@ -307,6 +312,8 @@ class StackColors extends ThemeExtension<StackColors> {
     return StackColors(
       themeType: colorTheme.themeType,
       background: colorTheme.background,
+      backgroundAppBar: colorTheme.backgroundAppBar,
+      gradientBackground: colorTheme.gradientBackground,
       overlay: colorTheme.overlay,
       accentColorBlue: colorTheme.accentColorBlue,
       accentColorGreen: colorTheme.accentColorGreen,
@@ -444,6 +451,8 @@ class StackColors extends ThemeExtension<StackColors> {
   ThemeExtension<StackColors> copyWith({
     ThemeType? themeType,
     Color? background,
+    Color? backgroundAppBar,
+    Gradient? gradientBackground,
     Color? overlay,
     Color? accentColorBlue,
     Color? accentColorGreen,
@@ -576,6 +585,8 @@ class StackColors extends ThemeExtension<StackColors> {
     return StackColors(
       themeType: themeType ?? this.themeType,
       background: background ?? this.background,
+      backgroundAppBar: backgroundAppBar ?? this.backgroundAppBar,
+      gradientBackground: gradientBackground ?? this.gradientBackground,
       overlay: overlay ?? this.overlay,
       accentColorBlue: accentColorBlue ?? this.accentColorBlue,
       accentColorGreen: accentColorGreen ?? this.accentColorGreen,
@@ -755,9 +766,15 @@ class StackColors extends ThemeExtension<StackColors> {
 
     return StackColors(
       themeType: other.themeType,
+      gradientBackground: other.gradientBackground,
       background: Color.lerp(
         background,
         other.background,
+        t,
+      )!,
+      backgroundAppBar: Color.lerp(
+        backgroundAppBar,
+        other.backgroundAppBar,
         t,
       )!,
       overlay: Color.lerp(
@@ -1406,6 +1423,9 @@ class StackColors extends ThemeExtension<StackColors> {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return _coin.bitcoin;
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return _coin.litecoin;
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
         return _coin.bitcoincash;
@@ -1467,6 +1487,20 @@ class StackColors extends ThemeExtension<StackColors> {
     }
   }
 
+  ButtonStyle? getDeleteEnabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              textFieldErrorBG,
+            ),
+          );
+
+  ButtonStyle? getDeleteDisabledButtonColor(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              buttonBackSecondaryDisabled,
+            ),
+          );
+
   ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
@@ -1520,6 +1554,9 @@ class StackColors extends ThemeExtension<StackColors> {
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               background,
+            ),
+            overlayColor: MaterialStateProperty.all<Color>(
+              Colors.transparent,
             ),
           );
 }

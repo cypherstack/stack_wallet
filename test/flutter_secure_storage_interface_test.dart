@@ -13,7 +13,7 @@ void main() {
     when(secureStore.write(key: "testKey", value: "some value"))
         .thenAnswer((_) async => null);
 
-    final wrapper = SecureStorageWrapper(secureStore);
+    final wrapper = SecureStorageWrapper(store: secureStore, isDesktop: false);
 
     await expectLater(
         () async => await wrapper.write(key: "testKey", value: "some value"),
@@ -27,7 +27,7 @@ void main() {
     final secureStore = MockFlutterSecureStorage();
     when(secureStore.read(key: "testKey"))
         .thenAnswer((_) async => "some value");
-    final wrapper = SecureStorageWrapper(secureStore);
+    final wrapper = SecureStorageWrapper(store: secureStore, isDesktop: false);
 
     final result = await wrapper.read(key: "testKey");
 
@@ -40,7 +40,7 @@ void main() {
   test("SecureStorageWrapper delete", () async {
     final secureStore = MockFlutterSecureStorage();
     when(secureStore.delete(key: "testKey")).thenAnswer((_) async {});
-    final wrapper = SecureStorageWrapper(secureStore);
+    final wrapper = SecureStorageWrapper(store: secureStore, isDesktop: false);
 
     await expectLater(
         () async => await wrapper.delete(key: "testKey"), returnsNormally);

@@ -7,9 +7,14 @@ import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
@@ -67,6 +72,126 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
     );
   }
 
+  Widget itemBuilder(
+      BuildContext context, Transaction tx, BorderRadius? radius) {
+    final matchingTrades = ref
+        .read(tradesServiceProvider)
+        .trades
+        .where((e) => e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
+    if (tx.txType == "Sent" && matchingTrades.isNotEmpty) {
+      final trade = matchingTrades.first;
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          borderRadius: radius,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TransactionCard(
+              // this may mess with combined firo transactions
+              key: Key(tx.toString()), //
+              transaction: tx,
+              walletId: widget.walletId,
+            ),
+            TradeCard(
+              // this may mess with combined firo transactions
+              key: Key(tx.toString() + trade.uuid), //
+              trade: trade,
+              onTap: () async {
+                if (Util.isDesktop) {
+                  await showDialog<void>(
+                    context: context,
+                    builder: (context) => Navigator(
+                      initialRoute: TradeDetailsView.routeName,
+                      onGenerateRoute: RouteGenerator.generateRoute,
+                      onGenerateInitialRoutes: (_, __) {
+                        return [
+                          FadePageRoute(
+                            DesktopDialog(
+                              // maxHeight:
+                              //     MediaQuery.of(context).size.height - 64,
+                              maxHeight: double.infinity,
+                              maxWidth: 580,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 32,
+                                      bottom: 16,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Trade details",
+                                          style: STextStyles.desktopH3(context),
+                                        ),
+                                        DesktopDialogCloseButton(
+                                          onPressedOverride: Navigator.of(
+                                            context,
+                                            rootNavigator: true,
+                                          ).pop,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: TradeDetailsView(
+                                      tradeId: trade.tradeId,
+                                      transactionIfSentFromStack: tx,
+                                      walletName:
+                                          ref.read(managerProvider).walletName,
+                                      walletId: widget.walletId,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const RouteSettings(
+                              name: TradeDetailsView.routeName,
+                            ),
+                          ),
+                        ];
+                      },
+                    ),
+                  );
+                } else {
+                  unawaited(
+                    Navigator.of(context).pushNamed(
+                      TradeDetailsView.routeName,
+                      arguments: Tuple4(
+                        trade.tradeId,
+                        tx,
+                        widget.walletId,
+                        ref.read(managerProvider).walletName,
+                      ),
+                    ),
+                  );
+                }
+              },
+            )
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          borderRadius: radius,
+        ),
+        child: TransactionCard(
+          // this may mess with combined firo transactions
+          key: Key(tx.toString()), //
+          transaction: tx,
+          walletId: widget.walletId,
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     managerProvider = widget.managerProvider;
@@ -119,77 +244,42 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                 unawaited(ref.read(managerProvider).refresh());
               }
             },
-            child: ListView.builder(
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                BorderRadius? radius;
-                if (index == list.length - 1) {
-                  radius = _borderRadiusLast;
-                } else if (index == 0) {
-                  radius = _borderRadiusFirst;
-                }
-                final tx = list[index];
-
-                final matchingTrades = ref
-                    .read(tradesServiceProvider)
-                    .trades
-                    .where((e) =>
-                        e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
-                if (tx.txType == "Sent" && matchingTrades.isNotEmpty) {
-                  final trade = matchingTrades.first;
-                  return Container(
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      borderRadius: radius,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TransactionCard(
-                          // this may mess with combined firo transactions
-                          key: Key(tx.toString()), //
-                          transaction: tx,
-                          walletId: widget.walletId,
-                        ),
-                        TradeCard(
-                          // this may mess with combined firo transactions
-                          key: Key(tx.toString() + trade.uuid), //
-                          trade: trade,
-                          onTap: () {
-                            unawaited(
-                              Navigator.of(context).pushNamed(
-                                TradeDetailsView.routeName,
-                                arguments: Tuple4(
-                                  trade.tradeId,
-                                  tx,
-                                  widget.walletId,
-                                  ref.read(managerProvider).walletName,
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      ],
-                    ),
-                  );
-                } else {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      borderRadius: radius,
-                    ),
-                    child: TransactionCard(
-                      // this may mess with combined firo transactions
-                      key: Key(tx.toString()), //
-                      transaction: tx,
-                      walletId: widget.walletId,
-                    ),
-                  );
-                }
-              },
-            ),
+            child: Util.isDesktop
+                ? ListView.separated(
+                    itemBuilder: (context, index) {
+                      BorderRadius? radius;
+                      if (index == list.length - 1) {
+                        radius = _borderRadiusLast;
+                      } else if (index == 0) {
+                        radius = _borderRadiusFirst;
+                      }
+                      final tx = list[index];
+                      return itemBuilder(context, tx, radius);
+                    },
+                    separatorBuilder: (context, index) {
+                      return Container(
+                        width: double.infinity,
+                        height: 2,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                      );
+                    },
+                    itemCount: list.length,
+                  )
+                : ListView.builder(
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      BorderRadius? radius;
+                      if (index == list.length - 1) {
+                        radius = _borderRadiusLast;
+                      } else if (index == 0) {
+                        radius = _borderRadiusFirst;
+                      }
+                      final tx = list[index];
+                      return itemBuilder(context, tx, radius);
+                    },
+                  ),
           );
         }
       },

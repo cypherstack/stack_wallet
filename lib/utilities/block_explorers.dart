@@ -7,6 +7,10 @@ Uri getBlockExplorerTransactionUrlFor({
   switch (coin) {
     case Coin.bitcoin:
       return Uri.parse("https://chain.so/tx/BTC/$txid");
+    case Coin.litecoin:
+      return Uri.parse("https://chain.so/tx/LTC/$txid");
+    case Coin.litecoinTestNet:
+      return Uri.parse("https://chain.so/tx/LTCTEST/$txid");
     case Coin.bitcoinTestNet:
       return Uri.parse("https://chain.so/tx/BTCTEST/$txid");
     case Coin.dogecoin:

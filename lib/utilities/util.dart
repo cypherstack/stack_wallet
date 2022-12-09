@@ -3,7 +3,22 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 abstract class Util {
+  static Directory? libraryPath;
+  static double? screenWidth;
+
   static bool get isDesktop {
+    // special check for running on linux based phones
+    if (Platform.isLinux && screenWidth != null && screenWidth! < 800) {
+      return false;
+    }
+
+    // special check for running under ipad mode in macos
+    if (Platform.isIOS &&
+        libraryPath != null &&
+        !libraryPath!.path.contains("/var/mobile/")) {
+      return true;
+    }
+
     return Platform.isLinux || Platform.isMacOS || Platform.isWindows;
   }
 

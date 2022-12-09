@@ -51,10 +51,14 @@ class AppBarBackButton extends StatelessWidget {
     Key? key,
     this.onPressed,
     this.isCompact = false,
+    this.size,
+    this.iconSize,
   }) : super(key: key);
 
   final VoidCallback? onPressed;
   final bool isCompact;
+  final double? size;
+  final double? iconSize;
 
   @override
   Widget build(BuildContext context) {
@@ -67,19 +71,20 @@ class AppBarBackButton extends StatelessWidget {
             )
           : const EdgeInsets.all(10),
       child: AppBarIconButton(
-        size: isDesktop
-            ? isCompact
-                ? 42
-                : 56
-            : 32,
+        size: size ??
+            (isDesktop
+                ? isCompact
+                    ? 42
+                    : 56
+                : 32),
         color: isDesktop
             ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
             : Theme.of(context).extension<StackColors>()!.background,
         shadows: const [],
         icon: SvgPicture.asset(
           Assets.svg.arrowLeft,
-          width: isCompact ? 18 : 24,
-          height: isCompact ? 18 : 24,
+          width: iconSize ?? (isCompact ? 18 : 24),
+          height: iconSize ?? (isCompact ? 18 : 24),
           color: Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
         ),
         onPressed: onPressed ?? Navigator.of(context).pop,

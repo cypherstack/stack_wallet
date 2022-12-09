@@ -3,6 +3,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class BuildingTransactionDialog extends StatefulWidget {
@@ -50,37 +52,73 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
-      child: StackDialog(
-        title: "Generating transaction",
-        // // TODO get message from design team
-        // message: "<PLACEHOLDER>",
-        icon: RotationTransition(
-          turns: _spinAnimation,
-          child: SvgPicture.asset(
-            Assets.svg.arrowRotate,
-            color: Theme.of(context).extension<StackColors>()!.accentColorDark,
-            width: 24,
-            height: 24,
+    if (Util.isDesktop) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "Generating transaction",
+            style: STextStyles.desktopH3(context),
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+          RotationTransition(
+            turns: _spinAnimation,
+            child: SvgPicture.asset(
+              Assets.svg.arrowRotate,
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              width: 24,
+              height: 24,
+            ),
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+          SecondaryButton(
+            buttonHeight: ButtonHeight.l,
+            label: "Cancel",
+            onPressed: () {
+              onCancel.call();
+            },
+          )
+        ],
+      );
+    } else {
+      return WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: StackDialog(
+          title: "Generating transaction",
+          // // TODO get message from design team
+          // message: "<PLACEHOLDER>",
+          icon: RotationTransition(
+            turns: _spinAnimation,
+            child: SvgPicture.asset(
+              Assets.svg.arrowRotate,
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              width: 24,
+              height: 24,
+            ),
+          ),
+          rightButton: TextButton(
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonColor(context),
+            child: Text(
+              "Cancel",
+              style: STextStyles.itemSubtitle12(context),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+              onCancel.call();
+            },
           ),
         ),
-        rightButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getSecondaryEnabledButtonColor(context),
-          child: Text(
-            "Cancel",
-            style: STextStyles.itemSubtitle12(context),
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-            onCancel.call();
-          },
-        ),
-      ),
-    );
+      );
+    }
   }
 }

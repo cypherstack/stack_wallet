@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 abstract class Assets {
@@ -28,6 +29,16 @@ class _EXCHANGE {
 
 class _SVG {
   const _SVG();
+  String? background(BuildContext context) {
+    switch (Theme.of(context).extension<StackColors>()!.themeType) {
+      case ThemeType.light:
+      case ThemeType.dark:
+        return null;
+
+      case ThemeType.oceanBreeze:
+        return "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/bg.svg";
+    }
+  }
 
   String bellNew(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/bell-new.svg";
@@ -59,6 +70,22 @@ class _SVG {
   String txExchangeFailed(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
+  String get themeOcean => "assets/svg/ocean-breeze-theme.svg";
+  String get themeLight => "assets/svg/light-mode.svg";
+  String get themeDark => "assets/svg/dark-theme.svg";
+
+  String get circleSliders => "assets/svg/configuration.svg";
+  String get circlePlus => "assets/svg/plus-circle.svg";
+  String get framedGear => "assets/svg/framed-gear.svg";
+  String get framedAddressBook => "assets/svg/framed-address-book.svg";
+  String get circleNode => "assets/svg/node-circle.svg";
+  String get circleSun => "assets/svg/sun-circle.svg";
+  String get circleArrowRotate => "assets/svg/rotate-circle.svg";
+  String get circleLanguage => "assets/svg/language-circle.svg";
+  String get circleDollarSign => "assets/svg/dollar-sign-circle.svg";
+  String get circleLock => "assets/svg/lock-circle.svg";
+  String get enableButton => "assets/svg/enabled-button.svg";
+  String get disableButton => "assets/svg/Button.svg";
   String get polygon => "assets/svg/Polygon.svg";
   String get personaIncognito => "assets/svg/persona-incognito-1.svg";
   String get personaEasy => "assets/svg/persona-easy-1.svg";
@@ -87,10 +114,13 @@ class _SVG {
   String get qrcode => "assets/svg/qrcode1.svg";
   String get ellipsis => "assets/svg/gear-3.svg";
   String get chevronDown => "assets/svg/chevron-down.svg";
+  String get chevronUp => "assets/svg/chevron-up.svg";
   String get swap => "assets/svg/swap.svg";
   String get downloadFolder => "assets/svg/folder-down.svg";
   String get lock => "assets/svg/lock-keyhole.svg";
+  String get lockOpen => "assets/svg/lock-open.svg";
   String get network => "assets/svg/network-wired.svg";
+  String get networkWired => "assets/svg/network-wired-2.svg";
   String get addressBook => "assets/svg/address-book.svg";
   String get addressBook2 => "assets/svg/address-book2.svg";
   String get arrowRotate3 => "assets/svg/rotate-exclamation.svg";
@@ -130,11 +160,19 @@ class _SVG {
   String get anonymize => "assets/svg/tx-icon-anonymize.svg";
   String get anonymizePending => "assets/svg/tx-icon-anonymize-pending.svg";
   String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
+  String get addressBookDesktop => "assets/svg/address-book-desktop.svg";
+  String get exchangeDesktop => "assets/svg/exchange-desktop.svg";
+  String get aboutDesktop => "assets/svg/about-desktop.svg";
+  String get walletDesktop => "assets/svg/wallet-desktop.svg";
+  String get exitDesktop => "assets/svg/exit-desktop.svg";
+  String get keys => "assets/svg/keys.svg";
+  String get arrowDown => "assets/svg/arrow-down.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
 
   String get bitcoin => "assets/svg/coin_icons/Bitcoin.svg";
+  String get litecoin => "assets/svg/coin_icons/Litecoin.svg";
   String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
   String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
@@ -142,8 +180,7 @@ class _SVG {
   String get monero => "assets/svg/coin_icons/Monero.svg";
   String get wownero => "assets/svg/coin_icons/Wownero.svg";
   String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
-  String get particl =>
-      "assets/svg/coin_icons/Namecoin.svg"; //TODO - Update icon to particl
+  String get particl => "assets/svg/coin_icons/Particl.svg";
 
   String get chevronRight => "assets/svg/chevron-right.svg";
   String get minimize => "assets/svg/minimize.svg";
@@ -163,6 +200,9 @@ class _SVG {
     switch (coin) {
       case Coin.bitcoin:
         return bitcoin;
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return litecoin;
       case Coin.bitcoincash:
         return bitcoincash;
       case Coin.dogecoin:
@@ -202,16 +242,23 @@ class _PNG {
   String get firo => "assets/images/firo.png";
   String get dogecoin => "assets/images/doge.png";
   String get bitcoin => "assets/images/bitcoin.png";
+  String get litecoin => "assets/images/litecoin.png";
   String get epicCash => "assets/images/epic-cash.png";
   String get bitcoincash => "assets/images/bitcoincash.png";
   String get namecoin => "assets/images/namecoin.png";
-  String get particl => "assets/images/namecoin.png"; //TODO - use particl png
+  String get particl => "assets/images/particl.png";
+
+  String get glasses => "assets/images/glasses.png";
+  String get glassesHidden => "assets/images/glasses-hidden.png";
 
   String imageFor({required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return litecoin;
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
         return bitcoincash;

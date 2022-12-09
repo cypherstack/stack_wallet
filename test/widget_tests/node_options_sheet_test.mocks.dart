@@ -76,9 +76,9 @@ class _FakeManager_3 extends _i1.SmartFake implements _i6.Manager {
         );
 }
 
-class _FakeFlutterSecureStorageInterface_4 extends _i1.SmartFake
-    implements _i7.FlutterSecureStorageInterface {
-  _FakeFlutterSecureStorageInterface_4(
+class _FakeSecureStorageInterface_4 extends _i1.SmartFake
+    implements _i7.SecureStorageInterface {
+  _FakeSecureStorageInterface_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -446,6 +446,19 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  int get familiarity => (super.noSuchMethod(
+        Invocation.getter(#familiarity),
+        returnValue: 0,
+      ) as int);
+  @override
+  set familiarity(int? familiarity) => super.noSuchMethod(
+        Invocation.setter(
+          #familiarity,
+          familiarity,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get showTestNetCoins => (super.noSuchMethod(
         Invocation.getter(#showTestNetCoins),
         returnValue: false,
@@ -573,6 +586,14 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
+  _i10.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
+        Invocation.method(
+          #isExternalCallsSet,
+          [],
+        ),
+        returnValue: _i10.Future<bool>.value(false),
+      ) as _i10.Future<bool>);
+  @override
   void addListener(_i12.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
@@ -615,14 +636,13 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
   }
 
   @override
-  _i7.FlutterSecureStorageInterface get secureStorageInterface =>
-      (super.noSuchMethod(
+  _i7.SecureStorageInterface get secureStorageInterface => (super.noSuchMethod(
         Invocation.getter(#secureStorageInterface),
-        returnValue: _FakeFlutterSecureStorageInterface_4(
+        returnValue: _FakeSecureStorageInterface_4(
           this,
           Invocation.getter(#secureStorageInterface),
         ),
-      ) as _i7.FlutterSecureStorageInterface);
+      ) as _i7.SecureStorageInterface);
   @override
   List<_i16.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),

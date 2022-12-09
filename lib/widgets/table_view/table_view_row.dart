@@ -3,7 +3,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 
-class TableViewRow extends StatelessWidget {
+class TableViewRow extends StatefulWidget {
   const TableViewRow({
     Key? key,
     required this.cells,
@@ -17,40 +17,66 @@ class TableViewRow extends StatelessWidget {
 
   final List<TableViewCell> cells;
   final Widget? expandingChild;
-  final Decoration? decoration;
+  final BoxDecoration? decoration;
   final void Function(ExpandableState)? onExpandChanged;
   final EdgeInsetsGeometry padding;
   final double spacing;
   final CrossAxisAlignment crossAxisAlignment;
 
   @override
+  State<TableViewRow> createState() => _TableViewRowState();
+}
+
+class _TableViewRowState extends State<TableViewRow> {
+  late final List<TableViewCell> cells;
+  late final Widget? expandingChild;
+  late final BoxDecoration? decoration;
+  late final void Function(ExpandableState)? onExpandChanged;
+  late final EdgeInsetsGeometry padding;
+  late final double spacing;
+  late final CrossAxisAlignment crossAxisAlignment;
+
+  bool _hovering = false;
+
+  @override
+  void initState() {
+    cells = widget.cells;
+    expandingChild = widget.expandingChild;
+    decoration = widget.decoration;
+    onExpandChanged = widget.onExpandChanged;
+    padding = widget.padding;
+    spacing = widget.spacing;
+    crossAxisAlignment = widget.crossAxisAlignment;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: decoration,
+      decoration: !_hovering
+          ? decoration
+          : decoration?.copyWith(
+              boxShadow: [
+                Theme.of(context).extension<StackColors>()!.standardBoxShadow,
+                Theme.of(context).extension<StackColors>()!.standardBoxShadow,
+              ],
+            ),
       child: expandingChild == null
-          ? Padding(
-              padding: padding,
-              child: Row(
-                crossAxisAlignment: crossAxisAlignment,
-                children: [
-                  for (int i = 0; i < cells.length; i++) ...[
-                    if (i != 0 && i != cells.length)
-                      SizedBox(
-                        width: spacing,
-                      ),
-                    Expanded(
-                      flex: cells[i].flex,
-                      child: cells[i],
-                    ),
-                  ],
-                ],
-              ),
-            )
-          : Expandable(
-              onExpandChanged: onExpandChanged,
-              header: Padding(
+          ? MouseRegion(
+              onEnter: (_) {
+                setState(() {
+                  _hovering = true;
+                });
+              },
+              onExit: (_) {
+                setState(() {
+                  _hovering = false;
+                });
+              },
+              child: Padding(
                 padding: padding,
                 child: Row(
+                  crossAxisAlignment: crossAxisAlignment,
                   children: [
                     for (int i = 0; i < cells.length; i++) ...[
                       if (i != 0 && i != cells.length)
@@ -63,6 +89,38 @@ class TableViewRow extends StatelessWidget {
                       ),
                     ],
                   ],
+                ),
+              ),
+            )
+          : Expandable(
+              onExpandChanged: onExpandChanged,
+              header: MouseRegion(
+                onEnter: (_) {
+                  setState(() {
+                    _hovering = true;
+                  });
+                },
+                onExit: (_) {
+                  setState(() {
+                    _hovering = false;
+                  });
+                },
+                child: Padding(
+                  padding: padding,
+                  child: Row(
+                    children: [
+                      for (int i = 0; i < cells.length; i++) ...[
+                        if (i != 0 && i != cells.length)
+                          SizedBox(
+                            width: spacing,
+                          ),
+                        Expanded(
+                          flex: cells[i].flex,
+                          child: cells[i],
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               body: Column(

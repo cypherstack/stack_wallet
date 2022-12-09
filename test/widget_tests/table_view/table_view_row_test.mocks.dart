@@ -666,6 +666,14 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
+  set cachedTxData(_i8.TransactionData? _cachedTxData) => super.noSuchMethod(
+        Invocation.setter(
+          #cachedTxData,
+          _cachedTxData,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get isActive => (super.noSuchMethod(
         Invocation.getter(#isActive),
         returnValue: false,
@@ -1043,6 +1051,16 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         Invocation.method(
           #initializeExisting,
           [],
+        ),
+        returnValue: _i15.Future<void>.value(),
+        returnValueForMissingStub: _i15.Future<void>.value(),
+      ) as _i15.Future<void>);
+  @override
+  _i15.Future<void> updateSentCachedTxData(Map<String, dynamic>? txData) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateSentCachedTxData,
+          [txData],
         ),
         returnValue: _i15.Future<void>.value(),
         returnValueForMissingStub: _i15.Future<void>.value(),
@@ -2013,4 +2031,14 @@ class MockCoinServiceAPI extends _i1.Mock implements _i12.CoinServiceAPI {
         ),
         returnValue: _i15.Future<bool>.value(false),
       ) as _i15.Future<bool>);
+  @override
+  _i15.Future<void> updateSentCachedTxData(Map<String, dynamic>? txData) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateSentCachedTxData,
+          [txData],
+        ),
+        returnValue: _i15.Future<void>.value(),
+        returnValueForMissingStub: _i15.Future<void>.value(),
+      ) as _i15.Future<void>);
 }

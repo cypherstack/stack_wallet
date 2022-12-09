@@ -4,24 +4,32 @@ import 'package:decimal/decimal.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 import 'package:stackwallet/utilities/constants.dart';
-
-import 'enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class Format {
-  static Decimal satoshisToAmount(int sats) =>
-      (Decimal.fromInt(sats) / Decimal.fromInt(Constants.satsPerCoin))
-          .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces);
-
-  ///
-  static String satoshiAmountToPrettyString(int sats, String locale) {
-    final amount = satoshisToAmount(sats);
-    return localizedStringAsFixed(
-        value: amount, locale: locale, decimalPlaces: Constants.decimalPlaces);
+  static Decimal satoshisToAmount(int sats, {required Coin coin}) {
+    return (Decimal.fromInt(sats) /
+            Decimal.fromInt(Constants.satsPerCoin(coin)))
+        .toDecimal(
+            scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin));
   }
 
-  static int decimalAmountToSatoshis(Decimal amount) {
-    final value =
-        (Decimal.fromInt(Constants.satsPerCoin) * amount).floor().toBigInt();
+  ///
+  static String satoshiAmountToPrettyString(
+      int sats, String locale, Coin coin) {
+    final amount = satoshisToAmount(sats, coin: coin);
+    return localizedStringAsFixed(
+      value: amount,
+      locale: locale,
+      decimalPlaces: Constants.decimalPlacesForCoin(coin),
+    );
+  }
+
+  static int decimalAmountToSatoshis(Decimal amount, Coin coin) {
+    final value = (Decimal.fromInt(Constants.satsPerCoin(coin)) * amount)
+        .floor()
+        .toBigInt();
     return value.toInt();
   }
 

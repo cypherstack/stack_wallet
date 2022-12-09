@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
@@ -241,6 +242,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       coin,
                                       walletId,
                                       walletName,
+                                      ref.read(secureStoreProvider),
                                       node,
                                       txTracker,
                                       ref.read(prefsChangeNotifierProvider),

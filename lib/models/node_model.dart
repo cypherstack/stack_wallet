@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 part 'type_adaptors/node_model.g.dart';
@@ -65,8 +66,7 @@ class NodeModel {
   }
 
   /// convenience getter to retrieve login password
-  Future<String?> getPassword(
-      FlutterSecureStorageInterface secureStorage) async {
+  Future<String?> getPassword(SecureStorageInterface secureStorage) async {
     return await secureStorage.read(key: "${id}_nodePW");
   }
 
@@ -85,7 +85,7 @@ class NodeModel {
     return map;
   }
 
-  bool get isDefault => id.startsWith("default_");
+  bool get isDefault => id.startsWith(DefaultNodes.defaultNodeIdPrefix);
 
   @override
   String toString() {

@@ -8,11 +8,9 @@ class MobileCoinList extends StatelessWidget {
   const MobileCoinList({
     Key? key,
     required this.coins,
-    required this.isDesktop,
   }) : super(key: key);
 
   final List<Coin> coins;
-  final bool isDesktop;
 
   @override
   Widget build(BuildContext context) {

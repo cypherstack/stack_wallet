@@ -11,6 +11,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -90,6 +91,8 @@ class _AddWalletViewState extends State<AddWalletView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
                             controller: _searchFieldController,
                             focusNode: _searchFocusNode,
                             onChanged: (value) {
@@ -180,40 +183,43 @@ class _AddWalletViewState extends State<AddWalletView> {
         ),
       );
     } else {
-      return Scaffold(
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+      return Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
           ),
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const AddWalletText(
-                  isDesktop: false,
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Expanded(
-                  child: MobileCoinList(
-                    coins: coins,
+          body: Container(
+            color: Theme.of(context).extension<StackColors>()!.background,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const AddWalletText(
                     isDesktop: false,
                   ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                const AddWalletNextButton(
-                  isDesktop: false,
-                ),
-              ],
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Expanded(
+                    child: MobileCoinList(
+                      coins: coins,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  const AddWalletNextButton(
+                    isDesktop: false,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

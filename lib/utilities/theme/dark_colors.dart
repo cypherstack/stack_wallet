@@ -8,6 +8,11 @@ class DarkColors extends StackColorTheme {
   @override
   Color get background => const Color(0xFF2A2D34);
   @override
+  Color get backgroundAppBar => background;
+  @override
+  Gradient? get gradientBackground => null;
+
+  @override
   Color get overlay => const Color(0xFF111215);
 
   @override

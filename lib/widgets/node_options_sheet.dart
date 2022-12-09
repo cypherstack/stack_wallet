@@ -93,7 +93,29 @@ class NodeOptionsSheet extends ConsumerWidget {
 
             String uriString = "${uri.scheme}://${uri.host}:${node.port}$path";
 
-            testPassed = await testMoneroNodeConnection(Uri.parse(uriString));
+            final response = await testMoneroNodeConnection(
+              Uri.parse(uriString),
+              false,
+            );
+
+            if (response.cert != null) {
+              // if (mounted) {
+              final shouldAllowBadCert = await showBadX509CertificateDialog(
+                response.cert!,
+                response.url!,
+                response.port!,
+                context,
+              );
+
+              if (shouldAllowBadCert) {
+                final response =
+                    await testMoneroNodeConnection(Uri.parse(uriString), true);
+                testPassed = response.success;
+              }
+              // }
+            } else {
+              testPassed = response.success;
+            }
           }
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
@@ -102,12 +124,14 @@ class NodeOptionsSheet extends ConsumerWidget {
         break;
 
       case Coin.bitcoin:
+      case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
       case Coin.bitcoincash:
+      case Coin.litecoinTestNet:
       case Coin.namecoin:
       case Coin.bitcoincashTestnet:
         final client = ElectrumX(
@@ -210,7 +234,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: node.name == DefaultNodes.defaultName
+                          color: node.id
+                                  .startsWith(DefaultNodes.defaultNodeIdPrefix)
                               ? Theme.of(context)
                                   .extension<StackColors>()!
                                   .textSubtitle4
@@ -225,7 +250,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                             Assets.svg.node,
                             height: 15,
                             width: 19,
-                            color: node.name == DefaultNodes.defaultName
+                            color: node.id.startsWith(
+                                    DefaultNodes.defaultNodeIdPrefix)
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorDark

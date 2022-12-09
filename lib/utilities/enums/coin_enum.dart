@@ -6,10 +6,15 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
+import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
+    as ltc;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
     as nmc;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
+import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
+    as particl;
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
 
@@ -19,29 +24,33 @@ enum Coin {
   dogecoin,
   epicCash,
   firo,
+  litecoin,
   monero,
+  namecoin,
   particl,
   wownero,
-  namecoin,
 
   ///
+
   ///
   ///
 
   bitcoinTestNet,
+  litecoinTestNet,
   bitcoincashTestnet,
   dogecoinTestNet,
   firoTestNet,
 }
 
-// remove firotestnet for now
-const int kTestNetCoinCount = 3;
+final int kTestNetCoinCount = Util.isDesktop ? 5 : 4;
 
 extension CoinExt on Coin {
   String get prettyName {
     switch (this) {
       case Coin.bitcoin:
         return "Bitcoin";
+      case Coin.litecoin:
+        return "Litecoin";
       case Coin.bitcoincash:
         return "Bitcoin Cash";
       case Coin.dogecoin:
@@ -60,6 +69,8 @@ extension CoinExt on Coin {
         return "Namecoin";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
+      case Coin.litecoinTestNet:
+        return "tLitecoin";
       case Coin.bitcoincashTestnet:
         return "tBitcoin Cash";
       case Coin.firoTestNet:
@@ -73,6 +84,8 @@ extension CoinExt on Coin {
     switch (this) {
       case Coin.bitcoin:
         return "BTC";
+      case Coin.litecoin:
+        return "LTC";
       case Coin.bitcoincash:
         return "BCH";
       case Coin.dogecoin:
@@ -91,6 +104,8 @@ extension CoinExt on Coin {
         return "NMC";
       case Coin.bitcoinTestNet:
         return "tBTC";
+      case Coin.litecoinTestNet:
+        return "tLTC";
       case Coin.bitcoincashTestnet:
         return "tBCH";
       case Coin.firoTestNet:
@@ -104,6 +119,8 @@ extension CoinExt on Coin {
     switch (this) {
       case Coin.bitcoin:
         return "bitcoin";
+      case Coin.litecoin:
+        return "litecoin";
       case Coin.bitcoincash:
         return "bitcoincash";
       case Coin.dogecoin:
@@ -123,8 +140,10 @@ extension CoinExt on Coin {
         return "namecoin";
       case Coin.bitcoinTestNet:
         return "bitcoin";
+      case Coin.litecoinTestNet:
+        return "litecoin";
       case Coin.bitcoincashTestnet:
-        return "bitcoincash";
+        return "bchtest";
       case Coin.firoTestNet:
         return "firo";
       case Coin.dogecoinTestNet:
@@ -135,12 +154,14 @@ extension CoinExt on Coin {
   bool get isElectrumXCoin {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.litecoin:
       case Coin.bitcoincash:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
       case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -158,6 +179,10 @@ extension CoinExt on Coin {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return btc.MINIMUM_CONFIRMATIONS;
+
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return ltc.MINIMUM_CONFIRMATIONS;
 
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
@@ -195,6 +220,10 @@ Coin coinFromPrettyName(String name) {
     case "bitcoin":
       return Coin.bitcoin;
 
+    case "Litecoin":
+    case "litecoin":
+      return Coin.litecoin;
+
     case "Bitcoincash":
     case "bitcoincash":
     case "Bitcoin Cash":
@@ -229,6 +258,12 @@ Coin coinFromPrettyName(String name) {
     case "bitcoinTestNet":
       return Coin.bitcoinTestNet;
 
+    case "Litecoin Testnet":
+    case "tlitecoin":
+    case "litecoinTestNet":
+    case "tLitecoin":
+      return Coin.litecoinTestNet;
+
     case "Bitcoincash Testnet":
     case "tBitcoin Cash":
     case "Bitcoin Cash Testnet":
@@ -252,7 +287,10 @@ Coin coinFromPrettyName(String name) {
 
     default:
       throw ArgumentError.value(
-          name, "name", "No Coin enum value with that prettyName");
+        name,
+        "name",
+        "No Coin enum value with that prettyName",
+      );
   }
 }
 
@@ -260,6 +298,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
   switch (ticker.toLowerCase()) {
     case "btc":
       return Coin.bitcoin;
+    case "ltc":
+      return Coin.litecoin;
     case "bch":
       return Coin.bitcoincash;
     case "doge":
@@ -272,6 +312,10 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.monero;
     case "nmc":
       return Coin.namecoin;
+    case "part":
+      return Coin.particl;
+    case "tltc":
+      return Coin.litecoinTestNet;
     case "part":
       return Coin.particl;
     case "tbtc":

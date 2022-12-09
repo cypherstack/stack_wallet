@@ -6,6 +6,7 @@ import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -43,6 +44,8 @@ class AddressUtils {
     switch (coin) {
       case Coin.bitcoin:
         return Address.validateAddress(address, bitcoin);
+      case Coin.litecoin:
+        return Address.validateAddress(address, litecoin);
       case Coin.bitcoincash:
         return Address.validateAddress(address, bitcoincash);
       case Coin.dogecoin:
@@ -63,6 +66,8 @@ class AddressUtils {
         return Address.validateAddress(address, particl);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
+      case Coin.litecoinTestNet:
+        return Address.validateAddress(address, litecointestnet);
       case Coin.bitcoincashTestnet:
         return Address.validateAddress(address, bitcoincashtestnet);
       case Coin.firoTestNet:
