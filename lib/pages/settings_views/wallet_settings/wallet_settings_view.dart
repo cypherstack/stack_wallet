@@ -42,16 +42,9 @@ class WalletSettingsView extends ConsumerWidget {
                 text: TextSpan(
                   style: STextStyles.bodyBold(context),
                   children: [
-                    const TextSpan(text: "You are about to delete "),
-                    TextSpan(
-                      text: "My Wallet",
-                      style: STextStyles.bodyBold(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textGold,
-                      ),
-                    ),
-                    const TextSpan(text: ". Are you sure you want to do that?"),
+                    const TextSpan(
+                        text: "You are about to delete your Epic Cash Wallet. "
+                            "Are you sure you want to do that?"),
                   ],
                 ),
               ),
