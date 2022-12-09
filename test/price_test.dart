@@ -120,7 +120,7 @@ void main() {
     final price = await priceAPI.getPricesAnd24hChange(baseCurrency: "btc");
 
     expect(price.toString(),
-        '{Coin.bitcoin: [0, 0.0], Coin.bitcoincash: [0, 0.0], Coin.dogecoin: [0, 0.0], Coin.epicCash: [0, 0.0], Coin.firo: [0, 0.0], Coin.litecoin: [0, 0.0], Coin.monero: [0, 0.0], Coin.namecoin: [0, 0.0], Coin.wownero: [0, 0.0], Coin.bitcoinTestNet: [0, 0.0], Coin.litecoinTestNet: [0, 0.0], Coin.bitcoincashTestnet: [0, 0.0], Coin.dogecoinTestNet: [0, 0.0], Coin.firoTestNet: [0, 0.0]}');
+        '{Coin.bitcoin: [0, 0.0], Coin.bitcoincash: [0, 0.0], Coin.dogecoin: [0, 0.0], Coin.epicCash: [0, 0.0], Coin.firo: [0, 0.0], Coin.litecoin: [0, 0.0], Coin.monero: [0, 0.0], Coin.namecoin: [0, 0.0], Coin.particl: [0, 0.0], Coin.wownero: [0, 0.0], Coin.bitcoinTestNet: [0, 0.0], Coin.litecoinTestNet: [0, 0.0], Coin.bitcoincashTestnet: [0, 0.0], Coin.dogecoinTestNet: [0, 0.0], Coin.firoTestNet: [0, 0.0]}');
   });
 
   tearDown(() async {
