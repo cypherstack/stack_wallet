@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:epicpay/pages/home_view/home_view.dart';
+import 'package:epicpay/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicpay/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/providers/ui/preview_tx_button_state_provider.dart';
@@ -23,8 +24,6 @@ import 'package:epicpay/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../pinpad_views/lock_screen_view.dart';
 
 class SendAmountView extends ConsumerStatefulWidget {
   const SendAmountView({
@@ -338,8 +337,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
 
       await Future<void>.delayed(const Duration(seconds: 2));
 
-      sendingState = SendingState.waiting;
-
       if (mounted) {
         Navigator.of(context).popUntil(
           ModalRoute.withName(
@@ -349,6 +346,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         // ensure return to wallet view
         ref.read(homeViewPageIndexStateProvider.state).state = 1;
       }
+      sendingState = SendingState.waiting;
     } catch (e) {
       if (mounted) {
         setState(() {
