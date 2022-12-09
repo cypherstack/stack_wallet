@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -42,9 +40,9 @@ void main() {
   });
 
   test("particl DerivePathType enum", () {
-    expect(DerivePathType.values.length, 3);
+    expect(DerivePathType.values.length, 2);
     expect(DerivePathType.values.toString(),
-        "[DerivePathType.bip44, DerivePathType.bip49, DerivePathType.bip84]"); // TODO does particl have BIP49, P2WPKH-P2SH?  I'd think no
+        "[DerivePathType.bip44, DerivePathType.bip84]");
   });
 
   group("bip32 node/root", () {
