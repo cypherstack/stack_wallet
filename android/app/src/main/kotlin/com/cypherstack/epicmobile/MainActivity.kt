@@ -1,4 +1,4 @@
-package com.cypherstack.epicmobile
+package com.cypherstack.epicpay
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterFragmentActivity
