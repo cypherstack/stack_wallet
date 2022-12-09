@@ -668,7 +668,8 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                                   ),
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .buttonBackPrimaryDisabled,
+                                      .buttonBackPrimaryDisabled
+                                      .withOpacity(0.7),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -800,7 +801,8 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                                   ),
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .popupBG,
+                                      .buttonBackPrimaryDisabled
+                                      .withOpacity(0.7),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
