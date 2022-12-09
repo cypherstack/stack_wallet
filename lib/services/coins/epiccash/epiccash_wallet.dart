@@ -276,7 +276,16 @@ Future<String> deleteEpicWallet({
 
   final wallet = await secureStore.read(key: '${walletId}_wallet');
 
-  return compute(_deleteWalletWrapper, wallet!);
+  if (wallet == null) {
+    return "Tried to delete non existent epic wallet file with walletId=$walletId";
+  } else {
+    try {
+      return compute(_deleteWalletWrapper, wallet);
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      return "deleteEpicWallet($walletId) failed...";
+    }
+  }
 }
 
 Future<String> _initWalletWrapper(
