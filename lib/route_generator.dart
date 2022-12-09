@@ -1,6 +1,5 @@
 import 'package:epicmobile/models/contact_address_entry.dart';
 import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/models/send_view_auto_fill_data.dart';
 import 'package:epicmobile/pages/add_wallet_views/create_restore_wallet_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/name_your_wallet_view.dart';
 import 'package:epicmobile/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
@@ -418,14 +417,13 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
-        } else if (args is Tuple4<String, String, Coin, SendViewAutoFillData>) {
+        } else if (args is Tuple3<String, String, Coin>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendAmountView(
               walletId: args.item1,
               address: args.item2,
               coin: args.item3,
-              autoFillData: args.item4,
             ),
             settings: RouteSettings(
               name: settings.name,

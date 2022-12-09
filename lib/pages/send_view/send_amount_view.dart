@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/models/send_view_auto_fill_data.dart';
 import 'package:epicmobile/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 // import 'package:epicmobile/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
 import 'package:epicmobile/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
@@ -37,7 +36,6 @@ class SendAmountView extends ConsumerStatefulWidget {
     required this.walletId,
     required this.address,
     required this.coin,
-    this.autoFillData,
     this.barcodeScanner = const BarcodeScannerWrapper(),
   }) : super(key: key);
 
@@ -46,7 +44,6 @@ class SendAmountView extends ConsumerStatefulWidget {
   final String walletId;
   final String address;
   final Coin coin;
-  final SendViewAutoFillData? autoFillData;
   final BarcodeScannerInterface barcodeScanner;
 
   @override
@@ -65,8 +62,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
   late TextEditingController noteController;
   late TextEditingController feeController;
 
-  late final SendViewAutoFillData? _data;
-
   final _addressFocusNode = FocusNode();
   final _noteFocusNode = FocusNode();
   final _cryptoFocus = FocusNode();
@@ -74,9 +69,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
 
   Decimal? _amountToSend;
   Decimal? _cachedAmountToSend;
-  String? _address;
-
-  bool _addressToggleFlag = false;
+  // String? _address;
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
@@ -117,7 +110,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         baseAmountController.text = "";
       }
 
-      _updatePreviewButtonState(_address, _amountToSend);
+      _updatePreviewButtonState(address, _amountToSend);
 
       // if (_amountToSend == null) {
       //   setState(() {
@@ -137,6 +130,11 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         ref.read(walletProvider)!.validateAddress(address ?? "");
     ref.read(previewTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Decimal.zero);
+
+    debugPrint("=====================================================");
+    debugPrint("address: $address");
+    debugPrint("amount: $amount");
+    debugPrint("=====================================================");
   }
 
   late Future<String> _calculateFeesFuture;
@@ -358,7 +356,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
       );
 
       Map<String, dynamic> txData = await ref.read(walletProvider)!.prepareSend(
-        address: _address!,
+        address: address,
         satoshiAmount: amount,
         args: {"feeRate": ref.read(feeRateTypeStateProvider)},
       );
@@ -367,7 +365,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         // pop building dialog
         Navigator.of(context).pop();
         txData["note"] = noteController.text;
-        txData["address"] = _address;
+        txData["address"] = address;
 
         unawaited(
           Navigator.of(context).push(
@@ -427,7 +425,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
 
     _calculateFeesFuture = calculateFees(0);
     _displayFees = calculateFees(0);
-    _data = widget.autoFillData;
     walletId = widget.walletId;
     address = widget.address;
     coin = widget.coin;
@@ -441,15 +438,6 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
-
-    if (_data != null) {
-      if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
-      }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address;
-      _addressToggleFlag = true;
-    }
 
     _cryptoFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
@@ -769,7 +757,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                             //       Format.decimalAmountToSatoshis(
                             //           _amountToSend!));
                             // });
-                            _updatePreviewButtonState(_address, _amountToSend);
+                            _updatePreviewButtonState(address, _amountToSend);
                           },
                           decoration: InputDecoration(
                             filled: true,
