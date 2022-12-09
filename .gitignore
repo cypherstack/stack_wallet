@@ -39,7 +39,6 @@ test/services/coins/firo/firo_wallet_test_parameters.dart
 test/services/coins/dogecoin/dogecoin_wallet_test_parameters.dart
 test/services/coins/namecoin/namecoin_wallet_test_parameters.dart
 test/services/coins/namecoin/namecoin_wallet_test_parameters.dart.txt # Legacy
-test/services/coins/namecoin/namecoin_wallet_test_parameters.txt # Legacy
 test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart
 test/services/coins/particl/particl_wallet_test_parameters.dart
 /integration_test/private.dart
