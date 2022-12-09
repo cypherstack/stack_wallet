@@ -1,5 +1,5 @@
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/utilities/logger.dart';
 
 Future<bool> deleteEverything() async {
   try {

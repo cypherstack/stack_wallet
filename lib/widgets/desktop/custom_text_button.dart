@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:epicmobile/utilities/util.dart';
+import 'package:epicpay/utilities/util.dart';
 
 class CustomTextButtonBase extends StatelessWidget {
   const CustomTextButtonBase({

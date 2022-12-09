@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:epicmobile/models/contact.dart';
-import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/models/transaction_filter.dart';
-import 'package:epicmobile/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:epicmobile/providers/global/address_book_service_provider.dart';
-import 'package:epicmobile/providers/global/wallet_provider.dart';
-import 'package:epicmobile/providers/ui/transaction_filter_provider.dart';
-import 'package:epicmobile/providers/wallet/notes_service_provider.dart';
-import 'package:epicmobile/utilities/format.dart';
-import 'package:epicmobile/widgets/loading_indicator.dart';
-import 'package:epicmobile/widgets/transaction_card.dart';
+import 'package:epicpay/models/contact.dart';
+import 'package:epicpay/models/paymint/transactions_model.dart';
+import 'package:epicpay/models/transaction_filter.dart';
+import 'package:epicpay/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:epicpay/providers/global/address_book_service_provider.dart';
+import 'package:epicpay/providers/global/wallet_provider.dart';
+import 'package:epicpay/providers/ui/transaction_filter_provider.dart';
+import 'package:epicpay/providers/wallet/notes_service_provider.dart';
+import 'package:epicpay/utilities/format.dart';
+import 'package:epicpay/widgets/loading_indicator.dart';
+import 'package:epicpay/widgets/transaction_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

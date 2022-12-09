@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/backup_frequency_type.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/enums/backup_frequency_type.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 

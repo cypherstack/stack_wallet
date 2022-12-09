@@ -1,12 +1,12 @@
-import 'package:epicmobile/pages/settings_views/advanced_views/debug_view.dart';
-import 'package:epicmobile/providers/global/prefs_provider.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/background.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/custom_buttons/draggable_switch_button.dart';
-import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:epicpay/pages/settings_views/advanced_views/debug_view.dart';
+import 'package:epicpay/providers/global/prefs_provider.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicpay/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:epicpay/widgets/rounded_white_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

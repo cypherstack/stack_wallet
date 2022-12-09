@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/utilities/logger.dart';
 
 class NotesService extends ChangeNotifier {
   final String walletId;

@@ -1,4 +1,4 @@
-import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicpay/utilities/constants.dart';
 import 'package:flutter/cupertino.dart';
 
 class RoundedContainer extends StatelessWidget {

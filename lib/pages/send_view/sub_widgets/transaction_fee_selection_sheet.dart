@@ -1,14 +1,14 @@
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/models/paymint/fee_object_model.dart';
-import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/providers/ui/fee_rate_type_state_provider.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/enums/fee_rate_type_enum.dart';
-import 'package:epicmobile/utilities/format.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/animated_text.dart';
+import 'package:epicpay/models/paymint/fee_object_model.dart';
+import 'package:epicpay/providers/providers.dart';
+import 'package:epicpay/providers/ui/fee_rate_type_state_provider.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/enums/fee_rate_type_enum.dart';
+import 'package:epicpay/utilities/format.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/animated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

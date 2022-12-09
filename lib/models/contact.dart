@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:epicmobile/models/contact_address_entry.dart';
+import 'package:epicpay/models/contact_address_entry.dart';
 import 'package:uuid/uuid.dart';
 
 class Contact {

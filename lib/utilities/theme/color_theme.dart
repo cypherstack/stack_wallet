@@ -1,4 +1,4 @@
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:flutter/material.dart';
 
 enum ThemeType {

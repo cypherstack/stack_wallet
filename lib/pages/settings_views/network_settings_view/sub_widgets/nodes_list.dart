@@ -1,6 +1,6 @@
-import 'package:epicmobile/pages/settings_views/network_settings_view/sub_widgets/node_card.dart';
-import 'package:epicmobile/providers/global/node_service_provider.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicpay/pages/settings_views/network_settings_view/sub_widgets/node_card.dart';
+import 'package:epicpay/providers/global/node_service_provider.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

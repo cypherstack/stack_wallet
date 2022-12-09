@@ -1,6 +1,6 @@
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 
 class WordTableItem extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:dart_numerics/dart_numerics.dart';
 import 'package:decimal/decimal.dart';
 import 'package:hive/hive.dart';
-import 'package:epicmobile/utilities/constants.dart';
+import 'package:epicpay/utilities/constants.dart';
 
 part '../type_adaptors/transactions_model.g.dart';
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/stack_dialog.dart';
 
 class SendingTransactionDialog extends StatefulWidget {
   const SendingTransactionDialog({

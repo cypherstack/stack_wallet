@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:epicmobile/models/wallet_restore_state.dart';
-import 'package:epicmobile/services/coins/manager.dart';
-import 'package:epicmobile/utilities/enums/stack_restoring_status.dart';
+import 'package:epicpay/models/wallet_restore_state.dart';
+import 'package:epicpay/services/coins/manager.dart';
+import 'package:epicpay/utilities/enums/stack_restoring_status.dart';
 
 class StackRestoringUIState extends ChangeNotifier {
   bool _walletsWasSet = false;

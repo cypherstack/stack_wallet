@@ -1,5 +1,5 @@
 // import 'package:flutter/material.dart';
-// import 'package:epicmobile/utilities/cfcolors.dart';
+// import 'package:epicpay/utilities/cfcolors.dart';
 //   const GradientCard(
 //       {Key key,
 //       this.child,

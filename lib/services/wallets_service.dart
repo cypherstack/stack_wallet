@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';

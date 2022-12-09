@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:epicmobile/providers/global/wallet_provider.dart';
-import 'package:epicmobile/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:epicmobile/services/event_bus/global_event_bus.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
+import 'package:epicpay/providers/global/wallet_provider.dart';
+import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicpay/services/event_bus/global_event_bus.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/utilities/util.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

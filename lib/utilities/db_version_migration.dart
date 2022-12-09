@@ -1,5 +1,5 @@
-import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DbVersionMigrator {

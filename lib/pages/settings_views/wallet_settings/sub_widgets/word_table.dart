@@ -1,4 +1,4 @@
-import 'package:epicmobile/pages/settings_views/wallet_settings/sub_widgets/word_table_item.dart';
+import 'package:epicpay/pages/settings_views/wallet_settings/sub_widgets/word_table_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

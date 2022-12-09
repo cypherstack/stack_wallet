@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:epicmobile/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:http/http.dart' as http;
 
 Future<bool> testEpicBoxNodeConnection(Uri uri) async {

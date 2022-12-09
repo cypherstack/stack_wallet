@@ -1,11 +1,11 @@
-import 'package:epicmobile/pages/add_wallet_views/create_restore_wallet_view.dart';
-import 'package:epicmobile/providers/ui/intro_view_index_provider.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
-import 'package:epicmobile/widgets/background.dart';
-import 'package:epicmobile/widgets/desktop/primary_button.dart';
+import 'package:epicpay/pages/add_wallet_views/create_restore_wallet_view.dart';
+import 'package:epicpay/providers/ui/intro_view_index_provider.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/utilities/util.dart';
+import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/desktop/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

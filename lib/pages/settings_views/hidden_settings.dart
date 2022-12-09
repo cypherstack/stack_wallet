@@ -1,8 +1,8 @@
-import 'package:epicmobile/providers/global/debug_service_provider.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/background.dart';
-import 'package:epicmobile/widgets/rounded_white_container.dart';
+import 'package:epicpay/providers/global/debug_service_provider.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/rounded_white_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

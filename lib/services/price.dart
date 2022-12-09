@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'package:tuple/tuple.dart';

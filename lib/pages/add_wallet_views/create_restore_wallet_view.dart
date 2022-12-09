@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:epicmobile/pages/pinpad_views/create_pin_view.dart';
-import 'package:epicmobile/route_generator.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/background.dart';
-import 'package:epicmobile/widgets/desktop/primary_button.dart';
-import 'package:epicmobile/widgets/desktop/secondary_button.dart';
-import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:epicpay/pages/pinpad_views/create_pin_view.dart';
+import 'package:epicpay/route_generator.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/desktop/primary_button.dart';
+import 'package:epicpay/widgets/desktop/secondary_button.dart';
+import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 

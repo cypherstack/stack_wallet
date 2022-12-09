@@ -1,9 +1,9 @@
 import 'dart:isolate';
 
-import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/services/wallets_service.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/services/wallets_service.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
 

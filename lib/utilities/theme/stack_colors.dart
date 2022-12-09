@@ -1,5 +1,5 @@
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/theme/color_theme.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/theme/color_theme.dart';
 import 'package:flutter/material.dart';
 
 class StackColors extends ThemeExtension<StackColors> {

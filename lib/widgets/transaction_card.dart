@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/pages/wallet_view/sub_widgets/tx_icon.dart';
-import 'package:epicmobile/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/format.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicpay/models/paymint/transactions_model.dart';
+import 'package:epicpay/pages/wallet_view/sub_widgets/tx_icon.dart';
+import 'package:epicpay/pages/wallet_view/transaction_views/transaction_details_view.dart';
+import 'package:epicpay/providers/providers.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/format.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';

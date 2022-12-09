@@ -1,9 +1,9 @@
-// import 'package:epicmobile/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
-import 'package:epicmobile/providers/ui/address_book_providers/address_entry_data_provider.dart';
-import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
-import 'package:epicmobile/utilities/clipboard_interface.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
+// import 'package:epicpay/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
+import 'package:epicpay/providers/ui/address_book_providers/address_entry_data_provider.dart';
+import 'package:epicpay/utilities/barcode_scanner_interface.dart';
+import 'package:epicpay/utilities/clipboard_interface.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,7 +14,7 @@ import '../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/textfield_icon_button.dart';
-// import 'package:epicmobile/widgets/textfield_icon_button';
+// import 'package:epicpay/widgets/textfield_icon_button';
 
 class NewContactAddressEntryForm extends ConsumerStatefulWidget {
   const NewContactAddressEntryForm({

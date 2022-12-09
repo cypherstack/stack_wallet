@@ -1,5 +1,5 @@
-import 'package:epicmobile/utilities/theme/color_theme.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
+import 'package:epicpay/utilities/theme/color_theme.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

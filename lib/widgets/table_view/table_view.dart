@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:epicmobile/widgets/table_view/table_view_row.dart';
+import 'package:epicpay/widgets/table_view/table_view_row.dart';
 
 class TableView extends StatefulWidget {
   const TableView({

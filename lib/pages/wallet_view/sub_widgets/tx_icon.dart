@@ -1,5 +1,5 @@
-import 'package:epicmobile/models/paymint/transactions_model.dart';
-import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicpay/models/paymint/transactions_model.dart';
+import 'package:epicpay/utilities/assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
 

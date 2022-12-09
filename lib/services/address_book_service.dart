@@ -1,6 +1,6 @@
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/models/contact.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/models/contact.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 

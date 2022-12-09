@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:flutter/foundation.dart';
 
 class ElectrumXSubscription with ChangeNotifier {

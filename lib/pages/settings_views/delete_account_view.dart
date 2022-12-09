@@ -1,14 +1,14 @@
-import 'package:epicmobile/pages/intro_view.dart';
-import 'package:epicmobile/utilities/delete_everything.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/utilities/util.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/desktop/desktop_app_bar.dart';
-import 'package:epicmobile/widgets/desktop/desktop_scaffold.dart';
-import 'package:epicmobile/widgets/desktop/primary_button.dart';
-import 'package:epicmobile/widgets/rounded_white_container.dart';
-import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:epicpay/pages/intro_view.dart';
+import 'package:epicpay/utilities/delete_everything.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/utilities/util.dart';
+import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicpay/widgets/desktop/desktop_app_bar.dart';
+import 'package:epicpay/widgets/desktop/desktop_scaffold.dart';
+import 'package:epicpay/widgets/desktop/primary_button.dart';
+import 'package:epicpay/widgets/rounded_white_container.dart';
+import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:flutter/material.dart';
 
 class DeleteAccountView extends StatefulWidget {

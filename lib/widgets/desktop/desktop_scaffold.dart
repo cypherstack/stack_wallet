@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/background.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/background.dart';
 
 class DesktopScaffold extends StatelessWidget {
   const DesktopScaffold({

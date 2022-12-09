@@ -1,7 +1,7 @@
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/enums/languages_enum.dart';
-import 'package:epicmobile/utilities/enums/sync_type_enum.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/enums/languages_enum.dart';
+import 'package:epicpay/utilities/enums/sync_type_enum.dart';
 import 'package:flutter/cupertino.dart';
 
 class Prefs extends ChangeNotifier {

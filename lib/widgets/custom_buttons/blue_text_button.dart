@@ -1,8 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:epicmobile/providers/ui/color_theme_provider.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
+import 'package:epicpay/providers/ui/color_theme_provider.dart';
+import 'package:epicpay/utilities/text_styles.dart';
 
 class BlueTextButton extends ConsumerStatefulWidget {
   const BlueTextButton({

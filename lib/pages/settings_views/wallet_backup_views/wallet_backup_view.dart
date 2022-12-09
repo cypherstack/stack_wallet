@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:epicmobile/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/clipboard_interface.dart';
-import 'package:epicmobile/utilities/constants.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/background.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/desktop/primary_button.dart';
+import 'package:epicpay/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/clipboard_interface.dart';
+import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicpay/widgets/desktop/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

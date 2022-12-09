@@ -1,4 +1,4 @@
-import 'package:epicmobile/utilities/assets.dart';
+import 'package:epicpay/utilities/assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
 

@@ -1,12 +1,12 @@
-import 'package:epicmobile/pages/pinpad_views/lock_screen_view.dart';
-import 'package:epicmobile/pages/settings_views/wallet_settings/delete_wallet_recovery_phrase_view.dart';
-import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/route_generator.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/background.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/stack_dialog.dart';
+import 'package:epicpay/pages/pinpad_views/lock_screen_view.dart';
+import 'package:epicpay/pages/settings_views/wallet_settings/delete_wallet_recovery_phrase_view.dart';
+import 'package:epicpay/providers/providers.dart';
+import 'package:epicpay/route_generator.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/background.dart';
+import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

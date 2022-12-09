@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:epicmobile/services/price.dart';
+import 'package:epicpay/services/price.dart';
 
 final baseCurrenciesProvider =
     ChangeNotifierProvider<_BaseCurrencies>((_) => _BaseCurrencies());

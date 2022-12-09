@@ -1,4 +1,4 @@
-import 'package:epicmobile/services/coins/epiccash/epiccash_wallet.dart'
+import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
 
 enum Coin {

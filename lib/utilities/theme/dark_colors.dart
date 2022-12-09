@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:epicmobile/utilities/theme/color_theme.dart';
+import 'package:epicpay/utilities/theme/color_theme.dart';
 import 'package:flutter/material.dart';
 
 class DarkColors extends StackColorTheme {

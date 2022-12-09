@@ -1,6 +1,6 @@
-import 'package:epicmobile/models/contact_address_entry.dart';
-import 'package:epicmobile/utilities/address_utils.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicpay/models/contact_address_entry.dart';
+import 'package:epicpay/utilities/address_utils.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:flutter/cupertino.dart';
 
 class AddressEntryData extends ChangeNotifier {

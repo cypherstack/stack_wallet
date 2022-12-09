@@ -1,6 +1,6 @@
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put.dart';
-import 'package:epicmobile/widgets/custom_pin_put/pin_keyboard.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/custom_pin_put/custom_pin_put.dart';
+import 'package:epicpay/widgets/custom_pin_put/pin_keyboard.dart';
 import 'package:flutter/material.dart';
 
 class CustomPinPutState extends State<CustomPinPut>

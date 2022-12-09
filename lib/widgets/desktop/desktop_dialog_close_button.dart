@@ -1,6 +1,6 @@
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 

@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:epicmobile/providers/global/address_book_service_provider.dart';
-import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/utilities/assets.dart';
-import 'package:epicmobile/utilities/clipboard_interface.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/text_styles.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:epicmobile/widgets/rounded_container.dart';
-import 'package:epicmobile/widgets/rounded_white_container.dart';
-import 'package:epicmobile/widgets/textfield_icon_button.dart';
+import 'package:epicpay/providers/global/address_book_service_provider.dart';
+import 'package:epicpay/providers/providers.dart';
+import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/clipboard_interface.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/text_styles.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:epicpay/widgets/rounded_container.dart';
+import 'package:epicpay/widgets/rounded_white_container.dart';
+import 'package:epicpay/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

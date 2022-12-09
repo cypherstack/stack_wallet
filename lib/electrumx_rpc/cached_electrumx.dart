@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:epicmobile/electrumx_rpc/electrumx.dart';
-import 'package:epicmobile/hive/db.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
-import 'package:epicmobile/utilities/logger.dart';
-import 'package:epicmobile/utilities/prefs.dart';
+import 'package:epicpay/electrumx_rpc/electrumx.dart';
+import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/logger.dart';
+import 'package:epicpay/utilities/prefs.dart';
 import 'package:string_validator/string_validator.dart';
 
 class CachedElectrumX {

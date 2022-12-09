@@ -1,4 +1,4 @@
-import 'package:epicmobile/widgets/custom_pin_put/custom_pin_put_state.dart';
+import 'package:epicpay/widgets/custom_pin_put/custom_pin_put_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

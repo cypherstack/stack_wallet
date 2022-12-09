@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:epicmobile/utilities/theme/stack_colors.dart';
-import 'package:epicmobile/widgets/expandable.dart';
-import 'package:epicmobile/widgets/table_view/table_view_cell.dart';
+import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/expandable.dart';
+import 'package:epicpay/widgets/table_view/table_view_cell.dart';
 
 class TableViewRow extends StatelessWidget {
   const TableViewRow({

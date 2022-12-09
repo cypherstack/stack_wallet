@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:epicmobile/models/node_model.dart';
-import 'package:epicmobile/utilities/enums/coin_enum.dart';
+import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
   static String _nodeId(Coin coin) => "default_${coin.name}";

@@ -1,7 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
-import 'package:epicmobile/utilities/flutter_secure_storage_interface.dart';
-import 'package:epicmobile/utilities/logger.dart';
+import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
+import 'package:epicpay/utilities/logger.dart';
 
 const String _kKeyBlobKey = "swbKeyBlobKeyStringID";
 

@@ -1,4 +1,4 @@
-import 'package:epicmobile/services/coins/manager.dart';
+import 'package:epicpay/services/coins/manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final walletStateProvider = StateProvider<Manager?>((ref) => null);
