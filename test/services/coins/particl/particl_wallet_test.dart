@@ -1744,7 +1744,7 @@ void main() {
       await part?.refresh();
 
       verify(client?.getServerFeatures()).called(1);
-      verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(4);
+      verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(3);
       verify(client?.estimateFee(blocks: anyNamed("blocks"))).called(3);
       verify(client?.getBlockHeadTip()).called(1);
       verify(priceAPI?.getPricesAnd24hChange(baseCurrency: "USD")).called(2);
@@ -1755,9 +1755,9 @@ void main() {
         verify(client?.getBatchHistory(args: map)).called(1);
       }
 
-      expect(secureStore.interactions, 14);
-      expect(secureStore.writes, 7);
-      expect(secureStore.reads, 7);
+      expect(secureStore.interactions, 10);
+      expect(secureStore.writes, 5);
+      expect(secureStore.reads, 5);
       expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(cachedClient);
