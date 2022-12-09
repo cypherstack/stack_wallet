@@ -228,7 +228,7 @@ void main() {
   //   late FakeSecureStorage secureStore;
   //   MockTransactionNotificationTracker? tracker;
 
-  //   NamecoinWallet? nmc;
+  //   ParticlWallet? part;
 
   //   setUp(() {
   //     client = MockElectrumX();
@@ -237,7 +237,7 @@ void main() {
   //     secureStore = FakeSecureStorage();
   //     tracker = MockTransactionNotificationTracker();
 
-  //     nmc = NamecoinWallet(
+  //     nmc = ParticlWallet(
   //       walletId: "testNetworkConnection",
   //       walletName: "testNetworkConnection",
   //       coin: Coin.particl,
@@ -1568,7 +1568,7 @@ void main() {
     // // to the provided ipAddress below. This will throw a bunch of errors
     // // which what we want here as actually calling electrumx calls here is unwanted.
     // // test("listen to NodesChangedEvent", () async {
-    // //   nmc = NamecoinWallet(
+    // //   nmc = ParticlWallet(
     // //     walletId: testWalletId,
     // //     walletName: testWalletName,
     // //     networkType: BasicNetworkType.test,
