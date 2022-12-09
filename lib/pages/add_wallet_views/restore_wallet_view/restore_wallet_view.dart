@@ -27,7 +27,6 @@ import 'package:epicpay/widgets/desktop/desktop_scaffold.dart';
 import 'package:epicpay/widgets/desktop/primary_button.dart';
 import 'package:epicpay/widgets/fullscreen_message.dart';
 import 'package:epicpay/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:epicpay/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -498,30 +497,30 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           },
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 10,
-              bottom: 10,
-              right: 10,
-            ),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: AppBarIconButton(
-                key: const Key("restoreWalletViewQrCodeButton"),
-                size: 36,
-                shadows: const [],
-                color: Theme.of(context).extension<StackColors>()!.background,
-                icon: QrCodeIcon(
-                  width: 20,
-                  height: 20,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                ),
-                onPressed: scanMnemonicQr,
-              ),
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.only(
+          //     top: 10,
+          //     bottom: 10,
+          //     right: 10,
+          //   ),
+          //   child: AspectRatio(
+          //     aspectRatio: 1,
+          //     child: AppBarIconButton(
+          //       key: const Key("restoreWalletViewQrCodeButton"),
+          //       size: 36,
+          //       shadows: const [],
+          //       color: Theme.of(context).extension<StackColors>()!.background,
+          //       icon: QrCodeIcon(
+          //         width: 20,
+          //         height: 20,
+          //         color: Theme.of(context)
+          //             .extension<StackColors>()!
+          //             .accentColorDark,
+          //       ),
+          //       onPressed: scanMnemonicQr,
+          //     ),
+          //   ),
+          // ),
           Padding(
             padding: const EdgeInsets.only(
               top: 10,

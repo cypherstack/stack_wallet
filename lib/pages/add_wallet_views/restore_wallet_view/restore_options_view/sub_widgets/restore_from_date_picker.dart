@@ -43,10 +43,8 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
         style: STextStyles.field(context),
         decoration: InputDecoration(
           hintText: "Restore from...",
-          hintStyle: STextStyles.fieldLabel(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldDefaultSearchIconLeft,
+          hintStyle: STextStyles.body(context).copyWith(
+            color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
           suffixIcon: UnconstrainedBox(
             child: Row(

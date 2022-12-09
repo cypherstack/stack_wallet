@@ -170,7 +170,6 @@ flutter:
     - assets/images/epic-fast.png
     - assets/images/epic-clouds.png
     - assets/images/epic-welcome.png
-    - assets/images/epic-plain.gif
     - assets/images/splash.png
     - assets/icon/icon.png
 
@@ -266,6 +265,7 @@ flutter:
     - assets/svg/message-question-1.svg
     - assets/svg/drd-icon.svg
     - assets/svg/box-auto.svg
+    - assets/svg/wallet.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

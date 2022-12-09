@@ -16,9 +16,12 @@ class LoadingIndicator extends StatelessWidget {
     return SizedBox(
       width: width,
       height: height,
-      child: CircularProgressIndicator(
-        backgroundColor: Colors.transparent,
-        color: Theme.of(context).extension<StackColors>()!.textGold,
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: CircularProgressIndicator(
+          backgroundColor: Colors.transparent,
+          color: Theme.of(context).extension<StackColors>()!.textGold,
+        ),
       ),
     );
   }
