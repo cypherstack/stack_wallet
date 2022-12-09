@@ -41,9 +41,9 @@ class WalletSettingsView extends ConsumerWidget {
               RichText(
                 text: TextSpan(
                   style: STextStyles.bodyBold(context),
-                  children: [
-                    const TextSpan(
-                        text: "You are about to delete your Epic Cash Wallet. "
+                  children: const [
+                    TextSpan(
+                        text: "You are about to delete your Epic Cash wallet. "
                             "Are you sure you want to do that?"),
                   ],
                 ),

@@ -44,7 +44,7 @@ class ConfirmWalletDeleteView extends ConsumerWidget {
             icon: SvgPicture.asset(
               Assets.svg.circleCheck,
             ),
-            message: "My Wallet\nhas been deleted",
+            message: "Your Epic Cash wallet\nhas been deleted",
             controller: controller,
           );
         },
