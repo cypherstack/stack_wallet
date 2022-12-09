@@ -5,7 +5,6 @@ import 'package:epicmobile/pages/address_book_views/address_book_view.dart';
 import 'package:epicmobile/pages/home_view/home_view.dart';
 import 'package:epicmobile/pages/send_view/send_amount_view.dart';
 import 'package:epicmobile/providers/providers.dart';
-import 'package:epicmobile/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:epicmobile/services/coins/manager.dart';
 import 'package:epicmobile/utilities/address_utils.dart';
 import 'package:epicmobile/utilities/barcode_scanner_interface.dart';
@@ -71,12 +70,6 @@ class _SendViewState extends ConsumerState<SendView> {
     return null;
   }
 
-  void _updatePreviewButtonState(String? address) {
-    final isValidAddress =
-        ref.read(walletProvider)!.validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state = isValidAddress;
-  }
-
   @override
   void initState() {
     walletId = widget.walletId;
@@ -106,7 +99,6 @@ class _SendViewState extends ConsumerState<SendView> {
       _address = _fillData!.address;
       _addressToggleFlag = true;
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        _updatePreviewButtonState(_address);
         ref.read(sendViewFillDataProvider.state).state = null;
       });
     }
@@ -182,10 +174,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                                 onChanged: (newValue) {
                                   _address = newValue;
-                                  _updatePreviewButtonState(_address);
 
                                   setState(() {
-                                    _addressToggleFlag = newValue.isNotEmpty;
+                                    _addressToggleFlag = ref
+                                        .read(walletProvider)!
+                                        .validateAddress(newValue);
                                   });
                                 },
                                 focusNode: _addressFocusNode,
@@ -218,7 +211,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                       onTap: () {
                                         sendToController.text = "";
                                         _address = "";
-                                        _updatePreviewButtonState(_address);
                                         setState(() {
                                           _addressToggleFlag = false;
                                         });
@@ -255,7 +247,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                           _address = results["address"] ?? "";
                                           sendToController.text = _address!;
 
-                                          _updatePreviewButtonState(_address);
                                           setState(() {
                                             _addressToggleFlag =
                                                 sendToController
@@ -271,7 +262,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                           sendToController.text =
                                               _address ?? "";
 
-                                          _updatePreviewButtonState(_address);
                                           setState(() {
                                             _addressToggleFlag =
                                                 sendToController
@@ -293,8 +283,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                         "sendViewAddressBookButtonKey"),
                                     onTap: () async {
                                       FocusScope.of(context).unfocus();
-                                      print(
-                                          "+++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
                                       await Navigator.of(context).pushNamed(
                                         AddressBookView.routeName,
@@ -313,8 +301,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                               .state = 0;
                                         },
                                       );
-
-                                      _updatePreviewButtonState(_address);
 
                                       setState(() {
                                         _addressToggleFlag = _address != null &&
@@ -344,7 +330,6 @@ class _SendViewState extends ConsumerState<SendView> {
                             if (error == null || error.isEmpty) {
                               return Container();
                             } else {
-                              _addressToggleFlag = false;
                               return Align(
                                 alignment: Alignment.topLeft,
                                 child: Padding(
@@ -370,19 +355,20 @@ class _SendViewState extends ConsumerState<SendView> {
                           height: 24,
                         ),
                         PrimaryButton(
-                            label: "NEXT",
-                            enabled: _addressToggleFlag,
-                            onPressed: () {
-                              Navigator.of(context).pushNamed(
-                                SendAmountView.routeName,
-                                arguments: Tuple3(
-                                  "$ref.read(walletProvider)!.walletId",
-                                  "$_address",
-                                  Coin.epicCash,
-                                ),
-                              );
-                              debugPrint("$_address");
-                            }),
+                          label: "NEXT",
+                          enabled: _addressToggleFlag,
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(
+                              SendAmountView.routeName,
+                              arguments: Tuple3(
+                                ref.read(walletProvider)!.walletId,
+                                _address!,
+                                Coin.epicCash,
+                              ),
+                            );
+                            debugPrint(_address!);
+                          },
+                        ),
                         const Spacer(
                           flex: 2,
                         ),
