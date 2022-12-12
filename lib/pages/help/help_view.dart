@@ -73,6 +73,24 @@ class HelpView extends StatelessWidget {
               //   iconAsset: Assets.socials.compass,
               //   url: "url",
               // ),
+              const Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Version: 0.9",
+                    style: STextStyles.bodyBold(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textMedium,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 16,
+              ),
             ],
           ),
         ),
