@@ -546,6 +546,9 @@ class EpicCashWallet extends CoinServiceAPI {
         DefaultNodes.getNodeFor(coin);
     // TODO notify ui/ fire event for node changed?
 
+    String stringConfig = await getConfig();
+    await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
+
     if (shouldRefresh) {
       unawaited(refresh());
     }
@@ -1283,8 +1286,10 @@ class EpicCashWallet extends CoinServiceAPI {
     final String nodeAddress = node.host;
     int port = node.port;
 
-    final String nodeApiAddress =
-        (Uri.parse(nodeAddress)..replace(port: port)).toString();
+    Uri uri = Uri.parse(nodeAddress);
+    uri = uri.replace(port: port);
+
+    final String nodeApiAddress = uri.toString();
     final walletDir = await currentWalletDirPath();
 
     final Map<String, dynamic> config = {};
@@ -1293,7 +1298,8 @@ class EpicCashWallet extends CoinServiceAPI {
     config["chain"] = "mainnet";
     config["account"] = "default";
     config["api_listen_port"] = port;
-    config["api_listen_interface"] = nodeAddress;
+    config["api_listen_interface"] =
+        nodeApiAddress.replaceFirst(uri.scheme, "");
     String stringConfig = json.encode(config);
     return stringConfig;
   }
