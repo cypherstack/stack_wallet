@@ -4,7 +4,7 @@ import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_
 import 'package:epicpay/utilities/logger.dart';
 import 'package:http/http.dart' as http;
 
-Future<bool> testEpicBoxNodeConnection(Uri uri) async {
+Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
   try {
     final client = http.Client();
     final response = await client.get(
@@ -26,23 +26,37 @@ Future<bool> testEpicBoxNodeConnection(Uri uri) async {
   }
 }
 
-Future<bool> testEpicNodeConnection(NodeFormData data) async {
+// returns node data with properly formatted host/url if successful, otherwise null
+Future<NodeFormData?> testEpicNodeConnection(NodeFormData data) async {
   if (data.host == null || data.port == null || data.useSSL == null) {
-    return false;
+    return null;
   }
-  const String path = "/v1/version";
+  const String path_postfix = "/v1/version";
 
-  String uriString;
-  if (data.useSSL!) {
-    uriString = "https://${data.host!}:${data.port!}$path";
+  if (data.host!.startsWith("https://")) {
+    data.useSSL = true;
+  } else if (data.host!.startsWith("http://")) {
+    data.useSSL = false;
   } else {
-    uriString = "http://${data.host!}:${data.port!}$path";
+    if (data.useSSL!) {
+      data.host = "https://${data.host!}";
+    } else {
+      data.host = "http://${data.host!}";
+    }
   }
+
+  Uri uri = Uri.parse(data.host! + path_postfix);
+
+  uri = uri.replace(port: data.port);
 
   try {
-    return await testEpicBoxNodeConnection(Uri.parse(uriString));
+    if (await _testEpicBoxNodeConnection(uri)) {
+      return data;
+    } else {
+      return null;
+    }
   } catch (e, s) {
     Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-    return false;
+    return null;
   }
 }

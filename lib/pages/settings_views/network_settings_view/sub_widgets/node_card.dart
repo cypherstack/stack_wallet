@@ -1,14 +1,12 @@
 import 'dart:async';
 
-import 'package:epicpay/models/node_model.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/utilities/assets.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:epicpay/utilities/enums/sync_type_enum.dart';
-import 'package:epicpay/utilities/logger.dart';
-import 'package:epicpay/utilities/test_epic_box_connection.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/conditional_parent.dart';
@@ -17,8 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../../services/event_bus/global_event_bus.dart';
 
 class NodeCard extends ConsumerStatefulWidget {
   const NodeCard({
@@ -77,45 +73,6 @@ class _NodeCardState extends ConsumerState<NodeCard> {
         }
         break;
     }
-  }
-
-  Future<bool> _testConnection(
-    NodeModel node,
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    bool testPassed = false;
-
-    switch (widget.coin) {
-      case Coin.epicCash:
-        try {
-          final String uriString = "${node.host}:${node.port}/v1/version";
-
-          testPassed = await testEpicBoxNodeConnection(Uri.parse(uriString));
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-        break;
-    }
-
-    if (testPassed) {
-      // showFloatingFlushBar(
-      //   type: FlushBarType.success,
-      //   message: "Server ping success",
-      //   context: context,
-      // );
-    } else {
-      // unawaited(
-      //   showFloatingFlushBar(
-      //     type: FlushBarType.warning,
-      //     iconAsset: Assets.svg.circleAlert,
-      //     message: "Could not connect to node",
-      //     context: context,
-      //   ),
-      // );
-    }
-
-    return testPassed;
   }
 
   @override

@@ -145,22 +145,22 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
         .whenComplete(() => entry.remove());
   }
 
-  Future<bool> _testConnection({bool showFlushBar = true}) async {
-    final formData = ref.read(nodeFormDataProvider);
+  Future<NodeFormData?> _testConnection({bool showNotification = true}) async {
+    final formData =
+        await testEpicNodeConnection(ref.read(nodeFormDataProvider));
 
-    bool testPassed = await testEpicNodeConnection(formData);
-
-    if (showFlushBar && mounted) {
+    if (showNotification && mounted) {
       unawaited(
-        showTestResult(context, testPassed),
+        showTestResult(context, formData != null),
       );
     }
 
-    return testPassed;
+    return formData;
   }
 
   Future<void> attemptSave() async {
-    final canConnect = await _testConnection(showFlushBar: false);
+    final formData = await _testConnection(showNotification: false);
+    final canConnect = formData != null;
 
     bool? shouldSave;
 
@@ -211,15 +211,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
       return;
     }
 
-    final formData = ref.read(nodeFormDataProvider);
-
-    // strip unused path
-    String address = formData.host!;
-
     switch (viewType) {
       case AddEditNodeViewType.add:
         NodeModel node = NodeModel(
-          host: address,
+          host: formData!.host!,
           port: formData.port!,
           name: formData.name!,
           id: const Uuid().v1(),
@@ -243,7 +238,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
         break;
       case AddEditNodeViewType.edit:
         NodeModel node = NodeModel(
-          host: address,
+          host: formData!.host!,
           port: formData.port!,
           name: formData.name!,
           id: nodeId!,
@@ -560,6 +555,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   bool _useSSL = false;
   bool _isFailover = false;
   int? port;
+  late bool enableSSLCheckbox;
 
   late final bool enableAuthFields;
 
@@ -641,11 +637,16 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _usernameController.text = node.loginName ?? "";
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
+      enableSSLCheckbox = !node.host.startsWith("http");
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
         _updateState();
       });
+    } else {
+      enableSSLCheckbox = true;
+      // default to port 3413
+      // _portController.text = "3413";
     }
 
     super.initState();
@@ -764,6 +765,16 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             ),
           ),
           onChanged: (newValue) {
+            if (newValue.startsWith("https://")) {
+              _useSSL = true;
+              enableSSLCheckbox = false;
+            } else if (newValue.startsWith("http://")) {
+              _useSSL = false;
+              enableSSLCheckbox = false;
+            } else {
+              enableSSLCheckbox = true;
+            }
+
             _updateState();
             setState(() {});
           },
@@ -938,14 +949,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
         Row(
           children: [
             GestureDetector(
-              onTap: widget.readOnly
-                  ? null
-                  : () {
+              onTap: !widget.readOnly && enableSSLCheckbox
+                  ? () {
                       setState(() {
                         _useSSL = !_useSSL;
                       });
                       _updateState();
-                    },
+                    }
+                  : null,
               child: Container(
                 color: Colors.transparent,
                 child: Row(
@@ -961,14 +972,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                             : null,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         value: _useSSL,
-                        onChanged: widget.readOnly
-                            ? null
-                            : (newValue) {
+                        onChanged: !widget.readOnly && enableSSLCheckbox
+                            ? (newValue) {
                                 setState(() {
                                   _useSSL = newValue!;
                                 });
                                 _updateState();
-                              },
+                              }
+                            : null,
                       ),
                     ),
                     const SizedBox(

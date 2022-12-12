@@ -23,7 +23,6 @@ import 'package:epicpay/pages/settings_views/language_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/manage_nodes_view.dart';
-import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/network_settings_view.dart';
 import 'package:epicpay/pages/settings_views/security_views/change_pin_view/change_pin_view.dart';
 import 'package:epicpay/pages/settings_views/security_views/security_view.dart';
@@ -191,22 +190,6 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CoinNodesView(
               coin: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case NodeDetailsView.routeName:
-        if (args is Tuple3<Coin, String, String>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => NodeDetailsView(
-              coin: args.item1,
-              nodeId: args.item2,
-              popRouteName: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,

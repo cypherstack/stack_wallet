@@ -9,6 +9,7 @@ import 'package:epicpay/models/node_model.dart';
 import 'package:epicpay/models/paymint/fee_object_model.dart';
 import 'package:epicpay/models/paymint/transactions_model.dart';
 import 'package:epicpay/models/paymint/utxo_model.dart';
+import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicpay/services/coins/coin_service.dart';
 import 'package:epicpay/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:epicpay/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -1282,14 +1283,8 @@ class EpicCashWallet extends CoinServiceAPI {
     final String nodeAddress = node.host;
     int port = node.port;
 
-    String scheme;
-    if (node.useSSL) {
-      scheme = "https://";
-    } else {
-      scheme = "http://";
-    }
-
-    final String nodeApiAddress = "$scheme$nodeAddress:$port";
+    final String nodeApiAddress =
+        (Uri.parse(nodeAddress)..replace(port: port)).toString();
     final walletDir = await currentWalletDirPath();
 
     final Map<String, dynamic> config = {};
@@ -2056,18 +2051,13 @@ class EpicCashWallet extends CoinServiceAPI {
     try {
       // force unwrap optional as we want connection test to fail if wallet
       // wasn't initialized or epicbox node was set to null
-      String scheme;
-      if (_epicNode!.useSSL) {
-        scheme = "https://";
-      } else {
-        scheme = "http://";
-      }
-
-      final String uriString =
-          "$scheme${_epicNode!.host}:${_epicNode!.port}/v1/version";
-
-      final Uri uri = Uri.parse(uriString);
-      return await testEpicBoxNodeConnection(uri);
+      return await testEpicNodeConnection(
+            NodeFormData()
+              ..host = _epicNode!.host
+              ..useSSL = _epicNode!.useSSL
+              ..port = _epicNode!.port,
+          ) !=
+          null;
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Warning);
       return false;
