@@ -1,15 +1,16 @@
 import 'dart:async';
 
+import 'package:epicpay/models/node_model.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/utilities/assets.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
-import 'package:epicpay/utilities/enums/sync_type_enum.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/conditional_parent.dart';
+import 'package:epicpay/widgets/rounded_container.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,36 +44,17 @@ class _NodeCardState extends ConsumerState<NodeCard> {
 
   bool _isCurrentNode = false;
 
-  Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
-    final managers = [ref.read(walletProvider)!];
-    final prefs = ref.read(prefsChangeNotifierProvider);
-
-    switch (prefs.syncType) {
-      case SyncingType.currentWalletOnly:
-        for (final manager in managers) {
-          if (manager.isActiveWallet) {
-            manager.updateNode(true);
-          } else {
-            manager.updateNode(false);
-          }
-        }
-        break;
-      case SyncingType.selectedWalletsAtStartup:
-        final List<String> walletIdsToSync = prefs.walletIdsSyncOnStartup;
-        for (final manager in managers) {
-          if (walletIdsToSync.contains(manager.walletId)) {
-            manager.updateNode(true);
-          } else {
-            manager.updateNode(false);
-          }
-        }
-        break;
-      case SyncingType.allWalletsOnStartup:
-        for (final manager in managers) {
-          manager.updateNode(true);
-        }
-        break;
-    }
+  void showContextMenu(NodeModel node, bool isConnected, Offset tapPosition) {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (context) => NodeMenu(
+        node: node,
+        popBackToRoute: widget.popBackToRoute,
+        isConnected: isConnected,
+        tapPosition: tapPosition,
+      ),
+    );
   }
 
   @override
@@ -124,16 +106,8 @@ class _NodeCardState extends ConsumerState<NodeCard> {
       children: [
         Expanded(
           child: GestureDetector(
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                AddEditNodeView.routeName,
-                arguments: Tuple4(
-                  AddEditNodeViewType.edit,
-                  Coin.epicCash,
-                  widget.nodeId,
-                  widget.popBackToRoute,
-                ),
-              );
+            onTapDown: (tapDetails) {
+              showContextMenu(_node, _isCurrentNode, tapDetails.globalPosition);
             },
             child: Container(
               height: 48,
@@ -236,6 +210,208 @@ class CurrentNodeStatusIcon extends ConsumerWidget {
         ),
         child: _getAsset(context),
       ),
+    );
+  }
+}
+
+class NodeMenu extends ConsumerStatefulWidget {
+  const NodeMenu({
+    Key? key,
+    required this.node,
+    required this.popBackToRoute,
+    required this.isConnected,
+    required this.tapPosition,
+  }) : super(key: key);
+
+  final NodeModel node;
+  final String popBackToRoute;
+  final bool isConnected;
+  final Offset tapPosition;
+
+  @override
+  ConsumerState<NodeMenu> createState() => _NodeMenuState();
+}
+
+class _NodeMenuState extends ConsumerState<NodeMenu> {
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        IgnorePointer(
+          child: Container(
+            color: Colors.transparent,
+          ),
+        ),
+        Positioned(
+          top: widget.tapPosition.dy - 40,
+          left: widget.tapPosition.dx,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: 160,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return RoundedContainer(
+                  padding: const EdgeInsets.all(8),
+                  color: Theme.of(context).extension<StackColors>()!.coal,
+                  child: Column(
+                    children: [
+                      if (!widget.isConnected)
+                        GestureDetector(
+                          onTap: () async {
+                            await ref
+                                .read(nodeServiceChangeNotifierProvider)
+                                .setPrimaryNodeFor(
+                                  coin: Coin.epicCash,
+                                  node: widget.node,
+                                );
+                            await ref.read(walletProvider)!.updateNode(true);
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            width: constraints.minWidth,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "Connect",
+                                style: STextStyles.body(context),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (!widget.isConnected)
+                        const SizedBox(
+                          height: 16,
+                        ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pushNamed(
+                            AddEditNodeView.routeName,
+                            arguments: Tuple4(
+                              AddEditNodeViewType.edit,
+                              Coin.epicCash,
+                              widget.node.id,
+                              widget.popBackToRoute,
+                            ),
+                          );
+                        },
+                        child: Container(
+                          color: Colors.transparent,
+                          width: constraints.minWidth,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "Edit",
+                              style: STextStyles.body(context),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+
+    return Column(
+      children: [
+        const SizedBox(
+          height: 10,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: 160,
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return RoundedContainer(
+                      padding: const EdgeInsets.all(8),
+                      color: Theme.of(context).extension<StackColors>()!.coal,
+                      child: Column(
+                        children: [
+                          if (!widget.isConnected)
+                            GestureDetector(
+                              onTap: () async {
+                                await ref
+                                    .read(nodeServiceChangeNotifierProvider)
+                                    .setPrimaryNodeFor(
+                                      coin: Coin.epicCash,
+                                      node: widget.node,
+                                    );
+                                await ref
+                                    .read(walletProvider)!
+                                    .updateNode(true);
+                                if (mounted) {
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              child: Container(
+                                color: Colors.transparent,
+                                width: constraints.minWidth,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "Connect",
+                                    style: STextStyles.body(context),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (!widget.isConnected)
+                            const SizedBox(
+                              height: 16,
+                            ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pushNamed(
+                                AddEditNodeView.routeName,
+                                arguments: Tuple4(
+                                  AddEditNodeViewType.edit,
+                                  Coin.epicCash,
+                                  widget.node.id,
+                                  widget.popBackToRoute,
+                                ),
+                              );
+                            },
+                            child: Container(
+                              color: Colors.transparent,
+                              width: constraints.minWidth,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "Edit",
+                                  style: STextStyles.body(context),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(
+              width: 20,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
