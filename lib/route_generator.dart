@@ -14,7 +14,6 @@ import 'package:epicpay/pages/receive_view/generate_receiving_uri_qr_code_view.d
 import 'package:epicpay/pages/receive_view/receive_view.dart';
 import 'package:epicpay/pages/send_view/send_amount_view.dart';
 import 'package:epicpay/pages/send_view/send_view.dart';
-import 'package:epicpay/pages/settings_views/about_view.dart';
 import 'package:epicpay/pages/settings_views/advanced_views/debug_view.dart';
 import 'package:epicpay/pages/settings_views/currency_view.dart';
 import 'package:epicpay/pages/settings_views/delete_account_view.dart';
@@ -158,12 +157,6 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const DebugView(),
-            settings: RouteSettings(name: settings.name));
-
-      case AboutView.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AboutView(),
             settings: RouteSettings(name: settings.name));
 
       case ManageNodesView.routeName:
