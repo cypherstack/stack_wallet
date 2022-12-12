@@ -35,6 +35,7 @@ class SecurityView extends StatelessWidget {
               Navigator.of(context).pop();
             },
           ),
+          centerTitle: true,
           title: Text(
             "Security",
             style: STextStyles.titleH4(context),
