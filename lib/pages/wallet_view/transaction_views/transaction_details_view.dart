@@ -213,10 +213,8 @@ class _TransactionDetailsViewState
         ),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.only(
-              left: 24,
-              right: 24,
-              top: 24,
+            padding: const EdgeInsets.all(
+              24,
             ),
             child: Column(
               children: [
@@ -357,8 +355,89 @@ class _TransactionDetailsViewState
                               : "Pending",
                         ),
                         const SizedBox(
-                          height: 16,
+                          height: 24,
                         ),
+                        if (coin == Coin.epicCash &&
+                            _transaction.confirmedStatus == false &&
+                            _transaction.isCancelled == false &&
+                            _transaction.txType == "Sent")
+                          TextButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed,
+                              ),
+                            ),
+                            onPressed: () async {
+                              final Manager manager = ref.read(walletProvider)!;
+
+                              if (manager.wallet is EpicCashWallet) {
+                                final String? id = _transaction.slateId;
+                                if (id == null) {
+                                  // unawaited(showFloatingFlushBar(
+                                  //   type: FlushBarType.warning,
+                                  //   message: "Could not find Epic transaction ID",
+                                  //   context: context,
+                                  // ));
+                                  return;
+                                }
+
+                                unawaited(showDialog<dynamic>(
+                                  barrierDismissible: false,
+                                  context: context,
+                                  builder: (_) =>
+                                      const CancellingTransactionProgressDialog(),
+                                ));
+
+                                final result =
+                                    await (manager.wallet as EpicCashWallet)
+                                        .cancelPendingTransactionAndPost(id);
+                                if (mounted) {
+                                  // pop progress dialog
+                                  Navigator.of(context).pop();
+
+                                  if (result.isEmpty) {
+                                    await showDialog<dynamic>(
+                                      context: context,
+                                      builder: (_) => OkDialog(
+                                        title: "Transaction cancelled",
+                                        onOkPressed: (_) {
+                                          manager.refresh();
+                                          Navigator.of(context).popUntil(
+                                              ModalRoute.withName(
+                                                  WalletView.routeName));
+                                        },
+                                      ),
+                                    );
+                                  } else {
+                                    await showDialog<dynamic>(
+                                      context: context,
+                                      builder: (_) => OkDialog(
+                                        title: "Failed to cancel transaction",
+                                        message: result,
+                                      ),
+                                    );
+                                  }
+                                }
+                              } else {
+                                // unawaited(showFloatingFlushBar(
+                                //   type: FlushBarType.warning,
+                                //   message: "ERROR: Wallet type is not Epic Cash",
+                                //   context: context,
+                                // ));
+                                return;
+                              }
+                            },
+                            child: Text(
+                              "CANCEL TRANSACTION",
+                              style: STextStyles.buttonText(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .popupBG,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -367,84 +446,6 @@ class _TransactionDetailsViewState
             ),
           ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: (coin == Coin.epicCash &&
-                _transaction.confirmedStatus == false &&
-                _transaction.isCancelled == false &&
-                _transaction.txType == "Sent")
-            ? SizedBox(
-                width: MediaQuery.of(context).size.width - 32,
-                child: TextButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      Theme.of(context).extension<StackColors>()!.textError,
-                    ),
-                  ),
-                  onPressed: () async {
-                    final Manager manager = ref.read(walletProvider)!;
-
-                    if (manager.wallet is EpicCashWallet) {
-                      final String? id = _transaction.slateId;
-                      if (id == null) {
-                        // unawaited(showFloatingFlushBar(
-                        //   type: FlushBarType.warning,
-                        //   message: "Could not find Epic transaction ID",
-                        //   context: context,
-                        // ));
-                        return;
-                      }
-
-                      unawaited(showDialog<dynamic>(
-                        barrierDismissible: false,
-                        context: context,
-                        builder: (_) =>
-                            const CancellingTransactionProgressDialog(),
-                      ));
-
-                      final result = await (manager.wallet as EpicCashWallet)
-                          .cancelPendingTransactionAndPost(id);
-                      if (mounted) {
-                        // pop progress dialog
-                        Navigator.of(context).pop();
-
-                        if (result.isEmpty) {
-                          await showDialog<dynamic>(
-                            context: context,
-                            builder: (_) => OkDialog(
-                              title: "Transaction cancelled",
-                              onOkPressed: (_) {
-                                manager.refresh();
-                                Navigator.of(context).popUntil(
-                                    ModalRoute.withName(WalletView.routeName));
-                              },
-                            ),
-                          );
-                        } else {
-                          await showDialog<dynamic>(
-                            context: context,
-                            builder: (_) => OkDialog(
-                              title: "Failed to cancel transaction",
-                              message: result,
-                            ),
-                          );
-                        }
-                      }
-                    } else {
-                      // unawaited(showFloatingFlushBar(
-                      //   type: FlushBarType.warning,
-                      //   message: "ERROR: Wallet type is not Epic Cash",
-                      //   context: context,
-                      // ));
-                      return;
-                    }
-                  },
-                  child: Text(
-                    "Cancel Transaction",
-                    style: STextStyles.buttonText(context),
-                  ),
-                ),
-              )
-            : null,
       ),
     );
   }

@@ -159,7 +159,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
   }
 
   Future<void> attemptSave() async {
-    final formData = await _testConnection(showNotification: false);
+    NodeFormData? formData = await _testConnection(showNotification: false);
     final canConnect = formData != null;
 
     bool? shouldSave;
@@ -172,29 +172,17 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
         builder: (_) => StackDialog(
           title: "Server currently unreachable",
           message: "Would you like to save this node anyways?",
-          leftButton: TextButton(
+          leftButton: SecondaryButton(
+            label: "CANCEL",
             onPressed: () async {
               Navigator.of(context).pop(false);
             },
-            child: Text(
-              "Cancel",
-              style: STextStyles.buttonText(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark),
-            ),
           ),
-          rightButton: TextButton(
+          rightButton: PrimaryButton(
+            label: "SAVE",
             onPressed: () async {
               Navigator.of(context).pop(true);
             },
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
-            child: Text(
-              "Save",
-              style: STextStyles.buttonText(context),
-            ),
           ),
         ),
       ).then((value) {
@@ -209,6 +197,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
     if (!canConnect && !shouldSave!) {
       // return without saving
       return;
+    }
+
+    if (!canConnect) {
+      // use failing data to save anyways
+      formData = ref.read(nodeFormDataProvider);
     }
 
     switch (viewType) {
