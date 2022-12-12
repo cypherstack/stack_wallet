@@ -70,20 +70,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     switch (coin) {
       case Coin.epicCash:
         try {
-          final uri = Uri.parse(formData.host!);
-          if (uri.scheme.startsWith("http")) {
-            final String path = uri.path.isEmpty ? "/v1/version" : uri.path;
+          final data = await testEpicNodeConnection(formData);
 
-            String uriString =
-                "${uri.scheme}://${uri.host}:${formData.port ?? 0}$path";
-
-            if (uri.host == "https") {
-              ref.read(nodeFormDataProvider).useSSL = true;
-            } else {
-              ref.read(nodeFormDataProvider).useSSL = false;
-            }
-
-            testPassed = await testEpicBoxNodeConnection(Uri.parse(uriString));
+          if (data != null) {
+            testPassed = true;
+            ref.read(nodeFormDataProvider).host = data.host;
+            ref.read(nodeFormDataProvider).port = data.port;
+            ref.read(nodeFormDataProvider).useSSL = data.useSSL;
           }
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
@@ -315,7 +308,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
+    if (coin == Coin.monero || coin == Coin.wownero) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
@@ -673,6 +666,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   bool _useSSL = false;
   bool _isFailover = false;
   int? port;
+  late bool enableSSLCheckbox;
 
   late final bool enableAuthFields;
 
@@ -692,9 +686,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
+      case Coin.epicCash:
         return false;
 
-      case Coin.epicCash:
       case Coin.monero:
       case Coin.wownero:
         return true;
@@ -768,11 +762,19 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _usernameController.text = node.loginName ?? "";
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
+      if (widget.coin == Coin.epicCash) {
+        enableSSLCheckbox = !node.host.startsWith("http");
+      }
+      print("enableSSLCheckbox: $enableSSLCheckbox");
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
         _updateState();
       });
+    } else {
+      enableSSLCheckbox = true;
+      // default to port 3413
+      // _portController.text = "3413";
     }
 
     super.initState();
@@ -858,9 +860,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             focusNode: _hostFocusNode,
             style: STextStyles.field(context),
             decoration: standardInputDecoration(
-              (widget.coin != Coin.monero &&
-                      widget.coin != Coin.wownero &&
-                      widget.coin != Coin.epicCash)
+              (widget.coin != Coin.monero && widget.coin != Coin.wownero)
                   ? "IP address"
                   : "Url",
               _hostFocusNode,
@@ -886,6 +886,17 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   : null,
             ),
             onChanged: (newValue) {
+              if (widget.coin == Coin.epicCash) {
+                if (newValue.startsWith("https://")) {
+                  _useSSL = true;
+                  enableSSLCheckbox = false;
+                } else if (newValue.startsWith("http://")) {
+                  _useSSL = false;
+                  enableSSLCheckbox = false;
+                } else {
+                  enableSSLCheckbox = true;
+                }
+              }
               _updateState();
               setState(() {});
             },
@@ -1040,20 +1051,18 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero &&
-            widget.coin != Coin.wownero &&
-            widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.monero && widget.coin != Coin.wownero)
           Row(
             children: [
               GestureDetector(
-                onTap: widget.readOnly
-                    ? null
-                    : () {
+                onTap: !widget.readOnly && enableSSLCheckbox
+                    ? () {
                         setState(() {
                           _useSSL = !_useSSL;
                         });
                         _updateState();
-                      },
+                      }
+                    : null,
                 child: Container(
                   color: Colors.transparent,
                   child: Row(
@@ -1062,22 +1071,22 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          fillColor: widget.readOnly
-                              ? MaterialStateProperty.all(Theme.of(context)
+                          fillColor: !widget.readOnly && enableSSLCheckbox
+                              ? null
+                              : MaterialStateProperty.all(Theme.of(context)
                                   .extension<StackColors>()!
-                                  .checkboxBGDisabled)
-                              : null,
+                                  .checkboxBGDisabled),
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _useSSL,
-                          onChanged: widget.readOnly
-                              ? null
-                              : (newValue) {
+                          onChanged: !widget.readOnly && enableSSLCheckbox
+                              ? (newValue) {
                                   setState(() {
                                     _useSSL = newValue!;
                                   });
                                   _updateState();
-                                },
+                                }
+                              : null,
                         ),
                       ),
                       const SizedBox(

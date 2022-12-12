@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
@@ -219,7 +218,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       value: 7,
                       onChanged: (_) {
                         // todo: save stuff/ notify before exit?
-                        exit(0);
+                        // exit(0);
+                        SystemNavigator.pop();
                       },
                       controller: controllers[7],
                     ),
