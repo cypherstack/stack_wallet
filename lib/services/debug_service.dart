@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:epicpay/models/isar/models/log.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:epicpay/models/isar/models/log.dart';
-import 'package:epicpay/utilities/logger.dart';
 
 class DebugService extends ChangeNotifier {
   DebugService._();
@@ -79,7 +79,7 @@ class DebugService extends ChangeNotifier {
   Future<String> exportToFile(String directory, EventBus eventBus) async {
     final now = DateTime.now();
     final filename =
-        "Stack_Wallet_logs_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.txt";
+        "Epic_Pay_logs${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.txt";
     final filepath = "$directory/$filename";
     File file = await File(filepath).create();
 
