@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:epicpay/models/node_model.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -244,7 +245,11 @@ class _NodeMenuState extends ConsumerState<NodeMenu> {
         ),
         Positioned(
           top: widget.tapPosition.dy - 40,
-          left: widget.tapPosition.dx,
+          left: min(
+            widget.tapPosition.dx,
+            // ensure popup doesn't go off screen on right
+            MediaQuery.of(context).size.width - 200,
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(
               minWidth: 160,
