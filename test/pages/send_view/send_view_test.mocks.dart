@@ -85,9 +85,9 @@ class _FakeManager_3 extends _i1.SmartFake implements _i6.Manager {
         );
 }
 
-class _FakeFlutterSecureStorageInterface_4 extends _i1.SmartFake
+class _FakeSecureStorageInterface_4 extends _i1.SmartFake
     implements _i7.SecureStorageInterface {
-  _FakeFlutterSecureStorageInterface_4(
+  _FakeSecureStorageInterface_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -623,7 +623,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
   @override
   _i7.SecureStorageInterface get secureStorageInterface => (super.noSuchMethod(
         Invocation.getter(#secureStorageInterface),
-        returnValue: _FakeFlutterSecureStorageInterface_4(
+        returnValue: _FakeSecureStorageInterface_4(
           this,
           Invocation.getter(#secureStorageInterface),
         ),
@@ -1761,6 +1761,19 @@ class MockPrefs extends _i1.Mock implements _i17.Prefs {
         Invocation.setter(
           #hasPin,
           hasPin,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  int get familiarity => (super.noSuchMethod(
+        Invocation.getter(#familiarity),
+        returnValue: 0,
+      ) as int);
+  @override
+  set familiarity(int? familiarity) => super.noSuchMethod(
+        Invocation.setter(
+          #familiarity,
+          familiarity,
         ),
         returnValueForMissingStub: null,
       );

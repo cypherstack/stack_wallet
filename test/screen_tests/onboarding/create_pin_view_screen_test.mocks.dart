@@ -29,9 +29,9 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeFlutterSecureStorageInterface_0 extends _i1.SmartFake
+class _FakeSecureStorageInterface_0 extends _i1.SmartFake
     implements _i2.SecureStorageInterface {
-  _FakeFlutterSecureStorageInterface_0(
+  _FakeSecureStorageInterface_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -311,7 +311,7 @@ class MockNodeService extends _i1.Mock implements _i10.NodeService {
   @override
   _i2.SecureStorageInterface get secureStorageInterface => (super.noSuchMethod(
         Invocation.getter(#secureStorageInterface),
-        returnValue: _FakeFlutterSecureStorageInterface_0(
+        returnValue: _FakeSecureStorageInterface_0(
           this,
           Invocation.getter(#secureStorageInterface),
         ),

@@ -18,6 +18,7 @@ abstract class DefaultNodes {
         bitcoincash,
         namecoin,
         wownero,
+        particl,
         bitcoinTestnet,
         litecoinTestNet,
         bitcoincashTestnet,
@@ -145,6 +146,17 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get particl => NodeModel(
+      host: "particl.stackwallet.com",
+      port: 58002,
+      name: defaultName,
+      id: _nodeId(Coin.particl),
+      useSSL: true,
+      enabled: true,
+      coinName: Coin.particl.name,
+      isFailover: true,
+      isDown: false);
+
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "electrumx-testnet.cypherstack.com",
         port: 51002,
@@ -221,6 +233,9 @@ abstract class DefaultNodes {
 
       case Coin.namecoin:
         return namecoin;
+
+      case Coin.particl:
+        return particl;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
