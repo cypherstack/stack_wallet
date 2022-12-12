@@ -376,91 +376,91 @@ void main() {
       verifyNoMoreInteractions(priceAPI);
     });
 
-    // test("estimateTxFee", () async {
-    //   expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 1), 356);
-    //   expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 900), 356);
-    //   expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 999), 356);
-    //   expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 1000), 356);
-    //   expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 1001), 712);
-    //   expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 1699), 712);
-    //   expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 2000), 712);
-    //   expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 12345), 4628);
-    //   expect(secureStore.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
+    test("estimateTxFee", () async {
+      expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 1), 356);
+      expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 900), 356);
+      expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 999), 356);
+      expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 1000), 356);
+      expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 1001), 712);
+      expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 1699), 712);
+      expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 2000), 712);
+      expect(part?.estimateTxFee(vSize: 356, feeRatePerKB: 12345), 4628);
+      expect(secureStore.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(priceAPI);
+    });
 
-    // test("get fees succeeds", () async {
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.estimateFee(blocks: 1))
-    //       .thenAnswer((realInvocation) async => Decimal.zero);
-    //   when(client?.estimateFee(blocks: 5))
-    //       .thenAnswer((realInvocation) async => Decimal.one);
-    //   when(client?.estimateFee(blocks: 20))
-    //       .thenAnswer((realInvocation) async => Decimal.ten);
-    //
-    //   final fees = await part?.fees;
-    //   expect(fees, isA<FeeObject>());
-    //   expect(fees?.slow, 1000000000);
-    //   expect(fees?.medium, 100000000);
-    //   expect(fees?.fast, 0);
-    //
-    //   verify(client?.estimateFee(blocks: 1)).called(1);
-    //   verify(client?.estimateFee(blocks: 5)).called(1);
-    //   verify(client?.estimateFee(blocks: 20)).called(1);
-    //   expect(secureStore.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
+    test("get fees succeeds", () async {
+      when(client?.ping()).thenAnswer((_) async => true);
+      when(client?.getServerFeatures()).thenAnswer((_) async => {
+            "hosts": {},
+            "pruning": null,
+            "server_version": "Unit tests",
+            "protocol_min": "1.4",
+            "protocol_max": "1.4.2",
+            "genesis_hash": GENESIS_HASH_MAINNET,
+            "hash_function": "sha256",
+            "services": []
+          });
+      when(client?.estimateFee(blocks: 1))
+          .thenAnswer((realInvocation) async => Decimal.zero);
+      when(client?.estimateFee(blocks: 5))
+          .thenAnswer((realInvocation) async => Decimal.one);
+      when(client?.estimateFee(blocks: 20))
+          .thenAnswer((realInvocation) async => Decimal.ten);
 
-    // test("get fees fails", () async {
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_MAINNET,
-    //         "hash_function": "sha256",
-    //         "services": []
-    //       });
-    //   when(client?.estimateFee(blocks: 1))
-    //       .thenAnswer((realInvocation) async => Decimal.zero);
-    //   when(client?.estimateFee(blocks: 5))
-    //       .thenAnswer((realInvocation) async => Decimal.one);
-    //   when(client?.estimateFee(blocks: 20))
-    //       .thenThrow(Exception("some exception"));
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await part?.fees;
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //
-    //   expect(didThrow, true);
-    //
-    //   verify(client?.estimateFee(blocks: 1)).called(1);
-    //   verify(client?.estimateFee(blocks: 5)).called(1);
-    //   verify(client?.estimateFee(blocks: 20)).called(1);
-    //   expect(secureStore.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
+      final fees = await part?.fees;
+      expect(fees, isA<FeeObject>());
+      expect(fees?.slow, 1000000000);
+      expect(fees?.medium, 100000000);
+      expect(fees?.fast, 0);
+
+      verify(client?.estimateFee(blocks: 1)).called(1);
+      verify(client?.estimateFee(blocks: 5)).called(1);
+      verify(client?.estimateFee(blocks: 20)).called(1);
+      expect(secureStore.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("get fees fails", () async {
+      when(client?.ping()).thenAnswer((_) async => true);
+      when(client?.getServerFeatures()).thenAnswer((_) async => {
+            "hosts": {},
+            "pruning": null,
+            "server_version": "Unit tests",
+            "protocol_min": "1.4",
+            "protocol_max": "1.4.2",
+            "genesis_hash": GENESIS_HASH_MAINNET,
+            "hash_function": "sha256",
+            "services": []
+          });
+      when(client?.estimateFee(blocks: 1))
+          .thenAnswer((realInvocation) async => Decimal.zero);
+      when(client?.estimateFee(blocks: 5))
+          .thenAnswer((realInvocation) async => Decimal.one);
+      when(client?.estimateFee(blocks: 20))
+          .thenThrow(Exception("some exception"));
+
+      bool didThrow = false;
+      try {
+        await part?.fees;
+      } catch (_) {
+        didThrow = true;
+      }
+
+      expect(didThrow, true);
+
+      verify(client?.estimateFee(blocks: 1)).called(1);
+      verify(client?.estimateFee(blocks: 5)).called(1);
+      verify(client?.estimateFee(blocks: 20)).called(1);
+      expect(secureStore.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(priceAPI);
+    });
 
     // test("get maxFee", () async {
     //   when(client?.ping()).thenAnswer((_) async => true);
@@ -481,7 +481,7 @@ void main() {
     //   when(client?.estimateFee(blocks: 1))
     //       .thenAnswer((realInvocation) async => Decimal.ten);
     //
-    //   final maxFee = await nmc?.maxFee;
+    //   final maxFee = await part?.maxFee;
     //   expect(maxFee, 1000000000);
     //
     //   verify(client?.estimateFee(blocks: 1)).called(1);
@@ -1427,52 +1427,52 @@ void main() {
       verifyNoMoreInteractions(priceAPI);
     });
 
-    // test("confirmSend fails due to vSize being greater than fee", () async {
-    //   bool didThrow = false;
-    //   try {
-    //     await nmc
-    //         ?.confirmSend(txData: {"hex": "a string", "fee": 1, "vSize": 10});
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //
-    //   expect(didThrow, true);
-    //
-    //   verify(client?.broadcastTransaction(
-    //           rawTx: "a string", requestID: anyNamed("requestID")))
-    //       .called(1);
-    //
-    //   expect(secureStore.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
+    test("confirmSend fails due to vSize being greater than fee", () async {
+      bool didThrow = false;
+      try {
+        await part
+            ?.confirmSend(txData: {"hex": "a string", "fee": 1, "vSize": 10});
+      } catch (_) {
+        didThrow = true;
+      }
 
-    // test("confirmSend fails when broadcast transactions throws", () async {
-    //   when(client?.broadcastTransaction(
-    //           rawTx: "a string", requestID: anyNamed("requestID")))
-    //       .thenThrow(Exception("some exception"));
-    //
-    //   bool didThrow = false;
-    //   try {
-    //     await nmc
-    //         ?.confirmSend(txData: {"hex": "a string", "fee": 10, "vSize": 10});
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //
-    //   expect(didThrow, true);
-    //
-    //   verify(client?.broadcastTransaction(
-    //           rawTx: "a string", requestID: anyNamed("requestID")))
-    //       .called(1);
-    //
-    //   expect(secureStore.interactions, 0);
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
-    // });
+      expect(didThrow, true);
+
+      verify(client?.broadcastTransaction(
+              rawTx: "a string", requestID: anyNamed("requestID")))
+          .called(1);
+
+      expect(secureStore.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(priceAPI);
+    });
+
+    test("confirmSend fails when broadcast transactions throws", () async {
+      when(client?.broadcastTransaction(
+              rawTx: "a string", requestID: anyNamed("requestID")))
+          .thenThrow(Exception("some exception"));
+
+      bool didThrow = false;
+      try {
+        await part
+            ?.confirmSend(txData: {"hex": "a string", "fee": 10, "vSize": 10});
+      } catch (_) {
+        didThrow = true;
+      }
+
+      expect(didThrow, true);
+
+      verify(client?.broadcastTransaction(
+              rawTx: "a string", requestID: anyNamed("requestID")))
+          .called(1);
+
+      expect(secureStore.interactions, 0);
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+      verifyNoMoreInteractions(tracker);
+      verifyNoMoreInteractions(priceAPI);
+    });
     //
     // // this test will create a non mocked electrumx client that will try to connect
     // // to the provided ipAddress below. This will throw a bunch of errors
