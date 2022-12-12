@@ -10,7 +10,7 @@ Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
     final response = await client.get(
       uri,
       headers: {'Content-Type': 'application/json'},
-    ).timeout(const Duration(milliseconds: 1200),
+    ).timeout(const Duration(milliseconds: 2000),
         onTimeout: () async => http.Response('Error', 408));
 
     final json = jsonDecode(response.body);
