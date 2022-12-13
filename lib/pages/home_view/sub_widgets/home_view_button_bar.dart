@@ -34,7 +34,8 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: HomeViewButtonBar");
+    //todo: check if print needed
+    // debugPrint("BUILD: HomeViewButtonBar");
     final selectedIndex = ref.watch(homeViewPageIndexStateProvider.state).state;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,

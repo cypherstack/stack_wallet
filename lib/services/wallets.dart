@@ -30,7 +30,8 @@ class Wallets extends ChangeNotifier {
 
   @override
   dispose() {
-    debugPrint("Wallets dispose was called!!");
+    //todo: check if print needed
+    // debugPrint("Wallets dispose was called!!");
     super.dispose();
   }
 
@@ -145,7 +146,8 @@ class Wallets extends ChangeNotifier {
 
   static int _count = 0;
   Future<void> load(Prefs prefs) async {
-    debugPrint("++++++++++++++ Wallets().load() called: ${++_count} times");
+    //todo: check if print needed
+    // debugPrint("++++++++++++++ Wallets().load() called: ${++_count} times");
     if (hasLoaded) {
       return;
     }
@@ -315,8 +317,9 @@ class Wallets extends ChangeNotifier {
 
       final isVerified =
           await walletsService.isMnemonicVerified(walletId: walletId);
-      debugPrint(
-          "LOADING RESTORED WALLET: ${manager.walletName} ${manager.walletId} IS VERIFIED: $isVerified");
+      //todo: check if print needed
+      // debugPrint(
+      //     "LOADING RESTORED WALLET: ${manager.walletName} ${manager.walletId} IS VERIFIED: $isVerified");
 
       if (isVerified) {
         if (_managerMap[walletId] == null &&

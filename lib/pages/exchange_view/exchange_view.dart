@@ -109,7 +109,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                   .read(tradeSentFromStackLookupProvider)
                                   .all;
 
-                              debugPrint("ALL: $lookup");
+                              //todo: check if print needed
+                              // debugPrint("ALL: $lookup");
 
                               final String? txid = ref
                                   .read(tradeSentFromStackLookupProvider)
@@ -125,7 +126,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                     .read(walletsChangeNotifierProvider)
                                     .getManager(walletIds.first);
 
-                                debugPrint("name: ${manager.walletName}");
+                                //todo: check if print needed
+                                // debugPrint("name: ${manager.walletName}");
 
                                 // TODO store tx data completely locally in isar so we don't lock up ui here when querying txData
                                 final txData = await manager.transactionData;

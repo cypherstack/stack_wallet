@@ -11,7 +11,8 @@ class BuyView extends StatefulWidget {
 class _BuyViewState extends State<BuyView> {
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: BuyView");
+    //todo: check if print needed
+    // debugPrint("BUILD: BuyView");
     return SafeArea(
       child: Center(
         child: SingleChildScrollView(

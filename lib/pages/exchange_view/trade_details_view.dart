@@ -157,9 +157,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             trade.status == "Failed" ||
             trade.status == "failed");
 
-    debugPrint("sentFromStack: $sentFromStack");
-    debugPrint("hasTx: $hasTx");
-    debugPrint("trade: ${trade.toString()}");
+    //todo: check if print needed
+    // debugPrint("sentFromStack: $sentFromStack");
+    // debugPrint("hasTx: $hasTx");
+    // debugPrint("trade: ${trade.toString()}");
 
     final sendAmount =
         Decimal.tryParse(trade.payInAmount) ?? Decimal.parse("-1");

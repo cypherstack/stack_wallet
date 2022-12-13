@@ -458,7 +458,8 @@ class WowneroWallet extends CoinServiceAPI {
 
       if (isActive || shouldAutoSync) {
         timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
-          debugPrint("run timer");
+          //todo: check if print needed
+          // debugPrint("run timer");
           //TODO: check for new data and refresh if needed. if wownero even needs this
           // chain height check currently broken
           // if ((await chainHeight) != (await storedChainHeight)) {
@@ -472,7 +473,8 @@ class WowneroWallet extends CoinServiceAPI {
         });
         wowneroAutosaveTimer ??=
             Timer.periodic(const Duration(seconds: 93), (timer) async {
-          debugPrint("run wownero timer");
+          //todo: check if print needed
+          // debugPrint("run wownero timer");
           if (isActive) {
             await walletBase?.save();
             GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
@@ -828,7 +830,8 @@ class WowneroWallet extends CoinServiceAPI {
         level: LogLevel.Info);
 
     if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
-      debugPrint("Exception was thrown");
+      //todo: check if print needed
+      // debugPrint("Exception was thrown");
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
@@ -849,7 +852,8 @@ class WowneroWallet extends CoinServiceAPI {
     try {
       password = await keysStorage?.getWalletPassword(walletName: _walletId);
     } catch (e, s) {
-      debugPrint("Exception was thrown $e $s");
+      //todo: check if print needed
+      // debugPrint("Exception was thrown $e $s");
       throw Exception("Password not found $e, $s");
     }
     walletBase = (await walletService?.openWallet(_walletId, password!))
@@ -1046,6 +1050,7 @@ class WowneroWallet extends CoinServiceAPI {
         await DB.instance
             .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
       } catch (e, s) {
+        //todo: come back to this
         debugPrint(e.toString());
         debugPrint(s.toString());
       }
@@ -1146,7 +1151,8 @@ class WowneroWallet extends CoinServiceAPI {
     for (var element in walletBase!.balance!.entries) {
       bal = bal + element.value.fullBalance;
     }
-    debugPrint("balances: $transactionBalance $bal");
+    //todo: check if print needed
+    // debugPrint("balances: $transactionBalance $bal");
     if (isActive) {
       String am = wowneroAmountToString(amount: bal);
 
@@ -1174,8 +1180,10 @@ class WowneroWallet extends CoinServiceAPI {
             password =
                 await keysStorage?.getWalletPassword(walletName: _walletId);
           } catch (e, s) {
-            debugPrint("Exception was thrown $e $s");
-            throw Exception("Password not found $e, $s");
+            //todo: check if print needed
+            // debugPrint("Exception was thrown $e $s");
+            throw Exception("Password not fou"
+                "*nd $e, $s");
           }
           walletBase = (await walletService?.openWallet(_walletId, password!))
               as WowneroWalletBase?;
@@ -1499,7 +1507,8 @@ class WowneroWallet extends CoinServiceAPI {
             await (awaitPendingTransaction!) as PendingWowneroTransaction;
         int realfee = Format.decimalAmountToSatoshis(
             Decimal.parse(pendingWowneroTransaction.feeFormatted), coin);
-        debugPrint("fee? $realfee");
+        //todo: check if print needed
+        // debugPrint("fee? $realfee");
         Map<String, dynamic> txData = {
           "pendingWowneroTransaction": pendingWowneroTransaction,
           "fee": realfee,

@@ -257,7 +257,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       height: 20,
                     ),
                     onPressed: () {
-                      debugPrint("main view settings tapped");
+                      //todo: check if print needed
+                      // debugPrint("main view settings tapped");
                       Navigator.of(context)
                           .pushNamed(GlobalSettingsView.routeName);
                     },

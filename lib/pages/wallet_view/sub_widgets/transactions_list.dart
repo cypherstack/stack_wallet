@@ -234,7 +234,8 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           list.sort((a, b) => b.timestamp - a.timestamp);
           return RefreshIndicator(
             onRefresh: () async {
-              debugPrint("pulled down to refresh on transaction list");
+              //todo: check if print needed
+              // debugPrint("pulled down to refresh on transaction list");
               final managerProvider = ref
                   .read(walletsChangeNotifierProvider)
                   .getManagerProvider(widget.walletId);

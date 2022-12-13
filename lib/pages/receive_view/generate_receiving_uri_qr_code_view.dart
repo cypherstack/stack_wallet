@@ -122,6 +122,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             text: "Receive URI QR Code");
       }
     } catch (e) {
+      //todo: comeback to this
       debugPrint(e.toString());
     }
   }

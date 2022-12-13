@@ -2665,6 +2665,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
         satoshisBeingUsed - satoshiAmountToSend - 1,
       ], // dust limit is the minimum amount a change output should be
     ))["vSize"] as int;
+    //todo: check if print needed
     debugPrint("vSizeForOneOutput $vSizeForOneOutput");
     debugPrint("vSizeForTwoOutPuts $vSizeForTwoOutPuts");
 
@@ -3140,6 +3141,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     final tx = builder.build();
     final txHex = tx.toHex();
     final vSize = tx.virtualSize();
+    //todo: check if print needed
     Logger.print("bch raw hex: $txHex");
 
     return {"hex": txHex, "vSize": vSize};

@@ -60,6 +60,7 @@ class DebugService extends ChangeNotifier {
       await isar.writeTxn(() async => await isar.logs.clear());
       notifyListeners();
     } catch (e, s) {
+      //todo: come back to this
       debugPrint("$e, $s");
     }
   }

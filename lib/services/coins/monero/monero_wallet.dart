@@ -457,7 +457,8 @@ class MoneroWallet extends CoinServiceAPI {
 
       if (isActive || shouldAutoSync) {
         timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
-          debugPrint("run timer");
+          //todo: check if print needed
+          // debugPrint("run timer");
           //TODO: check for new data and refresh if needed. if monero even needs this
           // chain height check currently broken
           // if ((await chainHeight) != (await storedChainHeight)) {
@@ -471,7 +472,8 @@ class MoneroWallet extends CoinServiceAPI {
         });
         moneroAutosaveTimer ??=
             Timer.periodic(const Duration(seconds: 93), (timer) async {
-          debugPrint("run monero timer");
+          //todo: check if print needed
+          // debugPrint("run monero timer");
           if (isActive) {
             await walletBase?.save();
             GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
@@ -724,6 +726,7 @@ class MoneroWallet extends CoinServiceAPI {
       walletBase?.close();
       walletBase = wallet as MoneroWalletBase;
     } catch (e, s) {
+      //todo: come back to this
       debugPrint(e.toString());
       debugPrint(s.toString());
     }
@@ -826,7 +829,8 @@ class MoneroWallet extends CoinServiceAPI {
         level: LogLevel.Info);
 
     if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
-      debugPrint("Exception was thrown");
+      //todo: check if print is needed
+      // debugPrint("Exception was thrown");
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
@@ -847,7 +851,8 @@ class MoneroWallet extends CoinServiceAPI {
     try {
       password = await keysStorage?.getWalletPassword(walletName: _walletId);
     } catch (e, s) {
-      debugPrint("Exception was thrown $e $s");
+      //todo: check if print needed
+      // debugPrint("Exception was thrown $e $s");
       throw Exception("Password not found $e, $s");
     }
     walletBase = (await walletService?.openWallet(_walletId, password!))
@@ -1125,7 +1130,8 @@ class MoneroWallet extends CoinServiceAPI {
     for (var element in walletBase!.balance!.entries) {
       bal = bal + element.value.fullBalance;
     }
-    debugPrint("balances: $transactionBalance $bal");
+    //todo: check if print needed
+    // debugPrint("balances: $transactionBalance $bal");
     if (isActive) {
       String am = moneroAmountToString(amount: bal);
 
@@ -1153,7 +1159,8 @@ class MoneroWallet extends CoinServiceAPI {
             password =
                 await keysStorage?.getWalletPassword(walletName: _walletId);
           } catch (e, s) {
-            debugPrint("Exception was thrown $e $s");
+            //todo: check if print needed
+            // debugPrint("Exception was thrown $e $s");
             throw Exception("Password not found $e, $s");
           }
           walletBase = (await walletService?.openWallet(_walletId, password!))

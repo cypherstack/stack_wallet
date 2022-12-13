@@ -119,6 +119,7 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
+      //todo: comeback to this
       debugPrint("$e\n$s");
       // pop sending dialog
       Navigator.of(context).pop();

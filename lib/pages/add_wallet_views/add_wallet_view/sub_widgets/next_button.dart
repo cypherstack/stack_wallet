@@ -27,7 +27,9 @@ class AddWalletNextButton extends ConsumerWidget {
           : () {
               final selectedCoin =
                   ref.read(addWalletSelectedCoinStateProvider.state).state;
-              debugPrint("Next pressed with ${selectedCoin!.name} selected!");
+
+              //todo: check if print needed
+              // debugPrint("Next pressed with ${selectedCoin!.name} selected!");
               Navigator.of(context).pushNamed(
                 CreateOrRestoreWalletView.routeName,
                 arguments: selectedCoin,
