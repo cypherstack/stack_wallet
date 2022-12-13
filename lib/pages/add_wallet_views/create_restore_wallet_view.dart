@@ -8,9 +8,9 @@ import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/background.dart';
 import 'package:epicpay/widgets/desktop/primary_button.dart';
 import 'package:epicpay/widgets/desktop/secondary_button.dart';
-import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CreateRestoreWalletView extends StatefulWidget {
   const CreateRestoreWalletView({Key? key}) : super(key: key);
@@ -71,36 +71,16 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                   children: [
                     const TextSpan(text: "By continuing, you agree to the "),
                     TextSpan(
-                      text: "Terms of service",
-                      style:
-                          STextStyles.richLink(context).copyWith(fontSize: 14),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          showDialog<dynamic>(
-                              context: context,
-                              builder: (context) {
-                                return const StackDialog(
-                                  title: "Terms of Service",
-                                  message: "terms will go here",
-                                );
-                              });
-                        },
-                    ),
-                    const TextSpan(text: " and "),
-                    TextSpan(
                       text: "Privacy policy",
                       style:
                           STextStyles.richLink(context).copyWith(fontSize: 14),
                       recognizer: TapGestureRecognizer()
                         ..onTap = () {
-                          showDialog<dynamic>(
-                              context: context,
-                              builder: (context) {
-                                return const StackDialog(
-                                  title: "Privacy policy",
-                                  message: "policy will go here",
-                                );
-                              });
+                          launchUrl(
+                            Uri.parse(
+                                "https://cypherstack.com/epic-privacy-policy.html"),
+                            mode: LaunchMode.externalApplication,
+                          );
                         },
                     ),
                   ],
