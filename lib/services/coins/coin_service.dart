@@ -10,6 +10,7 @@ import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
+import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -180,6 +181,16 @@ abstract class CoinServiceAPI {
           secureStore: secureStorageInterface,
           // tracker: tracker,
         );
+
+      case Coin.particl:
+        return ParticlWallet(
+            walletId: walletId,
+            walletName: walletName,
+            coin: coin,
+            secureStore: secureStorageInterface,
+            client: client,
+            cachedClient: cachedClient,
+            tracker: tracker);
 
       case Coin.wownero:
         return WowneroWallet(
