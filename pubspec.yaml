@@ -88,6 +88,11 @@ dependencies:
       ref: 22279d4bb24ed541b431acd269a1bc50af0f36a0
   bs58check: ^1.0.2
 
+  # Eth Plugins
+  web3dart:
+    2.3.5
+  string_to_hex: 0.2.2
+
   # Storage plugins
   flutter_secure_storage: ^5.0.2
   hive: ^2.0.5
@@ -207,6 +212,7 @@ flutter:
     - assets/images/doge.png
     - assets/images/bitcoin.png
     - assets/images/epic-cash.png
+    - assets/images/ethereum.png
     - assets/images/bitcoincash.png
     - assets/images/namecoin.png
     - assets/images/glasses.png
@@ -306,6 +312,7 @@ flutter:
     - assets/svg/coin_icons/Bitcoincash.svg
     - assets/svg/coin_icons/Dogecoin.svg
     - assets/svg/coin_icons/EpicCash.svg
+    - assets/svg/coin_icons/Ethereum.svg
     - assets/svg/coin_icons/Firo.svg
     - assets/svg/coin_icons/Monero.svg
     - assets/svg/coin_icons/Wownero.svg

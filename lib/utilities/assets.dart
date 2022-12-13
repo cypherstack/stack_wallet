@@ -176,6 +176,7 @@ class _SVG {
   String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
   String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
+  String get ethereum => "assets/svg/coin_icons/Ethereum.svg";
   String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";
   String get wownero => "assets/svg/coin_icons/Wownero.svg";
@@ -206,6 +207,8 @@ class _SVG {
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
+      case Coin.ethereum:
+        return ethereum;
       case Coin.firo:
         return firo;
       case Coin.monero:
@@ -239,6 +242,7 @@ class _PNG {
   String get bitcoin => "assets/images/bitcoin.png";
   String get litecoin => "assets/images/litecoin.png";
   String get epicCash => "assets/images/epic-cash.png";
+  String get ethereum => "assets/images/ethereum.png";
   String get bitcoincash => "assets/images/bitcoincash.png";
   String get namecoin => "assets/images/namecoin.png";
 
@@ -261,6 +265,8 @@ class _PNG {
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
+      case Coin.ethereum:
+        return ethereum;
       case Coin.firo:
         return firo;
       case Coin.firoTestNet:

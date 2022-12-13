@@ -53,6 +53,7 @@ abstract class Constants {
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.namecoin:
         return _satsPerCoin;
 
@@ -77,6 +78,7 @@ abstract class Constants {
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.namecoin:
         return _decimalPlaces;
 
@@ -102,6 +104,7 @@ abstract class Constants {
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.namecoin:
         values.addAll([24, 21, 18, 15, 12]);
         break;
@@ -140,6 +143,9 @@ abstract class Constants {
         return 150;
 
       case Coin.epicCash:
+        return 60;
+
+      case Coin.ethereum:
         return 60;
 
       case Coin.monero:

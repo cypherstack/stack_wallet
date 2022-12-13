@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:http/http.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -30,6 +31,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web3dart/web3dart.dart';
 
 enum AddEditNodeViewType { add, edit }
 
@@ -157,11 +159,19 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
         try {
           testPassed = await client.ping();
-        } catch (_) {
-          testPassed = false;
+        } catch (e, s) {
+          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
         }
 
         break;
+
+      case Coin.ethereum:
+        final client = Web3Client(
+            "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
+            Client());
+        try {
+          await client.getSyncStatus();
+        } catch (_) {}
     }
 
     if (showFlushBar) {
@@ -695,6 +705,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
         return false;
 
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
         return true;

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:web3dart/browser.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";
@@ -133,6 +134,19 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  //TODO - Update with correct node details for ETH
+  static NodeModel get ethereum => NodeModel(
+        host: "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
+        port: 1234,
+        name: defaultName,
+        id: _nodeId(Coin.ethereum),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.ethereum.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get namecoin => NodeModel(
         host: "namecoin.stackwallet.com",
         port: 57002,
@@ -209,6 +223,9 @@ abstract class DefaultNodes {
 
       case Coin.epicCash:
         return epicCash;
+
+      case Coin.ethereum:
+        return ethereum;
 
       case Coin.firo:
         return firo;
