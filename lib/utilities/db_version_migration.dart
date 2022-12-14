@@ -141,6 +141,7 @@ class DbVersionMigrator {
 
         // try to continue migrating
         return await migrate(2, secureStore: secureStore);
+
       case 2:
         await Hive.openBox<dynamic>(DB.boxNamePrefs);
         final prefs = Prefs.instance;
@@ -153,6 +154,20 @@ class DbVersionMigrator {
         await DB.instance.put<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 3);
         return await migrate(3, secureStore: secureStore);
+
+      case 3:
+        // clear possible broken firo cache
+        await DB.instance.deleteBoxFromDisk(
+            boxName: DB.instance.boxNameSetCache(coin: Coin.firo));
+        await DB.instance.deleteBoxFromDisk(
+            boxName: DB.instance.boxNameUsedSerialsCache(coin: Coin.firo));
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 4);
+
+        // try to continue migrating
+        return await migrate(4, secureStore: secureStore);
 
       default:
         // finally return
