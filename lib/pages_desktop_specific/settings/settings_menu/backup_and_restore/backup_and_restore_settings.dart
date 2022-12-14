@@ -9,7 +9,6 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/backup_and_restore/create_auto_backup.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/backup_and_restore/enable_backup_dialog.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -73,8 +72,10 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
     } else {
       // if greater than a week return the actual date
       return DateFormat.yMMMMd(
-              ref.read(localeServiceChangeNotifierProvider).locale)
-          .format(time);
+        // en_CA locale breaks things?
+        // ref.read(localeServiceChangeNotifierProvider).locale,
+        "en_US",
+      ).format(time);
     }
 
     if (value == 1) {

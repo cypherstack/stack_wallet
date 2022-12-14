@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -93,9 +94,13 @@ class _NodeCardState extends ConsumerState<NodeCard> {
     switch (widget.coin) {
       case Coin.epicCash:
         try {
-          final String uriString = "${node.host}:${node.port}/v1/version";
-
-          testPassed = await testEpicBoxNodeConnection(Uri.parse(uriString));
+          testPassed = await testEpicNodeConnection(
+                NodeFormData()
+                  ..host = node.host
+                  ..useSSL = node.useSSL
+                  ..port = node.port,
+              ) !=
+              null;
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
         }

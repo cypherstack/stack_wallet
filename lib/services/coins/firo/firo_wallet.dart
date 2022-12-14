@@ -735,40 +735,6 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
   // setTestnet(isTestnet);
 }
 
-Future<Map<String, dynamic>?> getInitialAnonymitySetCache(
-  String groupID,
-) async {
-  Logging.instance.log("getInitialAnonymitySetCache", level: LogLevel.Info);
-  final Client client = Client();
-  try {
-    final uri = Uri.parse("$kStackCommunityNodesEndpoint/getAnonymity");
-
-    final anonSetResult = await client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "jsonrpc": "2.0",
-        "id": "0",
-        'aset': groupID,
-      }),
-    );
-
-    final response = jsonDecode(anonSetResult.body.toString());
-    Logging.instance.log(response, level: LogLevel.Info);
-    if (response['status'] == 'success') {
-      final anonResponse = jsonDecode(response['result'] as String);
-
-      final setData = Map<String, dynamic>.from(anonResponse as Map);
-      return setData;
-    } else {
-      return null;
-    }
-  } catch (e, s) {
-    Logging.instance.log("$e $s", level: LogLevel.Error);
-    return null;
-  }
-}
-
 /// Handles a single instance of a firo wallet
 class FiroWallet extends CoinServiceAPI {
   static const integrationTestFlag =

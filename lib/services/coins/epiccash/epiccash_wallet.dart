@@ -15,6 +15,7 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/paymint/utxo_model.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -276,7 +277,16 @@ Future<String> deleteEpicWallet({
 
   final wallet = await secureStore.read(key: '${walletId}_wallet');
 
-  return compute(_deleteWalletWrapper, wallet!);
+  if (wallet == null) {
+    return "Tried to delete non existent epic wallet file with walletId=$walletId";
+  } else {
+    try {
+      return compute(_deleteWalletWrapper, wallet);
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      return "deleteEpicWallet($walletId) failed...";
+    }
+  }
 }
 
 Future<String> _initWalletWrapper(
@@ -542,6 +552,9 @@ class EpicCashWallet extends CoinServiceAPI {
             .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
     // TODO notify ui/ fire event for node changed?
+
+    String stringConfig = await getConfig();
+    await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
 
     if (shouldRefresh) {
       unawaited(refresh());
@@ -1256,8 +1269,12 @@ class EpicCashWallet extends CoinServiceAPI {
     }
     final NodeModel node = _epicNode!;
     final String nodeAddress = node.host;
-    int port = node.port;
-    final String nodeApiAddress = "$nodeAddress:$port";
+    final int port = node.port;
+
+    final uri = Uri.parse(nodeAddress).replace(port: port);
+
+    final String nodeApiAddress = uri.toString();
+
     final walletDir = await currentWalletDirPath();
 
     final Map<String, dynamic> config = {};
@@ -1266,7 +1283,8 @@ class EpicCashWallet extends CoinServiceAPI {
     config["chain"] = "mainnet";
     config["account"] = "default";
     config["api_listen_port"] = port;
-    config["api_listen_interface"] = nodeAddress;
+    config["api_listen_interface"] =
+        nodeApiAddress.replaceFirst(uri.scheme, "");
     String stringConfig = json.encode(config);
     return stringConfig;
   }
@@ -2016,11 +2034,13 @@ class EpicCashWallet extends CoinServiceAPI {
     try {
       // force unwrap optional as we want connection test to fail if wallet
       // wasn't initialized or epicbox node was set to null
-      final String uriString =
-          "${_epicNode!.host}:${_epicNode!.port}/v1/version";
-
-      final Uri uri = Uri.parse(uriString);
-      return await testEpicBoxNodeConnection(uri);
+      return await testEpicNodeConnection(
+            NodeFormData()
+              ..host = _epicNode!.host
+              ..useSSL = _epicNode!.useSSL
+              ..port = _epicNode!.port,
+          ) !=
+          null;
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Warning);
       return false;

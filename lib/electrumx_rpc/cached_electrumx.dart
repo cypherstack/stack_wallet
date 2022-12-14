@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -63,20 +62,6 @@ class CachedElectrumX {
           "setHash": "",
           "coins": <dynamic>[],
         };
-
-        // try up to 3 times
-        for (int i = 0; i < 3; i++) {
-          final result = await getInitialAnonymitySetCache(groupId);
-          if (result != null) {
-            set["setHash"] = result["setHash"];
-            set["blockHash"] = result["blockHash"];
-            set["coins"] = result["coins"];
-            Logging.instance.log(
-                "Populated initial anon set cache for group $groupId",
-                level: LogLevel.Info);
-            break;
-          }
-        }
       } else {
         set = Map<String, dynamic>.from(cachedSet);
       }
@@ -98,10 +83,10 @@ class CachedElectrumX {
       // update set with new data
       if (newSet["setHash"] != "" && set["setHash"] != newSet["setHash"]) {
         set["setHash"] = !isHexadecimal(newSet["setHash"] as String)
-            ? base64ToReverseHex(newSet["setHash"] as String)
+            ? base64ToHex(newSet["setHash"] as String)
             : newSet["setHash"];
         set["blockHash"] = !isHexadecimal(newSet["blockHash"] as String)
-            ? base64ToHex(newSet["blockHash"] as String)
+            ? base64ToReverseHex(newSet["blockHash"] as String)
             : newSet["blockHash"];
         for (int i = (newSet["coins"] as List).length - 1; i >= 0; i--) {
           dynamic newCoin = newSet["coins"][i];

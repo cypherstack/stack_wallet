@@ -275,9 +275,9 @@ class ElectrumX {
       final response = await request(
         requestID: requestID,
         command: 'server.ping',
-        connectionTimeout: const Duration(seconds: 1),
+        connectionTimeout: const Duration(seconds: 2),
         retries: retryCount,
-      ).timeout(const Duration(seconds: 1)) as Map<String, dynamic>;
+      ).timeout(const Duration(seconds: 2)) as Map<String, dynamic>;
       return response.keys.contains("result") && response["result"] == null;
     } catch (e) {
       rethrow;

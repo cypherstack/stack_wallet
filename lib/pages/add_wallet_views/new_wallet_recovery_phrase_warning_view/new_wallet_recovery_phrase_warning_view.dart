@@ -184,7 +184,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 ),
                               ),
                               TextSpan(
-                                text: "12 words",
+                                text: "$_numberOfPhraseWords words",
                                 style: STextStyles.desktopH3(context).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!

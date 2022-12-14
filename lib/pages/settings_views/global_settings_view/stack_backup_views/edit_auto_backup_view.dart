@@ -18,7 +18,6 @@ import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -218,8 +217,10 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
           passwordController.text = "";
           passwordRepeatController.text = "";
 
-          Navigator.of(context)
-              .popUntil(ModalRoute.withName(AutoBackupView.routeName));
+          if (!Util.isDesktop) {
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(AutoBackupView.routeName));
+          }
         }
       } else {
         await showDialog<dynamic>(

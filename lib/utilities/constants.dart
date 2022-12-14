@@ -38,7 +38,7 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentHiveDbVersion = 3;
+  static const int currentHiveDbVersion = 4;
 
   static int satsPerCoin(Coin coin) {
     switch (coin) {
@@ -54,6 +54,7 @@ abstract class Constants {
       case Coin.firoTestNet:
       case Coin.epicCash:
       case Coin.namecoin:
+      case Coin.particl:
         return _satsPerCoin;
 
       case Coin.wownero:
@@ -78,6 +79,7 @@ abstract class Constants {
       case Coin.firoTestNet:
       case Coin.epicCash:
       case Coin.namecoin:
+      case Coin.particl:
         return _decimalPlaces;
 
       case Coin.wownero:
@@ -103,6 +105,7 @@ abstract class Constants {
       case Coin.firoTestNet:
       case Coin.epicCash:
       case Coin.namecoin:
+      case Coin.particl:
         values.addAll([24, 21, 18, 15, 12]);
         break;
 
@@ -149,6 +152,9 @@ abstract class Constants {
         return 120;
 
       case Coin.namecoin:
+        return 600;
+
+      case Coin.particl:
         return 600;
     }
   }
