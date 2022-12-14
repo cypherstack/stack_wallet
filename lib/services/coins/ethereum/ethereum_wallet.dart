@@ -11,6 +11,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:string_to_hex/string_to_hex.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:web3dart/web3dart.dart' as Transaction;
 // import 'package:string_to_hex/string_to_hex.dart';
 // import 'package:web3dart/credentials.dart';
 // import 'package:web3dart/web3dart.dart';
@@ -57,6 +58,8 @@ class EthereumWallet extends CoinServiceAPI {
       "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
       Client());
 
+  late EthPrivateKey _credentials;
+
   EthereumWallet(
       {required String walletId,
       required String walletName,
@@ -82,25 +85,48 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   // TODO: implement allOwnAddresses
-  Future<List<String>> get allOwnAddresses => throw UnimplementedError();
+  Future<List<String>> get allOwnAddresses =>
+      _allOwnAddresses ??= _fetchAllOwnAddresses();
+  Future<List<String>>? _allOwnAddresses;
+
+  Future<List<String>> _fetchAllOwnAddresses() async {
+    List<String> addresses = [];
+    final ownAddress = _credentials.address;
+    addresses.add(ownAddress.toString());
+    return addresses;
+  }
 
   @override
-  // TODO: implement availableBalance
-  Future<Decimal> get availableBalance => throw UnimplementedError();
+  Future<Decimal> get availableBalance async {
+    EtherAmount ethBalance = await _client.getBalance(_credentials.address);
+    return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
+  }
 
   @override
   // TODO: implement balanceMinusMaxFee
   Future<Decimal> get balanceMinusMaxFee => throw UnimplementedError();
 
   @override
-  Future<String> confirmSend({required Map<String, dynamic> txData}) {
-    // TODO: implement confirmSend
-    throw UnimplementedError();
+  Future<String> confirmSend({required Map<String, dynamic> txData}) async {
+    final transaction = await _client.sendTransaction(
+      _credentials,
+      Transaction(
+        to: EthereumAddress.fromHex(
+            '0xC914Bb2ba888e3367bcecEb5C2d99DF7C7423706'),
+        gasPrice: EtherAmount.inWei(BigInt.one),
+        maxGas: 100000,
+        value: EtherAmount.fromUnitAndValue(EtherUnit.ether, 1),
+      ),
+    );
+
+    return transaction;
   }
 
   @override
-  // TODO: implement currentReceivingAddress
-  Future<String> get currentReceivingAddress => throw UnimplementedError();
+  Future<String> get currentReceivingAddress async {
+    final _currentReceivingAddress = _credentials.address;
+    return _currentReceivingAddress.toString();
+  }
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) {
@@ -115,8 +141,19 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  // TODO: implement fees
-  Future<FeeObject> get fees => throw UnimplementedError();
+  Future<FeeObject> get fees => _feeObject ??= _getFees();
+  Future<FeeObject>? _feeObject;
+
+  Future<FeeObject> _getFees() async {
+    // TODO: implement _getFees
+    return FeeObject(
+        numberOfBlocksFast: 10,
+        numberOfBlocksAverage: 10,
+        numberOfBlocksSlow: 10,
+        fast: 1,
+        medium: 1,
+        slow: 1);
+  }
 
   @override
   Future<void> fullRescan(
@@ -157,12 +194,12 @@ class EthereumWallet extends CoinServiceAPI {
   Future<void> initializeNew() async {
     await _prefs.init();
     final String mnemonic = bip39.generateMnemonic(strength: 256);
-    final credentials =
-        EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
+    print("Mnemonic is $mnemonic");
+    _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
 
     final String password = generatePassword();
     var rng = Random.secure();
-    Wallet wallet = Wallet.createNew(credentials, password, rng);
+    Wallet wallet = Wallet.createNew(_credentials, password, rng);
 
     await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
 
@@ -188,13 +225,14 @@ class EthereumWallet extends CoinServiceAPI {
         .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
   }
 
-  @override
-  // TODO: implement isConnected
-  bool get isConnected => throw UnimplementedError();
+  bool _isConnected = false;
 
   @override
-  // TODO: implement isRefreshing
-  bool get isRefreshing => throw UnimplementedError();
+  bool get isConnected => _isConnected;
+
+  bool refreshMutex = false;
+  @override
+  bool get isRefreshing => refreshMutex;
 
   @override
   // TODO: implement maxFee
@@ -231,9 +269,37 @@ class EthereumWallet extends CoinServiceAPI {
       {required String mnemonic,
       required int maxUnusedAddressGap,
       required int maxNumberOfIndexesToCheck,
-      required int height}) {
-    // TODO: implement recoverFromMnemonic
-    throw UnimplementedError();
+      required int height}) async {
+    await _prefs.init();
+    print("Mnemonic is $mnemonic");
+    _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
+
+    final String password = generatePassword();
+    var rng = Random.secure();
+    Wallet wallet = Wallet.createNew(_credentials, password, rng);
+
+    await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
+
+    await DB.instance
+        .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
+    await DB.instance.put<dynamic>(
+        boxName: walletId, key: 'receivingAddresses', value: ["0"]);
+    await DB.instance
+        .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
+    await DB.instance
+        .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
+    await DB.instance.put<dynamic>(
+      boxName: walletId,
+      key: 'blocked_tx_hashes',
+      value: ["0xdefault"],
+    ); // A list of transaction hashes to represent frozen utxos in wallet
+    // initialize address book entries
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'addressBookEntries',
+        value: <String, String>{});
+    await DB.instance
+        .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
   }
 
   @override
@@ -258,8 +324,11 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  // TODO: implement totalBalance
-  Future<Decimal> get totalBalance => throw UnimplementedError();
+  // TODO: Check difference between total and available balance for eth
+  Future<Decimal> get totalBalance async {
+    EtherAmount ethBalance = await _client.getBalance(_credentials.address);
+    return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
+  }
 
   @override
   Future<TransactionData> get transactionData =>
@@ -287,7 +356,7 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   bool validateAddress(String address) {
     // TODO: implement validateAddress
-    throw UnimplementedError();
+    return true;
   }
 
   Future<TransactionData> _fetchTransactionData() async {
