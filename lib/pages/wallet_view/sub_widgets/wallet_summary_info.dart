@@ -164,7 +164,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                         const Spacer(),
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text(
+                          child: SelectableText(
                             "${Format.localizedStringAsFixed(
                               value: balanceToShow,
                               locale: locale,
