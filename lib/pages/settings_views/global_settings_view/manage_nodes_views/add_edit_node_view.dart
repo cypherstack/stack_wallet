@@ -766,6 +766,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _isFailover = node.isFailover;
       if (widget.coin == Coin.epicCash) {
         enableSSLCheckbox = !node.host.startsWith("http");
+      } else {
+        enableSSLCheckbox = true;
       }
       print("enableSSLCheckbox: $enableSSLCheckbox");
 
