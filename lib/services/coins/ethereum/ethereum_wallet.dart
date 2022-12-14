@@ -1,15 +1,19 @@
 import 'dart:math';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
+import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:string_to_hex/string_to_hex.dart';
-import 'package:web3dart/credentials.dart';
 import 'package:web3dart/web3dart.dart';
+// import 'package:string_to_hex/string_to_hex.dart';
+// import 'package:web3dart/credentials.dart';
+// import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
 import 'package:stackwallet/hive/db.dart';
@@ -20,9 +24,7 @@ const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 294;
 
 const String GENESIS_HASH_MAINNET =
-    "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
-const String GENESIS_HASH_TESTNET =
-    "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
+    "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa";
 
 class EthereumWallet extends CoinServiceAPI {
   @override
@@ -50,6 +52,10 @@ class EthereumWallet extends CoinServiceAPI {
   late SecureStorageInterface _secureStore;
 
   late PriceAPI _priceAPI;
+  final _prefs = Prefs.instance;
+  final _client = Web3Client(
+      "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
+      Client());
 
   EthereumWallet(
       {required String walletId,
@@ -130,15 +136,56 @@ class EthereumWallet extends CoinServiceAPI {
   bool get hasCalledExit => throw UnimplementedError();
 
   @override
-  Future<void> initializeExisting() {
-    // TODO: implement initializeExisting
-    throw UnimplementedError();
+  Future<void> initializeExisting() async {
+    Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
+        level: LogLevel.Info);
+
+    if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
+      throw Exception(
+          "Attempted to initialize an existing wallet using an unknown wallet ID!");
+    }
+    await _prefs.init();
+    final data =
+        DB.instance.get<dynamic>(boxName: walletId, key: "latest_tx_model")
+            as TransactionData?;
+    if (data != null) {
+      _transactionData = Future(() => data);
+    }
   }
 
   @override
-  Future<void> initializeNew() {
-    // TODO: implement initializeNew
-    throw UnimplementedError();
+  Future<void> initializeNew() async {
+    await _prefs.init();
+    final String mnemonic = bip39.generateMnemonic(strength: 256);
+    final credentials =
+        EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
+
+    final String password = generatePassword();
+    var rng = Random.secure();
+    Wallet wallet = Wallet.createNew(credentials, password, rng);
+
+    await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
+
+    await DB.instance
+        .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
+    await DB.instance.put<dynamic>(
+        boxName: walletId, key: 'receivingAddresses', value: ["0"]);
+    await DB.instance
+        .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
+    await DB.instance
+        .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
+    await DB.instance.put<dynamic>(
+      boxName: walletId,
+      key: 'blocked_tx_hashes',
+      value: ["0xdefault"],
+    ); // A list of transaction hashes to represent frozen utxos in wallet
+    // initialize address book entries
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'addressBookEntries',
+        value: <String, String>{});
+    await DB.instance
+        .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
   }
 
   @override
@@ -154,8 +201,17 @@ class EthereumWallet extends CoinServiceAPI {
   Future<int> get maxFee => throw UnimplementedError();
 
   @override
-  // TODO: implement mnemonic
-  Future<List<String>> get mnemonic => throw UnimplementedError();
+  Future<List<String>> get mnemonic => _getMnemonicList();
+
+  Future<List<String>> _getMnemonicList() async {
+    final mnemonicString =
+        await _secureStore.read(key: '${_walletId}_mnemonic');
+    if (mnemonicString == null) {
+      return [];
+    }
+    final List<String> data = mnemonicString.split(' ');
+    return data;
+  }
 
   @override
   // TODO: implement pendingBalance
@@ -206,8 +262,11 @@ class EthereumWallet extends CoinServiceAPI {
   Future<Decimal> get totalBalance => throw UnimplementedError();
 
   @override
-  // TODO: implement transactionData
-  Future<TransactionData> get transactionData => throw UnimplementedError();
+  Future<TransactionData> get transactionData =>
+      _transactionData ??= _fetchTransactionData();
+  Future<TransactionData>? _transactionData;
+
+  TransactionData? cachedTxData;
 
   @override
   // TODO: implement unspentOutputs
@@ -228,6 +287,10 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   bool validateAddress(String address) {
     // TODO: implement validateAddress
+    throw UnimplementedError();
+  }
+
+  Future<TransactionData> _fetchTransactionData() async {
     throw UnimplementedError();
   }
 

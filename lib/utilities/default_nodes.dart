@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:web3dart/browser.dart';
+// import 'package:web3dart/browser.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";

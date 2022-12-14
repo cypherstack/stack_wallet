@@ -89,8 +89,7 @@ dependencies:
   bs58check: ^1.0.2
 
   # Eth Plugins
-  web3dart:
-    2.3.5
+  web3dart: 2.3.5
   string_to_hex: 0.2.2
 
   # Storage plugins

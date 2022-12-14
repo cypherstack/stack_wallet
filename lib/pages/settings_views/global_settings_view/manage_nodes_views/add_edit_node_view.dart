@@ -31,7 +31,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:uuid/uuid.dart';
-import 'package:web3dart/web3dart.dart';
+// import 'package:web3dart/web3dart.dart';
 
 enum AddEditNodeViewType { add, edit }
 
@@ -166,11 +166,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         break;
 
       case Coin.ethereum:
-        final client = Web3Client(
-            "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
-            Client());
+        // final client = Web3Client(
+        //     "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
+        //     Client());
         try {
-          await client.getSyncStatus();
+          // await client.getSyncStatus();
         } catch (_) {}
     }
 
