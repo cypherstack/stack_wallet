@@ -83,10 +83,10 @@ class CachedElectrumX {
       // update set with new data
       if (newSet["setHash"] != "" && set["setHash"] != newSet["setHash"]) {
         set["setHash"] = !isHexadecimal(newSet["setHash"] as String)
-            ? base64ToReverseHex(newSet["setHash"] as String)
+            ? base64ToHex(newSet["setHash"] as String)
             : newSet["setHash"];
         set["blockHash"] = !isHexadecimal(newSet["blockHash"] as String)
-            ? base64ToHex(newSet["blockHash"] as String)
+            ? base64ToReverseHex(newSet["blockHash"] as String)
             : newSet["blockHash"];
         for (int i = (newSet["coins"] as List).length - 1; i >= 0; i--) {
           dynamic newCoin = newSet["coins"][i];
