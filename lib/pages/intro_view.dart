@@ -45,6 +45,7 @@ class _IntroViewState extends ConsumerState<IntroView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
+    final width = MediaQuery.of(context).size.width;
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -134,22 +135,13 @@ class _IntroViewState extends ConsumerState<IntroView> {
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40.0),
-                        child: PrimaryButton(
-                          width: 330,
-                          label: "GET STARTED",
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed(CreateRestoreWalletView.routeName),
-                        ),
-                      ),
-                    ],
+                  Padding(
+                    padding: EdgeInsets.all(width < 350 ? 24 : 40.0),
+                    child: PrimaryButton(
+                      label: "GET STARTED",
+                      onPressed: () => Navigator.of(context)
+                          .pushNamed(CreateRestoreWalletView.routeName),
+                    ),
                   ),
                 ],
               ),
@@ -168,6 +160,8 @@ class AppNameTextLeft extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -176,14 +170,13 @@ class AppNameTextLeft extends StatelessWidget {
         ),
         ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width,
+            maxWidth: width,
           ),
           child: Image(
             image: AssetImage(
               Assets.png.epicFast,
             ),
-            width: MediaQuery.of(context).size.width,
-            height: 145,
+            width: width,
             alignment: Alignment.centerLeft,
           ),
         ),
@@ -191,16 +184,20 @@ class AppNameTextLeft extends StatelessWidget {
           flex: 3,
         ),
         Padding(
-          padding: const EdgeInsets.all(40.0),
+          padding: EdgeInsets.all(width < 350 ? 24 : 40.0),
           child: Text(
             "Fast and reliable"
             "\ntransactions",
             textAlign: TextAlign.left,
-            style: STextStyles.pageTitleH1(context).copyWith(fontSize: 35),
+            style: width < 350
+                ? STextStyles.titleH1(context).copyWith(
+                    fontSize: 32,
+                  )
+                : STextStyles.titleH1(context),
           ),
         ),
-        const SizedBox(
-          height: 200,
+        const Spacer(
+          flex: 10,
         ),
       ],
     );
@@ -214,37 +211,41 @@ class AppNameTextRight extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Spacer(
-          flex: 10,
+          flex: 8,
         ),
         ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width,
+            maxWidth: width,
           ),
           child: Image(
             image: AssetImage(
               Assets.png.epicClouds,
             ),
-            width: MediaQuery.of(context).size.width,
-            height: 333,
+            width: width,
           ),
         ),
         const Spacer(
-          flex: 2,
+          flex: 1,
         ),
         Padding(
-          padding: const EdgeInsets.all(40.0),
+          padding: EdgeInsets.all(width < 350 ? 24 : 40.0),
           child: Text(
             "Everyday \nfinancial \nprivacy",
             textAlign: TextAlign.left,
-            style: STextStyles.pageTitleH1(context).copyWith(fontSize: 35),
+            style: width < 350
+                ? STextStyles.titleH1(context).copyWith(
+                    fontSize: 32,
+                  )
+                : STextStyles.titleH1(context),
           ),
         ),
-        const SizedBox(
-          height: 150,
+        const Spacer(
+          flex: 20,
         ),
       ],
     );
