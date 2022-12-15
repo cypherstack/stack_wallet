@@ -65,6 +65,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final small = MediaQuery.of(context).size.height < 600;
+
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
     final manager = ref.watch(walletProvider)!;
@@ -87,7 +89,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             BorderRadius.circular(Constants.size.circularBorderRadius),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(6),
+        padding: small ? const EdgeInsets.all(0) : const EdgeInsets.all(6),
         child: RawMaterialButton(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(

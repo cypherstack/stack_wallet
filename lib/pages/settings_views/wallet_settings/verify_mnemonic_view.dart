@@ -133,7 +133,7 @@ class _VerifyRecoveryPhraseViewState extends ConsumerState<VerifyMnemonicView> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Spacer(
-                  flex: 1,
+                  flex: 4,
                 ),
                 Text(
                   "Let’s confirm",
@@ -142,8 +142,8 @@ class _VerifyRecoveryPhraseViewState extends ConsumerState<VerifyMnemonicView> {
                     color: Theme.of(context).extension<StackColors>()!.textGold,
                   ),
                 ),
-                const SizedBox(
-                  height: 29,
+                const Spacer(
+                  flex: 1,
                 ),
                 Text(
                   "Tap word number",
@@ -168,8 +168,8 @@ class _VerifyRecoveryPhraseViewState extends ConsumerState<VerifyMnemonicView> {
                   textAlign: TextAlign.center,
                   style: STextStyles.titleH4(context),
                 ),
-                const SizedBox(
-                  height: 64,
+                const Spacer(
+                  flex: 2,
                 ),
                 WordTable(
                   words: randomize(_mnemonic, correctIndex, 9).item1,
@@ -182,7 +182,7 @@ class _VerifyRecoveryPhraseViewState extends ConsumerState<VerifyMnemonicView> {
                   },
                 ),
                 const Spacer(
-                  flex: 2,
+                  flex: 8,
                 ),
               ],
             ),

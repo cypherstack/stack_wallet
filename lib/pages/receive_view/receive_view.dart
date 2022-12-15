@@ -105,6 +105,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    final width = MediaQuery.of(context).size.width;
 
     ref.listen(walletProvider.select((value) => value!.currentReceivingAddress),
         (previous, next) {
@@ -133,8 +134,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
           style: STextStyles.smallMed14(context),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(
-          height: 30,
+        SizedBox(
+          height: width < 350 ? 10 : 30,
         ),
         Padding(
           padding: const EdgeInsets.all(0),
@@ -147,13 +148,13 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                   ),
                   child: QrImage(
                       data: "${coin.uriScheme}:$receivingAddress",
-                      size: MediaQuery.of(context).size.width / 2,
+                      size: width / 2,
                       foregroundColor: Theme.of(context)
                           .extension<StackColors>()!
                           .accentColorDark),
                 ),
-                const SizedBox(
-                  height: 50,
+                SizedBox(
+                  height: width < 350 ? 10 : 50,
                 ),
                 GestureDetector(
                   onTap: () {

@@ -25,6 +25,7 @@ class SecurityView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    final small = MediaQuery.of(context).size.width < 350;
 
     return Background(
       child: Scaffold(
@@ -102,7 +103,9 @@ class SecurityView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Enable biometric authentication",
+                          small
+                              ? "Enable biometrics"
+                              : "Enable biometric authentication",
                           style: STextStyles.bodyBold(context),
                           textAlign: TextAlign.left,
                         ),
