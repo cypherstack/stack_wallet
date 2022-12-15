@@ -66,6 +66,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
 
   Decimal? _amountToSend;
   Decimal? _cachedAmountToSend;
+  String? feeErr;
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
@@ -155,7 +156,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
         baseAmountController.text = "";
       }
 
-      _updatePreviewButtonState(address, _amountToSend);
+      _updatePreviewButtonState(address, _amountToSend, feeErr);
 
       // if (_amountToSend == null) {
       //   setState(() {
@@ -170,13 +171,15 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
     }
   }
 
-  void _updatePreviewButtonState(String? address, Decimal? amount) {
+  void _updatePreviewButtonState(
+      String? address, Decimal? amount, String? feeErr) {
     final isValidAddress =
         ref.read(walletProvider)!.validateAddress(address ?? "");
     ref.read(previewTxButtonStateProvider.state).state = (isValidAddress &&
-        amount != null &&
-        amount > Decimal.zero &&
-        amount <= ref.read(walletProvider)!.cachedAvailableBalance);
+            amount != null &&
+            amount > Decimal.zero &&
+            amount <= ref.read(walletProvider)!.cachedAvailableBalance) &&
+        feeErr == null;
   }
 
   late Future<Decimal> _calculateFeesFuture;
@@ -720,7 +723,8 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                             //       Format.decimalAmountToSatoshis(
                             //           _amountToSend!));
                             // });
-                            _updatePreviewButtonState(address, _amountToSend);
+                            _updatePreviewButtonState(
+                                address, _amountToSend, feeErr);
                           },
                           decoration: InputDecoration(
                             filled: true,
@@ -830,10 +834,29 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                               final total =
                                   feeAmount + (_amountToSend ?? Decimal.zero);
 
+                              if (total >
+                                  ref
+                                      .read(walletProvider)!
+                                      .cachedAvailableBalance) {
+                                feeErr = "Not enough balance";
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  _updatePreviewButtonState(
+                                      address, _amountToSend, feeErr);
+                                });
+                              } else {
+                                feeErr = null;
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  _updatePreviewButtonState(
+                                      address, _amountToSend, feeErr);
+                                });
+                              }
+
                               return Column(
                                 children: [
                                   Text(
-                                    "~$feeAmount ${coin.ticker}",
+                                    feeErr ?? "~$feeAmount ${coin.ticker}",
                                     textAlign: TextAlign.center,
                                     style: STextStyles.body(context),
                                   ),
@@ -855,7 +878,7 @@ class _SendAmountViewState extends ConsumerState<SendAmountView> {
                                     height: 6,
                                   ),
                                   Text(
-                                    "~$total ${coin.ticker}",
+                                    feeErr ?? "~$total ${coin.ticker}",
                                     textAlign: TextAlign.center,
                                     style:
                                         STextStyles.titleH2(context).copyWith(
