@@ -25,6 +25,7 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
+    final width = MediaQuery.of(context).size.width;
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -36,14 +37,15 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
             ),
             ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width,
+                maxWidth: width,
               ),
               child: Image(
                 image: AssetImage(
                   Assets.png.epicWelcome,
                 ),
-                width: MediaQuery.of(context).size.width,
-                height: 315,
+                width: width,
+                height:
+                    width < 350 ? MediaQuery.of(context).size.height / 3 : 315,
                 alignment: Alignment.centerRight,
               ),
             ),
@@ -51,19 +53,30 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
               flex: 3,
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              padding:
+                  EdgeInsets.symmetric(horizontal: width < 350 ? 24 : 40.0),
               child: Text(
                 "Welcome"
                 "\nto Epic Cash",
                 textAlign: TextAlign.left,
-                style: STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
+                style: width < 350
+                    ? STextStyles.titleH1(context).copyWith(
+                        fontSize: 32,
+                      )
+                    : STextStyles.titleH1(context),
               ),
             ),
-            const SizedBox(
-              height: 32,
-            ),
+            if (width < 350)
+              const Spacer(
+                flex: 3,
+              ),
+            if (width >= 350)
+              const SizedBox(
+                height: 32,
+              ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              padding:
+                  EdgeInsets.symmetric(horizontal: width < 350 ? 24 : 40.0),
               child: RichText(
                 textAlign: TextAlign.left,
                 text: TextSpan(
@@ -87,11 +100,17 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 64,
-            ),
+            if (width < 350)
+              const Spacer(
+                flex: 3,
+              ),
+            if (width >= 350)
+              const SizedBox(
+                height: 64,
+              ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              padding:
+                  EdgeInsets.symmetric(horizontal: width < 350 ? 24 : 40.0),
               child: Row(
                 children: [
                   Expanded(
@@ -120,7 +139,8 @@ class _CreateRestoreWalletView extends State<CreateRestoreWalletView> {
               height: 16,
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              padding:
+                  EdgeInsets.symmetric(horizontal: width < 350 ? 24 : 40.0),
               child: Row(
                 children: [
                   Expanded(
