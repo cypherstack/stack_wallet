@@ -216,9 +216,11 @@ class PinKeyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final small = MediaQuery.of(context).size.height < 600;
+
     return Container(
       width: width,
-      height: height,
+      height: small ? 300 : height,
       color: backgroundColor ?? Colors.transparent,
       child: Column(
         children: [
@@ -244,9 +246,10 @@ class PinKeyboard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          if (!small)
+            const SizedBox(
+              height: 24,
+            ),
           Row(
             children: [
               NumberKey(
@@ -269,9 +272,10 @@ class PinKeyboard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          if (!small)
+            const SizedBox(
+              height: 24,
+            ),
           Row(
             children: [
               NumberKey(
@@ -294,9 +298,10 @@ class PinKeyboard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          if (!small)
+            const SizedBox(
+              height: 24,
+            ),
           Row(
             children: [
               const SizedBox(

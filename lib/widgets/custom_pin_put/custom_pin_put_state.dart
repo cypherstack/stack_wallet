@@ -68,9 +68,10 @@ class CustomPinPutState extends State<CustomPinPut>
               ],
             ),
           ),
-          const SizedBox(
-            height: 32,
-          ),
+          if (MediaQuery.of(context).size.height > 600)
+            const SizedBox(
+              height: 32,
+            ),
           Center(
             child: PinKeyboard(
               onNumberKeyPressed: (number) {

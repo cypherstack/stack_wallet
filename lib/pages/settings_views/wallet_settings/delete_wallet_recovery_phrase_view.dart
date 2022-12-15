@@ -93,142 +93,166 @@ class _DeleteWalletRecoveryPhraseViewState
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                RoundedWhiteContainer(
-                  child: Column(
-                    children: [
-                      Text(
-                        "Warning!",
-                        style: STextStyles.titleH3(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .snackBarTextError,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                      Text(
-                        "You must write down your wallet key. Saving your wallet key is the ONLY way you can have access to your funds after deleting the wallet.",
-                        style: STextStyles.bodySmall(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textMedium,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                      Text(
-                        "If you delete this wallet, you will lose your funds unless you save your wallet key.",
-                        style: STextStyles.bodySmallBold(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .snackBarTextError,
-                        ),
-                      ),
-                    ],
+            child: LayoutBuilder(builder: (builderContext, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                ),
-                const SizedBox(
-                  height: 59,
-                ),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 135),
-                        child: Text(
-                          "My Wallet",
-                          style: STextStyles.titleH4(context),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          await _clipboardInterface.setData(
-                              ClipboardData(text: _mnemonic.join(" ")));
-                          // copied = true;
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            // copied == false
-                            Row(
-                              children: [
-                                Text(
-                                  "Copy",
-                                  style:
-                                      STextStyles.smallMed14(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .buttonBackPrimary,
-                                  ),
-                                  textAlign: TextAlign.end,
-                                ),
-                                const SizedBox(
-                                  width: 6,
-                                ),
-                                SvgPicture.asset(
-                                  Assets.svg.copy,
-                                  width: 20,
-                                  height: 20,
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        RoundedWhiteContainer(
+                          child: Column(
+                            children: [
+                              Text(
+                                "Warning!",
+                                style: STextStyles.titleH3(context).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .buttonBackPrimary,
+                                      .snackBarTextError,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 16,
+                              ),
+                              Text(
+                                "You must write down your wallet key. Saving your wallet key is the ONLY way you can have access to your funds after deleting the wallet.",
+                                style: STextStyles.bodySmall(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textMedium,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 16,
+                              ),
+                              Text(
+                                "If you delete this wallet, you will lose your funds unless you save your wallet key.",
+                                style:
+                                    STextStyles.bodySmallBold(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .snackBarTextError,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 50,
+                        ),
+                        Stack(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "My Wallet",
+                                    style: STextStyles.titleH4(context),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ],
                             ),
-                            // : Text(
-                            //     "Copied!",
-                            //     style: STextStyles.smallMed14(context).copyWith(
-                            //       color: Theme.of(context)
-                            //           .extension<StackColors>()!
-                            //           .buttonBackPrimary,
-                            //     ),
-                            //     textAlign: TextAlign.end,
-                            //   ),
+                            Positioned.fill(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () async {
+                                      await _clipboardInterface.setData(
+                                          ClipboardData(
+                                              text: _mnemonic.join(" ")));
+                                      // copied = true;
+                                    },
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        // copied == false
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "Copy",
+                                              style: STextStyles.smallMed14(
+                                                      context)
+                                                  .copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .buttonBackPrimary,
+                                              ),
+                                              textAlign: TextAlign.end,
+                                            ),
+                                            const SizedBox(
+                                              width: 6,
+                                            ),
+                                            SvgPicture.asset(
+                                              Assets.svg.copy,
+                                              width: 20,
+                                              height: 20,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .buttonBackPrimary,
+                                            ),
+                                          ],
+                                        ),
+                                        // : Text(
+                                        //     "Copied!",
+                                        //     style: STextStyles.smallMed14(context).copyWith(
+                                        //       color: Theme.of(context)
+                                        //           .extension<StackColors>()!
+                                        //           .buttonBackPrimary,
+                                        //     ),
+                                        //     textAlign: TextAlign.end,
+                                        //   ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: MnemonicTable(
-                      words: _mnemonic,
-                      isDesktop: false,
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: MnemonicTable(
+                              words: _mnemonic,
+                              isDesktop: false,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        PrimaryButton(
+                          label: "I'VE WRITTEN DOWN THE KEY",
+                          onPressed: () {
+                            final int next = Random().nextInt(_mnemonic.length);
+                            ref
+                                .read(
+                                    verifyMnemonicWordIndexStateProvider.state)
+                                .update((state) => next);
+                            ref
+                                .read(verifyMnemonicCorrectWordStateProvider
+                                    .state)
+                                .update((state) => _mnemonic[next]);
+
+                            Navigator.of(context).pushNamed(
+                              VerifyMnemonicView.routeName,
+                              arguments: _mnemonic,
+                            );
+                          },
+                        )
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
-                PrimaryButton(
-                  label: "I'VE WRITTEN DOWN THE KEY",
-                  onPressed: () {
-                    final int next = Random().nextInt(_mnemonic.length);
-                    ref
-                        .read(verifyMnemonicWordIndexStateProvider.state)
-                        .update((state) => next);
-                    ref
-                        .read(verifyMnemonicCorrectWordStateProvider.state)
-                        .update((state) => _mnemonic[next]);
-
-                    Navigator.of(context).pushNamed(
-                      VerifyMnemonicView.routeName,
-                      arguments: _mnemonic,
-                    );
-                  },
-                )
-              ],
-            ),
+              );
+            }),
           ),
         ),
       ),

@@ -129,6 +129,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
   @override
   Widget build(BuildContext context) {
     final filter = ref.watch(transactionFilterProvider.state).state;
+    final small = MediaQuery.of(context).size.height < 600;
     return FutureBuilder(
       future:
           ref.watch(walletProvider.select((value) => value!.transactionData)),
@@ -169,8 +170,8 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
             },
             child: ListView.separated(
               itemCount: list.length,
-              separatorBuilder: (_, __) => const SizedBox(
-                height: 16,
+              separatorBuilder: (_, __) => SizedBox(
+                height: small ? 4 : 16,
               ),
               itemBuilder: (context, index) {
                 final tx = list[index];

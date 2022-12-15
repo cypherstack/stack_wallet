@@ -206,9 +206,13 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          height: 52,
-                        ),
+                        MediaQuery.of(context).size.height > 600
+                            ? const SizedBox(
+                                height: 52,
+                              )
+                            : const SizedBox(
+                                height: 12,
+                              ),
                         CustomPinPut(
                           fieldsCount: Constants.pinLength,
                           textStyle: STextStyles.label(context).copyWith(

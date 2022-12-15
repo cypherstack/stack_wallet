@@ -45,14 +45,16 @@ class _WalletViewState extends ConsumerState<WalletView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    final height = MediaQuery.of(context).size.height;
 
     return Container(
       color: Theme.of(context).extension<StackColors>()!.background,
       child: Column(
         children: [
-          const SizedBox(
-            height: 40,
-          ),
+          if (height > 600)
+            const SizedBox(
+              height: 40,
+            ),
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -62,9 +64,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
               ),
             ),
           ),
-          const SizedBox(
-            height: 35,
-          ),
+          if (height > 600)
+            const SizedBox(
+              height: 35,
+            ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
