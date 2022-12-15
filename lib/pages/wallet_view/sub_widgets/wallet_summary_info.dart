@@ -72,8 +72,9 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
         final priceTuple = ref.watch(priceAnd24hChangeNotifierProvider
             .select((value) => value.getPrice(coin)));
 
-        final _showAvailable =
-            ref.watch(walletBalanceToggleStateProvider.state).state ==
+        final _showAvailable = isSendView
+            ? true
+            : ref.watch(walletBalanceToggleStateProvider.state).state ==
                 WalletBalanceToggleState.available;
 
         return FutureBuilder(
