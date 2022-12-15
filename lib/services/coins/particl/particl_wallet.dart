@@ -2287,6 +2287,25 @@ class ParticlWallet extends CoinServiceAPI {
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
             final address = out["scriptPubKey"]["address"] as String?;
+            // This code may be needed when constructing tx with blinded, private, or staking outputs.
+            // I am not committing this change now so as to avoid fixing what isn't broken.
+            // String? address;
+            // if (out.containsKey('scriptPubKey') as bool) {
+            //   // Logging.instance.log("output is transparent", level: LogLevel.Info);
+            //   address = out["scriptPubKey"]["address"] as String?;
+            // } else if (out.containsKey('ct_fee') as bool) {
+            //   // or type: data
+            //   Logging.instance
+            //       .log("output is blinded (CT)", level: LogLevel.Info);
+            // } else if (out.containsKey('rangeproof') as bool) {
+            //   // or valueCommitment or type: anon
+            //   Logging.instance
+            //       .log("output is private (RingCT)", level: LogLevel.Info);
+            // } else {
+            //   // TODO detect staking
+            //   Logging.instance.log("output type not detected; output: ${out}",
+            //       level: LogLevel.Info);
+            // }
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2408,7 +2427,30 @@ class ParticlWallet extends CoinServiceAPI {
 
         // add up received tx value
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["address"];
+          String? address;
+          // Particl has different tx types that need to be detected and handled here
+          if (output.containsKey('scriptPubKey') as bool) {
+            // Logging.instance.log("output is transparent", level: LogLevel.Info);
+            if (output["scriptPubKey"].containsKey('address') as bool) {
+              address = output["scriptPubKey"]["address"] as String?;
+            } else if (output["scriptPubKey"].containsKey('addresses')
+                as bool) {
+              address = output["scriptPubKey"]["addresses"][0] as String?;
+              // TODO determine cases in which there are multiple addresses in the array
+            }
+          } else if (output.containsKey('ct_fee') as bool) {
+            // or type: data
+            Logging.instance
+                .log("output is blinded (CT)", level: LogLevel.Info);
+          } else if (output.containsKey('rangeproof') as bool) {
+            // or valueCommitment or type: anon
+            Logging.instance
+                .log("output is private (RingCT)", level: LogLevel.Info);
+          } else {
+            // TODO detect staking
+            Logging.instance.log("output type not detected; output: ${output}",
+                level: LogLevel.Info);
+          }
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
                     Decimal.fromInt(Constants.satsPerCoin(coin)))
