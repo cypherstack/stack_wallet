@@ -1182,7 +1182,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 next.isEmpty
             ? "-"
             : next;
-        debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
+        //todo: check if print needed
+        // debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _sendController.text =
               ref.read(exchangeFormStateProvider).fromAmountString;
@@ -1194,7 +1195,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         (previous, String next) {
       if (!_sendFocusNode.hasFocus) {
         _sendController.text = next;
-        debugPrint("SEND AMOUNT LISTENER ACTIVATED");
+        //todo: check if print needed
+        // debugPrint("SEND AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _receiveController.text = isEstimated
               ? ref.read(exchangeFormStateProvider).toAmountString.isEmpty

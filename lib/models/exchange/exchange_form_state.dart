@@ -208,8 +208,9 @@ class ExchangeFormState extends ChangeNotifier {
         reversed: reversed,
       );
 
-      debugPrint(
-          "_updated TO: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate for: $exchange");
+      //todo: check if print needed
+      // debugPrint(
+      //     "_updated TO: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate for: $exchange");
 
       if (shouldNotifyListeners) {
         notifyListeners();
@@ -236,8 +237,9 @@ class ExchangeFormState extends ChangeNotifier {
         reversed: reversed,
       );
 
-      debugPrint(
-          "_updated FROM: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate for: $exchange");
+      //todo: check if print needed
+      // debugPrint(
+      //     "_updated FROM: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate for: $exchange");
       if (shouldNotifyListeners) {
         notifyListeners();
       }
@@ -325,8 +327,9 @@ class ExchangeFormState extends ChangeNotifier {
     minAmount = range.min;
     maxAmount = range.max;
 
-    debugPrint(
-        "updated range for: $exchange for $_fromTicker-$_toTicker: $range");
+    //todo: check if print needed
+    // debugPrint(
+    //     "updated range for: $exchange for $_fromTicker-$_toTicker: $range");
 
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -377,8 +380,9 @@ class ExchangeFormState extends ChangeNotifier {
 
     rate = (toAmount! / fromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
 
-    debugPrint(
-        "updated estimate for: $exchange for $fromTicker-$toTicker: $estimate");
+    //todo: check if print needed
+    // debugPrint(
+    //     "updated estimate for: $exchange for $fromTicker-$toTicker: $estimate");
 
     if (shouldNotifyListeners) {
       notifyListeners();

@@ -77,7 +77,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
       return transactions;
     }
 
-    debugPrint("FILTER: $filter");
+    //todo: check if print needed
+    // debugPrint("FILTER: $filter");
 
     final contacts = ref.read(addressBookServiceProvider).contacts;
     final notes =
@@ -449,7 +450,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                   final criteria =
                       ref.watch(transactionFilterProvider.state).state;
 
-                  debugPrint("Consumer build called");
+                  //todo: check if print needed
+                  // debugPrint("Consumer build called");
 
                   return FutureBuilder(
                     future: ref.watch(managerProvider

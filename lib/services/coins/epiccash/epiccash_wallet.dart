@@ -991,7 +991,8 @@ class EpicCashWallet extends CoinServiceAPI {
     await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
     if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
-      debugPrint("Exception was thrown");
+      //todo: check if print needed
+      // debugPrint("Exception was thrown");
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
@@ -1036,8 +1037,9 @@ class EpicCashWallet extends CoinServiceAPI {
     const double overestimateSecondsPerBlock = 61;
     int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
     int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-    debugPrint(
-        "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
+    //todo: check if print needed
+    // debugPrint(
+    //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
     int height = approximateHeight;
     if (height < 0) {
       height = 0;
@@ -1242,6 +1244,7 @@ class EpicCashWallet extends CoinServiceAPI {
         realfee =
             (Decimal.parse(txObject["fee"].toString())).toBigInt().toInt();
       } catch (e, s) {
+        //todo: come back to this
         debugPrint("$e $s");
       }
 
@@ -2203,6 +2206,7 @@ class EpicCashWallet extends CoinServiceAPI {
       try {
         confirmations = currentChainHeight - txHeight;
       } catch (e, s) {
+        //todo: come back to this
         debugPrint("$e $s");
       }
       midSortedTx["confirmations"] = confirmations;

@@ -92,8 +92,9 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-        "BUILD: NameYourWalletView with ${coin.name} ${addWalletType.name}");
+    //todo: check if print needed
+    // debugPrint(
+    //     "BUILD: NameYourWalletView with ${coin.name} ${addWalletType.name}");
 
     if (isDesktop) {
       return DesktopScaffold(
@@ -274,8 +275,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           ),
           GestureDetector(
             onTap: () async {
-              textEditingController.text =
-                  await _generateRandomWalletName();
+              textEditingController.text = await _generateRandomWalletName();
               setState(() {
                 _nextEnabled = true;
                 _showDiceIcon = false;

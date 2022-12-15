@@ -548,7 +548,8 @@ class _TransactionFeeSelectionSheetState
                                         .watch(feeRateTypeStateProvider.state)
                                         .state,
                                     onChanged: (x) {
-                                      debugPrint(x.toString());
+                                      //todo: check if print needed
+                                      // debugPrint(x.toString());
                                       ref
                                           .read(feeRateTypeStateProvider.state)
                                           .state = FeeRateType.slow;

@@ -2476,6 +2476,7 @@ class DogecoinWallet extends CoinServiceAPI {
         satoshisBeingUsed - satoshiAmountToSend - 1,
       ], // dust limit is the minimum amount a change output should be
     ))["vSize"] as int;
+    //todo: check if print needed
     debugPrint("vSizeForOneOutput $vSizeForOneOutput");
     debugPrint("vSizeForTwoOutPuts $vSizeForTwoOutPuts");
 

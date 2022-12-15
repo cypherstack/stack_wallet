@@ -529,7 +529,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       height: 20,
                     ),
                     onPressed: () {
-                      debugPrint("wallet view settings tapped");
+                      //todo: check if print needed
+                      // debugPrint("wallet view settings tapped");
                       Navigator.of(context).pushNamed(
                         WalletSettingsView.routeName,
                         arguments: Tuple4(

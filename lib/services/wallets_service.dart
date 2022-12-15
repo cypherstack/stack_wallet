@@ -236,7 +236,8 @@ class WalletsService extends ChangeNotifier {
     await DB.instance.deleteAll<String>(boxName: DB.boxNameFavoriteWallets);
     await DB.instance
         .addAll(boxName: DB.boxNameFavoriteWallets, values: walletIds);
-    debugPrint("saveFavoriteWalletIds list: $walletIds");
+    //todo: check if print needed
+    // debugPrint("saveFavoriteWalletIds list: $walletIds");
   }
 
   Future<void> addFavorite(String walletId) async {

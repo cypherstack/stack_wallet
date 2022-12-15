@@ -284,7 +284,8 @@ Future<Map<String, dynamic>> isolateRestore(
                   coin.anonymitySetId != setId;
             }, orElse: () => {});
             if (duplicateCoin.isNotEmpty) {
-              debugPrint("removing duplicate: $duplicateCoin");
+              //todo: check if print needed
+              // debugPrint("removing duplicate: $duplicateCoin");
               lelantusCoins.remove(duplicateCoin);
             }
             lelantusCoins.add({
@@ -325,7 +326,8 @@ Future<Map<String, dynamic>> isolateRestore(
                     coin.anonymitySetId != setId;
               }, orElse: () => {});
               if (duplicateCoin.isNotEmpty) {
-                debugPrint("removing duplicate: $duplicateCoin");
+                //todo: check if print needed
+                // debugPrint("removing duplicate: $duplicateCoin");
                 lelantusCoins.remove(duplicateCoin);
               }
               lelantusCoins.add({
@@ -1197,6 +1199,7 @@ class FiroWallet extends CoinServiceAPI {
 
         return txid;
       } catch (e, s) {
+        //todo: come back to this
         debugPrint("$e $s");
         return txData["txid"] as String;
         // don't throw anything here or it will tell the user that th tx
@@ -1453,6 +1456,7 @@ class FiroWallet extends CoinServiceAPI {
         satoshisBeingUsed - satoshiAmountToSend - 1,
       ], // dust limit is the minimum amount a change output should be
     ))["vSize"] as int;
+    //todo: check if print needed
     debugPrint("vSizeForOneOutput $vSizeForOneOutput");
     debugPrint("vSizeForTwoOutPuts $vSizeForTwoOutPuts");
 
@@ -2632,7 +2636,8 @@ class FiroWallet extends CoinServiceAPI {
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildMintTransaction(List<UtxoObject> utxosToUse,
       int satoshisPerRecipient, List<Map<String, dynamic>> mintsMap) async {
-    debugPrint(utxosToUse.toString());
+    //todo: check if print needed
+    // debugPrint(utxosToUse.toString());
     List<String> addressesToDerive = [];
 
     // Populating the addresses to derive

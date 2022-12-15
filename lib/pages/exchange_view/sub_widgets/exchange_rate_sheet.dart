@@ -84,7 +84,8 @@ class ExchangeRateSheet extends ConsumerWidget {
                             groupValue: ref.watch(prefsChangeNotifierProvider
                                 .select((value) => value.exchangeRateType)),
                             onChanged: (x) {
-                              debugPrint(x.toString());
+                              //todo: check if print needed
+                              // debugPrint(x.toString());
                               ref
                                       .read(prefsChangeNotifierProvider)
                                       .exchangeRateType =
