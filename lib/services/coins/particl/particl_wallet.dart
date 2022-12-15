@@ -2286,26 +2286,23 @@ class ParticlWallet extends CoinServiceAPI {
 
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["address"] as String?;
-            // This code may be needed when constructing tx with blinded, private, or staking outputs.
-            // I am not committing this change now so as to avoid fixing what isn't broken.
-            // String? address;
-            // if (out.containsKey('scriptPubKey') as bool) {
-            //   // Logging.instance.log("output is transparent", level: LogLevel.Info);
-            //   address = out["scriptPubKey"]["address"] as String?;
-            // } else if (out.containsKey('ct_fee') as bool) {
-            //   // or type: data
-            //   Logging.instance
-            //       .log("output is blinded (CT)", level: LogLevel.Info);
-            // } else if (out.containsKey('rangeproof') as bool) {
-            //   // or valueCommitment or type: anon
-            //   Logging.instance
-            //       .log("output is private (RingCT)", level: LogLevel.Info);
-            // } else {
-            //   // TODO detect staking
-            //   Logging.instance.log("output type not detected; output: ${out}",
-            //       level: LogLevel.Info);
-            // }
+            String? address;
+            if (out.containsKey('scriptPubKey') as bool) {
+              // Logging.instance.log("output is transparent", level: LogLevel.Info);
+              address = out["scriptPubKey"]["address"] as String?;
+            } else if (out.containsKey('ct_fee') as bool) {
+              Logging.instance
+                  .log("output is blinded (CT)", level: LogLevel.Info);
+            } else if (out.containsKey('rangeproof') as bool) {
+              // or valueCommitment or type: anon
+              Logging.instance
+                  .log("output is private (RingCT)", level: LogLevel.Info);
+            } else {
+              // type: data may be blinded tx but that also applies to tx with narration (narrated tx also have the "data_hex" key)
+              // TODO detect staking
+              Logging.instance.log("output type not detected; output: ${out}",
+                  level: LogLevel.Info);
+            }
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2324,13 +2321,13 @@ class ParticlWallet extends CoinServiceAPI {
             recipientsArray.add(address);
           }
         } else if (output.containsKey('ct_fee') as bool) {
-          // or type: data
           Logging.instance.log("output is blinded (CT)", level: LogLevel.Info);
         } else if (output.containsKey('rangeproof') as bool) {
           // or valueCommitment or type: anon
           Logging.instance
               .log("output is private (RingCT)", level: LogLevel.Info);
         } else {
+          // type: data may be blinded tx but that also applies to tx with narration (narrated tx also have the "data_hex" key)
           // TODO detect staking
           Logging.instance.log("output type not detected; output: ${output}",
               level: LogLevel.Info);
@@ -2390,7 +2387,6 @@ class ParticlWallet extends CoinServiceAPI {
               txObject["address"] = address;
             }
           } else if (output.containsKey('ct_fee') as bool) {
-            // or type: data
             // TODO handle CT tx
             Logging.instance.log(
                 "output is blinded (CT); cannot parse output values",
@@ -2411,6 +2407,7 @@ class ParticlWallet extends CoinServiceAPI {
                 "output is private (RingCT); cannot parse output values",
                 level: LogLevel.Info);
           } else {
+            // type: data may be blinded tx but that also applies to tx with narration (narrated tx also have the "data_hex" key)
             // TODO detect staking
             Logging.instance.log("output type not detected; output: ${output}",
                 level: LogLevel.Info);
@@ -2439,7 +2436,6 @@ class ParticlWallet extends CoinServiceAPI {
               // TODO determine cases in which there are multiple addresses in the array
             }
           } else if (output.containsKey('ct_fee') as bool) {
-            // or type: data
             Logging.instance
                 .log("output is blinded (CT)", level: LogLevel.Info);
           } else if (output.containsKey('rangeproof') as bool) {
@@ -2447,6 +2443,7 @@ class ParticlWallet extends CoinServiceAPI {
             Logging.instance
                 .log("output is private (RingCT)", level: LogLevel.Info);
           } else {
+            // type: data may be blinded tx but that also applies to tx with narration (narrated tx also have the "data_hex" key)
             // TODO detect staking
             Logging.instance.log("output type not detected; output: ${output}",
                 level: LogLevel.Info);
@@ -2967,8 +2964,31 @@ class ParticlWallet extends CoinServiceAPI {
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            print("SCRIPT PUB KEY IS ${output["scriptPubKey"]}");
-            final address = output["scriptPubKey"]["address"] as String;
+            String address = "";
+            // Particl has different tx types that need to be detected and handled here
+            if (output.containsKey('scriptPubKey') as bool) {
+              // Logging.instance.log("output is transparent", level: LogLevel.Info);
+              if (output["scriptPubKey"].containsKey('address') as bool) {
+                address = output["scriptPubKey"]["address"] as String;
+              } else if (output["scriptPubKey"].containsKey('addresses')
+                  as bool) {
+                address = output["scriptPubKey"]["addresses"][0] as String;
+                // TODO determine cases in which there are multiple addresses in the array
+              }
+            } else if (output.containsKey('ct_fee') as bool) {
+              Logging.instance
+                  .log("output is blinded (CT)", level: LogLevel.Info);
+            } else if (output.containsKey('rangeproof') as bool) {
+              // or valueCommitment or type: anon
+              Logging.instance
+                  .log("output is private (RingCT)", level: LogLevel.Info);
+            } else {
+              // type: data may be blinded tx but that also applies to tx with narration (narrated tx also have the "data_hex" key)
+              // TODO detect staking
+              Logging.instance.log(
+                  "output type not detected; output: ${output}",
+                  level: LogLevel.Info);
+            }
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
             }
