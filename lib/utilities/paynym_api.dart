@@ -225,7 +225,7 @@ class Paynym {
   //
   // ------
   Future<Map<String, dynamic>> claim(String token, String signature) async {
-    return _post("/nym", {"signature": signature}, {"auth-token": token});
+    return _post("/claim", {"signature": signature}, {"auth-token": token});
   }
 
   // ### `/api/v1/follow`
@@ -276,7 +276,7 @@ class Paynym {
     String target,
   ) async {
     return _post(
-      "/nym",
+      "/follow",
       {
         "target": target,
         "signature": signature,
@@ -335,7 +335,7 @@ class Paynym {
     String target,
   ) async {
     return _post(
-      "/nym",
+      "/unfollow",
       {
         "target": target,
         "signature": signature,
@@ -397,7 +397,7 @@ class Paynym {
     String code,
   ) async {
     return _post(
-      "/nym",
+      "/add",
       {
         "nym": nym,
         "code": code,
