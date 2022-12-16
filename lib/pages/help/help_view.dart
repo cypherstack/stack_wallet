@@ -1,10 +1,12 @@
 import 'package:epicpay/utilities/assets.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
+import 'package:epicpay/widgets/animated_text.dart';
 import 'package:epicpay/widgets/background.dart';
 import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HelpView extends StatelessWidget {
@@ -74,20 +76,45 @@ class HelpView extends StatelessWidget {
               //   url: "url",
               // ),
               const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Version: 0.9",
-                    style: STextStyles.bodyBold(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textMedium,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+              FutureBuilder(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, AsyncSnapshot<PackageInfo> snapshot) {
+                  final done =
+                      snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData;
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (done)
+                        Text(
+                          "Version: ${snapshot.data!.version}",
+                          style: STextStyles.bodyBold(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textMedium,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      if (!done)
+                        AnimatedText(
+                          stringsToLoopThrough: const [
+                            "Loading",
+                            "Loading.",
+                            "Loading..",
+                            "Loading...",
+                          ],
+                          style: STextStyles.bodyBold(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textMedium,
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
+
               const SizedBox(
                 height: 16,
               ),
