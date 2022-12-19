@@ -51,6 +51,7 @@ class NotesService extends ChangeNotifier {
     _notes[txid] = note;
     await DB.instance
         .put<dynamic>(boxName: walletId, key: 'notes', value: _notes);
+    //todo: check if this is needed
     Logging.instance.log("editOrAddNote: tx note saved", level: LogLevel.Info);
     await _refreshNotes();
   }
