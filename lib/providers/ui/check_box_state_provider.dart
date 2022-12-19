@@ -6,8 +6,6 @@ int _count = 0;
 final checkBoxStateProvider = StateProvider.autoDispose<bool>((_) {
   if (kDebugMode) {
     _count++;
-    debugPrint("checkBoxStateProvider instantiation count: $_count");
   }
-
   return false;
 });
