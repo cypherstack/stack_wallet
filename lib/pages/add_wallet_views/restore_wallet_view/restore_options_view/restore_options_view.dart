@@ -10,7 +10,7 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_o
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_platform_layout.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -23,8 +23,6 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/rounded_date_picker/flutter_rounded_date_picker_widget.dart'
-    as datePicker;
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -154,10 +152,46 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       await Future<void>.delayed(const Duration(milliseconds: 125));
     }
 
-    final date = await datePicker.showRoundedDatePicker(
+    final date = await showRoundedDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      height: height * 0.5,
+      height: height / 3.0,
+      theme: ThemeData(
+        primarySwatch: Util.createMaterialColor(fetchedColor),
+      ),
+      //TODO pick a better initial date
+      // 2007 chosen as that is just before bitcoin launched
+      firstDate: DateTime(2007),
+      lastDate: DateTime.now(),
+      borderRadius: Constants.size.circularBorderRadius * 2,
+
+      textPositiveButton: "SELECT",
+
+      styleDatePicker: _buildDatePickerStyle(),
+      styleYearPicker: _buildYearPickerStyle(),
+    );
+    if (date != null) {
+      _restoreFromDate = date;
+      _dateController.text = Format.formatDate(date);
+    }
+  }
+
+  Future<void> chooseDesktopDate() async {
+    final height = MediaQuery.of(context).size.height;
+    final fetchedColor =
+        Theme.of(context).extension<StackColors>()!.accentColorDark;
+    // check and hide keyboard
+    if (FocusScope.of(context).hasFocus) {
+      FocusScope.of(context).unfocus();
+      await Future<void>.delayed(const Duration(milliseconds: 125));
+    }
+
+    final now = DateTime.now();
+
+    final date = await showRoundedDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      height: height / 3.0,
       theme: ThemeData(
         primarySwatch: Util.createMaterialColor(fetchedColor),
       ),
@@ -283,15 +317,17 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
-
-                // if (!isDesktop)
+                if (!isDesktop)
+                  RestoreFromDatePicker(
+                    onTap: chooseDate,
+                    controller: _dateController,
+                  ),
+              if (isDesktop)
+                // TODO desktop date picker
                 RestoreFromDatePicker(
-                  onTap: chooseDate,
+                  onTap: chooseDesktopDate,
                   controller: _dateController,
                 ),
-
-              // if (isDesktop)
-              //   // TODO desktop date picker
               if (coin == Coin.monero ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
@@ -412,7 +448,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 isDesktop: isDesktop,
                 onPressed: _nextEnabled ? nextPressed : null,
               ),
-
               if (isDesktop)
                 const Spacer(
                   flex: 15,
