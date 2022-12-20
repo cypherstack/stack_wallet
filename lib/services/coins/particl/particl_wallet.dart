@@ -2435,6 +2435,17 @@ class ParticlWallet extends CoinServiceAPI {
               address = output["scriptPubKey"]["addresses"][0] as String?;
               // TODO determine cases in which there are multiple addresses in the array
             }
+            if (output.containsKey('type') as bool) {
+              if (output["type"] == "blind" ||
+                  output["type"] == "private" ||
+                  output["type"] == "data") {
+                address = null;
+                Logging.instance.log(
+                    "not handling non-standard transaction (${output['type']})",
+                    level: LogLevel.Info);
+                // Using an address which is available above but whose value is not available breaks coin selection later
+              }
+            }
           } else if (output.containsKey('ct_fee') as bool) {
             Logging.instance
                 .log("output is blinded (CT)", level: LogLevel.Info);
@@ -2472,10 +2483,14 @@ class ParticlWallet extends CoinServiceAPI {
 
           for (final out in tx["vout"] as List) {
             if (prevOut == out["n"]) {
-              totalIn += (Decimal.parse(out["value"].toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin(coin)))
-                  .toBigInt()
-                  .toInt();
+              if (out["value"] != null) {
+                totalIn += (Decimal.parse(out["value"].toString()) *
+                        Decimal.fromInt(Constants.satsPerCoin(coin)))
+                    .toBigInt()
+                    .toInt();
+              } else {
+                // TODO handle output where value is null.  This may indicate a narrated tx
+              }
             }
           }
         }
