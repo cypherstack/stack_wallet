@@ -12,14 +12,17 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:string_to_hex/string_to_hex.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/web3dart.dart' as Transaction;
-// import 'package:string_to_hex/string_to_hex.dart';
-// import 'package:web3dart/credentials.dart';
-// import 'package:web3dart/web3dart.dart';
+
 import 'package:http/http.dart';
 
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
+
+import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 294;
@@ -55,8 +58,7 @@ class EthereumWallet extends CoinServiceAPI {
   late PriceAPI _priceAPI;
   final _prefs = Prefs.instance;
   final _client = Web3Client(
-      "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
-      Client());
+      "https://goerli.infura.io/v3/22677300bf774e49a458b73313ee56ba", Client());
 
   late EthPrivateKey _credentials;
 
@@ -108,15 +110,19 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
+    print("CALLING CONFIRM SEND WITH  $txData");
+    final gasPrice = await _client.getGasPrice();
+    print("GAS PRICE IS  $gasPrice");
+
+    // final fee = "21,000" * (gasPrice! + 2 );
+    final tx = Transaction.Transaction(
+        to: EthereumAddress.fromHex(txData['addresss'] as String),
+        gasPrice: gasPrice,
+        maxGas: 21000,
+        value: EtherAmount.fromUnitAndValue(EtherUnit.ether, 1));
     final transaction = await _client.sendTransaction(
       _credentials,
-      Transaction(
-        to: EthereumAddress.fromHex(
-            '0xC914Bb2ba888e3367bcecEb5C2d99DF7C7423706'),
-        gasPrice: EtherAmount.inWei(BigInt.one),
-        maxGas: 100000,
-        value: EtherAmount.fromUnitAndValue(EtherUnit.ether, 1),
-      ),
+      tx,
     );
 
     return transaction;
@@ -129,9 +135,11 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) {
+  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
+    print("CALLING ESTIMATE FEE");
     // TODO: implement estimateFeeFor
-    throw UnimplementedError();
+    // throw UnimplementedError();
+    return 1;
   }
 
   @override
@@ -145,7 +153,6 @@ class EthereumWallet extends CoinServiceAPI {
   Future<FeeObject>? _feeObject;
 
   Future<FeeObject> _getFees() async {
-    // TODO: implement _getFees
     return FeeObject(
         numberOfBlocksFast: 10,
         numberOfBlocksAverage: 10,
@@ -168,9 +175,10 @@ class EthereumWallet extends CoinServiceAPI {
     throw UnimplementedError();
   }
 
+  bool _hasCalledExit = false;
+
   @override
-  // TODO: implement hasCalledExit
-  bool get hasCalledExit => throw UnimplementedError();
+  bool get hasCalledExit => _hasCalledExit;
 
   @override
   Future<void> initializeExisting() async {
@@ -241,6 +249,29 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
 
+  // Future<int> get chainHeight async {
+  //   try {
+  //     final result = await _client.getSyncStatus();
+  //     print("HEIGHT IS $result");
+  //     return 1 as int;
+  //   } catch (e, s) {
+  //     Logging.instance.log("Exception caught in chainHeight: $e\n$s",
+  //         level: LogLevel.Error);
+  //     return -1;
+  //   }
+  // }
+  //
+  // int get storedChainHeight {
+  //   final storedHeight = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: "storedChainHeight") as int?;
+  //   return storedHeight ?? 0;
+  // }
+  //
+  // Future<void> updateStoredChainHeight({required int newHeight}) async {
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: "storedChainHeight", value: newHeight);
+  // }
+
   Future<List<String>> _getMnemonicList() async {
     final mnemonicString =
         await _secureStore.read(key: '${_walletId}_mnemonic');
@@ -255,13 +286,22 @@ class EthereumWallet extends CoinServiceAPI {
   // TODO: implement pendingBalance
   Future<Decimal> get pendingBalance => throw UnimplementedError();
 
+  // Future<Decimal> transactionFee(int satoshiAmount) {}
+
   @override
   Future<Map<String, dynamic>> prepareSend(
       {required String address,
       required int satoshiAmount,
-      Map<String, dynamic>? args}) {
-    // TODO: implement prepareSend
-    throw UnimplementedError();
+      Map<String, dynamic>? args}) async {
+    print("CALLING PREPARE SEND ${Decimal.fromInt(satoshiAmount)}");
+
+    Map<String, dynamic> txData = {
+      "fee": 0,
+      "addresss": address,
+      "recipientAmt": satoshiAmount,
+    };
+
+    return txData;
   }
 
   @override
@@ -303,9 +343,50 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<void> refresh() {
-    // TODO: implement refresh
-    throw UnimplementedError();
+  Future<void> refresh() async {
+    if (refreshMutex) {
+      Logging.instance.log("$walletId $walletName refreshMutex denied",
+          level: LogLevel.Info);
+      return;
+    } else {
+      refreshMutex = true;
+    }
+
+    try {
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          walletId,
+          coin,
+        ),
+      );
+
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
+
+      // final currentHeight = await chainHeight;
+      const storedHeight = 1; //await storedChainHeight;
+
+    } catch (error, strace) {
+      refreshMutex = false;
+      GlobalEventBus.instance.fire(
+        NodeConnectionStatusChangedEvent(
+          NodeConnectionStatus.disconnected,
+          walletId,
+          coin,
+        ),
+      );
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.unableToSync,
+          walletId,
+          coin,
+        ),
+      );
+      Logging.instance.log(
+          "Caught exception in refreshWalletData(): $error\n$strace",
+          level: LogLevel.Warning);
+    }
   }
 
   @override
@@ -327,6 +408,8 @@ class EthereumWallet extends CoinServiceAPI {
   // TODO: Check difference between total and available balance for eth
   Future<Decimal> get totalBalance async {
     EtherAmount ethBalance = await _client.getBalance(_credentials.address);
+    print(
+        "BALANCE NOW IS ${ethBalance.getValueInUnit(EtherUnit.ether).toString()}");
     return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
   }
 
