@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-class Paynym {
+class PaynymAPI {
   static const String baseURL = "https://paynym.is/api";
   static const String version = "/v1";
 
