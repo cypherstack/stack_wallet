@@ -391,7 +391,8 @@ class Output {
         scriptpubkeyAsm: json['scriptPubKey']['asm'] as String?,
         scriptpubkeyType: json['scriptPubKey']['type'] as String?,
         scriptpubkeyAddress: address,
-        value: (Decimal.parse(json["value"].toString()) *
+        value: (Decimal.parse(
+                    (json["value"] != null ? json["value"] : 0).toString()) *
                 Decimal.fromInt(Constants.satsPerCoin(Coin
                     .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
             .toBigInt()
@@ -404,21 +405,19 @@ class Output {
       // or valueCommitment or type: anon
       // output is private (RingCT)
     } */
-    else {
-      // TODO detect staking
-      // TODO handle CT, RingCT, and staking accordingly
-      // print("transaction not supported: ${json}");
-      return Output(
-          // Return output object with null values; allows wallet history to be built
-          scriptpubkey: "",
-          scriptpubkeyAsm: "",
-          scriptpubkeyType: "",
-          scriptpubkeyAddress: "",
-          value: (Decimal.parse(0.toString()) *
-                  Decimal.fromInt(Constants.satsPerCoin(Coin
-                      .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
-              .toBigInt()
-              .toInt());
-    }
+    // TODO detect narration, staking
+    // TODO handle CT, RingCT, narration, and staking accordingly
+    // print("transaction not supported: ${json}");
+    return Output(
+        // Return output object with null values; allows wallet history to be built
+        scriptpubkey: "",
+        scriptpubkeyAsm: "",
+        scriptpubkeyType: "",
+        scriptpubkeyAddress: "",
+        value: (Decimal.parse(0.toString()) *
+                Decimal.fromInt(Constants.satsPerCoin(Coin
+                    .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
+            .toBigInt()
+            .toInt());
   }
 }
