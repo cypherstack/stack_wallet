@@ -9,8 +9,6 @@ final priceAnd24hChangeNotifierProvider =
     ChangeNotifierProvider<PriceService>((ref) {
   if (kDebugMode) {
     _count++;
-    debugPrint(
-        "priceAnd24hChangeNotifierProvider instantiation count: $_count");
   }
 
   final currency =
