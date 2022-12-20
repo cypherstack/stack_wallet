@@ -35,7 +35,6 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -707,7 +706,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            const Spacer(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -717,67 +715,63 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     left: 16,
                                     right: 16,
                                   ),
-                                  child: SizedBox(
+                                  child: WalletNavigationBar(
+                                    coin: ref.watch(managerProvider
+                                        .select((value) => value.coin)),
+                                    enableExchange: Constants.enableExchange &&
+                                        ref.watch(managerProvider.select(
+                                                (value) => value.coin)) !=
+                                            Coin.epicCash,
                                     height: WalletView.navBarHeight,
-                                    child: WalletNavigationBar(
-                                      enableExchange:
-                                          Constants.enableExchange &&
-                                              ref.watch(managerProvider.select(
-                                                      (value) => value.coin)) !=
-                                                  Coin.epicCash,
-                                      height: WalletView.navBarHeight,
-                                      onExchangePressed: () =>
-                                          _onExchangePressed(context),
-                                      onReceivePressed: () async {
-                                        final coin =
-                                            ref.read(managerProvider).coin;
-                                        if (mounted) {
-                                          unawaited(
-                                              Navigator.of(context).pushNamed(
-                                            ReceiveView.routeName,
-                                            arguments: Tuple2(
-                                              walletId,
-                                              coin,
-                                            ),
-                                          ));
-                                        }
-                                      },
-                                      onSendPressed: () {
-                                        final walletId =
-                                            ref.read(managerProvider).walletId;
-                                        final coin =
-                                            ref.read(managerProvider).coin;
-                                        switch (ref
-                                            .read(
-                                                walletBalanceToggleStateProvider
-                                                    .state)
-                                            .state) {
-                                          case WalletBalanceToggleState.full:
-                                            ref
-                                                .read(
-                                                    publicPrivateBalanceStateProvider
-                                                        .state)
-                                                .state = "Public";
-                                            break;
-                                          case WalletBalanceToggleState
-                                              .available:
-                                            ref
-                                                .read(
-                                                    publicPrivateBalanceStateProvider
-                                                        .state)
-                                                .state = "Private";
-                                            break;
-                                        }
-                                        Navigator.of(context).pushNamed(
-                                          SendView.routeName,
+                                    onExchangePressed: () =>
+                                        _onExchangePressed(context),
+                                    onReceivePressed: () async {
+                                      final coin =
+                                          ref.read(managerProvider).coin;
+                                      if (mounted) {
+                                        unawaited(
+                                            Navigator.of(context).pushNamed(
+                                          ReceiveView.routeName,
                                           arguments: Tuple2(
                                             walletId,
                                             coin,
                                           ),
-                                        );
-                                      },
-                                      onBuyPressed: () {},
-                                    ),
+                                        ));
+                                      }
+                                    },
+                                    onSendPressed: () {
+                                      final walletId =
+                                          ref.read(managerProvider).walletId;
+                                      final coin =
+                                          ref.read(managerProvider).coin;
+                                      switch (ref
+                                          .read(walletBalanceToggleStateProvider
+                                              .state)
+                                          .state) {
+                                        case WalletBalanceToggleState.full:
+                                          ref
+                                              .read(
+                                                  publicPrivateBalanceStateProvider
+                                                      .state)
+                                              .state = "Public";
+                                          break;
+                                        case WalletBalanceToggleState.available:
+                                          ref
+                                              .read(
+                                                  publicPrivateBalanceStateProvider
+                                                      .state)
+                                              .state = "Private";
+                                          break;
+                                      }
+                                      Navigator.of(context).pushNamed(
+                                        SendView.routeName,
+                                        arguments: Tuple2(
+                                          walletId,
+                                          coin,
+                                        ),
+                                      );
+                                    },
+                                    onBuyPressed: () {},
                                   ),
                                 ),
                               ],

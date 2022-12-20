@@ -11,12 +11,10 @@ import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
     as nmc;
+import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
+    as particl;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
-import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
-    as particl;
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
-    as particl;
 
 enum Coin {
   bitcoin,
@@ -171,6 +169,29 @@ extension CoinExt on Coin {
       case Coin.monero:
       case Coin.wownero:
         return false;
+    }
+  }
+
+  bool get hasPaynymSupport {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.bitcoincash:
+      case Coin.firo:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincashTestnet:
+      case Coin.firoTestNet:
+      case Coin.epicCash:
+      case Coin.monero:
+      case Coin.wownero:
+        return false;
+
+      case Coin.dogecoin:
+      case Coin.dogecoinTestNet:
+        return true;
     }
   }
 

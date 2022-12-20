@@ -568,7 +568,7 @@ class STextStyles {
     }
   }
 
-  static TextStyle w600_10(BuildContext context) {
+  static TextStyle w600_12(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.inter(
