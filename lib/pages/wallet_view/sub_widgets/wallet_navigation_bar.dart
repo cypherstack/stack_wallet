@@ -5,6 +5,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
+import '../../paynym/paynym_claim_view.dart';
+
 class WalletNavigationBar extends StatefulWidget {
   const WalletNavigationBar({
     Key? key,
@@ -86,7 +88,12 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                 opacity: scale,
                 duration: duration,
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    setState(() {
+                      scale = 0;
+                    });
+                    Navigator.of(context).pushNamed(PaynymClaimView.routeName);
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     width: 146,

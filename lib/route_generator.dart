@@ -36,6 +36,7 @@ import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
+import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
@@ -172,7 +173,7 @@ class RouteGenerator {
         }
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => StackPrivacyCalls(isSettings: false),
+            builder: (_) => const StackPrivacyCalls(isSettings: false),
             settings: RouteSettings(name: settings.name));
 
       case WalletsView.routeName:
@@ -185,6 +186,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const AddWalletView(),
+            settings: RouteSettings(name: settings.name));
+
+      case PaynymClaimView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const PaynymClaimView(),
             settings: RouteSettings(name: settings.name));
 
       case GlobalSettingsView.routeName:
