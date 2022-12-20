@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:stackwallet/models/paynym/created_paynym.dart';
 
 class PaynymAPI {
   static const String baseURL = "https://paynym.is/api";
@@ -73,8 +74,9 @@ class PaynymAPI {
   //
   //
   // ------
-  Future<Map<String, dynamic>> create(String code) async {
-    return _post("/create", {"code": code});
+  Future<CreatedPaynym> create(String code) async {
+    final map = await _post("/create", {"code": code});
+    return CreatedPaynym.fromMap(map);
   }
 
   // ### `/api/v1/token`
