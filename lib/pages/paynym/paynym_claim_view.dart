@@ -1,6 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/paynym/dialogs/claiming_paynym_dialog.dart';
+import 'package:stackwallet/providers/global/paynym_api_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
+import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -9,18 +15,21 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 
-import 'dialogs/claiming_paynym_dialog.dart';
+class PaynymClaimView extends ConsumerStatefulWidget {
+  const PaynymClaimView({
+    Key? key,
+    required this.walletId,
+  }) : super(key: key);
 
-class PaynymClaimView extends StatefulWidget {
-  const PaynymClaimView({Key? key}) : super(key: key);
+  final String walletId;
 
   static const String routeName = "/claimPaynym";
 
   @override
-  State<PaynymClaimView> createState() => _PaynymClaimViewState();
+  ConsumerState<PaynymClaimView> createState() => _PaynymClaimViewState();
 }
 
-class _PaynymClaimViewState extends State<PaynymClaimView> {
+class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -80,6 +89,50 @@ class _PaynymClaimViewState extends State<PaynymClaimView> {
                     ).then((value) => shouldCancel = value == true),
                   );
                   // generate and submit paynym to api
+
+                  final wallet = ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(widget.walletId)
+                      .wallet as DogecoinWallet;
+                  final pCode = await wallet.getPaymentCode();
+
+                  final result = await ref
+                      .read(paynymAPIProvider)
+                      .create(pCode.toString());
+
+                  // final result =
+                  //     await ref.read(paynymAPIProvider).token(pCode.toString());
+
+                  // final token =
+                  //     "IlBNOFRKWWt1U2RZWEpud0RCcThDaGZpbmZYdjNzcnhoUXJ4M2VvRXdiU3c1MXdNamRvOUpKMkRzeWN3VDNndDN6SFE3Y1YxZ3J2YWJNbW1mMUJ0ajZmWTd0Z2tnU3o5QjhNWnVSM2tqWWZnTUxNVVJKQ1hOIg.FoPF3g.KUMZDC4U_ek-B6cqPLYilXniQv8";
+                  //
+                  // print("======================");
+                  // print(token);
+                  // print(token.codeUnits);
+                  // print(utf8.encode(token));
+                  // print(utf8.decode(token.codeUnits));
+                  //
+                  // print("======================");
+                  //
+                  // final signed = await wallet.signWithNotificationKey(
+                  //     Uint8List.fromList(token.codeUnits));
+                  //
+                  // final signedString = Format.uint8listToString(signed);
+                  //
+                  // print("======================");
+                  // print(signed);
+                  // print(signedString);
+                  //
+                  // print("======================");
+
+                  // final result2 = await ref
+                  //     .read(paynymAPIProvider)
+                  //     .claim(token, signedString);
+
+                  // print("======================");
+                  // print(
+                  //     result2); //  {claimed: PM8TJYkuSdYXJnwDBq8ChfinfXv3srxhQrx3eoEwbSw51wMjdo9JJ2DsycwT3gt3zHQ7cV1grvabMmmf1Btj6fY7tgkgSz9B8MZuR3kjYfgMLMURJCXN, token: IlBNOFRKWWt1U2RZWEpud0RCcThDaGZpbmZYdjNzcnhoUXJ4M2VvRXdiU3c1MXdNamRvOUpKMkRzeWN3VDNndDN6SFE3Y1YxZ3J2YWJNbW1mMUJ0ajZmWTd0Z2tnU3o5QjhNWnVSM2tqWWZnTUxNVVJKQ1hOIg.FoPF3g.KUMZDC4U_ek-B6cqPLYilXniQv8}
+                  // print("======================");
 
                   await Future<void>.delayed(const Duration(seconds: 3));
 

@@ -716,6 +716,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     right: 16,
                                   ),
                                   child: WalletNavigationBar(
+                                    walletId: widget.walletId,
                                     coin: ref.watch(managerProvider
                                         .select((value) => value.coin)),
                                     enableExchange: Constants.enableExchange &&

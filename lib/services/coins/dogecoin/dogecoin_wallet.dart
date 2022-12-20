@@ -135,7 +135,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
   late final TransactionNotificationTracker txTracker;
 
-  NetworkType get _network {
+  NetworkType get network {
     switch (coin) {
       case Coin.dogecoin:
         return dogecoin;
@@ -266,7 +266,7 @@ class DogecoinWallet extends CoinServiceAPI {
       // Base58check decode fail
     }
     if (decodeBase58 != null) {
-      if (decodeBase58[0] == _network.pubKeyHash) {
+      if (decodeBase58[0] == network.pubKeyHash) {
         // P2PKH
         return DerivePathType.bip44;
       }
@@ -277,7 +277,7 @@ class DogecoinWallet extends CoinServiceAPI {
       } catch (err) {
         // Bech32 decode fail
       }
-      if (_network.bech32 != decodeBech32!.hrp) {
+      if (network.bech32 != decodeBech32!.hrp) {
         throw ArgumentError('Invalid prefix or Network mismatch');
       }
       if (decodeBech32.version != 0) {
@@ -385,8 +385,7 @@ class DogecoinWallet extends CoinServiceAPI {
         switch (type) {
           case DerivePathType.bip44:
             address = P2PKH(
-                    data: PaymentData(pubkey: node.publicKey),
-                    network: _network)
+                    data: PaymentData(pubkey: node.publicKey), network: network)
                 .data
                 .address!;
             break;
@@ -472,7 +471,7 @@ class DogecoinWallet extends CoinServiceAPI {
     Map<String, Map<String, String>> p2pkhReceiveDerivations = {};
     Map<String, Map<String, String>> p2pkhChangeDerivations = {};
 
-    final root = await compute(getBip32RootWrapper, Tuple2(mnemonic, _network));
+    final root = await compute(getBip32RootWrapper, Tuple2(mnemonic, network));
 
     List<String> p2pkhReceiveAddressArray = [];
     int p2pkhReceiveIndex = -1;
@@ -1104,7 +1103,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
   @override
   bool validateAddress(String address) {
-    return Address.validateAddress(address, _network);
+    return Address.validateAddress(address, network);
   }
 
   @override
@@ -1358,7 +1357,7 @@ class DogecoinWallet extends CoinServiceAPI {
         chain,
         index,
         mnemonic!,
-        _network,
+        network,
         derivePathType,
       ),
     );
@@ -1367,7 +1366,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
     switch (derivePathType) {
       case DerivePathType.bip44:
-        address = P2PKH(data: data, network: _network).data.address!;
+        address = P2PKH(data: data, network: network).data.address!;
         break;
       // default:
       //   // should never hit this due to all enum cases handled
@@ -1601,7 +1600,7 @@ class DogecoinWallet extends CoinServiceAPI {
         if (batches[batchNumber] == null) {
           batches[batchNumber] = {};
         }
-        final scripthash = _convertToScriptHash(allAddresses[i], _network);
+        final scripthash = _convertToScriptHash(allAddresses[i], network);
         batches[batchNumber]!.addAll({
           scripthash: [scripthash]
         });
@@ -1761,7 +1760,7 @@ class DogecoinWallet extends CoinServiceAPI {
   Future<int> getTxCount({required String address}) async {
     String? scripthash;
     try {
-      scripthash = _convertToScriptHash(address, _network);
+      scripthash = _convertToScriptHash(address, network);
       final transactions =
           await electrumXClient.getHistory(scripthash: scripthash);
       return transactions.length;
@@ -1779,7 +1778,7 @@ class DogecoinWallet extends CoinServiceAPI {
     try {
       final Map<String, List<dynamic>> args = {};
       for (final entry in addresses.entries) {
-        args[entry.key] = [_convertToScriptHash(entry.value, _network)];
+        args[entry.key] = [_convertToScriptHash(entry.value, network)];
       }
       final response = await electrumXClient.getBatchHistory(args: args);
 
@@ -1971,7 +1970,7 @@ class DogecoinWallet extends CoinServiceAPI {
         if (batches[batchNumber] == null) {
           batches[batchNumber] = {};
         }
-        final scripthash = _convertToScriptHash(allAddresses[i], _network);
+        final scripthash = _convertToScriptHash(allAddresses[i], network);
         final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
         requestIdToAddressMap[id] = allAddresses[i];
         batches[batchNumber]!.addAll({
@@ -2746,7 +2745,7 @@ class DogecoinWallet extends CoinServiceAPI {
               data: PaymentData(
                   pubkey: Format.stringToUint8List(
                       receiveDerivation["pubKey"] as String)),
-              network: _network,
+              network: network,
             ).data;
 
             for (String tx in addressTxid[addressesP2PKH[i]]!) {
@@ -2754,7 +2753,7 @@ class DogecoinWallet extends CoinServiceAPI {
                 "output": data.output,
                 "keyPair": ECPair.fromWIF(
                   receiveDerivation["wif"] as String,
-                  network: _network,
+                  network: network,
                 ),
               };
             }
@@ -2767,7 +2766,7 @@ class DogecoinWallet extends CoinServiceAPI {
                 data: PaymentData(
                     pubkey: Format.stringToUint8List(
                         changeDerivation["pubKey"] as String)),
-                network: _network,
+                network: network,
               ).data;
 
               for (String tx in addressTxid[addressesP2PKH[i]]!) {
@@ -2775,7 +2774,7 @@ class DogecoinWallet extends CoinServiceAPI {
                   "output": data.output,
                   "keyPair": ECPair.fromWIF(
                     changeDerivation["wif"] as String,
-                    network: _network,
+                    network: network,
                   ),
                 };
               }
@@ -2802,7 +2801,7 @@ class DogecoinWallet extends CoinServiceAPI {
     Logging.instance
         .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
-    final txb = TransactionBuilder(network: _network);
+    final txb = TransactionBuilder(network: network);
     txb.setVersion(1);
 
     // Add transaction inputs

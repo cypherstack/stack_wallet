@@ -37,6 +37,7 @@ import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
+import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
@@ -189,10 +190,33 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case PaynymClaimView.routeName:
-        return getRoute(
+        if (args is String) {
+          return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const PaynymClaimView(),
-            settings: RouteSettings(name: settings.name));
+            builder: (_) => PaynymClaimView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PaynymHomeView.routeName:
+        if (args is Tuple2<String, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PaynymHomeView(
+              walletId: args.item1,
+              paymentCodeString: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case GlobalSettingsView.routeName:
         return getRoute(

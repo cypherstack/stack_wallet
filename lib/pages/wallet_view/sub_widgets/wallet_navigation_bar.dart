@@ -16,6 +16,7 @@ class WalletNavigationBar extends StatefulWidget {
     required this.height,
     required this.enableExchange,
     required this.coin,
+    required this.walletId,
   }) : super(key: key);
 
   final VoidCallback onReceivePressed;
@@ -25,6 +26,7 @@ class WalletNavigationBar extends StatefulWidget {
   final double height;
   final bool enableExchange;
   final Coin coin;
+  final String walletId;
 
   @override
   State<WalletNavigationBar> createState() => _WalletNavigationBarState();
@@ -91,7 +93,10 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                     setState(() {
                       scale = 0;
                     });
-                    Navigator.of(context).pushNamed(PaynymClaimView.routeName);
+                    Navigator.of(context).pushNamed(
+                      PaynymClaimView.routeName,
+                      arguments: widget.walletId,
+                    );
                   },
                   child: Container(
                     padding: const EdgeInsets.all(16),
