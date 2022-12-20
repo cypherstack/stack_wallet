@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -6,6 +8,8 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+
+import 'dialogs/claiming_paynym_dialog.dart';
 
 class PaynymClaimView extends StatefulWidget {
   const PaynymClaimView({Key? key}) : super(key: key);
@@ -67,8 +71,21 @@ class _PaynymClaimViewState extends State<PaynymClaimView> {
               ),
               PrimaryButton(
                 label: "Claim",
-                onPressed: () {
+                onPressed: () async {
+                  bool shouldCancel = false;
+                  unawaited(
+                    showDialog<bool?>(
+                      context: context,
+                      builder: (context) => const ClaimingPaynymDialog(),
+                    ).then((value) => shouldCancel = value == true),
+                  );
                   // generate and submit paynym to api
+
+                  await Future<void>.delayed(const Duration(seconds: 3));
+
+                  if (mounted && !shouldCancel) {
+                    Navigator.of(context).pop();
+                  }
                 },
               ),
             ],

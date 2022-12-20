@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-
-import '../../paynym/paynym_claim_view.dart';
 
 class WalletNavigationBar extends StatefulWidget {
   const WalletNavigationBar({
