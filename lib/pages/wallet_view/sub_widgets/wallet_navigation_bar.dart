@@ -11,6 +11,7 @@ import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -124,15 +125,16 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                           .read(paynymAPIProvider)
                           .nym(code.toString());
 
+                      Logging.instance.log(
+                        "my nym account: $account",
+                        level: LogLevel.Info,
+                      );
+
                       if (mounted) {
                         Navigator.of(context).pop();
 
                         // check if account exists and for matching code to see if claimed
-                        if (account != null &&
-                            account.codes
-                                .where((e) =>
-                                    e.code == code.toString() && e.claimed)
-                                .isNotEmpty) {
+                        if (account != null && account.codes.first.claimed) {
                           ref.read(myPaynymAccountStateProvider.state).state =
                               account;
 

@@ -1,3 +1,4 @@
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/paynym/paynym_code.dart';
 
 class PaynymAccount {
@@ -7,10 +8,10 @@ class PaynymAccount {
   final List<PaynymCode> codes;
 
   /// list of nymId
-  final List<String> followers;
+  final List<PaynymAccountLite> followers;
 
   /// list of nymId
-  final List<String> following;
+  final List<PaynymAccountLite> following;
 
   PaynymAccount(
     this.nymID,
@@ -26,27 +27,21 @@ class PaynymAccount {
         codes = (map["codes"] as List<dynamic>)
             .map((e) => PaynymCode.fromMap(Map<String, dynamic>.from(e as Map)))
             .toList(),
-        followers = [],
-        following = [] {
-    final f1 = map["followers"] as List<dynamic>;
-    for (final item in f1) {
-      followers.add(Map<String, dynamic>.from(item as Map)["nymId"] as String);
-    }
-
-    final f2 = map["following"] as List<dynamic>;
-    for (final item in f2) {
-      final nymId = Map<String, dynamic>.from(item as Map)["nymId"] as String;
-      print(nymId + "DDDDDDDDDDDDD");
-      following.add(nymId);
-    }
-  }
+        followers = (map["followers"] as List<dynamic>)
+            .map((e) =>
+                PaynymAccountLite.fromMap(Map<String, dynamic>.from(e as Map)))
+            .toList(),
+        following = (map["following"] as List<dynamic>)
+            .map((e) =>
+                PaynymAccountLite.fromMap(Map<String, dynamic>.from(e as Map)))
+            .toList();
 
   Map<String, dynamic> toMap() => {
         "nymID": nymID,
         "nymName": nymName,
         "codes": codes.map((e) => e.toMap()),
-        "followers": followers.map((e) => {"nymId": e}).toList(),
-        "following": followers.map((e) => {"nymId": e}).toList(),
+        "followers": followers.map((e) => e.toMap()),
+        "following": followers.map((e) => e.toMap()),
       };
 
   @override

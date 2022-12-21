@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
@@ -154,11 +155,14 @@ class _PaynymFollowToggleButtonState
           context: context,
         ),
       );
-      ref
-          .read(myPaynymAccountStateProvider.state)
-          .state!
-          .following
-          .add(followedAccount.codes.first.code);
+      ref.read(myPaynymAccountStateProvider.state).state!.following.add(
+            PaynymAccountLite(
+              followedAccount.nymID,
+              followedAccount.nymName,
+              followedAccount.codes.first.code,
+              followedAccount.codes.first.segwit,
+            ),
+          );
 
       setState(() {
         isFollowing = true;
@@ -232,7 +236,7 @@ class _PaynymFollowToggleButtonState
           .read(myPaynymAccountStateProvider.state)
           .state!
           .following
-          .remove(followedAccount.codes.first.code);
+          .removeWhere((e) => e.nymId == followedAccount.nymID);
 
       setState(() {
         isFollowing = false;
@@ -265,7 +269,8 @@ class _PaynymFollowToggleButtonState
         .read(myPaynymAccountStateProvider.state)
         .state!
         .following
-        .contains(widget.paymentCodeStringToFollow);
+        .where((e) => e.code == widget.paymentCodeStringToFollow)
+        .isNotEmpty;
     super.initState();
   }
 
