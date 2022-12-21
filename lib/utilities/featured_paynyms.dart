@@ -4,4 +4,9 @@ abstract class FeaturedPaynyms {
       "PM8TJYkuSdYXJnwDBq8ChfinfXv3srxhQrx3eoEwbSw51wMjdo9JJ2DsycwT3gt3zHQ7cV1grvabMmmf1Btj6fY7tgkgSz9B8MZuR3kjYfgMLMURJCXN";
   static const String stackWallet =
       "PM8TJYkuSdYXJnwDBq8ChfinfXv3srxhQrx3eoEwbSw51wMjdo9JJ2DsycwT3gt3zHQ7cV1grvabMmmf1Btj6fY7tgkgSz9B8MZuR3kjYfgMLMURJCXN";
+
+  static Map<String, String> get featured => {
+        "Stack Wallet": stackWallet,
+        "Samourai Wallet Dev Fund": samouraiWalletDevFund,
+      };
 }
