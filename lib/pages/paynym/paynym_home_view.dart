@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/paynym/paynym_account.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/paynym/dialogs/paynym_qr_popup.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -20,8 +21,6 @@ import 'package:stackwallet/widgets/icon_widgets/share_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/toggle.dart';
-
-import 'dialogs/paynym_qr_popup.dart';
 
 class PaynymHomeView extends StatefulWidget {
   const PaynymHomeView({
