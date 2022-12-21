@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/paynym/paynym_account.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -137,8 +141,20 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
                             .extension<StackColors>()!
                             .textDark,
                       ),
-                      onPressed: () {
-                        // copy to clipboard
+                      onPressed: () async {
+                        await Clipboard.setData(
+                          ClipboardData(
+                            text: widget.nymAccount.codes.first.code,
+                          ),
+                        );
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.info,
+                            message: "Copied to clipboard",
+                            iconAsset: Assets.svg.copy,
+                            context: context,
+                          ),
+                        );
                       },
                     ),
                   ),
