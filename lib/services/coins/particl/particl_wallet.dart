@@ -2286,7 +2286,7 @@ class ParticlWallet extends CoinServiceAPI {
 
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["address"] as String?;
+            final address = out["scriptPubKey"]["addresses"][0] as String?;
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2299,8 +2299,9 @@ class ParticlWallet extends CoinServiceAPI {
       for (final output in txObject["vout"] as List) {
         // Particl has different tx types that need to be detected and handled here
         if (output.containsKey('scriptPubKey') as bool) {
+          print("OUTPUT IS $output");
           // Logging.instance.log("output is transparent", level: LogLevel.Info);
-          final address = output["scriptPubKey"]["address"] as String?;
+          final address = output["scriptPubKey"]["addresses"][0] as String?;
           if (address != null) {
             recipientsArray.add(address);
           }
@@ -2358,7 +2359,7 @@ class ParticlWallet extends CoinServiceAPI {
           if (output.containsKey('scriptPubKey') as bool) {
             try {
               final String address =
-                  output["scriptPubKey"]!["address"] as String;
+                  output["scriptPubKey"]!["addresses"][0] as String;
               final value = output["value"]!;
               final _value = (Decimal.parse(value.toString()) *
                       Decimal.fromInt(Constants.satsPerCoin(coin)))
@@ -2416,13 +2417,18 @@ class ParticlWallet extends CoinServiceAPI {
         for (final output in txObject["vout"] as List) {
           print("OUTPUT IS $output");
           try {
-            final address = output["scriptPubKey"]["address"];
+            final address = output["scriptPubKey"]["addresses"][0];
+            print("ADDRESS HERE IS $address");
             if (address != null) {
               final value = (Decimal.parse(output["value"].toString()) *
                       Decimal.fromInt(Constants.satsPerCoin(coin)))
                   .toBigInt()
                   .toInt();
               totalOut += value;
+              print("ALL addresses is $allAddresses");
+              print(
+                  "ALL addresses contains is  ${allAddresses.contains(address)}");
+              print("VALUE IS  $value");
               if (allAddresses.contains(address)) {
                 outputAmtAddressedToWallet += value;
               }
@@ -2937,7 +2943,7 @@ class ParticlWallet extends CoinServiceAPI {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
             print("SCRIPT PUB KEY IS ${output["scriptPubKey"]}");
-            final address = output["scriptPubKey"]["address"] as String;
+            final address = output["scriptPubKey"]["addresses"][0] as String;
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
             }
@@ -3124,7 +3130,7 @@ class ParticlWallet extends CoinServiceAPI {
       rethrow;
     }
 
-    final builtTx = txb.buildIncomplete();
+    final builtTx = txb.build();
     final vSize = builtTx.virtualSize();
 
     String hexBefore = builtTx.toHex(isParticl: true).toString();
