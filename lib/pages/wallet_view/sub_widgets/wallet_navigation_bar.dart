@@ -13,9 +13,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:tuple/tuple.dart';
-
-import '../../../widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 
 class WalletNavigationBar extends StatefulWidget {
   const WalletNavigationBar({
@@ -135,12 +133,12 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                                 .where((e) =>
                                     e.code == code.toString() && e.claimed)
                                 .isNotEmpty) {
+                          ref.read(myPaynymAccountStateProvider.state).state =
+                              account;
+
                           await Navigator.of(context).pushNamed(
                             PaynymHomeView.routeName,
-                            arguments: Tuple2(
-                              widget.walletId,
-                              account,
-                            ),
+                            arguments: widget.walletId,
                           );
                         } else {
                           await Navigator.of(context).pushNamed(

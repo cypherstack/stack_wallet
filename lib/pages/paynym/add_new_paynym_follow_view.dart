@@ -28,11 +28,9 @@ class AddNewPaynymFollowView extends ConsumerStatefulWidget {
   const AddNewPaynymFollowView({
     Key? key,
     required this.walletId,
-    required this.nymAccount,
   }) : super(key: key);
 
   final String walletId;
-  final PaynymAccount nymAccount;
 
   static const String routeName = "/addNewPaynymFollow";
 
@@ -64,8 +62,7 @@ class _AddNewPaynymFollowViewState
       ).then((_) => didPopLoading = true),
     );
 
-    final paynymAccount =
-        await ref.read(paynymAPIProvider).nym(_searchString, true);
+    final paynymAccount = await ref.read(paynymAPIProvider).nym(_searchString);
 
     if (mounted) {
       if (!didPopLoading) {
@@ -143,7 +140,9 @@ class _AddNewPaynymFollowViewState
               const SizedBox(
                 height: 12,
               ),
-              const FeaturedPaynymsWidget(),
+              FeaturedPaynymsWidget(
+                walletId: widget.walletId,
+              ),
               const SizedBox(
                 height: 24,
               ),
@@ -295,6 +294,7 @@ class _AddNewPaynymFollowViewState
                   child: PaynymCard(
                     label: _searchResult!.nymName,
                     paymentCodeString: _searchResult!.codes.first.code,
+                    walletId: widget.walletId,
                   ),
                 ),
             ],

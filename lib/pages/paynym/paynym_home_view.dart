@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/paynym/paynym_account.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -22,26 +23,35 @@ import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/share_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/toggle.dart';
-import 'package:tuple/tuple.dart';
 
-class PaynymHomeView extends StatefulWidget {
+final myPaynymAccountStateProvider =
+    StateProvider<PaynymAccount?>((ref) => null);
+
+class PaynymHomeView extends ConsumerStatefulWidget {
   const PaynymHomeView({
     Key? key,
     required this.walletId,
-    required this.paynymAccount,
   }) : super(key: key);
 
   final String walletId;
-  final PaynymAccount paynymAccount;
 
   static const String routeName = "/paynymHome";
 
   @override
-  State<PaynymHomeView> createState() => _PaynymHomeViewState();
+  ConsumerState<PaynymHomeView> createState() => _PaynymHomeViewState();
 }
 
-class _PaynymHomeViewState extends State<PaynymHomeView> {
+class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
   bool showFollowing = false;
+  int secretCount = 0;
+  Timer? timer;
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    timer = null;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,10 +87,7 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
                 onPressed: () {
                   Navigator.of(context).pushNamed(
                     AddNewPaynymFollowView.routeName,
-                    arguments: Tuple2(
-                      widget.walletId,
-                      widget.paynymAccount,
-                    ),
+                    arguments: widget.walletId,
                   );
                 },
               ),
@@ -114,21 +121,54 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              PayNymBot(
-                paymentCodeString: widget.paynymAccount.codes.first.code,
+              GestureDetector(
+                onTap: () {
+                  secretCount++;
+                  if (secretCount > 5) {
+                    debugPrint(
+                        "My Account: ${ref.read(myPaynymAccountStateProvider.state).state}");
+                    debugPrint(
+                        "My Account: ${ref.read(myPaynymAccountStateProvider.state).state!.following}");
+                    secretCount = 0;
+                  }
+
+                  timer ??= Timer(
+                    const Duration(milliseconds: 1500),
+                    () {
+                      secretCount = 0;
+                      timer = null;
+                    },
+                  );
+                },
+                child: PayNymBot(
+                  paymentCodeString: ref
+                      .watch(myPaynymAccountStateProvider.state)
+                      .state!
+                      .codes
+                      .first
+                      .code,
+                ),
               ),
               const SizedBox(
                 height: 10,
               ),
               Text(
-                widget.paynymAccount.nymName,
+                ref.watch(myPaynymAccountStateProvider.state).state!.nymName,
                 style: STextStyles.desktopMenuItemSelected(context),
               ),
               const SizedBox(
                 height: 4,
               ),
               Text(
-                Format.shorten(widget.paynymAccount.codes.first.code, 12, 5),
+                Format.shorten(
+                    ref
+                        .watch(myPaynymAccountStateProvider.state)
+                        .state!
+                        .codes
+                        .first
+                        .code,
+                    12,
+                    5),
                 style: STextStyles.label(context),
               ),
               const SizedBox(
@@ -151,7 +191,12 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
                       onPressed: () async {
                         await Clipboard.setData(
                           ClipboardData(
-                            text: widget.paynymAccount.codes.first.code,
+                            text: ref
+                                .read(myPaynymAccountStateProvider.state)
+                                .state!
+                                .codes
+                                .first
+                                .code,
                           ),
                         );
                         unawaited(
@@ -204,7 +249,9 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
                         showDialog<void>(
                           context: context,
                           builder: (context) => PaynymQrPopup(
-                            paynymAccount: widget.paynymAccount,
+                            paynymAccount: ref
+                                .read(myPaynymAccountStateProvider.state)
+                                .state!,
                           ),
                         );
                       },

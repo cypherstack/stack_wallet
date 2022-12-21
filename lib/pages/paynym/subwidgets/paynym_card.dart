@@ -1,17 +1,29 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
+import 'package:stackwallet/providers/global/paynym_api_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
+import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 
 class PaynymCard extends StatefulWidget {
   const PaynymCard({
     Key? key,
+    required this.walletId,
     required this.label,
     required this.paymentCodeString,
   }) : super(key: key);
 
+  final String walletId;
   final String label;
   final String paymentCodeString;
 
@@ -55,16 +67,225 @@ class _PaynymCardState extends State<PaynymCard> {
               ],
             ),
           ),
-          PrimaryButton(
-            width: 84,
-            buttonHeight: ButtonHeight.l,
-            label: "Follow",
-            onPressed: () {
-              // todo : follow
-            },
-          )
+          PaynymFollowToggleButton(
+            walletId: widget.walletId,
+            paymentCodeStringToFollow: widget.paymentCodeString,
+          ),
+          // PrimaryButton(
+          //   width: 84,
+          //   buttonHeight: ButtonHeight.l,
+          //   label: "Follow",
+          //   onPressed: () {
+          //     // todo : follow
+          //   },
+          // )
         ],
       ),
+    );
+  }
+}
+
+class PaynymFollowToggleButton extends ConsumerStatefulWidget {
+  const PaynymFollowToggleButton({
+    Key? key,
+    required this.walletId,
+    required this.paymentCodeStringToFollow,
+  }) : super(key: key);
+
+  final String walletId;
+  final String paymentCodeStringToFollow;
+
+  @override
+  ConsumerState<PaynymFollowToggleButton> createState() =>
+      _PaynymFollowToggleButtonState();
+}
+
+class _PaynymFollowToggleButtonState
+    extends ConsumerState<PaynymFollowToggleButton> {
+  Future<bool> follow() async {
+    bool loadingPopped = false;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (context) => const LoadingIndicator(
+          width: 200,
+        ),
+      ).then(
+        (_) => loadingPopped = true,
+      ),
+    );
+
+    final wallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as DogecoinWallet;
+
+    final followedAccount = await ref
+        .read(paynymAPIProvider)
+        .nym(widget.paymentCodeStringToFollow, true);
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    final myPCode = await wallet.getPaymentCode();
+    await Future.delayed(const Duration(milliseconds: 100));
+    final token = await ref.read(paynymAPIProvider).token(myPCode.toString());
+
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // sign token with notification private key
+    final signature = await wallet.signStringWithNotificationKey(token);
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    final result = await ref
+        .read(paynymAPIProvider)
+        .follow(token, signature, followedAccount!.codes.first.code);
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    print("Follow result: $result");
+
+    if (result["following"] == followedAccount.nymID) {
+      if (!loadingPopped && mounted) {
+        Navigator.of(context).pop();
+      }
+
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.success,
+          message: "You are following ${followedAccount.nymName}",
+          context: context,
+        ),
+      );
+      ref
+          .read(myPaynymAccountStateProvider.state)
+          .state!
+          .following
+          .add(followedAccount.codes.first.code);
+
+      setState(() {
+        isFollowing = true;
+      });
+
+      return true;
+    } else {
+      if (!loadingPopped && mounted) {
+        Navigator.of(context).pop();
+      }
+
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Failed to follow ${followedAccount.nymName}",
+          context: context,
+        ),
+      );
+
+      return false;
+    }
+  }
+
+  Future<bool> unfollow() async {
+    bool loadingPopped = false;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (context) => const LoadingIndicator(
+          width: 200,
+        ),
+      ).then(
+        (_) => loadingPopped = true,
+      ),
+    );
+
+    final wallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as DogecoinWallet;
+
+    final followedAccount = await ref
+        .read(paynymAPIProvider)
+        .nym(widget.paymentCodeStringToFollow, true);
+
+    final myPCode = await wallet.getPaymentCode();
+    final token = await ref.read(paynymAPIProvider).token(myPCode.toString());
+
+    // sign token with notification private key
+    final signature = await wallet.signStringWithNotificationKey(token);
+
+    final result = await ref
+        .read(paynymAPIProvider)
+        .unfollow(token, signature, followedAccount!.codes.first.code);
+
+    print("Unfollow result: $result");
+
+    if (result["unfollowing"] == followedAccount.nymID) {
+      if (!loadingPopped && mounted) {
+        Navigator.of(context).pop();
+      }
+
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.success,
+          message: "You have unfollowed ${followedAccount.nymName}",
+          context: context,
+        ),
+      );
+      ref
+          .read(myPaynymAccountStateProvider.state)
+          .state!
+          .following
+          .remove(followedAccount.codes.first.code);
+
+      setState(() {
+        isFollowing = false;
+      });
+
+      return true;
+    } else {
+      if (!loadingPopped && mounted) {
+        Navigator.of(context).pop();
+      }
+
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Failed to unfollow ${followedAccount.nymName}",
+          context: context,
+        ),
+      );
+
+      return false;
+    }
+  }
+
+  bool _lock = false;
+  late bool isFollowing;
+
+  @override
+  void initState() {
+    isFollowing = ref
+        .read(myPaynymAccountStateProvider.state)
+        .state!
+        .following
+        .contains(widget.paymentCodeStringToFollow);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PrimaryButton(
+      width: 84,
+      buttonHeight: ButtonHeight.l,
+      label: isFollowing ? "Unfollow" : "Follow",
+      onPressed: () async {
+        if (!_lock) {
+          _lock = true;
+          if (isFollowing) {
+            await unfollow();
+          } else {
+            await follow();
+          }
+          _lock = false;
+        }
+      },
     );
   }
 }

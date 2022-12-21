@@ -26,19 +26,27 @@ class PaynymAccount {
         codes = (map["codes"] as List<dynamic>)
             .map((e) => PaynymCode.fromMap(Map<String, dynamic>.from(e as Map)))
             .toList(),
-        followers = (map["followers"] as List<dynamic>)
-            .map((e) => e["nymId"] as String)
-            .toList(),
-        following = (map["following"] as List<dynamic>)
-            .map((e) => e["nymId"] as String)
-            .toList();
+        followers = [],
+        following = [] {
+    final f1 = map["followers"] as List<dynamic>;
+    for (final item in f1) {
+      followers.add(Map<String, dynamic>.from(item as Map)["nymId"] as String);
+    }
+
+    final f2 = map["following"] as List<dynamic>;
+    for (final item in f2) {
+      final nymId = Map<String, dynamic>.from(item as Map)["nymId"] as String;
+      print(nymId + "DDDDDDDDDDDDD");
+      following.add(nymId);
+    }
+  }
 
   Map<String, dynamic> toMap() => {
         "nymID": nymID,
         "nymName": nymName,
         "codes": codes.map((e) => e.toMap()),
-        "followers": followers.map((e) => {"nymId": e}),
-        "following": followers.map((e) => {"nymId": e}),
+        "followers": followers.map((e) => {"nymId": e}).toList(),
+        "following": followers.map((e) => {"nymId": e}).toList(),
       };
 
   @override

@@ -1,6 +1,6 @@
 class CreatedPaynym {
   final bool claimed;
-  final String nymAvatar;
+  final String? nymAvatar;
   final String? nymId;
   final String? nymName;
   final String? token;
@@ -15,8 +15,8 @@ class CreatedPaynym {
 
   CreatedPaynym.fromMap(Map<String, dynamic> map)
       : claimed = map["claimed"] as bool,
-        nymAvatar = map["nymAvatar"] as String,
-        nymId = map["nymId"] as String?,
+        nymAvatar = map["nymAvatar"] as String?,
+        nymId = map["nymID"] as String?,
         nymName = map["nymName"] as String?,
         token = map["token"] as String?;
 

@@ -1,15 +1,15 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/paynym/dialogs/claiming_paynym_dialog.dart';
+import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
+import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -106,39 +106,50 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                       .read(paynymAPIProvider)
                       .create(pCode.toString());
 
+                  debugPrint("created:$created");
+
                   if (created.claimed) {
                     // payment code already claimed
                     debugPrint("pcode already claimed!!");
+                    if (mounted) {
+                      Navigator.of(context).popUntil(
+                        ModalRoute.withName(
+                          WalletView.routeName,
+                        ),
+                      );
+                    }
                     return;
                   }
 
-                  String token;
-
-                  if (created.token == null) {
-                    // payment code already in db
-                    // so we need to fetch a token
-
-                    token = await ref
-                        .read(paynymAPIProvider)
-                        .token(pCode.toString());
-                  } else {
-                    token = created.token!;
-                  }
+                  final token =
+                      await ref.read(paynymAPIProvider).token(pCode.toString());
 
                   // sign token with notification private key
-                  final signatureBytes = await wallet.signWithNotificationKey(
-                      Uint8List.fromList(token.codeUnits));
-                  final signature = Format.uint8listToString(signatureBytes);
+                  final signature =
+                      await wallet.signStringWithNotificationKey(token);
 
                   // claim paynym account
                   final claim =
                       await ref.read(paynymAPIProvider).claim(token, signature);
 
                   if (claim["claimed"] == pCode.toString()) {
-                    // mark claim successful
-                  }
+                    final account =
+                        await ref.read(paynymAPIProvider).nym(pCode.toString());
 
-                  if (mounted && !shouldCancel) {
+                    ref.read(myPaynymAccountStateProvider.state).state =
+                        account!;
+                    if (mounted) {
+                      Navigator.of(context).popUntil(
+                        ModalRoute.withName(
+                          WalletView.routeName,
+                        ),
+                      );
+                      await Navigator.of(context).pushNamed(
+                        PaynymHomeView.routeName,
+                        arguments: widget.walletId,
+                      );
+                    }
+                  } else if (mounted && !shouldCancel) {
                     Navigator.of(context).pop();
                   }
                 },

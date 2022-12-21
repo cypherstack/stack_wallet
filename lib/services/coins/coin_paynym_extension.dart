@@ -5,6 +5,7 @@ import 'package:bitcoindart/bitcoindart.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/utilities/format.dart';
 
 extension PayNym on DogecoinWallet {
   // fetch or generate this wallet's bip47 payment code
@@ -33,6 +34,15 @@ extension PayNym on DogecoinWallet {
     final pair = ECPair.fromPrivateKey(node.privateKey!, network: network);
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
+  }
+
+  Future<String> signStringWithNotificationKey(String data) async {
+    final bytes =
+        await signWithNotificationKey(Uint8List.fromList(data.codeUnits));
+    return Format.uint8listToString(bytes);
+    // final bytes =
+    //     await signWithNotificationKey(Uint8List.fromList(utf8.encode(data)));
+    // return Format.uint8listToString(bytes);
   }
 
   // Future<Map<String, dynamic>> prepareNotificationTransaction(

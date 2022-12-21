@@ -5,7 +5,12 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class FeaturedPaynymsWidget extends StatelessWidget {
-  const FeaturedPaynymsWidget({Key? key}) : super(key: key);
+  const FeaturedPaynymsWidget({
+    Key? key,
+    required this.walletId,
+  }) : super(key: key);
+
+  final String walletId;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +31,7 @@ class FeaturedPaynymsWidget extends StatelessWidget {
                     height: 1,
                   ),
                 PaynymCard(
+                  walletId: walletId,
                   label: entries[i].key,
                   paymentCodeString: entries[i].value,
                 ),

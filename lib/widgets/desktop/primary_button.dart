@@ -16,6 +16,7 @@ class PrimaryButton extends StatelessWidget {
     this.onPressed,
     this.enabled = true,
     this.buttonHeight,
+    this.iconSpacing = 10,
   }) : super(key: key);
 
   final double? width;
@@ -25,6 +26,7 @@ class PrimaryButton extends StatelessWidget {
   final bool enabled;
   final Widget? icon;
   final ButtonHeight? buttonHeight;
+  final double? iconSpacing;
 
   TextStyle getStyle(bool isDesktop, BuildContext context) {
     if (isDesktop) {
@@ -143,8 +145,8 @@ class PrimaryButton extends StatelessWidget {
           children: [
             if (icon != null) icon!,
             if (icon != null && label != null)
-              const SizedBox(
-                width: 10,
+              SizedBox(
+                width: iconSpacing,
               ),
             if (label != null)
               Text(
