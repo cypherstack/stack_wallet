@@ -6,6 +6,7 @@ import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/models/paynym/paynym_account.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
@@ -204,12 +205,12 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case PaynymHomeView.routeName:
-        if (args is Tuple2<String, String>) {
+        if (args is Tuple2<String, PaynymAccount>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => PaynymHomeView(
               walletId: args.item1,
-              paymentCodeString: args.item2,
+              nymAccount: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,

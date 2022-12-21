@@ -34,4 +34,7 @@ extension PayNym on DogecoinWallet {
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
   }
+
+  // Future<Map<String, dynamic>> prepareNotificationTransaction(
+  //     String targetPaymentCode) async {}
 }

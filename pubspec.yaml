@@ -305,6 +305,7 @@ flutter:
     - assets/svg/keys.svg
     - assets/svg/arrow-down.svg
     - assets/svg/plus-circle.svg
+    - assets/svg/circle-plus-filled.svg
     - assets/svg/configuration.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg

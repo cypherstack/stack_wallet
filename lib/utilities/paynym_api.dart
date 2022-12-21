@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/paynym/created_paynym.dart';
+import 'package:stackwallet/models/paynym/paynym_account.dart';
 
 class PaynymAPI {
   static const String baseURL = "https://paynym.is/api";
@@ -117,8 +118,9 @@ class PaynymAPI {
   //
   //
   // ------
-  Future<Map<String, dynamic>> token(String code) async {
-    return _post("/token", {"code": code});
+  Future<String> token(String code) async {
+    final map = await _post("/token", {"code": code});
+    return map["token"] as String;
   }
 
   // ### `/api/v1/nym`
@@ -172,8 +174,13 @@ class PaynymAPI {
   // | 404  | Nym not found          |
   // | 400  | Bad request            |
 
-  Future<Map<String, dynamic>> nym(String code) async {
-    return _post("/nym", {"code": code});
+  Future<PaynymAccount?> nym(String code) async {
+    final map = await _post("/nym", {"nym": code});
+    try {
+      return PaynymAccount.fromMap(map);
+    } catch (_) {
+      return null;
+    }
   }
 
   // ## Authenticated Requests

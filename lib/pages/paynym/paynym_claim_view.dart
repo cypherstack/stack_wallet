@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -88,53 +90,52 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                       builder: (context) => const ClaimingPaynymDialog(),
                     ).then((value) => shouldCancel = value == true),
                   );
-                  // generate and submit paynym to api
 
+                  // ghet wallet to access paynym calls
                   final wallet = ref
                       .read(walletsChangeNotifierProvider)
                       .getManager(widget.walletId)
                       .wallet as DogecoinWallet;
+
+                  // get payment code
                   final pCode = await wallet.getPaymentCode();
 
-                  final result = await ref
+                  // attempt to create new entry in paynym.is db
+                  final created = await ref
                       .read(paynymAPIProvider)
                       .create(pCode.toString());
 
-                  // final result =
-                  //     await ref.read(paynymAPIProvider).token(pCode.toString());
+                  if (created.claimed) {
+                    // payment code already claimed
+                    debugPrint("pcode already claimed!!");
+                    return;
+                  }
 
-                  // final token =
-                  //     "IlBNOFRKWWt1U2RZWEpud0RCcThDaGZpbmZYdjNzcnhoUXJ4M2VvRXdiU3c1MXdNamRvOUpKMkRzeWN3VDNndDN6SFE3Y1YxZ3J2YWJNbW1mMUJ0ajZmWTd0Z2tnU3o5QjhNWnVSM2tqWWZnTUxNVVJKQ1hOIg.FoPF3g.KUMZDC4U_ek-B6cqPLYilXniQv8";
-                  //
-                  // print("======================");
-                  // print(token);
-                  // print(token.codeUnits);
-                  // print(utf8.encode(token));
-                  // print(utf8.decode(token.codeUnits));
-                  //
-                  // print("======================");
-                  //
-                  // final signed = await wallet.signWithNotificationKey(
-                  //     Uint8List.fromList(token.codeUnits));
-                  //
-                  // final signedString = Format.uint8listToString(signed);
-                  //
-                  // print("======================");
-                  // print(signed);
-                  // print(signedString);
-                  //
-                  // print("======================");
+                  String token;
 
-                  // final result2 = await ref
-                  //     .read(paynymAPIProvider)
-                  //     .claim(token, signedString);
+                  if (created.token == null) {
+                    // payment code already in db
+                    // so we need to fetch a token
 
-                  // print("======================");
-                  // print(
-                  //     result2); //  {claimed: PM8TJYkuSdYXJnwDBq8ChfinfXv3srxhQrx3eoEwbSw51wMjdo9JJ2DsycwT3gt3zHQ7cV1grvabMmmf1Btj6fY7tgkgSz9B8MZuR3kjYfgMLMURJCXN, token: IlBNOFRKWWt1U2RZWEpud0RCcThDaGZpbmZYdjNzcnhoUXJ4M2VvRXdiU3c1MXdNamRvOUpKMkRzeWN3VDNndDN6SFE3Y1YxZ3J2YWJNbW1mMUJ0ajZmWTd0Z2tnU3o5QjhNWnVSM2tqWWZnTUxNVVJKQ1hOIg.FoPF3g.KUMZDC4U_ek-B6cqPLYilXniQv8}
-                  // print("======================");
+                    token = await ref
+                        .read(paynymAPIProvider)
+                        .token(pCode.toString());
+                  } else {
+                    token = created.token!;
+                  }
 
-                  await Future<void>.delayed(const Duration(seconds: 3));
+                  // sign token with notification private key
+                  final signatureBytes = await wallet.signWithNotificationKey(
+                      Uint8List.fromList(token.codeUnits));
+                  final signature = Format.uint8listToString(signatureBytes);
+
+                  // claim paynym account
+                  final claim =
+                      await ref.read(paynymAPIProvider).claim(token, signature);
+
+                  if (claim["claimed"] == pCode.toString()) {
+                    // mark claim successful
+                  }
 
                   if (mounted && !shouldCancel) {
                     Navigator.of(context).pop();

@@ -76,6 +76,7 @@ class _SVG {
 
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
+  String get circlePlusFilled => "assets/svg/circle-plus-filled.svg";
   String get framedGear => "assets/svg/framed-gear.svg";
   String get framedAddressBook => "assets/svg/framed-address-book.svg";
   String get circleNode => "assets/svg/node-circle.svg";

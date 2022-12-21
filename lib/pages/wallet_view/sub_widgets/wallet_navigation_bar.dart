@@ -1,10 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
+import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
+import 'package:stackwallet/providers/global/paynym_api_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
+import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:tuple/tuple.dart';
+
+import '../../../widgets/loading_indicator.dart';
 
 class WalletNavigationBar extends StatefulWidget {
   const WalletNavigationBar({
@@ -88,42 +99,84 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
               AnimatedOpacity(
                 opacity: scale,
                 duration: duration,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      scale = 0;
-                    });
-                    Navigator.of(context).pushNamed(
-                      PaynymClaimView.routeName,
-                      arguments: widget.walletId,
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    width: 146,
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      boxShadow: [
-                        Theme.of(context)
-                            .extension<StackColors>()!
-                            .standardBoxShadow
-                      ],
-                      borderRadius: BorderRadius.circular(
-                        widget.height / 2.0,
+                child: Consumer(builder: (context, ref, __) {
+                  return GestureDetector(
+                    onTap: () async {
+                      setState(() {
+                        scale = 0;
+                      });
+                      unawaited(
+                        showDialog(
+                          context: context,
+                          builder: (context) => const LoadingIndicator(
+                            width: 100,
+                          ),
+                        ),
+                      );
+
+                      // todo make generic and not doge specific
+                      final wallet = (ref
+                          .read(walletsChangeNotifierProvider)
+                          .getManager(widget.walletId)
+                          .wallet as DogecoinWallet);
+
+                      final code = await wallet.getPaymentCode();
+
+                      final account = await ref
+                          .read(paynymAPIProvider)
+                          .nym(code.toString());
+
+                      if (mounted) {
+                        Navigator.of(context).pop();
+
+                        // check if account exists and for matching code to see if claimed
+                        if (account != null &&
+                            account.codes
+                                .where((e) =>
+                                    e.code == code.toString() && e.claimed)
+                                .isNotEmpty) {
+                          await Navigator.of(context).pushNamed(
+                            PaynymHomeView.routeName,
+                            arguments: Tuple2(
+                              widget.walletId,
+                              account,
+                            ),
+                          );
+                        } else {
+                          await Navigator.of(context).pushNamed(
+                            PaynymClaimView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        }
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      width: 146,
+                      decoration: BoxDecoration(
+                        color:
+                            Theme.of(context).extension<StackColors>()!.popupBG,
+                        boxShadow: [
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .standardBoxShadow
+                        ],
+                        borderRadius: BorderRadius.circular(
+                          widget.height / 2.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Paynym",
+                            style: STextStyles.w600_12(context),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Paynym",
-                          style: STextStyles.w600_12(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                  );
+                }),
               ),
               const SizedBox(
                 height: 8,
