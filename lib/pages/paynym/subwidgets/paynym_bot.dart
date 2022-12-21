@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 
 class PayNymBot extends StatelessWidget {
   const PayNymBot({
@@ -19,7 +20,12 @@ class PayNymBot extends StatelessWidget {
         height: size,
         child: Image.network(
           "https://paynym.is/$paymentCodeString/avatar",
-          // todo: loading indicator that doesn't lag
+          loadingBuilder: (context, child, loadingProgress) =>
+              loadingProgress == null
+                  ? child
+                  : const Center(
+                      child: LoadingIndicator(),
+                    ),
         ),
       ),
     );
