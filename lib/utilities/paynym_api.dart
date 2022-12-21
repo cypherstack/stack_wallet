@@ -173,10 +173,13 @@ class PaynymAPI {
   // | 200  | Nym found and returned |
   // | 404  | Nym not found          |
   // | 400  | Bad request            |
-
-  Future<PaynymAccount?> nym(String code) async {
-    final map = await _post("/nym", {"nym": code});
+  Future<PaynymAccount?> nym(String code, [bool compact = false]) async {
+    final Map<String, dynamic> requestBody = {"nym": code};
+    if (compact) {
+      requestBody["compact"] = true;
+    }
     try {
+      final map = await _post("/nym", requestBody);
       return PaynymAccount.fromMap(map);
     } catch (_) {
       return null;

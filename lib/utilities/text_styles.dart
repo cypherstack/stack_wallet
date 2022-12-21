@@ -7,6 +7,29 @@ class STextStyles {
   static StackColors _theme(BuildContext context) =>
       Theme.of(context).extension<StackColors>()!;
 
+  static TextStyle sectionLabelMedium12(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.oceanBreeze:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+    }
+  }
+
   static TextStyle pageTitleH1(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:

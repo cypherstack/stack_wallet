@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/paynym/paynym_account.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/paynym/add_new_paynym_follow_view.dart';
 import 'package:stackwallet/pages/paynym/dialogs/paynym_qr_popup.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -21,16 +22,17 @@ import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/share_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/toggle.dart';
+import 'package:tuple/tuple.dart';
 
 class PaynymHomeView extends StatefulWidget {
   const PaynymHomeView({
     Key? key,
     required this.walletId,
-    required this.nymAccount,
+    required this.paynymAccount,
   }) : super(key: key);
 
   final String walletId;
-  final PaynymAccount nymAccount;
+  final PaynymAccount paynymAccount;
 
   static const String routeName = "/paynymHome";
 
@@ -73,7 +75,13 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
                   color: Theme.of(context).extension<StackColors>()!.textDark,
                 ),
                 onPressed: () {
-                  // todo add ?
+                  Navigator.of(context).pushNamed(
+                    AddNewPaynymFollowView.routeName,
+                    arguments: Tuple2(
+                      widget.walletId,
+                      widget.paynymAccount,
+                    ),
+                  );
                 },
               ),
             ),
@@ -90,7 +98,7 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
                   color: Theme.of(context).extension<StackColors>()!.textDark,
                 ),
                 onPressed: () {
-                  // todo add ?
+                  // todo info ?
                 },
               ),
             ),
@@ -107,20 +115,20 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               PayNymBot(
-                paymentCodeString: widget.nymAccount.codes.first.code,
+                paymentCodeString: widget.paynymAccount.codes.first.code,
               ),
               const SizedBox(
                 height: 10,
               ),
               Text(
-                widget.nymAccount.nymName,
+                widget.paynymAccount.nymName,
                 style: STextStyles.desktopMenuItemSelected(context),
               ),
               const SizedBox(
                 height: 4,
               ),
               Text(
-                Format.shorten(widget.nymAccount.codes.first.code, 12, 5),
+                Format.shorten(widget.paynymAccount.codes.first.code, 12, 5),
                 style: STextStyles.label(context),
               ),
               const SizedBox(
@@ -143,7 +151,7 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
                       onPressed: () async {
                         await Clipboard.setData(
                           ClipboardData(
-                            text: widget.nymAccount.codes.first.code,
+                            text: widget.paynymAccount.codes.first.code,
                           ),
                         );
                         unawaited(
@@ -196,7 +204,7 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
                         showDialog<void>(
                           context: context,
                           builder: (context) => PaynymQrPopup(
-                            paynymAccount: widget.nymAccount,
+                            paynymAccount: widget.paynymAccount,
                           ),
                         );
                       },

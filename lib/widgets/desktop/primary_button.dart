@@ -63,6 +63,16 @@ class PrimaryButton extends StatelessWidget {
               : STextStyles.desktopButtonDisabled(context);
       }
     } else {
+      if (buttonHeight == ButtonHeight.l) {
+        return STextStyles.button(context).copyWith(
+          fontSize: 10,
+          color: enabled
+              ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
+              : Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextPrimaryDisabled,
+        );
+      }
       return STextStyles.button(context).copyWith(
         color: enabled
             ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary

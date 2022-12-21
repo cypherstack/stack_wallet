@@ -87,6 +87,7 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   unawaited(
                     showDialog<bool?>(
                       context: context,
+                      barrierDismissible: false,
                       builder: (context) => const ClaimingPaynymDialog(),
                     ).then((value) => shouldCancel = value == true),
                   );
