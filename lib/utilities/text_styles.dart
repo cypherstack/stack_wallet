@@ -591,6 +591,29 @@ class STextStyles {
     }
   }
 
+  static TextStyle w500_12(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.oceanBreeze:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+    }
+  }
+
   static TextStyle syncPercent(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:

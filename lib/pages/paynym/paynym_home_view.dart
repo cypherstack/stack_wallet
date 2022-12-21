@@ -17,6 +17,8 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/toggle.dart';
 
+import 'dialogs/paynym_qr_popup.dart';
+
 class PaynymHomeView extends StatefulWidget {
   const PaynymHomeView({
     Key? key,
@@ -176,7 +178,12 @@ class _PaynymHomeViewState extends State<PaynymHomeView> {
                             .textDark,
                       ),
                       onPressed: () {
-                        // copy to clipboard
+                        showDialog<void>(
+                          context: context,
+                          builder: (context) => PaynymQrPopup(
+                            paynymAccount: widget.nymAccount,
+                          ),
+                        );
                       },
                     ),
                   ),
