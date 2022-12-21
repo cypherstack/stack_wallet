@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/paynym/created_paynym.dart';
 import 'package:stackwallet/models/paynym/paynym_account.dart';
@@ -25,7 +26,8 @@ class PaynymAPI {
       body: jsonEncode(body),
     );
 
-    // print("response code: ${response.statusCode}");
+    debugPrint("Paynym response code: ${response.statusCode}");
+    debugPrint("Paynym response body: ${response.body}");
 
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
