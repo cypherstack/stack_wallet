@@ -176,8 +176,8 @@ void main() async {
     }
   }
 
-  monero.onStartup();
-  wownero.onStartup();
+  // wownero.onStartup();
+  // monero.onStartup();
 
   await Hive.openBox<dynamic>(DB.boxNameTheme);
 
