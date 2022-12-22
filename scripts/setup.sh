@@ -41,11 +41,7 @@ sudo apt-get install -y unzip automake build-essential file pkg-config git pytho
 
 sudo apt install -y libc6-dev-i386
 
+# Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh  -s -- -y
 cargo install cargo-ndk
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
-
-# build stack wallet plugins
-cd $STACK_WALLET
-cd scripts/android
-./build_all.sh
