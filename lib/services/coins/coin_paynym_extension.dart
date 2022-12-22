@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bip47/bip47.dart';
@@ -38,7 +39,7 @@ extension PayNym on DogecoinWallet {
 
   Future<String> signStringWithNotificationKey(String data) async {
     final bytes =
-        await signWithNotificationKey(Uint8List.fromList(data.codeUnits));
+        await signWithNotificationKey(Uint8List.fromList(utf8.encode(data)));
     return Format.uint8listToString(bytes);
     // final bytes =
     //     await signWithNotificationKey(Uint8List.fromList(utf8.encode(data)));

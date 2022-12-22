@@ -124,26 +124,38 @@ class _PaynymFollowToggleButtonState
     final followedAccount = await ref
         .read(paynymAPIProvider)
         .nym(widget.paymentCodeStringToFollow, true);
-    await Future.delayed(const Duration(milliseconds: 100));
 
     final myPCode = await wallet.getPaymentCode();
-    await Future.delayed(const Duration(milliseconds: 100));
-    final token = await ref.read(paynymAPIProvider).token(myPCode.toString());
 
-    await Future.delayed(const Duration(milliseconds: 100));
+    String token = await ref.read(paynymAPIProvider).token(myPCode.toString());
 
     // sign token with notification private key
-    final signature = await wallet.signStringWithNotificationKey(token);
-    await Future.delayed(const Duration(milliseconds: 100));
+    String signature = await wallet.signStringWithNotificationKey(token);
 
-    final result = await ref
+    var result = await ref
         .read(paynymAPIProvider)
         .follow(token, signature, followedAccount!.codes.first.code);
-    await Future.delayed(const Duration(milliseconds: 100));
 
-    print("Follow result: $result");
+    int i = 0;
+    for (;
+        i < 10 && result["message"] == "401 Unauthorized - Bad signature";
+        i++) {
+      token = await ref.read(paynymAPIProvider).token(myPCode.toString());
 
-    if (result["following"] == followedAccount.nymID) {
+      // sign token with notification private key
+      signature = await wallet.signStringWithNotificationKey(token);
+
+      result = await ref
+          .read(paynymAPIProvider)
+          .follow(token, signature, followedAccount!.codes.first.code);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+
+      print("RRR result: $result");
+    }
+
+    print("Follow result: $result on try $i");
+
+    if (result["following"] == followedAccount!.nymID) {
       if (!loadingPopped && mounted) {
         Navigator.of(context).pop();
       }
@@ -209,18 +221,35 @@ class _PaynymFollowToggleButtonState
         .nym(widget.paymentCodeStringToFollow, true);
 
     final myPCode = await wallet.getPaymentCode();
-    final token = await ref.read(paynymAPIProvider).token(myPCode.toString());
+
+    String token = await ref.read(paynymAPIProvider).token(myPCode.toString());
 
     // sign token with notification private key
-    final signature = await wallet.signStringWithNotificationKey(token);
+    String signature = await wallet.signStringWithNotificationKey(token);
 
-    final result = await ref
+    var result = await ref
         .read(paynymAPIProvider)
-        .unfollow(token, signature, followedAccount!.codes.first.code);
+        .follow(token, signature, followedAccount!.codes.first.code);
 
-    print("Unfollow result: $result");
+    int i = 0;
+    for (;
+        i < 10 && result["message"] == "401 Unauthorized - Bad signature";
+        i++) {
+      token = await ref.read(paynymAPIProvider).token(myPCode.toString());
 
-    if (result["unfollowing"] == followedAccount.nymID) {
+      // sign token with notification private key
+      signature = await wallet.signStringWithNotificationKey(token);
+
+      result = await ref
+          .read(paynymAPIProvider)
+          .unfollow(token, signature, followedAccount!.codes.first.code);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      print("RRR result: $result");
+    }
+
+    print("Unfollow result: $result on try $i");
+
+    if (result["unfollowing"] == followedAccount!.nymID) {
       if (!loadingPopped && mounted) {
         Navigator.of(context).pop();
       }
