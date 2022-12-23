@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
@@ -249,28 +250,28 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
 
-  // Future<int> get chainHeight async {
-  //   try {
-  //     final result = await _client.getSyncStatus();
-  //     print("HEIGHT IS $result");
-  //     return 1 as int;
-  //   } catch (e, s) {
-  //     Logging.instance.log("Exception caught in chainHeight: $e\n$s",
-  //         level: LogLevel.Error);
-  //     return -1;
-  //   }
-  // }
-  //
-  // int get storedChainHeight {
-  //   final storedHeight = DB.instance
-  //       .get<dynamic>(boxName: walletId, key: "storedChainHeight") as int?;
-  //   return storedHeight ?? 0;
-  // }
-  //
-  // Future<void> updateStoredChainHeight({required int newHeight}) async {
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId, key: "storedChainHeight", value: newHeight);
-  // }
+  Future<int> get chainHeight async {
+    try {
+      final result = await _client.getBlockNumber();
+
+      return result;
+    } catch (e, s) {
+      Logging.instance.log("Exception caught in chainHeight: $e\n$s",
+          level: LogLevel.Error);
+      return -1;
+    }
+  }
+
+  int get storedChainHeight {
+    final storedHeight = DB.instance
+        .get<dynamic>(boxName: walletId, key: "storedChainHeight") as int?;
+    return storedHeight ?? 0;
+  }
+
+  Future<void> updateStoredChainHeight({required int newHeight}) async {
+    await DB.instance.put<dynamic>(
+        boxName: walletId, key: "storedChainHeight", value: newHeight);
+  }
 
   Future<List<String>> _getMnemonicList() async {
     final mnemonicString =
@@ -344,6 +345,7 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<void> refresh() async {
+    print("CALLING REFRESH");
     if (refreshMutex) {
       Logging.instance.log("$walletId $walletName refreshMutex denied",
           level: LogLevel.Info);
@@ -351,6 +353,10 @@ class EthereumWallet extends CoinServiceAPI {
     } else {
       refreshMutex = true;
     }
+
+    print("SYNC STATUS IS ");
+    final blockNumber = await _client.getBlockNumber();
+    print("BLOCK NUMBER IS ::: ${blockNumber}");
 
     try {
       GlobalEventBus.instance.fire(
@@ -364,9 +370,25 @@ class EthereumWallet extends CoinServiceAPI {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 
-      // final currentHeight = await chainHeight;
+      final currentHeight = await chainHeight;
       const storedHeight = 1; //await storedChainHeight;
 
+      Logging.instance
+          .log("chain height: $currentHeight", level: LogLevel.Info);
+      Logging.instance
+          .log("cached height: $storedHeight", level: LogLevel.Info);
+
+      if (currentHeight != storedHeight) {
+        if (currentHeight != -1) {
+          // -1 failed to fetch current height
+          unawaited(updateStoredChainHeight(newHeight: currentHeight));
+        }
+
+        final newTxData = _fetchTransactionData();
+        print("RETREIVED TX DATA IS $newTxData");
+        GlobalEventBus.instance
+            .fire(RefreshPercentChangedEvent(0.50, walletId));
+      }
     } catch (error, strace) {
       refreshMutex = false;
       GlobalEventBus.instance.fire(
@@ -443,6 +465,15 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   Future<TransactionData> _fetchTransactionData() async {
+    String thisAddress = await currentReceivingAddress;
+    int currentBlock = await chainHeight;
+    var balance = await availableBalance;
+    var n = _client.getTransactionCount(EthereumAddress.fromHex(thisAddress));
+
+    print("THIS CURRECT ADDRESS IS $thisAddress");
+    print("THIS CURRECT BLOCK IS $currentBlock");
+    print("THIS BALANCE IS $balance");
+    print("THIS COUNT TRANSACTIONS IS $n");
     throw UnimplementedError();
   }
 
