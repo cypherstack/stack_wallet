@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:cw_core/sec_random_native.dart';
 import 'package:decimal/decimal.dart';
+import 'package:intl/intl.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
@@ -9,9 +11,11 @@ import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:string_to_hex/string_to_hex.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:web3dart/web3dart.dart' as web3;
 import 'package:web3dart/web3dart.dart' as Transaction;
 
 import 'package:http/http.dart';
@@ -59,7 +63,8 @@ class EthereumWallet extends CoinServiceAPI {
   late PriceAPI _priceAPI;
   final _prefs = Prefs.instance;
   final _client = Web3Client(
-      "https://goerli.infura.io/v3/22677300bf774e49a458b73313ee56ba", Client());
+      "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
+      Client());
 
   late EthPrivateKey _credentials;
 
@@ -111,22 +116,29 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
-    print("CALLING CONFIRM SEND WITH  $txData");
     final gasPrice = await _client.getGasPrice();
-    print("GAS PRICE IS  $gasPrice");
-
-    // final fee = "21,000" * (gasPrice! + 2 );
+    final amount = txData['recipientAmt'];
+    final decimalAmount =
+        Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
+    final bigIntAmount = amountToBigInt(decimalAmount.toDouble());
     final tx = Transaction.Transaction(
         to: EthereumAddress.fromHex(txData['addresss'] as String),
         gasPrice: gasPrice,
         maxGas: 21000,
-        value: EtherAmount.fromUnitAndValue(EtherUnit.ether, 1));
+        value: EtherAmount.inWei(bigIntAmount));
     final transaction = await _client.sendTransaction(
       _credentials,
       tx,
     );
 
+    Logging.instance.log("Generated TX IS  $transaction", level: LogLevel.Info);
     return transaction;
+  }
+
+  BigInt amountToBigInt(num amount) {
+    const decimal = 18; //Eth has up to 18 decimal places
+    final amountToSendinDecimal = amount * (pow(10, decimal));
+    return BigInt.from(amountToSendinDecimal);
   }
 
   @override
@@ -294,10 +306,12 @@ class EthereumWallet extends CoinServiceAPI {
       {required String address,
       required int satoshiAmount,
       Map<String, dynamic>? args}) async {
-    print("CALLING PREPARE SEND ${Decimal.fromInt(satoshiAmount)}");
+    final gasPrice = await _client.getGasPrice();
 
     Map<String, dynamic> txData = {
-      "fee": 0,
+      "fee": Format.decimalAmountToSatoshis(
+          Decimal.parse(gasPrice.getValueInUnit(EtherUnit.ether).toString()),
+          coin),
       "addresss": address,
       "recipientAmt": satoshiAmount,
     };
@@ -468,7 +482,27 @@ class EthereumWallet extends CoinServiceAPI {
     String thisAddress = await currentReceivingAddress;
     int currentBlock = await chainHeight;
     var balance = await availableBalance;
-    var n = _client.getTransactionCount(EthereumAddress.fromHex(thisAddress));
+    var n =
+        await _client.getTransactionCount(EthereumAddress.fromHex(thisAddress));
+
+    for (var i = currentBlock; i >= 0 && (n > 0); --i) {
+      try {
+        // print(StringToHex.toHexString(i.toString()))
+        print(
+            "BLOCK IS $i --------->>>>>>> ${StringToHex.toHexString(i.toString())}");
+        var block = await _client.getBlockInformation(
+            blockNumber: StringToHex.toHexString(i.toString()),
+            isContainFullObj: true);
+        // var block = await _client.getBlockInformation()
+        print(block);
+        // if (block && block.t) {
+        //
+        // }
+
+      } catch (e, s) {
+        print("Error getting transactions ${e.toString()}");
+      }
+    }
 
     print("THIS CURRECT ADDRESS IS $thisAddress");
     print("THIS CURRECT BLOCK IS $currentBlock");
