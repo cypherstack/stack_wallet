@@ -2666,8 +2666,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
       ], // dust limit is the minimum amount a change output should be
     ))["vSize"] as int;
     //todo: check if print needed
-    debugPrint("vSizeForOneOutput $vSizeForOneOutput");
-    debugPrint("vSizeForTwoOutPuts $vSizeForTwoOutPuts");
+    // debugPrint("vSizeForOneOutput $vSizeForOneOutput");
+    // debugPrint("vSizeForTwoOutPuts $vSizeForTwoOutPuts");
 
     // Assume 1 output, only for recipient and no change
     var feeForOneOutput = estimateTxFee(
