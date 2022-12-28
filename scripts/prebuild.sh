@@ -8,7 +8,8 @@ if ! test -f "$KEYS"; then
 fi
 
 # Create template wallet test parameter files if they don't already exist
-declare -a coins=("bitcoin" "bitcoincash" "dogecoin" "namecoin" "firo" "particl") # TODO add monero and wownero when those tests are updated to use the .gitignored test wallet setup: when doing that, make sure to update the test vectors for a new, private development seed
+declare -a coins
+coins=("bitcoin" "bitcoincash" "dogecoin" "namecoin" "firo" "particl") # TODO add monero and wownero when those tests are updated to use the .gitignored test wallet setup: when doing that, make sure to update the test vectors for a new, private development seed
 
 for coin in "${coins[@]}"
 do
