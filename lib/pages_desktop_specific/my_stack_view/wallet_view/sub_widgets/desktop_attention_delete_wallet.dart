@@ -72,9 +72,7 @@ class _DesktopAttentionDeleteWallet
                       "\n\nPLEASE SAVE YOUR BACKUP KEY.",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
+                        color: Theme.of(context).extension<StackColors>()!.snackBarTextError,
                       ),
                     ),
                   ),
