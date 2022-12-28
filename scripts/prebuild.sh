@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Create template lib/external_api_keys.dart file if it doesn't already exist
 KEYS=../lib/external_api_keys.dart
 if ! test -f "$KEYS"; then
