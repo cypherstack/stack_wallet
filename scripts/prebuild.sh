@@ -15,6 +15,6 @@ do
     WALLETTESTPARAMFILE="../test/services/coins/${coin}/${coin}_wallet_test_parameters.dart"
     if ! test -f "$WALLETTESTPARAMFILE"; then
         echo "prebuild.sh: creating template test/services/coins/${coin}/${coin}_wallet_test_parameters.dart file"
-        printf 'const TEST_MNEMONIC = "";\nconst ROOT_WIF = "";\nconst NODE_WIF_84 = "";\n' > $WALLETTESTPARAMFILE
+        printf 'const TEST_MNEMONIC = "";\nconst ROOT_WIF = "";\nconst NODE_WIF_84 = "";\n' > "$WALLETTESTPARAMFILE"
     fi
 done
