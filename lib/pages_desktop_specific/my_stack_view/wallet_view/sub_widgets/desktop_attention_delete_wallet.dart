@@ -66,13 +66,15 @@ class _DesktopAttentionDeleteWallet
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
-                      "You are going to permanently delete you wallet.\n\nIf you delete your wallet, "
+                      "You are going to permanently delete your wallet.\n\nIf you delete your wallet, "
                       "the only way you can have access to your funds is by using your backup key."
                       "\n\nStack Wallet does not keep nor is able to restore your backup key or your wallet."
                       "\n\nPLEASE SAVE YOUR BACKUP KEY.",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
-                        color: Theme.of(context).extension<StackColors>()!.snackBarTextError,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .snackBarTextError,
                       ),
                     ),
                   ),
