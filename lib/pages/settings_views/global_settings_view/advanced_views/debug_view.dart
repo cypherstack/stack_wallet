@@ -7,11 +7,11 @@ import 'package:event_bus/event_bus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
-import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
+// import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+// import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
+// import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -20,7 +20,6 @@ import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -295,11 +294,11 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         packageInfo.buildSignature;
                                     final appName = packageInfo.appName;
                                     String firoCommit =
-                                        FIRO_VERSIONS.getPluginVersion();
+                                        "fixme";// FIRO_VERSIONS.getPluginVersion();
                                     String epicCashCommit =
-                                        EPIC_VERSIONS.getPluginVersion();
+                                        "fixme";// EPIC_VERSIONS.getPluginVersion();
                                     String moneroCommit =
-                                        MONERO_VERSIONS.getPluginVersion();
+                                        "fixme";// MONERO_VERSIONS.getPluginVersion();
                                     DeviceInfoPlugin deviceInfoPlugin =
                                         DeviceInfoPlugin();
                                     final deviceInfo =
