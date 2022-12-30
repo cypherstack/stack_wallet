@@ -140,17 +140,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   const SizedBox(
                     height: 40,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
-                    child: SecondaryButton(
-                      buttonHeight: ButtonHeight.l,
-                      label: "Ok",
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SecondaryButton(
+                          buttonHeight: ButtonHeight.l,
+                          label: "Ok",
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 32,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -319,13 +323,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
 
       if (!wasCancelled && mounted) {
+        txData["note"] = _note ?? "";
+        txData["address"] = _address;
         // pop building dialog
         Navigator.of(
           context,
           rootNavigator: true,
         ).pop();
-        txData["note"] = _note;
-        txData["address"] = _address;
 
         unawaited(
           showDialog(
@@ -394,22 +398,24 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       const SizedBox(
                         height: 40,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          right: 32,
-                        ),
-                        child: Expanded(
-                          child: SecondaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Yes",
-                            onPressed: () {
-                              Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).pop();
-                            },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Ok",
+                              onPressed: () {
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).pop();
+                              },
+                            ),
                           ),
-                        ),
+                          const SizedBox(
+                            width: 32,
+                          ),
+                        ],
                       ),
                     ],
                   ),
