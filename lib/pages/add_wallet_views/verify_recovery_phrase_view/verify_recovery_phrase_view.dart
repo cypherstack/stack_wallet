@@ -161,7 +161,7 @@ class _VerifyRecoveryPhraseViewState
     result.insert(random.nextInt(wordsToShow), chosenWord);
 
     //todo: this prints sensitive info
-    // debugPrint("Mnemonic game correct word: $chosenWord");
+    debugPrint("Mnemonic game correct word: $chosenWord");
 
     return Tuple2(result, chosenWord);
   }

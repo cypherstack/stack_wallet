@@ -1096,14 +1096,14 @@ class MoneroWallet extends CoinServiceAPI {
   void onNewBlock() {
     //
     print("=============================");
-    print("New Block!");
+    print("New Block! :: $walletName");
     print("=============================");
   }
 
   void onNewTransaction() {
     //
     print("=============================");
-    print("New Transaction!");
+    print("New Transaction! :: $walletName");
     print("=============================");
 
     // call this here?
