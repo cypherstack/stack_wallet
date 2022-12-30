@@ -19,6 +19,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -105,8 +106,25 @@ class _NewWalletRecoveryPhraseWarningViewState
                 )
               ],
             ),
-      body: Padding(
-        padding: EdgeInsets.all(isDesktop ? 0 : 16),
+      body: ConditionalParent(
+        condition: !isDesktop,
+        builder: (child) => LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: child,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
         child: Column(
           crossAxisAlignment: isDesktop
               ? CrossAxisAlignment.center
@@ -315,9 +333,11 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 const SizedBox(
                                   width: 20,
                                 ),
-                                Text(
-                                  "Do not show them to anyone.",
-                                  style: STextStyles.navBarTitle(context),
+                                Expanded(
+                                  child: Text(
+                                    "Do not show them to anyone.",
+                                    style: STextStyles.navBarTitle(context),
+                                  ),
                                 ),
                               ],
                             ),
@@ -327,6 +347,10 @@ class _NewWalletRecoveryPhraseWarningViewState
                     ),
             ),
             if (!isDesktop) const Spacer(),
+            if (!isDesktop)
+              const SizedBox(
+                height: 16,
+              ),
             if (isDesktop)
               const SizedBox(
                 height: 32,
