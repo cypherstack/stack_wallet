@@ -322,12 +322,17 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     onTap: chooseDate,
                     controller: _dateController,
                   ),
-              if (isDesktop)
-                // TODO desktop date picker
-                RestoreFromDatePicker(
-                  onTap: chooseDesktopDate,
-                  controller: _dateController,
-                ),
+              if (coin == Coin.monero ||
+                  coin == Coin.epicCash ||
+                  (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25))
+                if (isDesktop)
+                  // TODO desktop date picker
+                  RestoreFromDatePicker(
+                    onTap: chooseDesktopDate,
+                    controller: _dateController,
+                  ),
               if (coin == Coin.monero ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
