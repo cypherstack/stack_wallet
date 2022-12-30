@@ -409,8 +409,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         height: 1.8,
                       )
                     : STextStyles.field(context),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: Util.isDesktop
+                    ? null
+                    : const TextInputType.numberWithOptions(decimal: true),
                 onChanged: (_) => setState(() {}),
                 decoration: standardInputDecoration(
                   "Amount",
