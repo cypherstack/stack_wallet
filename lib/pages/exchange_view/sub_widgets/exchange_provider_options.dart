@@ -78,7 +78,8 @@ class ExchangeProviderOptions extends ConsumerWidget {
                         width: 20,
                         height: 20,
                         child: Padding(
-                          padding: const EdgeInsets.only(top: 19.0),
+                          padding:
+                              EdgeInsets.only(top: isDesktop ? 20.0 : 15.0),
                           child: Radio(
                             activeColor: Theme.of(context)
                                 .extension<StackColors>()!
@@ -107,7 +108,7 @@ class ExchangeProviderOptions extends ConsumerWidget {
                         width: 14,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
+                        padding: const EdgeInsets.only(top: 5.0),
                         child: SvgPicture.asset(
                           Assets.exchange.changeNow,
                           width: isDesktop ? 32 : 24,
