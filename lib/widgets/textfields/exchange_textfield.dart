@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 
 class ExchangeTextField extends StatefulWidget {
@@ -62,6 +63,8 @@ class _ExchangeTextFieldState extends State<ExchangeTextField> {
   late final void Function(String)? onChanged;
   late final void Function(String)? onSubmitted;
 
+  final isDesktop = Util.isDesktop;
+
   @override
   void initState() {
     borderRadius = widget.borderRadius;
@@ -100,10 +103,12 @@ class _ExchangeTextFieldState extends State<ExchangeTextField> {
                 enableSuggestions: false,
                 autocorrect: false,
                 readOnly: widget.readOnly,
-                keyboardType: const TextInputType.numberWithOptions(
-                  signed: false,
-                  decimal: true,
-                ),
+                keyboardType: isDesktop
+                    ? null
+                    : const TextInputType.numberWithOptions(
+                        signed: false,
+                        decimal: true,
+                      ),
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.only(
                     top: 12,
