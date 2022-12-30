@@ -141,7 +141,7 @@ class MoneroWallet extends CoinServiceAPI {
 
   @override
   // not used for monero
-  Future<List<String>> get allOwnAddresses => throw UnimplementedError();
+  Future<List<String>> get allOwnAddresses async => [];
 
   @override
   Future<Decimal> get availableBalance async {
@@ -841,9 +841,9 @@ class MoneroWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) {
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
     // not used for xmr
-    throw UnimplementedError();
+    return;
   }
 
   @override
