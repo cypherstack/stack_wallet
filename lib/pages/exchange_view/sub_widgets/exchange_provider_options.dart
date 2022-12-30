@@ -77,35 +77,42 @@ class ExchangeProviderOptions extends ConsumerWidget {
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: Radio(
-                          activeColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .radioButtonIconEnabled,
-                          value: ChangeNowExchange.exchangeName,
-                          groupValue: ref
-                              .watch(currentExchangeNameStateProvider.state)
-                              .state,
-                          onChanged: (value) {
-                            if (value is String) {
-                              ref
-                                  .read(currentExchangeNameStateProvider.state)
-                                  .state = value;
-                              ref.read(exchangeFormStateProvider).exchange =
-                                  Exchange.fromName(ref
-                                      .read(currentExchangeNameStateProvider
-                                          .state)
-                                      .state);
-                            }
-                          },
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 19.0),
+                          child: Radio(
+                            activeColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .radioButtonIconEnabled,
+                            value: ChangeNowExchange.exchangeName,
+                            groupValue: ref
+                                .watch(currentExchangeNameStateProvider.state)
+                                .state,
+                            onChanged: (value) {
+                              if (value is String) {
+                                ref
+                                    .read(
+                                        currentExchangeNameStateProvider.state)
+                                    .state = value;
+                                ref.read(exchangeFormStateProvider).exchange =
+                                    Exchange.fromName(ref
+                                        .read(currentExchangeNameStateProvider
+                                            .state)
+                                        .state);
+                              }
+                            },
+                          ),
                         ),
                       ),
                       const SizedBox(
                         width: 14,
                       ),
-                      SvgPicture.asset(
-                        Assets.exchange.changeNow,
-                        width: isDesktop ? 32 : 24,
-                        height: isDesktop ? 32 : 24,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: SvgPicture.asset(
+                          Assets.exchange.changeNow,
+                          width: isDesktop ? 32 : 24,
+                          height: isDesktop ? 32 : 24,
+                        ),
                       ),
                       const SizedBox(
                         width: 10,
