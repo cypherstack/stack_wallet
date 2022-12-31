@@ -739,10 +739,12 @@ class _TransactionSearchViewState
               controller: _amountTextEditingController,
               focusNode: amountTextFieldFocusNode,
               onChanged: (_) => setState(() {}),
-              keyboardType: const TextInputType.numberWithOptions(
-                signed: false,
-                decimal: true,
-              ),
+              keyboardType: Util.isDesktop
+                  ? null
+                  : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
               inputFormatters: [
                 // regex to validate a crypto amount with 8 decimal places
                 TextInputFormatter.withFunction((oldValue, newValue) =>

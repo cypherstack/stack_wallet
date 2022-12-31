@@ -1111,10 +1111,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                 const Key("amountInputFieldCryptoTextFieldKey"),
                             controller: cryptoAmountController,
                             focusNode: _cryptoFocus,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              signed: false,
-                              decimal: true,
-                            ),
+                            keyboardType: Util.isDesktop
+                                ? null
+                                : const TextInputType.numberWithOptions(
+                                    signed: false,
+                                    decimal: true,
+                                  ),
                             textAlign: TextAlign.right,
                             inputFormatters: [
                               // regex to validate a crypto amount with 8 decimal places
@@ -1168,11 +1170,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                   const Key("amountInputFieldFiatTextFieldKey"),
                               controller: baseAmountController,
                               focusNode: _baseFocus,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                signed: false,
-                                decimal: true,
-                              ),
+                              keyboardType: Util.isDesktop
+                                  ? null
+                                  : const TextInputType.numberWithOptions(
+                                      signed: false,
+                                      decimal: true,
+                                    ),
                               textAlign: TextAlign.right,
                               inputFormatters: [
                                 // regex to validate a fiat amount with 2 decimal places

@@ -140,17 +140,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   const SizedBox(
                     height: 40,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
-                    child: SecondaryButton(
-                      buttonHeight: ButtonHeight.l,
-                      label: "Ok",
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SecondaryButton(
+                          buttonHeight: ButtonHeight.l,
+                          label: "Ok",
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 32,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -319,13 +323,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
 
       if (!wasCancelled && mounted) {
+        txData["note"] = _note ?? "";
+        txData["address"] = _address;
         // pop building dialog
         Navigator.of(
           context,
           rootNavigator: true,
         ).pop();
-        txData["note"] = _note;
-        txData["address"] = _address;
 
         unawaited(
           showDialog(
@@ -394,22 +398,24 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       const SizedBox(
                         height: 40,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          right: 32,
-                        ),
-                        child: Expanded(
-                          child: SecondaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Yes",
-                            onPressed: () {
-                              Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).pop();
-                            },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Ok",
+                              onPressed: () {
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).pop();
+                              },
+                            ),
                           ),
-                        ),
+                          const SizedBox(
+                            width: 32,
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1002,10 +1008,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           key: const Key("amountInputFieldCryptoTextFieldKey"),
           controller: cryptoAmountController,
           focusNode: _cryptoFocus,
-          keyboardType: const TextInputType.numberWithOptions(
-            signed: false,
-            decimal: true,
-          ),
+          keyboardType: Util.isDesktop
+              ? null
+              : const TextInputType.numberWithOptions(
+                  signed: false,
+                  decimal: true,
+                ),
           textAlign: TextAlign.right,
           inputFormatters: [
             // regex to validate a crypto amount with 8 decimal places
@@ -1056,10 +1064,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             key: const Key("amountInputFieldFiatTextFieldKey"),
             controller: baseAmountController,
             focusNode: _baseFocus,
-            keyboardType: const TextInputType.numberWithOptions(
-              signed: false,
-              decimal: true,
-            ),
+            keyboardType: Util.isDesktop
+                ? null
+                : const TextInputType.numberWithOptions(
+                    signed: false,
+                    decimal: true,
+                  ),
             textAlign: TextAlign.right,
             inputFormatters: [
               // regex to validate a fiat amount with 2 decimal places

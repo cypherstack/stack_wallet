@@ -23,8 +23,6 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/rounded_date_picker/flutter_rounded_date_picker_widget.dart'
-    as datePicker;
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -154,10 +152,46 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       await Future<void>.delayed(const Duration(milliseconds: 125));
     }
 
-    final date = await datePicker.showRoundedDatePicker(
+    final date = await showRoundedDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      height: height * 0.5,
+      height: height / 3.0,
+      theme: ThemeData(
+        primarySwatch: Util.createMaterialColor(fetchedColor),
+      ),
+      //TODO pick a better initial date
+      // 2007 chosen as that is just before bitcoin launched
+      firstDate: DateTime(2007),
+      lastDate: DateTime.now(),
+      borderRadius: Constants.size.circularBorderRadius * 2,
+
+      textPositiveButton: "SELECT",
+
+      styleDatePicker: _buildDatePickerStyle(),
+      styleYearPicker: _buildYearPickerStyle(),
+    );
+    if (date != null) {
+      _restoreFromDate = date;
+      _dateController.text = Format.formatDate(date);
+    }
+  }
+
+  Future<void> chooseDesktopDate() async {
+    final height = MediaQuery.of(context).size.height;
+    final fetchedColor =
+        Theme.of(context).extension<StackColors>()!.accentColorDark;
+    // check and hide keyboard
+    if (FocusScope.of(context).hasFocus) {
+      FocusScope.of(context).unfocus();
+      await Future<void>.delayed(const Duration(milliseconds: 125));
+    }
+
+    final now = DateTime.now();
+
+    final date = await showRoundedDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      height: height / 3.0,
       theme: ThemeData(
         primarySwatch: Util.createMaterialColor(fetchedColor),
       ),
@@ -283,15 +317,22 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
-
-                // if (!isDesktop)
-                RestoreFromDatePicker(
-                  onTap: chooseDate,
-                  controller: _dateController,
-                ),
-
-              // if (isDesktop)
-              //   // TODO desktop date picker
+                if (!isDesktop)
+                  RestoreFromDatePicker(
+                    onTap: chooseDate,
+                    controller: _dateController,
+                  ),
+              if (coin == Coin.monero ||
+                  coin == Coin.epicCash ||
+                  (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25))
+                if (isDesktop)
+                  // TODO desktop date picker
+                  RestoreFromDatePicker(
+                    onTap: chooseDesktopDate,
+                    controller: _dateController,
+                  ),
               if (coin == Coin.monero ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
@@ -412,7 +453,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 isDesktop: isDesktop,
                 onPressed: _nextEnabled ? nextPressed : null,
               ),
-
               if (isDesktop)
                 const Spacer(
                   flex: 15,
