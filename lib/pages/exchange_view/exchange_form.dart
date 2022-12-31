@@ -69,17 +69,21 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   bool _swapLock = false;
 
   void sendFieldOnChanged(String value) async {
-    final newFromAmount = Decimal.tryParse(value);
+    if (_sendFocusNode.hasFocus) {
+      final newFromAmount = Decimal.tryParse(value);
 
-    ref.read(exchangeFormStateProvider).fromAmount =
-        newFromAmount ?? Decimal.zero;
+      await ref
+          .read(exchangeFormStateProvider)
+          .setFromAmountAndCalculateToAmount(
+              newFromAmount ?? Decimal.zero, true);
 
-    if (newFromAmount == null) {
-      _receiveController.text =
-          ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-                  ExchangeRateType.estimated
-              ? "-"
-              : "";
+      if (newFromAmount == null) {
+        _receiveController.text =
+            ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+                    ExchangeRateType.estimated
+                ? "-"
+                : "";
+      }
     }
   }
 
@@ -116,6 +120,29 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           fromTicker: fromTicker,
           onSelected: (from) =>
               ref.read(exchangeFormStateProvider).updateFrom(from, true));
+
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: Container(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(0.6),
+              child: const CustomLoadingOverlay(
+                message: "Updating exchange rate",
+                eventBus: null,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      Navigator.of(context).pop();
     } else {
       final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
       final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
@@ -1117,38 +1144,43 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           : ref.read(exchangeFormStateProvider).toAmountString;
     }
 
-    _sendFocusNode.addListener(() async {
-      if (!_sendFocusNode.hasFocus) {
-        final newFromAmount = Decimal.tryParse(_sendController.text);
-        await ref
-            .read(exchangeFormStateProvider)
-            .setFromAmountAndCalculateToAmount(
-                newFromAmount ?? Decimal.zero, true);
-
-        if (newFromAmount == null) {
-          _receiveController.text =
-              ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-                      ExchangeRateType.estimated
-                  ? "-"
-                  : "";
-        }
-      }
-    });
-    _receiveFocusNode.addListener(() async {
-      if (!_receiveFocusNode.hasFocus) {
-        final newToAmount = Decimal.tryParse(_receiveController.text);
-        if (ref.read(prefsChangeNotifierProvider).exchangeRateType !=
-            ExchangeRateType.estimated) {
-          await ref
-              .read(exchangeFormStateProvider)
-              .setToAmountAndCalculateFromAmount(
-                  newToAmount ?? Decimal.zero, true);
-        }
-        if (newToAmount == null) {
-          _sendController.text = "";
-        }
-      }
-    });
+    // _sendFocusNode.addListener(() async {
+    //   if (!_sendFocusNode.hasFocus) {
+    //     final newFromAmount = Decimal.tryParse(_sendController.text);
+    //     await ref
+    //         .read(exchangeFormStateProvider)
+    //         .setFromAmountAndCalculateToAmount(
+    //             newFromAmount ?? Decimal.zero, true);
+    //
+    //     debugPrint("SendFocusNode has fired");
+    //
+    //     if (newFromAmount == null) {
+    //       _receiveController.text =
+    //           ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+    //                   ExchangeRateType.estimated
+    //               ? "-"
+    //               : "";
+    //     }
+    //   }
+    // });
+    //
+    // _receiveFocusNode.addListener(() async {
+    //   if (!_receiveFocusNode.hasFocus) {
+    //     final newToAmount = Decimal.tryParse(_receiveController.text);
+    //     if (ref.read(prefsChangeNotifierProvider).exchangeRateType !=
+    //         ExchangeRateType.estimated) {
+    //       await ref
+    //           .read(exchangeFormStateProvider)
+    //           .setToAmountAndCalculateFromAmount(
+    //               newToAmount ?? Decimal.zero, true);
+    //
+    //       debugPrint("ReceiveFocusNode has fired");
+    //     }
+    //     if (newToAmount == null) {
+    //       _sendController.text = "";
+    //     }
+    //   }
+    // });
 
     super.initState();
   }
@@ -1164,6 +1196,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    // provider for simpleswap; not called rn
     ref.listen<String>(currentExchangeNameStateProvider, (previous, next) {
       ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
     });
@@ -1357,13 +1390,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             onChanged: onRateTypeChanged,
           ),
         ),
-        if (ref.read(exchangeFormStateProvider).fromAmount != null &&
-            ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
+        // these reads should be watch
+        if (ref.watch(exchangeFormStateProvider).fromAmount != null &&
+            ref.watch(exchangeFormStateProvider).fromAmount != Decimal.zero)
           SizedBox(
             height: isDesktop ? 20 : 12,
           ),
-        if (ref.read(exchangeFormStateProvider).fromAmount != null &&
-            ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
+        // these reads should be watch
+        if (ref.watch(exchangeFormStateProvider).fromAmount != null &&
+            ref.watch(exchangeFormStateProvider).fromAmount != Decimal.zero)
           ExchangeProviderOptions(
             from: ref.watch(exchangeFormStateProvider).fromTicker,
             to: ref.watch(exchangeFormStateProvider).toTicker,
