@@ -142,7 +142,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       );
 
       await Future<void>.delayed(const Duration(milliseconds: 300));
-      Navigator.of(context).pop();
+
+      Navigator.of(context, rootNavigator: true).pop();
+
     } else {
       final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
       final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
