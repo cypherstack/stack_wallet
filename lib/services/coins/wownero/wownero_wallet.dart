@@ -812,7 +812,7 @@ class WowneroWallet extends CoinServiceAPI {
           await refresh();
           _autoSaveTimer?.cancel();
           _autoSaveTimer = Timer.periodic(
-            const Duration(seconds: 93),
+            const Duration(seconds: 193),
             (_) async => await walletBase?.save(),
           );
         } else {
