@@ -792,27 +792,48 @@ class MoneroWallet extends CoinServiceAPI {
         }
       };
 
+  Future<void> _updateCachedBalance(int sats) async {
+    await DB.instance.put<dynamic>(
+      boxName: walletId,
+      key: "cachedMoneroBalanceSats",
+      value: sats,
+    );
+  }
+
+  int _getCachedBalance() =>
+      DB.instance.get<dynamic>(
+        boxName: walletId,
+        key: "cachedMoneroBalanceSats",
+      ) as int? ??
+      0;
+
   @override
   Future<Decimal> get totalBalance async {
-    final balanceEntries = walletBase?.balance?.entries;
-    if (balanceEntries != null) {
-      int bal = 0;
-      for (var element in balanceEntries) {
-        bal = bal + element.value.fullBalance;
-      }
-      return Format.satoshisToAmount(bal, coin: coin);
-    } else {
-      final transactions = walletBase!.transactionHistory!.transactions;
-      int transactionBalance = 0;
-      for (var tx in transactions!.entries) {
-        if (tx.value.direction == TransactionDirection.incoming) {
-          transactionBalance += tx.value.amount!;
-        } else {
-          transactionBalance += -tx.value.amount! - tx.value.fee!;
+    try {
+      final balanceEntries = walletBase?.balance?.entries;
+      if (balanceEntries != null) {
+        int bal = 0;
+        for (var element in balanceEntries) {
+          bal = bal + element.value.fullBalance;
         }
-      }
+        await _updateCachedBalance(bal);
+        return Format.satoshisToAmount(bal, coin: coin);
+      } else {
+        final transactions = walletBase!.transactionHistory!.transactions;
+        int transactionBalance = 0;
+        for (var tx in transactions!.entries) {
+          if (tx.value.direction == TransactionDirection.incoming) {
+            transactionBalance += tx.value.amount!;
+          } else {
+            transactionBalance += -tx.value.amount! - tx.value.fee!;
+          }
+        }
 
-      return Format.satoshisToAmount(transactionBalance, coin: coin);
+        await _updateCachedBalance(transactionBalance);
+        return Format.satoshisToAmount(transactionBalance, coin: coin);
+      }
+    } catch (_) {
+      return Format.satoshisToAmount(_getCachedBalance(), coin: coin);
     }
   }
 
