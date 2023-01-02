@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
+import 'package:stackwallet/models/paynym/paynym_response.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
@@ -127,27 +128,27 @@ class _PaynymFollowToggleButtonState
 
     final myPCode = await wallet.getPaymentCode();
 
-    String token = await ref.read(paynymAPIProvider).token(myPCode.toString());
+    PaynymResponse<String> token =
+        await ref.read(paynymAPIProvider).token(myPCode.toString());
 
     // sign token with notification private key
-    String signature = await wallet.signStringWithNotificationKey(token);
+    String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref
-        .read(paynymAPIProvider)
-        .follow(token, signature, followedAccount!.codes.first.code);
+    var result = await ref.read(paynymAPIProvider).follow(
+        token.value!, signature, followedAccount.value!.codes.first.code);
 
     int i = 0;
     for (;
-        i < 10 && result["message"] == "401 Unauthorized - Bad signature";
+        i < 10 &&
+            result.statusCode == 401; //"401 Unauthorized - Bad signature";
         i++) {
       token = await ref.read(paynymAPIProvider).token(myPCode.toString());
 
       // sign token with notification private key
-      signature = await wallet.signStringWithNotificationKey(token);
+      signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref
-          .read(paynymAPIProvider)
-          .follow(token, signature, followedAccount!.codes.first.code);
+      result = await ref.read(paynymAPIProvider).follow(
+          token.value!, signature, followedAccount.value!.codes.first.code);
       await Future<void>.delayed(const Duration(milliseconds: 200));
 
       print("RRR result: $result");
@@ -155,7 +156,7 @@ class _PaynymFollowToggleButtonState
 
     print("Follow result: $result on try $i");
 
-    if (result["following"] == followedAccount!.nymID) {
+    if (result.value!.following == followedAccount.value!.nymID) {
       if (!loadingPopped && mounted) {
         Navigator.of(context).pop();
       }
@@ -163,16 +164,16 @@ class _PaynymFollowToggleButtonState
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.success,
-          message: "You are following ${followedAccount.nymName}",
+          message: "You are following ${followedAccount.value!.nymName}",
           context: context,
         ),
       );
       ref.read(myPaynymAccountStateProvider.state).state!.following.add(
             PaynymAccountLite(
-              followedAccount.nymID,
-              followedAccount.nymName,
-              followedAccount.codes.first.code,
-              followedAccount.codes.first.segwit,
+              followedAccount.value!.nymID,
+              followedAccount.value!.nymName,
+              followedAccount.value!.codes.first.code,
+              followedAccount.value!.codes.first.segwit,
             ),
           );
 
@@ -189,7 +190,7 @@ class _PaynymFollowToggleButtonState
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.warning,
-          message: "Failed to follow ${followedAccount.nymName}",
+          message: "Failed to follow ${followedAccount.value!.nymName}",
           context: context,
         ),
       );
@@ -222,34 +223,34 @@ class _PaynymFollowToggleButtonState
 
     final myPCode = await wallet.getPaymentCode();
 
-    String token = await ref.read(paynymAPIProvider).token(myPCode.toString());
+    PaynymResponse<String> token =
+        await ref.read(paynymAPIProvider).token(myPCode.toString());
 
     // sign token with notification private key
-    String signature = await wallet.signStringWithNotificationKey(token);
+    String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref
-        .read(paynymAPIProvider)
-        .follow(token, signature, followedAccount!.codes.first.code);
+    var result = await ref.read(paynymAPIProvider).unfollow(
+        token.value!, signature, followedAccount.value!.codes.first.code);
 
     int i = 0;
     for (;
-        i < 10 && result["message"] == "401 Unauthorized - Bad signature";
+        i < 10 &&
+            result.statusCode == 401; //"401 Unauthorized - Bad signature";
         i++) {
       token = await ref.read(paynymAPIProvider).token(myPCode.toString());
 
       // sign token with notification private key
-      signature = await wallet.signStringWithNotificationKey(token);
+      signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref
-          .read(paynymAPIProvider)
-          .unfollow(token, signature, followedAccount!.codes.first.code);
+      result = await ref.read(paynymAPIProvider).unfollow(
+          token.value!, signature, followedAccount.value!.codes.first.code);
       await Future<void>.delayed(const Duration(milliseconds: 200));
-      print("RRR result: $result");
+      print("unfollow RRR result: $result");
     }
 
     print("Unfollow result: $result on try $i");
 
-    if (result["unfollowing"] == followedAccount!.nymID) {
+    if (result.value!.unfollowing == followedAccount.value!.nymID) {
       if (!loadingPopped && mounted) {
         Navigator.of(context).pop();
       }
@@ -257,7 +258,7 @@ class _PaynymFollowToggleButtonState
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.success,
-          message: "You have unfollowed ${followedAccount.nymName}",
+          message: "You have unfollowed ${followedAccount.value!.nymName}",
           context: context,
         ),
       );
@@ -265,7 +266,7 @@ class _PaynymFollowToggleButtonState
           .read(myPaynymAccountStateProvider.state)
           .state!
           .following
-          .removeWhere((e) => e.nymId == followedAccount.nymID);
+          .removeWhere((e) => e.nymId == followedAccount.value!.nymID);
 
       setState(() {
         isFollowing = false;
@@ -280,7 +281,7 @@ class _PaynymFollowToggleButtonState
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.warning,
-          message: "Failed to unfollow ${followedAccount.nymName}",
+          message: "Failed to unfollow ${followedAccount.value!.nymName}",
           context: context,
         ),
       );

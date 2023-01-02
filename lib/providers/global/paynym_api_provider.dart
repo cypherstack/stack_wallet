@@ -1,4 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/utilities/paynym_api.dart';
+import 'package:stackwallet/utilities/paynym_is_api.dart';
 
-final paynymAPIProvider = Provider<PaynymAPI>((_) => PaynymAPI());
+final paynymAPIProvider = Provider<PaynymIsApi>((_) => PaynymIsApi());

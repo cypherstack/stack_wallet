@@ -108,7 +108,7 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
 
                   debugPrint("created:$created");
 
-                  if (created.claimed) {
+                  if (created.value!.claimed) {
                     // payment code already claimed
                     debugPrint("pcode already claimed!!");
                     if (mounted) {
@@ -126,18 +126,19 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
 
                   // sign token with notification private key
                   final signature =
-                      await wallet.signStringWithNotificationKey(token);
+                      await wallet.signStringWithNotificationKey(token.value!);
 
                   // claim paynym account
-                  final claim =
-                      await ref.read(paynymAPIProvider).claim(token, signature);
+                  final claim = await ref
+                      .read(paynymAPIProvider)
+                      .claim(token.value!, signature);
 
-                  if (claim["claimed"] == pCode.toString()) {
+                  if (claim.value?.claimed == pCode.toString()) {
                     final account =
                         await ref.read(paynymAPIProvider).nym(pCode.toString());
 
                     ref.read(myPaynymAccountStateProvider.state).state =
-                        account!;
+                        account.value!;
                     if (mounted) {
                       Navigator.of(context).popUntil(
                         ModalRoute.withName(

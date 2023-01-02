@@ -4,12 +4,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/paynym/created_paynym.dart';
 import 'package:stackwallet/models/paynym/paynym_account.dart';
+import 'package:stackwallet/models/paynym/paynym_claim.dart';
+import 'package:stackwallet/models/paynym/paynym_follow.dart';
+import 'package:stackwallet/models/paynym/paynym_response.dart';
+import 'package:stackwallet/models/paynym/paynym_unfollow.dart';
+import 'package:tuple/tuple.dart';
 
-class PaynymAPI {
+// todo: better error message parsing (from response itself?)
+
+class PaynymIsApi {
   static const String baseURL = "https://paynym.is/api";
   static const String version = "/v1";
 
-  Future<Map<String, dynamic>> _post(
+  Future<Tuple2<Map<String, dynamic>, int>> _post(
     String endpoint,
     Map<String, dynamic> body, [
     Map<String, String> additionalHeaders = const {},
@@ -29,7 +36,10 @@ class PaynymAPI {
     debugPrint("Paynym response code: ${response.statusCode}");
     debugPrint("Paynym response body: ${response.body}");
 
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    return Tuple2(
+      jsonDecode(response.body) as Map<String, dynamic>,
+      response.statusCode,
+    );
   }
 
   // ### `/api/v1/create`
@@ -77,9 +87,28 @@ class PaynymAPI {
   //
   //
   // ------
-  Future<CreatedPaynym> create(String code) async {
-    final map = await _post("/create", {"code": code});
-    return CreatedPaynym.fromMap(map);
+  Future<PaynymResponse<CreatedPaynym>> create(String code) async {
+    final result = await _post("/create", {"code": code});
+
+    String message;
+    CreatedPaynym? value;
+
+    switch (result.item2) {
+      case 201:
+        message = "PayNym created successfully";
+        value = CreatedPaynym.fromMap(result.item1);
+        break;
+      case 200:
+        message = "PayNym already exists";
+        value = CreatedPaynym.fromMap(result.item1);
+        break;
+      case 400:
+        message = "Bad request";
+        break;
+      default:
+        message = "Unknown error";
+    }
+    return PaynymResponse(value, result.item2, message);
   }
 
   // ### `/api/v1/token`
@@ -120,9 +149,27 @@ class PaynymAPI {
   //
   //
   // ------
-  Future<String> token(String code) async {
-    final map = await _post("/token", {"code": code});
-    return map["token"] as String;
+  Future<PaynymResponse<String>> token(String code) async {
+    final result = await _post("/token", {"code": code});
+
+    String message;
+    String? value;
+
+    switch (result.item2) {
+      case 200:
+        message = "Token was successfully updated";
+        value = result.item1["token"] as String;
+        break;
+      case 404:
+        message = "Payment code was not found";
+        break;
+      case 400:
+        message = "Bad request";
+        break;
+      default:
+        message = "Unknown error";
+    }
+    return PaynymResponse(value, result.item2, message);
   }
 
   // ### `/api/v1/nym`
@@ -175,17 +222,43 @@ class PaynymAPI {
   // | 200  | Nym found and returned |
   // | 404  | Nym not found          |
   // | 400  | Bad request            |
-  Future<PaynymAccount?> nym(String code, [bool compact = false]) async {
+  Future<PaynymResponse<PaynymAccount>> nym(String code,
+      [bool compact = false]) async {
     final Map<String, dynamic> requestBody = {"nym": code};
     if (compact) {
       requestBody["compact"] = true;
     }
+
+    String message;
+    PaynymAccount? value;
+    int statusCode;
+
     try {
-      final map = await _post("/nym", requestBody);
-      return PaynymAccount.fromMap(map);
-    } catch (_) {
-      return null;
+      final result = await _post("/nym", requestBody);
+
+      statusCode = result.item2;
+
+      switch (result.item2) {
+        case 200:
+          message = "Nym found and returned";
+          value = PaynymAccount.fromMap(result.item1);
+          break;
+        case 404:
+          message = "Nym not found";
+          break;
+        case 400:
+          message = "Bad request";
+          break;
+        default:
+          message = "Unknown error";
+          statusCode = -1;
+      }
+    } catch (e) {
+      value = null;
+      message = e.toString();
+      statusCode = -1;
     }
+    return PaynymResponse(value, statusCode, message);
   }
 
   // ## Authenticated Requests
@@ -238,8 +311,31 @@ class PaynymAPI {
   // | 400  | Bad request                       |
   //
   // ------
-  Future<Map<String, dynamic>> claim(String token, String signature) async {
-    return _post("/claim", {"signature": signature}, {"auth-token": token});
+  Future<PaynymResponse<PaynymClaim>> claim(
+    String token,
+    String signature,
+  ) async {
+    final result = await _post(
+      "/claim",
+      {"signature": signature},
+      {"auth-token": token},
+    );
+
+    String message;
+    PaynymClaim? value;
+
+    switch (result.item2) {
+      case 200:
+        message = "Payment code successfully claimed";
+        value = PaynymClaim.fromMap(result.item1);
+        break;
+      case 400:
+        message = "Bad request";
+        break;
+      default:
+        message = "Unknown error";
+    }
+    return PaynymResponse(value, result.item2, message);
   }
 
   // ### `/api/v1/follow`
@@ -284,12 +380,12 @@ class PaynymAPI {
   // | 401  | Unauthorized token or signature or Unclaimed payment code |
   //
   // ------
-  Future<Map<String, dynamic>> follow(
+  Future<PaynymResponse<PaynymFollow>> follow(
     String token,
     String signature,
     String target,
   ) async {
-    return _post(
+    final result = await _post(
       "/follow",
       {
         "target": target,
@@ -299,6 +395,28 @@ class PaynymAPI {
         "auth-token": token,
       },
     );
+
+    String message;
+    PaynymFollow? value;
+
+    switch (result.item2) {
+      case 200:
+        message = "Added to followers";
+        value = PaynymFollow.fromMap(result.item1);
+        break;
+      case 404:
+        message = "Payment code not found";
+        break;
+      case 400:
+        message = "Bad request";
+        break;
+      case 401:
+        message = "Unauthorized token or signature or Unclaimed payment code";
+        break;
+      default:
+        message = "Unknown error";
+    }
+    return PaynymResponse(value, result.item2, message);
   }
 
   // ### `/api/v1/unfollow`
@@ -343,12 +461,12 @@ class PaynymAPI {
   // | 401  | Unauthorized token or signature or Unclaimed payment code |
   //
   // ------
-  Future<Map<String, dynamic>> unfollow(
+  Future<PaynymResponse<PaynymUnfollow>> unfollow(
     String token,
     String signature,
     String target,
   ) async {
-    return _post(
+    final result = await _post(
       "/unfollow",
       {
         "target": target,
@@ -358,6 +476,28 @@ class PaynymAPI {
         "auth-token": token,
       },
     );
+
+    String message;
+    PaynymUnfollow? value;
+
+    switch (result.item2) {
+      case 200:
+        message = "Unfollowed successfully";
+        value = PaynymUnfollow.fromMap(result.item1);
+        break;
+      case 404:
+        message = "Payment code not found";
+        break;
+      case 400:
+        message = "Bad request";
+        break;
+      case 401:
+        message = "Unauthorized token or signature or Unclaimed payment code";
+        break;
+      default:
+        message = "Unknown error";
+    }
+    return PaynymResponse(value, result.item2, message);
   }
 
   // ### `/api/v1/nym/add`
@@ -404,22 +544,24 @@ class PaynymAPI {
   // | 401  | Unauthorized token or signature or Unclaimed payment code |
   //
   // ------
-  Future<Map<String, dynamic>> add(
-    String token,
-    String signature,
-    String nym,
-    String code,
-  ) async {
-    return _post(
-      "/add",
-      {
-        "nym": nym,
-        "code": code,
-        "signature": signature,
-      },
-      {
-        "auth-token": token,
-      },
-    );
-  }
+
+// NOT USED
+  // Future<Map<String, dynamic>> add(
+  //   String token,
+  //   String signature,
+  //   String nym,
+  //   String code,
+  // ) async {
+  //   return _post(
+  //     "/add",
+  //     {
+  //       "nym": nym,
+  //       "code": code,
+  //       "signature": signature,
+  //     },
+  //     {
+  //       "auth-token": token,
+  //     },
+  //   );
+  // }
 }

@@ -134,9 +134,10 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                         Navigator.of(context).pop();
 
                         // check if account exists and for matching code to see if claimed
-                        if (account != null && account.codes.first.claimed) {
+                        if (account.value != null &&
+                            account.value!.codes.first.claimed) {
                           ref.read(myPaynymAccountStateProvider.state).state =
-                              account;
+                              account.value!;
 
                           await Navigator.of(context).pushNamed(
                             PaynymHomeView.routeName,

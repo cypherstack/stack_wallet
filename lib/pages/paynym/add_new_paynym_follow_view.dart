@@ -70,7 +70,7 @@ class _AddNewPaynymFollowViewState
       }
 
       setState(() {
-        _searchResult = paynymAccount;
+        _searchResult = paynymAccount.value;
       });
     }
   }
