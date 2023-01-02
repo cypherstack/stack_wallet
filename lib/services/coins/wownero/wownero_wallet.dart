@@ -1163,6 +1163,49 @@ class WowneroWallet extends CoinServiceAPI {
     print("=============================");
     print("New Wownero Block! :: $walletName");
     print("=============================");
+    _refreshTxDataHelper();
+  }
+
+  bool _txRefreshLock = false;
+  int _lastCheckedHeight = -1;
+  int _txCount = 0;
+
+  Future<void> _refreshTxDataHelper() async {
+    if (_txRefreshLock) return;
+    _txRefreshLock = true;
+
+    final syncStatus = walletBase?.syncStatus;
+
+    if (syncStatus != null && syncStatus is SyncingSyncStatus) {
+      final int blocksLeft = syncStatus.blocksLeft;
+      final tenKChange = blocksLeft ~/ 10000;
+
+      // only refresh transactions periodically during a sync
+      if (_lastCheckedHeight == -1 || tenKChange < _lastCheckedHeight) {
+        _lastCheckedHeight = tenKChange;
+        await _refreshTxData();
+      }
+    } else {
+      await _refreshTxData();
+    }
+
+    _txRefreshLock = false;
+  }
+
+  Future<void> _refreshTxData() async {
+    final txnData = await _fetchTransactionData();
+    final count = txnData.getAllTransactions().length;
+
+    if (count > _txCount) {
+      _txCount = count;
+      _transactionData = Future(() => txnData);
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "New transaction data found in $walletId $walletName!",
+          walletId,
+        ),
+      );
+    }
   }
 
   void onNewTransaction() {
