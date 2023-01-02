@@ -1200,7 +1200,7 @@ class ParticlWallet extends CoinServiceAPI {
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final locale = await Devicelocale.currentLocale;
+    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
@@ -2241,8 +2241,10 @@ class ParticlWallet extends CoinServiceAPI {
       }
     }
 
-    Logging.instance.log("addAddresses: $allAddresses", level: LogLevel.Info);
-    Logging.instance.log("allTxHashes: $allTxHashes", level: LogLevel.Info);
+    Logging.instance.log("addAddresses: $allAddresses",
+        level: LogLevel.Info, printFullLength: true);
+    Logging.instance.log("allTxHashes: $allTxHashes",
+        level: LogLevel.Info, printFullLength: true);
 
     Logging.instance.log("allTransactions length: ${allTransactions.length}",
         level: LogLevel.Info);
@@ -2286,7 +2288,7 @@ class ParticlWallet extends CoinServiceAPI {
 
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["address"] as String?;
+            final address = out["scriptPubKey"]["addresses"][0] as String?;
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2300,7 +2302,7 @@ class ParticlWallet extends CoinServiceAPI {
         // Particl has different tx types that need to be detected and handled here
         if (output.containsKey('scriptPubKey') as bool) {
           // Logging.instance.log("output is transparent", level: LogLevel.Info);
-          final address = output["scriptPubKey"]["address"] as String?;
+          final address = output["scriptPubKey"]["addresses"][0] as String?;
           if (address != null) {
             recipientsArray.add(address);
           }
@@ -2356,20 +2358,26 @@ class ParticlWallet extends CoinServiceAPI {
         for (final output in txObject["vout"] as List) {
           // Particl has different tx types that need to be detected and handled here
           if (output.containsKey('scriptPubKey') as bool) {
-            // Logging.instance.log("output is transparent", level: LogLevel.Info);
-            final String address = output["scriptPubKey"]!["address"] as String;
-            final value = output["value"]!;
-            final _value = (Decimal.parse(value.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toBigInt()
-                .toInt();
-            totalOutput += _value;
-            if (changeAddresses.contains(address)) {
-              inputAmtSentFromWallet -= _value;
-            } else {
-              // change address from 'sent from' to the 'sent to' address
-              txObject["address"] = address;
+            try {
+              final String address =
+                  output["scriptPubKey"]!["addresses"][0] as String;
+              final value = output["value"]!;
+              final _value = (Decimal.parse(value.toString()) *
+                      Decimal.fromInt(Constants.satsPerCoin(coin)))
+                  .toBigInt()
+                  .toInt();
+              totalOutput += _value;
+              if (changeAddresses.contains(address)) {
+                inputAmtSentFromWallet -= _value;
+              } else {
+                // change address from 'sent from' to the 'sent to' address
+                txObject["address"] = address;
+              }
+            } catch (s, e) {
+              Logging.instance.log(s.toString(), level: LogLevel.Warning);
             }
+            // Logging.instance.log("output is transparent", level: LogLevel.Info);
+
           } else if (output.containsKey('ct_fee') as bool) {
             // or type: data
             // TODO handle CT tx
@@ -2408,16 +2416,20 @@ class ParticlWallet extends CoinServiceAPI {
 
         // add up received tx value
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["address"];
-          if (address != null) {
-            final value = (Decimal.parse(output["value"].toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toBigInt()
-                .toInt();
-            totalOut += value;
-            if (allAddresses.contains(address)) {
-              outputAmtAddressedToWallet += value;
+          try {
+            final address = output["scriptPubKey"]["addresses"][0];
+            if (address != null) {
+              final value = (Decimal.parse(output["value"].toString()) *
+                      Decimal.fromInt(Constants.satsPerCoin(coin)))
+                  .toBigInt()
+                  .toInt();
+              totalOut += value;
+              if (allAddresses.contains(address)) {
+                outputAmtAddressedToWallet += value;
+              }
             }
+          } catch (s, e) {
+            Logging.instance.log(s.toString(), level: LogLevel.Info);
           }
         }
 
@@ -2574,7 +2586,6 @@ class ParticlWallet extends CoinServiceAPI {
     final List<UtxoObject> availableOutputs = utxos ?? outputsList;
     final List<UtxoObject> spendableOutputs = [];
     int spendableSatoshiValue = 0;
-    print("AVAILABLE UTXOS IS ::::: ${availableOutputs}");
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
       if (availableOutputs[i].blocked == false &&
@@ -2907,8 +2918,6 @@ class ParticlWallet extends CoinServiceAPI {
     Map<String, dynamic> results = {};
     Map<String, List<String>> addressTxid = {};
 
-    print("CALLING FETCH BUILD TX DATA");
-
     // addresses to check
     List<String> addressesP2PKH = [];
     List<String> addressesP2WPKH = [];
@@ -2925,8 +2934,7 @@ class ParticlWallet extends CoinServiceAPI {
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            print("SCRIPT PUB KEY IS ${output["scriptPubKey"]}");
-            final address = output["scriptPubKey"]["address"] as String;
+            final address = output["scriptPubKey"]["addresses"][0] as String;
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
             }
@@ -3088,6 +3096,7 @@ class ParticlWallet extends CoinServiceAPI {
     // Add transaction inputs
     for (var i = 0; i < utxosToUse.length; i++) {
       final txid = utxosToUse[i].txid;
+
       txb.addInput(txid, utxosToUse[i].vout, null,
           utxoSigningData[txid]["output"] as Uint8List, '');
     }

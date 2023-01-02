@@ -7,7 +7,6 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -78,35 +77,43 @@ class ExchangeProviderOptions extends ConsumerWidget {
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: Radio(
-                          activeColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .radioButtonIconEnabled,
-                          value: ChangeNowExchange.exchangeName,
-                          groupValue: ref
-                              .watch(currentExchangeNameStateProvider.state)
-                              .state,
-                          onChanged: (value) {
-                            if (value is String) {
-                              ref
-                                  .read(currentExchangeNameStateProvider.state)
-                                  .state = value;
-                              ref.read(exchangeFormStateProvider).exchange =
-                                  Exchange.fromName(ref
-                                      .read(currentExchangeNameStateProvider
-                                          .state)
-                                      .state);
-                            }
-                          },
+                        child: Padding(
+                          padding:
+                              EdgeInsets.only(top: isDesktop ? 20.0 : 15.0),
+                          child: Radio(
+                            activeColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .radioButtonIconEnabled,
+                            value: ChangeNowExchange.exchangeName,
+                            groupValue: ref
+                                .watch(currentExchangeNameStateProvider.state)
+                                .state,
+                            onChanged: (value) {
+                              if (value is String) {
+                                ref
+                                    .read(
+                                        currentExchangeNameStateProvider.state)
+                                    .state = value;
+                                ref.read(exchangeFormStateProvider).exchange =
+                                    Exchange.fromName(ref
+                                        .read(currentExchangeNameStateProvider
+                                            .state)
+                                        .state);
+                              }
+                            },
+                          ),
                         ),
                       ),
                       const SizedBox(
                         width: 14,
                       ),
-                      SvgPicture.asset(
-                        Assets.exchange.changeNow,
-                        width: isDesktop ? 32 : 24,
-                        height: isDesktop ? 32 : 24,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: SvgPicture.asset(
+                          Assets.exchange.changeNow,
+                          width: isDesktop ? 32 : 24,
+                          height: isDesktop ? 32 : 24,
+                        ),
                       ),
                       const SizedBox(
                         width: 10,
@@ -250,207 +257,207 @@ class ExchangeProviderOptions extends ConsumerWidget {
               height: 1,
               color: Theme.of(context).extension<StackColors>()!.background,
             ),
-          if (!isDesktop)
-            const SizedBox(
-              height: 16,
-            ),
-          ConditionalParent(
-            condition: isDesktop,
-            builder: (child) => MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: child,
-            ),
-            child: GestureDetector(
-              onTap: () {
-                if (ref.read(currentExchangeNameStateProvider.state).state !=
-                    SimpleSwapExchange.exchangeName) {
-                  ref.read(currentExchangeNameStateProvider.state).state =
-                      SimpleSwapExchange.exchangeName;
-                  ref.read(exchangeFormStateProvider).exchange =
-                      Exchange.fromName(ref
-                          .read(currentExchangeNameStateProvider.state)
-                          .state);
-                }
-              },
-              child: Container(
-                color: Colors.transparent,
-                child: Padding(
-                  padding: isDesktop
-                      ? const EdgeInsets.all(16)
-                      : const EdgeInsets.all(0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Radio(
-                          activeColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .radioButtonIconEnabled,
-                          value: SimpleSwapExchange.exchangeName,
-                          groupValue: ref
-                              .watch(currentExchangeNameStateProvider.state)
-                              .state,
-                          onChanged: (value) {
-                            if (value is String) {
-                              ref
-                                  .read(currentExchangeNameStateProvider.state)
-                                  .state = value;
-                              ref.read(exchangeFormStateProvider).exchange =
-                                  Exchange.fromName(ref
-                                      .read(currentExchangeNameStateProvider
-                                          .state)
-                                      .state);
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 14,
-                      ),
-                      SvgPicture.asset(
-                        Assets.exchange.simpleSwap,
-                        width: isDesktop ? 32 : 24,
-                        height: isDesktop ? 32 : 24,
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              SimpleSwapExchange.exchangeName,
-                              style: STextStyles.titleBold12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark2,
-                              ),
-                            ),
-                            if (from != null &&
-                                to != null &&
-                                toAmount != null &&
-                                toAmount! > Decimal.zero &&
-                                fromAmount != null &&
-                                fromAmount! > Decimal.zero)
-                              FutureBuilder(
-                                future: SimpleSwapExchange().getEstimate(
-                                  from!,
-                                  to!,
-                                  // reversed ? toAmount! : fromAmount!,
-                                  fromAmount!,
-                                  fixedRate,
-                                  // reversed,
-                                  false,
-                                ),
-                                builder: (context,
-                                    AsyncSnapshot<ExchangeResponse<Estimate>>
-                                        snapshot) {
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData) {
-                                    final estimate = snapshot.data?.value;
-                                    if (estimate != null) {
-                                      Decimal rate = (estimate.estimatedAmount /
-                                              fromAmount!)
-                                          .toDecimal(
-                                              scaleOnInfinitePrecision: 12);
-
-                                      Coin coin;
-                                      try {
-                                        coin =
-                                            coinFromTickerCaseInsensitive(to!);
-                                      } catch (_) {
-                                        coin = Coin.bitcoin;
-                                      }
-                                      return Text(
-                                        "1 ${from!.toUpperCase()} ~ ${Format.localizedStringAsFixed(
-                                          value: rate,
-                                          locale: ref.watch(
-                                            localeServiceChangeNotifierProvider
-                                                .select(
-                                                    (value) => value.locale),
-                                          ),
-                                          decimalPlaces:
-                                              Constants.decimalPlacesForCoin(
-                                                  coin),
-                                        )} ${to!.toUpperCase()}",
-                                        style:
-                                            STextStyles.itemSubtitle12(context)
-                                                .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
-                                        ),
-                                      );
-                                    } else {
-                                      Logging.instance.log(
-                                        "$runtimeType failed to fetch rate for SimpleSwap: ${snapshot.data}",
-                                        level: LogLevel.Warning,
-                                      );
-                                      return Text(
-                                        "Failed to fetch rate",
-                                        style:
-                                            STextStyles.itemSubtitle12(context)
-                                                .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
-                                        ),
-                                      );
-                                    }
-                                  } else {
-                                    return AnimatedText(
-                                      stringsToLoopThrough: const [
-                                        "Loading",
-                                        "Loading.",
-                                        "Loading..",
-                                        "Loading...",
-                                      ],
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                            // if (!(from != null &&
-                            //     to != null &&
-                            //     (reversed
-                            //         ? toAmount != null && toAmount! > Decimal.zero
-                            //         : fromAmount != null &&
-                            //             fromAmount! > Decimal.zero)))
-                            if (!(from != null &&
-                                to != null &&
-                                toAmount != null &&
-                                toAmount! > Decimal.zero &&
-                                fromAmount != null &&
-                                fromAmount! > Decimal.zero))
-                              Text(
-                                "n/a",
-                                style: STextStyles.itemSubtitle12(context)
-                                    .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          // if (!isDesktop)
+          //   const SizedBox(
+          //     height: 16,
+          //   ),
+          // ConditionalParent(
+          //   condition: isDesktop,
+          //   builder: (child) => MouseRegion(
+          //     cursor: SystemMouseCursors.click,
+          //     child: child,
+          //   ),
+          //   child: GestureDetector(
+          //     onTap: () {
+          //       if (ref.read(currentExchangeNameStateProvider.state).state !=
+          //           SimpleSwapExchange.exchangeName) {
+          //         // ref.read(currentExchangeNameStateProvider.state).state =
+          //         //     SimpleSwapExchange.exchangeName;
+          //         ref.read(exchangeFormStateProvider).exchange =
+          //             Exchange.fromName(ref
+          //                 .read(currentExchangeNameStateProvider.state)
+          //                 .state);
+          //       }
+          //     },
+          //     child: Container(
+          //       color: Colors.transparent,
+          //       child: Padding(
+          //         padding: isDesktop
+          //             ? const EdgeInsets.all(16)
+          //             : const EdgeInsets.all(0),
+          //         child: Row(
+          //           crossAxisAlignment: CrossAxisAlignment.start,
+          //           children: [
+          //             SizedBox(
+          //               width: 20,
+          //               height: 20,
+          //               child: Radio(
+          //                 activeColor: Theme.of(context)
+          //                     .extension<StackColors>()!
+          //                     .radioButtonIconEnabled,
+          //                 value: SimpleSwapExchange.exchangeName,
+          //                 groupValue: ref
+          //                     .watch(currentExchangeNameStateProvider.state)
+          //                     .state,
+          //                 onChanged: (value) {
+          //                   if (value is String) {
+          //                     ref
+          //                         .read(currentExchangeNameStateProvider.state)
+          //                         .state = value;
+          //                     ref.read(exchangeFormStateProvider).exchange =
+          //                         Exchange.fromName(ref
+          //                             .read(currentExchangeNameStateProvider
+          //                                 .state)
+          //                             .state);
+          //                   }
+          //                 },
+          //               ),
+          //             ),
+          //             const SizedBox(
+          //               width: 14,
+          //             ),
+          //             // SvgPicture.asset(
+          //             //   Assets.exchange.simpleSwap,
+          //             //   width: isDesktop ? 32 : 24,
+          //             //   height: isDesktop ? 32 : 24,
+          //             // ),
+          //             // const SizedBox(
+          //             //   width: 10,
+          //             // ),
+          //             // Expanded(
+          //             //   child: Column(
+          //             //     mainAxisAlignment: MainAxisAlignment.start,
+          //             //     mainAxisSize: MainAxisSize.min,
+          //             //     crossAxisAlignment: CrossAxisAlignment.start,
+          //             //     children: [
+          //             //       Text(
+          //             //         SimpleSwapExchange.exchangeName,
+          //             //         style: STextStyles.titleBold12(context).copyWith(
+          //             //           color: Theme.of(context)
+          //             //               .extension<StackColors>()!
+          //             //               .textDark2,
+          //             //         ),
+          //             //       ),
+          //             //       if (from != null &&
+          //             //           to != null &&
+          //             //           toAmount != null &&
+          //             //           toAmount! > Decimal.zero &&
+          //             //           fromAmount != null &&
+          //             //           fromAmount! > Decimal.zero)
+          //             //         FutureBuilder(
+          //             //           future: SimpleSwapExchange().getEstimate(
+          //             //             from!,
+          //             //             to!,
+          //             //             // reversed ? toAmount! : fromAmount!,
+          //             //             fromAmount!,
+          //             //             fixedRate,
+          //             //             // reversed,
+          //             //             false,
+          //             //           ),
+          //             //           builder: (context,
+          //             //               AsyncSnapshot<ExchangeResponse<Estimate>>
+          //             //                   snapshot) {
+          //             //             if (snapshot.connectionState ==
+          //             //                     ConnectionState.done &&
+          //             //                 snapshot.hasData) {
+          //             //               final estimate = snapshot.data?.value;
+          //             //               if (estimate != null) {
+          //             //                 Decimal rate = (estimate.estimatedAmount /
+          //             //                         fromAmount!)
+          //             //                     .toDecimal(
+          //             //                         scaleOnInfinitePrecision: 12);
+          //             //
+          //             //                 Coin coin;
+          //             //                 try {
+          //             //                   coin =
+          //             //                       coinFromTickerCaseInsensitive(to!);
+          //             //                 } catch (_) {
+          //             //                   coin = Coin.bitcoin;
+          //             //                 }
+          //             //                 return Text(
+          //             //                   "1 ${from!.toUpperCase()} ~ ${Format.localizedStringAsFixed(
+          //             //                     value: rate,
+          //             //                     locale: ref.watch(
+          //             //                       localeServiceChangeNotifierProvider
+          //             //                           .select(
+          //             //                               (value) => value.locale),
+          //             //                     ),
+          //             //                     decimalPlaces:
+          //             //                         Constants.decimalPlacesForCoin(
+          //             //                             coin),
+          //             //                   )} ${to!.toUpperCase()}",
+          //             //                   style:
+          //             //                       STextStyles.itemSubtitle12(context)
+          //             //                           .copyWith(
+          //             //                     color: Theme.of(context)
+          //             //                         .extension<StackColors>()!
+          //             //                         .textSubtitle1,
+          //             //                   ),
+          //             //                 );
+          //             //               } else {
+          //             //                 Logging.instance.log(
+          //             //                   "$runtimeType failed to fetch rate for SimpleSwap: ${snapshot.data}",
+          //             //                   level: LogLevel.Warning,
+          //             //                 );
+          //             //                 return Text(
+          //             //                   "Failed to fetch rate",
+          //             //                   style:
+          //             //                       STextStyles.itemSubtitle12(context)
+          //             //                           .copyWith(
+          //             //                     color: Theme.of(context)
+          //             //                         .extension<StackColors>()!
+          //             //                         .textSubtitle1,
+          //             //                   ),
+          //             //                 );
+          //             //               }
+          //             //             } else {
+          //             //               return AnimatedText(
+          //             //                 stringsToLoopThrough: const [
+          //             //                   "Loading",
+          //             //                   "Loading.",
+          //             //                   "Loading..",
+          //             //                   "Loading...",
+          //             //                 ],
+          //             //                 style: STextStyles.itemSubtitle12(context)
+          //             //                     .copyWith(
+          //             //                   color: Theme.of(context)
+          //             //                       .extension<StackColors>()!
+          //             //                       .textSubtitle1,
+          //             //                 ),
+          //             //               );
+          //             //             }
+          //             //           },
+          //             //         ),
+          //             //       // if (!(from != null &&
+          //             //       //     to != null &&
+          //             //       //     (reversed
+          //             //       //         ? toAmount != null && toAmount! > Decimal.zero
+          //             //       //         : fromAmount != null &&
+          //             //       //             fromAmount! > Decimal.zero)))
+          //             //       if (!(from != null &&
+          //             //           to != null &&
+          //             //           toAmount != null &&
+          //             //           toAmount! > Decimal.zero &&
+          //             //           fromAmount != null &&
+          //             //           fromAmount! > Decimal.zero))
+          //             //         Text(
+          //             //           "n/a",
+          //             //           style: STextStyles.itemSubtitle12(context)
+          //             //               .copyWith(
+          //             //             color: Theme.of(context)
+          //             //                 .extension<StackColors>()!
+          //             //                 .textSubtitle1,
+          //             //           ),
+          //             //         ),
+          //             //     ],
+          //             //   ),
+          //             // ),
+          //           ],
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

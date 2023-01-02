@@ -1174,7 +1174,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final locale = await Devicelocale.currentLocale;
+    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
@@ -2666,8 +2666,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
       ], // dust limit is the minimum amount a change output should be
     ))["vSize"] as int;
     //todo: check if print needed
-    debugPrint("vSizeForOneOutput $vSizeForOneOutput");
-    debugPrint("vSizeForTwoOutPuts $vSizeForTwoOutPuts");
+    // debugPrint("vSizeForOneOutput $vSizeForOneOutput");
+    // debugPrint("vSizeForTwoOutPuts $vSizeForTwoOutPuts");
 
     // Assume 1 output, only for recipient and no change
     var feeForOneOutput = estimateTxFee(

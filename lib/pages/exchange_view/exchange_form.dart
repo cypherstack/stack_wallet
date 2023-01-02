@@ -20,7 +20,7 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dar
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
+// import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -69,17 +69,21 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   bool _swapLock = false;
 
   void sendFieldOnChanged(String value) async {
-    final newFromAmount = Decimal.tryParse(value);
+    if (_sendFocusNode.hasFocus) {
+      final newFromAmount = Decimal.tryParse(value);
 
-    ref.read(exchangeFormStateProvider).fromAmount =
-        newFromAmount ?? Decimal.zero;
+      await ref
+          .read(exchangeFormStateProvider)
+          .setFromAmountAndCalculateToAmount(
+              newFromAmount ?? Decimal.zero, true);
 
-    if (newFromAmount == null) {
-      _receiveController.text =
-          ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-                  ExchangeRateType.estimated
-              ? "-"
-              : "";
+      if (newFromAmount == null) {
+        _receiveController.text =
+            ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+                    ExchangeRateType.estimated
+                ? "-"
+                : "";
+      }
     }
   }
 
@@ -101,11 +105,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           currencies =
               ref.read(availableChangeNowCurrenciesProvider).currencies;
           break;
-        case SimpleSwapExchange.exchangeName:
-          currencies = ref
-              .read(availableSimpleswapCurrenciesProvider)
-              .floatingRateCurrencies;
-          break;
+        // case SimpleSwapExchange.exchangeName:
+        //   currencies = ref
+        //       .read(availableSimpleswapCurrenciesProvider)
+        //       .floatingRateCurrencies;
+        //   break;
         default:
           currencies = [];
       }
@@ -116,6 +120,31 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           fromTicker: fromTicker,
           onSelected: (from) =>
               ref.read(exchangeFormStateProvider).updateFrom(from, true));
+
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: Container(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(0.6),
+              child: const CustomLoadingOverlay(
+                message: "Updating exchange rate",
+                eventBus: null,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+
+      Navigator.of(context, rootNavigator: true).pop();
+
     } else {
       final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
       final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
@@ -170,17 +199,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             },
           );
           break;
-        case SimpleSwapExchange.exchangeName:
-          await _showFloatingRateSelectionSheet(
-              currencies: ref
-                  .read(availableSimpleswapCurrenciesProvider)
-                  .fixedRateCurrencies,
-              excludedTicker:
-                  ref.read(exchangeFormStateProvider).toTicker ?? "-",
-              fromTicker: fromTicker,
-              onSelected: (from) =>
-                  ref.read(exchangeFormStateProvider).updateFrom(from, true));
-          break;
+        // case SimpleSwapExchange.exchangeName:
+        //   await _showFloatingRateSelectionSheet(
+        //       currencies: ref
+        //           .read(availableSimpleswapCurrenciesProvider)
+        //           .fixedRateCurrencies,
+        //       excludedTicker:
+        //           ref.read(exchangeFormStateProvider).toTicker ?? "-",
+        //       fromTicker: fromTicker,
+        //       onSelected: (from) =>
+        //           ref.read(exchangeFormStateProvider).updateFrom(from, true));
+        //   break;
         default:
         // TODO show error?
       }
@@ -204,11 +233,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           currencies =
               ref.read(availableChangeNowCurrenciesProvider).currencies;
           break;
-        case SimpleSwapExchange.exchangeName:
-          currencies = ref
-              .read(availableSimpleswapCurrenciesProvider)
-              .floatingRateCurrencies;
-          break;
+        // case SimpleSwapExchange.exchangeName:
+        //   currencies = ref
+        //       .read(availableSimpleswapCurrenciesProvider)
+        //       .floatingRateCurrencies;
+        //   break;
         default:
           currencies = [];
       }
@@ -272,17 +301,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             },
           );
           break;
-        case SimpleSwapExchange.exchangeName:
-          await _showFloatingRateSelectionSheet(
-              currencies: ref
-                  .read(availableSimpleswapCurrenciesProvider)
-                  .fixedRateCurrencies,
-              excludedTicker:
-                  ref.read(exchangeFormStateProvider).fromTicker ?? "",
-              fromTicker: ref.read(exchangeFormStateProvider).fromTicker ?? "",
-              onSelected: (to) =>
-                  ref.read(exchangeFormStateProvider).updateTo(to, true));
-          break;
+        // case SimpleSwapExchange.exchangeName:
+        //   await _showFloatingRateSelectionSheet(
+        //       currencies: ref
+        //           .read(availableSimpleswapCurrenciesProvider)
+        //           .fixedRateCurrencies,
+        //       excludedTicker:
+        //           ref.read(exchangeFormStateProvider).fromTicker ?? "",
+        //       fromTicker: ref.read(exchangeFormStateProvider).fromTicker ?? "",
+        //       onSelected: (to) =>
+        //           ref.read(exchangeFormStateProvider).updateTo(to, true));
+        //   break;
         default:
         // TODO show error?
       }
@@ -374,12 +403,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       case ChangeNowExchange.exchangeName:
         allPairs = ref.read(availableChangeNowCurrenciesProvider).pairs;
         break;
-      case SimpleSwapExchange.exchangeName:
-        allPairs = ref.read(exchangeFormStateProvider).exchangeType ==
-                ExchangeRateType.fixed
-            ? ref.read(availableSimpleswapCurrenciesProvider).fixedRatePairs
-            : ref.read(availableSimpleswapCurrenciesProvider).floatingRatePairs;
-        break;
+      // case SimpleSwapExchange.exchangeName:
+      //   allPairs = ref.read(exchangeFormStateProvider).exchangeType ==
+      //           ExchangeRateType.fixed
+      //       ? ref.read(availableSimpleswapCurrenciesProvider).fixedRatePairs
+      //       : ref.read(availableSimpleswapCurrenciesProvider).floatingRatePairs;
+      //   break;
       default:
         allPairs = [];
     }
@@ -486,18 +515,18 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             .currencies
             .where((e) => e.ticker.toUpperCase() == ticker.toUpperCase());
         break;
-      case SimpleSwapExchange.exchangeName:
-        possibleCurrencies = [
-          ...ref
-              .read(availableSimpleswapCurrenciesProvider)
-              .fixedRateCurrencies
-              .where((e) => e.ticker.toUpperCase() == ticker.toUpperCase()),
-          ...ref
-              .read(availableSimpleswapCurrenciesProvider)
-              .floatingRateCurrencies
-              .where((e) => e.ticker.toUpperCase() == ticker.toUpperCase()),
-        ];
-        break;
+      // case SimpleSwapExchange.exchangeName:
+      //   possibleCurrencies = [
+      //     ...ref
+      //         .read(availableSimpleswapCurrenciesProvider)
+      //         .fixedRateCurrencies
+      //         .where((e) => e.ticker.toUpperCase() == ticker.toUpperCase()),
+      //     ...ref
+      //         .read(availableSimpleswapCurrenciesProvider)
+      //         .floatingRateCurrencies
+      //         .where((e) => e.ticker.toUpperCase() == ticker.toUpperCase()),
+      //   ];
+      //   break;
       default:
         possibleCurrencies = [];
     }
@@ -655,12 +684,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                   .pairs
                   .where((e) => e.to == toTicker && e.from == fromTicker);
               break;
-            case SimpleSwapExchange.exchangeName:
-              available = ref
-                  .read(availableSimpleswapCurrenciesProvider)
-                  .floatingRatePairs
-                  .where((e) => e.to == toTicker && e.from == fromTicker);
-              break;
+            // case SimpleSwapExchange.exchangeName:
+            //   available = ref
+            //       .read(availableSimpleswapCurrenciesProvider)
+            //       .floatingRatePairs
+            //       .where((e) => e.to == toTicker && e.from == fromTicker);
+            //   break;
             default:
               available = [];
           }
@@ -675,13 +704,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                     .where(
                         (e) => e.ticker == fromTicker || e.ticker == toTicker);
                 break;
-              case SimpleSwapExchange.exchangeName:
-                availableCurrencies = ref
-                    .read(availableSimpleswapCurrenciesProvider)
-                    .floatingRateCurrencies
-                    .where(
-                        (e) => e.ticker == fromTicker || e.ticker == toTicker);
-                break;
+              // case SimpleSwapExchange.exchangeName:
+              //   availableCurrencies = ref
+              //       .read(availableSimpleswapCurrenciesProvider)
+              //       .floatingRateCurrencies
+              //       .where(
+              //           (e) => e.ticker == fromTicker || e.ticker == toTicker);
+              //   break;
               default:
                 availableCurrencies = [];
             }
@@ -763,47 +792,47 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 Navigator.of(context, rootNavigator: isDesktop).pop();
               }
               return;
-            case SimpleSwapExchange.exchangeName:
-              final available = ref
-                  .read(availableSimpleswapCurrenciesProvider)
-                  .floatingRatePairs
-                  .where((e) => e.to == toTicker && e.from == fromTicker);
-              if (available.isNotEmpty) {
-                final availableCurrencies = ref
-                    .read(availableSimpleswapCurrenciesProvider)
-                    .fixedRateCurrencies
-                    .where(
-                        (e) => e.ticker == fromTicker || e.ticker == toTicker);
-                if (availableCurrencies.length > 1) {
-                  final from = availableCurrencies
-                      .firstWhere((e) => e.ticker == fromTicker);
-                  final to = availableCurrencies
-                      .firstWhere((e) => e.ticker == toTicker);
-
-                  final newFromAmount = Decimal.tryParse(_sendController.text);
-                  ref.read(exchangeFormStateProvider).fromAmount =
-                      newFromAmount ?? Decimal.zero;
-                  if (newFromAmount == null) {
-                    _receiveController.text = "";
-                  }
-
-                  await ref.read(exchangeFormStateProvider).updateTo(to, false);
-                  await ref
-                      .read(exchangeFormStateProvider)
-                      .updateFrom(from, true);
-
-                  _receiveController.text =
-                      ref.read(exchangeFormStateProvider).toAmountString.isEmpty
-                          ? "-"
-                          : ref.read(exchangeFormStateProvider).toAmountString;
-                  if (mounted) {
-                    Navigator.of(context, rootNavigator: isDesktop).pop();
-                  }
-                  return;
-                }
-              }
-
-              break;
+            // case SimpleSwapExchange.exchangeName:
+            //   final available = ref
+            //       .read(availableSimpleswapCurrenciesProvider)
+            //       .floatingRatePairs
+            //       .where((e) => e.to == toTicker && e.from == fromTicker);
+            //   if (available.isNotEmpty) {
+            //     final availableCurrencies = ref
+            //         .read(availableSimpleswapCurrenciesProvider)
+            //         .fixedRateCurrencies
+            //         .where(
+            //             (e) => e.ticker == fromTicker || e.ticker == toTicker);
+            //     if (availableCurrencies.length > 1) {
+            //       final from = availableCurrencies
+            //           .firstWhere((e) => e.ticker == fromTicker);
+            //       final to = availableCurrencies
+            //           .firstWhere((e) => e.ticker == toTicker);
+            //
+            //       final newFromAmount = Decimal.tryParse(_sendController.text);
+            //       ref.read(exchangeFormStateProvider).fromAmount =
+            //           newFromAmount ?? Decimal.zero;
+            //       if (newFromAmount == null) {
+            //         _receiveController.text = "";
+            //       }
+            //
+            //       await ref.read(exchangeFormStateProvider).updateTo(to, false);
+            //       await ref
+            //           .read(exchangeFormStateProvider)
+            //           .updateFrom(from, true);
+            //
+            //       _receiveController.text =
+            //           ref.read(exchangeFormStateProvider).toAmountString.isEmpty
+            //               ? "-"
+            //               : ref.read(exchangeFormStateProvider).toAmountString;
+            //       if (mounted) {
+            //         Navigator.of(context, rootNavigator: isDesktop).pop();
+            //       }
+            //       return;
+            //     }
+            //   }
+            //
+            //   break;
             default:
             //
           }
@@ -844,12 +873,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 .pairs
                 .where((e) => e.to == toTicker && e.from == fromTicker);
             break;
-          case SimpleSwapExchange.exchangeName:
-            availableFloatingPairs = ref
-                .read(availableSimpleswapCurrenciesProvider)
-                .floatingRatePairs
-                .where((e) => e.to == toTicker && e.from == fromTicker);
-            break;
+          // case SimpleSwapExchange.exchangeName:
+          //   availableFloatingPairs = ref
+          //       .read(availableSimpleswapCurrenciesProvider)
+          //       .floatingRatePairs
+          //       .where((e) => e.to == toTicker && e.from == fromTicker);
+          //   break;
           default:
             availableFloatingPairs = [];
         }
@@ -1117,38 +1146,43 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           : ref.read(exchangeFormStateProvider).toAmountString;
     }
 
-    _sendFocusNode.addListener(() async {
-      if (!_sendFocusNode.hasFocus) {
-        final newFromAmount = Decimal.tryParse(_sendController.text);
-        await ref
-            .read(exchangeFormStateProvider)
-            .setFromAmountAndCalculateToAmount(
-                newFromAmount ?? Decimal.zero, true);
-
-        if (newFromAmount == null) {
-          _receiveController.text =
-              ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-                      ExchangeRateType.estimated
-                  ? "-"
-                  : "";
-        }
-      }
-    });
-    _receiveFocusNode.addListener(() async {
-      if (!_receiveFocusNode.hasFocus) {
-        final newToAmount = Decimal.tryParse(_receiveController.text);
-        if (ref.read(prefsChangeNotifierProvider).exchangeRateType !=
-            ExchangeRateType.estimated) {
-          await ref
-              .read(exchangeFormStateProvider)
-              .setToAmountAndCalculateFromAmount(
-                  newToAmount ?? Decimal.zero, true);
-        }
-        if (newToAmount == null) {
-          _sendController.text = "";
-        }
-      }
-    });
+    // _sendFocusNode.addListener(() async {
+    //   if (!_sendFocusNode.hasFocus) {
+    //     final newFromAmount = Decimal.tryParse(_sendController.text);
+    //     await ref
+    //         .read(exchangeFormStateProvider)
+    //         .setFromAmountAndCalculateToAmount(
+    //             newFromAmount ?? Decimal.zero, true);
+    //
+    //     debugPrint("SendFocusNode has fired");
+    //
+    //     if (newFromAmount == null) {
+    //       _receiveController.text =
+    //           ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+    //                   ExchangeRateType.estimated
+    //               ? "-"
+    //               : "";
+    //     }
+    //   }
+    // });
+    //
+    // _receiveFocusNode.addListener(() async {
+    //   if (!_receiveFocusNode.hasFocus) {
+    //     final newToAmount = Decimal.tryParse(_receiveController.text);
+    //     if (ref.read(prefsChangeNotifierProvider).exchangeRateType !=
+    //         ExchangeRateType.estimated) {
+    //       await ref
+    //           .read(exchangeFormStateProvider)
+    //           .setToAmountAndCalculateFromAmount(
+    //               newToAmount ?? Decimal.zero, true);
+    //
+    //       debugPrint("ReceiveFocusNode has fired");
+    //     }
+    //     if (newToAmount == null) {
+    //       _sendController.text = "";
+    //     }
+    //   }
+    // });
 
     super.initState();
   }
@@ -1164,6 +1198,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    // provider for simpleswap; not called rn
     ref.listen<String>(currentExchangeNameStateProvider, (previous, next) {
       ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
     });
@@ -1176,12 +1211,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         exchangeFormStateProvider.select((value) => value.toAmountString),
         (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
-        _receiveController.text = isEstimated &&
-                ref.watch(exchangeProvider).name ==
-                    SimpleSwapExchange.exchangeName &&
-                next.isEmpty
-            ? "-"
-            : next;
+        // ref.watch(exchangeProvider).name ==
+        //     SimpleSwapExchange.exchangeName &&
+        _receiveController.text = isEstimated && next.isEmpty ? "-" : next;
         //todo: check if print needed
         // debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
@@ -1334,10 +1366,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           ticker: ref.watch(
               exchangeFormStateProvider.select((value) => value.toTicker)),
           readOnly: ref.watch(prefsChangeNotifierProvider
-                      .select((value) => value.exchangeRateType)) ==
-                  ExchangeRateType.estimated ||
-              ref.watch(exchangeProvider).name ==
-                  SimpleSwapExchange.exchangeName,
+                  .select((value) => value.exchangeRateType)) ==
+              ExchangeRateType.estimated,
+          // ||
+          // ref.watch(exchangeProvider).name ==
+          //     SimpleSwapExchange.exchangeName,
         ),
         if (ref
                 .watch(
@@ -1359,13 +1392,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             onChanged: onRateTypeChanged,
           ),
         ),
-        if (ref.read(exchangeFormStateProvider).fromAmount != null &&
-            ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
+        // these reads should be watch
+        if (ref.watch(exchangeFormStateProvider).fromAmount != null &&
+            ref.watch(exchangeFormStateProvider).fromAmount != Decimal.zero)
           SizedBox(
             height: isDesktop ? 20 : 12,
           ),
-        if (ref.read(exchangeFormStateProvider).fromAmount != null &&
-            ref.read(exchangeFormStateProvider).fromAmount != Decimal.zero)
+        // these reads should be watch
+        if (ref.watch(exchangeFormStateProvider).fromAmount != null &&
+            ref.watch(exchangeFormStateProvider).fromAmount != Decimal.zero)
           ExchangeProviderOptions(
             from: ref.watch(exchangeFormStateProvider).fromTicker,
             to: ref.watch(exchangeFormStateProvider).toTicker,

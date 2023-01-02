@@ -60,6 +60,14 @@ class CoinWalletsTable extends ConsumerWidget {
                             ref.read(currentWalletIdProvider.state).state =
                                 walletIds[i];
 
+                            final manager = ref
+                                .read(walletsChangeNotifierProvider)
+                                .getManager(walletIds[i]);
+                            if (manager.coin == Coin.monero ||
+                                manager.coin == Coin.wownero) {
+                              await manager.initializeExisting();
+                            }
+
                             await Navigator.of(context).pushNamed(
                               DesktopWalletView.routeName,
                               arguments: walletIds[i],

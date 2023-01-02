@@ -7,7 +7,7 @@ import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.d
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
+// import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
@@ -53,8 +53,8 @@ class ExchangeFormState extends ChangeNotifier {
         return _from?.ticker;
       case ExchangeRateType.fixed:
         switch (exchange?.name) {
-          case SimpleSwapExchange.exchangeName:
-            return _from?.ticker;
+          // case SimpleSwapExchange.exchangeName:
+          //   return _from?.ticker;
           case ChangeNowExchange.exchangeName:
             return market?.from;
           default:
@@ -69,8 +69,8 @@ class ExchangeFormState extends ChangeNotifier {
         return _to?.ticker;
       case ExchangeRateType.fixed:
         switch (exchange?.name) {
-          case SimpleSwapExchange.exchangeName:
-            return _to?.ticker;
+          // case SimpleSwapExchange.exchangeName:
+          //   return _to?.ticker;
           case ChangeNowExchange.exchangeName:
             return market?.to;
           default:
@@ -296,9 +296,9 @@ class ExchangeFormState extends ChangeNotifier {
   }
 
   Future<void> updateRanges({required bool shouldNotifyListeners}) async {
-    if (exchange?.name == SimpleSwapExchange.exchangeName) {
-      reversed = false;
-    }
+    // if (exchange?.name == SimpleSwapExchange.exchangeName) {
+    //   reversed = false;
+    // }
     final _fromTicker = reversed ? toTicker : fromTicker;
     final _toTicker = reversed ? fromTicker : toTicker;
     if (_fromTicker == null || _toTicker == null) {
@@ -340,9 +340,9 @@ class ExchangeFormState extends ChangeNotifier {
     required bool shouldNotifyListeners,
     required bool reversed,
   }) async {
-    if (exchange?.name == SimpleSwapExchange.exchangeName) {
-      reversed = false;
-    }
+    // if (exchange?.name == SimpleSwapExchange.exchangeName) {
+    //   reversed = false;
+    // }
     final amount = reversed ? toAmount : fromAmount;
     if (fromTicker == null ||
         toTicker == null ||

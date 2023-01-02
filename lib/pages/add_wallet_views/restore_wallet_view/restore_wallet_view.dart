@@ -736,6 +736,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           child: Column(
                                             children: [
                                               TextFormField(
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
                                                 textCapitalization:
                                                     TextCapitalization.none,
                                                 key: Key(
@@ -831,6 +833,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           child: Column(
                                             children: [
                                               TextFormField(
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
                                                 textCapitalization:
                                                     TextCapitalization.none,
                                                 key: Key(
@@ -954,6 +958,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     padding:
                                         const EdgeInsets.symmetric(vertical: 4),
                                     child: TextFormField(
+                                      autocorrect: !isDesktop,
+                                      enableSuggestions: !isDesktop,
                                       textCapitalization:
                                           TextCapitalization.none,
                                       key: Key("restoreMnemonicFormField_$i"),

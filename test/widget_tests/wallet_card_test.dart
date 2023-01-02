@@ -43,6 +43,9 @@ void main() {
     mockito
         .when(wallets.getManagerProvider("wallet id"))
         .thenAnswer((realInvocation) => managerProvider);
+    mockito
+        .when(wallets.getManager("wallet id"))
+        .thenAnswer((realInvocation) => manager);
 
     final navigator = mockingjay.MockNavigator();
     mockingjay

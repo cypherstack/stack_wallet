@@ -178,7 +178,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
-          secureStore: secureStorageInterface,
+          secureStorage: secureStorageInterface,
           // tracker: tracker,
         );
 
@@ -197,7 +197,7 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
-          secureStore: secureStorageInterface,
+          secureStorage: secureStorageInterface,
           // tracker: tracker,
         );
 
