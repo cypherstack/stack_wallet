@@ -63,10 +63,10 @@ class EthereumWallet extends CoinServiceAPI {
   late PriceAPI _priceAPI;
   final _prefs = Prefs.instance;
   final _client = Web3Client(
-      "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
-      Client());
+      "https://goerli.infura.io/v3/22677300bf774e49a458b73313ee56ba", Client());
 
   late EthPrivateKey _credentials;
+  int _chainId = 5; //5 for testnet and 1 for mainnet
 
   EthereumWallet(
       {required String walletId,
@@ -107,6 +107,7 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   Future<Decimal> get availableBalance async {
     EtherAmount ethBalance = await _client.getBalance(_credentials.address);
+    print("THIS ETH BALANCE IS $ethBalance");
     return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
   }
 
@@ -126,10 +127,8 @@ class EthereumWallet extends CoinServiceAPI {
         gasPrice: gasPrice,
         maxGas: 21000,
         value: EtherAmount.inWei(bigIntAmount));
-    final transaction = await _client.sendTransaction(
-      _credentials,
-      tx,
-    );
+    final transaction =
+        await _client.sendTransaction(_credentials, tx, chainId: _chainId);
 
     Logging.instance.log("Generated TX IS  $transaction", level: LogLevel.Info);
     return transaction;
@@ -195,6 +194,13 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<void> initializeExisting() async {
+    //First get mnemonic so we can initialize credentials
+    final mnemonicString =
+        await _secureStore.read(key: '${_walletId}_mnemonic');
+
+    _credentials =
+        EthPrivateKey.fromHex(StringToHex.toHexString(mnemonicString));
+
     Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
@@ -215,14 +221,13 @@ class EthereumWallet extends CoinServiceAPI {
   Future<void> initializeNew() async {
     await _prefs.init();
     final String mnemonic = bip39.generateMnemonic(strength: 256);
-    print("Mnemonic is $mnemonic");
     _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
 
-    final String password = generatePassword();
-    var rng = Random.secure();
-    Wallet wallet = Wallet.createNew(_credentials, password, rng);
-
     await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
+
+    //Store credentials in secure store
+    await _secureStore.write(
+        key: '${_walletId}_credentials', value: _credentials.toString());
 
     await DB.instance
         .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
@@ -329,10 +334,6 @@ class EthereumWallet extends CoinServiceAPI {
     print("Mnemonic is $mnemonic");
     _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
 
-    final String password = generatePassword();
-    var rng = Random.secure();
-    Wallet wallet = Wallet.createNew(_credentials, password, rng);
-
     await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
 
     await DB.instance
@@ -360,13 +361,13 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   Future<void> refresh() async {
     print("CALLING REFRESH");
-    if (refreshMutex) {
-      Logging.instance.log("$walletId $walletName refreshMutex denied",
-          level: LogLevel.Info);
-      return;
-    } else {
-      refreshMutex = true;
-    }
+    // if (refreshMutex) {
+    //   Logging.instance.log("$walletId $walletName refreshMutex denied",
+    //       level: LogLevel.Info);
+    //   return;
+    // } else {
+    //   refreshMutex = true;
+    // }
 
     print("SYNC STATUS IS ");
     final blockNumber = await _client.getBlockNumber();
@@ -385,6 +386,7 @@ class EthereumWallet extends CoinServiceAPI {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 
       final currentHeight = await chainHeight;
+      print("CURRENT CHAIN HEIGHT IS $currentHeight");
       const storedHeight = 1; //await storedChainHeight;
 
       Logging.instance
@@ -398,7 +400,7 @@ class EthereumWallet extends CoinServiceAPI {
           unawaited(updateStoredChainHeight(newHeight: currentHeight));
         }
 
-        final newTxData = _fetchTransactionData();
+        final newTxData = await _fetchTransactionData();
         print("RETREIVED TX DATA IS $newTxData");
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
@@ -482,17 +484,18 @@ class EthereumWallet extends CoinServiceAPI {
     String thisAddress = await currentReceivingAddress;
     int currentBlock = await chainHeight;
     var balance = await availableBalance;
+    print("MY ADDRESS HERE IS $thisAddress");
     var n =
         await _client.getTransactionCount(EthereumAddress.fromHex(thisAddress));
 
-    for (var i = currentBlock; i >= 0 && (n > 0); --i) {
+    for (int i = currentBlock;
+        i >= 0 && (n > 0 || balance.toDouble() > 0.0);
+        --i) {
       try {
         // print(StringToHex.toHexString(i.toString()))
-        print(
-            "BLOCK IS $i --------->>>>>>> ${StringToHex.toHexString(i.toString())}");
+        print("BLOCK IS $i --------->>>>>>>");
         var block = await _client.getBlockInformation(
-            blockNumber: StringToHex.toHexString(i.toString()),
-            isContainFullObj: true);
+            blockNumber: i.toString(), isContainFullObj: true);
         // var block = await _client.getBlockInformation()
         print(block);
         // if (block && block.t) {
@@ -500,7 +503,7 @@ class EthereumWallet extends CoinServiceAPI {
         // }
 
       } catch (e, s) {
-        print("Error getting transactions ${e.toString()}");
+        print("Error getting transactions ${e.toString()} $s");
       }
     }
 
@@ -508,7 +511,9 @@ class EthereumWallet extends CoinServiceAPI {
     print("THIS CURRECT BLOCK IS $currentBlock");
     print("THIS BALANCE IS $balance");
     print("THIS COUNT TRANSACTIONS IS $n");
-    throw UnimplementedError();
+
+    return TransactionData();
+    // throw UnimplementedError();
   }
 
   @override
