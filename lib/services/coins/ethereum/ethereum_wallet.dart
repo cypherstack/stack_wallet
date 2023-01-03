@@ -1,10 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:cw_core/sec_random_native.dart';
 import 'package:decimal/decimal.dart';
-import 'package:intl/intl.dart';
-import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/paymint/utxo_model.dart';
@@ -487,21 +485,33 @@ class EthereumWallet extends CoinServiceAPI {
     print("MY ADDRESS HERE IS $thisAddress");
     var n =
         await _client.getTransactionCount(EthereumAddress.fromHex(thisAddress));
-
+    print("TRANSACTION COUNT IS $n");
+    String hexHeight = currentBlock.toRadixString(16);
+    print("HEIGHT TO HEX IS $hexHeight");
+    print('0x$hexHeight');
     for (int i = currentBlock;
         i >= 0 && (n > 0 || balance.toDouble() > 0.0);
         --i) {
       try {
         // print(StringToHex.toHexString(i.toString()))
-        print("BLOCK IS $i --------->>>>>>>");
+        print(
+            "BLOCK IS $i   AND HEX IS --------->>>>>>> ${StringToHex.toHexString(i.toString())}");
+        String blockHex = i.toRadixString(16);
         var block = await _client.getBlockInformation(
-            blockNumber: i.toString(), isContainFullObj: true);
-        // var block = await _client.getBlockInformation()
-        print(block);
-        // if (block && block.t) {
-        //
-        // }
+            blockNumber: '0x$blockHex', isContainFullObj: true);
 
+        if (block != null && block.transactions != null) {
+          block.transactions.forEach((element) {
+            if (thisAddress == element.from) {
+              if (element.from != element.to) {
+                Logging.instance.log(
+                    "TX SENT FROM THIS ACCOUNT  ${element.from} ${element.to}",
+                    level: LogLevel.Info);
+                --n;
+              }
+            }
+          });
+        }
       } catch (e, s) {
         print("Error getting transactions ${e.toString()} $s");
       }
