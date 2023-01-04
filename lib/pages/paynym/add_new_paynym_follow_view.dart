@@ -439,6 +439,11 @@ class _AddNewPaynymFollowViewState
             if (_didSearch && _searchResult != null)
               RoundedWhiteContainer(
                 padding: const EdgeInsets.all(0),
+                borderColor: isDesktop
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar
+                    : null,
                 child: PaynymCard(
                   label: _searchResult!.nymName,
                   paymentCodeString: _searchResult!.codes.first.code,

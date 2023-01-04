@@ -4,9 +4,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class PaynymCard extends StatefulWidget {
   const PaynymCard({
@@ -29,67 +27,58 @@ class _PaynymCardState extends State<PaynymCard> {
 
   @override
   Widget build(BuildContext context) {
-    return ConditionalParent(
-      condition: isDesktop,
-      builder: (child) => RoundedWhiteContainer(
-        padding: const EdgeInsets.all(0),
-        borderColor:
-            Theme.of(context).extension<StackColors>()!.backgroundAppBar,
-        child: child,
-      ),
-      child: Padding(
-        padding: isDesktop
-            ? const EdgeInsets.symmetric(
-                vertical: 16,
-                horizontal: 20,
-              )
-            : const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            PayNymBot(
-              size: 32,
-              paymentCodeString: widget.paymentCodeString,
+    return Padding(
+      padding: isDesktop
+          ? const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 20,
+            )
+          : const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          PayNymBot(
+            size: 32,
+            paymentCodeString: widget.paymentCodeString,
+          ),
+          const SizedBox(
+            width: 12,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.label,
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldActiveText,
+                        )
+                      : STextStyles.w500_12(context),
+                ),
+                const SizedBox(
+                  height: 2,
+                ),
+                Text(
+                  Format.shorten(widget.paymentCodeString, 12, 5),
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.w500_12(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        ),
+                ),
+              ],
             ),
-            const SizedBox(
-              width: 12,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.label,
-                    style: isDesktop
-                        ? STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveText,
-                          )
-                        : STextStyles.w500_12(context),
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  Text(
-                    Format.shorten(widget.paymentCodeString, 12, 5),
-                    style: isDesktop
-                        ? STextStyles.desktopTextExtraExtraSmall(context)
-                        : STextStyles.w500_12(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                          ),
-                  ),
-                ],
-              ),
-            ),
-            PaynymFollowToggleButton(
-              walletId: widget.walletId,
-              paymentCodeStringToFollow: widget.paymentCodeString,
-            ),
-          ],
-        ),
+          ),
+          PaynymFollowToggleButton(
+            walletId: widget.walletId,
+            paymentCodeStringToFollow: widget.paymentCodeString,
+          ),
+        ],
       ),
     );
   }

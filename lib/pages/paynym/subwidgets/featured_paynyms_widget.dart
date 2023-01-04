@@ -41,10 +41,20 @@ class FeaturedPaynymsWidget extends StatelessWidget {
                               .backgroundAppBar,
                           height: 1,
                         ),
-                PaynymCard(
-                  walletId: walletId,
-                  label: entries[i].key,
-                  paymentCodeString: entries[i].value,
+                ConditionalParent(
+                  condition: isDesktop,
+                  builder: (child) => RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
+                    child: child,
+                  ),
+                  child: PaynymCard(
+                    walletId: walletId,
+                    label: entries[i].key,
+                    paymentCodeString: entries[i].value,
+                  ),
                 ),
               ],
             ),
