@@ -26,14 +26,15 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       loginName: fields[5] as String?,
       coinName: fields[7] as String,
       isFailover: fields[8] as bool,
-      isDown: fields[8] as bool,
+      isDown: fields[9] as bool,
+      trusted: fields[10] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, NodeModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -54,6 +55,8 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       ..write(obj.isFailover)
       ..writeByte(9)
       ..write(obj.isDown);
+      ..writeByte(10)
+      ..write(obj.trusted);
   }
 
   @override
