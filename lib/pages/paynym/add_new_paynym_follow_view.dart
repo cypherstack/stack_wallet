@@ -419,12 +419,19 @@ class _AddNewPaynymFollowViewState
               ),
             if (_didSearch && _searchResult == null)
               RoundedWhiteContainer(
+                borderColor: isDesktop
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar
+                    : null,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       "Nothing found. Please check the payment code.",
-                      style: STextStyles.label(context),
+                      style: isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                          : STextStyles.label(context),
                     ),
                   ],
                 ),
