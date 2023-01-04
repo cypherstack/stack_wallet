@@ -237,7 +237,7 @@ class _PaynymFollowToggleButtonState
   Widget build(BuildContext context) {
     return PrimaryButton(
       width: isDesktop ? 120 : 84,
-      buttonHeight: ButtonHeight.l,
+      buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
       label: isFollowing ? "Unfollow" : "Follow",
       onPressed: () async {
         if (!_lock) {
