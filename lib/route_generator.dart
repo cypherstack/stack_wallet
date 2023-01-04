@@ -85,6 +85,8 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/desktop_address_book.dart';
+// import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_buys_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
@@ -1059,6 +1061,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const DesktopExchangeView(),
+            settings: RouteSettings(name: settings.name));
+
+      case DesktopBuyView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopBuyView(),
             settings: RouteSettings(name: settings.name));
 
       case DesktopAllTradesView.routeName:

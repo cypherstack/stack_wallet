@@ -12,6 +12,7 @@ import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
 enum DesktopMenuItemId {
   myStack,
   exchange,
+  buy,
   notifications,
   addressBook,
   settings,
@@ -65,6 +66,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   @override
   void initState() {
     controllers = [
+      DMIController(),
       DMIController(),
       DMIController(),
       DMIController(),
@@ -153,6 +155,17 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       value: DesktopMenuItemId.exchange,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[1],
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
+                    DesktopMenuItem(
+                      duration: duration,
+                      icon: const DesktopBuyIcon(),
+                      label: "Buy",
+                      value: DesktopMenuItemId.buy,
+                      onChanged: updateSelectedMenuItem,
+                      controller: controllers[2],
                     ),
                     const SizedBox(
                       height: 2,

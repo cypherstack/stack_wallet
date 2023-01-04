@@ -9,6 +9,7 @@ abstract class Assets {
   static const lottie = _ANIMATIONS();
   static const socials = _SOCIALS();
   static const exchange = _EXCHANGE();
+  static const buy = _BUY();
 }
 
 class _SOCIALS {
@@ -25,6 +26,12 @@ class _EXCHANGE {
 
   String get changeNow => "assets/svg/exchange_icons/change_now_logo_1.svg";
   String get simpleSwap => "assets/svg/exchange_icons/simpleswap-icon.svg";
+}
+
+class _BUY {
+  const _BUY();
+
+  String get buy => "assets/svg/light/buy-coins-icon.svg";
 }
 
 class _SVG {
@@ -162,6 +169,7 @@ class _SVG {
   String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
   String get addressBookDesktop => "assets/svg/address-book-desktop.svg";
   String get exchangeDesktop => "assets/svg/exchange-desktop.svg";
+  String get buyDesktop => "assets/svg/light/buy-coins-icon.svg";
   String get aboutDesktop => "assets/svg/about-desktop.svg";
   String get walletDesktop => "assets/svg/wallet-desktop.svg";
   String get exitDesktop => "assets/svg/exit-desktop.svg";
