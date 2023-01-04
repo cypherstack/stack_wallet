@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_card.dart';
@@ -48,13 +50,19 @@ class _PaynymFollowingListState extends ConsumerState<PaynymFollowingList> {
 
   @override
   Widget build(BuildContext context) {
-    final count =
-        ref.watch(myPaynymAccountStateProvider.state).state?.following.length ??
-            0;
-    if (count == 0) {
-      return Column(
-        children: [
-          RoundedWhiteContainer(
+    final following =
+        ref.watch(myPaynymAccountStateProvider.state).state?.following;
+    final count = following?.length ?? 0;
+
+    return ListView.separated(
+      itemCount: max(count, 1),
+      separatorBuilder: (BuildContext context, int index) => Container(
+        height: 1.5,
+        color: Colors.transparent,
+      ),
+      itemBuilder: (BuildContext context, int index) {
+        if (count == 0) {
+          return RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -71,56 +79,38 @@ class _PaynymFollowingListState extends ConsumerState<PaynymFollowingList> {
                 ),
               ],
             ),
-          ),
-        ],
-      );
-    } else {
-      final following =
-          ref.watch(myPaynymAccountStateProvider.state).state!.following;
-
-      if (count == 1) {
-        return Column(
-          children: [
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(0),
-              child: PaynymCard(
-                walletId: widget.walletId,
-                label: following[0].nymName,
-                paymentCodeString: following[0].code,
-              ),
+          );
+        } else if (count == 1) {
+          return RoundedWhiteContainer(
+            padding: const EdgeInsets.all(0),
+            child: PaynymCard(
+              walletId: widget.walletId,
+              label: following![0].nymName,
+              paymentCodeString: following[0].code,
             ),
-          ],
-        );
-      } else {
-        return ListView.separated(
-          itemCount: count,
-          separatorBuilder: (BuildContext context, int index) => Container(
-            height: 1.5,
-            color: Colors.transparent,
-          ),
-          itemBuilder: (BuildContext context, int index) {
-            BorderRadius? borderRadius;
-            if (index == 0) {
-              borderRadius = _borderRadiusFirst;
-            } else if (index == count - 1) {
-              borderRadius = _borderRadiusLast;
-            }
+          );
+        } else {
+          BorderRadius? borderRadius;
+          if (index == 0) {
+            borderRadius = _borderRadiusFirst;
+          } else if (index == count - 1) {
+            borderRadius = _borderRadiusLast;
+          }
 
-            return Container(
-              key: Key("paynymCardKey_${following[index].nymId}"),
-              decoration: BoxDecoration(
-                borderRadius: borderRadius,
-                color: Theme.of(context).extension<StackColors>()!.popupBG,
-              ),
-              child: PaynymCard(
-                walletId: widget.walletId,
-                label: following[index].nymName,
-                paymentCodeString: following[index].code,
-              ),
-            );
-          },
-        );
-      }
-    }
+          return Container(
+            key: Key("paynymCardKey_${following![index].nymId}"),
+            decoration: BoxDecoration(
+              borderRadius: borderRadius,
+              color: Theme.of(context).extension<StackColors>()!.popupBG,
+            ),
+            child: PaynymCard(
+              walletId: widget.walletId,
+              label: following[index].nymName,
+              paymentCodeString: following[index].code,
+            ),
+          );
+        }
+      },
+    );
   }
 }

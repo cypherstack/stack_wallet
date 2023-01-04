@@ -165,7 +165,7 @@ class _AddNewPaynymFollowViewState
           ),
           titleSpacing: 0,
           title: Text(
-            "Add new",
+            "New follow",
             style: STextStyles.navBarTitle(context),
             overflow: TextOverflow.ellipsis,
           ),
@@ -201,7 +201,7 @@ class _AddNewPaynymFollowViewState
                   Padding(
                     padding: const EdgeInsets.only(left: 32),
                     child: Text(
-                      "Add new",
+                      "New follow",
                       style: STextStyles.desktopH3(context),
                     ),
                   ),

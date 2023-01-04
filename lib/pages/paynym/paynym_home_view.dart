@@ -138,7 +138,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "Add new",
+                                  "Follow",
                                   style:
                                       STextStyles.desktopButtonSecondaryEnabled(
                                               context)
