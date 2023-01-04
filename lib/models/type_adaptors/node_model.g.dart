@@ -54,7 +54,7 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       ..writeByte(8)
       ..write(obj.isFailover)
       ..writeByte(9)
-      ..write(obj.isDown);
+      ..write(obj.isDown)
       ..writeByte(10)
       ..write(obj.trusted);
   }
