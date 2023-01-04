@@ -17,6 +17,9 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
+import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
+import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -36,9 +39,14 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/hover_text_field.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../pages/paynym/paynym_claim_view.dart';
+import '../../../pages/paynym/paynym_home_view.dart';
+import '../../../providers/global/paynym_api_provider.dart';
 
 /// [eventBus] should only be set during testing
 class DesktopWalletView extends ConsumerStatefulWidget {
@@ -281,6 +289,51 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     }
   }
 
+  Future<void> onPaynymButtonPressed() async {
+    unawaited(
+      showDialog(
+        context: context,
+        builder: (context) => const LoadingIndicator(
+          width: 100,
+        ),
+      ),
+    );
+
+    // todo make generic and not doge specific
+    final wallet = (ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as DogecoinWallet);
+
+    final code = await wallet.getPaymentCode();
+
+    final account = await ref.read(paynymAPIProvider).nym(code.toString());
+
+    Logging.instance.log(
+      "my nym account: $account",
+      level: LogLevel.Info,
+    );
+
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+
+      // check if account exists and for matching code to see if claimed
+      if (account.value != null && account.value!.codes.first.claimed) {
+        ref.read(myPaynymAccountStateProvider.state).state = account.value!;
+
+        await Navigator.of(context).pushNamed(
+          PaynymHomeView.routeName,
+          arguments: widget.walletId,
+        );
+      } else {
+        await Navigator.of(context).pushNamed(
+          PaynymClaimView.routeName,
+          arguments: widget.walletId,
+        );
+      }
+    }
+  }
+
   @override
   void initState() {
     controller = TextEditingController();
@@ -481,6 +534,21 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                           ),
                         );
                       },
+                    ),
+                  if (coin.hasPaynymSupport)
+                    SecondaryButton(
+                      label: "PayNym",
+                      width: 160,
+                      buttonHeight: ButtonHeight.l,
+                      icon: SvgPicture.asset(
+                        Assets.svg.user,
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonTextSecondary,
+                      ),
+                      onPressed: onPaynymButtonPressed,
                     ),
                   // if (coin == Coin.firo) const SizedBox(width: 16),
                   // SecondaryButton(
