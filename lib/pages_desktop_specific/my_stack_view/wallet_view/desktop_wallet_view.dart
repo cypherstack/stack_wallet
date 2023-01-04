@@ -8,6 +8,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
+import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
+import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_button.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/my_wallet.dart';
@@ -15,6 +17,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/recent_desktop_transactions.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_button.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
+import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
@@ -43,10 +46,6 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../pages/paynym/paynym_claim_view.dart';
-import '../../../pages/paynym/paynym_home_view.dart';
-import '../../../providers/global/paynym_api_provider.dart';
 
 /// [eventBus] should only be set during testing
 class DesktopWalletView extends ConsumerStatefulWidget {
