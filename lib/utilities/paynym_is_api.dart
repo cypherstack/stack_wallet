@@ -106,7 +106,7 @@ class PaynymIsApi {
         message = "Bad request";
         break;
       default:
-        message = "Unknown error";
+        message = result.item1["message"] as String? ?? "Unknown error";
     }
     return PaynymResponse(value, result.item2, message);
   }
@@ -167,7 +167,7 @@ class PaynymIsApi {
         message = "Bad request";
         break;
       default:
-        message = "Unknown error";
+        message = result.item1["message"] as String? ?? "Unknown error";
     }
     return PaynymResponse(value, result.item2, message);
   }
@@ -250,8 +250,7 @@ class PaynymIsApi {
           message = "Bad request";
           break;
         default:
-          message = "Unknown error";
-          statusCode = -1;
+          message = result.item1["message"] as String? ?? "Unknown error";
       }
     } catch (e) {
       value = null;
@@ -333,7 +332,7 @@ class PaynymIsApi {
         message = "Bad request";
         break;
       default:
-        message = "Unknown error";
+        message = result.item1["message"] as String? ?? "Unknown error";
     }
     return PaynymResponse(value, result.item2, message);
   }
@@ -414,7 +413,7 @@ class PaynymIsApi {
         message = "Unauthorized token or signature or Unclaimed payment code";
         break;
       default:
-        message = "Unknown error";
+        message = result.item1["message"] as String? ?? "Unknown error";
     }
     return PaynymResponse(value, result.item2, message);
   }
@@ -495,7 +494,7 @@ class PaynymIsApi {
         message = "Unauthorized token or signature or Unclaimed payment code";
         break;
       default:
-        message = "Unknown error";
+        message = result.item1["message"] as String? ?? "Unknown error";
     }
     return PaynymResponse(value, result.item2, message);
   }
