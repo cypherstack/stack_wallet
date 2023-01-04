@@ -108,9 +108,11 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.of(context).pushNamed(
-                        AddNewPaynymFollowView.routeName,
-                        arguments: widget.walletId,
+                      showDialog<void>(
+                        context: context,
+                        builder: (context) => AddNewPaynymFollowView(
+                          walletId: widget.walletId,
+                        ),
                       );
                     },
                     child: Container(
@@ -134,7 +136,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "Follow",
+                                  "Add new",
                                   style:
                                       STextStyles.desktopButtonSecondaryEnabled(
                                               context)

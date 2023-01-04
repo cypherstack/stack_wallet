@@ -14,12 +14,16 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/paynym_search_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -49,6 +53,8 @@ class _AddNewPaynymFollowViewState
   bool _didSearch = false;
   PaynymAccount? _searchResult;
 
+  final isDesktop = Util.isDesktop;
+
   Future<void> _search() async {
     _didSearch = true;
     bool didPopLoading = false;
@@ -75,6 +81,60 @@ class _AddNewPaynymFollowViewState
     }
   }
 
+  Future<void> _clear() async {
+    _searchString = "";
+    setState(() {
+      _searchController.text = "";
+    });
+  }
+
+  Future<void> _paste() async {
+    final ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      String content = data.text!.trim();
+      if (content.contains("\n")) {
+        content = content.substring(
+          0,
+          content.indexOf(
+            "\n",
+          ),
+        );
+      }
+
+      _searchString = content;
+      setState(() {
+        _searchController.text = content;
+        _searchController.selection = TextSelection.collapsed(
+          offset: content.length,
+        );
+      });
+    }
+  }
+
+  Future<void> _scanQr() async {
+    try {
+      if (!isDesktop && FocusScope.of(context).hasFocus) {
+        FocusScope.of(context).unfocus();
+        await Future<void>.delayed(const Duration(milliseconds: 75));
+      }
+
+      final qrResult = await const BarcodeScannerWrapper().scan();
+
+      final pCodeString = qrResult.rawContent;
+
+      _searchString = pCodeString;
+
+      setState(() {
+        _searchController.text = pCodeString;
+        _searchController.selection = TextSelection.collapsed(
+          offset: pCodeString.length,
+        );
+      });
+    } catch (_) {
+      // scan failed
+    }
+  }
+
   @override
   void initState() {
     _searchController = TextEditingController();
@@ -92,26 +152,25 @@ class _AddNewPaynymFollowViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final isDesktop = Util.isDesktop;
 
-    return MasterScaffold(
-      isDesktop: isDesktop,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) => MasterScaffold(
+        isDesktop: isDesktop,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          titleSpacing: 0,
+          title: Text(
+            "Add new",
+            style: STextStyles.navBarTitle(context),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        titleSpacing: 0,
-        title: Text(
-          "Add new",
-          style: STextStyles.navBarTitle(context),
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-      body: ConditionalParent(
-        condition: !isDesktop,
-        builder: (child) => SafeArea(
+        body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) => SingleChildScrollView(
               child: ConstrainedBox(
@@ -119,40 +178,183 @@ class _AddNewPaynymFollowViewState
                   minHeight: constraints.maxHeight,
                 ),
                 child: IntrinsicHeight(
-                  child: child,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: child,
+                  ),
                 ),
               ),
             ),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+      ),
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) => DesktopDialog(
+          maxWidth: 580,
+          maxHeight: double.infinity,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
-                height: 10,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "Add new",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
               ),
-              Text(
-                "Featured PayNyms",
-                style: STextStyles.sectionLabelMedium12(context),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                ),
+                child: child,
               ),
-              const SizedBox(
-                height: 12,
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(
+              height: 10,
+            ),
+            Text(
+              "Featured PayNyms",
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.sectionLabelMedium12(context),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            FeaturedPaynymsWidget(
+              walletId: widget.walletId,
+            ),
+            const SizedBox(
+              height: 24,
+            ),
+            Text(
+              "Add new",
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.sectionLabelMedium12(context),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            if (isDesktop)
+              Row(
+                children: [
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        RoundedContainer(
+                          padding: const EdgeInsets.all(0),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
+                          height: 56,
+                          child: Center(
+                            child: TextField(
+                              autocorrect: !isDesktop,
+                              enableSuggestions: !isDesktop,
+                              controller: _searchController,
+                              focusNode: searchFieldFocusNode,
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchString = value;
+                                });
+                              },
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveText,
+                                // height: 1.8,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "Paste payment code",
+                                hoverColor: Colors.transparent,
+                                fillColor: Colors.transparent,
+                                contentPadding: const EdgeInsets.all(16),
+                                hintStyle:
+                                    STextStyles.desktopTextFieldLabel(context)
+                                        .copyWith(
+                                  fontSize: 14,
+                                ),
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                                focusedErrorBorder: InputBorder.none,
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        _searchController.text.isNotEmpty
+                                            ? TextFieldIconButton(
+                                                onTap: _clear,
+                                                child: RoundedContainer(
+                                                  padding:
+                                                      const EdgeInsets.all(8),
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .buttonBackSecondary,
+                                                  child: const XIcon(),
+                                                ),
+                                              )
+                                            : TextFieldIconButton(
+                                                key: const Key(
+                                                    "paynymPasteAddressFieldButtonKey"),
+                                                onTap: _paste,
+                                                child: RoundedContainer(
+                                                  padding:
+                                                      const EdgeInsets.all(8),
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .buttonBackSecondary,
+                                                  child: const ClipboardIcon(),
+                                                ),
+                                              ),
+                                        TextFieldIconButton(
+                                          key: const Key(
+                                              "paynymScanQrButtonKey"),
+                                          onTap: _scanQr,
+                                          child: RoundedContainer(
+                                            padding: const EdgeInsets.all(8),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonBackSecondary,
+                                            child: const QrCodeIcon(),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  PaynymSearchButton(onPressed: _search),
+                ],
               ),
-              FeaturedPaynymsWidget(
-                walletId: widget.walletId,
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-              Text(
-                "Add new",
-                style: STextStyles.sectionLabelMedium12(context),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
+            if (!isDesktop)
               ClipRRect(
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
@@ -167,14 +369,7 @@ class _AddNewPaynymFollowViewState
                       _searchString = value;
                     });
                   },
-                  style: isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveText,
-                          height: 1.8,
-                        )
-                      : STextStyles.field(context),
+                  style: STextStyles.field(context),
                   decoration: standardInputDecoration(
                     "Paste payment code",
                     searchFieldFocusNode,
@@ -188,74 +383,18 @@ class _AddNewPaynymFollowViewState
                           children: [
                             _searchController.text.isNotEmpty
                                 ? TextFieldIconButton(
+                                    onTap: _clear,
                                     child: const XIcon(),
-                                    onTap: () async {
-                                      _searchString = "";
-                                      setState(() {
-                                        _searchController.text = "";
-                                      });
-                                    },
                                   )
                                 : TextFieldIconButton(
                                     key: const Key(
                                         "paynymPasteAddressFieldButtonKey"),
-                                    onTap: () async {
-                                      final ClipboardData? data =
-                                          await Clipboard.getData(
-                                              Clipboard.kTextPlain);
-                                      if (data?.text != null &&
-                                          data!.text!.isNotEmpty) {
-                                        String content = data.text!.trim();
-                                        if (content.contains("\n")) {
-                                          content = content.substring(
-                                            0,
-                                            content.indexOf(
-                                              "\n",
-                                            ),
-                                          );
-                                        }
-
-                                        _searchString = content;
-                                        setState(() {
-                                          _searchController.text = content;
-                                          _searchController.selection =
-                                              TextSelection.collapsed(
-                                            offset: content.length,
-                                          );
-                                        });
-                                      }
-                                    },
+                                    onTap: _paste,
                                     child: const ClipboardIcon(),
                                   ),
                             TextFieldIconButton(
                               key: const Key("paynymScanQrButtonKey"),
-                              onTap: () async {
-                                try {
-                                  if (FocusScope.of(context).hasFocus) {
-                                    FocusScope.of(context).unfocus();
-                                    await Future<void>.delayed(
-                                        const Duration(milliseconds: 75));
-                                  }
-
-                                  final qrResult =
-                                      await const BarcodeScannerWrapper()
-                                          .scan();
-
-                                  final pCodeString = qrResult.rawContent;
-
-                                  _searchString = pCodeString;
-
-                                  setState(() {
-                                    _searchController.text = pCodeString;
-                                    _searchController.selection =
-                                        TextSelection.collapsed(
-                                      offset: pCodeString.length,
-                                    );
-                                  });
-                                } catch (_) {
-                                  // scan failed
-                                }
-                              },
+                              onTap: _scanQr,
                               child: const QrCodeIcon(),
                             )
                           ],
@@ -265,40 +404,41 @@ class _AddNewPaynymFollowViewState
                   ),
                 ),
               ),
+            if (!isDesktop)
               const SizedBox(
                 height: 12,
               ),
+            if (!isDesktop)
               SecondaryButton(
                 label: "Search",
                 onPressed: _search,
               ),
-              if (_didSearch)
-                const SizedBox(
-                  height: 20,
+            if (_didSearch)
+              const SizedBox(
+                height: 20,
+              ),
+            if (_didSearch && _searchResult == null)
+              RoundedWhiteContainer(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Nothing found. Please check the payment code.",
+                      style: STextStyles.label(context),
+                    ),
+                  ],
                 ),
-              if (_didSearch && _searchResult == null)
-                RoundedWhiteContainer(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Nothing found. Please check the payment code.",
-                        style: STextStyles.label(context),
-                      ),
-                    ],
-                  ),
+              ),
+            if (_didSearch && _searchResult != null)
+              RoundedWhiteContainer(
+                padding: const EdgeInsets.all(0),
+                child: PaynymCard(
+                  label: _searchResult!.nymName,
+                  paymentCodeString: _searchResult!.codes.first.code,
+                  walletId: widget.walletId,
                 ),
-              if (_didSearch && _searchResult != null)
-                RoundedWhiteContainer(
-                  padding: const EdgeInsets.all(0),
-                  child: PaynymCard(
-                    label: _searchResult!.nymName,
-                    paymentCodeString: _searchResult!.codes.first.code,
-                    walletId: widget.walletId,
-                  ),
-                ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
