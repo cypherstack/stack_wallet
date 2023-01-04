@@ -49,8 +49,27 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
               background: Theme.of(context).extension<StackColors>()!.popupBG,
               leading: Row(
                 children: [
-                  const AppBarBackButton(
-                    isCompact: true,
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 24,
+                      right: 20,
+                    ),
+                    child: AppBarIconButton(
+                      size: 32,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      shadows: const [],
+                      icon: SvgPicture.asset(
+                        Assets.svg.arrowLeft,
+                        width: 18,
+                        height: 18,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .topNavIconPrimary,
+                      ),
+                      onPressed: Navigator.of(context).pop,
+                    ),
                   ),
                   SvgPicture.asset(
                     Assets.svg.user,
