@@ -9,8 +9,10 @@ import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 
 class PaynymQrPopup extends StatelessWidget {
   const PaynymQrPopup({
@@ -22,15 +24,31 @@ class PaynymQrPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
+
     return DesktopDialog(
-      maxWidth: MediaQuery.of(context).size.width - 32,
+      maxWidth: isDesktop ? 580 : MediaQuery.of(context).size.width - 32,
       maxHeight: double.infinity,
       child: Column(
         children: [
+          if (isDesktop)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Address details",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 24,
-              top: 24,
+            padding: EdgeInsets.only(
+              left: isDesktop ? 32 : 24,
+              top: isDesktop ? 16 : 24,
               right: 24,
               bottom: 16,
             ),
@@ -38,22 +56,26 @@ class PaynymQrPopup extends StatelessWidget {
               children: [
                 PayNymBot(
                   paymentCodeString: paynymAccount.codes.first.code,
-                  size: 32,
+                  size: isDesktop ? 56 : 32,
                 ),
                 const SizedBox(
                   width: 12,
                 ),
                 Text(
                   paynymAccount.nymName,
-                  style: STextStyles.w600_12(context),
+                  style: isDesktop
+                      ? STextStyles.w500_24(context)
+                      : STextStyles.w600_12(context),
                 ),
               ],
             ),
           ),
-          Container(
-            color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
-            height: 1,
-          ),
+          if (!isDesktop)
+            Container(
+              color:
+                  Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+              height: 1,
+            ),
           Padding(
             padding: const EdgeInsets.only(
               left: 24,
@@ -71,26 +93,34 @@ class PaynymQrPopup extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Your PayNym address",
-                          style: STextStyles.infoSmall(context),
+                          isDesktop ? "PayNym address" : "Your PayNym address",
+                          style: isDesktop
+                              ? STextStyles.desktopTextSmall(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
+                                )
+                              : STextStyles.infoSmall(context),
                         ),
                         const SizedBox(
                           height: 6,
                         ),
                         Text(
                           paynymAccount.codes.first.code,
-                          style: STextStyles.infoSmall(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
+                          style: isDesktop
+                              ? STextStyles.desktopTextSmall(context)
+                              : STextStyles.infoSmall(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
                         ),
                         const SizedBox(
                           height: 6,
                         ),
                         BlueTextButton(
                           text: "Copy",
-                          textSize: 10,
+                          textSize: isDesktop ? 18 : 10,
                           onTap: () async {
                             await Clipboard.setData(
                               ClipboardData(

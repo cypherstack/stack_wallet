@@ -809,6 +809,32 @@ class STextStyles {
     }
   }
 
+  static TextStyle w500_24(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 24,
+          height: 24 / 24,
+        );
+      case ThemeType.oceanBreeze:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 24,
+          height: 24 / 24,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 24,
+          height: 24 / 24,
+        );
+    }
+  }
+
   static TextStyle desktopTextMedium(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
