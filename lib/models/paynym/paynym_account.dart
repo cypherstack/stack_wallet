@@ -36,6 +36,22 @@ class PaynymAccount {
                 PaynymAccountLite.fromMap(Map<String, dynamic>.from(e as Map)))
             .toList();
 
+  PaynymAccount copyWith({
+    String? nymID,
+    String? nymName,
+    List<PaynymCode>? codes,
+    List<PaynymAccountLite>? followers,
+    List<PaynymAccountLite>? following,
+  }) {
+    return PaynymAccount(
+      nymID ?? this.nymID,
+      nymName ?? this.nymName,
+      codes ?? this.codes,
+      followers ?? this.followers,
+      following ?? this.following,
+    );
+  }
+
   Map<String, dynamic> toMap() => {
         "nymID": nymID,
         "nymName": nymName,

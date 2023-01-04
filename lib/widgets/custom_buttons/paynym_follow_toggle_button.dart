@@ -87,7 +87,7 @@ class _PaynymFollowToggleButtonState
 
     if (result.value!.following == followedAccount.value!.nymID) {
       if (!loadingPopped && mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context, rootNavigator: isDesktop).pop();
       }
 
       unawaited(
@@ -97,14 +97,19 @@ class _PaynymFollowToggleButtonState
           context: context,
         ),
       );
-      ref.read(myPaynymAccountStateProvider.state).state!.following.add(
-            PaynymAccountLite(
-              followedAccount.value!.nymID,
-              followedAccount.value!.nymName,
-              followedAccount.value!.codes.first.code,
-              followedAccount.value!.codes.first.segwit,
-            ),
-          );
+
+      final myAccount = ref.read(myPaynymAccountStateProvider.state).state!;
+
+      myAccount.following.add(
+        PaynymAccountLite(
+          followedAccount.value!.nymID,
+          followedAccount.value!.nymName,
+          followedAccount.value!.codes.first.code,
+          followedAccount.value!.codes.first.segwit,
+        ),
+      );
+
+      ref.read(myPaynymAccountStateProvider.state).state = myAccount.copyWith();
 
       setState(() {
         isFollowing = true;
@@ -113,7 +118,7 @@ class _PaynymFollowToggleButtonState
       return true;
     } else {
       if (!loadingPopped && mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context, rootNavigator: isDesktop).pop();
       }
 
       unawaited(
@@ -181,7 +186,7 @@ class _PaynymFollowToggleButtonState
 
     if (result.value!.unfollowing == followedAccount.value!.nymID) {
       if (!loadingPopped && mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context, rootNavigator: isDesktop).pop();
       }
 
       unawaited(
@@ -191,11 +196,13 @@ class _PaynymFollowToggleButtonState
           context: context,
         ),
       );
-      ref
-          .read(myPaynymAccountStateProvider.state)
-          .state!
-          .following
+
+      final myAccount = ref.read(myPaynymAccountStateProvider.state).state!;
+
+      myAccount.following
           .removeWhere((e) => e.nymId == followedAccount.value!.nymID);
+
+      ref.read(myPaynymAccountStateProvider.state).state = myAccount.copyWith();
 
       setState(() {
         isFollowing = false;
@@ -204,7 +211,7 @@ class _PaynymFollowToggleButtonState
       return true;
     } else {
       if (!loadingPopped && mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context, rootNavigator: isDesktop).pop();
       }
 
       unawaited(
