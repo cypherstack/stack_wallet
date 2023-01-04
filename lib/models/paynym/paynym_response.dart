@@ -4,4 +4,9 @@ class PaynymResponse<T> {
   final String message;
 
   PaynymResponse(this.value, this.statusCode, this.message);
+
+  @override
+  String toString() {
+    return "PaynymResponse: value=$value, statusCode=$statusCode, message=$message";
+  }
 }
