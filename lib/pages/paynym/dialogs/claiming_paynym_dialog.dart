@@ -5,6 +5,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -49,38 +50,61 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog>
   Widget build(BuildContext context) {
     if (Util.isDesktop) {
       return DesktopDialog(
-        child: Padding(
-          padding: const EdgeInsets.all(40),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Claiming PayNym",
-                style: STextStyles.desktopH3(context),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Text(
-                "We are generating your PayNym",
-                style: STextStyles.desktopSubtitleH1(context),
-              ),
-              const SizedBox(
+        maxWidth: 580,
+        maxHeight: double.infinity,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                DesktopDialogCloseButton(
+                  onPressedOverride: () => Navigator.of(context).pop(true),
+                ),
+              ],
+            ),
+            RotationTransition(
+              turns: _spinAnimation,
+              child: SvgPicture.asset(
+                Assets.svg.arrowRotate,
+                color:
+                    Theme.of(context).extension<StackColors>()!.accentColorDark,
+                width: 40,
                 height: 40,
               ),
-              RotationTransition(
-                turns: _spinAnimation,
-                child: SvgPicture.asset(
-                  Assets.svg.arrowRotate,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                  width: 24,
-                  height: 24,
-                ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Claiming PayNym",
+                    style: STextStyles.desktopH2(context),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                    "We are generating your PayNym",
+                    style: STextStyles.desktopTextMedium(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark3,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 40,
+                  ),
+                  SecondaryButton(
+                    label: "Cancel",
+                    width: 272,
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     } else {

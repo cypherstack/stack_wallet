@@ -165,8 +165,12 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                       .getManager(widget.walletId)
                       .wallet as DogecoinWallet;
 
+                  if (shouldCancel) return;
+
                   // get payment code
                   final pCode = await wallet.getPaymentCode();
+
+                  if (shouldCancel) return;
 
                   // attempt to create new entry in paynym.is db
                   final created = await ref
@@ -174,6 +178,7 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                       .create(pCode.toString());
 
                   debugPrint("created:$created");
+                  if (shouldCancel) return;
 
                   if (created.value!.claimed) {
                     // payment code already claimed
@@ -193,17 +198,25 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                     return;
                   }
 
+                  if (shouldCancel) return;
+
                   final token =
                       await ref.read(paynymAPIProvider).token(pCode.toString());
+
+                  if (shouldCancel) return;
 
                   // sign token with notification private key
                   final signature =
                       await wallet.signStringWithNotificationKey(token.value!);
 
+                  if (shouldCancel) return;
+
                   // claim paynym account
                   final claim = await ref
                       .read(paynymAPIProvider)
                       .claim(token.value!, signature);
+
+                  if (shouldCancel) return;
 
                   if (claim.value?.claimed == pCode.toString()) {
                     final account =
