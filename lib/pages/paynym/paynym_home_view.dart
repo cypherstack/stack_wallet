@@ -8,6 +8,8 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/add_new_paynym_follow_view.dart';
 import 'package:stackwallet/pages/paynym/dialogs/paynym_qr_popup.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
+import 'package:stackwallet/pages/paynym/subwidgets/paynym_followers_list.dart';
+import 'package:stackwallet/pages/paynym/subwidgets/paynym_following_list.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -41,7 +43,7 @@ class PaynymHomeView extends ConsumerStatefulWidget {
 }
 
 class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
-  bool showFollowing = false;
+  bool showFollowers = false;
   int secretCount = 0;
   Timer? timer;
 
@@ -521,15 +523,17 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                 width: isDesktop ? 490 : null,
                 child: Toggle(
                   onColor: Theme.of(context).extension<StackColors>()!.popupBG,
-                  onText: "Following",
+                  onText:
+                      "Following (${ref.watch(myPaynymAccountStateProvider.state).state?.following.length ?? 0})",
                   offColor: Theme.of(context)
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
-                  offText: "Followers",
-                  isOn: showFollowing,
+                  offText:
+                      "Followers (${ref.watch(myPaynymAccountStateProvider.state).state?.followers.length ?? 0})",
+                  isOn: showFollowers,
                   onValueChanged: (value) {
                     setState(() {
-                      showFollowing = value;
+                      showFollowers = value;
                     });
                   },
                   decoration: BoxDecoration(
@@ -544,31 +548,28 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
             SizedBox(
               height: isDesktop ? 20 : 16,
             ),
-            ConditionalParent(
-              condition: isDesktop,
-              builder: (child) => Padding(
-                padding: const EdgeInsets.only(left: 24),
-                child: SizedBox(
-                  width: 490,
-                  child: child,
+            Expanded(
+              child: ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => Padding(
+                  padding: const EdgeInsets.only(left: 24),
+                  child: SizedBox(
+                    width: 490,
+                    child: child,
+                  ),
                 ),
-              ),
-              child: RoundedWhiteContainer(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Your PayNym contacts will appear here",
-                      style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
-                            )
-                          : STextStyles.label(context),
-                    ),
-                  ],
+                child: ConditionalParent(
+                  condition: !isDesktop,
+                  builder: (child) => Container(
+                    child: child,
+                  ),
+                  child: !showFollowers
+                      ? PaynymFollowingList(
+                          walletId: widget.walletId,
+                        )
+                      : PaynymFollowersList(
+                          walletId: widget.walletId,
+                        ),
                 ),
               ),
             ),
