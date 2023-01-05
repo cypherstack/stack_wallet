@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
+import 'package:flutter/foundation.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/paymint/utxo_model.dart';
@@ -489,6 +490,14 @@ class EthereumWallet extends CoinServiceAPI {
     String hexHeight = currentBlock.toRadixString(16);
     print("HEIGHT TO HEX IS $hexHeight");
     print('0x$hexHeight');
+
+    final priceData =
+        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
+
+    //Initilaize empty transactions array
+    final List<Map<String, dynamic>> midSortedArray = [];
+    Map<String, dynamic> midSortedTx = {};
     for (int i = currentBlock;
         i >= 0 && (n > 0 || balance.toDouble() > 0.0);
         --i) {
@@ -502,12 +511,61 @@ class EthereumWallet extends CoinServiceAPI {
 
         if (block != null && block.transactions != null) {
           block.transactions.forEach((element) {
-            if (thisAddress == element.from) {
-              if (element.from != element.to) {
+            // print("TRANSACTION OBJECT IS $element");
+            final jsonObject = json.encode(element);
+            final decodedTransaction = jsonDecode(jsonObject);
+            // print(somethingElse['from']);
+            // print(jsonObject.containsKey(other));
+            Logging.instance.log(decodedTransaction,
+                level: LogLevel.Info, printFullLength: true);
+
+            if (thisAddress == decodedTransaction['from']) {
+              //Ensure this is not a self send
+              if (decodedTransaction['from'] != decodedTransaction['to']) {
+                midSortedTx["txType"] = "Sent";
+                midSortedTx["txid"] = decodedTransaction["hash"];
+                midSortedTx["height"] = i;
+                midSortedTx["address"] = decodedTransaction['to'];
+                int confirmations = 0;
+                try {
+                  confirmations = currentBlock - i;
+                } catch (e, s) {
+                  debugPrint("$e $s");
+                }
+                midSortedTx["confirmations"] = confirmations;
+                midSortedTx["inputSize"] = 1;
+                midSortedTx["outputSize"] = 1;
+                midSortedTx["aliens"] = <dynamic>[];
+                midSortedTx["inputs"] = <dynamic>[];
+                midSortedTx["outputs"] = <dynamic>[];
+
+                midSortedArray.add(midSortedTx);
                 Logging.instance.log(
-                    "TX SENT FROM THIS ACCOUNT  ${element.from} ${element.to}",
+                    "TX SENT FROM THIS ACCOUNT  ${decodedTransaction['from']} ${decodedTransaction['to']}",
                     level: LogLevel.Info);
                 --n;
+              }
+
+              if (thisAddress == decodedTransaction['to']) {
+                if (decodedTransaction['from'] != decodedTransaction['to']) {
+                  midSortedTx["txType"] = "Received";
+                  midSortedTx["txid"] = decodedTransaction["hash"];
+                  midSortedTx["height"] = i;
+                  midSortedTx["address"] = decodedTransaction['from'];
+                  int confirmations = 0;
+                  try {
+                    confirmations = currentBlock - i;
+                  } catch (e, s) {
+                    debugPrint("$e $s");
+                  }
+                  midSortedTx["confirmations"] = confirmations;
+                  midSortedTx["inputSize"] = 1;
+                  midSortedTx["outputSize"] = 1;
+                  midSortedTx["aliens"] = <dynamic>[];
+                  midSortedTx["inputs"] = <dynamic>[];
+                  midSortedTx["outputs"] = <dynamic>[];
+                  midSortedArray.add(midSortedTx);
+                }
               }
             }
           });
@@ -516,6 +574,40 @@ class EthereumWallet extends CoinServiceAPI {
         print("Error getting transactions ${e.toString()} $s");
       }
     }
+
+    midSortedArray
+        .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
+    final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
+    final dateArray = <dynamic>[];
+
+    for (int i = 0; i < midSortedArray.length; i++) {
+      final txObject = midSortedArray[i];
+      final date = extractDateFromTimestamp(txObject["timestamp"] as int);
+      final txTimeArray = [txObject["timestamp"], date];
+
+      if (dateArray.contains(txTimeArray[1])) {
+        result["dateTimeChunks"].forEach((dynamic chunk) {
+          if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
+              txTimeArray[1]) {
+            if (chunk["transactions"] == null) {
+              chunk["transactions"] = <Map<String, dynamic>>[];
+            }
+            chunk["transactions"].add(txObject);
+          }
+        });
+      } else {
+        dateArray.add(txTimeArray[1]);
+        final chunk = {
+          "timestamp": txTimeArray[0],
+          "transactions": [txObject],
+        };
+        result["dateTimeChunks"].add(chunk);
+      }
+    }
+
+    final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
+    transactionsMap
+        .addAll(TransactionData.fromJson(result).getAllTransactions());
 
     print("THIS CURRECT ADDRESS IS $thisAddress");
     print("THIS CURRECT BLOCK IS $currentBlock");
