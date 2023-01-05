@@ -26,6 +26,8 @@ class NodeModel {
   final bool isFailover;
   // @HiveField(9)
   final bool isDown;
+  // @HiveField(10)
+  final bool? trusted;
 
   NodeModel({
     required this.host,
@@ -38,6 +40,7 @@ class NodeModel {
     required this.isFailover,
     required this.isDown,
     this.loginName,
+    this.trusted,
   });
 
   NodeModel copyWith({
@@ -50,6 +53,7 @@ class NodeModel {
     String? coinName,
     bool? isFailover,
     bool? isDown,
+    bool? trusted,
   }) {
     return NodeModel(
       host: host ?? this.host,
@@ -62,6 +66,7 @@ class NodeModel {
       coinName: coinName ?? this.coinName,
       isFailover: isFailover ?? this.isFailover,
       isDown: isDown ?? this.isDown,
+      trusted: trusted ?? this.trusted,
     );
   }
 
@@ -82,6 +87,7 @@ class NodeModel {
     map['coinName'] = coinName;
     map['isFailover'] = isFailover;
     map['isDown'] = isDown;
+    map['trusted'] = trusted;
     return map;
   }
 
