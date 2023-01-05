@@ -9,11 +9,10 @@ import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:decimal/decimal.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
-
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 
 extension PayNym on DogecoinWallet {
   // fetch or generate this wallet's bip47 payment code
@@ -59,6 +58,7 @@ extension PayNym on DogecoinWallet {
   Future<String> createNotificationTx(
     String targetPaymentCodeString,
     List<UtxoObject> utxosToUse,
+    int dustLimit,
   ) async {
     final utxoSigningData = await fetchBuildTxData(utxosToUse);
     final targetPaymentCode =
@@ -105,14 +105,14 @@ extension PayNym on DogecoinWallet {
     txb.setVersion(1);
 
     txb.addInput(
-      "9c6000d597c5008f7bfc2618aed5e4a6ae57677aab95078aae708e1cab11f486",
+      utxo.txid,
       txPointIndex,
     );
 
-    txb.addOutput(targetPaymentCode.notificationAddress(),
-        Format.decimalAmountToSatoshis(Decimal.one, coin));
-    txb.addOutput(
-        opReturnScript, Format.decimalAmountToSatoshis(Decimal.one, coin));
+    txb.addOutput(targetPaymentCode.notificationAddress(), dustLimit);
+    txb.addOutput(opReturnScript, 0);
+
+    // TODO: add possible change output and mark output as dangerous
 
     txb.sign(
       vin: 0,
@@ -234,7 +234,7 @@ Future<Map<String, dynamic>> parseTransaction(
   if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
     // tx is sent to self
     type = "Sent to self";
-    amount = amountReceivedInWallet - amountSentFromWallet;
+    amount = amountSentFromWallet - amountReceivedInWallet - fee;
   } else if (mySentFromAddresses.isNotEmpty) {
     // outgoing tx
     type = "Sent";

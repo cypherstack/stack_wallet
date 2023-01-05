@@ -1526,7 +1526,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                     // TODO: remove the need for this!!
                                     final bool isOwnAddress =
                                         await manager.isOwnAddress(_address!);
-                                    if (isOwnAddress) {
+                                    if (isOwnAddress && coin != Coin.dogecoinTestNet) {
                                       await showDialog<dynamic>(
                                         context: context,
                                         useSafeArea: false,
