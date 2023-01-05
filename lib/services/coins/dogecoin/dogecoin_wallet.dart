@@ -20,6 +20,7 @@ import 'package:stackwallet/models/models.dart' as models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/paymint/utxo_model.dart';
+import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -1063,7 +1064,8 @@ class DogecoinWallet extends CoinServiceAPI {
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
@@ -2091,180 +2093,190 @@ class DogecoinWallet extends CoinServiceAPI {
     await fastFetch(vHashes.toList());
 
     for (final txObject in allTransactions) {
-      List<String> sendersArray = [];
-      List<String> recipientsArray = [];
+      // List<String> sendersArray = [];
+      // List<String> recipientsArray = [];
+      //
+      // // Usually only has value when txType = 'Send'
+      // int inputAmtSentFromWallet = 0;
+      // // Usually has value regardless of txType due to change addresses
+      // int outputAmtAddressedToWallet = 0;
+      // int fee = 0;
+      //
+      // Map<String, dynamic> midSortedTx = {};
+      //
+      // for (int i = 0; i < (txObject["vin"] as List).length; i++) {
+      //   final input = txObject["vin"][i] as Map;
+      //   final prevTxid = input["txid"] as String;
+      //   final prevOut = input["vout"] as int;
+      //
+      //   final tx = await _cachedElectrumXClient.getTransaction(
+      //       txHash: prevTxid, coin: coin);
+      //
+      //   for (final out in tx["vout"] as List) {
+      //     if (prevOut == out["n"]) {
+      //       final address = out["scriptPubKey"]["addresses"][0] as String?;
+      //       if (address != null) {
+      //         sendersArray.add(address);
+      //       }
+      //     }
+      //   }
+      // }
+      //
+      // Logging.instance.log("sendersArray: $sendersArray", level: LogLevel.Info);
+      //
+      // for (final output in txObject["vout"] as List) {
+      //   final address = output["scriptPubKey"]["addresses"][0] as String?;
+      //   if (address != null) {
+      //     recipientsArray.add(address);
+      //   }
+      // }
+      //
+      // Logging.instance
+      //     .log("recipientsArray: $recipientsArray", level: LogLevel.Info);
+      //
+      // final foundInSenders =
+      //     allAddresses.any((element) => sendersArray.contains(element));
+      // Logging.instance
+      //     .log("foundInSenders: $foundInSenders", level: LogLevel.Info);
+      //
+      // // If txType = Sent, then calculate inputAmtSentFromWallet
+      // if (foundInSenders) {
+      //   int totalInput = 0;
+      //   for (int i = 0; i < (txObject["vin"] as List).length; i++) {
+      //     final input = txObject["vin"][i] as Map;
+      //     final prevTxid = input["txid"] as String;
+      //     final prevOut = input["vout"] as int;
+      //     final tx = await _cachedElectrumXClient.getTransaction(
+      //       txHash: prevTxid,
+      //       coin: coin,
+      //     );
+      //
+      //     for (final out in tx["vout"] as List) {
+      //       if (prevOut == out["n"]) {
+      //         inputAmtSentFromWallet +=
+      //             (Decimal.parse(out["value"].toString()) *
+      //                     Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //                 .toBigInt()
+      //                 .toInt();
+      //       }
+      //     }
+      //   }
+      //   totalInput = inputAmtSentFromWallet;
+      //   int totalOutput = 0;
+      //
+      //   for (final output in txObject["vout"] as List) {
+      //     final address = output["scriptPubKey"]["addresses"][0];
+      //     final value = output["value"];
+      //     final _value = (Decimal.parse(value.toString()) *
+      //             Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //         .toBigInt()
+      //         .toInt();
+      //     totalOutput += _value;
+      //     if (changeAddressesP2PKH.contains(address)) {
+      //       inputAmtSentFromWallet -= _value;
+      //     } else {
+      //       // change address from 'sent from' to the 'sent to' address
+      //       txObject["address"] = address;
+      //     }
+      //   }
+      //   // calculate transaction fee
+      //   fee = totalInput - totalOutput;
+      //   // subtract fee from sent to calculate correct value of sent tx
+      //   inputAmtSentFromWallet -= fee;
+      // } else {
+      //   // counters for fee calculation
+      //   int totalOut = 0;
+      //   int totalIn = 0;
+      //
+      //   // add up received tx value
+      //   for (final output in txObject["vout"] as List) {
+      //     final address = output["scriptPubKey"]["addresses"][0];
+      //     if (address != null) {
+      //       final value = (Decimal.parse(output["value"].toString()) *
+      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //           .toBigInt()
+      //           .toInt();
+      //       totalOut += value;
+      //       if (allAddresses.contains(address)) {
+      //         outputAmtAddressedToWallet += value;
+      //       }
+      //     }
+      //   }
+      //
+      //   // calculate fee for received tx
+      //   for (int i = 0; i < (txObject["vin"] as List).length; i++) {
+      //     final input = txObject["vin"][i] as Map;
+      //     final prevTxid = input["txid"] as String;
+      //     final prevOut = input["vout"] as int;
+      //     final tx = await _cachedElectrumXClient.getTransaction(
+      //       txHash: prevTxid,
+      //       coin: coin,
+      //     );
+      //
+      //     for (final out in tx["vout"] as List) {
+      //       if (prevOut == out["n"]) {
+      //         totalIn += (Decimal.parse(out["value"].toString()) *
+      //                 Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //             .toBigInt()
+      //             .toInt();
+      //       }
+      //     }
+      //   }
+      //   fee = totalIn - totalOut;
+      // }
+      //
+      // // create final tx map
+      // midSortedTx["txid"] = txObject["txid"];
+      // midSortedTx["confirmed_status"] = (txObject["confirmations"] != null) &&
+      //     (txObject["confirmations"] as int >= MINIMUM_CONFIRMATIONS);
+      // midSortedTx["confirmations"] = txObject["confirmations"] ?? 0;
+      // midSortedTx["timestamp"] = txObject["blocktime"] ??
+      //     (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+      //
+      // if (foundInSenders) {
+      //   midSortedTx["txType"] = "Sent";
+      //   midSortedTx["amount"] = inputAmtSentFromWallet;
+      //   final String worthNow =
+      //       ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
+      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //           .toDecimal(scaleOnInfinitePrecision: 2)
+      //           .toStringAsFixed(2);
+      //   midSortedTx["worthNow"] = worthNow;
+      //   midSortedTx["worthAtBlockTimestamp"] = worthNow;
+      // } else {
+      //   midSortedTx["txType"] = "Received";
+      //   midSortedTx["amount"] = outputAmtAddressedToWallet;
+      //   final worthNow =
+      //       ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
+      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //           .toDecimal(scaleOnInfinitePrecision: 2)
+      //           .toStringAsFixed(2);
+      //   midSortedTx["worthNow"] = worthNow;
+      // }
+      // midSortedTx["aliens"] = <dynamic>[];
+      // midSortedTx["fees"] = fee;
+      // midSortedTx["address"] = txObject["address"];
+      // midSortedTx["inputSize"] = txObject["vin"].length;
+      // midSortedTx["outputSize"] = txObject["vout"].length;
+      // midSortedTx["inputs"] = txObject["vin"];
+      // midSortedTx["outputs"] = txObject["vout"];
+      //
+      // final int height = txObject["height"] as int;
+      // midSortedTx["height"] = height;
+      //
+      // if (height >= latestTxnBlockHeight) {
+      //   latestTxnBlockHeight = height;
+      // }
 
-      // Usually only has value when txType = 'Send'
-      int inputAmtSentFromWallet = 0;
-      // Usually has value regardless of txType due to change addresses
-      int outputAmtAddressedToWallet = 0;
-      int fee = 0;
-
-      Map<String, dynamic> midSortedTx = {};
-
-      for (int i = 0; i < (txObject["vin"] as List).length; i++) {
-        final input = txObject["vin"][i] as Map;
-        final prevTxid = input["txid"] as String;
-        final prevOut = input["vout"] as int;
-
-        final tx = await _cachedElectrumXClient.getTransaction(
-            txHash: prevTxid, coin: coin);
-
-        for (final out in tx["vout"] as List) {
-          if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["addresses"][0] as String?;
-            if (address != null) {
-              sendersArray.add(address);
-            }
-          }
-        }
-      }
-
-      Logging.instance.log("sendersArray: $sendersArray", level: LogLevel.Info);
-
-      for (final output in txObject["vout"] as List) {
-        final address = output["scriptPubKey"]["addresses"][0] as String?;
-        if (address != null) {
-          recipientsArray.add(address);
-        }
-      }
-
-      Logging.instance
-          .log("recipientsArray: $recipientsArray", level: LogLevel.Info);
-
-      final foundInSenders =
-          allAddresses.any((element) => sendersArray.contains(element));
-      Logging.instance
-          .log("foundInSenders: $foundInSenders", level: LogLevel.Info);
-
-      // If txType = Sent, then calculate inputAmtSentFromWallet
-      if (foundInSenders) {
-        int totalInput = 0;
-        for (int i = 0; i < (txObject["vin"] as List).length; i++) {
-          final input = txObject["vin"][i] as Map;
-          final prevTxid = input["txid"] as String;
-          final prevOut = input["vout"] as int;
-          final tx = await _cachedElectrumXClient.getTransaction(
-            txHash: prevTxid,
-            coin: coin,
-          );
-
-          for (final out in tx["vout"] as List) {
-            if (prevOut == out["n"]) {
-              inputAmtSentFromWallet +=
-                  (Decimal.parse(out["value"].toString()) *
-                          Decimal.fromInt(Constants.satsPerCoin(coin)))
-                      .toBigInt()
-                      .toInt();
-            }
-          }
-        }
-        totalInput = inputAmtSentFromWallet;
-        int totalOutput = 0;
-
-        for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["addresses"][0];
-          final value = output["value"];
-          final _value = (Decimal.parse(value.toString()) *
-                  Decimal.fromInt(Constants.satsPerCoin(coin)))
-              .toBigInt()
-              .toInt();
-          totalOutput += _value;
-          if (changeAddressesP2PKH.contains(address)) {
-            inputAmtSentFromWallet -= _value;
-          } else {
-            // change address from 'sent from' to the 'sent to' address
-            txObject["address"] = address;
-          }
-        }
-        // calculate transaction fee
-        fee = totalInput - totalOutput;
-        // subtract fee from sent to calculate correct value of sent tx
-        inputAmtSentFromWallet -= fee;
-      } else {
-        // counters for fee calculation
-        int totalOut = 0;
-        int totalIn = 0;
-
-        // add up received tx value
-        for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["addresses"][0];
-          if (address != null) {
-            final value = (Decimal.parse(output["value"].toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toBigInt()
-                .toInt();
-            totalOut += value;
-            if (allAddresses.contains(address)) {
-              outputAmtAddressedToWallet += value;
-            }
-          }
-        }
-
-        // calculate fee for received tx
-        for (int i = 0; i < (txObject["vin"] as List).length; i++) {
-          final input = txObject["vin"][i] as Map;
-          final prevTxid = input["txid"] as String;
-          final prevOut = input["vout"] as int;
-          final tx = await _cachedElectrumXClient.getTransaction(
-            txHash: prevTxid,
-            coin: coin,
-          );
-
-          for (final out in tx["vout"] as List) {
-            if (prevOut == out["n"]) {
-              totalIn += (Decimal.parse(out["value"].toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin(coin)))
-                  .toBigInt()
-                  .toInt();
-            }
-          }
-        }
-        fee = totalIn - totalOut;
-      }
-
-      // create final tx map
-      midSortedTx["txid"] = txObject["txid"];
-      midSortedTx["confirmed_status"] = (txObject["confirmations"] != null) &&
-          (txObject["confirmations"] as int >= MINIMUM_CONFIRMATIONS);
-      midSortedTx["confirmations"] = txObject["confirmations"] ?? 0;
-      midSortedTx["timestamp"] = txObject["blocktime"] ??
-          (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-
-      if (foundInSenders) {
-        midSortedTx["txType"] = "Sent";
-        midSortedTx["amount"] = inputAmtSentFromWallet;
-        final String worthNow =
-            ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toDecimal(scaleOnInfinitePrecision: 2)
-                .toStringAsFixed(2);
-        midSortedTx["worthNow"] = worthNow;
-        midSortedTx["worthAtBlockTimestamp"] = worthNow;
-      } else {
-        midSortedTx["txType"] = "Received";
-        midSortedTx["amount"] = outputAmtAddressedToWallet;
-        final worthNow =
-            ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toDecimal(scaleOnInfinitePrecision: 2)
-                .toStringAsFixed(2);
-        midSortedTx["worthNow"] = worthNow;
-      }
-      midSortedTx["aliens"] = <dynamic>[];
-      midSortedTx["fees"] = fee;
-      midSortedTx["address"] = txObject["address"];
-      midSortedTx["inputSize"] = txObject["vin"].length;
-      midSortedTx["outputSize"] = txObject["vout"].length;
-      midSortedTx["inputs"] = txObject["vin"];
-      midSortedTx["outputs"] = txObject["vout"];
-
-      final int height = txObject["height"] as int;
-      midSortedTx["height"] = height;
-
-      if (height >= latestTxnBlockHeight) {
-        latestTxnBlockHeight = height;
-      }
+      final midSortedTx = await parseTransaction(
+        txObject,
+        cachedElectrumXClient,
+        allAddresses.toSet(),
+        (changeAddressesP2PKH as List<String>).toSet(),
+        coin,
+        MINIMUM_CONFIRMATIONS,
+        currentPrice,
+      );
 
       midSortedArray.add(midSortedTx);
     }
