@@ -91,6 +91,7 @@ dependencies:
   # Eth Plugins
   web3dart: 2.3.5
   string_to_hex: 0.2.2
+  ethereum_addresses: 1.0.2
 
   # Storage plugins
   flutter_secure_storage: ^5.0.2
