@@ -394,7 +394,7 @@ class Output {
         scriptpubkeyType: json['scriptPubKey']['type'] as String?,
         scriptpubkeyAddress: address,
         value: (Decimal.parse(
-                    (json["value"] != null ? json["value"] : 0).toString()) *
+                    (json["value"] ?? 0).toString()) *
                 Decimal.fromInt(Constants.satsPerCoin(Coin
                     .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
             .toBigInt()

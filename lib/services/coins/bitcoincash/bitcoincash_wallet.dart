@@ -2380,7 +2380,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
         for (final output in txObject["vout"] as List) {
           final address = getAddress(output);
           if (address != null) {
-            final value = (Decimal.parse(output["value"].toString()) *
+            final value = (Decimal.parse((output["value"] ?? 0).toString()) *
                     Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toBigInt()
                 .toInt();

@@ -3320,7 +3320,7 @@ class FiroWallet extends CoinServiceAPI {
 
         for (final output in txObject["vout"] as List) {
           final addresses = output["scriptPubKey"]["addresses"] as List?;
-          final value = output["value"];
+          final value = output["value"] ?? 0;
           if (addresses != null && addresses.isNotEmpty) {
             final address = addresses[0] as String;
             if (value != null) {
@@ -3359,7 +3359,7 @@ class FiroWallet extends CoinServiceAPI {
           final addresses = output["scriptPubKey"]["addresses"] as List?;
           if (addresses != null && addresses.isNotEmpty) {
             final address = addresses[0] as String;
-            final value = output["value"];
+            final value = output["value"] ?? 0;
             // Logging.instance.log(address + value.toString());
 
             if (allAddresses.contains(address)) {

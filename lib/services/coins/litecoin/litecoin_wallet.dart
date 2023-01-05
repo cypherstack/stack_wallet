@@ -2565,8 +2565,7 @@ class LitecoinWallet extends CoinServiceAPI {
 
         for (final output in txObject["vout"] as List) {
           final String address =
-              output["scriptPubKey"]!["addresses"][0] as String;
-          final value = output["value"]!;
+          final value = output["value"] ?? 0;
           final _value = (Decimal.parse(value.toString()) *
                   Decimal.fromInt(Constants.satsPerCoin(coin)))
               .toBigInt()
@@ -2592,7 +2591,7 @@ class LitecoinWallet extends CoinServiceAPI {
         for (final output in txObject["vout"] as List) {
           final address = output["scriptPubKey"]["addresses"][0];
           if (address != null) {
-            final value = (Decimal.parse(output["value"].toString()) *
+            final value = (Decimal.parse((output["value"] ?? 0).toString()) *
                     Decimal.fromInt(Constants.satsPerCoin(coin)))
                 .toBigInt()
                 .toInt();
