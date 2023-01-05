@@ -812,7 +812,7 @@ class WowneroWallet extends CoinServiceAPI {
           await refresh();
           _autoSaveTimer?.cancel();
           _autoSaveTimer = Timer.periodic(
-            const Duration(seconds: 93),
+            const Duration(seconds: 193),
             (_) async => await walletBase?.save(),
           );
         } else {
@@ -820,27 +820,48 @@ class WowneroWallet extends CoinServiceAPI {
         }
       };
 
+  Future<void> _updateCachedBalance(int sats) async {
+    await DB.instance.put<dynamic>(
+      boxName: walletId,
+      key: "cachedWowneroBalanceSats",
+      value: sats,
+    );
+  }
+
+  int _getCachedBalance() =>
+      DB.instance.get<dynamic>(
+        boxName: walletId,
+        key: "cachedWowneroBalanceSats",
+      ) as int? ??
+      0;
+
   @override
   Future<Decimal> get totalBalance async {
-    final balanceEntries = walletBase?.balance?.entries;
-    if (balanceEntries != null) {
-      int bal = 0;
-      for (var element in balanceEntries) {
-        bal = bal + element.value.fullBalance;
-      }
-      return Format.satoshisToAmount(bal, coin: coin);
-    } else {
-      final transactions = walletBase!.transactionHistory!.transactions;
-      int transactionBalance = 0;
-      for (var tx in transactions!.entries) {
-        if (tx.value.direction == TransactionDirection.incoming) {
-          transactionBalance += tx.value.amount!;
-        } else {
-          transactionBalance += -tx.value.amount! - tx.value.fee!;
+    try {
+      final balanceEntries = walletBase?.balance?.entries;
+      if (balanceEntries != null) {
+        int bal = 0;
+        for (var element in balanceEntries) {
+          bal = bal + element.value.fullBalance;
         }
-      }
+        await _updateCachedBalance(bal);
+        return Format.satoshisToAmount(bal, coin: coin);
+      } else {
+        final transactions = walletBase!.transactionHistory!.transactions;
+        int transactionBalance = 0;
+        for (var tx in transactions!.entries) {
+          if (tx.value.direction == TransactionDirection.incoming) {
+            transactionBalance += tx.value.amount!;
+          } else {
+            transactionBalance += -tx.value.amount! - tx.value.fee!;
+          }
+        }
 
-      return Format.satoshisToAmount(transactionBalance, coin: coin);
+        await _updateCachedBalance(transactionBalance);
+        return Format.satoshisToAmount(transactionBalance, coin: coin);
+      }
+    } catch (_) {
+      return Format.satoshisToAmount(_getCachedBalance(), coin: coin);
     }
   }
 
@@ -1142,6 +1163,49 @@ class WowneroWallet extends CoinServiceAPI {
     print("=============================");
     print("New Wownero Block! :: $walletName");
     print("=============================");
+    _refreshTxDataHelper();
+  }
+
+  bool _txRefreshLock = false;
+  int _lastCheckedHeight = -1;
+  int _txCount = 0;
+
+  Future<void> _refreshTxDataHelper() async {
+    if (_txRefreshLock) return;
+    _txRefreshLock = true;
+
+    final syncStatus = walletBase?.syncStatus;
+
+    if (syncStatus != null && syncStatus is SyncingSyncStatus) {
+      final int blocksLeft = syncStatus.blocksLeft;
+      final tenKChange = blocksLeft ~/ 10000;
+
+      // only refresh transactions periodically during a sync
+      if (_lastCheckedHeight == -1 || tenKChange < _lastCheckedHeight) {
+        _lastCheckedHeight = tenKChange;
+        await _refreshTxData();
+      }
+    } else {
+      await _refreshTxData();
+    }
+
+    _txRefreshLock = false;
+  }
+
+  Future<void> _refreshTxData() async {
+    final txnData = await _fetchTransactionData();
+    final count = txnData.getAllTransactions().length;
+
+    if (count > _txCount) {
+      _txCount = count;
+      _transactionData = Future(() => txnData);
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "New transaction data found in $walletId $walletName!",
+          walletId,
+        ),
+      );
+    }
   }
 
   void onNewTransaction() {
