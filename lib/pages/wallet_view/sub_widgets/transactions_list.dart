@@ -247,7 +247,11 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                 ? ListView.separated(
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
-                      if (index == list.length - 1) {
+                      if (list.length == 1) {
+                        radius = BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        );
+                      } else if (index == list.length - 1) {
                         radius = _borderRadiusLast;
                       } else if (index == 0) {
                         radius = _borderRadiusFirst;
@@ -270,7 +274,11 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                     itemCount: list.length,
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
-                      if (index == list.length - 1) {
+                      if (list.length == 1) {
+                        radius = BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        );
+                      } else if (index == list.length - 1) {
                         radius = _borderRadiusLast;
                       } else if (index == 0) {
                         radius = _borderRadiusFirst;
