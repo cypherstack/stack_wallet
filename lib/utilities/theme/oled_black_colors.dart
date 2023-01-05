@@ -33,17 +33,17 @@ class OledBlackColors extends StackColorTheme {
   Color get shadow => const Color(0x0F2D3132); //not done yet
 
   @override
-  Color get textDark => const Color(0xFF2D3132);
+  Color get textDark => const Color(0xFFDEDEDE);
   @override
-  Color get textDark2 => const Color(0xFFDEDEDE);
+  Color get textDark2 => const Color(0xFFCCCCCC);
   @override
-  Color get textDark3 => const Color(0xFFCCCCCC);
+  Color get textDark3 => const Color(0xFFB2B2B2);
   @override
   Color get textSubtitle1 => const Color(0xFFB2B2B2);
   @override
-  Color get textSubtitle2 => const Color(0xFFB2B2B2);
+  Color get textSubtitle2 => const Color(0xFFA0A0A0);
   @override
-  Color get textSubtitle3 => const Color(0xFFA0A0A0);
+  Color get textSubtitle3 => const Color(0xFF878A8A);
   @override
   Color get textSubtitle4 => const Color(0xFF878A8A);
   @override
