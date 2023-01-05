@@ -163,6 +163,8 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
         return Assets.svg.themeDark;
       case ThemeType.oceanBreeze:
         return Assets.svg.themeOcean;
+      case ThemeType.oledBlack:
+        return Assets.svg.themeOledBlack;
     }
   }
 
