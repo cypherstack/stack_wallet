@@ -307,4 +307,24 @@ abstract class CoinServiceAPI {
 
   // used for electrumx coins
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData);
+
+  // Certain outputs return address as an array/list of strings like List<String> ["addresses"][0], some return it as a string like String ["address"]
+  String? getAddress(dynamic output) {
+    String? address;
+    if (output.containsKey('scriptPubKey') as bool) {
+      // Make sure the key exists before using it
+      if (output["scriptPubKey"].containsKey('address') as bool) {
+        address = output["scriptPubKey"]["address"] as String?;
+      } else if (output["scriptPubKey"].containsKey('addresses') as bool) {
+        address = output["scriptPubKey"]["addresses"][0] as String?;
+        // TODO determine cases in which there are multiple addresses in the array
+      }
+    } /*else {
+      // TODO detect cases in which no scriptPubKey exists
+      Logging.instance.log("output type not detected; output: ${output}",
+          level: LogLevel.Info);
+    }*/
+
+    return address;
+  }
 }
