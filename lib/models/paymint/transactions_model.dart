@@ -362,12 +362,16 @@ class Input {
 class Output {
   // @HiveField(0)
   final String? scriptpubkey;
+
   // @HiveField(1)
   final String? scriptpubkeyAsm;
+
   // @HiveField(2)
   final String? scriptpubkeyType;
+
   // @HiveField(3)
   final String scriptpubkeyAddress;
+
   // @HiveField(4)
   final int value;
 
@@ -381,9 +385,6 @@ class Output {
   factory Output.fromJson(Map<String, dynamic> json) {
     // TODO determine if any of this code is needed.
     try {
-      // Particl has different tx types that need to be detected and handled here
-      // if (json.containsKey('scriptPubKey') as bool) {
-      // output is transparent
       final address = json["scriptPubKey"]["addresses"] == null
           ? json['scriptPubKey']['type'] as String
           : json["scriptPubKey"]["addresses"][0] as String;
@@ -392,35 +393,13 @@ class Output {
         scriptpubkeyAsm: json['scriptPubKey']['asm'] as String?,
         scriptpubkeyType: json['scriptPubKey']['type'] as String?,
         scriptpubkeyAddress: address,
-        value: (Decimal.parse(json["value"].toString()) *
+        value: (Decimal.parse(
+                    (json["value"] != null ? json["value"] : 0).toString()) *
                 Decimal.fromInt(Constants.satsPerCoin(Coin
                     .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
             .toBigInt()
             .toInt(),
       );
-      //   } /* else if (json.containsKey('ct_fee') as bool) {
-      //   // or type: data
-      //   // output is blinded (CT)
-      // } else if (json.containsKey('rangeproof') as bool) {
-      //   // or valueCommitment or type: anon
-      //   // output is private (RingCT)
-      // } */
-      //   else {
-      //     // TODO detect staking
-      //     // TODO handle CT, RingCT, and staking accordingly
-      //     // print("transaction not supported: ${json}");
-      //     return Output(
-      //       // Return output object with null values; allows wallet history to be built
-      //         scriptpubkey: "",
-      //         scriptpubkeyAsm: "",
-      //         scriptpubkeyType: "",
-      //         scriptpubkeyAddress: "",
-      //         value: (Decimal.parse(0.toString()) *
-      //             Decimal.fromInt(Constants.satsPerCoin(Coin
-      //                 .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
-      //             .toBigInt()
-      //             .toInt());
-      //   }
     } catch (s, e) {
       return Output(
           // Return output object with null values; allows wallet history to be built
