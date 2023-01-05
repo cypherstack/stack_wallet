@@ -38,6 +38,26 @@ const int DUST_LIMIT = 294;
 const String GENESIS_HASH_MAINNET =
     "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa";
 
+class AddressTransaction {
+  final String message;
+  final List<dynamic> result;
+  final int status;
+
+  const AddressTransaction({
+    required this.message,
+    required this.result,
+    required this.status,
+  });
+
+  factory AddressTransaction.fromJson(Map<String, dynamic> json) {
+    return AddressTransaction(
+      message: json['message'] as String,
+      result: json['result'] as List<dynamic>,
+      status: json['status'] as int,
+    );
+  }
+}
+
 class EthereumWallet extends CoinServiceAPI {
   @override
   set isFavorite(bool markFavorite) {
@@ -66,7 +86,10 @@ class EthereumWallet extends CoinServiceAPI {
   late PriceAPI _priceAPI;
   final _prefs = Prefs.instance;
   final _client = Web3Client(
-      "https://goerli.infura.io/v3/22677300bf774e49a458b73313ee56ba", Client());
+      "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
+      Client());
+
+  final _blockExplorer = "https://blockscout.com/eth/mainnet/api?";
 
   late EthPrivateKey _credentials;
   int _chainId = 5; //5 for testnet and 1 for mainnet
@@ -521,30 +544,52 @@ class EthereumWallet extends CoinServiceAPI {
     return isValidEthereumAddress(address);
   }
 
+  List<AddressTransaction> parseTransactions(String responseBody) {
+    final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
+    return parsed
+        .map<AddressTransaction>((json) => AddressTransaction.fromJson(json))
+        .toList();
+  }
+
   Future<TransactionData> _fetchTransactionData() async {
     String thisAddress = await currentReceivingAddress;
-    int currentBlock = await chainHeight;
-    var balance = await availableBalance;
-    print("MY ADDRESS HERE IS $thisAddress");
-    var n =
-        await _client.getTransactionCount(EthereumAddress.fromHex(thisAddress));
-    print("TRANSACTION COUNT IS $n");
-    String hexHeight = currentBlock.toRadixString(16);
-    print("HEIGHT TO HEX IS $hexHeight");
-    print('0x$hexHeight');
 
-    final cachedTransactions =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
-            as TransactionData?;
+    final response = await get(Uri.parse(
+        "${_blockExplorer}module=account&action=txlist&address=$thisAddress"));
 
-    final priceData =
-        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
+    if (response.statusCode == 200) {
+      // If the server did return a 200 OK response,
+      // then parse the JSON.
 
-    //Initilaize empty transactions array
-
-    final List<Map<String, dynamic>> midSortedArray = [];
-    Map<String, dynamic> midSortedTx = {};
+      print(parseTransactions(response.body.toString()));
+    } else {
+      // If the server did not return a 200 OK response,
+      // then throw an exception.
+      throw Exception('Failed to load album');
+    }
+    print("RETURNED TRANSACTIONS IS $response");
+    // int currentBlock = await chainHeight;
+    // var balance = await availableBalance;
+    // print("MY ADDRESS HERE IS $thisAddress");
+    // var n =
+    //     await _client.getTransactionCount(EthereumAddress.fromHex(thisAddress));
+    // print("TRANSACTION COUNT IS $n");
+    // String hexHeight = currentBlock.toRadixString(16);
+    // print("HEIGHT TO HEX IS $hexHeight");
+    // print('0x$hexHeight');
+    //
+    // final cachedTransactions =
+    //     DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
+    //         as TransactionData?;
+    //
+    // final priceData =
+    //     await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+    // Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
+    //
+    // //Initilaize empty transactions array
+    //
+    // final List<Map<String, dynamic>> midSortedArray = [];
+    // Map<String, dynamic> midSortedTx = {};
     // for (int i = currentBlock;
     // i >= 0 && (n > 0 || balance.toDouble() > 0.0);
     // --i) {
@@ -655,10 +700,10 @@ class EthereumWallet extends CoinServiceAPI {
     // transactionsMap
     //     .addAll(TransactionData.fromJson(result).getAllTransactions());
 
-    print("THIS CURRECT ADDRESS IS $thisAddress");
-    print("THIS CURRECT BLOCK IS $currentBlock");
-    print("THIS BALANCE IS $balance");
-    print("THIS COUNT TRANSACTIONS IS $n");
+    // print("THIS CURRECT ADDRESS IS $thisAddress");
+    // print("THIS CURRECT BLOCK IS $currentBlock");
+    // print("THIS BALANCE IS $balance");
+    // print("THIS COUNT TRANSACTIONS IS $n");
 
     return TransactionData();
     // throw UnimplementedError();
