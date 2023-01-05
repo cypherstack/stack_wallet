@@ -883,7 +883,8 @@ class FiroWallet extends CoinServiceAPI {
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
     final currentPrice = await firoPrice;
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
@@ -1691,7 +1692,7 @@ class FiroWallet extends CoinServiceAPI {
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["addresses"][0] as String;
+            final address = getAddress(output) as String;
 
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
@@ -2654,8 +2655,7 @@ class FiroWallet extends CoinServiceAPI {
 
       final vouts = tx["vout"] as List?;
       if (vouts != null && outputIndex < vouts.length) {
-        final address =
-            vouts[outputIndex]["scriptPubKey"]["addresses"][0] as String?;
+        final address = getAddress(vouts[outputIndex]);
         if (address != null) {
           addressesToDerive.add(address);
         }
@@ -2756,7 +2756,8 @@ class FiroWallet extends CoinServiceAPI {
     var price = await firoPrice;
     var builtHex = txb.build();
     // return builtHex;
-    final locale =Platform.isWindows ? "en_US" :  await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     return {
       "transaction": builtHex,
       "txid": txId,
@@ -2810,7 +2811,8 @@ class FiroWallet extends CoinServiceAPI {
     final currentPrice = await firoPrice;
     // Grab the most recent information on all the joinsplits
 
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final updatedJSplit = await getJMintTransactions(cachedElectrumXClient,
         joinsplits, _prefs.currency, coin, currentPrice, locale!);
 
@@ -3249,7 +3251,8 @@ class FiroWallet extends CoinServiceAPI {
     final currentPrice = await firoPrice;
     final List<Map<String, dynamic>> midSortedArray = [];
 
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
 
     Logging.instance.log("refresh the txs", level: LogLevel.Info);
     for (final txObject in allTransactions) {
@@ -3275,7 +3278,7 @@ class FiroWallet extends CoinServiceAPI {
       // Logging.instance.log("sendersArray: $sendersArray");
 
       for (final output in txObject["vout"] as List) {
-        final addresses = output["scriptPubKey"]["addresses"] as List?;
+        final addresses = getAddresses(output);
         if (addresses != null && addresses.isNotEmpty) {
           recipientsArray.add(addresses[0] as String);
         }
@@ -3319,7 +3322,7 @@ class FiroWallet extends CoinServiceAPI {
         }
 
         for (final output in txObject["vout"] as List) {
-          final addresses = output["scriptPubKey"]["addresses"] as List?;
+          final addresses = getAddresses(output);
           final value = output["value"] ?? 0;
           if (addresses != null && addresses.isNotEmpty) {
             final address = addresses[0] as String;
@@ -4375,7 +4378,8 @@ class FiroWallet extends CoinServiceAPI {
     final lelantusEntry = await _getLelantusEntry();
     final anonymitySets = await fetchAnonymitySets();
     final locktime = await getBlockHead(electrumXClient);
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
 
     ReceivePort receivePort = await getIsolate({
       "function": "createJoinSplit",
@@ -4742,7 +4746,7 @@ class FiroWallet extends CoinServiceAPI {
           }
           tx["amount"] = tx["vout"][sendIndex]["value"];
 
-          tx["address"] = tx["vout"][sendIndex]["scriptPubKey"]["addresses"][0];
+          tx["address"] = getAddress(tx["vout"][sendIndex]) as String;
 
           tx["fees"] = tx["vin"][0]["nFees"];
           tx["inputSize"] = tx["vin"].length;

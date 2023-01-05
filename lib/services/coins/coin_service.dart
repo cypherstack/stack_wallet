@@ -327,4 +327,22 @@ abstract class CoinServiceAPI {
 
     return address;
   }
+
+  // Firo wants an array/list of address strings like List<String>
+  List? getAddresses(dynamic output) {
+    List? addresses;
+    if (output.containsKey('scriptPubKey') as bool) {
+      if (output["scriptPubKey"].containsKey('addresses') as bool) {
+        addresses = output["scriptPubKey"]["addresses"] as List?;
+      } else if (output["scriptPubKey"].containsKey('address') as bool) {
+        addresses = [output["scriptPubKey"]["address"]];
+      }
+    } /*else {
+      // TODO detect cases in which no scriptPubKey exists
+      Logging.instance.log("output type not detected; output: ${output}",
+          level: LogLevel.Info);
+    }*/
+
+    return addresses;
+  }
 }
