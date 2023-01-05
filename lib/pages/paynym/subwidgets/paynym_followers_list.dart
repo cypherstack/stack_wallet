@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/paynym/subwidgets/paynym_card.dart';
+import 'package:stackwallet/pages/paynym/subwidgets/paynym_card_button.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -83,10 +83,9 @@ class _PaynymFollowersListState extends ConsumerState<PaynymFollowersList> {
         } else if (count == 1) {
           return RoundedWhiteContainer(
             padding: const EdgeInsets.all(0),
-            child: PaynymCard(
+            child: PaynymCardButton(
               walletId: widget.walletId,
-              label: followers![0].nymName,
-              paymentCodeString: followers[0].code,
+              accountLite: followers![0],
             ),
           );
         } else {
@@ -103,10 +102,9 @@ class _PaynymFollowersListState extends ConsumerState<PaynymFollowersList> {
               borderRadius: borderRadius,
               color: Theme.of(context).extension<StackColors>()!.popupBG,
             ),
-            child: PaynymCard(
+            child: PaynymCardButton(
               walletId: widget.walletId,
-              label: followers[index].nymName,
-              paymentCodeString: followers[index].code,
+              accountLite: followers[index],
             ),
           );
         }

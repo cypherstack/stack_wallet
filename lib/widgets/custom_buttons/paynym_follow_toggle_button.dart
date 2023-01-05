@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/paynym/paynym_response.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -10,19 +11,29 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+
+enum PaynymFollowToggleButtonStyle {
+  primary,
+  detailsPopup,
+}
 
 class PaynymFollowToggleButton extends ConsumerStatefulWidget {
   const PaynymFollowToggleButton({
     Key? key,
     required this.walletId,
     required this.paymentCodeStringToFollow,
+    this.style = PaynymFollowToggleButtonStyle.primary,
   }) : super(key: key);
 
   final String walletId;
   final String paymentCodeStringToFollow;
+  final PaynymFollowToggleButtonStyle style;
 
   @override
   ConsumerState<PaynymFollowToggleButton> createState() =>
@@ -229,6 +240,18 @@ class _PaynymFollowToggleButtonState
   bool _lock = false;
   late bool isFollowing;
 
+  Future<void> _onPressed() async {
+    if (!_lock) {
+      _lock = true;
+      if (isFollowing) {
+        await unfollow();
+      } else {
+        await follow();
+      }
+      _lock = false;
+    }
+  }
+
   @override
   void initState() {
     isFollowing = ref
@@ -242,21 +265,29 @@ class _PaynymFollowToggleButtonState
 
   @override
   Widget build(BuildContext context) {
-    return PrimaryButton(
-      width: isDesktop ? 120 : 84,
-      buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
-      label: isFollowing ? "Unfollow" : "Follow",
-      onPressed: () async {
-        if (!_lock) {
-          _lock = true;
-          if (isFollowing) {
-            await unfollow();
-          } else {
-            await follow();
-          }
-          _lock = false;
-        }
-      },
-    );
+    switch (widget.style) {
+      case PaynymFollowToggleButtonStyle.primary:
+        return PrimaryButton(
+          width: isDesktop ? 120 : 84,
+          buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
+          label: isFollowing ? "Unfollow" : "Follow",
+          onPressed: _onPressed,
+        );
+
+      case PaynymFollowToggleButtonStyle.detailsPopup:
+        return SecondaryButton(
+          label: isFollowing ? "- Unfollow" : "+ Follow",
+          buttonHeight: ButtonHeight.l,
+          icon: SvgPicture.asset(
+            Assets.svg.user,
+            width: 10,
+            height: 10,
+            color:
+                Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
+          ),
+          iconSpacing: 0,
+          onPressed: _onPressed,
+        );
+    }
   }
 }
