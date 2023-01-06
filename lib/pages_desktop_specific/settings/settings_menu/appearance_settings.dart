@@ -174,7 +174,9 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
       children: [
         for (int i = 0; i < ThemeType.values.length; i++)
           Row(
