@@ -41,7 +41,7 @@ const String GENESIS_HASH_MAINNET =
 class AddressTransaction {
   final String message;
   final List<dynamic> result;
-  final int status;
+  final String status;
 
   const AddressTransaction({
     required this.message,
@@ -53,7 +53,7 @@ class AddressTransaction {
     return AddressTransaction(
       message: json['message'] as String,
       result: json['result'] as List<dynamic>,
-      status: json['status'] as int,
+      status: json['status'] as String,
     );
   }
 }
@@ -86,10 +86,9 @@ class EthereumWallet extends CoinServiceAPI {
   late PriceAPI _priceAPI;
   final _prefs = Prefs.instance;
   final _client = Web3Client(
-      "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
-      Client());
+      "https://goerli.infura.io/v3/22677300bf774e49a458b73313ee56ba", Client());
 
-  final _blockExplorer = "https://blockscout.com/eth/mainnet/api?";
+  final _blockExplorer = "https://eth-goerli.blockscout.com/api?";
 
   late EthPrivateKey _credentials;
   int _chainId = 5; //5 for testnet and 1 for mainnet
@@ -388,7 +387,6 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<void> refresh() async {
-    print("CALLING REFRESH");
     if (refreshMutex) {
       Logging.instance.log("$walletId $walletName refreshMutex denied",
           level: LogLevel.Info);
@@ -397,9 +395,7 @@ class EthereumWallet extends CoinServiceAPI {
       refreshMutex = true;
     }
 
-    print("SYNC STATUS IS ");
     final blockNumber = await _client.getBlockNumber();
-    print("BLOCK NUMBER IS ::: ${blockNumber}");
 
     try {
       GlobalEventBus.instance.fire(
@@ -414,7 +410,6 @@ class EthereumWallet extends CoinServiceAPI {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 
       final currentHeight = await chainHeight;
-      print("CURRENT CHAIN HEIGHT IS $currentHeight");
       const storedHeight = 1; //await storedChainHeight;
 
       Logging.instance
@@ -429,7 +424,6 @@ class EthereumWallet extends CoinServiceAPI {
         }
 
         final newTxData = await _fetchTransactionData();
-        print("RETREIVED TX DATA IS $newTxData");
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
       }
@@ -474,8 +468,6 @@ class EthereumWallet extends CoinServiceAPI {
   // TODO: Check difference between total and available balance for eth
   Future<Decimal> get totalBalance async {
     EtherAmount ethBalance = await _client.getBalance(_credentials.address);
-    print(
-        "BALANCE NOW IS ${ethBalance.getValueInUnit(EtherUnit.ether).toString()}");
     return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
   }
 
@@ -544,169 +536,142 @@ class EthereumWallet extends CoinServiceAPI {
     return isValidEthereumAddress(address);
   }
 
-  List<AddressTransaction> parseTransactions(String responseBody) {
-    final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
-    return parsed
-        .map<AddressTransaction>((json) => AddressTransaction.fromJson(json))
-        .toList();
+  Future<AddressTransaction> fetchAddressTransactions(String address) async {
+    final response = await get(Uri.parse(
+        "${_blockExplorer}module=account&action=txlist&address=$address"));
+
+    if (response.statusCode == 200) {
+      return AddressTransaction.fromJson(
+          json.decode(response.body) as Map<String, dynamic>);
+    } else {
+      throw Exception('Failed to load transactions');
+    }
   }
 
   Future<TransactionData> _fetchTransactionData() async {
     String thisAddress = await currentReceivingAddress;
+    final cachedTransactions =
+        DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
+            as TransactionData?;
+    int latestTxnBlockHeight =
+        DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
+                as int? ??
+            0;
 
-    final response = await get(Uri.parse(
-        "${_blockExplorer}module=account&action=txlist&address=$thisAddress"));
+    final priceData =
+        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
+    final List<Map<String, dynamic>> midSortedArray = [];
 
-    if (response.statusCode == 200) {
-      // If the server did return a 200 OK response,
-      // then parse the JSON.
+    AddressTransaction txs = await fetchAddressTransactions(thisAddress);
+    if (txs.message == "OK") {
+      final allTxs = txs.result;
+      allTxs.forEach((element) {
+        Map<String, dynamic> midSortedTx = {};
 
-      print(parseTransactions(response.body.toString()));
-    } else {
-      // If the server did not return a 200 OK response,
-      // then throw an exception.
-      throw Exception('Failed to load album');
+        // create final tx map
+        midSortedTx["txid"] = element["hash"];
+        int confirmations = int.parse(element['confirmations'].toString());
+
+        int transactionAmount = int.parse(element['value'].toString());
+        const decimal = 18; //Eth has up to 18 decimal places
+        final transactionAmountInDecimal =
+            transactionAmount / (pow(10, decimal));
+
+        //Convert to satoshi, default display for other coins
+        // Decimal.parse(gasPrice.getValueInUnit(EtherUnit.ether).toString())
+        final satAmount = Format.decimalAmountToSatoshis(
+            Decimal.parse(transactionAmountInDecimal.toString()), coin);
+
+        midSortedTx["confirmed_status"] =
+            (confirmations != 0) && (confirmations >= MINIMUM_CONFIRMATIONS);
+        midSortedTx["confirmations"] = confirmations;
+        midSortedTx["timestamp"] = element["timeStamp"];
+
+        if (checksumEthereumAddress(element["from"].toString()) ==
+            thisAddress) {
+          midSortedTx["txType"] = "Sent";
+        } else {
+          midSortedTx["txType"] = "Received";
+        }
+
+        midSortedTx["amount"] = satAmount;
+        final String worthNow = ((currentPrice * Decimal.fromInt(satAmount)) /
+                Decimal.fromInt(Constants.satsPerCoin(coin)))
+            .toDecimal(scaleOnInfinitePrecision: 2)
+            .toStringAsFixed(2);
+
+        //Calculate fees (GasLimit * gasPrice)
+        int txFee = int.parse(element['gasPrice'].toString()) *
+            int.parse(element['gasUsed'].toString());
+        final txFeeDecimal = txFee / (pow(10, decimal));
+
+        midSortedTx["worthNow"] = worthNow;
+        midSortedTx["worthAtBlockTimestamp"] = worthNow;
+        midSortedTx["aliens"] = <dynamic>[];
+        midSortedTx["fees"] = Format.decimalAmountToSatoshis(
+            Decimal.parse(txFeeDecimal.toString()), coin);
+        midSortedTx["address"] = element["to"];
+        midSortedTx["inputSize"] = 1;
+        midSortedTx["outputSize"] = 1;
+        midSortedTx["inputs"] = <dynamic>[];
+        midSortedTx["outputs"] = <dynamic>[];
+        midSortedTx["height"] = int.parse(element['blockNumber'].toString());
+
+        midSortedArray.add(midSortedTx);
+      });
     }
-    print("RETURNED TRANSACTIONS IS $response");
-    // int currentBlock = await chainHeight;
-    // var balance = await availableBalance;
-    // print("MY ADDRESS HERE IS $thisAddress");
-    // var n =
-    //     await _client.getTransactionCount(EthereumAddress.fromHex(thisAddress));
-    // print("TRANSACTION COUNT IS $n");
-    // String hexHeight = currentBlock.toRadixString(16);
-    // print("HEIGHT TO HEX IS $hexHeight");
-    // print('0x$hexHeight');
-    //
-    // final cachedTransactions =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
-    //         as TransactionData?;
-    //
-    // final priceData =
-    //     await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    // Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    //
-    // //Initilaize empty transactions array
-    //
-    // final List<Map<String, dynamic>> midSortedArray = [];
-    // Map<String, dynamic> midSortedTx = {};
-    // for (int i = currentBlock;
-    // i >= 0 && (n > 0 || balance.toDouble() > 0.0);
-    // --i) {
-    //   try {
-    //     // print(StringToHex.toHexString(i.toString()))
-    //     print(
-    //         "BLOCK IS $i   AND HEX IS --------->>>>>>> ${StringToHex.toHexString(i.toString())}");
-    //     String blockHex = i.toRadixString(16);
-    //     var block = await _client.getBlockInformation(
-    //         blockNumber: '0x$blockHex', isContainFullObj: true);
-    //
-    //     if (block != null && block.transactions != null) {
-    //       block.transactions.forEach((element) {
-    //         // print("TRANSACTION OBJECT IS $element");
-    //         final jsonObject = json.encode(element);
-    //         final decodedTransaction = jsonDecode(jsonObject);
-    //         // print(somethingElse['from']);
-    //         // print(jsonObject.containsKey(other));
-    //         Logging.instance.log(decodedTransaction,
-    //             level: LogLevel.Info, printFullLength: true);
-    //
-    //         if (thisAddress == decodedTransaction['from']) {
-    //           //Ensure this is not a self send
-    //           if (decodedTransaction['from'] != decodedTransaction['to']) {
-    //             midSortedTx["txType"] = "Sent";
-    //             midSortedTx["txid"] = decodedTransaction["hash"];
-    //             midSortedTx["height"] = i;
-    //             midSortedTx["address"] = decodedTransaction['to'];
-    //             int confirmations = 0;
-    //             try {
-    //               confirmations = currentBlock - i;
-    //             } catch (e, s) {
-    //               debugPrint("$e $s");
-    //             }
-    //             midSortedTx["confirmations"] = confirmations;
-    //             midSortedTx["inputSize"] = 1;
-    //             midSortedTx["outputSize"] = 1;
-    //             midSortedTx["aliens"] = <dynamic>[];
-    //             midSortedTx["inputs"] = <dynamic>[];
-    //             midSortedTx["outputs"] = <dynamic>[];
-    //
-    //             midSortedArray.add(midSortedTx);
-    //             Logging.instance.log(
-    //                 "TX SENT FROM THIS ACCOUNT  ${decodedTransaction['from']} ${decodedTransaction['to']}",
-    //                 level: LogLevel.Info);
-    //             --n;
-    //           }
-    //
-    //           if (thisAddress == decodedTransaction['to']) {
-    //             if (decodedTransaction['from'] != decodedTransaction['to']) {
-    //               midSortedTx["txType"] = "Received";
-    //               midSortedTx["txid"] = decodedTransaction["hash"];
-    //               midSortedTx["height"] = i;
-    //               midSortedTx["address"] = decodedTransaction['from'];
-    //               int confirmations = 0;
-    //               try {
-    //                 confirmations = currentBlock - i;
-    //               } catch (e, s) {
-    //                 debugPrint("$e $s");
-    //               }
-    //               midSortedTx["confirmations"] = confirmations;
-    //               midSortedTx["inputSize"] = 1;
-    //               midSortedTx["outputSize"] = 1;
-    //               midSortedTx["aliens"] = <dynamic>[];
-    //               midSortedTx["inputs"] = <dynamic>[];
-    //               midSortedTx["outputs"] = <dynamic>[];
-    //               midSortedArray.add(midSortedTx);
-    //             }
-    //           }
-    //         }
-    //       });
-    //     }
-    //   } catch (e, s) {
-    //     print("Error getting transactions ${e.toString()} $s");
-    //   }
-    // }
-    // midSortedArray
-    //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
-    // final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    // final dateArray = <dynamic>[];
-    //
-    // for (int i = 0; i < midSortedArray.length; i++) {
-    //   final txObject = midSortedArray[i];
-    //   final date = extractDateFromTimestamp(txObject["timestamp"] as int);
-    //   final txTimeArray = [txObject["timestamp"], date];
-    //
-    //   if (dateArray.contains(txTimeArray[1])) {
-    //     result["dateTimeChunks"].forEach((dynamic chunk) {
-    //       if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
-    //           txTimeArray[1]) {
-    //         if (chunk["transactions"] == null) {
-    //           chunk["transactions"] = <Map<String, dynamic>>[];
-    //         }
-    //         chunk["transactions"].add(txObject);
-    //       }
-    //     });
-    //   } else {
-    //     dateArray.add(txTimeArray[1]);
-    //     final chunk = {
-    //       "timestamp": txTimeArray[0],
-    //       "transactions": [txObject],
-    //     };
-    //     result["dateTimeChunks"].add(chunk);
-    //   }
-    // }
-    //
-    // final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
-    // transactionsMap
-    //     .addAll(TransactionData.fromJson(result).getAllTransactions());
 
-    // print("THIS CURRECT ADDRESS IS $thisAddress");
-    // print("THIS CURRECT BLOCK IS $currentBlock");
-    // print("THIS BALANCE IS $balance");
-    // print("THIS COUNT TRANSACTIONS IS $n");
+    midSortedArray.sort((a, b) =>
+        (int.parse(b['timestamp'].toString())) -
+        (int.parse(a['timestamp'].toString())));
 
-    return TransactionData();
-    // throw UnimplementedError();
+    // buildDateTimeChunks
+    final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
+    final dateArray = <dynamic>[];
+
+    for (int i = 0; i < midSortedArray.length; i++) {
+      final txObject = midSortedArray[i];
+      final date =
+          extractDateFromTimestamp(int.parse(txObject['timestamp'].toString()));
+      final txTimeArray = [txObject["timestamp"], date];
+
+      if (dateArray.contains(txTimeArray[1])) {
+        result["dateTimeChunks"].forEach((dynamic chunk) {
+          if (extractDateFromTimestamp(
+                  int.parse(chunk['timestamp'].toString())) ==
+              txTimeArray[1]) {
+            if (chunk["transactions"] == null) {
+              chunk["transactions"] = <Map<String, dynamic>>[];
+            }
+            chunk["transactions"].add(txObject);
+          }
+        });
+      } else {
+        dateArray.add(txTimeArray[1]);
+        final chunk = {
+          "timestamp": txTimeArray[0],
+          "transactions": [txObject],
+        };
+        result["dateTimeChunks"].add(chunk);
+      }
+    }
+
+    final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
+    transactionsMap
+        .addAll(TransactionData.fromJson(result).getAllTransactions());
+
+    final txModel = TransactionData.fromMap(transactionsMap);
+
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: 'storedTxnDataHeight',
+        value: latestTxnBlockHeight);
+    await DB.instance.put<dynamic>(
+        boxName: walletId, key: 'latest_tx_model', value: txModel);
+
+    cachedTxData = txModel;
+    return txModel;
   }
 
   @override
