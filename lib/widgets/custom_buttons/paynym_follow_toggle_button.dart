@@ -276,16 +276,16 @@ class _PaynymFollowToggleButtonState
 
       case PaynymFollowToggleButtonStyle.detailsPopup:
         return SecondaryButton(
-          label: isFollowing ? "- Unfollow" : "+ Follow",
+          label: isFollowing ? "Unfollow" : "Follow",
           buttonHeight: ButtonHeight.l,
           icon: SvgPicture.asset(
-            Assets.svg.user,
+            isFollowing ? Assets.svg.userMinus : Assets.svg.userPlus,
             width: 10,
             height: 10,
             color:
                 Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
           ),
-          iconSpacing: 0,
+          iconSpacing: 4,
           onPressed: _onPressed,
         );
     }
