@@ -13,6 +13,20 @@ import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
+import 'package:tuple/tuple.dart';
+
+class SWException with Exception {
+  SWException(this.message);
+
+  final String message;
+
+  @override
+  toString() => message;
+}
+
+class InsufficientBalanceException extends SWException {
+  InsufficientBalanceException(super.message);
+}
 
 extension PayNym on DogecoinWallet {
   // fetch or generate this wallet's bip47 payment code
@@ -55,12 +69,187 @@ extension PayNym on DogecoinWallet {
   // Future<Map<String, dynamic>> prepareNotificationTransaction(
   //     String targetPaymentCode) async {}
 
-  Future<String> createNotificationTx(
-    String targetPaymentCodeString,
-    List<UtxoObject> utxosToUse,
-    int dustLimit,
-  ) async {
-    final utxoSigningData = await fetchBuildTxData(utxosToUse);
+  Future<Map<String, dynamic>> buildNotificationTx({
+    required int selectedTxFeeRate,
+    required String targetPaymentCodeString,
+    int additionalOutputs = 0,
+    List<UtxoObject>? utxos,
+  }) async {
+    const amountToSend = DUST_LIMIT;
+    final List<UtxoObject> availableOutputs = utxos ?? outputsList;
+    final List<UtxoObject> spendableOutputs = [];
+    int spendableSatoshiValue = 0;
+
+    // Build list of spendable outputs and totaling their satoshi amount
+    for (var i = 0; i < availableOutputs.length; i++) {
+      if (availableOutputs[i].blocked == false &&
+          availableOutputs[i].status.confirmed == true) {
+        spendableOutputs.add(availableOutputs[i]);
+        spendableSatoshiValue += availableOutputs[i].value;
+      }
+    }
+
+    if (spendableSatoshiValue < amountToSend) {
+      // insufficient balance
+      throw InsufficientBalanceException(
+          "Spendable balance is less than the minimum required for a notification transaction.");
+    } else if (spendableSatoshiValue == amountToSend) {
+      // insufficient balance due to missing amount to cover fee
+      throw InsufficientBalanceException(
+          "Remaining balance does not cover the network fee.");
+    }
+
+    // sort spendable by age (oldest first)
+    spendableOutputs.sort(
+        (a, b) => b.status.confirmations.compareTo(a.status.confirmations));
+
+    int satoshisBeingUsed = 0;
+    int outputsBeingUsed = 0;
+    List<UtxoObject> utxoObjectsToUse = [];
+
+    for (int i = 0;
+        satoshisBeingUsed < amountToSend && i < spendableOutputs.length;
+        i++) {
+      utxoObjectsToUse.add(spendableOutputs[i]);
+      satoshisBeingUsed += spendableOutputs[i].value;
+      outputsBeingUsed += 1;
+    }
+
+    // add additional outputs if required
+    for (int i = 0;
+        i < additionalOutputs && outputsBeingUsed < spendableOutputs.length;
+        i++) {
+      utxoObjectsToUse.add(spendableOutputs[outputsBeingUsed]);
+      satoshisBeingUsed += spendableOutputs[outputsBeingUsed].value;
+      outputsBeingUsed += 1;
+    }
+
+    // gather required signing data
+    final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
+
+    final int vSizeForNoChange = (await _createNotificationTx(
+            targetPaymentCodeString: targetPaymentCodeString,
+            utxosToUse: utxoObjectsToUse,
+            utxoSigningData: utxoSigningData,
+            change: 0))
+        .item2;
+
+    final int vSizeForWithChange = (await _createNotificationTx(
+            targetPaymentCodeString: targetPaymentCodeString,
+            utxosToUse: utxoObjectsToUse,
+            utxoSigningData: utxoSigningData,
+            change: satoshisBeingUsed - amountToSend))
+        .item2;
+
+    // Assume 2 outputs, for recipient and payment code script
+    int feeForNoChange = estimateTxFee(
+      vSize: vSizeForNoChange,
+      feeRatePerKB: selectedTxFeeRate,
+    );
+
+    // Assume 3 outputs, for recipient, payment code script, and change
+    int feeForWithChange = estimateTxFee(
+      vSize: vSizeForWithChange,
+      feeRatePerKB: selectedTxFeeRate,
+    );
+
+    if (feeForNoChange < vSizeForNoChange * 1000) {
+      feeForNoChange = vSizeForNoChange * 1000;
+    }
+    if (feeForWithChange < vSizeForWithChange * 1000) {
+      feeForWithChange = vSizeForWithChange * 1000;
+    }
+
+    if (satoshisBeingUsed - amountToSend > feeForNoChange + DUST_LIMIT) {
+      // try to add change output due to "left over" amount being greater than
+      // the estimated fee + the dust limit
+      int changeAmount = satoshisBeingUsed - amountToSend - feeForWithChange;
+
+      // check estimates are correct and build notification tx
+      if (changeAmount >= DUST_LIMIT &&
+          satoshisBeingUsed - amountToSend - changeAmount == feeForWithChange) {
+        final txn = await _createNotificationTx(
+          targetPaymentCodeString: targetPaymentCodeString,
+          utxosToUse: utxoObjectsToUse,
+          utxoSigningData: utxoSigningData,
+          change: changeAmount,
+        );
+
+        int feeBeingPaid = satoshisBeingUsed - amountToSend - changeAmount;
+
+        Map<String, dynamic> transactionObject = {
+          "hex": txn.item1,
+          "recipientPaynym": targetPaymentCodeString,
+          // "recipientAmt": recipientsAmtArray[0],
+          "fee": feeBeingPaid,
+          "vSize": txn.item2,
+        };
+        return transactionObject;
+      } else {
+        // something broke during fee estimation or the change amount is smaller
+        // than the dust limit. Try without change
+        final txn = await _createNotificationTx(
+          targetPaymentCodeString: targetPaymentCodeString,
+          utxosToUse: utxoObjectsToUse,
+          utxoSigningData: utxoSigningData,
+          change: 0,
+        );
+
+        int feeBeingPaid = satoshisBeingUsed - amountToSend;
+
+        Map<String, dynamic> transactionObject = {
+          "hex": txn.item1,
+          "recipientPaynym": targetPaymentCodeString,
+          // "recipientAmt": recipientsAmtArray[0],
+          "fee": feeBeingPaid,
+          "vSize": txn.item2,
+        };
+        return transactionObject;
+      }
+    } else if (satoshisBeingUsed - amountToSend >= feeForNoChange) {
+      // since we already checked if we need to add a change output we can just
+      // build without change here
+      final txn = await _createNotificationTx(
+        targetPaymentCodeString: targetPaymentCodeString,
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        change: 0,
+      );
+
+      int feeBeingPaid = satoshisBeingUsed - amountToSend;
+
+      Map<String, dynamic> transactionObject = {
+        "hex": txn.item1,
+        "recipientPaynym": targetPaymentCodeString,
+        // "recipientAmt": recipientsAmtArray[0],
+        "fee": feeBeingPaid,
+        "vSize": txn.item2,
+      };
+      return transactionObject;
+    } else {
+      // if we get here we do not have enough funds to cover the tx total so we
+      // check if we have any more available outputs and try again
+      if (spendableOutputs.length > outputsBeingUsed) {
+        return buildNotificationTx(
+          selectedTxFeeRate: selectedTxFeeRate,
+          targetPaymentCodeString: targetPaymentCodeString,
+          additionalOutputs: additionalOutputs + 1,
+        );
+      } else {
+        throw InsufficientBalanceException(
+            "Remaining balance does not cover the network fee.");
+      }
+    }
+  }
+
+  // return tuple with string value equal to the raw tx hex and the int value
+  // equal to its vSize
+  Future<Tuple2<String, int>> _createNotificationTx({
+    required String targetPaymentCodeString,
+    required List<UtxoObject> utxosToUse,
+    required Map<String, dynamic> utxoSigningData,
+    required int change,
+  }) async {
     final targetPaymentCode =
         PaymentCode.fromPaymentCode(targetPaymentCodeString, network);
     final myCode = await getPaymentCode();
@@ -109,19 +298,80 @@ extension PayNym on DogecoinWallet {
       txPointIndex,
     );
 
-    txb.addOutput(targetPaymentCode.notificationAddress(), dustLimit);
+    txb.addOutput(targetPaymentCode.notificationAddress(), DUST_LIMIT);
     txb.addOutput(opReturnScript, 0);
 
     // TODO: add possible change output and mark output as dangerous
+    if (change > 0) {
+      // generate new change address if current change address has been used
+      await checkChangeAddressForTransactions(DerivePathType.bip44);
+      final String changeAddress =
+          await getCurrentAddressForChain(1, DerivePathType.bip44);
+      txb.addOutput(changeAddress, change);
+    }
 
     txb.sign(
       vin: 0,
       keyPair: myKeyPair,
     );
 
+    // sign rest of possible inputs
+    for (var i = 1; i < utxosToUse.length - 1; i++) {
+      final txid = utxosToUse[i].txid;
+      txb.sign(
+        vin: i,
+        keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
+        // witnessValue: utxosToUse[i].value,
+      );
+    }
+
     final builtTx = txb.build();
 
-    return builtTx.toHex();
+    return Tuple2(builtTx.toHex(), builtTx.virtualSize());
+  }
+
+  Future<bool> hasConfirmedNotificationTxSentTo(
+      String paymentCodeString) async {
+    final targetPaymentCode =
+        PaymentCode.fromPaymentCode(paymentCodeString, network);
+    final targetNotificationAddress = targetPaymentCode.notificationAddress();
+
+    final myTxHistory = (await transactionData)
+        .getAllTransactions()
+        .entries
+        .map((e) => e.value)
+        .where((e) =>
+            e.txType == "Sent" && e.address == targetNotificationAddress);
+
+    return myTxHistory.isNotEmpty;
+  }
+
+  // fetch paynym notification tx meta data
+  Set<Map<String, dynamic>> getPaynymNotificationTxInfo() {
+    final set = DB.instance.get<dynamic>(
+            boxName: walletId, key: "paynymNotificationTxInfo") as Set? ??
+        {};
+
+    return Set<Map<String, dynamic>>.from(set);
+  }
+
+  // add/update paynym notification tx meta data entry
+  Future<void> updatePaynymNotificationInfo({
+    required String txid,
+    required bool confirmed,
+    required String paymentCodeString,
+  }) async {
+    final data = getPaynymNotificationTxInfo();
+    data.add({
+      "txid": txid,
+      "confirmed": confirmed,
+      "paymentCodeString": paymentCodeString,
+    });
+    await DB.instance.put<dynamic>(
+      boxName: walletId,
+      key: "paynymNotificationTxInfo",
+      value: data,
+    );
   }
 }
 

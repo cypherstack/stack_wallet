@@ -204,7 +204,7 @@ class DogecoinWallet extends CoinServiceAPI {
   @override
   Future<String> get currentReceivingAddress =>
       _currentReceivingAddressP2PKH ??=
-          _getCurrentAddressForChain(0, DerivePathType.bip44);
+          getCurrentAddressForChain(0, DerivePathType.bip44);
 
   Future<String>? _currentReceivingAddressP2PKH;
 
@@ -776,7 +776,7 @@ class DogecoinWallet extends CoinServiceAPI {
         }
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
-        await _checkChangeAddressForTransactions(DerivePathType.bip44);
+        await checkChangeAddressForTransactions(DerivePathType.bip44);
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
@@ -1446,7 +1446,7 @@ class DogecoinWallet extends CoinServiceAPI {
   /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
   /// and
   /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<String> _getCurrentAddressForChain(
+  Future<String> getCurrentAddressForChain(
       int chain, DerivePathType derivePathType) async {
     // Here, we assume that chain == 1 if it isn't 0
     String arrayKey = chain == 0 ? "receivingAddresses" : "changeAddresses";
@@ -1801,7 +1801,7 @@ class DogecoinWallet extends CoinServiceAPI {
       DerivePathType derivePathType) async {
     try {
       final String currentExternalAddr =
-          await _getCurrentAddressForChain(0, derivePathType);
+          await getCurrentAddressForChain(0, derivePathType);
       final int txCount = await getTxCount(address: currentExternalAddr);
       Logging.instance.log(
           'Number of txs for current receiving address $currentExternalAddr: $txCount',
@@ -1850,11 +1850,11 @@ class DogecoinWallet extends CoinServiceAPI {
     }
   }
 
-  Future<void> _checkChangeAddressForTransactions(
+  Future<void> checkChangeAddressForTransactions(
       DerivePathType derivePathType) async {
     try {
       final String currentExternalAddr =
-          await _getCurrentAddressForChain(1, derivePathType);
+          await getCurrentAddressForChain(1, derivePathType);
       final int txCount = await getTxCount(address: currentExternalAddr);
       Logging.instance.log(
           'Number of txs for current change address $currentExternalAddr: $txCount',
@@ -1916,7 +1916,7 @@ class DogecoinWallet extends CoinServiceAPI {
   Future<void> _checkCurrentChangeAddressesForTransactions() async {
     try {
       for (final type in DerivePathType.values) {
-        await _checkChangeAddressForTransactions(type);
+        await checkChangeAddressForTransactions(type);
       }
     } catch (e, s) {
       Logging.instance.log(
@@ -2480,7 +2480,7 @@ class DogecoinWallet extends CoinServiceAPI {
       utxoSigningData: utxoSigningData,
       recipients: [
         _recipientAddress,
-        await _getCurrentAddressForChain(1, DerivePathType.bip44),
+        await getCurrentAddressForChain(1, DerivePathType.bip44),
       ],
       satoshiAmounts: [
         satoshiAmountToSend,
@@ -2532,9 +2532,9 @@ class DogecoinWallet extends CoinServiceAPI {
             satoshisBeingUsed - satoshiAmountToSend - changeOutputSize ==
                 feeForTwoOutputs) {
           // generate new change address if current change address has been used
-          await _checkChangeAddressForTransactions(DerivePathType.bip44);
+          await checkChangeAddressForTransactions(DerivePathType.bip44);
           final String newChangeAddress =
-              await _getCurrentAddressForChain(1, DerivePathType.bip44);
+              await getCurrentAddressForChain(1, DerivePathType.bip44);
 
           int feeBeingPaid =
               satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
@@ -2685,7 +2685,7 @@ class DogecoinWallet extends CoinServiceAPI {
       };
       return transactionObject;
     } else {
-      // Remember that returning 2 indicates that the user does not have a sufficient balance to
+      // Remember that returning 2 iTndicates that the user does not have a sufficient balance to
       // pay for the transaction fee. Ideally, at this stage, we should check if the user has any
       // additional outputs they're able to spend and then recalculate fees.
       Logging.instance.log(
