@@ -70,15 +70,13 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
     switch (coin) {
       case Coin.epicCash:
         try {
-
-            testPassed =  await testEpicNodeConnection(
-              NodeFormData()
-                ..host = node!.host
-                ..useSSL = node.useSSL
-                ..port = node.port,
-            ) !=
-                null;
-
+          testPassed = await testEpicNodeConnection(
+                NodeFormData()
+                  ..host = node!.host
+                  ..useSSL = node.useSSL
+                  ..port = node.port,
+              ) !=
+              null;
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
           testPassed = false;
