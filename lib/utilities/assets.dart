@@ -33,6 +33,7 @@ class _SVG {
     switch (Theme.of(context).extension<StackColors>()!.themeType) {
       case ThemeType.light:
       case ThemeType.dark:
+      case ThemeType.oledBlack:
         return null;
 
       case ThemeType.oceanBreeze:
