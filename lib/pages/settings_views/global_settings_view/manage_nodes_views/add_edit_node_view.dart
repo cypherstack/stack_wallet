@@ -328,6 +328,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           enabled: true,
           coinName: coin.name,
           isFailover: formData.isFailover!,
+          trusted: formData.trusted!,
           isDown: false,
         );
 
@@ -352,6 +353,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           enabled: true,
           coinName: coin.name,
           isFailover: formData.isFailover!,
+          trusted: formData.trusted!,
           isDown: false,
         );
 
@@ -621,11 +623,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 class NodeFormData {
   String? name, host, login, password;
   int? port;
-  bool? useSSL, isFailover;
+  bool? useSSL, isFailover, trusted;
 
   @override
   String toString() {
-    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL }";
+    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted }";
   }
 }
 
@@ -666,8 +668,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
   bool _useSSL = false;
   bool _isFailover = false;
+  bool _trusted = false;
   int? port;
   late bool enableSSLCheckbox;
+  late bool trustedCheckbox;
 
   late final bool enableAuthFields;
 
@@ -733,6 +737,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     ref.read(nodeFormDataProvider).port = port;
     ref.read(nodeFormDataProvider).useSSL = _useSSL;
     ref.read(nodeFormDataProvider).isFailover = _isFailover;
+    ref.read(nodeFormDataProvider).trusted = _trusted;
   }
 
   @override
@@ -764,12 +769,17 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _usernameController.text = node.loginName ?? "";
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
+      _trusted = node.trusted ?? false;
       if (widget.coin == Coin.epicCash) {
         enableSSLCheckbox = !node.host.startsWith("http");
       } else {
         enableSSLCheckbox = true;
       }
-      print("enableSSLCheckbox: $enableSSLCheckbox");
+      if (widget.coin == Coin.monero || widget.coin == Coin.wownero) {
+        trustedCheckbox = node.trusted ?? false;
+      } else {
+        trustedCheckbox = false;
+      }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
@@ -1098,6 +1108,57 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       ),
                       Text(
                         "Use SSL",
+                        style: STextStyles.itemSubtitle12(context),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        if (widget.coin == Coin.monero || widget.coin == Coin.wownero)
+          Row(
+            children: [
+              GestureDetector(
+                onTap: trustedCheckbox
+                    ? () {
+                        setState(() {
+                          _trusted = !_trusted;
+                        });
+                        _updateState();
+                      }
+                    : null,
+                child: Container(
+                  color: Colors.transparent,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Checkbox(
+                          fillColor: trustedCheckbox
+                              ? null
+                              : MaterialStateProperty.all(Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .checkboxBGDisabled),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          value: _trusted,
+                          onChanged: trustedCheckbox
+                              ? (newValue) {
+                                  setState(() {
+                                    _trusted = newValue!;
+                                  });
+                                  _updateState();
+                                }
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Text(
+                        "Trusted",
                         style: STextStyles.itemSubtitle12(context),
                       )
                     ],
