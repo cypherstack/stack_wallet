@@ -135,6 +135,8 @@ class _SVG {
   String get thickX => "assets/svg/x-fat.svg";
   String get x => "assets/svg/x.svg";
   String get user => "assets/svg/user.svg";
+  String get userPlus => "assets/svg/user-plus.svg";
+  String get userMinus => "assets/svg/user-minus.svg";
   String get trash => "assets/svg/trash.svg";
   String get eye => "assets/svg/eye.svg";
   String get eyeSlash => "assets/svg/eye-slash.svg";

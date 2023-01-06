@@ -260,6 +260,8 @@ flutter:
     - assets/svg/x.svg
     - assets/svg/x-fat.svg
     - assets/svg/user.svg
+    - assets/svg/user-plus.svg
+    - assets/svg/user-minus.svg
     - assets/svg/trash.svg
     - assets/svg/eye.svg
     - assets/svg/eye-slash.svg
