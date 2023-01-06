@@ -1250,7 +1250,7 @@ class STextStyles {
         );
       case ThemeType.oledBlack:
         return GoogleFonts.inter(
-          color: _theme(context).buttonTextPrimaryDisabled,
+          color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
           fontSize: 18,
           height: 27 / 18,
