@@ -161,6 +161,17 @@ class NodeService extends ChangeNotifier {
     String? password,
     bool shouldNotifyListeners,
   ) async {
+    // check if the node being edited is the primary one; if it is, setPrimaryNodeFor coin
+    final coin = coinFromPrettyName(editedNode.coinName);
+    var primaryNode = getPrimaryNodeFor(coin: coin);
+    if (primaryNode?.id == editedNode.id) {
+      await setPrimaryNodeFor(
+        coin: coin,
+        node: editedNode,
+        shouldNotifyListeners: true,
+      );
+    }
+
     return add(editedNode, password, shouldNotifyListeners);
   }
 
