@@ -1297,7 +1297,8 @@ class BitcoinWallet extends CoinServiceAPI {
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
@@ -2502,7 +2503,7 @@ class BitcoinWallet extends CoinServiceAPI {
 
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["address"] as String?;
+            final address = getAddress(out) as String?;
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2513,7 +2514,7 @@ class BitcoinWallet extends CoinServiceAPI {
       Logging.instance.log("sendersArray: $sendersArray", level: LogLevel.Info);
 
       for (final output in txObject["vout"] as List) {
-        final address = output["scriptPubKey"]["address"] as String?;
+        final address = getAddress(output);
         if (address != null) {
           recipientsArray.add(address);
         }
@@ -2553,7 +2554,7 @@ class BitcoinWallet extends CoinServiceAPI {
         int totalOutput = 0;
 
         for (final output in txObject["vout"] as List) {
-          final String address = output["scriptPubKey"]!["address"] as String;
+          final String address = getAddress(output) as String;
           final value = output["value"]!;
           final _value = (Decimal.parse(value.toString()) *
                   Decimal.fromInt(Constants.satsPerCoin(coin)))
@@ -2578,7 +2579,7 @@ class BitcoinWallet extends CoinServiceAPI {
 
         // add up received tx value
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["address"];
+          final address = getAddress(output);
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
                     Decimal.fromInt(Constants.satsPerCoin(coin)))
@@ -3095,7 +3096,7 @@ class BitcoinWallet extends CoinServiceAPI {
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["address"] as String;
+            final address = getAddress(output) as String;
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
             }

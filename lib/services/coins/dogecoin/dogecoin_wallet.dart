@@ -1064,7 +1064,8 @@ class DogecoinWallet extends CoinServiceAPI {
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
@@ -2113,7 +2114,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["addresses"][0] as String?;
+            final address = getAddress(out);
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2124,7 +2125,7 @@ class DogecoinWallet extends CoinServiceAPI {
       Logging.instance.log("sendersArray: $sendersArray", level: LogLevel.Info);
 
       for (final output in txObject["vout"] as List) {
-        final address = output["scriptPubKey"]["addresses"][0] as String?;
+        final address = getAddress(output);
         if (address != null) {
           recipientsArray.add(address);
         }
@@ -2164,7 +2165,7 @@ class DogecoinWallet extends CoinServiceAPI {
         int totalOutput = 0;
 
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["addresses"][0];
+          final address = getAddress(output);
           final value = output["value"];
           final _value = (Decimal.parse(value.toString()) *
                   Decimal.fromInt(Constants.satsPerCoin(coin)))
@@ -2189,7 +2190,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
         // add up received tx value
         for (final output in txObject["vout"] as List) {
-          final address = output["scriptPubKey"]["addresses"][0];
+          final address = getAddress(output);
           if (address != null) {
             final value = (Decimal.parse(output["value"].toString()) *
                     Decimal.fromInt(Constants.satsPerCoin(coin)))
@@ -2712,7 +2713,7 @@ class DogecoinWallet extends CoinServiceAPI {
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["addresses"][0] as String;
+            final address = getAddress(output) as String;
             if (!addressTxid.containsKey(address)) {
               addressTxid[address] = <String>[];
             }
